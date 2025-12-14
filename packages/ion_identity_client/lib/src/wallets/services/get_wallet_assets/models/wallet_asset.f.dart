@@ -18,21 +18,22 @@ part 'wallet_asset.f.g.dart';
 sealed class WalletAsset with _$WalletAsset {
   @FreezedUnionValue('Native')
   const factory WalletAsset.native({
-    required String symbol,
     required int decimals,
     @StringOrIntConverter() required String balance,
     required String kind,
+    String? symbol,
+    String? contract,
     bool? verified,
     String? name,
   }) = _WalletAssetNative;
 
   @FreezedUnionValue('Erc20')
   const factory WalletAsset.erc20({
-    required String symbol,
     required int decimals,
     @StringOrIntConverter() required String balance,
     required String kind,
     bool? verified,
+    String? symbol,
     String? contract,
     String? name,
   }) = _WalletAssetErc20;
@@ -40,21 +41,21 @@ sealed class WalletAsset with _$WalletAsset {
   @FreezedUnionValue('Asa')
   const factory WalletAsset.asa({
     required String assetId,
-    required String symbol,
     required int decimals,
     required bool verified,
     @StringOrIntConverter() required String balance,
     required String kind,
+    String? symbol,
     String? name,
   }) = _WalletAssetAsa;
 
   @FreezedUnionValue('Spl')
   const factory WalletAsset.spl({
     required String mint,
-    required String symbol,
     required int decimals,
     @StringOrIntConverter() required String balance,
     required String kind,
+    String? symbol,
     String? name,
   }) = _WalletAssetSpl;
 
@@ -120,10 +121,10 @@ sealed class WalletAsset with _$WalletAsset {
   }) = _WalletAssetAip21;
 
   const factory WalletAsset.unknown({
-    required String symbol,
     required int decimals,
     @StringOrIntConverter() required String balance,
     required String kind,
+    String? symbol,
     String? contract,
     String? master,
     String? name,

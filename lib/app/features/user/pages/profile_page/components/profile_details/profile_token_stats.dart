@@ -8,6 +8,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
@@ -115,6 +116,7 @@ class ProfileTokenStats extends ConsumerWidget {
                 context: context,
                 child: TradeCommunityTokenDialog(
                   externalAddress: externalAddress,
+                  externalAddressType: const ExternalAddressType.ionConnectUser(),
                   mode: CommunityTokenTradeMode.buy,
                 ),
               );
@@ -407,6 +409,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
               context: context,
               child: TradeCommunityTokenDialog(
                 externalAddress: externalAddress,
+                externalAddressType: const ExternalAddressType.ionConnectUser(),
                 mode: CommunityTokenTradeMode.buy,
               ),
             ),

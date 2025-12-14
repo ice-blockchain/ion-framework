@@ -44,42 +44,48 @@ WalletAsset _$WalletAssetFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$WalletAsset {
-  String get symbol => throw _privateConstructorUsedError;
   int get decimals => throw _privateConstructorUsedError;
   @StringOrIntConverter()
   String get balance => throw _privateConstructorUsedError;
   String get kind => throw _privateConstructorUsedError;
+  String? get symbol => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -111,10 +117,10 @@ mixin _$WalletAsset {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -128,33 +134,39 @@ mixin _$WalletAsset {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -186,10 +198,10 @@ mixin _$WalletAsset {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -203,27 +215,39 @@ mixin _$WalletAsset {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -255,10 +279,10 @@ mixin _$WalletAsset {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -334,10 +358,10 @@ abstract class $WalletAssetCopyWith<$Res> {
       _$WalletAssetCopyWithImpl<$Res, WalletAsset>;
   @useResult
   $Res call(
-      {String symbol,
-      int decimals,
+      {int decimals,
       @StringOrIntConverter() String balance,
       String kind,
+      String symbol,
       String? name});
 }
 
@@ -356,17 +380,13 @@ class _$WalletAssetCopyWithImpl<$Res, $Val extends WalletAsset>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? symbol = null,
     Object? decimals = null,
     Object? balance = null,
     Object? kind = null,
+    Object? symbol = null,
     Object? name = freezed,
   }) {
     return _then(_value.copyWith(
-      symbol: null == symbol
-          ? _value.symbol
-          : symbol // ignore: cast_nullable_to_non_nullable
-              as String,
       decimals: null == decimals
           ? _value.decimals
           : decimals // ignore: cast_nullable_to_non_nullable
@@ -378,6 +398,10 @@ class _$WalletAssetCopyWithImpl<$Res, $Val extends WalletAsset>
       kind: null == kind
           ? _value.kind
           : kind // ignore: cast_nullable_to_non_nullable
+              as String,
+      symbol: null == symbol
+          ? _value.symbol!
+          : symbol // ignore: cast_nullable_to_non_nullable
               as String,
       name: freezed == name
           ? _value.name
@@ -396,10 +420,11 @@ abstract class _$$WalletAssetNativeImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String symbol,
-      int decimals,
+      {int decimals,
       @StringOrIntConverter() String balance,
       String kind,
+      String? symbol,
+      String? contract,
       bool? verified,
       String? name});
 }
@@ -417,18 +442,15 @@ class __$$WalletAssetNativeImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? symbol = null,
     Object? decimals = null,
     Object? balance = null,
     Object? kind = null,
+    Object? symbol = freezed,
+    Object? contract = freezed,
     Object? verified = freezed,
     Object? name = freezed,
   }) {
     return _then(_$WalletAssetNativeImpl(
-      symbol: null == symbol
-          ? _value.symbol
-          : symbol // ignore: cast_nullable_to_non_nullable
-              as String,
       decimals: null == decimals
           ? _value.decimals
           : decimals // ignore: cast_nullable_to_non_nullable
@@ -441,6 +463,14 @@ class __$$WalletAssetNativeImplCopyWithImpl<$Res>
           ? _value.kind
           : kind // ignore: cast_nullable_to_non_nullable
               as String,
+      symbol: freezed == symbol
+          ? _value.symbol
+          : symbol // ignore: cast_nullable_to_non_nullable
+              as String?,
+      contract: freezed == contract
+          ? _value.contract
+          : contract // ignore: cast_nullable_to_non_nullable
+              as String?,
       verified: freezed == verified
           ? _value.verified
           : verified // ignore: cast_nullable_to_non_nullable
@@ -457,10 +487,11 @@ class __$$WalletAssetNativeImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$WalletAssetNativeImpl extends _WalletAssetNative {
   const _$WalletAssetNativeImpl(
-      {required this.symbol,
-      required this.decimals,
+      {required this.decimals,
       @StringOrIntConverter() required this.balance,
       required this.kind,
+      this.symbol,
+      this.contract,
       this.verified,
       this.name})
       : super._();
@@ -469,8 +500,6 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
       _$$WalletAssetNativeImplFromJson(json);
 
   @override
-  final String symbol;
-  @override
   final int decimals;
   @override
   @StringOrIntConverter()
@@ -478,13 +507,17 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
   @override
   final String kind;
   @override
+  final String? symbol;
+  @override
+  final String? contract;
+  @override
   final bool? verified;
   @override
   final String? name;
 
   @override
   String toString() {
-    return 'WalletAsset.native(symbol: $symbol, decimals: $decimals, balance: $balance, kind: $kind, verified: $verified, name: $name)';
+    return 'WalletAsset.native(decimals: $decimals, balance: $balance, kind: $kind, symbol: $symbol, contract: $contract, verified: $verified, name: $name)';
   }
 
   @override
@@ -492,11 +525,13 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$WalletAssetNativeImpl &&
-            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.decimals, decimals) ||
                 other.decimals == decimals) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.kind, kind) || other.kind == kind) &&
+            (identical(other.symbol, symbol) || other.symbol == symbol) &&
+            (identical(other.contract, contract) ||
+                other.contract == contract) &&
             (identical(other.verified, verified) ||
                 other.verified == verified) &&
             (identical(other.name, name) || other.name == name));
@@ -504,8 +539,8 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, symbol, decimals, balance, kind, verified, name);
+  int get hashCode => Object.hash(
+      runtimeType, decimals, balance, kind, symbol, contract, verified, name);
 
   /// Create a copy of WalletAsset
   /// with the given fields replaced by the non-null parameter values.
@@ -520,33 +555,39 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -578,10 +619,10 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -591,40 +632,46 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
             bool? verified)
         unknown,
   }) {
-    return native(symbol, decimals, balance, kind, verified, name);
+    return native(decimals, balance, kind, symbol, contract, verified, name);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -656,10 +703,10 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -669,34 +716,47 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
             bool? verified)?
         unknown,
   }) {
-    return native?.call(symbol, decimals, balance, kind, verified, name);
+    return native?.call(
+        decimals, balance, kind, symbol, contract, verified, name);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -728,10 +788,10 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -743,7 +803,7 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
     required TResult orElse(),
   }) {
     if (native != null) {
-      return native(symbol, decimals, balance, kind, verified, name);
+      return native(decimals, balance, kind, symbol, contract, verified, name);
     }
     return orElse();
   }
@@ -816,10 +876,11 @@ class _$WalletAssetNativeImpl extends _WalletAssetNative {
 
 abstract class _WalletAssetNative extends WalletAsset {
   const factory _WalletAssetNative(
-      {required final String symbol,
-      required final int decimals,
+      {required final int decimals,
       @StringOrIntConverter() required final String balance,
       required final String kind,
+      final String? symbol,
+      final String? contract,
       final bool? verified,
       final String? name}) = _$WalletAssetNativeImpl;
   const _WalletAssetNative._() : super._();
@@ -828,14 +889,15 @@ abstract class _WalletAssetNative extends WalletAsset {
       _$WalletAssetNativeImpl.fromJson;
 
   @override
-  String get symbol;
-  @override
   int get decimals;
   @override
   @StringOrIntConverter()
   String get balance;
   @override
   String get kind;
+  @override
+  String? get symbol;
+  String? get contract;
   bool? get verified;
   @override
   String? get name;
@@ -857,11 +919,11 @@ abstract class _$$WalletAssetErc20ImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String symbol,
-      int decimals,
+      {int decimals,
       @StringOrIntConverter() String balance,
       String kind,
       bool? verified,
+      String? symbol,
       String? contract,
       String? name});
 }
@@ -879,19 +941,15 @@ class __$$WalletAssetErc20ImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? symbol = null,
     Object? decimals = null,
     Object? balance = null,
     Object? kind = null,
     Object? verified = freezed,
+    Object? symbol = freezed,
     Object? contract = freezed,
     Object? name = freezed,
   }) {
     return _then(_$WalletAssetErc20Impl(
-      symbol: null == symbol
-          ? _value.symbol
-          : symbol // ignore: cast_nullable_to_non_nullable
-              as String,
       decimals: null == decimals
           ? _value.decimals
           : decimals // ignore: cast_nullable_to_non_nullable
@@ -908,6 +966,10 @@ class __$$WalletAssetErc20ImplCopyWithImpl<$Res>
           ? _value.verified
           : verified // ignore: cast_nullable_to_non_nullable
               as bool?,
+      symbol: freezed == symbol
+          ? _value.symbol
+          : symbol // ignore: cast_nullable_to_non_nullable
+              as String?,
       contract: freezed == contract
           ? _value.contract
           : contract // ignore: cast_nullable_to_non_nullable
@@ -924,11 +986,11 @@ class __$$WalletAssetErc20ImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
   const _$WalletAssetErc20Impl(
-      {required this.symbol,
-      required this.decimals,
+      {required this.decimals,
       @StringOrIntConverter() required this.balance,
       required this.kind,
       this.verified,
+      this.symbol,
       this.contract,
       this.name})
       : super._();
@@ -936,8 +998,6 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
   factory _$WalletAssetErc20Impl.fromJson(Map<String, dynamic> json) =>
       _$$WalletAssetErc20ImplFromJson(json);
 
-  @override
-  final String symbol;
   @override
   final int decimals;
   @override
@@ -948,13 +1008,15 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
   @override
   final bool? verified;
   @override
+  final String? symbol;
+  @override
   final String? contract;
   @override
   final String? name;
 
   @override
   String toString() {
-    return 'WalletAsset.erc20(symbol: $symbol, decimals: $decimals, balance: $balance, kind: $kind, verified: $verified, contract: $contract, name: $name)';
+    return 'WalletAsset.erc20(decimals: $decimals, balance: $balance, kind: $kind, verified: $verified, symbol: $symbol, contract: $contract, name: $name)';
   }
 
   @override
@@ -962,13 +1024,13 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$WalletAssetErc20Impl &&
-            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.decimals, decimals) ||
                 other.decimals == decimals) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.kind, kind) || other.kind == kind) &&
             (identical(other.verified, verified) ||
                 other.verified == verified) &&
+            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.contract, contract) ||
                 other.contract == contract) &&
             (identical(other.name, name) || other.name == name));
@@ -977,7 +1039,7 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, symbol, decimals, balance, kind, verified, contract, name);
+      runtimeType, decimals, balance, kind, verified, symbol, contract, name);
 
   /// Create a copy of WalletAsset
   /// with the given fields replaced by the non-null parameter values.
@@ -992,33 +1054,39 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -1050,10 +1118,10 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -1063,40 +1131,46 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
             bool? verified)
         unknown,
   }) {
-    return erc20(symbol, decimals, balance, kind, verified, contract, name);
+    return erc20(decimals, balance, kind, verified, symbol, contract, name);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -1128,10 +1202,10 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -1142,34 +1216,46 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
         unknown,
   }) {
     return erc20?.call(
-        symbol, decimals, balance, kind, verified, contract, name);
+        decimals, balance, kind, verified, symbol, contract, name);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -1201,10 +1287,10 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -1216,7 +1302,7 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
     required TResult orElse(),
   }) {
     if (erc20 != null) {
-      return erc20(symbol, decimals, balance, kind, verified, contract, name);
+      return erc20(decimals, balance, kind, verified, symbol, contract, name);
     }
     return orElse();
   }
@@ -1289,11 +1375,11 @@ class _$WalletAssetErc20Impl extends _WalletAssetErc20 {
 
 abstract class _WalletAssetErc20 extends WalletAsset {
   const factory _WalletAssetErc20(
-      {required final String symbol,
-      required final int decimals,
+      {required final int decimals,
       @StringOrIntConverter() required final String balance,
       required final String kind,
       final bool? verified,
+      final String? symbol,
       final String? contract,
       final String? name}) = _$WalletAssetErc20Impl;
   const _WalletAssetErc20._() : super._();
@@ -1302,8 +1388,6 @@ abstract class _WalletAssetErc20 extends WalletAsset {
       _$WalletAssetErc20Impl.fromJson;
 
   @override
-  String get symbol;
-  @override
   int get decimals;
   @override
   @StringOrIntConverter()
@@ -1311,6 +1395,8 @@ abstract class _WalletAssetErc20 extends WalletAsset {
   @override
   String get kind;
   bool? get verified;
+  @override
+  String? get symbol;
   String? get contract;
   @override
   String? get name;
@@ -1333,11 +1419,11 @@ abstract class _$$WalletAssetAsaImplCopyWith<$Res>
   @useResult
   $Res call(
       {String assetId,
-      String symbol,
       int decimals,
       bool verified,
       @StringOrIntConverter() String balance,
       String kind,
+      String? symbol,
       String? name});
 }
 
@@ -1355,21 +1441,17 @@ class __$$WalletAssetAsaImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? assetId = null,
-    Object? symbol = null,
     Object? decimals = null,
     Object? verified = null,
     Object? balance = null,
     Object? kind = null,
+    Object? symbol = freezed,
     Object? name = freezed,
   }) {
     return _then(_$WalletAssetAsaImpl(
       assetId: null == assetId
           ? _value.assetId
           : assetId // ignore: cast_nullable_to_non_nullable
-              as String,
-      symbol: null == symbol
-          ? _value.symbol
-          : symbol // ignore: cast_nullable_to_non_nullable
               as String,
       decimals: null == decimals
           ? _value.decimals
@@ -1387,6 +1469,10 @@ class __$$WalletAssetAsaImplCopyWithImpl<$Res>
           ? _value.kind
           : kind // ignore: cast_nullable_to_non_nullable
               as String,
+      symbol: freezed == symbol
+          ? _value.symbol
+          : symbol // ignore: cast_nullable_to_non_nullable
+              as String?,
       name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -1400,11 +1486,11 @@ class __$$WalletAssetAsaImplCopyWithImpl<$Res>
 class _$WalletAssetAsaImpl extends _WalletAssetAsa {
   const _$WalletAssetAsaImpl(
       {required this.assetId,
-      required this.symbol,
       required this.decimals,
       required this.verified,
       @StringOrIntConverter() required this.balance,
       required this.kind,
+      this.symbol,
       this.name})
       : super._();
 
@@ -1413,8 +1499,6 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
 
   @override
   final String assetId;
-  @override
-  final String symbol;
   @override
   final int decimals;
   @override
@@ -1425,11 +1509,13 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
   @override
   final String kind;
   @override
+  final String? symbol;
+  @override
   final String? name;
 
   @override
   String toString() {
-    return 'WalletAsset.asa(assetId: $assetId, symbol: $symbol, decimals: $decimals, verified: $verified, balance: $balance, kind: $kind, name: $name)';
+    return 'WalletAsset.asa(assetId: $assetId, decimals: $decimals, verified: $verified, balance: $balance, kind: $kind, symbol: $symbol, name: $name)';
   }
 
   @override
@@ -1438,20 +1524,20 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
         (other.runtimeType == runtimeType &&
             other is _$WalletAssetAsaImpl &&
             (identical(other.assetId, assetId) || other.assetId == assetId) &&
-            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.decimals, decimals) ||
                 other.decimals == decimals) &&
             (identical(other.verified, verified) ||
                 other.verified == verified) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.kind, kind) || other.kind == kind) &&
+            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.name, name) || other.name == name));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, assetId, symbol, decimals, verified, balance, kind, name);
+      runtimeType, assetId, decimals, verified, balance, kind, symbol, name);
 
   /// Create a copy of WalletAsset
   /// with the given fields replaced by the non-null parameter values.
@@ -1466,33 +1552,39 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -1524,10 +1616,10 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -1537,40 +1629,46 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
             bool? verified)
         unknown,
   }) {
-    return asa(assetId, symbol, decimals, verified, balance, kind, name);
+    return asa(assetId, decimals, verified, balance, kind, symbol, name);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -1602,10 +1700,10 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -1615,34 +1713,46 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
             bool? verified)?
         unknown,
   }) {
-    return asa?.call(assetId, symbol, decimals, verified, balance, kind, name);
+    return asa?.call(assetId, decimals, verified, balance, kind, symbol, name);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -1674,10 +1784,10 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -1689,7 +1799,7 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
     required TResult orElse(),
   }) {
     if (asa != null) {
-      return asa(assetId, symbol, decimals, verified, balance, kind, name);
+      return asa(assetId, decimals, verified, balance, kind, symbol, name);
     }
     return orElse();
   }
@@ -1763,11 +1873,11 @@ class _$WalletAssetAsaImpl extends _WalletAssetAsa {
 abstract class _WalletAssetAsa extends WalletAsset {
   const factory _WalletAssetAsa(
       {required final String assetId,
-      required final String symbol,
       required final int decimals,
       required final bool verified,
       @StringOrIntConverter() required final String balance,
       required final String kind,
+      final String? symbol,
       final String? name}) = _$WalletAssetAsaImpl;
   const _WalletAssetAsa._() : super._();
 
@@ -1776,8 +1886,6 @@ abstract class _WalletAssetAsa extends WalletAsset {
 
   String get assetId;
   @override
-  String get symbol;
-  @override
   int get decimals;
   bool get verified;
   @override
@@ -1785,6 +1893,8 @@ abstract class _WalletAssetAsa extends WalletAsset {
   String get balance;
   @override
   String get kind;
+  @override
+  String? get symbol;
   @override
   String? get name;
 
@@ -1806,10 +1916,10 @@ abstract class _$$WalletAssetSplImplCopyWith<$Res>
   @useResult
   $Res call(
       {String mint,
-      String symbol,
       int decimals,
       @StringOrIntConverter() String balance,
       String kind,
+      String? symbol,
       String? name});
 }
 
@@ -1827,20 +1937,16 @@ class __$$WalletAssetSplImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? mint = null,
-    Object? symbol = null,
     Object? decimals = null,
     Object? balance = null,
     Object? kind = null,
+    Object? symbol = freezed,
     Object? name = freezed,
   }) {
     return _then(_$WalletAssetSplImpl(
       mint: null == mint
           ? _value.mint
           : mint // ignore: cast_nullable_to_non_nullable
-              as String,
-      symbol: null == symbol
-          ? _value.symbol
-          : symbol // ignore: cast_nullable_to_non_nullable
               as String,
       decimals: null == decimals
           ? _value.decimals
@@ -1854,6 +1960,10 @@ class __$$WalletAssetSplImplCopyWithImpl<$Res>
           ? _value.kind
           : kind // ignore: cast_nullable_to_non_nullable
               as String,
+      symbol: freezed == symbol
+          ? _value.symbol
+          : symbol // ignore: cast_nullable_to_non_nullable
+              as String?,
       name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -1867,10 +1977,10 @@ class __$$WalletAssetSplImplCopyWithImpl<$Res>
 class _$WalletAssetSplImpl extends _WalletAssetSpl {
   const _$WalletAssetSplImpl(
       {required this.mint,
-      required this.symbol,
       required this.decimals,
       @StringOrIntConverter() required this.balance,
       required this.kind,
+      this.symbol,
       this.name})
       : super._();
 
@@ -1880,8 +1990,6 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
   @override
   final String mint;
   @override
-  final String symbol;
-  @override
   final int decimals;
   @override
   @StringOrIntConverter()
@@ -1889,11 +1997,13 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
   @override
   final String kind;
   @override
+  final String? symbol;
+  @override
   final String? name;
 
   @override
   String toString() {
-    return 'WalletAsset.spl(mint: $mint, symbol: $symbol, decimals: $decimals, balance: $balance, kind: $kind, name: $name)';
+    return 'WalletAsset.spl(mint: $mint, decimals: $decimals, balance: $balance, kind: $kind, symbol: $symbol, name: $name)';
   }
 
   @override
@@ -1902,18 +2012,18 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
         (other.runtimeType == runtimeType &&
             other is _$WalletAssetSplImpl &&
             (identical(other.mint, mint) || other.mint == mint) &&
-            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.decimals, decimals) ||
                 other.decimals == decimals) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.kind, kind) || other.kind == kind) &&
+            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.name, name) || other.name == name));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, mint, symbol, decimals, balance, kind, name);
+      Object.hash(runtimeType, mint, decimals, balance, kind, symbol, name);
 
   /// Create a copy of WalletAsset
   /// with the given fields replaced by the non-null parameter values.
@@ -1928,33 +2038,39 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -1986,10 +2102,10 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -1999,40 +2115,46 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
             bool? verified)
         unknown,
   }) {
-    return spl(mint, symbol, decimals, balance, kind, name);
+    return spl(mint, decimals, balance, kind, symbol, name);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -2064,10 +2186,10 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -2077,34 +2199,46 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
             bool? verified)?
         unknown,
   }) {
-    return spl?.call(mint, symbol, decimals, balance, kind, name);
+    return spl?.call(mint, decimals, balance, kind, symbol, name);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -2136,10 +2270,10 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -2151,7 +2285,7 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
     required TResult orElse(),
   }) {
     if (spl != null) {
-      return spl(mint, symbol, decimals, balance, kind, name);
+      return spl(mint, decimals, balance, kind, symbol, name);
     }
     return orElse();
   }
@@ -2225,10 +2359,10 @@ class _$WalletAssetSplImpl extends _WalletAssetSpl {
 abstract class _WalletAssetSpl extends WalletAsset {
   const factory _WalletAssetSpl(
       {required final String mint,
-      required final String symbol,
       required final int decimals,
       @StringOrIntConverter() required final String balance,
       required final String kind,
+      final String? symbol,
       final String? name}) = _$WalletAssetSplImpl;
   const _WalletAssetSpl._() : super._();
 
@@ -2237,14 +2371,14 @@ abstract class _WalletAssetSpl extends WalletAsset {
 
   String get mint;
   @override
-  String get symbol;
-  @override
   int get decimals;
   @override
   @StringOrIntConverter()
   String get balance;
   @override
   String get kind;
+  @override
+  String? get symbol;
   @override
   String? get name;
 
@@ -2388,33 +2522,39 @@ class _$WalletAssetSpl2022Impl extends _WalletAssetSpl2022 {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -2446,10 +2586,10 @@ class _$WalletAssetSpl2022Impl extends _WalletAssetSpl2022 {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -2466,33 +2606,39 @@ class _$WalletAssetSpl2022Impl extends _WalletAssetSpl2022 {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -2524,10 +2670,10 @@ class _$WalletAssetSpl2022Impl extends _WalletAssetSpl2022 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -2544,27 +2690,39 @@ class _$WalletAssetSpl2022Impl extends _WalletAssetSpl2022 {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -2596,10 +2754,10 @@ class _$WalletAssetSpl2022Impl extends _WalletAssetSpl2022 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -2859,33 +3017,39 @@ class _$WalletAssetSep41Impl extends _WalletAssetSep41 {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -2917,10 +3081,10 @@ class _$WalletAssetSep41Impl extends _WalletAssetSep41 {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -2937,33 +3101,39 @@ class _$WalletAssetSep41Impl extends _WalletAssetSep41 {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -2995,10 +3165,10 @@ class _$WalletAssetSep41Impl extends _WalletAssetSep41 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -3016,27 +3186,39 @@ class _$WalletAssetSep41Impl extends _WalletAssetSep41 {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -3068,10 +3250,10 @@ class _$WalletAssetSep41Impl extends _WalletAssetSep41 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -3322,33 +3504,39 @@ class _$WalletAssetTep74Impl extends _WalletAssetTep74 {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -3380,10 +3568,10 @@ class _$WalletAssetTep74Impl extends _WalletAssetTep74 {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -3400,33 +3588,39 @@ class _$WalletAssetTep74Impl extends _WalletAssetTep74 {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -3458,10 +3652,10 @@ class _$WalletAssetTep74Impl extends _WalletAssetTep74 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -3478,27 +3672,39 @@ class _$WalletAssetTep74Impl extends _WalletAssetTep74 {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -3530,10 +3736,10 @@ class _$WalletAssetTep74Impl extends _WalletAssetTep74 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -3782,33 +3988,39 @@ class _$WalletAssetTrc10Impl extends _WalletAssetTrc10 {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -3840,10 +4052,10 @@ class _$WalletAssetTrc10Impl extends _WalletAssetTrc10 {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -3860,33 +4072,39 @@ class _$WalletAssetTrc10Impl extends _WalletAssetTrc10 {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -3918,10 +4136,10 @@ class _$WalletAssetTrc10Impl extends _WalletAssetTrc10 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -3938,27 +4156,39 @@ class _$WalletAssetTrc10Impl extends _WalletAssetTrc10 {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -3990,10 +4220,10 @@ class _$WalletAssetTrc10Impl extends _WalletAssetTrc10 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -4243,33 +4473,39 @@ class _$WalletAssetTrc20Impl extends _WalletAssetTrc20 {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -4301,10 +4537,10 @@ class _$WalletAssetTrc20Impl extends _WalletAssetTrc20 {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -4321,33 +4557,39 @@ class _$WalletAssetTrc20Impl extends _WalletAssetTrc20 {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -4379,10 +4621,10 @@ class _$WalletAssetTrc20Impl extends _WalletAssetTrc20 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -4399,27 +4641,39 @@ class _$WalletAssetTrc20Impl extends _WalletAssetTrc20 {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -4451,10 +4705,10 @@ class _$WalletAssetTrc20Impl extends _WalletAssetTrc20 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -4704,33 +4958,39 @@ class _$WalletAssetAip21Impl extends _WalletAssetAip21 {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -4762,10 +5022,10 @@ class _$WalletAssetAip21Impl extends _WalletAssetAip21 {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -4782,33 +5042,39 @@ class _$WalletAssetAip21Impl extends _WalletAssetAip21 {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -4840,10 +5106,10 @@ class _$WalletAssetAip21Impl extends _WalletAssetAip21 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -4860,27 +5126,39 @@ class _$WalletAssetAip21Impl extends _WalletAssetAip21 {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -4912,10 +5190,10 @@ class _$WalletAssetAip21Impl extends _WalletAssetAip21 {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -5041,10 +5319,10 @@ abstract class _$$WalletAssetUnknownImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String symbol,
-      int decimals,
+      {int decimals,
       @StringOrIntConverter() String balance,
       String kind,
+      String? symbol,
       String? contract,
       String? master,
       String? name,
@@ -5067,10 +5345,10 @@ class __$$WalletAssetUnknownImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? symbol = null,
     Object? decimals = null,
     Object? balance = null,
     Object? kind = null,
+    Object? symbol = freezed,
     Object? contract = freezed,
     Object? master = freezed,
     Object? name = freezed,
@@ -5080,10 +5358,6 @@ class __$$WalletAssetUnknownImplCopyWithImpl<$Res>
     Object? verified = freezed,
   }) {
     return _then(_$WalletAssetUnknownImpl(
-      symbol: null == symbol
-          ? _value.symbol
-          : symbol // ignore: cast_nullable_to_non_nullable
-              as String,
       decimals: null == decimals
           ? _value.decimals
           : decimals // ignore: cast_nullable_to_non_nullable
@@ -5096,6 +5370,10 @@ class __$$WalletAssetUnknownImplCopyWithImpl<$Res>
           ? _value.kind
           : kind // ignore: cast_nullable_to_non_nullable
               as String,
+      symbol: freezed == symbol
+          ? _value.symbol
+          : symbol // ignore: cast_nullable_to_non_nullable
+              as String?,
       contract: freezed == contract
           ? _value.contract
           : contract // ignore: cast_nullable_to_non_nullable
@@ -5132,10 +5410,10 @@ class __$$WalletAssetUnknownImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
   const _$WalletAssetUnknownImpl(
-      {required this.symbol,
-      required this.decimals,
+      {required this.decimals,
       @StringOrIntConverter() required this.balance,
       required this.kind,
+      this.symbol,
       this.contract,
       this.master,
       this.name,
@@ -5149,14 +5427,14 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
       _$$WalletAssetUnknownImplFromJson(json);
 
   @override
-  final String symbol;
-  @override
   final int decimals;
   @override
   @StringOrIntConverter()
   final String balance;
   @override
   final String kind;
+  @override
+  final String? symbol;
   @override
   final String? contract;
   @override
@@ -5174,7 +5452,7 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
 
   @override
   String toString() {
-    return 'WalletAsset.unknown(symbol: $symbol, decimals: $decimals, balance: $balance, kind: $kind, contract: $contract, master: $master, name: $name, assetId: $assetId, mint: $mint, tokenId: $tokenId, verified: $verified)';
+    return 'WalletAsset.unknown(decimals: $decimals, balance: $balance, kind: $kind, symbol: $symbol, contract: $contract, master: $master, name: $name, assetId: $assetId, mint: $mint, tokenId: $tokenId, verified: $verified)';
   }
 
   @override
@@ -5182,11 +5460,11 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$WalletAssetUnknownImpl &&
-            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.decimals, decimals) ||
                 other.decimals == decimals) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.kind, kind) || other.kind == kind) &&
+            (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.contract, contract) ||
                 other.contract == contract) &&
             (identical(other.master, master) || other.master == master) &&
@@ -5200,7 +5478,7 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, symbol, decimals, balance, kind,
+  int get hashCode => Object.hash(runtimeType, decimals, balance, kind, symbol,
       contract, master, name, assetId, mint, tokenId, verified);
 
   /// Create a copy of WalletAsset
@@ -5216,33 +5494,39 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)
         native,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)
         erc20,
     required TResult Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)
         asa,
-    required TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)
+    required TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)
         spl,
     required TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)
@@ -5274,10 +5558,10 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
             String kind, @StringOrIntConverter() String balance, String? name)
         aip21,
     required TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -5287,7 +5571,7 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
             bool? verified)
         unknown,
   }) {
-    return unknown(symbol, decimals, balance, kind, contract, master, name,
+    return unknown(decimals, balance, kind, symbol, contract, master, name,
         assetId, mint, tokenId, verified);
   }
 
@@ -5295,33 +5579,39 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
     TResult? Function(
             String assetId,
-            String symbol,
             int decimals,
             bool verified,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? name)?
         asa,
-    TResult? Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult? Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult? Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -5353,10 +5643,10 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult? Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -5366,7 +5656,7 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
             bool? verified)?
         unknown,
   }) {
-    return unknown?.call(symbol, decimals, balance, kind, contract, master,
+    return unknown?.call(decimals, balance, kind, symbol, contract, master,
         name, assetId, mint, tokenId, verified);
   }
 
@@ -5374,27 +5664,39 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
+            String? contract,
             bool? verified,
             String? name)?
         native,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
             bool? verified,
+            String? symbol,
             String? contract,
             String? name)?
         erc20,
-    TResult Function(String assetId, String symbol, int decimals, bool verified,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String assetId,
+            int decimals,
+            bool verified,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         asa,
-    TResult Function(String mint, String symbol, int decimals,
-            @StringOrIntConverter() String balance, String kind, String? name)?
+    TResult Function(
+            String mint,
+            int decimals,
+            @StringOrIntConverter() String balance,
+            String kind,
+            String? symbol,
+            String? name)?
         spl,
     TResult Function(String mint, String symbol, int decimals,
             @StringOrIntConverter() String balance, String kind, String? name)?
@@ -5426,10 +5728,10 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
             @StringOrIntConverter() String balance, String? name)?
         aip21,
     TResult Function(
-            String symbol,
             int decimals,
             @StringOrIntConverter() String balance,
             String kind,
+            String? symbol,
             String? contract,
             String? master,
             String? name,
@@ -5441,7 +5743,7 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
     required TResult orElse(),
   }) {
     if (unknown != null) {
-      return unknown(symbol, decimals, balance, kind, contract, master, name,
+      return unknown(decimals, balance, kind, symbol, contract, master, name,
           assetId, mint, tokenId, verified);
     }
     return orElse();
@@ -5515,10 +5817,10 @@ class _$WalletAssetUnknownImpl extends _WalletAssetUnknown {
 
 abstract class _WalletAssetUnknown extends WalletAsset {
   const factory _WalletAssetUnknown(
-      {required final String symbol,
-      required final int decimals,
+      {required final int decimals,
       @StringOrIntConverter() required final String balance,
       required final String kind,
+      final String? symbol,
       final String? contract,
       final String? master,
       final String? name,
@@ -5532,14 +5834,14 @@ abstract class _WalletAssetUnknown extends WalletAsset {
       _$WalletAssetUnknownImpl.fromJson;
 
   @override
-  String get symbol;
-  @override
   int get decimals;
   @override
   @StringOrIntConverter()
   String get balance;
   @override
   String get kind;
+  @override
+  String? get symbol;
   String? get contract;
   String? get master;
   @override

@@ -4,7 +4,10 @@ import 'dart:convert';
 
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion_identity_client/ion_identity.dart';
+
+typedef TransactionResult = Map<String, dynamic>;
 
 class TradeCommunityTokenService {
   TradeCommunityTokenService({
@@ -13,8 +16,9 @@ class TradeCommunityTokenService {
 
   final TradeCommunityTokenRepository repository;
 
-  Future<String> buyCommunityToken({
+  Future<TransactionResult> buyCommunityToken({
     required String externalAddress,
+    required ExternalAddressType externalAddressType,
     required BigInt amountIn,
     required String walletId,
     required String walletAddress,
@@ -25,7 +29,7 @@ class TradeCommunityTokenService {
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
   }) async {
-    final toTokenBytes = await _resolveTokenBytes(externalAddress);
+    final toTokenBytes = await _resolveTokenBytes(externalAddress, externalAddressType);
 
     return _performSwap(
       fromTokenAddress: baseTokenAddress,
@@ -43,7 +47,7 @@ class TradeCommunityTokenService {
     );
   }
 
-  Future<String> sellCommunityToken({
+  Future<TransactionResult> sellCommunityToken({
     required String externalAddress,
     required BigInt amountIn,
     required String walletId,
@@ -76,11 +80,12 @@ class TradeCommunityTokenService {
 
   Future<BigInt> getQuote({
     required String externalAddress,
+    required ExternalAddressType externalAddressType,
     required BigInt amountIn,
     required String baseTokenAddress,
   }) async {
     final fromTokenBytes = _getBytesFromAddress(baseTokenAddress);
-    final toTokenBytes = await _resolveTokenBytes(externalAddress);
+    final toTokenBytes = await _resolveTokenBytes(externalAddress, externalAddressType);
 
     return repository.fetchQuote(
       fromTokenIdentifier: fromTokenBytes,
@@ -91,10 +96,11 @@ class TradeCommunityTokenService {
 
   Future<BigInt> getSellQuote({
     required String externalAddress,
+    required ExternalAddressType externalAddressType,
     required BigInt amountIn,
     required String paymentTokenAddress,
   }) async {
-    final fromTokenBytes = await _resolveTokenBytes(externalAddress);
+    final fromTokenBytes = await _resolveTokenBytes(externalAddress, externalAddressType);
     final toTokenBytes = _getBytesFromAddress(paymentTokenAddress);
 
     return repository.fetchQuote(
@@ -106,7 +112,10 @@ class TradeCommunityTokenService {
 
   /// Resolves token identifier to bytes.
   /// Returns contract address bytes if token exists, otherwise returns FatAddress bytes.
-  Future<List<int>> _resolveTokenBytes(String externalAddress) async {
+  Future<List<int>> _resolveTokenBytes(
+    String externalAddress,
+    ExternalAddressType externalAddressType,
+  ) async {
     final contractAddress = await repository.fetchContractAddress(externalAddress);
 
     if (contractAddress != null) {
@@ -115,10 +124,10 @@ class TradeCommunityTokenService {
     }
 
     // First purchase: build FatAddress (creatorTokenAddress + externalAddress)
-    return _buildFatAddress(externalAddress);
+    return _buildFatAddress(externalAddress, externalAddressType);
   }
 
-  Future<String> _performSwap({
+  Future<TransactionResult> _performSwap({
     required String fromTokenAddress,
     required List<int> toTokenBytes,
     required BigInt amountIn,
@@ -245,10 +254,11 @@ class TradeCommunityTokenService {
   /// FatAddress format: creatorTokenAddress (20 bytes) + externalAddress bytes
   /// For Twitter (z/y/x/w) and creatorToken (a): creatorTokenAddress = 20 zero bytes
   /// For contentToken (b/c/d): creatorTokenAddress should be the creator's token address
-  List<int> _buildFatAddress(String externalAddress) {
+  List<int> _buildFatAddress(String externalAddress, ExternalAddressType externalAddressType) {
     final creatorTokenAddressBytes = List<int>.filled(20, 0);
 
-    final externalAddressBytes = _encodeIdentifier(externalAddress);
+    final fullExternalAddress = '${externalAddressType.prefix}$externalAddress';
+    final externalAddressBytes = _encodeIdentifier(fullExternalAddress);
 
     return [...creatorTokenAddressBytes, ...externalAddressBytes];
   }
