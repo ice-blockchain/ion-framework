@@ -43,7 +43,7 @@ class CreatorTokensPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
     final globalSearch = ref.watch(globalSearchTokensNotifierProvider);
-    final globalSearchNotifier = ref.read(globalSearchTokensNotifierProvider.notifier);
+    final globalSearchNotifier = ref.watch(globalSearchTokensNotifierProvider.notifier);
 
     final searchController = useTextEditingController();
     final searchFocusNode = useFocusNode();
