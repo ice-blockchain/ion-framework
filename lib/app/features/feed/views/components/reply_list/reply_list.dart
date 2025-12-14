@@ -25,7 +25,7 @@ class ReplyList extends HookConsumerWidget {
     required this.scrollController,
     this.headers,
     this.onPullToRefresh,
-    this.hideEmptyState = false,
+    this.isReply = false,
     super.key,
   });
 
@@ -33,7 +33,7 @@ class ReplyList extends HookConsumerWidget {
   final EventReference eventReference;
   final VoidCallback? onPullToRefresh;
   final ScrollController scrollController;
-  final bool hideEmptyState;
+  final bool isReply;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,11 +44,11 @@ class ReplyList extends HookConsumerWidget {
 
     useOnInit(
       () {
-        if (hideEmptyState) {
+        if (isReply) {
           scrollController.jumpTo(scrollController.position.maxScrollExtent - 80);
         }
       },
-      [hideEmptyState],
+      [isReply],
     );
 
     final isLoading = replies?.data is PagedLoading;
@@ -63,7 +63,7 @@ class ReplyList extends HookConsumerWidget {
           if (headers != null) ...headers!,
           if (entities == null)
             const EntitiesListSkeleton()
-          else if (entities.isEmpty && !isKeyboardVisible && !hideEmptyState)
+          else if (entities.isEmpty && !isKeyboardVisible && !isReply)
             const _EmptyState()
           else
             EntitiesList(
