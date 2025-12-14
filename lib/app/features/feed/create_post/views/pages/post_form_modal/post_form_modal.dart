@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/back_hardware_button_interceptor/back_hardware_button_interceptor.dart';
+import 'package:ion/app/components/text_editor/hooks/use_process_mention_embeds.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
@@ -165,6 +166,7 @@ class PostFormModal extends HookConsumerWidget {
       content: content,
       modifiedEvent: modifiedEvent,
     );
+    useProcessMentionEmbeds(textEditorController, ref);
     final scrollController = useScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createPost);
 
