@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/carousel/carousel_with_dots.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class WalletCarouselItem extends StatelessWidget {
@@ -10,16 +11,18 @@ class WalletCarouselItem extends StatelessWidget {
     required this.title,
     required this.description,
     required this.icon,
+    this.onTap,
     super.key,
   });
 
   final String title;
   final String description;
   final Widget icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    final content = DecoratedBox(
       decoration: BoxDecoration(
         color: context.theme.appColors.tertiaryBackground,
         borderRadius: BorderRadius.circular(16.0.s),
@@ -57,6 +60,15 @@ class WalletCarouselItem extends StatelessWidget {
         ),
       ),
     );
+
+    if (onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: content,
+      );
+    }
+
+    return content;
   }
 }
 
@@ -69,6 +81,12 @@ class WalletCarousel extends StatelessWidget {
       padding: EdgeInsets.all(16.0.s),
       child: CarouselWithDots(
         items: [
+          WalletCarouselItem(
+            title: context.i18n.wallet_carousel_creator_tokens_title,
+            description: context.i18n.wallet_carousel_creator_tokens_description,
+            icon: Assets.svg.walletIconProfileCoininwallet.icon(size: 80.s),
+            onTap: () => CreatorTokensRoute().push<void>(context),
+          ),
           WalletCarouselItem(
             title: context.i18n.wallet_carousel_portfolio_title,
             description: context.i18n.wallet_carousel_portfolio_description,
