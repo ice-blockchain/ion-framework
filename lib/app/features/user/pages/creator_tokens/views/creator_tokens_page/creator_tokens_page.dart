@@ -66,26 +66,23 @@ class CreatorTokensPage extends HookConsumerWidget {
         _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
 
     // Collapse header when search field is focused
-    useEffect(
+    useOnInit(
       () {
         if (searchFocused.value) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (scrollController.hasClients) {
-              final currentOffset = scrollController.offset;
-              final targetOffset = maxScroll;
+          if (scrollController.hasClients) {
+            final currentOffset = scrollController.offset;
+            final targetOffset = maxScroll;
 
-              // Only scroll if not already collapsed (or close to collapsed)
-              if (currentOffset < targetOffset - 5) {
-                scrollController.animateTo(
-                  targetOffset,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOut,
-                );
-              }
+            // Only scroll if not already collapsed (or close to collapsed)
+            if (currentOffset < targetOffset - 5) {
+              scrollController.animateTo(
+                targetOffset,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
             }
-          });
+          }
         }
-        return null;
       },
       [searchFocused.value],
     );
