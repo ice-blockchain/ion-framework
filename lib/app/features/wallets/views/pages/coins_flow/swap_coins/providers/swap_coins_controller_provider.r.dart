@@ -12,6 +12,7 @@ import 'package:ion/app/features/wallets/model/send_asset_form_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
@@ -250,10 +251,24 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
 
-    final sellCoin =
+    var sellCoin =
         sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    final buyCoin =
+    var buyCoin =
         buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+
+    // If sellCoin is null, re-fetch the full coin list for this symbol group
+    if (sellCoin == null) {
+      final sellCoinsList =
+          await ref.read(syncedCoinsBySymbolGroupProvider(sellCoinGroup.symbolGroup).future);
+      sellCoin = sellCoinsList.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    }
+
+    // If buyCoin is null, re-fetch the full coin list for this symbol group
+    if (buyCoin == null) {
+      final buyCoinsList =
+          await ref.read(syncedCoinsBySymbolGroupProvider(buyCoinGroup.symbolGroup).future);
+      buyCoin = buyCoinsList.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
+    }
 
     if (sellCoin == null || buyCoin == null) {
       return null;
