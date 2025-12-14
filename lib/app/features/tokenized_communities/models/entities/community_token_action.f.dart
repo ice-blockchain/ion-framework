@@ -59,9 +59,6 @@ class CommunityTokenActionEntity
   FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 
   static const int kind = 1175;
-
-  static String cacheKeyBuilder({required String definitionReference}) =>
-      '${kind}_first_buy_$definitionReference';
 }
 
 @freezed

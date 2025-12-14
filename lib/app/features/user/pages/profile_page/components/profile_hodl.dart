@@ -4,24 +4,31 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_first_buy_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ProfileHODL extends ConsumerWidget {
   const ProfileHODL({
-    required this.definitionEntity,
+    required this.actionEntity,
     super.key,
   });
 
-  final CommunityTokenDefinitionEntity definitionEntity;
+  final CommunityTokenActionEntity actionEntity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final firstBuy = ref.watch(tokenFirstBuyProvider(definitionEntity)).valueOrNull;
+    final firstBuyAction = ref
+        .watch(
+          tokenActionFirstBuyProvider(
+            masterPubkey: actionEntity.masterPubkey,
+            tokenDefinitionReference: actionEntity.data.definitionReference,
+          ),
+        )
+        .valueOrNull;
 
-    if (firstBuy == null) {
+    if (firstBuyAction == null) {
       return const SizedBox.shrink();
     }
 
@@ -39,7 +46,7 @@ class ProfileHODL extends ConsumerWidget {
           Text(
             context.i18n.hodl_for(
               formatCompactHodlSince(
-                firstBuy.createdAt.toDateTime,
+                firstBuyAction.createdAt.toDateTime,
               ),
             ),
             style: context.theme.appTextThemes.caption2.copyWith(

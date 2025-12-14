@@ -26,6 +26,8 @@ import 'package:ion/app/features/ion_connect/model/not_authoritative_event.f.dar
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_action_first_buy_reference.f.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
@@ -84,6 +86,10 @@ class EventParser {
       CommunityTokenDefinitionEntity.kind =>
         CommunityTokenDefinitionEntity.fromEventMessage(eventMessage),
       CommunityTokenActionEntity.kind => CommunityTokenActionEntity.fromEventMessage(eventMessage),
+      TokenActionFirstBuyReferenceEntity.kind =>
+        TokenActionFirstBuyReferenceEntity.fromEventMessage(eventMessage),
+      TokenDefinitionReferenceEntity.kind =>
+        TokenDefinitionReferenceEntity.fromEventMessage(eventMessage),
       _ => throw UnknownEventException(eventId: eventMessage.id, kind: eventMessage.kind)
     };
   }

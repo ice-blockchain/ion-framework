@@ -29,3 +29,20 @@ extension DeepEqualityListExtension on List<dynamic> {
     );
   }
 }
+
+extension Partition<T> on List<T> {
+  /// Splits the list into two lists based on the provided [test] predicate.
+  ///
+  /// Returns a record with:
+  /// - [match]: elements that satisfy the [test] predicate,
+  /// - [rest]: elements that do not satisfy the [test] predicate.
+  ({List<T> match, List<T> rest}) partition(bool Function(T) test) {
+    return fold(
+      (match: <T>[], rest: <T>[]),
+      (acc, element) {
+        (test(element) ? acc.match : acc.rest).add(element);
+        return acc;
+      },
+    );
+  }
+}

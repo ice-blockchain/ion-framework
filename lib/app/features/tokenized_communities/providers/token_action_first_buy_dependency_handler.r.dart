@@ -1,0 +1,59 @@
+// SPDX-License-Identifier: ice License 1.0
+
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/missing_events_handler.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_action_first_buy_reference.f.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'token_action_first_buy_dependency_handler.r.g.dart';
+
+/// Handler responsible for processing CommunityTokenActionEntity events.
+/// Wrapped CommunityTokenAction events are the "first-buy" actions for a given
+/// community token + master pubkey.
+///
+/// 1. Caches CommunityTokenActionEntity instances
+/// 2. Creates and caches TokenActionFirstBuyReferenceEntity instances for easy "first-buy" lookups.
+class TokenActionFirstBuyDependencyHandler implements EventsMetadataHandler {
+  TokenActionFirstBuyDependencyHandler({
+    required IonConnectCache ionConnectCache,
+  }) : _ionConnectCache = ionConnectCache;
+
+  final IonConnectCache _ionConnectCache;
+
+  @override
+  Future<Iterable<EventsMetadataEntity>> handle(Iterable<EventsMetadataEntity> events) async {
+    final (match: tokenActionEvents, rest: restEvents) = events.toList().partition(
+          (event) => event.data.metadata.kind == CommunityTokenActionEntity.kind,
+        );
+
+    await Future.wait(
+      tokenActionEvents.map(
+        (event) async {
+          final tokenAction = CommunityTokenActionEntity.fromEventMessage(event.data.metadata);
+          final tokenActionFirstBuyReference =
+              TokenActionFirstBuyReferenceEntity.fromCommunityTokenAction(tokenAction);
+          return (
+            _ionConnectCache.cache(tokenAction),
+            _ionConnectCache.cache(tokenActionFirstBuyReference),
+          ).wait;
+        },
+      ),
+    );
+
+    return restEvents;
+  }
+}
+
+@riverpod
+Future<TokenActionFirstBuyDependencyHandler> tokenActionFirstBuyDependencyHandler(
+  Ref ref,
+) async {
+  final ionConnectCache = ref.watch(ionConnectCacheProvider.notifier);
+  return TokenActionFirstBuyDependencyHandler(
+    ionConnectCache: ionConnectCache,
+  );
+}

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:convert';
-
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -10,12 +9,13 @@ import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
-import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,11 +25,11 @@ class CommunityTokenDefinitionRepository {
   CommunityTokenDefinitionRepository({
     required IonConnectNotifier ionConnectNotifier,
     required IonTokenAnalyticsClient analyticsClient,
-    required CommunityTokenReferenceCache cache,
+    required ExternalAddressTokenDefinitionCache externalAddressTokenDefinitionCache,
     required String currentPubkey,
   })  : _ionConnectNotifier = ionConnectNotifier,
         _analyticsClient = analyticsClient,
-        _cache = cache,
+        _externalAddressTokenDefinitionCache = externalAddressTokenDefinitionCache,
         _currentPubkey = currentPubkey;
 
   final IonConnectNotifier _ionConnectNotifier;
@@ -38,12 +38,13 @@ class CommunityTokenDefinitionRepository {
 
   final IonTokenAnalyticsClient _analyticsClient;
 
-  final CommunityTokenReferenceCache _cache;
+  final ExternalAddressTokenDefinitionCache _externalAddressTokenDefinitionCache;
 
   Future<CommunityTokenDefinitionEntity?> getTokenDefinition({
     required String externalAddress,
   }) async {
-    final cachedEntity = await _cache.get(externalAddress: externalAddress);
+    final cachedEntity =
+        await _externalAddressTokenDefinitionCache.get(externalAddress: externalAddress);
 
     if (cachedEntity != null) {
       return cachedEntity;
@@ -83,90 +84,82 @@ class CommunityTokenDefinitionRepository {
       FollowersCountSearchExtension(forKind: CommunityTokenDefinitionEntity.kind),
     ]).toString();
 
-    final entity = await _ionConnectNotifier.requestEntity<CommunityTokenDefinitionEntity>(
-      RequestMessage()
-        ..addFilter(
-          RequestFilter(
-            kinds: const [CommunityTokenDefinitionEntity.kind],
-            authors: [creatorEventReference.masterPubkey],
-            tags: tags,
-            search: search,
-          ),
-        ),
-      actionSource: ActionSource.user(creatorEventReference.masterPubkey),
+    final entities = await _ionConnectNotifier
+        .requestEntities(
+          RequestMessage()
+            ..addFilter(
+              RequestFilter(
+                kinds: const [CommunityTokenDefinitionEntity.kind],
+                authors: [creatorEventReference.masterPubkey],
+                tags: tags,
+                search: search,
+              ),
+            ),
+          actionSource: ActionSource.user(creatorEventReference.masterPubkey),
+        )
+        .toList();
+
+    final communityTokenDefinition = entities.firstWhereOrNull(
+      (entity) => entity is CommunityTokenDefinitionEntity,
     );
 
-    if (entity != null) {
-      await _cache.saveReference(
+    if (communityTokenDefinition is CommunityTokenDefinitionEntity) {
+      await _externalAddressTokenDefinitionCache.saveReference(
         externalAddress: externalAddress,
-        eventReference: entity.toEventReference(),
+        eventReference: communityTokenDefinition.toEventReference(),
       );
+      return communityTokenDefinition;
     }
 
-    return entity;
+    return null;
   }
 }
 
-class CommunityTokenReferenceCache {
-  CommunityTokenReferenceCache({
-    required LocalStorage localStorage,
+class ExternalAddressTokenDefinitionCache {
+  ExternalAddressTokenDefinitionCache({
     required Future<IonConnectEntity?> Function({required EventReference eventReference})
         getCachedEntity,
-  })  : _localStorage = localStorage,
-        _getCachedEntity = getCachedEntity;
-
-  final LocalStorage _localStorage;
+    required IonConnectCache ionConnectCache,
+  })  : _getCachedEntity = getCachedEntity,
+        _ionConnectCache = ionConnectCache;
 
   final Future<IonConnectEntity?> Function({required EventReference eventReference})
       _getCachedEntity;
 
-  static const _keyPrefix = 'community_token_definition_';
-
-  String _getCacheKey(String externalAddress) => '$_keyPrefix$externalAddress';
+  final IonConnectCache _ionConnectCache;
 
   Future<CommunityTokenDefinitionEntity?> get({
     required String externalAddress,
   }) async {
-    final savedReference = await _getSavedReference(externalAddress: externalAddress);
+    final eventReference =
+        TokenDefinitionReference.buildEventReference(externalAddress: externalAddress);
 
-    if (savedReference == null) {
+    final tokenDefinitionReference = await _getCachedEntity(eventReference: eventReference);
+
+    if (tokenDefinitionReference is! TokenDefinitionReferenceEntity) {
       return null;
     }
 
-    final cachedEntity = await _getCachedEntity(eventReference: savedReference);
+    final tokenDefinition = await _getCachedEntity(
+      eventReference: tokenDefinitionReference.data.tokenDefinitionReference,
+    );
 
-    if (cachedEntity is CommunityTokenDefinitionEntity) {
-      return cachedEntity;
+    if (tokenDefinition is CommunityTokenDefinitionEntity) {
+      return tokenDefinition;
     }
 
     return null;
   }
 
-  Future<EventReference?> _getSavedReference({required String externalAddress}) async {
-    final key = _getCacheKey(externalAddress);
-    final value = _localStorage.getString(key);
-
-    if (value == null) {
-      return null;
-    }
-
-    try {
-      final tagList = List<String>.from(jsonDecode(value) as List<dynamic>);
-      return EventReference.fromTag(tagList);
-    } catch (e) {
-      await _localStorage.remove(key);
-      return null;
-    }
-  }
-
   Future<void> saveReference({
     required String externalAddress,
-    required EventReference eventReference,
+    required ReplaceableEventReference eventReference,
   }) async {
-    final key = _getCacheKey(externalAddress);
-    final tagList = eventReference.toTag();
-    final value = jsonEncode(tagList);
-    await _localStorage.setString(key, value);
+    final tokenDefinitionReference = TokenDefinitionReferenceEntity.fromData(
+      tokenDefinitionReference: eventReference,
+      externalAddress: externalAddress,
+    );
+    await _ionConnectCache.cache(tokenDefinitionReference);
   }
 }
 
@@ -180,14 +173,15 @@ Future<CommunityTokenDefinitionEntity?> communityTokenDefinition(
 }
 
 @riverpod
-Future<CommunityTokenReferenceCache> communityTokenDefinitionCache(Ref ref) async {
-  final localStorage = ref.watch(localStorageProvider);
+Future<ExternalAddressTokenDefinitionCache> externalAddressTokenDefinitionCache(Ref ref) async {
   Future<IonConnectEntity?> getCachedEntity({required EventReference eventReference}) =>
       ref.read(ionConnectEntityProvider(eventReference: eventReference, network: false).future);
 
-  return CommunityTokenReferenceCache(
-    localStorage: localStorage,
+  final ionConnectCache = ref.watch(ionConnectCacheProvider.notifier);
+
+  return ExternalAddressTokenDefinitionCache(
     getCachedEntity: getCachedEntity,
+    ionConnectCache: ionConnectCache,
   );
 }
 
@@ -195,7 +189,8 @@ Future<CommunityTokenReferenceCache> communityTokenDefinitionCache(Ref ref) asyn
 Future<CommunityTokenDefinitionRepository> communityTokenDefinitionRepository(Ref ref) async {
   final ionConnectNotifier = ref.watch(ionConnectNotifierProvider.notifier);
   final analyticsClient = await ref.watch(ionTokenAnalyticsClientProvider.future);
-  final cache = await ref.watch(communityTokenDefinitionCacheProvider.future);
+  final externalAddressTokenDefinitionCache =
+      await ref.watch(externalAddressTokenDefinitionCacheProvider.future);
   final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
   if (currentPubkey == null) {
@@ -205,7 +200,7 @@ Future<CommunityTokenDefinitionRepository> communityTokenDefinitionRepository(Re
   return CommunityTokenDefinitionRepository(
     ionConnectNotifier: ionConnectNotifier,
     analyticsClient: analyticsClient,
-    cache: cache,
+    externalAddressTokenDefinitionCache: externalAddressTokenDefinitionCache,
     currentPubkey: currentPubkey,
   );
 }
