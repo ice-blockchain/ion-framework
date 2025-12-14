@@ -18,24 +18,34 @@ class FeaturedTokensRepositoryImpl implements FeaturedTokensRepository {
       queryParameters: type != null ? {'type': type} : null,
     );
 
-    final accumulatedTokens = <CommunityToken>[];
+    final tokensMap = <String, int>{};
+    final tokensList = <CommunityToken>[];
 
     final stream = subscription.stream.map((data) {
       try {
         final token = CommunityToken.fromJson(data);
-        final existingIndex = accumulatedTokens.indexWhere(
-          (t) => t.addresses.ionConnect == token.addresses.ionConnect,
-        );
-        if (existingIndex >= 0) {
-          accumulatedTokens[existingIndex] = token;
+        final key = token.addresses.ionConnect;
+
+        if (key == null) {
+          // Skip tokens without ionConnect address
+          return List<CommunityToken>.from(tokensList);
+        }
+
+        final existingIndex = tokensMap[key];
+
+        if (existingIndex != null) {
+          // Update existing token
+          tokensList[existingIndex] = token;
         } else {
-          accumulatedTokens.add(token);
+          // Add new token
+          tokensList.add(token);
+          tokensMap[key] = tokensList.length - 1;
         }
       } catch (e) {
         // Skip invalid tokens
       }
 
-      return List<CommunityToken>.from(accumulatedTokens);
+      return List<CommunityToken>.from(tokensList);
     });
 
     return NetworkSubscription<List<CommunityToken>>(stream: stream, close: subscription.close);
