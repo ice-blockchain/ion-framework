@@ -21,8 +21,8 @@ import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
-import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
-import 'package:ion_swap_client/exceptions/relay_exception.dart';
+import 'package:ion_swap_client/exceptions/exolix_exceptions.dart';
+import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
@@ -55,7 +55,6 @@ class SwapCoinsController extends _$SwapCoinsController {
         buyNetwork: null,
         swapQuoteInfo: null,
         amount: 0,
-        isQuoteError: false,
         isQuoteLoading: false,
         quoteAmount: null,
         quoteError: null,
@@ -76,33 +75,23 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
   }
 
-  bool? _checkBalanceInsufficient() {
+  bool isBalanceSufficient() {
     final sellCoin = state.sellCoin;
     final sellNetwork = state.sellNetwork;
     final amount = state.amount;
 
     if (sellCoin == null || sellNetwork == null || amount <= 0) {
-      return null;
+      return true;
     }
 
     final sellCoinInWallet = sellCoin.coins.firstWhereOrNull(
       (coin) => coin.coin.network.id == sellNetwork.id,
     );
     if (sellCoinInWallet == null) {
-      return null;
-    }
-
-    if (sellCoinInWallet.amount < amount) {
-      state = state.copyWith(
-        isQuoteError: true,
-        quoteError: InsufficientBalanceException(),
-        swapQuoteInfo: null,
-      );
-
       return true;
     }
 
-    return false;
+    return sellCoinInWallet.amount >= amount;
   }
 
   void setSellCoin(CoinsGroup? coin) {
@@ -256,6 +245,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     required CoinsGroup buyCoinGroup,
     required NetworkData buyNetwork,
     required double amount,
+    required String slippage,
   }) async {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
@@ -270,6 +260,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
 
     return SwapCoinParameters(
+      slippage: slippage,
       buyCoin: SwapCoin(
         contractAddress: buyCoin.coin.contractAddress,
         network: SwapNetwork(
@@ -432,9 +423,8 @@ class SwapCoinsController extends _$SwapCoinsController {
   }
 
   Future<void> _getQuotes() async {
-    final isBalanceInsufficient = _checkBalanceInsufficient();
-
-    if (isBalanceInsufficient ?? false) {
+    if (!isBalanceSufficient()) {
+      _setQuoteError(InsufficientBalanceException());
       return;
     }
 
@@ -457,6 +447,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       buyCoinGroup: buyCoin,
       buyNetwork: buyNetwork,
       amount: amount,
+      slippage: state.slippage.toString(),
     );
 
     if (swapCoinParameters == null) {
@@ -474,31 +465,29 @@ class SwapCoinsController extends _$SwapCoinsController {
         swapCoinData: swapCoinParameters,
       );
 
-      state = state.copyWith(
-        isQuoteLoading: false,
-        swapQuoteInfo: swapQuoteInfo,
-        isQuoteError: false,
-        quoteError: null,
-      );
-    } catch (e, stackTrace) {
-      await SentryService.logException(
-        e,
-        stackTrace: stackTrace,
-        tag: 'get_swap_quote_failure',
-      );
-
-      Exception? quoteError;
-
-      if (e is OkxException || e is RelayException) {
-        quoteError = e as Exception;
+      if (!isAmountValid(amount, swapQuoteInfo)) {
+        final (minAmount: _, minAmountStr: minAmountStr) = _getMinAmountFromQuote(swapQuoteInfo);
+        _setQuoteError(
+          AmountBelowMinimumException(
+            minAmount: minAmountStr,
+            symbol: (state.sellCoin?.abbreviation ?? '').toUpperCase(),
+          ),
+        );
+        return;
       }
 
-      state = state.copyWith(
-        isQuoteLoading: false,
-        swapQuoteInfo: null,
-        isQuoteError: true,
-        quoteError: quoteError,
-      );
+      _setQuoteSuccess(swapQuoteInfo);
+    } catch (e, stackTrace) {
+      final mappedException = _mapSwapException(e);
+      _setQuoteError(mappedException);
+
+      if (e is! IonSwapException) {
+        await SentryService.logException(
+          e,
+          stackTrace: stackTrace,
+          tag: 'get_swap_quote_failure',
+        );
+      }
     }
   }
 
@@ -519,6 +508,57 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
 
     return null;
+  }
+
+  ({double? minAmount, String minAmountStr}) _getMinAmountFromQuote(SwapQuoteInfo quoteInfo) {
+    return switch (quoteInfo.source) {
+      SwapQuoteInfoSource.exolix when quoteInfo.exolixQuote != null => (
+          minAmount: quoteInfo.exolixQuote!.minAmount.toDouble(),
+          minAmountStr: quoteInfo.exolixQuote!.minAmount.toString(),
+        ),
+      SwapQuoteInfoSource.letsExchange when quoteInfo.letsExchangeQuote != null => (
+          minAmount: double.tryParse(quoteInfo.letsExchangeQuote!.minAmount),
+          minAmountStr: quoteInfo.letsExchangeQuote!.minAmount,
+        ),
+      _ => (minAmount: null, minAmountStr: '0'),
+    };
+  }
+
+  bool isAmountValid(double amount, SwapQuoteInfo quoteInfo) {
+    final (minAmount: minAmount, minAmountStr: _) = _getMinAmountFromQuote(quoteInfo);
+
+    if (minAmount == null) {
+      return true;
+    }
+
+    return amount >= minAmount;
+  }
+
+  void _setQuoteSuccess(SwapQuoteInfo quoteInfo) {
+    state = state.copyWith(
+      isQuoteLoading: false,
+      swapQuoteInfo: quoteInfo,
+      quoteError: null,
+    );
+  }
+
+  void _setQuoteError(Exception error) {
+    state = state.copyWith(
+      isQuoteLoading: false,
+      swapQuoteInfo: null,
+      quoteError: error,
+    );
+  }
+
+  Exception _mapSwapException(Object exception) {
+    if (exception is ExolixBelowMinimumException) {
+      return AmountBelowMinimumException(
+        minAmount: exception.minAmount.toString(),
+        symbol: (state.sellCoin?.abbreviation ?? '').toUpperCase(),
+      );
+    }
+
+    return exception as Exception;
   }
 
   Future<bool> getIsIonBscSwap() async {
@@ -628,6 +668,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       buyCoinGroup: buyCoinGroup,
       buyNetwork: buyNetwork,
       amount: amount,
+      slippage: state.slippage.toString(),
     );
 
     if (swapCoinParameters == null) {
