@@ -20,27 +20,23 @@ class FeaturedTokensRepositoryImpl implements FeaturedTokensRepository {
 
     final accumulatedTokens = <CommunityToken>[];
 
-    final stream = subscription.stream
-        .map((data) {
-          try {
-            final token = CommunityToken.fromJson(data);
-            final existingIndex = accumulatedTokens.indexWhere(
-              (t) => t.addresses.ionConnect == token.addresses.ionConnect,
-            );
-            if (existingIndex >= 0) {
-              accumulatedTokens[existingIndex] = token;
-            } else {
-              accumulatedTokens.add(token);
-            }
-          } catch (e) {
-            // Skip invalid tokens
-          }
+    final stream = subscription.stream.map((data) {
+      try {
+        final token = CommunityToken.fromJson(data);
+        final existingIndex = accumulatedTokens.indexWhere(
+          (t) => t.addresses.ionConnect == token.addresses.ionConnect,
+        );
+        if (existingIndex >= 0) {
+          accumulatedTokens[existingIndex] = token;
+        } else {
+          accumulatedTokens.add(token);
+        }
+      } catch (e) {
+        // Skip invalid tokens
+      }
 
-          return List<CommunityToken>.from(accumulatedTokens);
-        })
-        .handleError((Object error, StackTrace stackTrace) {
-          return List<CommunityToken>.from(accumulatedTokens);
-        });
+      return List<CommunityToken>.from(accumulatedTokens);
+    });
 
     return NetworkSubscription<List<CommunityToken>>(stream: stream, close: subscription.close);
   }
