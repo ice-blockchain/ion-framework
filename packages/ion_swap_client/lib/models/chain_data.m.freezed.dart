@@ -29,7 +29,8 @@ mixin _$ChainData {
   /// Create a copy of ChainData
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ChainDataCopyWith<ChainData> get copyWith => throw _privateConstructorUsedError;
+  $ChainDataCopyWith<ChainData> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -41,7 +42,8 @@ abstract class $ChainDataCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$ChainDataCopyWithImpl<$Res, $Val extends ChainData> implements $ChainDataCopyWith<$Res> {
+class _$ChainDataCopyWithImpl<$Res, $Val extends ChainData>
+    implements $ChainDataCopyWith<$Res> {
   _$ChainDataCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -71,8 +73,10 @@ class _$ChainDataCopyWithImpl<$Res, $Val extends ChainData> implements $ChainDat
 }
 
 /// @nodoc
-abstract class _$$ChainDataImplCopyWith<$Res> implements $ChainDataCopyWith<$Res> {
-  factory _$$ChainDataImplCopyWith(_$ChainDataImpl value, $Res Function(_$ChainDataImpl) then) =
+abstract class _$$ChainDataImplCopyWith<$Res>
+    implements $ChainDataCopyWith<$Res> {
+  factory _$$ChainDataImplCopyWith(
+          _$ChainDataImpl value, $Res Function(_$ChainDataImpl) then) =
       __$$ChainDataImplCopyWithImpl<$Res>;
   @override
   @useResult
@@ -80,9 +84,11 @@ abstract class _$$ChainDataImplCopyWith<$Res> implements $ChainDataCopyWith<$Res
 }
 
 /// @nodoc
-class __$$ChainDataImplCopyWithImpl<$Res> extends _$ChainDataCopyWithImpl<$Res, _$ChainDataImpl>
+class __$$ChainDataImplCopyWithImpl<$Res>
+    extends _$ChainDataCopyWithImpl<$Res, _$ChainDataImpl>
     implements _$$ChainDataImplCopyWith<$Res> {
-  __$$ChainDataImplCopyWithImpl(_$ChainDataImpl _value, $Res Function(_$ChainDataImpl) _then)
+  __$$ChainDataImplCopyWithImpl(
+      _$ChainDataImpl _value, $Res Function(_$ChainDataImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of ChainData
@@ -111,7 +117,8 @@ class __$$ChainDataImplCopyWithImpl<$Res> extends _$ChainDataCopyWithImpl<$Res, 
 class _$ChainDataImpl implements _ChainData {
   _$ChainDataImpl({required this.name, required this.networkId});
 
-  factory _$ChainDataImpl.fromJson(Map<String, dynamic> json) => _$$ChainDataImplFromJson(json);
+  factory _$ChainDataImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ChainDataImplFromJson(json);
 
   @override
   final String name;
@@ -129,7 +136,8 @@ class _$ChainDataImpl implements _ChainData {
         (other.runtimeType == runtimeType &&
             other is _$ChainDataImpl &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.networkId, networkId) || other.networkId == networkId));
+            (identical(other.networkId, networkId) ||
+                other.networkId == networkId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -153,9 +161,12 @@ class _$ChainDataImpl implements _ChainData {
 }
 
 abstract class _ChainData implements ChainData {
-  factory _ChainData({required final String name, required final int networkId}) = _$ChainDataImpl;
+  factory _ChainData(
+      {required final String name,
+      required final int networkId}) = _$ChainDataImpl;
 
-  factory _ChainData.fromJson(Map<String, dynamic> json) = _$ChainDataImpl.fromJson;
+  factory _ChainData.fromJson(Map<String, dynamic> json) =
+      _$ChainDataImpl.fromJson;
 
   @override
   String get name;
@@ -166,5 +177,6 @@ abstract class _ChainData implements ChainData {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ChainDataImplCopyWith<_$ChainDataImpl> get copyWith => throw _privateConstructorUsedError;
+  _$$ChainDataImplCopyWith<_$ChainDataImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

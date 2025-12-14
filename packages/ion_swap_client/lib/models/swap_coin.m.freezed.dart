@@ -35,7 +35,8 @@ mixin _$SwapCoin {
   /// Create a copy of SwapCoin
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SwapCoinCopyWith<SwapCoin> get copyWith => throw _privateConstructorUsedError;
+  $SwapCoinCopyWith<SwapCoin> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -44,13 +45,18 @@ abstract class $SwapCoinCopyWith<$Res> {
       _$SwapCoinCopyWithImpl<$Res, SwapCoin>;
   @useResult
   $Res call(
-      {String contractAddress, String code, int decimal, SwapNetwork network, String extraId});
+      {String contractAddress,
+      String code,
+      int decimal,
+      SwapNetwork network,
+      String extraId});
 
   $SwapNetworkCopyWith<$Res> get network;
 }
 
 /// @nodoc
-class _$SwapCoinCopyWithImpl<$Res, $Val extends SwapCoin> implements $SwapCoinCopyWith<$Res> {
+class _$SwapCoinCopyWithImpl<$Res, $Val extends SwapCoin>
+    implements $SwapCoinCopyWith<$Res> {
   _$SwapCoinCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -105,22 +111,30 @@ class _$SwapCoinCopyWithImpl<$Res, $Val extends SwapCoin> implements $SwapCoinCo
 }
 
 /// @nodoc
-abstract class _$$SwapCoinImplCopyWith<$Res> implements $SwapCoinCopyWith<$Res> {
-  factory _$$SwapCoinImplCopyWith(_$SwapCoinImpl value, $Res Function(_$SwapCoinImpl) then) =
+abstract class _$$SwapCoinImplCopyWith<$Res>
+    implements $SwapCoinCopyWith<$Res> {
+  factory _$$SwapCoinImplCopyWith(
+          _$SwapCoinImpl value, $Res Function(_$SwapCoinImpl) then) =
       __$$SwapCoinImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
-      {String contractAddress, String code, int decimal, SwapNetwork network, String extraId});
+      {String contractAddress,
+      String code,
+      int decimal,
+      SwapNetwork network,
+      String extraId});
 
   @override
   $SwapNetworkCopyWith<$Res> get network;
 }
 
 /// @nodoc
-class __$$SwapCoinImplCopyWithImpl<$Res> extends _$SwapCoinCopyWithImpl<$Res, _$SwapCoinImpl>
+class __$$SwapCoinImplCopyWithImpl<$Res>
+    extends _$SwapCoinCopyWithImpl<$Res, _$SwapCoinImpl>
     implements _$$SwapCoinImplCopyWith<$Res> {
-  __$$SwapCoinImplCopyWithImpl(_$SwapCoinImpl _value, $Res Function(_$SwapCoinImpl) _then)
+  __$$SwapCoinImplCopyWithImpl(
+      _$SwapCoinImpl _value, $Res Function(_$SwapCoinImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of SwapCoin
@@ -169,7 +183,8 @@ class _$SwapCoinImpl implements _SwapCoin {
       required this.network,
       required this.extraId});
 
-  factory _$SwapCoinImpl.fromJson(Map<String, dynamic> json) => _$$SwapCoinImplFromJson(json);
+  factory _$SwapCoinImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SwapCoinImplFromJson(json);
 
   @override
   final String contractAddress;
@@ -205,7 +220,8 @@ class _$SwapCoinImpl implements _SwapCoin {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, contractAddress, code, decimal, network, extraId);
+  int get hashCode => Object.hash(
+      runtimeType, contractAddress, code, decimal, network, extraId);
 
   /// Create a copy of SwapCoin
   /// with the given fields replaced by the non-null parameter values.
@@ -231,7 +247,8 @@ abstract class _SwapCoin implements SwapCoin {
       required final SwapNetwork network,
       required final String extraId}) = _$SwapCoinImpl;
 
-  factory _SwapCoin.fromJson(Map<String, dynamic> json) = _$SwapCoinImpl.fromJson;
+  factory _SwapCoin.fromJson(Map<String, dynamic> json) =
+      _$SwapCoinImpl.fromJson;
 
   @override
   String get contractAddress;
@@ -251,5 +268,6 @@ abstract class _SwapCoin implements SwapCoin {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SwapCoinImplCopyWith<_$SwapCoinImpl> get copyWith => throw _privateConstructorUsedError;
+  _$$SwapCoinImplCopyWith<_$SwapCoinImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

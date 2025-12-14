@@ -5,6 +5,12 @@ import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/utils/auth_header_interceptor.dart';
 import 'package:ion_swap_client/utils/okx_header_interceptor.dart';
 
+const String _contentTypeJson = 'application/json';
+const Map<String, String> _defaultHeaders = {
+  'Accept': 'application/json',
+  'User-Agent': 'ION-swap-client/1.0 (Dart/Flutter)',
+};
+
 class NetworkServiceLocator with _OkxDio, _RelayDio, _ExolixDio, _LetsExchangeDio {
   factory NetworkServiceLocator() {
     return _instance;
@@ -27,6 +33,11 @@ mixin _OkxDio {
     final dio = Dio(
       BaseOptions(
         baseUrl: config.okxApiUrl,
+        contentType: _contentTypeJson,
+        headers: _defaultHeaders,
+        followRedirects: true,
+        maxRedirects: 5,
+        validateStatus: (status) => status != null && status >= 200 && status < 400,
       ),
     );
     dio.interceptors.addAll(config.interceptors);
@@ -58,6 +69,11 @@ mixin _RelayDio {
     final dio = Dio(
       BaseOptions(
         baseUrl: config.relayBaseUrl,
+        contentType: _contentTypeJson,
+        headers: _defaultHeaders,
+        followRedirects: true,
+        maxRedirects: 5,
+        validateStatus: (status) => status != null && status >= 200 && status < 400,
       ),
     );
     dio.interceptors.addAll(config.interceptors);
@@ -80,6 +96,11 @@ mixin _LetsExchangeDio {
     final dio = Dio(
       BaseOptions(
         baseUrl: config.letsExchangeApiUrl,
+        contentType: _contentTypeJson,
+        headers: _defaultHeaders,
+        followRedirects: true,
+        maxRedirects: 5,
+        validateStatus: (status) => status != null && status >= 200 && status < 400,
       ),
     );
     dio.interceptors.addAll(config.interceptors);
@@ -109,6 +130,11 @@ mixin _ExolixDio {
     final dio = Dio(
       BaseOptions(
         baseUrl: config.exolixApiUrl,
+        contentType: _contentTypeJson,
+        headers: _defaultHeaders,
+        followRedirects: true,
+        maxRedirects: 5,
+        validateStatus: (status) => status != null && status >= 200 && status < 400,
       ),
     );
     dio.interceptors.addAll(config.interceptors);
