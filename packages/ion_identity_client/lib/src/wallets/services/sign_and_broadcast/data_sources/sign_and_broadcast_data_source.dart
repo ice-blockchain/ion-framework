@@ -3,7 +3,6 @@
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/core/types/http_method.dart';
 import 'package:ion_identity_client/src/signer/types/user_action_signing_request.dart';
-import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/models/evm_broadcast_request.f.dart';
 import 'package:sprintf/sprintf.dart';
 
 class SignAndBroadcastDataSource {

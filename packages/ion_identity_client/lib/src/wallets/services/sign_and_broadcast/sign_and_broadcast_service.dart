@@ -2,7 +2,6 @@
 
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/data_sources/sign_and_broadcast_data_source.dart';
-import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/models/evm_broadcast_request.f.dart';
 
 class SignAndBroadcastService {
   const SignAndBroadcastService({
