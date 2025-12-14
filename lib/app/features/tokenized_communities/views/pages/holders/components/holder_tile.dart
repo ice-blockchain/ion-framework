@@ -15,6 +15,13 @@ class HolderTile extends StatelessWidget {
 
   final TopHolder holder;
 
+  static bool _isCreator({
+    required String? holderAddress,
+    required String? creatorAddress,
+  }) {
+    return holderAddress != null && creatorAddress != null && holderAddress == creatorAddress;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
@@ -28,19 +35,27 @@ class HolderTile extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              _RankBadge(rank: rank),
-              SizedBox(width: 12.0.s),
-              HolderAvatar(imageUrl: holder.position.holder.avatar),
-              SizedBox(width: 8.0.s),
-              _NameAndAmount(
-                name: holder.position.holder.display,
-                handle: holder.position.holder.name,
-                verified: holder.position.holder.verified,
-                amountText: amountText,
-              ),
-            ],
+          Expanded(
+            child: Row(
+              children: [
+                _RankBadge(rank: rank),
+                SizedBox(width: 12.0.s),
+                HolderAvatar(imageUrl: holder.position.holder.avatar),
+                SizedBox(width: 8.0.s),
+                Expanded(
+                  child: _NameAndAmount(
+                    isCreator: _isCreator(
+                      holderAddress: holder.position.holder.addresses?.ionConnect,
+                      creatorAddress: holder.creator.addresses?.ionConnect,
+                    ),
+                    name: holder.position.holder.display,
+                    handle: holder.position.holder.name,
+                    verified: holder.position.holder.verified,
+                    amountText: amountText,
+                  ),
+                ),
+              ],
+            ),
           ),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 2.0.s),
@@ -105,11 +120,13 @@ class _NameAndAmount extends StatelessWidget {
     required this.handle,
     required this.amountText,
     required this.verified,
+    required this.isCreator,
   });
   final String name;
   final String handle;
   final String amountText;
   final bool verified;
+  final bool isCreator;
 
   @override
   Widget build(BuildContext context) {
@@ -118,24 +135,36 @@ class _NameAndAmount extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
-            Text(
-              name,
-              style: texts.subtitle3.copyWith(
-                color: colors.primaryText,
+            Flexible(
+              child: Text(
+                name,
+                style: texts.subtitle3.copyWith(
+                  color: colors.primaryText,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (verified) ...[
               SizedBox(width: 4.0.s),
               Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
             ],
+            if (isCreator) ...[
+              SizedBox(width: 4.0.s),
+              Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
+            ],
+            SizedBox(width: 8.0.s),
           ],
         ),
         Text(
           '$handle • $amountText',
           style: texts.caption.copyWith(color: colors.quaternaryText),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
