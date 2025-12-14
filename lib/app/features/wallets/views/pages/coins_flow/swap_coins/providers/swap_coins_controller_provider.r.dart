@@ -515,8 +515,6 @@ class SwapCoinsController extends _$SwapCoinsController {
         identityClient: identityClient,
         wallet: wallet,
         userActionSigner: userActionSigner,
-        maxFeePerGas: BigInt.zero,
-        maxPriorityFeePerGas: BigInt.zero,
       );
     }
 

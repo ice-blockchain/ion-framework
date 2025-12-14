@@ -4,23 +4,20 @@ import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 
-typedef IonIdentityClientResolver = Future<IONIdentityClient> Function();
-
 // TODO(ice-erebus): move to separate package
 class IonIdentityTransactionApi {
   IonIdentityTransactionApi({
-    required IonIdentityClientResolver clientResolver,
+    required IONIdentityClient clientResolver,
   }) : _clientResolver = clientResolver;
 
-  final IonIdentityClientResolver _clientResolver;
+  final IONIdentityClient _clientResolver;
 
   Future<String> signAndBroadcast({
     required String walletId,
     required EvmTransaction transaction,
     required UserActionSignerNew userActionSigner,
   }) async {
-    final client = await _clientResolver();
-    final wallet = await _resolveWallet(client, walletId);
+    final wallet = await _resolveWallet(_clientResolver, walletId);
 
     final broadcastRequest = EvmBroadcastRequest.transactionJson(
       transaction: EvmTransactionJson(
@@ -32,7 +29,7 @@ class IonIdentityTransactionApi {
       ),
     );
 
-    final response = await client.wallets.signAndBroadcast(
+    final response = await _clientResolver.wallets.signAndBroadcast(
       wallet,
       broadcastRequest,
       userActionSigner,
