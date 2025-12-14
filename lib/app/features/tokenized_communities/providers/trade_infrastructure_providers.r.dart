@@ -1,37 +1,13 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:http/http.dart';
-import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
-import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
-import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
-import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
-import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
-import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
-import 'package:ion/app/features/wallets/model/coin_data.f.dart';
-import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
-import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:web3dart/web3dart.dart';
 
 part 'trade_infrastructure_providers.r.g.dart';
-
-@riverpod
-Future<TradeCommunityTokenApi> tradeCommunityTokenApi(
-  Ref ref,
-) async {
-  final configRepository = await ref.watch(configRepositoryProvider.future);
-  final analyticsClient = await ref.watch(ionTokenAnalyticsClientProvider.future);
-  return TradeCommunityTokenApi(
-    configRepository: configRepository,
-    analyticsClient: analyticsClient,
-  );
-}
 
 @riverpod
 EvmContractProviders evmContractProviders(Ref ref) {
@@ -55,70 +31,4 @@ EvmTxBuilder evmTxBuilder(Ref ref) {
     contracts: contracts,
     web3Client: web3Client,
   );
-}
-
-@riverpod
-IonIdentityTransactionApi ionIdentityTransactionApi(
-  Ref ref,
-) {
-  return IonIdentityTransactionApi(
-    clientResolver: () => ref.watch(ionIdentityClientProvider.future),
-  );
-}
-
-@riverpod
-Future<TradeCommunityTokenRepository> tradeCommunityTokenRepository(
-  Ref ref,
-) async {
-  final txBuilder = ref.watch(evmTxBuilderProvider);
-  final ionIdentity = ref.watch(ionIdentityTransactionApiProvider);
-  final api = await ref.watch(tradeCommunityTokenApiProvider.future);
-
-  return TradeCommunityTokenRepository(
-    txBuilder: txBuilder,
-    ionIdentity: ionIdentity,
-    api: api,
-  );
-}
-
-@Riverpod(keepAlive: true)
-Future<TradeCommunityTokenService> tradeCommunityTokenService(
-  Ref ref,
-) async {
-  final repository = await ref.watch(tradeCommunityTokenRepositoryProvider.future);
-
-  return TradeCommunityTokenService(
-    repository: repository,
-  );
-}
-
-@riverpod
-Future<List<CoinData>> supportedSwapTokens(Ref ref) async {
-  final api = await ref.watch(tradeCommunityTokenApiProvider.future);
-  final supportedTokensConfig = await api.fetchSupportedSwapTokens();
-  final coinsRepository = ref.watch(coinsRepositoryProvider);
-
-  final supportedAddresses =
-      supportedTokensConfig.map((e) => e['address'] as String).map((e) => e.toLowerCase()).toSet();
-
-  final allCoins = await coinsRepository.getCoins();
-
-  final supportedCoins = allCoins.where((coin) {
-    return supportedAddresses.contains(coin.contractAddress.toLowerCase());
-  }).toList();
-
-  return supportedCoins;
-}
-
-@riverpod
-Future<CommunityToken> communityTokenInfo(
-  Ref ref,
-  String externalAddress,
-) async {
-  final token = await ref.watch(tokenMarketInfoProvider(externalAddress).future);
-
-  if (token == null) {
-    throw Exception('Token info not found for $externalAddress');
-  }
-  return token;
 }
