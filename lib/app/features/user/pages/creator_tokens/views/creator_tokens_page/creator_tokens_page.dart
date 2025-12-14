@@ -12,18 +12,15 @@ import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.d
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
-import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/featured_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/global_search_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel_skeleton.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_header.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -184,63 +181,22 @@ class CreatorTokensPage extends HookConsumerWidget {
                   controller: scrollController,
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
-                      SliverAppBar(
-                        pinned: true,
-                        expandedHeight: _expandedHeaderHeight.s,
-                        toolbarHeight: NavigationAppBar.screenHeaderHeight,
-                        backgroundColor: Colors.transparent,
-                        surfaceTintColor: Colors.transparent,
-                        elevation: 0,
-                        leading: NavigationBackButton(
-                          context.pop,
-                          icon: backButtonIcon,
-                        ),
-                        flexibleSpace: Builder(
-                          builder: (context) {
-                            return Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                ProfileBackground(
-                                  colors: avatarColors,
-                                ),
-                                Opacity(
-                                  opacity: 1 - opacity,
-                                  child: featuredTokensAsync.when(
-                                    data: (tokens) {
-                                      if (tokens.isEmpty) return const SizedBox.shrink();
-                                      return CreatorTokensCarousel(
-                                        tokens: tokens,
-                                        onItemChanged: (token) {
-                                          selectedToken.value = token;
-                                        },
-                                      );
-                                    },
-                                    loading: () => const CreatorTokensCarouselSkeleton(),
-                                    error: (_, __) => const SizedBox.shrink(),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        bottom: PreferredSize(
-                          preferredSize: Size.fromHeight(_tabBarHeight.s),
-                          child: ColoredBox(
-                            color: context.theme.appColors.primaryText,
-                            child: TabsHeader(
-                              tabs: CreatorTokensTabType.values,
-                              trailing: _SearchIconButton(
-                                onPressed: () {
-                                  final nextVisible = !isGlobalSearchVisible.value;
-                                  isGlobalSearchVisible.value = nextVisible;
-                                  if (!nextVisible) {
-                                    resetGlobalSearch();
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
+                      CreatorTokensHeader(
+                        expandedHeight: _expandedHeaderHeight,
+                        tabBarHeight: _tabBarHeight,
+                        opacity: opacity,
+                        featuredTokensAsync: featuredTokensAsync,
+                        selectedToken: selectedToken,
+                        avatarColors: avatarColors,
+                        backButtonIcon: backButtonIcon,
+                        onPop: context.pop,
+                        onSearchToggle: () {
+                          final nextVisible = !isGlobalSearchVisible.value;
+                          isGlobalSearchVisible.value = nextVisible;
+                          if (!nextVisible) {
+                            resetGlobalSearch();
+                          }
+                        },
                       ),
                       const SliverToBoxAdapter(
                         child: SectionSeparator(),
@@ -314,31 +270,6 @@ class CreatorTokensPage extends HookConsumerWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchIconButton extends StatelessWidget {
-  const _SearchIconButton({
-    required this.onPressed,
-  });
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: 4.0.s,
-        horizontal: 16.0.s,
-      ),
-      child: TextButton(
-        onPressed: onPressed,
-        child: Assets.svg.iconFieldSearch.icon(
-          color: context.theme.appColors.tertiaryText,
-          size: 18.0.s,
         ),
       ),
     );
