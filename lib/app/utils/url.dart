@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
 
 String? removeHttpsPrefix(String? url) {
   // Replace the https:// prefix with an empty string if it exists.
@@ -66,7 +66,7 @@ bool isIonMediaUrl(String url) {
 }
 
 bool isOneLinkUrl(String url) {
-  return DeepLinkService.oneLinkUrlRegex.hasMatch(url);
+  return AppsFlyerDeepLinkService.oneLinkUrlRegex.hasMatch(url);
 }
 
 /// Converts a file:// URI to a file system path.

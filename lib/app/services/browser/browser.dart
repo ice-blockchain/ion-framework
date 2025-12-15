@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,7 +29,7 @@ Future<bool> openUrlInAppBrowser(String url) async {
 
 Future<bool> openDeepLinkOrInAppBrowser(String url, WidgetRef ref) async {
   if (isOneLinkUrl(url)) {
-    ref.read(deepLinkServiceProvider).resolveDeeplink(url);
+    ref.read(appsflyerDeepLinkServiceProvider).resolveDeeplink(url);
     return true;
   }
 

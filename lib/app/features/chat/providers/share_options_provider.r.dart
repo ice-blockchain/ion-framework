@@ -13,7 +13,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
-import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

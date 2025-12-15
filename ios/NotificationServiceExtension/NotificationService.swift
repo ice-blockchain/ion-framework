@@ -54,6 +54,11 @@ class NotificationService: UNNotificationServiceExtension {
 
                 mutableNotificationContent.title = result.title
                 mutableNotificationContent.body = result.body
+                
+                // Pass through deep link parameter if present
+                if let deepLink = request.content.userInfo["deep_link"] as? String {
+                    mutableNotificationContent.userInfo["deep_link"] = deepLink
+                }
 
                 communicationPushData = CommunicationPushData(
                     title: result.title,
