@@ -43,15 +43,21 @@ class TransactionListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
 
-    final amountText =
-        isBalanceVisible ? formatCrypto(transactionData.coinAmount) : StringConstants.obfuscated;
+    final amountText = isBalanceVisible
+        ? formatCrypto(transactionData.coinAmount)
+        : StringConstants.obfuscated;
     final usdText = isBalanceVisible
-        ? context.i18n.wallet_approximate_in_usd(formatUSD(transactionData.usdAmount))
+        ? context.i18n
+            .wallet_approximate_in_usd(formatUSD(transactionData.usdAmount))
         : StringConstants.obfuscated;
 
     return ListItem(
       onTap: onTap,
-      title: Text(transactionData.transactionType.getDisplayName(context)),
+      title: Text(
+        transactionData.origin.isSwap
+            ? context.i18n.wallet_swap
+            : transactionData.transactionType.getDisplayName(context),
+      ),
       subtitle: Row(
         children: [
           NetworkIconWidget(
@@ -70,6 +76,7 @@ class TransactionListItem extends ConsumerWidget {
       leading: TransactionListItemLeadingIcon(
         type: transactionData.transactionType,
         status: transactionData.origin.status,
+        isSwap: transactionData.origin.isSwap,
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
