@@ -1098,7 +1098,7 @@
   "wallet_swap_confirmation_swap_button": "Schimbă",
   "wallet_swap_confirmation_title": "Confirmare schimb",
   "wallet_swap_confirmation_very_high_price_impact": "Impact foarte mare asupra prețului",
-  "wallet_swap_failed": "Tranzacția a eșuat",
+  "wallet_swap_failed": "Schimbarea a eșuat",
   "wallet_swap_option_desc": "Schimbarea este chiar mai ușoară decât pare",
   "wallet_swap_slippage_settings_auto": "Auto",
   "wallet_swap_slippage_settings_description": "Tranzacția va fi anulată dacă prețul se schimbă mai mult decât procentul de slippage",

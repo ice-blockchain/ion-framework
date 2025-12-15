@@ -1098,7 +1098,7 @@
   "wallet_swap_confirmation_swap_button": "Scambia",
   "wallet_swap_confirmation_title": "Conferma scambio",
   "wallet_swap_confirmation_very_high_price_impact": "Impatto sul prezzo molto elevato",
-  "wallet_swap_failed": "Transazione fallita",
+  "wallet_swap_failed": "Lo scambio è fallito",
   "wallet_swap_option_desc": "Lo scambio è ancora più facile di quanto sembri",
   "wallet_swap_slippage_settings_auto": "Auto",
   "wallet_swap_slippage_settings_description": "La transazione verrà annullata se il prezzo cambia oltre la percentuale di slippage",
