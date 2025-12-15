@@ -35,6 +35,11 @@ Delta trimLineWhitespaceInDelta(Delta delta) {
 
   void trimLineBuffer() {
     void trimEdge({required bool leading}) {
+      bool preserveWhitespaceOnlySegment(Map<String, dynamic>? attrs) {
+        if (attrs == null || attrs.isEmpty) return false;
+        return attrs.containsKey('link') || attrs.containsKey('text-editor-single-image');
+      }
+
       while (lineBuffer.isNotEmpty) {
         final index = leading ? 0 : (lineBuffer.length - 1);
         final seg = lineBuffer[index];
@@ -46,8 +51,13 @@ Delta trimLineWhitespaceInDelta(Delta delta) {
         final trimmed = leading ? text.trimLeft() : text.trimRight();
 
         if (trimmed.isEmpty) {
-          lineBuffer.removeAt(index);
-          continue;
+          if (preserveWhitespaceOnlySegment(seg.attributes)) {
+            lineBuffer[index] = (data: ' ', attributes: seg.attributes);
+            return;
+          } else {
+            lineBuffer.removeAt(index);
+            continue;
+          }
         }
 
         if (trimmed != text) {

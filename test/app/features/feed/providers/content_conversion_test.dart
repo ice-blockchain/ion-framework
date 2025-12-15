@@ -339,6 +339,15 @@ void main() {
       expect(deltaToPlainText(result), '   code   ');
     });
 
+    test('preserves whitespace-only link placeholders at line edges (media attachments)', () {
+      final delta = Delta()
+        ..insert(' ', {'link': 'https://example.com/media'})
+        ..insert('test');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), ' test');
+      expect(result.operations.first.attributes?['link'], 'https://example.com/media');
+    });
+
     test('preserves attributes', () {
       final delta = Delta()
         ..insert('test', {'bold': true})
