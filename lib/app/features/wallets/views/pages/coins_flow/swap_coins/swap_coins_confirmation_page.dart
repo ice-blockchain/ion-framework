@@ -208,7 +208,7 @@ class _TokenRow extends StatelessWidget {
             children: [
               Text(
                 '$amount ${coinsGroup.name}',
-                style: textStyles.headline2.copyWith(
+                style: textStyles.title.copyWith(
                   color: colors.primaryText,
                 ),
               ),
@@ -411,7 +411,6 @@ class _DetailRow extends StatelessWidget {
                 value,
                 style: textStyles.body2.copyWith(
                   color: colors.primaryText,
-                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.end,
               ),
