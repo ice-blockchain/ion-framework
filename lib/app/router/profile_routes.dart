@@ -27,6 +27,8 @@ class ProfileRoutes {
         TypedGoRoute<CoinTransactionResultProfileRoute>(path: 'coin-transaction-result'),
         TypedGoRoute<CoinTransactionDetailsProfileRoute>(path: 'coin-transaction-details'),
         TypedGoRoute<ExploreTransactionDetailsProfileRoute>(path: 'coin-transaction-explore'),
+        TypedGoRoute<TradeCommunityTokenProfileRoute>(path: 'trade-community-token'),
+        TypedGoRoute<SelectTradePaymentTokenProfileRoute>(path: 'select-swap-token'),
         TypedGoRoute<RequestCoinsFormRoute>(path: 'request-coins-form'),
         TypedGoRoute<AddressNotFoundProfileRoute>(path: 'address-not-found'),
         TypedGoRoute<RepostOptionsModalProfileRoute>(
@@ -270,6 +272,38 @@ class RequestCoinsFormRoute extends BaseRouteData with _$RequestCoinsFormRoute {
           ),
           type: IceRouteType.bottomSheet,
         );
+}
+
+class TradeCommunityTokenProfileRoute extends BaseRouteData with _$TradeCommunityTokenProfileRoute {
+  TradeCommunityTokenProfileRoute({
+    required this.externalAddress,
+    required this.externalAddressType,
+    this.initialMode,
+  }) : super(
+          child: TradeCommunityTokenDialog(
+            externalAddress: externalAddress,
+            externalAddressType: ExternalAddressType(externalAddressType),
+            initialMode: initialMode,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String externalAddress;
+  final String externalAddressType;
+  final CommunityTokenTradeMode? initialMode;
+}
+
+class SelectTradePaymentTokenProfileRoute extends BaseRouteData
+    with _$SelectTradePaymentTokenProfileRoute {
+  SelectTradePaymentTokenProfileRoute({required this.title})
+      : super(
+          child: SelectTradePaymentTokenModalPage(
+            title: title,
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String title;
 }
 
 class BookmarksRoute extends BaseRouteData with _$BookmarksRoute {

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
@@ -24,7 +25,9 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/token_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 
 class TradeCommunityTokenDialog extends HookConsumerWidget {
   const TradeCommunityTokenDialog({
@@ -91,40 +94,44 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     final communityGroup = state.communityTokenCoinsGroup;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const _AppBar(),
-        if (communityGroup != null)
-          _TokenCards(
-            state: state,
-            controller: controller,
-            communityTokenGroup: communityGroup,
-            supportedTokensAsync: supportedTokensAsync,
-            communityAvatarWidget: communityAvatarWidget,
-            onTokenTap: () => _showTokenSelectionSheet(
-              context,
-              controller,
-              supportedTokensAsync,
+    return SheetContent(
+      body: KeyboardDismissOnTap(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _AppBar(),
+            if (communityGroup != null)
+              _TokenCards(
+                state: state,
+                controller: controller,
+                communityTokenGroup: communityGroup,
+                supportedTokensAsync: supportedTokensAsync,
+                communityAvatarWidget: communityAvatarWidget,
+                onTokenTap: () => _showTokenSelectionSheet(
+                  context,
+                  controller,
+                  supportedTokensAsync,
+                ),
+              ),
+            SizedBox(height: 29.0.s),
+            _SharePostCheckbox(shouldSharePost: shouldSharePost),
+            SizedBox(height: 16.0.s),
+            ContinueButton(
+              isEnabled: state.mode == CommunityTokenTradeMode.buy
+                  ? _isBuyContinueButtonEnabled(state)
+                  : _isSellContinueButtonEnabled(state),
+              onPressed: () => _handleButtonPress(
+                context,
+                ref,
+                externalAddress,
+                state.mode,
+              ),
             ),
-          ),
-        SizedBox(height: 29.0.s),
-        _SharePostCheckbox(shouldSharePost: shouldSharePost),
-        SizedBox(height: 16.0.s),
-        ContinueButton(
-          isEnabled: state.mode == CommunityTokenTradeMode.buy
-              ? _isBuyContinueButtonEnabled(state)
-              : _isSellContinueButtonEnabled(state),
-          onPressed: () => _handleButtonPress(
-            context,
-            ref,
-            externalAddress,
-            state.mode,
-          ),
+            SizedBox(height: 16.0.s),
+          ],
         ),
-        SizedBox(height: 16.0.s),
-      ],
+      ),
     );
   }
 
@@ -144,11 +151,11 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         state.communityTokenCoinsGroup != null;
   }
 
-  void _showTokenSelectionSheet(
+  Future<void> _showTokenSelectionSheet(
     BuildContext context,
     TradeCommunityTokenController controller,
     AsyncValue<List<CoinData>> supportedTokensAsync,
-  ) {
+  ) async {
     if (supportedTokensAsync.hasError) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -166,32 +173,13 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
       return;
     }
 
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (context) => ListView.builder(
-        itemCount: tokens.length,
-        itemBuilder: (context, index) {
-          final token = tokens[index];
-          return ListTile(
-            leading: Image.network(
-              token.iconUrl,
-              width: 24,
-              height: 24,
-              errorBuilder: (_, __, ___) => const SizedBox(
-                width: 24,
-                height: 24,
-              ),
-            ),
-            title: Text(token.name),
-            subtitle: Text(token.symbolGroup),
-            onTap: () {
-              controller.selectPaymentToken(token);
-              Navigator.pop(context);
-            },
-          );
-        },
-      ),
-    );
+    final selectedCoin = await SelectTradePaymentTokenProfileRoute(
+      title: context.i18n.wallet_swap_coins_select_coin,
+    ).push<CoinData>(context);
+
+    if (selectedCoin != null && context.mounted) {
+      controller.selectPaymentToken(selectedCoin);
+    }
   }
 
   Future<void> _handleButtonPress(

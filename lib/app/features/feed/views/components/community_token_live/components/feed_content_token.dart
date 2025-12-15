@@ -14,12 +14,11 @@ import 'package:ion/app/features/tokenized_communities/providers/token_type_prov
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
-import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_price.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -217,14 +216,11 @@ class ContentTokenHeader extends HookWidget {
                 bottom: -11.5.s,
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: () => showSimpleBottomSheet<void>(
-                    context: context,
-                    child: TradeCommunityTokenDialog(
-                      externalAddress: externalAddress,
-                      externalAddressType: const ExternalAddressType.ionConnectUser(),
-                      initialMode: CommunityTokenTradeMode.buy,
-                    ),
-                  ),
+                  onTap: () => TradeCommunityTokenProfileRoute(
+                    externalAddress: externalAddress,
+                    externalAddressType: const ExternalAddressType.ionConnectUser().prefix,
+                    initialMode: CommunityTokenTradeMode.buy,
+                  ).push<void>(context),
                   child: BuyButton(
                     padding: EdgeInsetsDirectional.symmetric(
                       horizontal: 22.s,

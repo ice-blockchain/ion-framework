@@ -30,9 +30,9 @@ class CoinsListView extends StatelessWidget {
     required this.onItemTap,
     required this.title,
     required this.coinsResult,
-    required this.onQueryChanged,
     this.showBackButton = false,
     this.showCloseButton = true,
+    this.onQueryChanged,
     this.itemWrapperBuilder = _defaultCoinsListItemWrapper,
     super.key,
   });
@@ -42,7 +42,7 @@ class CoinsListView extends StatelessWidget {
   final bool showCloseButton;
   final AsyncValue<List<CoinsGroup>> coinsResult;
   final void Function(CoinsGroup group) onItemTap;
-  final void Function(String query) onQueryChanged;
+  final ValueChanged<String>? onQueryChanged;
   final CoinsListItemWrapper itemWrapperBuilder;
 
   @override
@@ -59,15 +59,15 @@ class CoinsListView extends StatelessWidget {
             ],
           ),
         ),
-        ScreenSideOffset.small(
-          child: SearchInput(
-            onTextChanged: onQueryChanged,
-            hintText: context.i18n.wallet_coins_search_hint,
+        if (onQueryChanged != null) ...[
+          ScreenSideOffset.small(
+            child: SearchInput(
+              onTextChanged: onQueryChanged,
+              hintText: context.i18n.wallet_coins_search_hint,
+            ),
           ),
-        ),
-        SizedBox(
-          height: 12.0.s,
-        ),
+          SizedBox(height: 12.0.s),
+        ],
         Expanded(
           child: coinsResult.maybeWhen(
             data: (groups) {
