@@ -23,8 +23,11 @@ class CommunityTokenActionBody extends HookConsumerWidget {
   const CommunityTokenActionBody({
     required this.entity,
     this.network = false,
+    this.sidePadding,
     super.key,
   });
+
+  final double? sidePadding;
 
   final CommunityTokenActionEntity entity;
 
@@ -80,7 +83,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         Column(
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+              padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
               child: ProfileBalance(
                 height: topContainerHeight,
                 coins: entity.data.amount,

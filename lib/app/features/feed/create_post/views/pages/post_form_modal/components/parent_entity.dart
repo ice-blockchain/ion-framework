@@ -13,10 +13,14 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
 import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/community_token_action/components/community_token_action_body.dart';
+import 'package:ion/app/features/feed/views/components/community_token_live/components/community_token_live_body.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/replying_to/replying_to.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
@@ -69,6 +73,14 @@ class ParentEntity extends ConsumerWidget {
             children: [
               switch (parentEntity) {
                 PostEntity() || ModifiablePostEntity() => PostBody(
+                    entity: parentEntity,
+                    sidePadding: 0,
+                  ),
+                CommunityTokenActionEntity() => CommunityTokenActionBody(
+                    entity: parentEntity,
+                    sidePadding: 0,
+                  ),
+                CommunityTokenDefinitionEntity() => CommunityTokenLiveBody(
                     entity: parentEntity,
                     sidePadding: 0,
                   ),

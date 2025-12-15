@@ -30,6 +30,7 @@ class FeedContentToken extends HookConsumerWidget {
     this.hodl,
     this.pnl,
     this.showBuyButton = true,
+    this.sidePadding,
     super.key,
   });
 
@@ -37,6 +38,7 @@ class FeedContentToken extends HookConsumerWidget {
   final CommunityContentTokenType type;
   final Widget? hodl;
   final Widget? pnl;
+  final double? sidePadding;
   final bool showBuyButton;
 
   @override
@@ -48,7 +50,7 @@ class FeedContentToken extends HookConsumerWidget {
         return SizedBox(
           width: double.infinity,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+            padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.0.s),
               child: ProfileBackground(

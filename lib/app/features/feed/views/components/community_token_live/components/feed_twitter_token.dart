@@ -20,12 +20,14 @@ class FeedTwitterToken extends HookConsumerWidget {
     required this.externalAddress,
     this.pnl,
     this.hodl,
+    this.sidePadding,
     super.key,
   });
 
   final String externalAddress;
   final Widget? pnl;
   final Widget? hodl;
+  final double? sidePadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,10 +38,7 @@ class FeedTwitterToken extends HookConsumerWidget {
         return SizedBox(
           width: double.infinity,
           child: Padding(
-            padding: EdgeInsetsDirectional.only(
-              start: 16.0.s,
-              end: 16.0.s,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.0.s),
               child: ProfileBackground(
