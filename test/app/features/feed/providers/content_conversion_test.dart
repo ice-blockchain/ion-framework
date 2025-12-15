@@ -250,7 +250,6 @@ void main() {
   group('trimLineWhitespaceInDelta', () {
     String deltaToPlainText(Delta delta) {
       final normalizedDelta = Delta();
-      var addedNewline = false;
       for (final op in delta.operations) {
         normalizedDelta.push(op);
       }
@@ -261,20 +260,18 @@ void main() {
           if (!text.endsWith('\n')) {
             normalizedDelta.operations.removeLast();
             normalizedDelta.insert('$text\n', lastOp.attributes);
-            addedNewline = true;
           }
         } else {
           normalizedDelta.insert('\n');
-          addedNewline = true;
         }
       } else {
         normalizedDelta.insert('\n');
-        addedNewline = true;
       }
       final plainText = Document.fromDelta(normalizedDelta).toPlainText();
-      return addedNewline && plainText.endsWith('\n')
-          ? plainText.substring(0, plainText.length - 1)
-          : plainText;
+      // Quill's plain text always includes the trailing newline for the last line.
+      // Strip exactly one trailing newline to make test expectations consistent,
+      // regardless of whether we had to add it during normalization.
+      return plainText.endsWith('\n') ? plainText.substring(0, plainText.length - 1) : plainText;
     }
 
     test('trims leading whitespace on lines', () {
@@ -325,6 +322,23 @@ void main() {
       expect(deltaToPlainText(result), 'test\ntest\ntest');
     });
 
+    test('does not trim internal whitespace split across multiple insert ops on the same line', () {
+      final delta = Delta()
+        ..insert('hello')
+        ..insert('   ')
+        ..insert('world');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'hello   world');
+    });
+
+    test('does not trim code-block lines (newline carries code-block attribute)', () {
+      final delta = Delta()
+        ..insert('   code   ')
+        ..insert('\n', {'code-block': true});
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), '   code   ');
+    });
+
     test('preserves attributes', () {
       final delta = Delta()
         ..insert('test', {'bold': true})
@@ -356,7 +370,6 @@ void main() {
     String deltaToPlainText(Delta delta) {
       // Ensure delta ends with newline (Quill Document requirement)
       final normalizedDelta = Delta();
-      var addedNewline = false;
       for (final op in delta.operations) {
         normalizedDelta.push(op);
       }
@@ -367,20 +380,16 @@ void main() {
           if (!text.endsWith('\n')) {
             normalizedDelta.operations.removeLast();
             normalizedDelta.insert('$text\n', lastOp.attributes);
-            addedNewline = true;
           }
         } else {
           normalizedDelta.insert('\n');
-          addedNewline = true;
         }
       } else {
         normalizedDelta.insert('\n');
-        addedNewline = true;
       }
       final plainText = Document.fromDelta(normalizedDelta).toPlainText();
-      return addedNewline && plainText.endsWith('\n')
-          ? plainText.substring(0, plainText.length - 1)
-          : plainText;
+      // Strip exactly one trailing newline (Quill Document requirement).
+      return plainText.endsWith('\n') ? plainText.substring(0, plainText.length - 1) : plainText;
     }
 
     test('trims whitespace and empty lines together', () {
