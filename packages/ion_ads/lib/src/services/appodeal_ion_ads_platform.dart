@@ -30,9 +30,15 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     Appodeal.setAutoCache(AppodealAdType.NativeAd, true);
     Appodeal.setUseSafeArea(true);
 
-    // Appodeal.setAdRevenueCallbacks(onAdRevenueReceive: (adRevenue) {
-    //   print("onAdRevenueReceive: $adRevenue");
-    // });
+    if (hasConsent) {
+      Appodeal.consentForm.load(appKey: Platform.isAndroid ? androidAppKey : iosAppKey);
+    }
+
+    Appodeal.setAdRevenueCallbacks(
+      onAdRevenueReceive: (adRevenue) {
+        log('onAdRevenueReceive: $adRevenue');
+      },
+    );
 
     await Appodeal.initialize(
       appKey: Platform.isAndroid ? androidAppKey : iosAppKey,

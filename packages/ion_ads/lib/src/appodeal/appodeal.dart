@@ -5,7 +5,9 @@ import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:ion_ads/src/appodeal/appodeal_ad_revenue.dart';
 import 'package:ion_ads/src/appodeal/appodeal_ad_type.dart';
+import 'package:ion_ads/src/appodeal/appodeal_consent_manager.dart';
 import 'package:ion_ads/src/appodeal/appodeal_native_ad_content_type.dart';
 import 'package:ion_ads/src/appodeal/appodeal_services.dart';
 
@@ -54,7 +56,13 @@ class Appodeal {
     _functions.remove(call.method);
   };
 
+  static AppodealConsentForm? _consentForm;
+
+  /// Appodeal Consent form logic for iAB TCFv2 and Google UMP.
+  static AppodealConsentForm get consentForm => _consentForm ??= const AppodealConsentForm();
+
   static final MethodChannel _channel = _defaultChannel(_handler);
+  static const MethodChannel _adrevenueChannel = MethodChannel('appodeal_flutter/adrevenue');
   static const MethodChannel _interstitialChannel = MethodChannel('appodeal_flutter/interstitial');
   static const MethodChannel _rewardedVideoChannel = MethodChannel('appodeal_flutter/rewarded');
   static const MethodChannel _bannerChannel = MethodChannel('appodeal_flutter/banner');
@@ -630,6 +638,18 @@ class Appodeal {
 
   static Future<Map<String, dynamic>?> getNativeAd(int adCount) async {
     return _channel.invokeMapMethod<String, dynamic>('getNativeAd', {'count': adCount});
+  }
+
+  static void setAdRevenueCallbacks({
+    void Function(AppodealAdRevenue adRevenue)? onAdRevenueReceive,
+  }) {
+    _adrevenueChannel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'onAdRevenueReceive':
+          onAdRevenueReceive?.call(AppodealAdRevenue.fromArgs(call.arguments));
+          break;
+      }
+    });
   }
 }
 
