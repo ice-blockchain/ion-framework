@@ -38,18 +38,20 @@ class TransactionDetailsPage extends ConsumerWidget {
   const TransactionDetailsPage({
     required this.walletViewId,
     required this.txHash,
+    required this.type,
     required this.exploreRouteLocationBuilder,
     super.key,
   });
 
   final String txHash;
   final String walletViewId;
+  final TransactionType type;
   final String Function(String url) exploreRouteLocationBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionAsync = ref.watch(
-      transactionNotifierProvider(walletViewId: walletViewId, txHash: txHash),
+      transactionNotifierProvider(walletViewId: walletViewId, txHash: txHash, type: type),
     );
 
     return SheetContent(
@@ -72,7 +74,9 @@ class TransactionDetailsPage extends ConsumerWidget {
                 },
               ),
               loading: () => const Center(child: IONLoadingIndicator()),
-              error: (error, stackTrace) => const Center(child: IONLoadingIndicator()),
+              error: (error, stackTrace) {
+                return const Center(child: IONLoadingIndicator());
+              },
             ),
           ),
         ],
