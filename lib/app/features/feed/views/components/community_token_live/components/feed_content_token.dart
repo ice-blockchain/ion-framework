@@ -218,7 +218,7 @@ class ContentTokenHeader extends HookWidget {
                     child: TradeCommunityTokenDialog(
                       externalAddress: externalAddress,
                       externalAddressType: const ExternalAddressType.ionConnectUser(),
-                      mode: CommunityTokenTradeMode.buy,
+                      initialMode: CommunityTokenTradeMode.buy,
                     ),
                   ),
                   child: BuyButton(

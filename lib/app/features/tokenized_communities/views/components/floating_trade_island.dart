@@ -47,7 +47,7 @@ class FloatingTradeIsland extends StatelessWidget {
                   child: TradeCommunityTokenDialog(
                     externalAddress: externalAddress,
                     externalAddressType: const ExternalAddressType.ionConnectUser(),
-                    mode: CommunityTokenTradeMode.buy,
+                    initialMode: CommunityTokenTradeMode.buy,
                   ),
                 );
               },
@@ -64,7 +64,7 @@ class FloatingTradeIsland extends StatelessWidget {
                   child: TradeCommunityTokenDialog(
                     externalAddress: externalAddress,
                     externalAddressType: const ExternalAddressType.ionConnectUser(),
-                    mode: CommunityTokenTradeMode.sell,
+                    initialMode: CommunityTokenTradeMode.sell,
                   ),
                 );
               },

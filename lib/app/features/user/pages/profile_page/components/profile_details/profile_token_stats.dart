@@ -117,7 +117,7 @@ class ProfileTokenStats extends ConsumerWidget {
                 child: TradeCommunityTokenDialog(
                   externalAddress: externalAddress,
                   externalAddressType: const ExternalAddressType.ionConnectUser(),
-                  mode: CommunityTokenTradeMode.buy,
+                  initialMode: CommunityTokenTradeMode.buy,
                 ),
               );
             },
@@ -410,7 +410,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
               child: TradeCommunityTokenDialog(
                 externalAddress: externalAddress,
                 externalAddressType: const ExternalAddressType.ionConnectUser(),
-                mode: CommunityTokenTradeMode.buy,
+                initialMode: CommunityTokenTradeMode.buy,
               ),
             ),
             child: BuyButton(
