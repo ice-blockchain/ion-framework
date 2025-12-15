@@ -166,7 +166,7 @@ class PostFormModal extends HookConsumerWidget {
       content: content,
       modifiedEvent: modifiedEvent,
     );
-    useProcessMentionEmbeds(textEditorController, ref);
+    useDowngradeMentionEmbedsWithoutMarketCap(textEditorController, ref);
     final scrollController = useScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createPost);
 
