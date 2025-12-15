@@ -76,7 +76,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
   }
 
-  bool isBalanceSufficient() {
+  Future<bool> isBalanceSufficient() async {
     final sellCoin = state.sellCoin;
     final sellNetwork = state.sellNetwork;
     final amount = state.amount;
@@ -85,8 +85,9 @@ class SwapCoinsController extends _$SwapCoinsController {
       return true;
     }
 
-    final sellCoinInWallet = sellCoin.coins.firstWhereOrNull(
-      (coin) => coin.coin.network.id == sellNetwork.id,
+    final sellCoinInWallet = await _getCoinWalletDataAndSyncIfNeeded(
+      sellCoin,
+      sellNetwork,
     );
     if (sellCoinInWallet == null) {
       return true;
@@ -251,24 +252,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellAddress = await _getAddress(sellCoinGroup, sellNetwork);
     final buyAddress = await _getAddress(buyCoinGroup, buyNetwork);
 
-    var sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    var buyCoin =
-        buyCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
-
-    // If sellCoin is null, re-fetch the full coin list for this symbol group
-    if (sellCoin == null) {
-      final sellCoinsList =
-          await ref.read(syncedCoinsBySymbolGroupProvider(sellCoinGroup.symbolGroup).future);
-      sellCoin = sellCoinsList.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
-    }
-
-    // If buyCoin is null, re-fetch the full coin list for this symbol group
-    if (buyCoin == null) {
-      final buyCoinsList =
-          await ref.read(syncedCoinsBySymbolGroupProvider(buyCoinGroup.symbolGroup).future);
-      buyCoin = buyCoinsList.firstWhereOrNull((coin) => coin.coin.network.id == buyNetwork.id);
-    }
+    final sellCoin = await _getCoinWalletDataAndSyncIfNeeded(sellCoinGroup, sellNetwork);
+    final buyCoin = await _getCoinWalletDataAndSyncIfNeeded(buyCoinGroup, buyNetwork);
 
     if (sellCoin == null || buyCoin == null) {
       return null;
@@ -304,6 +289,18 @@ class SwapCoinsController extends _$SwapCoinsController {
       userBuyAddress: buyAddress,
       userSellAddress: sellAddress,
     );
+  }
+
+  Future<CoinInWalletData?> _getCoinWalletDataAndSyncIfNeeded(
+      CoinsGroup coinsGroup, NetworkData network) async {
+    var coin = coinsGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == network.id);
+    if (coin == null) {
+      final coinsList =
+          await ref.read(syncedCoinsBySymbolGroupProvider(coinsGroup.symbolGroup).future);
+      coin = coinsList.firstWhereOrNull((coin) => coin.coin.network.id == network.id);
+    }
+
+    return coin;
   }
 
   Future<String?> _getAddress(CoinsGroup coinsGroup, NetworkData network) async {
@@ -438,7 +435,7 @@ class SwapCoinsController extends _$SwapCoinsController {
   }
 
   Future<void> _getQuotes() async {
-    if (!isBalanceSufficient()) {
+    if (!(await isBalanceSufficient())) {
       _setQuoteError(InsufficientBalanceException());
       return;
     }
@@ -666,8 +663,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       throw Exception('Sell coin group, buy coin group, sell network, buy network is required');
     }
 
-    final sellCoin =
-        sellCoinGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == sellNetwork.id);
+    final sellCoin = await _getCoinWalletDataAndSyncIfNeeded(sellCoinGroup, sellNetwork);
 
     if (sellCoin == null) {
       throw Exception('Sell coin is required');
