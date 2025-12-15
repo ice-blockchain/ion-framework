@@ -40,7 +40,7 @@ class ConversationReadAllButton extends ConsumerWidget {
                 messageEventMessage: conversation.latestMessage!,
                 // We don't need to verify current status when marking all conversations as read as last
                 // message can be read but previous messages can have other status
-                forceReadStatus: false,
+                verifyCurrentStatus: false,
               );
             }
           }),
