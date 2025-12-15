@@ -6,6 +6,8 @@ import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/search/providers/feed_search_history_provider.m.dart';
+import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/market_cap_badge.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
@@ -25,6 +27,8 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
       userPreviewDataProvider(masterPubkey, network: false).select(userPreviewNameSelector),
     );
 
+    final marketCap = ref.watch(userTokenMarketCapProvider(masterPubkey)).valueOrNull;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -38,6 +42,7 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
             title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
             subtitle: Text(prefixUsername(username: username, context: context)),
             masterPubkey: masterPubkey,
+            trailing: marketCap != null ? MarketCapBadge(marketCap: marketCap) : null,
           ),
         ),
       ),
