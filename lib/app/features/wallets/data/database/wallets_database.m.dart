@@ -70,7 +70,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -255,6 +255,12 @@ class WalletsDatabase extends _$WalletsDatabase {
               schema.transactionsTableV2.assetContractAddress,
             );
           }
+        },
+        from20To21: (m, schema) async {
+          // Clear all transactions to fix duplication issues.
+          // Transactions will be re-synced with improved deduplication logic.
+          await customStatement('DELETE FROM transactions_table_v2');
+          await customStatement('DELETE FROM transaction_visibility_status_table');
         },
       ),
     );
