@@ -38,6 +38,11 @@ class IonIdentityTransactionApi {
     return _extractTransactionIdentifier(response);
   }
 
+  Future<Map<String, dynamic>> getFeesOnBsc() async {
+    /// Bsc always must be wit big first symbol
+    return _clientResolver.wallets.getFees(['Bsc']);
+  }
+
   Future<Wallet> _resolveWallet(IONIdentityClient client, String walletId) async {
     final wallets = await client.wallets.getWallets();
     final wallet = wallets.firstWhere(

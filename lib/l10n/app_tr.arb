@@ -1131,5 +1131,6 @@
   "who_can_reply_settings_title_video": "Bu videoya kim yanıtlayabilir",
   "who_can_reply_settings_verified_accounts": "Doğrulanmış hesaplar",
   "write_a_message": "Mesaj yazın...",
-  "your_position_card_title": "Pozisyonun"
+  "your_position_card_title": "Pozisyonun",
+  "error_swap_not_enough_gas_on_bsc": "BNB bakiyeniz ağ ücretlerini karşılamak için yetersiz"
 }

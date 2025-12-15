@@ -1131,5 +1131,6 @@
   "who_can_reply_settings_title_video": "Cine poate răspunde la acest video",
   "who_can_reply_settings_verified_accounts": "Conturi verificate",
   "write_a_message": "Scrie un mesaj...",
-  "your_position_card_title": "Poziția ta"
+  "your_position_card_title": "Poziția ta",
+  "error_swap_not_enough_gas_on_bsc": "Nu ai suficient BNB pentru a acoperi taxele rețelei"
 }

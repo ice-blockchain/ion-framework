@@ -1131,5 +1131,6 @@
   "who_can_reply_settings_title_video": "Кой може да отговаря на това видео",
   "who_can_reply_settings_verified_accounts": "Верифицирани акаунти",
   "write_a_message": "Напишете съобщение...",
-  "your_position_card_title": "Вашата позиция"
+  "your_position_card_title": "Вашата позиция",
+  "error_swap_not_enough_gas_on_bsc": "Недостатъчен баланс на BNB за таксата на мрежата"
 }
