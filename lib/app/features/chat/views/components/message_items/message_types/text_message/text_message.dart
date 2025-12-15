@@ -115,7 +115,8 @@ class TextMessage extends HookConsumerWidget {
       contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 12.0.s),
       child: IntrinsicWidth(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              repliedMessageItem != null ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             if (repliedMessageItem != null)
               ReplyMessage(messageItem, repliedMessageItem, onTapReply),
