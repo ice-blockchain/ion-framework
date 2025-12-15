@@ -33,8 +33,7 @@ class MentionDecorationService {
         }
 
         if (pubkey != null) {
-          // This is a one-time decoration, not reactive, so no need for watch
-          final marketCapAsync = ref.read(userTokenMarketCapProvider(pubkey));
+          final marketCapAsync = ref.watch(userTokenMarketCapProvider(pubkey));
           final marketCap = marketCapAsync.valueOrNull;
 
           if (marketCap != null && !data.contains('(')) {
