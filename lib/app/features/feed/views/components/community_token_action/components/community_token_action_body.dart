@@ -108,7 +108,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                   hodl:
                       entity.data.type == CommunityTokenActionType.sell && definitionEntity != null
                           ? ProfileHODL(
-                              definitionEntity: definitionEntity,
+                              actionEntity: entity,
                             )
                           : null,
                 ),

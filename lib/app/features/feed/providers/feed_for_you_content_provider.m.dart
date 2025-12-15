@@ -28,9 +28,11 @@ import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/missing_events_handler.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/language/language_sync_strategy_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_dependency_handler.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_definition_dependency_handler.r.dart';
 import 'package:ion/app/features/user/providers/nsfw_accounts_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/relevant_user_relays_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -610,14 +612,15 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     ];
 
     unawaited(
-      Future.wait(requests).whenComplete(() {
-        resultsController.close();
+      Future.wait(requests).whenComplete(() async {
+        await resultsController.close();
         if (missingEvents.isNotEmpty) {
-          final refs =
-              missingEvents.map((event) => event.data.metadataEventReference).nonNulls.toList();
-          ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-                eventReferences: refs,
-              );
+          final handlers = [
+            await ref.read(tokenDefinitionDependencyHandlerProvider.future),
+            await ref.read(tokenActionFirstBuyDependencyHandlerProvider.future),
+            ref.read(missingEventsHandlerProvider),
+          ];
+          await runEventsMetadataHandlers(handlers, missingEvents);
         }
       }),
     );
