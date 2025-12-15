@@ -191,7 +191,7 @@ class TokenCard extends ConsumerWidget {
                           Row(
                             children: [
                               Text(
-                                coinsGroup!.name,
+                                coinsGroup!.abbreviation,
                                 style: textStyles.body.copyWith(
                                   color: colors.primaryText,
                                 ),
@@ -213,7 +213,7 @@ class TokenCard extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(16.0.s),
                               ),
                               child: Text(
-                                network?.displayName ?? '',
+                                "${network?.displayName ?? ''} ${context.i18n.wallet_network}",
                                 style: textStyles.caption3.copyWith(
                                   color: colors.quaternaryText,
                                   fontSize: 11.0.s,
@@ -235,7 +235,7 @@ class TokenCard extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            coinsGroup!.name,
+                            coinsGroup!.abbreviation,
                             style: textStyles.body.copyWith(
                               color: colors.primaryText,
                             ),
@@ -248,7 +248,7 @@ class TokenCard extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(16.0.s),
                               ),
                               child: Text(
-                                network?.displayName ?? '',
+                                "${network?.displayName ?? ''} ${context.i18n.wallet_network}",
                                 style: textStyles.caption3.copyWith(
                                   color: colors.quaternaryText,
                                   fontSize: 11.0.s,
