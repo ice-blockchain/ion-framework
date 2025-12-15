@@ -46,7 +46,7 @@ class SwapControllerLocator {
       web3Client: web3client,
     );
     final ionIdentityTransactionApi = IonIdentityTransactionApi(
-      clientResolver: ionIdentityClient,
+      ionIdentityClient: ionIdentityClient,
     );
 
     _swapCoinsController = SwapService(
@@ -64,7 +64,7 @@ class SwapControllerLocator {
       ),
       ionSwapService: IonSwapService(
         ionIdentityClient: IonIdentityTransactionApi(
-          clientResolver: ionIdentityClient,
+          ionIdentityClient: ionIdentityClient,
         ),
         config: config,
         web3client: web3client,
