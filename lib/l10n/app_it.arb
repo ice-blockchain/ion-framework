@@ -1128,5 +1128,6 @@
   "who_can_reply_settings_title_video": "Chi può rispondere a questo video",
   "who_can_reply_settings_verified_accounts": "Account verificati",
   "write_a_message": "Scrivi un messaggio...",
-  "your_position_card_title": "La tua posizione"
+  "your_position_card_title": "La tua posizione",
+  "error_swap_not_enough_gas_on_bsc": "Non hai abbastanza BNB per coprire le commissioni di rete"
 }

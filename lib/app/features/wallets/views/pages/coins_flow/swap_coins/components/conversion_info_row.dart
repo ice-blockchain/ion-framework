@@ -8,6 +8,7 @@ import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_swap_client/exceptions/ion_bride_exception.dart';
 import 'package:ion_swap_client/exceptions/lets_exchange_exceptions.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/exceptions/relay_exception.dart';
@@ -127,6 +128,7 @@ class _ErrorState extends StatelessWidget {
           context,
           quoteError! as LetsExchangeException,
         ),
+      NotEnoughGasOnBscException() => context.i18n.error_swap_not_enough_gas_on_bsc,
       InsufficientBalanceException() => context.i18n.error_swap_82000,
       final AmountBelowMinimumException ex =>
         context.i18n.error_swap_amount_below_min(ex.minAmount, ex.symbol),

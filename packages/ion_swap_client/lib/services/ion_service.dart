@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion_swap_client/exceptions/ion_bride_exception.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/models/bsc_fee_data.m.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
+import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
+import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/utils/erc20_contract.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/swap_constants.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:web3dart/web3dart.dart' hide Wallet;
 
 class IonService {
   IonService({
@@ -24,6 +28,36 @@ class IonService {
   EvmTxBuilder get evmTxBuilder => _evmTxBuilder;
   IonIdentityTransactionApi get ionIdentityClient => _ionIdentityClient;
   Web3Client get web3client => _web3client;
+
+  Future<SwapQuoteInfo> getQuote({
+    required SwapCoinParameters swapCoinData,
+    required BigInt bscBalance,
+  }) async {
+    final fees = await _getFeesOnBsc();
+    const gasLimit = 200000;
+
+    // Convert maxFeePerGas from gwei to wei (1 gwei = 10^9 wei)
+    final gweiToWei = BigInt.from(10).pow(9);
+    final maxFeePerGasInWei = fees.maxFeePerGas * gweiToWei;
+
+    final totalFeeInWei = BigInt.from(gasLimit) * maxFeePerGasInWei;
+
+    // Convert bscBalance from BNB to wei (1 BNB = 10^18 wei)
+    final bnbToWei = BigInt.from(10).pow(18);
+    final bscBalanceInWei = bscBalance * bnbToWei;
+
+    if (bscBalanceInWei < totalFeeInWei) {
+      throw const NotEnoughGasOnBscException(
+        'Insufficient BNB balance to cover gas fees',
+      );
+    }
+
+    return SwapQuoteInfo(
+      type: SwapQuoteInfoType.bridge,
+      priceForSellTokenInBuyToken: 1,
+      source: SwapQuoteInfoSource.ionOnchain,
+    );
+  }
 
   Future<void> ensureAllowance({
     required EthereumAddress owner,
@@ -83,6 +117,11 @@ class IonService {
       transaction: transaction,
       userActionSigner: userActionSigner,
     );
+  }
+
+  Future<BscFeeData> _getFeesOnBsc() async {
+    final fees = await _ionIdentityClient.getFeesOnBsc();
+    return BscFeeData.fromJson(fees['standard'] as Map<String, dynamic>);
   }
 
   EthereumAddress toEthereumAddress(String? address) {

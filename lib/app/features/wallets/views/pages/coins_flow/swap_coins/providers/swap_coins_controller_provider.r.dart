@@ -475,8 +475,10 @@ class SwapCoinsController extends _$SwapCoinsController {
 
     final swapController = await ref.read(ionSwapClientProvider.future);
     try {
+      final bscBalance = await _getBscBalance();
       final swapQuoteInfo = await swapController.getSwapQuote(
         swapCoinData: swapCoinParameters,
+        bscBalance: bscBalance,
       );
 
       if (!isAmountValid(amount, swapQuoteInfo)) {
@@ -505,10 +507,23 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
   }
 
+  Future<BigInt?> _getBscBalance() async {
+    final walletView = await ref.read(currentWalletViewDataProvider.future);
+    final coins = walletView.coins;
+    final bscCoin = coins.firstWhereOrNull((coin) => coin.coin.network.isBsc);
+    final rawAmount = bscCoin?.rawAmount;
+    if (rawAmount == null) {
+      return null;
+    }
+
+    return BigInt.parse(rawAmount);
+  }
+
   Future<IonSwapRequest?> _buildIonSwapRequest(
     SwapCoinParameters swapCoinParameters,
     Wallet wallet,
     UserActionSignerNew userActionSigner,
+    String username,
   ) async {
     final isIonBscSwap = await getIsIonBscSwap();
 
@@ -610,10 +625,12 @@ class SwapCoinsController extends _$SwapCoinsController {
       throw Exception('Sender wallet is required');
     }
 
+    final identityClient = await ref.read(ionIdentityClientProvider.future);
     final ionSwapRequest = await _buildIonSwapRequest(
       swapCoinParameters,
       senderWallet,
       userActionSigner,
+      identityClient.username,
     );
 
     try {

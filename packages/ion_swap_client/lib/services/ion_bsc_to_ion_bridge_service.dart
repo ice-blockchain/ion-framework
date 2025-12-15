@@ -6,7 +6,6 @@ import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
-import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/services/ion_service.dart';
 import 'package:ion_swap_client/utils/numb.dart';
 import 'package:tonutils/dataformat.dart';
@@ -27,20 +26,6 @@ class IonBscToIonBridgeService extends IonService {
 
   final EthereumAddress _wIonTokenAddress;
   final EthereumAddress _ionBridgeRouterAddress;
-
-  Future<SwapQuoteInfo> getQuote({
-    required SwapCoinParameters swapCoinData,
-  }) async {
-    if (!isSupportedPair(swapCoinData)) {
-      throw const IonSwapException('Unsupported token pair for ION BSC → ION bridge');
-    }
-
-    return SwapQuoteInfo(
-      type: SwapQuoteInfoType.bridge,
-      priceForSellTokenInBuyToken: 1,
-      source: SwapQuoteInfoSource.ionOnchain,
-    );
-  }
 
   Future<String> bridgeToIon({
     required SwapCoinParameters swapCoinData,

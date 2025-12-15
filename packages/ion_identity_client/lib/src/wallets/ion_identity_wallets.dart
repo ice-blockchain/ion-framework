@@ -4,6 +4,7 @@ import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/auth/services/extract_user_id/extract_user_id_service.dart';
 import 'package:ion_identity_client/src/wallets/services/create_wallet/create_wallet_service.dart';
 import 'package:ion_identity_client/src/wallets/services/generate_signature/generate_signature_service.dart';
+import 'package:ion_identity_client/src/wallets/services/get_fees/get_fees_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallet_assets/get_wallet_assets_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallet_history/get_wallet_history_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallet_nfts/get_wallet_nfts_service.dart';
@@ -35,6 +36,7 @@ class IONIdentityWallets {
     required WalletViewsService walletViewsService,
     required ExtractUserIdService extractUserIdService,
     required MakeTransferService makeTransferService,
+    required GetFeesService getFeesService,
     required SignAndBroadcastService signAndBroadcastService,
   })  : _createWalletService = createWalletService,
         _getWalletsService = getWalletsService,
@@ -46,7 +48,8 @@ class IONIdentityWallets {
         _walletViewsService = walletViewsService,
         _extractUserIdService = extractUserIdService,
         _makeTransferService = makeTransferService,
-        _signAndBroadcastService = signAndBroadcastService;
+        _signAndBroadcastService = signAndBroadcastService,
+        _getFeesService = getFeesService;
 
   final String username;
 
@@ -61,6 +64,7 @@ class IONIdentityWallets {
   final ExtractUserIdService _extractUserIdService;
   final MakeTransferService _makeTransferService;
   final SignAndBroadcastService _signAndBroadcastService;
+  final GetFeesService _getFeesService;
 
   Future<Wallet> createWallet({
     required String network,
@@ -230,4 +234,6 @@ class IONIdentityWallets {
         request: request,
         signer: signer,
       );
+
+  Future<Map<String, dynamic>> getFees(List<String> networks) => _getFeesService.getFees(networks);
 }

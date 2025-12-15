@@ -1128,5 +1128,6 @@
   "who_can_reply_settings_title_video": "Kto może odpowiadać na to wideo",
   "who_can_reply_settings_verified_accounts": "Zweryfikowane konta",
   "write_a_message": "Napisz wiadomość...",
-  "your_position_card_title": "Twoja pozycja"
+  "your_position_card_title": "Twoja pozycja",
+  "error_swap_not_enough_gas_on_bsc": "Nie wystarczające BNB do pokrycia opłat sieciowych"
 }
