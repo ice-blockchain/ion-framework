@@ -206,7 +206,7 @@ class _FollowUserMenuItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.displayErrors(toggleFollowNotifierProvider);
     final following = ref.watch(isCurrentUserFollowingSelectorProvider(pubkey));
-    final iconPath = following ? Assets.svg.iconFollowuser : Assets.svg.iconCategoriesUnfollow;
+    final iconPath = following ? Assets.svg.iconCategoriesUnfollow : Assets.svg.iconFollowuser;
     return ListItem(
       onTap: () {
         Navigator.of(context).pop();
