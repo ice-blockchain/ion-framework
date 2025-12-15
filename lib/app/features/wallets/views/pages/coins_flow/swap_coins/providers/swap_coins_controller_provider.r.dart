@@ -523,7 +523,6 @@ class SwapCoinsController extends _$SwapCoinsController {
     SwapCoinParameters swapCoinParameters,
     Wallet wallet,
     UserActionSignerNew userActionSigner,
-    String username,
   ) async {
     final isIonBscSwap = await getIsIonBscSwap();
 
@@ -625,12 +624,10 @@ class SwapCoinsController extends _$SwapCoinsController {
       throw Exception('Sender wallet is required');
     }
 
-    final identityClient = await ref.read(ionIdentityClientProvider.future);
     final ionSwapRequest = await _buildIonSwapRequest(
       swapCoinParameters,
       senderWallet,
       userActionSigner,
-      identityClient.username,
     );
 
     try {
