@@ -136,7 +136,7 @@ ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) 
             final deltaWithEmbeds = DeltaBridge.normalizeToEmbedFormat(restoredDelta);
             textEditorController.document = Document.fromDelta(deltaWithEmbeds);
 
-            downgradeMentionEmbedsWithoutMarketCap(textEditorController, ref);
+            await downgradeMentionEmbedsWithoutMarketCapAsync(textEditorController, ref);
           });
 
           if (modifiableEntity.data.image != null) {
