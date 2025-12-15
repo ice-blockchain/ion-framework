@@ -54,6 +54,8 @@ class CollapsingHeaderTabsLayout extends HookWidget {
     final imageColors = useImageColors(imageUrl);
     final backgroundColor = this.backgroundColor ?? context.theme.appColors.secondaryBackground;
 
+    final showAppBarBackground = opacity > 0.5;
+
     final menuCloseSignal = useMemoized(OverlayMenuCloseSignal.new);
     useEffect(() => menuCloseSignal.dispose, [menuCloseSignal]);
 
@@ -123,36 +125,38 @@ class CollapsingHeaderTabsLayout extends HookWidget {
               ),
             ),
           ),
-          IgnorePointer(
-            ignoring: opacity <= 0.5,
-            child: Opacity(
-              opacity: opacity,
-              child: NavigationAppBar(
-                showBackButton: showBackButton,
-                useScreenTopOffset: true,
-                extendBehindStatusBar: newUiMode,
-                backButtonIcon: backButtonIcon,
-                scrollController: scrollController,
-                horizontalPadding: 0,
-                backgroundBuilder: newUiMode
-                    ? () => ProfileBackground(
-                          colors: imageColors,
-                          disableDarkGradient: true,
-                        )
-                    : null,
-                title: collapsedHeaderBuilder(opacity),
-                actions: headerActionsBuilder(menuCloseSignal).asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final action = entry.value;
-                  if (index == 0) return action;
-                  return Padding(
-                    padding: EdgeInsetsDirectional.only(start: 8.0.s, end: 16.0.s),
-                    child: action,
-                  );
-                }).toList(),
-                onBackPress: onBackButtonPressed,
+          NavigationAppBar(
+            showBackButton: showBackButton,
+            useScreenTopOffset: true,
+            extendBehindStatusBar: newUiMode,
+            backButtonIcon: backButtonIcon,
+            scrollController: scrollController,
+            horizontalPadding: 0,
+            backgroundColor:
+                showAppBarBackground ? (newUiMode ? null : backgroundColor) : Colors.transparent,
+            backgroundBuilder: newUiMode && showAppBarBackground
+                ? () => ProfileBackground(
+                      colors: imageColors,
+                      disableDarkGradient: true,
+                    )
+                : null,
+            title: IgnorePointer(
+              ignoring: opacity <= 0.5,
+              child: Opacity(
+                opacity: opacity,
+                child: collapsedHeaderBuilder(opacity),
               ),
             ),
+            actions: headerActionsBuilder(menuCloseSignal).asMap().entries.map((entry) {
+              final index = entry.key;
+              final action = entry.value;
+              if (index == 0) return action;
+              return Padding(
+                padding: EdgeInsetsDirectional.only(start: 8.0.s, end: 16.0.s),
+                child: action,
+              );
+            }).toList(),
+            onBackPress: onBackButtonPressed,
           ),
         ],
       ),
