@@ -292,7 +292,9 @@ class SwapCoinsController extends _$SwapCoinsController {
   }
 
   Future<CoinInWalletData?> _getCoinWalletDataAndSyncIfNeeded(
-      CoinsGroup coinsGroup, NetworkData network) async {
+    CoinsGroup coinsGroup,
+    NetworkData network,
+  ) async {
     var coin = coinsGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == network.id);
     if (coin == null) {
       final coinsList =
