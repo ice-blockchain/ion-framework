@@ -95,6 +95,15 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         return t;
       }).toList();
 
+      // Find existing transactions that need isSwap flag updated
+      final existingToUpdate = existing
+          .where((existingTx) {
+            final key = buildSwapKey(existingTx);
+            return swapHashes.contains(key) && !existingTx.isSwap;
+          })
+          .map((existingTx) => existingTx.copyWith(isSwap: true))
+          .toList();
+
       final newTransactions = transactionsWithSwapFlag.where(
         (t) => !existingMap.containsKey('${buildSwapKey(t)}_${t.type}'),
       );
@@ -128,11 +137,17 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
       await batch((batch) {
         batch.insertAllOnConflictUpdate(transactionsTable, toInsert);
+        // Update existing transactions that are now detected as swaps
+        for (final tx in existingToUpdate) {
+          batch.update(transactionsTable, tx);
+        }
       });
 
       await visibilityStatusDao.addOrUpdateVisibilityStatus(transactions: transactionsWithSwapFlag);
 
-      return newTransactions.isNotEmpty || updatedTransactions.isNotEmpty;
+      return newTransactions.isNotEmpty ||
+          updatedTransactions.isNotEmpty ||
+          existingToUpdate.isNotEmpty;
     });
   }
 
