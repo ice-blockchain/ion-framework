@@ -16,7 +16,6 @@ import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/services/markdown/mention_decoration_service.dart';
 
 class PostContent extends HookConsumerWidget {
   const PostContent({
@@ -44,10 +43,9 @@ class PostContent extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // Decorate mentions with market cap suffix when available (cached only).
-    final decoratedContent = MentionDecorationService.decorateMentionsWithMarketCap(
-      currentContent,
-      ref,
+    // Decorate mentions with market cap suffix
+    final decoratedContent = ref.watch<Delta>(
+      decoratedMentionsWithMarketCapProvider(currentContent),
     );
 
     final isExpanded = ref.watch(expandedPostsStateProvider).contains(entity.id);

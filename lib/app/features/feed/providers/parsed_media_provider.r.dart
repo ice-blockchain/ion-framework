@@ -13,6 +13,7 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_related_pubkeys.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
