@@ -93,11 +93,13 @@ Future<void> downgradeMentionEmbedsWithoutMarketCapAsync(
         final mentionData = MentionEmbedData.fromJson(
           Map<String, dynamic>.from(data[mentionEmbedKey] as Map),
         );
-        mentions.add((
-          position: currentOffset,
-          data: mentionData,
-          pubkey: mentionData.pubkey,
-        ));
+        mentions.add(
+          (
+            position: currentOffset,
+            data: mentionData,
+            pubkey: mentionData.pubkey,
+          ),
+        );
       }
 
       currentOffset += length;
