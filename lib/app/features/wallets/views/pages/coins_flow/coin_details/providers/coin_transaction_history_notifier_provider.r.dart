@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/extensions/object.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_transaction_data.f.dart';
@@ -12,6 +13,7 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
+import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
@@ -318,10 +320,49 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     }
 
     if (!allowDuplicates && _history.any((h) => h.origin.txHash == tx.txHash)) {
-      return false; // Skip duplicate without warning for real-time updates
+      return false;
+    }
+
+    if (_isBurnTransaction(tx)) {
+      Logger.info('$_tag Filtered out burn transaction: ${tx.txHash}');
+      return false;
     }
 
     return true;
+  }
+
+  bool _isBurnTransaction(TransactionData tx) {
+    if (tx.type != TransactionType.send) {
+      return false;
+    }
+
+    final receiverAddress = tx.receiverWalletAddress?.toLowerCase();
+    if (receiverAddress == null) {
+      return false;
+    }
+
+    final bridgeAddresses = _getBridgeContractAddresses();
+
+    return bridgeAddresses.any(
+      (address) => address != null && receiverAddress == address.toLowerCase(),
+    );
+  }
+
+  List<String?> _getBridgeContractAddresses() {
+    try {
+      final envNotifier = ref.watch(envProvider.notifier);
+      return [
+        envNotifier.get<String>(
+          EnvVariable.CRYPTOCURRENCIES_ION_BRIDGE_ROUTER_CONTRACT_ADDRESS,
+        ),
+        envNotifier.get<String>(
+          EnvVariable.CRYPTOCURRENCIES_ION_BRIDGE_CONTRACT_ADDRESS,
+        ),
+      ];
+    } catch (e) {
+      Logger.error('$_tag Failed to get bridge contract addresses: $e');
+      return [];
+    }
   }
 
   void _updateState({bool? hasMore}) {

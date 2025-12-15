@@ -409,6 +409,7 @@ class TransactionsRepository {
       txHash: transaction.txHash,
       walletViewId: walletViewId,
       externalHash: transaction.externalHash,
+      transactionIndex: transaction.index,
       network: network,
       type: type,
       senderWalletAddress: from,

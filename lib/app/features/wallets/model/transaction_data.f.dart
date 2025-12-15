@@ -20,6 +20,7 @@ class TransactionData with _$TransactionData {
     String? id,
     String? fee,
     String? externalHash,
+    String? transactionIndex,
     CoinData? nativeCoin,
     DateTime? dateConfirmed,
     DateTime? dateRequested,
@@ -30,5 +31,6 @@ class TransactionData with _$TransactionData {
     String? userPubkey,
     String? memo,
     String? eventId,
+    @Default(false) bool isSwap,
   }) = _TransactionData;
 }

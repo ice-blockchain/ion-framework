@@ -40,6 +40,7 @@ class CoinTransactionsMapper {
           dateConfirmed: details.dateConfirmed,
           dateRequested: details.dateRequested,
           memo: details.memo,
+          isSwap: false,
         );
       },
       nft: (nft) {
@@ -58,6 +59,7 @@ class CoinTransactionsMapper {
           dateConfirmed: details.dateConfirmed,
           dateRequested: details.dateRequested,
           memo: details.memo,
+          isSwap: false,
         );
       },
       notInitialized: () => throw ArgumentError('Cannot save uninitialized asset data'),
@@ -119,6 +121,7 @@ class CoinTransactionsMapper {
             transferredAmountUsd: double.tryParse(content.amountUsd ?? '0'),
             eventId: entity.id,
             assetContractAddress: entity.data.assetAddress,
+            isSwap: false,
           );
         })
         .nonNulls
@@ -148,6 +151,7 @@ class CoinTransactionsMapper {
             transferredAmount: rawAmount,
             transferredAmountUsd: amountUSD,
             memo: transaction.memo,
+            isSwap: transaction.isSwap,
           ),
           nft: (nft) => db.Transaction(
             type: transaction.type.value,
@@ -167,6 +171,7 @@ class CoinTransactionsMapper {
             createdAtInRelay: transaction.createdAtInRelay,
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
+            isSwap: transaction.isSwap,
           ),
           nftIdentifier: (identifier, network) => db.Transaction(
             type: transaction.type.value,
@@ -186,6 +191,7 @@ class CoinTransactionsMapper {
             createdAtInRelay: transaction.createdAtInRelay,
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
+            isSwap: transaction.isSwap,
           ),
           undefinedCoin: (String contractAddress, String rawAmount) => db.Transaction(
             type: transaction.type.value,
@@ -206,6 +212,7 @@ class CoinTransactionsMapper {
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
             assetContractAddress: contractAddress,
+            isSwap: transaction.isSwap,
           ),
         );
       }).toList();

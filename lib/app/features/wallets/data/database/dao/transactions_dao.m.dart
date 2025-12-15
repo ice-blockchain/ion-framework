@@ -58,14 +58,47 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
   Future<bool> save(List<Transaction> transactions) {
     return transaction(() async {
       final existing = await (select(transactionsTable)
-            ..where((t) => t.txHash.isIn(transactions.map((e) => e.txHash))))
+            ..where(
+              (t) =>
+                  t.txHash.isIn(transactions.map((e) => e.txHash)) &
+                  t.walletViewId.isIn(transactions.map((e) => e.walletViewId)) &
+                  t.type.isIn(transactions.map((e) => e.type)),
+            ))
           .get();
 
-      final existingMap = {for (final e in existing) e.txHash: e};
+      final existingMap = {
+        for (final e in existing) '${e.txHash}_${e.walletViewId}_${e.type}': e,
+      };
 
-      final newTransactions = transactions.where((t) => !existingMap.containsKey(t.txHash));
+      // Detect on-chain swaps: same txHash + walletViewId, different types
+      final txHashWalletPairs = <String, List<Transaction>>{};
+      for (final t in [...existing, ...transactions]) {
+        final key = '${t.txHash}_${t.walletViewId}';
+        txHashWalletPairs[key] = [...(txHashWalletPairs[key] ?? []), t];
+      }
+
+      // Mark transactions as swaps if they have counterpart with different type
+      final swapHashes = txHashWalletPairs.entries
+          .where((e) => e.value.map((t) => t.type).toSet().length > 1)
+          .map((e) => e.key)
+          .toSet();
+
+      // Update isSwap flag for detected on-chain swaps
+      transactions = transactions.map((t) {
+        final key = '${t.txHash}_${t.walletViewId}';
+
+        if (swapHashes.contains(key) && !t.isSwap) {
+          return t.copyWith(isSwap: true);
+        }
+        return t;
+      }).toList();
+
+      final newTransactions = transactions.where(
+        (t) => !existingMap.containsKey('${t.txHash}_${t.walletViewId}_${t.type}'),
+      );
       final toInsert = transactions.map((toInsertRaw) {
-        final existing = existingMap[toInsertRaw.txHash];
+        final existing =
+            existingMap['${toInsertRaw.txHash}_${toInsertRaw.walletViewId}_${toInsertRaw.type}'];
 
         if (existing == null) return toInsertRaw;
 
@@ -88,7 +121,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         );
       });
       final updatedTransactions = toInsert.where((t) {
-        final existing = existingMap[t.txHash];
+        final existing = existingMap['${t.txHash}_${t.walletViewId}_${t.type}'];
         return existing != null && existing != t;
       }).toList();
 
@@ -469,6 +502,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       userPubkey: transaction.userPubkey,
       eventId: transaction.eventId,
       memo: transaction.memo,
+      isSwap: transaction.isSwap,
     );
   }
 

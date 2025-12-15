@@ -263,6 +263,18 @@ class WalletsDatabase extends _$WalletsDatabase {
           await customStatement('DELETE FROM transactions_table_v2');
           await customStatement('DELETE FROM transaction_visibility_status_table');
         },
+        from21To22: (m, schema) async {
+          final isSwapExists = await isColumnExists(
+            tableName: schema.transactionsTableV2.actualTableName,
+            columnName: 'is_swap',
+          );
+          if (!isSwapExists) {
+            await m.addColumn(
+              schema.transactionsTableV2,
+              schema.transactionsTableV2.isSwap,
+            );
+          }
+        },
       ),
     );
   }
