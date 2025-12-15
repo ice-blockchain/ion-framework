@@ -204,17 +204,10 @@ class _CustomNativeAd extends StatelessWidget {
     return _BottomSeparator(
       height: separatorHeight,
       child: Container(
-        height: 270,
+        height: 260,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: AppodealNativeAd(
-          options: NativeAdOptions.contentStreamOptions(
-            adChoicePosition: AdChoicePosition.endTop,
-            adAttributionBackgroundColor: Colors.white,
-            adAttributionTextColor: Colors.black,
-            adActionButtonTextSize: 13,
-            adDescriptionFontSize: 12,
-            adTitleFontSize: 13,
-          ),
+          options: NativeAdOptions.contentStreamOptions(),
         ),
       ),
     );
