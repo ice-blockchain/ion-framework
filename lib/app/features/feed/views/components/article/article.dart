@@ -8,7 +8,6 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/components/entities_list/components/bookmark_button/bookmark_button.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -137,22 +136,16 @@ class Article extends ConsumerWidget {
               timeFormat: timeFormat,
               accentTheme: isAccentTheme,
               trailing: showActionButtons
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        BookmarkButton(eventReference: eventReference),
-                        BottomSheetMenuButton(
-                          menuBuilder: (context) => isOwnedByCurrentUser
-                              ? OwnPostMenuBottomSheet(
-                                  eventReference: eventReference,
-                                )
-                              : PostMenuBottomSheet(
-                                  eventReference: eventReference,
-                                  showNotInterested: showNotInterested,
-                                ),
-                          isAccentTheme: isAccentTheme,
-                        ),
-                      ],
+                  ? BottomSheetMenuButton(
+                      menuBuilder: (context) => isOwnedByCurrentUser
+                          ? OwnPostMenuBottomSheet(
+                              eventReference: eventReference,
+                            )
+                          : PostMenuBottomSheet(
+                              eventReference: eventReference,
+                              showNotInterested: showNotInterested,
+                            ),
+                      isAccentTheme: isAccentTheme,
                     )
                   : null,
             ),

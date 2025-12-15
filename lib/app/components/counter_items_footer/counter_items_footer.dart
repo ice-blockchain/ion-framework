@@ -9,7 +9,6 @@ import 'package:ion/app/components/counter_items_footer/reposts_counter_button.d
 import 'package:ion/app/components/counter_items_footer/share_button.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/components/entities_list/components/bookmark_button/bookmark_button.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 
 class CounterItemsFooter extends HookConsumerWidget {
@@ -66,22 +65,10 @@ class CounterItemsFooter extends HookConsumerWidget {
             padding: itemPadding,
           ),
         ),
-        Center(
-          child: Row(
-            children: [
-              BookmarkButton(
-                eventReference: eventReference,
-                size: 16.0.s,
-                padding: itemPadding + EdgeInsetsDirectional.only(end: 8.0.s, start: 14.0.s),
-                color: color ?? context.theme.appColors.onTertiaryBackground,
-              ),
-              ShareButton(
-                eventReference: eventReference,
-                padding: itemPadding + EdgeInsetsDirectional.only(end: sidePadding, start: 8.0.s),
-                color: color,
-              ),
-            ],
-          ),
+        ShareButton(
+          eventReference: eventReference,
+          padding: itemPadding + EdgeInsetsDirectional.only(end: sidePadding, start: 8.0.s),
+          color: color,
         ),
       ],
     );
