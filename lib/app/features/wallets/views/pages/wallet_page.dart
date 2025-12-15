@@ -13,6 +13,7 @@ import 'package:ion/app/extensions/extensions.dart';
 // import 'package:ion/app/features/core/model/feature_flags.dart';
 // import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/community_tokens_button.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
@@ -74,7 +75,7 @@ class WalletPage extends HookConsumerWidget {
           // ignore: dead_code
           if (tokenizedCommunitiesEnabled) ...[
             SizedBox(width: 8.s),
-            const CardButton(),
+            const CommunityTokensButton(),
           ],
         ],
       ),
