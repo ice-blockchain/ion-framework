@@ -168,7 +168,7 @@ class TokenCard extends ConsumerWidget {
                           Row(
                             children: [
                               Text(
-                                coinsGroup!.name,
+                                coinsGroup!.abbreviation,
                                 style: textStyles.body.copyWith(
                                   color: colors.primaryText,
                                 ),
@@ -180,6 +180,7 @@ class TokenCard extends ConsumerWidget {
                               ),
                             ],
                           ),
+<<<<<<< HEAD
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
                             decoration: BoxDecoration(
@@ -194,6 +195,58 @@ class TokenCard extends ConsumerWidget {
                               ),
                             ),
                           ),
+=======
+                          if (network != null)
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
+                              decoration: BoxDecoration(
+                                color: colors.attentionBlock,
+                                borderRadius: BorderRadius.circular(16.0.s),
+                              ),
+                              child: Text(
+                                "${network?.displayName ?? ''} ${context.i18n.wallet_network}",
+                                style: textStyles.caption3.copyWith(
+                                  color: colors.quaternaryText,
+                                  fontSize: 11.0.s,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  )
+                else if (avatarWidget != null && coinsGroup != null)
+                  Row(
+                    spacing: 10.0.s,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      avatarWidget!,
+                      Column(
+                        spacing: 2.0.s,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            coinsGroup!.abbreviation,
+                            style: textStyles.body.copyWith(
+                              color: colors.primaryText,
+                            ),
+                          ),
+                          if (network != null)
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
+                              decoration: BoxDecoration(
+                                color: colors.attentionBlock,
+                                borderRadius: BorderRadius.circular(16.0.s),
+                              ),
+                              child: Text(
+                                "${network?.displayName ?? ''} ${context.i18n.wallet_network}",
+                                style: textStyles.caption3.copyWith(
+                                  color: colors.quaternaryText,
+                                  fontSize: 11.0.s,
+                                ),
+                              ),
+                            ),
+>>>>>>> 3b43f2d38 (fix: swap ui tweaks (#2803))
                         ],
                       ),
                     ],
