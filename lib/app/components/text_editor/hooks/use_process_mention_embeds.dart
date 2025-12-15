@@ -73,9 +73,80 @@ void downgradeMentionEmbedsWithoutMarketCap(QuillController controller, WidgetRe
   }
 }
 
+// Async version that waits for market cap providers to finish loading before downgrading.
+// Use this when providers might not be loaded yet (e.g., article editing).
+Future<void> downgradeMentionEmbedsWithoutMarketCapAsync(
+  QuillController controller,
+  WidgetRef ref,
+) async {
+  try {
+    final delta = controller.document.toDelta();
+    final mentions = <({int position, MentionEmbedData data, String pubkey})>[];
+
+    // Scan document for mention embeds and collect their pubkeys
+    var currentOffset = 0;
+    for (final op in delta.operations) {
+      final length = op.length ?? 1;
+      final data = op.data;
+
+      if (data is Map && data.containsKey(mentionEmbedKey)) {
+        final mentionData = MentionEmbedData.fromJson(
+          Map<String, dynamic>.from(data[mentionEmbedKey] as Map),
+        );
+        mentions.add((
+          position: currentOffset,
+          data: mentionData,
+          pubkey: mentionData.pubkey,
+        ));
+      }
+
+      currentOffset += length;
+    }
+
+    if (mentions.isEmpty) return;
+
+    final marketCapResults = await Future.wait(
+      mentions.map((mention) => ref.read(userTokenMarketCapProvider(mention.pubkey).future)),
+    );
+
+    // Collect downgrades (mentions without market cap)
+    final downgrades = <({int position, MentionEmbedData data})>[];
+    for (var i = 0; i < mentions.length; i++) {
+      final marketCap = marketCapResults[i];
+      if (marketCap == null) {
+        downgrades.add((position: mentions[i].position, data: mentions[i].data));
+      }
+    }
+
+    // Downgrade embeds without market cap (in reverse order to maintain positions)
+    if (downgrades.isNotEmpty) {
+      for (final downgrade in downgrades.reversed) {
+        try {
+          MentionInsertionService.downgradeMentionEmbedToText(
+            controller,
+            downgrade.position,
+            downgrade.data,
+          );
+        } catch (e, stackTrace) {
+          Logger.error(
+            e,
+            stackTrace: stackTrace,
+            message: 'Failed to downgrade mention embed at position ${downgrade.position}',
+          );
+        }
+      }
+    }
+  } catch (e, stackTrace) {
+    Logger.error(
+      e,
+      stackTrace: stackTrace,
+      message: 'Failed to downgrade mention embeds without market cap',
+    );
+  }
+}
+
 // Hook that downgrades mention embeds without market cap when controller is created.
 // For posts: processes immediately (document already loaded synchronously).
-// For articles: call downgradeMentionEmbedsWithoutMarketCap manually after async document loading.
 void useDowngradeMentionEmbedsWithoutMarketCap(QuillController? controller, WidgetRef ref) {
   useEffect(() {
     if (controller == null) return null;
