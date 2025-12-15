@@ -8,18 +8,18 @@ import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 // TODO(ice-erebus): move to separate package
 class IonIdentityTransactionApi {
   IonIdentityTransactionApi({
-    required IONIdentityClient clientResolver,
-  }) : _clientResolver = clientResolver;
+    required IONIdentityClient ionIdentityClient,
+  }) : _ionIdentityClient = ionIdentityClient;
 
-  final IONIdentityClient _clientResolver;
+  final IONIdentityClient _ionIdentityClient;
 
   Future<IonSignature> sign({
     required String walletId,
     required String message,
     required UserActionSignerNew userActionSigner,
   }) async {
-    final wallet = await _resolveWallet(_clientResolver, walletId);
-    final response = await _clientResolver.wallets.sign(wallet, message, userActionSigner);
+    final wallet = await _resolveWallet(_ionIdentityClient, walletId);
+    final response = await _ionIdentityClient.wallets.sign(wallet, message, userActionSigner);
     return IonSignature.fromJson(
       response['signature'] as Map<String, dynamic>,
     );
@@ -30,7 +30,7 @@ class IonIdentityTransactionApi {
     required EvmTransaction transaction,
     required UserActionSignerNew userActionSigner,
   }) async {
-    final wallet = await _resolveWallet(_clientResolver, walletId);
+    final wallet = await _resolveWallet(_ionIdentityClient, walletId);
 
     final broadcastRequest = EvmBroadcastRequest.transactionJson(
       transaction: EvmTransactionJson(
@@ -42,7 +42,7 @@ class IonIdentityTransactionApi {
       ),
     );
 
-    final response = await _clientResolver.wallets.signAndBroadcast(
+    final response = await _ionIdentityClient.wallets.signAndBroadcast(
       wallet,
       broadcastRequest,
       userActionSigner,
