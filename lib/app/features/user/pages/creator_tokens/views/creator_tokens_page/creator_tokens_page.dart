@@ -2,21 +2,24 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
-import 'package:ion/app/components/tabs_header/tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/featured_tokens_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/global_search_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_body.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_header.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_search_bar.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -27,15 +30,72 @@ class CreatorTokensPage extends HookConsumerWidget {
     super.key,
   });
 
-  double get paddingTop => 60.0.s;
+  static const _expandedHeaderHeight = 375.0;
+  static const _tabBarHeight = 48.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statusBarHeight = MediaQuery.paddingOf(context).top;
-
     final scrollController = useScrollController();
+    final globalSearchNotifier = ref.watch(globalSearchTokensNotifierProvider.notifier);
 
-    final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
+    final searchController = useTextEditingController();
+    final searchFocusNode = useFocusNode();
+    final searchFocused = useNodeFocused(searchFocusNode);
+    final searchQuery = useState('');
+    final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
+
+    useEffect(
+      () {
+        void listener() => searchQuery.value = searchController.text;
+        searchController.addListener(listener);
+
+        return () => searchController.removeListener(listener);
+      },
+      [searchController],
+    );
+
+    final maxScroll =
+        _expandedHeaderHeight.s - NavigationAppBar.screenHeaderHeight - _tabBarHeight.s;
+
+    final isGlobalSearchVisible = useState<bool>(false);
+    final lastSearchQuery = useRef<String?>(null);
+
+    // Collapse header when search field is focused
+    useOnInit(
+      () {
+        if (searchFocused.value) {
+          if (scrollController.hasClients) {
+            final currentOffset = scrollController.offset;
+            final targetOffset = maxScroll;
+
+            // Only scroll if not already collapsed (or close to collapsed)
+            if (currentOffset < targetOffset - 5) {
+              scrollController.animateTo(
+                targetOffset,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          }
+        }
+      },
+      [searchFocused.value],
+    );
+
+    void resetGlobalSearch() {
+      searchFocusNode.unfocus();
+      searchController.clear();
+      searchQuery.value = '';
+      lastSearchQuery.value = null;
+      globalSearchNotifier.search(
+        query: '',
+      );
+    }
+
+    final (:opacity) = useAnimatedOpacityOnScroll(
+      scrollController,
+      topOffset: maxScroll,
+    );
 
     useEffect(
       () {
@@ -53,12 +113,18 @@ class CreatorTokensPage extends HookConsumerWidget {
 
     // Get featured tokens
     final featuredTokensAsync = ref.watch(featuredTokensProvider);
+    final featuredTokens = featuredTokensAsync.valueOrNull ?? <CommunityToken>[];
 
-    // Get list of featured tokens
-    final featuredTokens = featuredTokensAsync.when<List<CommunityToken>>(
-      data: (List<CommunityToken> tokens) => tokens,
-      loading: () => <CommunityToken>[],
-      error: (_, __) => <CommunityToken>[],
+    useOnInit(
+      () {
+        if (!isGlobalSearchVisible.value) return;
+        if (debouncedQuery == lastSearchQuery.value) return;
+        lastSearchQuery.value = debouncedQuery;
+        globalSearchNotifier.search(
+          query: debouncedQuery,
+        );
+      },
+      [debouncedQuery, isGlobalSearchVisible.value],
     );
 
     // Create stable identifier for the list (to avoid unnecessary useEffect triggers)
@@ -68,7 +134,7 @@ class CreatorTokensPage extends HookConsumerWidget {
     final selectedToken = useState<CommunityToken?>(initialToken);
 
     // Update selectedToken when featuredTokens list actually changes
-    useEffect(
+    useOnInit(
       () {
         if (featuredTokens.isNotEmpty) {
           // If no token is selected, or selected token is no longer in the list, select first
@@ -82,7 +148,6 @@ class CreatorTokensPage extends HookConsumerWidget {
           // If list becomes empty, clear selection to avoid showing stale data
           selectedToken.value = null;
         }
-        return null;
       },
       [tokensIdentifier],
     );
@@ -102,94 +167,57 @@ class CreatorTokensPage extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: true,
-      body: ScrollToTopWrapper(
-        scrollController: scrollController,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            SafeArea(
-              left: false,
-              right: false,
-              top: false,
-              child: DefaultTabController(
+      body: KeyboardDismissOnTap(
+        child: ScrollToTopWrapper(
+          scrollController: scrollController,
+          child: Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              DefaultTabController(
                 length: CreatorTokensTabType.values.length,
                 child: NestedScrollView(
                   controller: scrollController,
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
-                      SliverToBoxAdapter(
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: ProfileBackground(
-                                colors: avatarColors,
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.only(top: 70.0.s, bottom: 44.0.s),
-                              child: featuredTokens.isEmpty
-                                  ? const SizedBox.shrink()
-                                  : CreatorTokensCarousel(
-                                      tokens: featuredTokens,
-                                      onItemChanged: (token) {
-                                        selectedToken.value = token;
-                                      },
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PinnedHeaderSliver(
-                        child: ColoredBox(
-                          color: context.theme.appColors.primaryText,
-                          child: const TabsHeader(
-                            tabs: CreatorTokensTabType.values,
-                          ),
-                        ),
+                      CreatorTokensHeader(
+                        expandedHeight: _expandedHeaderHeight,
+                        tabBarHeight: _tabBarHeight,
+                        opacity: opacity,
+                        featuredTokensAsync: featuredTokensAsync,
+                        selectedToken: selectedToken,
+                        avatarColors: avatarColors,
+                        backButtonIcon: backButtonIcon,
+                        onPop: context.pop,
+                        onSearchToggle: () {
+                          final nextVisible = !isGlobalSearchVisible.value;
+                          isGlobalSearchVisible.value = nextVisible;
+                          if (!nextVisible) {
+                            resetGlobalSearch();
+                          }
+                        },
                       ),
                       const SliverToBoxAdapter(
                         child: SectionSeparator(),
                       ),
+                      CreatorTokensSearchBar(
+                        isVisible: isGlobalSearchVisible.value,
+                        searchController: searchController,
+                        searchFocusNode: searchFocusNode,
+                        onCancelSearch: () {
+                          resetGlobalSearch();
+                          isGlobalSearchVisible.value = false;
+                        },
+                      ),
                     ];
                   },
-                  body: TabBarView(
-                    children: CreatorTokensTabType.values.map(
-                      (tabType) {
-                        return CreatorTokensTabContent(
-                          tabType: tabType,
-                        );
-                      },
-                    ).toList(),
+                  body: CreatorTokensBody(
+                    searchQuery: searchQuery.value,
+                    isGlobalSearchVisible: isGlobalSearchVisible.value,
                   ),
                 ),
               ),
-            ),
-            IgnorePointer(
-              ignoring: opacity <= 0.5,
-              child: Opacity(
-                opacity: opacity,
-                child: NavigationAppBar(
-                  useScreenTopOffset: true,
-                  extendBehindStatusBar: true,
-                  backButtonIcon: backButtonIcon,
-                  scrollController: scrollController,
-                  horizontalPadding: 0,
-                  backgroundBuilder: () => ProfileBackground(
-                    colors: avatarColors,
-                    disableDarkGradient: true,
-                  ),
-                ),
-              ),
-            ),
-            PositionedDirectional(
-              top: statusBarHeight,
-              start: 0,
-              child: NavigationBackButton(
-                context.pop,
-                icon: backButtonIcon,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

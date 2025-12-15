@@ -47,25 +47,24 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
     required String sessionId,
     required TokenCategoryType type,
   }) async {
-    final subscription = await _client.subscribeSse<List<dynamic>>(
+    final subscription = await _client.subscribeSse<Map<String, dynamic>>(
       '/v1sse/community-tokens/${type.value}',
       queryParameters: {'viewingSessionId': sessionId},
     );
 
-    final stream = subscription.stream.map<List<CommunityTokenBase>>((jsons) {
-      final list = <CommunityTokenBase>[];
-      for (final json in jsons) {
-        try {
-          final data = CommunityToken.fromJson(json as Map<String, dynamic>);
-          list.add(data);
-        } catch (_) {
-          final patch = CommunityTokenPatch.fromJson(json as Map<String, dynamic>);
-          list.add(patch);
-        }
+    final stream = subscription.stream.map<CommunityTokenBase>((data) {
+      try {
+        return CommunityToken.fromJson(data);
+      } catch (_) {
+        return CommunityTokenPatch.fromJson(data);
       }
-      return list;
     });
 
-    return NetworkSubscription<List<CommunityTokenBase>>(stream: stream, close: subscription.close);
+    // TODO: migrate later to use stream of tokens, not list of tokens
+    final listStream = stream.map((token) => [token]);
+    return NetworkSubscription<List<CommunityTokenBase>>(
+      stream: listStream,
+      close: subscription.close,
+    );
   }
 }

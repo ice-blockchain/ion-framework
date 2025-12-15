@@ -19,6 +19,10 @@ class CreatorTokensCarousel extends HookConsumerWidget {
     super.key,
   });
 
+  static const carouselHeight = 303.0;
+  static const carouselHorizontalPadding = 24.0;
+  static const carouselTopPadding = _CarouselCard.topPadding;
+
   final List<CommunityToken> tokens;
   final void Function(CommunityToken) onItemChanged;
 
@@ -26,17 +30,18 @@ class CreatorTokensCarousel extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CarouselSlider.builder(
       options: CarouselOptions(
-        height: 304.0.s,
+        height: carouselHeight.s,
         viewportFraction: 0.75,
         enlargeCenterPage: true,
         enableInfiniteScroll: false,
         enlargeStrategy: CenterPageEnlargeStrategy.zoom,
+        initialPage: tokens.length >= 3 ? 1 : 0,
         onPageChanged: (index, _) => onItemChanged(tokens[index]),
       ),
       itemCount: tokens.length,
       itemBuilder: (context, index, realIndex) {
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.0.s),
+          padding: EdgeInsets.symmetric(horizontal: carouselHorizontalPadding.s),
           child: _CarouselCard(token: tokens[index]),
         );
       },
@@ -48,6 +53,8 @@ class _CarouselCard extends HookConsumerWidget {
   const _CarouselCard({
     required this.token,
   });
+
+  static const topPadding = 22.0;
 
   final CommunityToken token;
 
@@ -64,94 +71,96 @@ class _CarouselCard extends HookConsumerWidget {
       child: ProfileBackground(
         key: ValueKey(token.externalAddress),
         colors: colors,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22.0.s),
-                color: context.theme.appColors.primaryBackground,
-              ),
-              padding: EdgeInsets.all(2.0.s),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20.0.s),
-                child: avatarUrl.isNotEmpty
-                    ? Image.network(
-                        avatarUrl!,
-                        width: 98.0.s,
-                        height: 98.0.s,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+        child: Padding(
+          padding: EdgeInsetsDirectional.only(top: topPadding.s),
+          child: Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22.0.s),
+                  color: context.theme.appColors.primaryBackground,
+                ),
+                padding: EdgeInsets.all(2.0.s),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20.0.s),
+                  child: avatarUrl.isNotEmpty
+                      ? Image.network(
+                          avatarUrl!,
+                          width: 98.0.s,
+                          height: 98.0.s,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 98.0.s,
+                            height: 98.0.s,
+                            color: context.theme.appColors.tertiaryBackground,
+                          ),
+                        )
+                      : Container(
                           width: 98.0.s,
                           height: 98.0.s,
                           color: context.theme.appColors.tertiaryBackground,
                         ),
-                      )
-                    : Container(
-                        width: 98.0.s,
-                        height: 98.0.s,
-                        color: context.theme.appColors.tertiaryBackground,
-                      ),
-              ),
-            ),
-            SizedBox(height: 20.0.s),
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      token.creator.display,
-                      style: context.theme.appTextThemes.subtitle.copyWith(
-                        color: context.theme.appColors.secondaryBackground,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (token.creator.verified) ...[
-                      SizedBox(width: 4.0.s),
-                      Assets.svg.iconBadgeVerify.icon(
-                        size: 16.0.s,
-                        color: context.theme.appColors.secondaryBackground,
-                      ),
-                    ],
-                  ],
                 ),
-                SizedBox(height: 4.0.s),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '@${token.creator.name}',
-                      style: context.theme.appTextThemes.body2.copyWith(
-                        color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.7),
-                      ),
-                    ),
-                    SizedBox(width: 8.0.s),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
-                      decoration: BoxDecoration(
-                        color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12.0.s),
-                      ),
-                      child: Text(
-                        MarketDataFormatter.formatPrice(token.marketData.priceUSD),
-                        style: context.theme.appTextThemes.caption2.copyWith(
+              ),
+              SizedBox(height: 20.0.s),
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        token.creator.display,
+                        style: context.theme.appTextThemes.subtitle.copyWith(
                           color: context.theme.appColors.secondaryBackground,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 20.0.s),
-            _CreatorStatsWidget(
-              marketCap: token.marketData.marketCap,
-              volume: token.marketData.volume,
-              holders: token.marketData.holders,
-            ),
-          ],
+                      if (token.creator.verified) ...[
+                        SizedBox(width: 4.0.s),
+                        Assets.svg.iconBadgeVerify.icon(
+                          size: 16.0.s,
+                          color: context.theme.appColors.secondaryBackground,
+                        ),
+                      ],
+                    ],
+                  ),
+                  SizedBox(height: 4.0.s),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '@${token.creator.name}',
+                        style: context.theme.appTextThemes.body2.copyWith(
+                          color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      SizedBox(width: 8.0.s),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
+                        decoration: BoxDecoration(
+                          color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12.0.s),
+                        ),
+                        child: Text(
+                          MarketDataFormatter.formatPrice(token.marketData.priceUSD),
+                          style: context.theme.appTextThemes.caption2.copyWith(
+                            color: context.theme.appColors.secondaryBackground,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 20.0.s),
+              _CreatorStatsWidget(
+                marketCap: token.marketData.marketCap,
+                volume: token.marketData.volume,
+                holders: token.marketData.holders,
+              ),
+            ],
+          ),
         ),
       ),
     );
