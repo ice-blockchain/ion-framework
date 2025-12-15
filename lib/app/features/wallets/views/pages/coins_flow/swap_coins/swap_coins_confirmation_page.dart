@@ -207,7 +207,7 @@ class _TokenRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$amount ${coinsGroup.name}',
+                '$amount ${coinsGroup.abbreviation}',
                 style: textStyles.title.copyWith(
                   color: colors.primaryText,
                 ),
@@ -261,10 +261,6 @@ class _SwapDetailsSection extends ConsumerWidget {
           decoration: BoxDecoration(
             color: colors.tertiaryBackground,
             borderRadius: BorderRadius.circular(16.0.s),
-            border: Border.all(
-              color: colors.onTertiaryFill,
-              width: 0.5,
-            ),
           ),
           child: Column(
             children: [
@@ -276,7 +272,7 @@ class _SwapDetailsSection extends ConsumerWidget {
               _DetailRow(
                 label: context.i18n.wallet_swap_confirmation_price,
                 value:
-                    '1 ${sellCoin?.name} = ${swapQuoteInfo?.priceForSellTokenInBuyToken.formatMax6} ${buyCoin?.name}',
+                    '1 ${sellCoin?.abbreviation} = ${swapQuoteInfo?.priceForSellTokenInBuyToken.formatMax6} ${buyCoin?.abbreviation}',
               ),
               AnimatedSize(
                 duration: const Duration(milliseconds: 300),
@@ -409,9 +405,8 @@ class _DetailRow extends StatelessWidget {
               flex: 3,
               child: Text(
                 value,
-                style: textStyles.body2.copyWith(
-                  color: colors.primaryText,
-                ),
+                style: textStyles.body2
+                    .copyWith(color: colors.primaryText, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.end,
               ),
             ),
