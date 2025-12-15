@@ -77,6 +77,27 @@ class StoryViewerPage extends HookConsumerWidget {
       ref.watch(userStoriesProvider(nextUserPubkey));
     }
 
+    useEffect(
+      () {
+        if (initialStoryReference != null &&
+            storyViewerState.userStories.isEmpty &&
+            context.mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref
+                .read(
+                  userStoriesViewingNotifierProvider(
+                    pubkey,
+                    showOnlySelectedUser: showOnlySelectedUser,
+                  ).notifier,
+                )
+                .setUserStoryByReference(initialStoryReference!);
+          });
+        }
+        return null;
+      },
+      [initialStoryReference, storyViewerState.userStories.isEmpty],
+    );
+
     useOnInit(
       () {
         if (storyViewerState.userStories.isEmpty && context.mounted && context.canPop()) {
