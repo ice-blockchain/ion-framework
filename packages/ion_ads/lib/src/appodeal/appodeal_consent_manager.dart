@@ -15,7 +15,7 @@ class AppodealConsentForm {
   /// - [tagForUnderAgeOfConsent]: Flag to tag the user as under the age of consent.
   /// - [onConsentFormLoadSuccess]: Callback for successful consent form loading.
   /// - [onConsentFormLoadFailure]: Callback for failed consent form loading.
-  void load({
+  Future<void> load({
     required String appKey,
     bool tagForUnderAgeOfConsent = false,
     void Function(ConsentStatus)? onConsentFormLoadSuccess,
@@ -32,7 +32,7 @@ class AppodealConsentForm {
       },
     });
 
-    _invokeMethod('load', {
+    return _invokeMethod('load', {
       'appKey': appKey,
       'tagForUnderAgeOfConsent': tagForUnderAgeOfConsent,
     });
@@ -89,7 +89,7 @@ class AppodealConsentForm {
   }
 
   /// Helper method to set a method call handler with specific callbacks.
-  void _setHandler(Map<String, Function(dynamic arguments)> handlers) {
+  void _setHandler(Map<String, void Function(dynamic arguments)> handlers) {
     _consentManagerChannel.setMethodCallHandler((call) async {
       final handler = handlers[call.method];
       if (handler != null) {
@@ -99,8 +99,8 @@ class AppodealConsentForm {
   }
 
   /// Helper method to invoke a method on the platform channel.
-  void _invokeMethod(String method, [Map<String, dynamic>? arguments]) {
-    _consentManagerChannel.invokeMethod(method, arguments);
+  Future<void> _invokeMethod(String method, [Map<String, dynamic>? arguments]) {
+    return _consentManagerChannel.invokeMethod(method, arguments);
   }
 }
 
