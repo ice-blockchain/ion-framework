@@ -1064,7 +1064,7 @@
   "wallet_swap_slippage_settings_description": "Your transaction will revert if the price changes more than the slippage percentage",
   "wallet_swap_slippage_settings_auto": "Auto",
   "wallet_swap_confirmation_very_high_price_impact": "Very high price impact",
-  "wallet_swap_failed": "Transaction failed",
+  "wallet_swap_failed": "Swap failed",
   "wallet_swap_option_desc": "Swapping is even easier than it seems",
   "wallet_swapped_coins": "Swap complete",
   "wallet_swapping_coins": "Swapping...",

@@ -1073,7 +1073,7 @@
   "wallet_swap_confirmation_swap_button": "تبديل",
   "wallet_swap_confirmation_title": "تأكيد التبديل",
   "wallet_swap_confirmation_very_high_price_impact": "تأثير سعري مرتفع جدًا",
-  "wallet_swap_failed": "فشلت المعاملة",
+  "wallet_swap_failed": "فشل التبديل",
   "wallet_swap_slippage_settings_title": "إعدادات الانزلاق السعري",
   "wallet_swap_slippage_settings_label": "الانزلاق السعري",
   "wallet_swap_slippage_settings_description": "سيتم إلغاء معاملتك إذا تغير السعر أكثر من نسبة الانزلاق السعري",

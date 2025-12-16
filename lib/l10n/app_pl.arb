@@ -1064,7 +1064,7 @@
   "wallet_swap_slippage_settings_description": "Transakcja zostanie cofnięta, jeśli cena zmieni się bardziej niż procent poślizgu",
   "wallet_swap_slippage_settings_auto": "Auto",
   "wallet_swap_confirmation_very_high_price_impact": "Bardzo wysoki wpływ na cenę",
-  "wallet_swap_failed": "Transakcja nieudana",
+  "wallet_swap_failed": "Wymiana nieudana",
   "wallet_swap_option_desc": "Wymiana jest jeszcze łatwiejsza niż się wydaje",
   "wallet_swapped_coins": "Wymiana zakończona",
   "wallet_swapping_coins": "Wymiana...",

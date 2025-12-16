@@ -1064,7 +1064,7 @@
   "wallet_swap_slippage_settings_description": "如果价格变化超过滑点百分比，您的交易将被回退",
   "wallet_swap_slippage_settings_auto": "自动",
   "wallet_swap_confirmation_very_high_price_impact": "价格影响非常大",
-  "wallet_swap_failed": "交易失败",
+  "wallet_swap_failed": "交换失败",
   "wallet_swap_option_desc": "交换比看起来更容易",
   "wallet_swapped_coins": "交换完成",
   "wallet_swapping_coins": "正在交换...",
