@@ -103,16 +103,29 @@ class SwapService {
 
   Future<SwapQuoteInfo> getSwapQuote({
     required SwapCoinParameters swapCoinData,
+    BigInt? bscBalance,
   }) async {
     try {
       if (_ionBscToIonBridgeService.isSupportedPair(swapCoinData)) {
+        if (bscBalance == null) {
+          throw const IonSwapException('BSC wallet is required for on-chain bridge');
+        }
+
         return _ionBscToIonBridgeService.getQuote(
           swapCoinData: swapCoinData,
+          bscBalance: bscBalance,
         );
       }
 
       if (isIonBscSwap(swapCoinData)) {
-        return _ionSwapService.getQuote(swapCoinData: swapCoinData);
+        if (bscBalance == null) {
+          throw const IonSwapException('BSC wallet is required for on-chain swap');
+        }
+
+        return _ionSwapService.getQuote(
+          swapCoinData: swapCoinData,
+          bscBalance: bscBalance,
+        );
       }
 
       if (swapCoinData.isBridge) {

@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion_swap_client/exceptions/ion_bridge_exception.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/models/bsc_fee_data.m.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
+import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
+import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/utils/erc20_contract.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/swap_constants.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:web3dart/web3dart.dart' hide Wallet;
 
 class IonService {
   IonService({
@@ -57,6 +61,12 @@ class IonService {
         'Insufficient BNB balance to cover gas fees',
       );
     }
+
+    return SwapQuoteInfo(
+      type: SwapQuoteInfoType.bridge,
+      priceForSellTokenInBuyToken: 1,
+      source: SwapQuoteInfoSource.ionOnchain,
+    );
   }
 
   Future<void> ensureAllowance({
@@ -117,6 +127,11 @@ class IonService {
       transaction: transaction,
       userActionSigner: userActionSigner,
     );
+  }
+
+  Future<BscFeeData> _getFeesOnBsc() async {
+    final fees = await _ionIdentityClient.getFeesOnBsc();
+    return BscFeeData.fromJson(fees['standard'] as Map<String, dynamic>);
   }
 
   EthereumAddress toEthereumAddress(String? address) {
