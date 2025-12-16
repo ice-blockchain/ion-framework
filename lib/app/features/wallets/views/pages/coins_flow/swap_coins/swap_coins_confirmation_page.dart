@@ -15,7 +15,12 @@ import 'package:ion/app/features/components/verify_identity/verify_identity_prom
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
+<<<<<<< HEAD
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
+=======
+import 'package:ion/app/features/wallets/providers/swap_disabled_notifier_provider.r.dart';
+import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
+>>>>>>> deae8c5f4 (feat: disable swap config (#2804))
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -29,7 +34,19 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+<<<<<<< HEAD
     final showMoreDetails = useState(false);
+=======
+    useEffect(
+      () {
+        final notifier = ref.read(swapDisabledNotifierProvider.notifier)..startCheckSwapDisabled();
+
+        return notifier.stopCheckSwapDisabled;
+      },
+      const [],
+    );
+
+>>>>>>> deae8c5f4 (feat: disable swap config (#2804))
     final sellCoins = ref.watch(swapCoinsControllerProvider).sellCoin;
     final sellNetwork = ref.watch(swapCoinsControllerProvider).sellNetwork;
     final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
@@ -437,7 +454,9 @@ class _SwapButton extends ConsumerWidget {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
     final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
-    final isDisabled = ref.watch(swapCoinsControllerProvider).isSwapLoading;
+    final isSwapLoading = ref.watch(swapCoinsControllerProvider).isSwapLoading;
+    final isSwapDisabled = ref.watch(swapDisabledNotifierProvider).value ?? true;
+    final isDisabled = isSwapLoading || isSwapDisabled;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
@@ -511,7 +530,7 @@ class _SwapButton extends ConsumerWidget {
             color: colors.secondaryBackground,
           ),
         ),
-        backgroundColor: colors.primaryAccent,
+        backgroundColor: isDisabled ? colors.sheetLine : colors.primaryAccent,
         borderRadius: BorderRadius.circular(16.0.s),
         trailingIcon: Assets.svg.iconSwap.icon(
           color: colors.secondaryBackground,
@@ -602,7 +621,48 @@ class _SwapButton extends ConsumerWidget {
         message: message,
         icon: icon,
         state: state,
+        suffixWidget: const _SwapCoinsInfoWidget(),
       ),
+    );
+  }
+}
+
+class _SwapCoinsInfoWidget extends ConsumerWidget {
+  const _SwapCoinsInfoWidget();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final swapCoinsController = ref.watch(swapCoinsControllerProvider);
+    final sellCoin = swapCoinsController.sellCoin;
+    final buyCoin = swapCoinsController.buyCoin;
+
+    if (sellCoin == null || buyCoin == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Row(
+      spacing: 4.0.s,
+      children: [
+        Text(
+          '\$${sellCoin.abbreviation}',
+          style: context.theme.appTextThemes.body.copyWith(
+            color: context.theme.appColors.onPrimaryAccent,
+          ),
+        ),
+        RotatedBox(
+          quarterTurns: 2,
+          child: Assets.svg.iconBackArrow.icon(
+            color: context.theme.appColors.onTertiaryFill,
+            size: 16.0.s,
+          ),
+        ),
+        Text(
+          '\$${buyCoin.abbreviation}',
+          style: context.theme.appTextThemes.body.copyWith(
+            color: context.theme.appColors.onPrimaryAccent,
+          ),
+        ),
+      ],
     );
   }
 }

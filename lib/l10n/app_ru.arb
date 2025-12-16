@@ -1064,7 +1064,7 @@
   "wallet_swap_slippage_settings_description": "Сделка будет отменена, если цена изменится больше указанного процента проскальзывания",
   "wallet_swap_slippage_settings_auto": "Авто",
   "wallet_swap_confirmation_very_high_price_impact": "Очень высокое влияние на цену",
-  "wallet_swap_failed": "Транзакция не удалась",
+  "wallet_swap_failed": "Обмен не удался",
   "wallet_swap_option_desc": "Обмен ещё проще, чем кажется",
   "wallet_swapped_coins": "Обмен завершён",
   "wallet_swapping_coins": "Обмен...",
