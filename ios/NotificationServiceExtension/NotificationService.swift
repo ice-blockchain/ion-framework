@@ -3,6 +3,9 @@
 import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
+    /// Key for the deep link parameter in push notification payloads
+    static let deepLinkKey = "deep_link"
+    
     var contentHandler: ((UNNotificationContent) -> Void)?
     var mutableNotificationContent: UNMutableNotificationContent?
     var communicationPushData: CommunicationPushData?
@@ -56,8 +59,8 @@ class NotificationService: UNNotificationServiceExtension {
                 mutableNotificationContent.body = result.body
                 
                 // Pass through deep link parameter if present
-                if let deepLink = request.content.userInfo["deep_link"] as? String {
-                    mutableNotificationContent.userInfo["deep_link"] = deepLink
+                if let deepLink = request.content.userInfo[NotificationService.deepLinkKey] as? String {
+                    mutableNotificationContent.userInfo[NotificationService.deepLinkKey] = deepLink
                 }
 
                 communicationPushData = CommunicationPushData(
