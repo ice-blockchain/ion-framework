@@ -205,9 +205,11 @@ class SendCoinsConfirmationProfileRoute extends BaseRouteData
 
 class CoinTransactionResultProfileRoute extends BaseRouteData
     with _$CoinTransactionResultProfileRoute {
-  CoinTransactionResultProfileRoute(
-      {required this.walletViewId, required this.txHash, required this.typeValue})
-      : super(
+  CoinTransactionResultProfileRoute({
+    required this.walletViewId,
+    required this.txHash,
+    required this.typeValue,
+  }) : super(
           child: TransactionResultSheet(
             walletViewId: walletViewId,
             txHash: txHash,
