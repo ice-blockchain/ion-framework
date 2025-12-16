@@ -251,113 +251,115 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            const Text(
-              'Appodeal Ad Integration Test',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const Text(
+                'Appodeal Ad Integration Test',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
 
-            // Banner Controls
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Text(
-                      'Banner Ad ${_isBannerLoaded ? '(Ready)' : '(Loading...)'}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(onPressed: _showBanner, child: const Text('Show Banner')),
-                        ElevatedButton(onPressed: _hideBanner, child: const Text('Hide Banner')),
-                      ],
-                    ),
-                  ],
+              // Banner Controls
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Banner Ad ${_isBannerLoaded ? '(Ready)' : '(Loading...)'}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(onPressed: _showBanner, child: const Text('Show Banner')),
+                          ElevatedButton(onPressed: _hideBanner, child: const Text('Hide Banner')),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Interstitial Control
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Text(
-                      'Interstitial Ad ${_isInterstitialLoaded ? '(Ready)' : '(Loading...)'}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: _showInterstitial,
-                      child: const Text('Show Interstitial'),
-                    ),
-                  ],
+              // Interstitial Control
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Interstitial Ad ${_isInterstitialLoaded ? '(Ready)' : '(Loading...)'}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: _showInterstitial,
+                        child: const Text('Show Interstitial'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Rewarded Video Control
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Text(
-                      'Rewarded Video ${_isRewardedLoaded ? '(Ready)' : '(Loading...)'}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: _showRewardedVideo,
-                      child: const Text('Show Rewarded Video'),
-                    ),
-                  ],
+              // Rewarded Video Control
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Rewarded Video ${_isRewardedLoaded ? '(Ready)' : '(Loading...)'}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: _showRewardedVideo,
+                        child: const Text('Show Rewarded Video'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Native ADS Control
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Text(
-                      'Native ADS ${_isNativeLoaded ? '(Ready)' : '(Loading...)'}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: _showNativeAds,
-                      child: const Text('Show Native ADS'),
-                    ),
-                  ],
+              // Native ADS Control
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Native ADS ${_isNativeLoaded ? '(Ready)' : '(Loading...)'}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: _showNativeAds,
+                        child: const Text('Show Native ADS'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            ElevatedButton.icon(
-              onPressed: _checkAdAvailability,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh Ad Status'),
-            ),
-          ],
+              ElevatedButton.icon(
+                onPressed: _checkAdAvailability,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh Ad Status'),
+              ),
+            ],
+          ),
         ),
       ),
     );
