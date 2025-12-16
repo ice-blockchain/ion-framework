@@ -510,7 +510,7 @@ class SwapCoinsController extends _$SwapCoinsController {
   Future<BigInt?> _getBscBalance() async {
     final walletView = await ref.read(currentWalletViewDataProvider.future);
     final coins = walletView.coins;
-    final bscCoin = coins.firstWhereOrNull((coin) => coin.coin.network.isBsc);
+    final bscCoin = coins.firstWhereOrNull((coin) => coin.coin.native && coin.coin.network.isBsc);
     final rawAmount = bscCoin?.rawAmount;
     if (rawAmount == null) {
       return null;
