@@ -7,6 +7,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/onboarding_complete_provider.r.dart';
 import 'package:ion/app/features/auth/views/pages/required_bsc_wallet/creator_monetization_is_live_dialog.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/bsc_wallet_check_provider.m.dart';
@@ -32,6 +33,7 @@ class BscWalletCheckService {
   bool _authenticated = false;
   bool? _onboardingComplete;
   bool _splashCompleted = false;
+  bool? _currentUserHasToken;
   final _lock = Lock();
 
   final void Function() _emitDialog;
@@ -59,6 +61,11 @@ class BscWalletCheckService {
     _maybeTrigger();
   }
 
+  void onCurrentUserHasTokenChanged({required bool? hasToken}) {
+    _currentUserHasToken = hasToken;
+    _maybeTrigger();
+  }
+
   void onUserPreferencesServiceChanged(UserPreferencesService? service) {
     _userPreferencesService = service;
     _maybeTrigger();
@@ -69,6 +76,7 @@ class BscWalletCheckService {
       if (!_splashCompleted) return;
       if (!_authenticated) return;
       if (_onboardingComplete != true) return;
+      if (_currentUserHasToken == null || (_currentUserHasToken ?? false)) return;
       final prefs = _userPreferencesService;
       if (prefs == null) return;
 
@@ -128,6 +136,13 @@ BscWalletCheckService bscWalletCheckService(Ref ref) {
       fireImmediately: true,
       (_, UserPreferencesService? next) {
         service.onUserPreferencesServiceChanged(next);
+      },
+    )
+    ..listen<AsyncValue<bool?>>(
+      currentUserHasTokenProvider,
+      fireImmediately: true,
+      (_, AsyncValue<bool?> next) {
+        service.onCurrentUserHasTokenChanged(hasToken: next.valueOrNull);
       },
     )
     ..listen<AsyncValue<UserMetadataEntity?>>(
