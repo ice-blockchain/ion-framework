@@ -53,6 +53,9 @@ class NotificationResponseService {
         _appsflyerDeepLinkService = appsflyerDeepLinkService,
         _internalDeepLinkService = internalDeepLinkService;
 
+  /// Key for the deep link parameter in push notification payloads
+  static const String deepLinkKey = 'deep_link';
+
   final Future<GiftUnwrapService> Function() _getGiftUnwrapService;
   final UserMetadataEntity? Function(String pubkey) _getUserMetadata;
   final Future<IonConnectEntity?> Function(EventReference eventReference) _getEntityData;
@@ -106,7 +109,7 @@ class NotificationResponseService {
   }) async {
     try {
       // Check for custom deep link in push payload
-      final deepLink = response['deep_link'] as String?;
+      final deepLink = response[deepLinkKey] as String?;
       if (deepLink != null && deepLink.isNotEmpty) {
         _checkModal();
         final context = _getNavigatorContext();
