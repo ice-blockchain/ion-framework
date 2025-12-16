@@ -101,11 +101,9 @@ Future<List<CoinData>> supportedSwapTokens(Ref ref) async {
   final supportedAddresses =
       supportedTokensConfig.map((e) => e['address'] as String).map((e) => e.toLowerCase()).toSet();
 
-  final allCoins = await coinsRepository.getCoins();
-
-  final supportedCoins = allCoins.where((coin) {
-    return supportedAddresses.contains(coin.contractAddress.toLowerCase());
-  }).toList();
+  final supportedCoins = await coinsRepository.getCoinsByFilters(
+    contractAddresses: supportedAddresses,
+  );
 
   return supportedCoins;
 }
