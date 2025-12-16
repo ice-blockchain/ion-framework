@@ -45,9 +45,21 @@ class IonSwapService extends IonService {
   final EthereumAddress _iceTokenAddress;
   final EthereumAddress _ionTokenAddress;
 
+  @override
   Future<SwapQuoteInfo> getQuote({
     required SwapCoinParameters swapCoinData,
+    required BigInt bscBalance,
   }) async {
+<<<<<<< HEAD
+=======
+    final direction = _getDirection(swapCoinData);
+    if (!direction.isIceToIon) {
+      throw const IonSwapCoinPairNotFoundException();
+    }
+
+    await ensureEnoughGasOnBsc(bscBalance);
+
+>>>>>>> b923a13b6 (feat(ion_service): implement gas validation for BSC swaps and refactor quote retrieval.)
     return SwapQuoteInfo(
       type: SwapQuoteInfoType.bridge,
       priceForSellTokenInBuyToken: 1,
