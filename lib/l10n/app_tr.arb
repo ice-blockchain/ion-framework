@@ -998,6 +998,8 @@
   "wallet_buy_nfts": "NFT satın al",
   "wallet_carousel_bridge_description": "Token'larınızı birden fazla bağlı ağ arasında güvenli bir şekilde köprüleyin",
   "wallet_carousel_bridge_title": "Köprü",
+  "wallet_carousel_creator_tokens_description": "Toplulukları zincir üzeri ekonomilere dönüştürün",
+  "wallet_carousel_creator_tokens_title": "İçerik üreticisi token'ları",
   "wallet_carousel_portfolio_description": "Tüm kripto para birimlerinizi tek bir yerde güvenli bir şekilde takip edin ve yönetin",
   "wallet_carousel_portfolio_title": "Portföy",
   "wallet_carousel_swap_description": "Token'larınızı cüzdanınızdan doğrudan anında ve güvenli bir şekilde değiştirin",

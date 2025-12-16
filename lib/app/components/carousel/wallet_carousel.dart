@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/carousel/carousel_with_dots.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class WalletCarouselItem extends StatelessWidget {
@@ -10,50 +11,55 @@ class WalletCarouselItem extends StatelessWidget {
     required this.title,
     required this.description,
     required this.icon,
+    this.onTap,
     super.key,
   });
 
   final String title;
   final String description;
   final Widget icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.theme.appColors.tertiaryBackground,
-        borderRadius: BorderRadius.circular(16.0.s),
-        border: Border.all(
-          color: context.theme.appColors.onTertiaryFill,
-          width: 0.5.s,
+    return GestureDetector(
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: context.theme.appColors.tertiaryBackground,
+          borderRadius: BorderRadius.circular(16.0.s),
+          border: Border.all(
+            color: context.theme.appColors.onTertiaryFill,
+            width: 0.5.s,
+          ),
         ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(20.s),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: context.theme.appTextThemes.title,
-                  ),
-                  SizedBox(height: 8.0.s),
-                  Text(
-                    description,
-                    style: context.theme.appTextThemes.body2.copyWith(
-                      color: Colors.black,
+        child: Padding(
+          padding: EdgeInsets.all(20.s),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: context.theme.appTextThemes.title,
                     ),
-                  ),
-                ],
+                    SizedBox(height: 8.0.s),
+                    Text(
+                      description,
+                      style: context.theme.appTextThemes.body2.copyWith(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(child: icon),
-          ],
+              Expanded(child: icon),
+            ],
+          ),
         ),
       ),
     );
@@ -69,6 +75,12 @@ class WalletCarousel extends StatelessWidget {
       padding: EdgeInsets.all(16.0.s),
       child: CarouselWithDots(
         items: [
+          WalletCarouselItem(
+            title: context.i18n.wallet_carousel_creator_tokens_title,
+            description: context.i18n.wallet_carousel_creator_tokens_description,
+            icon: Assets.svg.walletIconProfileCoininwalletCarousel.icon(size: 80.s),
+            onTap: () => CreatorTokensRoute().push<void>(context),
+          ),
           WalletCarouselItem(
             title: context.i18n.wallet_carousel_portfolio_title,
             description: context.i18n.wallet_carousel_portfolio_description,
