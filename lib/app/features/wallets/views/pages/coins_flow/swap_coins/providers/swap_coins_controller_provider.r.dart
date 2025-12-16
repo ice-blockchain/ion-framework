@@ -71,9 +71,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       amount: amount,
     );
 
-    if (state.swapQuoteInfo == null) {
-      _debouncedGetQuotes();
-    }
+    _debouncedGetQuotes();
   }
 
   Future<bool> isBalanceSufficient() async {
@@ -708,6 +706,24 @@ class SwapCoinsController extends _$SwapCoinsController {
       sellNetwork: sellNetwork,
       sellCoin: sellCoin,
     );
+  }
+
+  Future<bool> isInsufficientFundsError() async {
+    final coin = state.sellCoin;
+    final network = state.sellNetwork;
+    final amount = state.amount;
+
+    if (coin == null || network == null || amount <= 0) {
+      return false;
+    }
+
+    final sellCoin = await _getCoinWalletDataAndSyncIfNeeded(coin, network);
+
+    if (sellCoin == null) {
+      return false;
+    }
+
+    return sellCoin.amount < amount;
   }
 }
 

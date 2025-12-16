@@ -34,6 +34,7 @@ class TokenCard extends HookConsumerWidget {
     this.skipValidation = false,
     this.validator,
     super.key,
+    this.isInsufficientFundsError = false,
   });
 
   final CoinSwapType type;
@@ -48,6 +49,7 @@ class TokenCard extends HookConsumerWidget {
   final bool showArrow;
   final bool skipValidation;
   final FormFieldValidator<String>? validator;
+  final bool isInsufficientFundsError;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
     final coin = coinsGroup?.coins.firstWhereOrNull(
@@ -66,6 +68,9 @@ class TokenCard extends HookConsumerWidget {
     final textStyles = context.theme.appTextThemes;
     final iconUrl = coinsGroup?.iconUrl;
     final focusNode = useFocusNode();
+    final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
+      (CoinInWalletData c) => c.coin.network.id == network?.id,
+    );
 
     useEffect(
       () {
@@ -330,7 +335,7 @@ class TokenCard extends HookConsumerWidget {
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       autovalidateMode: AutovalidateMode.always,
                       style: textStyles.headline2.copyWith(
-                        color: colors.primaryText,
+                        color: isInsufficientFundsError ? colors.attentionRed : colors.primaryText,
                       ),
                       inputFormatters: [
                         CoinInputFormatter(
@@ -359,9 +364,6 @@ class TokenCard extends HookConsumerWidget {
                             final parsed = parseAmount(trimmedValue);
                             if (parsed == null) return '';
 
-                            final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
-                              (CoinInWalletData c) => c.coin.network.id == network?.id,
-                            );
                             final maxValue = coinForNetwork?.amount;
                             if (maxValue != null && (parsed > maxValue || parsed < 0)) {
                               return context.i18n.wallet_coin_amount_insufficient_funds;
@@ -397,7 +399,7 @@ class TokenCard extends HookConsumerWidget {
                 child: Row(
                   children: [
                     Assets.svg.iconWallet.icon(
-                      color: colors.tertiaryText,
+                      color: isInsufficientFundsError ? colors.attentionRed : colors.tertiaryText,
                       size: 12.0.s,
                     ),
                     SizedBox(
@@ -406,9 +408,6 @@ class TokenCard extends HookConsumerWidget {
                     Flexible(
                       child: Builder(
                         builder: (context) {
-                          final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
-                            (CoinInWalletData c) => c.coin.network.id == network?.id,
-                          );
                           final maxValue = coinForNetwork?.amount;
 
                           return Text(
@@ -416,7 +415,9 @@ class TokenCard extends HookConsumerWidget {
                                 ? '${maxValue.toStringAsFixed(2)} ${coinsGroup!.abbreviation}'
                                 : '0.00',
                             style: textStyles.caption2.copyWith(
-                              color: colors.tertiaryText,
+                              color: isInsufficientFundsError
+                                  ? colors.attentionRed
+                                  : colors.tertiaryText,
                             ),
                             overflow: TextOverflow.ellipsis,
                           );
@@ -427,7 +428,7 @@ class TokenCard extends HookConsumerWidget {
                 ),
               ),
               Text(
-                r'$0.00',
+                formatToCurrency(coinForNetwork?.balanceUSD ?? 0),
                 style: textStyles.caption2.copyWith(
                   color: colors.tertiaryText,
                 ),
