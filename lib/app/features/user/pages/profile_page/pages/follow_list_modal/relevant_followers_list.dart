@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_app_bar.dart';
@@ -36,12 +37,21 @@ class RelevantFollowersList extends ConsumerWidget {
       if (entities != null)
         SliverList.builder(
           itemCount: entities.length,
-          itemBuilder: (context, index) => ScreenSideOffset.small(
-            child: FollowListItem(
-              key: ValueKey(entities[index].masterPubkey),
-              pubkey: entities[index].masterPubkey,
-            ),
-          ),
+          itemBuilder: (context, index) {
+            final entity = entities[index];
+            final masterPubkey = switch (entity) {
+              final EventsMetadataEntity eventsMetadata =>
+                eventsMetadata.data.metadataEventReference?.masterPubkey ?? entity.masterPubkey,
+              _ => entity.masterPubkey,
+            };
+
+            return ScreenSideOffset.small(
+              child: FollowListItem(
+                key: ValueKey(masterPubkey),
+                pubkey: masterPubkey,
+              ),
+            );
+          },
         )
       else
         const FollowListLoading(),
