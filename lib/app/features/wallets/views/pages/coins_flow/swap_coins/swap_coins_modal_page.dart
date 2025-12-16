@@ -42,6 +42,8 @@ class SwapCoinsModalPage extends HookConsumerWidget {
 
     final amountController = useTextEditingController();
     final quoteController = useTextEditingController();
+    final isInsufficientFundsError =
+        ref.watch(swapCoinsControllerProvider.notifier).isInsufficientFundsError;
 
     useAmountListener(
       amountController,
@@ -77,18 +79,25 @@ class SwapCoinsModalPage extends HookConsumerWidget {
             children: [
               Column(
                 children: [
-                  TokenCard(
-                    validator: (value) {
-                      return null;
-                    },
-                    controller: amountController,
-                    type: CoinSwapType.sell,
-                    coinsGroup: sellNetwork != null ? sellCoins : null,
-                    network: sellNetwork,
-                    onTap: () {
-                      SwapSelectCoinRoute(
-                        coinType: CoinSwapType.sell,
-                      ).push<void>(context);
+                  FutureBuilder(
+                    future: isInsufficientFundsError.call(),
+                    builder: (context, asyncSnapshot) {
+                      final isInsufficientFundsError = asyncSnapshot.data ?? false;
+                      return TokenCard(
+                        isInsufficientFundsError: isInsufficientFundsError,
+                        validator: (value) {
+                          return null;
+                        },
+                        controller: amountController,
+                        type: CoinSwapType.sell,
+                        coinsGroup: sellNetwork != null ? sellCoins : null,
+                        network: sellNetwork,
+                        onTap: () {
+                          SwapSelectCoinRoute(
+                            coinType: CoinSwapType.sell,
+                          ).push<void>(context);
+                        },
+                      );
                     },
                   ),
                   SizedBox(
