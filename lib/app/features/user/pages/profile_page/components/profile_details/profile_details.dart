@@ -6,6 +6,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/edit_user_button.dart';
@@ -32,8 +33,11 @@ class ProfileDetails extends ConsumerWidget {
     final eventReferenceString = userMetadata.valueOrNull?.toEventReference().toString();
 
     final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(pubkey));
+
+    final hasBscWallet = CreatorTokenUtils.hasBscWallet(userMetadata.valueOrNull?.data);
+
     final tokenInfo = profileMode == ProfileMode.dark
-        ? eventReferenceString != null
+        ? eventReferenceString != null && hasBscWallet
             ? ref.watch(tokenMarketInfoProvider(eventReferenceString))
             : null
         : null;
@@ -67,6 +71,7 @@ class ProfileDetails extends ConsumerWidget {
           ProfileUserInfo(
             pubkey: pubkey,
             profileMode: profileMode,
+            hasBscWallet: hasBscWallet,
           ),
         ],
       ),
