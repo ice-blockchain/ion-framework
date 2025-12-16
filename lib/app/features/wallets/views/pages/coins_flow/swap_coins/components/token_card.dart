@@ -65,17 +65,20 @@ class TokenCard extends HookConsumerWidget {
 
     useEffect(
       () {
-        void onFocusChange() {
-          if (!focusNode.hasFocus && controller != null && !(isReadOnly ?? false)) {
+        void formatAmount() {
+          if (!focusNode.hasFocus && !(isReadOnly ?? false)) {
             // Format to 2 decimal places when focus is lost
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              final currentText = controller!.text.trim();
-              if (currentText.isNotEmpty) {
-                final parsed = parseAmount(currentText);
-                if (parsed != null && parsed > 0) {
-                  final formatted = formatDouble(parsed);
-                  if (controller!.text != formatted) {
-                    controller!.text = formatted;
+              // Check controller != null inside callback to handle async cases
+              if (controller != null) {
+                final currentText = controller!.text.trim();
+                if (currentText.isNotEmpty) {
+                  final parsed = parseAmount(currentText);
+                  if (parsed != null && parsed > 0) {
+                    final formatted = formatDouble(parsed);
+                    if (controller!.text != formatted) {
+                      controller!.text = formatted;
+                    }
                   }
                 }
               }
@@ -83,8 +86,8 @@ class TokenCard extends HookConsumerWidget {
           }
         }
 
-        focusNode.addListener(onFocusChange);
-        return () => focusNode.removeListener(onFocusChange);
+        focusNode.addListener(formatAmount);
+        return () => focusNode.removeListener(formatAmount);
       },
       [focusNode, controller, isReadOnly],
     );
