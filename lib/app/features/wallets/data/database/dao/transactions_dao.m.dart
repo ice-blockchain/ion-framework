@@ -139,7 +139,16 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         batch.insertAllOnConflictUpdate(transactionsTable, toInsert);
         // Update existing transactions that are now detected as swaps
         for (final tx in existingToUpdate) {
-          batch.update(transactionsTable, tx);
+          batch.update(
+            transactionsTable,
+            const TransactionsTableCompanion(
+              isSwap: Value(true),
+            ),
+            where: (tbl) =>
+                tbl.txHash.equals(tx.txHash) &
+                tbl.walletViewId.equals(tx.walletViewId) &
+                tbl.type.equals(tx.type),
+          );
         }
       });
 
