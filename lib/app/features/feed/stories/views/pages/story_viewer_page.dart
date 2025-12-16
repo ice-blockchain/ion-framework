@@ -79,10 +79,10 @@ class StoryViewerPage extends HookConsumerWidget {
 
     useEffect(
       () {
-        if (initialStoryReference != null &&
-            storyViewerState.userStories.isEmpty &&
-            context.mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (initialStoryReference != null &&
+              storyViewerState.userStories.isEmpty &&
+              context.mounted) {
             ref
                 .read(
                   userStoriesViewingNotifierProvider(
@@ -91,8 +91,8 @@ class StoryViewerPage extends HookConsumerWidget {
                   ).notifier,
                 )
                 .setUserStoryByReference(initialStoryReference!);
-          });
-        }
+          }
+        });
         return null;
       },
       [initialStoryReference, storyViewerState.userStories.isEmpty],
