@@ -1095,5 +1095,6 @@
   "write_a_message": "Напишете съобщение...",
   "your_position_card_title": "Вашата позиция",
   "errorGettingSwapQuote": "Грешка при получаване на цитирана цена",
-  "error_swap_not_enough_gas_on_bsc": "Недостатъчен баланс на BNB за таксата на мрежата"
+  "error_swap_not_enough_gas_on_bsc": "Недостатъчен баланс на BNB за таксата на мрежата",
+  "wallet_swap_confirmation_missing_coin_or_network_data": "Отсъстват монета или мрежа"
 }
