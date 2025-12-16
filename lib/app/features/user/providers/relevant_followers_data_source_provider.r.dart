@@ -27,6 +27,7 @@ List<EntitiesDataSource>? relevantFollowersDataSource(Ref ref, String pubkey, {i
         search: SearchExtensions(
           [
             MostRelevantFollowersSearchExtension(),
+            ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
           ],
         ).toString(),
         limit: limit,
