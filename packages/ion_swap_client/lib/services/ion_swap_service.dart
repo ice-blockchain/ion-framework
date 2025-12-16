@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
-import 'package:ion_swap_client/exceptions/relay_exception.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
