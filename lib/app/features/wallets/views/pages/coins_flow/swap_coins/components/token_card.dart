@@ -2,6 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -14,10 +15,11 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class TokenCard extends ConsumerWidget {
+class TokenCard extends HookConsumerWidget {
   const TokenCard({
     required this.type,
     required this.onTap,
@@ -59,6 +61,36 @@ class TokenCard extends ConsumerWidget {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
     final iconUrl = coinsGroup?.iconUrl;
+    final focusNode = useFocusNode();
+
+    useEffect(
+      () {
+        void formatAmount() {
+          if (!focusNode.hasFocus && !(isReadOnly ?? false)) {
+            // Format to 2 decimal places when focus is lost
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Check controller != null inside callback to handle async cases
+              if (controller != null) {
+                final currentText = controller!.text.trim();
+                if (currentText.isNotEmpty) {
+                  final parsed = parseAmount(currentText);
+                  if (parsed != null && parsed > 0) {
+                    final formatted = formatDouble(parsed);
+                    if (controller!.text != formatted) {
+                      controller!.text = formatted;
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        focusNode.addListener(formatAmount);
+        return () => focusNode.removeListener(formatAmount);
+      },
+      [focusNode, controller, isReadOnly],
+    );
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -289,6 +321,7 @@ class TokenCard extends ConsumerWidget {
                     width: 150.0.s,
                     child: TextFormField(
                       controller: controller,
+                      focusNode: focusNode,
                       readOnly: isReadOnly ?? coinsGroup == null,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       autovalidateMode: AutovalidateMode.always,
