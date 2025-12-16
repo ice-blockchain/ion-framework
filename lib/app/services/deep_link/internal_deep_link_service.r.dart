@@ -124,12 +124,14 @@ final class InternalDeepLinkService {
     try {
       // Decode the event reference to get the entity
       final encodedShareableIdentifier =
-          IonConnectUriProtocolService().decode(encodedEventReference);
+          _ref.read(ionConnectUriProtocolServiceProvider).decode(encodedEventReference);
 
       if (encodedShareableIdentifier == null) {
         Logger.error('Failed to decode event reference: $encodedEventReference');
-        // Fallback to regular post route
-        PostDetailsRoute(eventReference: encodedEventReference).go(context);
+        if (context.mounted) {
+          // Fallback to regular post route
+          PostDetailsRoute(eventReference: encodedEventReference).go(context);
+        }
         return;
       }
 
