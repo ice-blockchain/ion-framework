@@ -40,7 +40,7 @@ class UnfollowUserModal extends ConsumerWidget {
         SizedBox(height: 24.0.s),
         ScreenSideOffset.small(
           child: Button(
-            leadingIcon: Assets.svg.iconCategoriesUnflow.icon(
+            leadingIcon: Assets.svg.iconCategoriesUnfollow.icon(
               color: context.theme.appColors.onPrimaryAccent,
             ),
             onPressed: () {

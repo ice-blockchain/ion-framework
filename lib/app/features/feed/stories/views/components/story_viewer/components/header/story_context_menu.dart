@@ -196,7 +196,7 @@ class _OtherUserMenuItems extends ConsumerWidget {
         const ContextMenuItemDivider(),
         ContextMenuItem(
           label: following ? context.i18n.button_unfollow : context.i18n.button_follow,
-          iconAsset: following ? Assets.svg.iconCategoriesUnflow : Assets.svg.iconSearchFollow,
+          iconAsset: following ? Assets.svg.iconCategoriesUnfollow : Assets.svg.iconSearchFollow,
           onPressed: () {
             onClose();
             if (following) {
