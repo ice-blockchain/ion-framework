@@ -318,7 +318,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     }
 
     if (!allowDuplicates && _history.any((h) => h.origin.txHash == tx.txHash)) {
-      return false;
+      return false; // Skip duplicate without warning for real-time updates
     }
 
     return true;
