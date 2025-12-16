@@ -4,7 +4,7 @@ import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
     /// Key for the deep link parameter in push notification payloads
-    static let deepLinkKey = "deep_link"
+    static let deepLinkKey = "deeplink"
     
     var contentHandler: ((UNNotificationContent) -> Void)?
     var mutableNotificationContent: UNMutableNotificationContent?

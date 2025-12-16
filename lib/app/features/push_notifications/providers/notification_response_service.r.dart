@@ -54,7 +54,7 @@ class NotificationResponseService {
         _internalDeepLinkService = internalDeepLinkService;
 
   /// Key for the deep link parameter in push notification payloads
-  static const String deepLinkKey = 'deep_link';
+  static const String deepLinkKey = 'deeplink';
 
   final Future<GiftUnwrapService> Function() _getGiftUnwrapService;
   final UserMetadataEntity? Function(String pubkey) _getUserMetadata;

@@ -26,7 +26,7 @@
 /lib/app/features/wallets/data/database/ @ice-damocles
 
 # Deeplinks / AppsFlyer
-/lib/app/services/deep_link/ @ice-neoptolemus
+/lib/app/services/deep_link/ @ice-neoptolemus @ice-endymion
 /lib/app/components/url_preview/ @ice-neoptolemus
 
 # Feed / Content Creation
