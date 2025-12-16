@@ -33,6 +33,7 @@ class ConversionInfoRow extends HookConsumerWidget {
     final isError = swapCoinsController.isQuoteError;
     final quoteError = swapCoinsController.quoteError;
     final swapQuoteInfo = swapCoinsController.swapQuoteInfo;
+    final colors = context.theme.appColors;
 
     if (isLoading) {
       return const _LoadingState();
@@ -57,16 +58,30 @@ class ConversionInfoRow extends HookConsumerWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          Assets.svg.circleProgress.icon(
+            size: 16.0.s,
+          ),
+          SizedBox(
+            width: 5.0.s,
+          ),
           Expanded(
             child: Text(
-              '1 ${sellCoin.name} = ${swapQuoteInfo.priceForSellTokenInBuyToken.formatMax6} ${buyCoin.name}',
+              '1 ${sellCoin.abbreviation} = ${swapQuoteInfo.priceForSellTokenInBuyToken.formatMax6} ${buyCoin.abbreviation}',
               style: textStyles.body2.copyWith(),
             ),
           ),
           Text(
             swapQuoteInfo.type == SwapQuoteInfoType.bridge ? 'Bridge' : 'Cex + Dex',
             style: textStyles.body2.copyWith(),
+          ),
+          SizedBox(
+            width: 2.0.s,
+          ),
+          Assets.svg.iconBlockInformation.icon(
+            color: colors.tertiaryText,
+            size: 16.0.s,
           ),
         ],
       ),
