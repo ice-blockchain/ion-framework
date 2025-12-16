@@ -2,12 +2,10 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
