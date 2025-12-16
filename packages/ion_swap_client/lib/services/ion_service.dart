@@ -25,6 +25,40 @@ class IonService {
   IonIdentityTransactionApi get ionIdentityClient => _ionIdentityClient;
   Web3Client get web3client => _web3client;
 
+  Future<SwapQuoteInfo> getQuote({
+    required SwapCoinParameters swapCoinData,
+    required BigInt bscBalance,
+  }) async {
+    await ensureEnoughGasOnBsc(bscBalance);
+
+    return SwapQuoteInfo(
+      type: SwapQuoteInfoType.bridge,
+      priceForSellTokenInBuyToken: 1,
+      source: SwapQuoteInfoSource.ionOnchain,
+    );
+  }
+
+  Future<void> ensureEnoughGasOnBsc(BigInt bscBalance) async {
+    final fees = await _getFeesOnBsc();
+    const gasLimit = 200000;
+
+    // Convert maxFeePerGas from gwei to wei (1 gwei = 10^9 wei)
+    final gweiToWei = BigInt.from(10).pow(9);
+    final maxFeePerGasInWei = fees.maxFeePerGas * gweiToWei;
+
+    final totalFeeInWei = BigInt.from(gasLimit) * maxFeePerGasInWei;
+
+    // Convert bscBalance from BNB to wei (1 BNB = 10^18 wei)
+    final bnbToWei = BigInt.from(10).pow(18);
+    final bscBalanceInWei = bscBalance * bnbToWei;
+
+    if (bscBalanceInWei < totalFeeInWei) {
+      throw const NotEnoughGasOnBscException(
+        'Insufficient BNB balance to cover gas fees',
+      );
+    }
+  }
+
   Future<void> ensureAllowance({
     required EthereumAddress owner,
     required EthereumAddress token,

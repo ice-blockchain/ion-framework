@@ -8,6 +8,8 @@ import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_swap_client/exceptions/ion_bridge_exception.dart';
+import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/exceptions/lets_exchange_exceptions.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/exceptions/relay_exception.dart';
@@ -204,6 +206,13 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     final textStyles = context.theme.appTextThemes;
     final colors = context.theme.appColors;
+
+    if (quoteError is IonSwapCoinPairNotFoundException) {
+      return SizedBox(
+        height: 72.0.s,
+      );
+    }
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: 16.0.s,
