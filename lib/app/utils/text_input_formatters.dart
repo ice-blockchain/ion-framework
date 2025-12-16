@@ -17,10 +17,16 @@ TextInputFormatter emojiRestrictionFormatter() {
 }
 
 class CoinInputFormatter extends TextInputFormatter {
+  CoinInputFormatter({
+    this.maxDecimals = maxDecimalsNumber,
+  });
+
   static const int maxDecimalsNumber = 18;
   final _numberFormat = NumberFormat('#,###', 'en_US');
   final _commasRegex = RegExp('[^,]');
   final _validationRegex = RegExp(r'^[0-9.,]+$');
+
+  final int maxDecimals;
 
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -113,8 +119,8 @@ class CoinInputFormatter extends TextInputFormatter {
             normalizedPaste +
             oldDecimalPart.substring(decimalInsertPos);
 
-        final limitedDecimalPart = newDecimalPart.length > maxDecimalsNumber
-            ? newDecimalPart.substring(0, maxDecimalsNumber)
+        final limitedDecimalPart = newDecimalPart.length > maxDecimals
+            ? newDecimalPart.substring(0, maxDecimals)
             : newDecimalPart;
 
         final formatted = '$intPart.$limitedDecimalPart';
@@ -249,9 +255,8 @@ class CoinInputFormatter extends TextInputFormatter {
       final intPart = parts[0];
       final decimalPart = parts.length > 1 ? parts[1] : '';
 
-      final limitedDecimalPart = decimalPart.length > maxDecimalsNumber
-          ? decimalPart.substring(0, maxDecimalsNumber)
-          : decimalPart;
+      final limitedDecimalPart =
+          decimalPart.length > maxDecimals ? decimalPart.substring(0, maxDecimals) : decimalPart;
 
       final formattedIntPart = _formatIntegerPart(intPart);
       final toDisplay =
@@ -261,7 +266,7 @@ class CoinInputFormatter extends TextInputFormatter {
         oldValue: oldValue,
         newText: toDisplay,
         oldCursorPos: cursorPos,
-        hasLimitedDecimals: decimalPart.length > maxDecimalsNumber,
+        hasLimitedDecimals: decimalPart.length > maxDecimals,
       );
 
       return TextEditingValue(
