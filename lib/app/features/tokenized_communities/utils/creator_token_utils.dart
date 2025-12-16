@@ -2,6 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -18,6 +19,15 @@ class CreatorTokenUtils {
           w.network == TokenizedCommunitiesConstants.bscNetworkId ||
           w.network == TokenizedCommunitiesConstants.bscTestnetNetworkId,
     );
+  }
+
+  static bool hasBscWallet(UserMetadata? userMetadata) {
+    return userMetadata?.wallets?.keys.any(
+          (k) =>
+              k == TokenizedCommunitiesConstants.bscNetworkId ||
+              k == TokenizedCommunitiesConstants.bscTestnetNetworkId,
+        ) ??
+        false;
   }
 
   static Future<CoinsGroup?> deriveCreatorTokenCoinsGroup({

@@ -21,11 +21,13 @@ class ProfileUserInfo extends ConsumerWidget {
   const ProfileUserInfo({
     required this.pubkey,
     required this.profileMode,
+    required this.hasBscWallet,
     super.key,
   });
 
   final String pubkey;
   final ProfileMode profileMode;
+  final bool hasBscWallet;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,33 +68,37 @@ class ProfileUserInfo extends ConsumerWidget {
         child: Column(
           children: [
             info,
-            GradientHorizontalDivider(
-              margin: EdgeInsetsDirectional.symmetric(vertical: 12.5.s),
-            ),
-            if (eventReferenceString != null)
-              Row(
+            if (hasBscWallet && eventReferenceString != null)
+              Column(
                 children: [
-                  Expanded(
-                    child: ProfileTokenStats(
-                      externalAddress: eventReferenceString,
-                      leading: GestureDetector(
-                        onTap: () {
-                          showSimpleBottomSheet<void>(
-                            context: context,
-                            child: TradeCommunityTokenDialog(
-                              externalAddress: eventReferenceString,
-                              externalAddressType: const ExternalAddressType.ionConnectUser(),
-                              initialMode: CommunityTokenTradeMode.buy,
-                            ),
-                          );
-                        },
-                        onDoubleTap: () {
-                          TokenizedCommunityRoute(externalAddress: eventReferenceString)
-                              .push<void>(context);
-                        },
-                        child: BuyButton(externalAddress: eventReferenceString),
+                  GradientHorizontalDivider(
+                    margin: EdgeInsetsDirectional.symmetric(vertical: 12.5.s),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ProfileTokenStats(
+                          externalAddress: eventReferenceString,
+                          leading: GestureDetector(
+                            onTap: () {
+                              showSimpleBottomSheet<void>(
+                                context: context,
+                                child: TradeCommunityTokenDialog(
+                                  externalAddress: eventReferenceString,
+                                  externalAddressType: const ExternalAddressType.ionConnectUser(),
+                                  initialMode: CommunityTokenTradeMode.buy,
+                                ),
+                              );
+                            },
+                            onDoubleTap: () {
+                              TokenizedCommunityRoute(externalAddress: eventReferenceString)
+                                  .push<void>(context);
+                            },
+                            child: BuyButton(externalAddress: eventReferenceString),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
