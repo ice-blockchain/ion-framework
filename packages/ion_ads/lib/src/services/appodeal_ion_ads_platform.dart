@@ -14,6 +14,8 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
   bool _isRewardedLoaded = false;
   bool _isNativeLoaded = false;
 
+  bool _hasConsent = false;
+
   @override
   Future<void> initialize({
     required String androidAppKey,
@@ -22,6 +24,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     bool testMode = true,
     bool verbose = false,
   }) async {
+    _hasConsent = hasConsent;
     Appodeal.setTesting(false); //only not release mode
     Appodeal.setLogLevel(verbose ? Appodeal.LogLevelVerbose : Appodeal.LogLevelNone);
 
@@ -31,7 +34,13 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     Appodeal.setUseSafeArea(true);
 
     if (hasConsent) {
-      Appodeal.consentForm.load(appKey: Platform.isAndroid ? androidAppKey : iosAppKey);
+      await Appodeal.consentForm.load(
+        appKey: Platform.isAndroid ? androidAppKey : iosAppKey,
+        onConsentFormLoadFailure: _onConsentFormDismissed,
+        onConsentFormLoadSuccess: (status) {
+          log('onConsentFormLoadSuccess: status - $status');
+        },
+      );
     }
 
     Appodeal.setAdRevenueCallbacks(
@@ -168,6 +177,21 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
   @override
   bool isAvailable(IonNativeAdPlacement placement) {
     return _initialized;
+  }
+
+  @override
+  void showConsentForm() {
+    if (_hasConsent) {
+      Appodeal.consentForm.show(onConsentFormDismissed: _onConsentFormDismissed);
+    }
+  }
+
+  void _onConsentFormDismissed(ConsentError? error) {
+    if (error != null) {
+      log('onConsentFormDismissed: error - ${error.description}');
+    } else {
+      log('onConsentFormDismissed: No error');
+    }
   }
 
   @override

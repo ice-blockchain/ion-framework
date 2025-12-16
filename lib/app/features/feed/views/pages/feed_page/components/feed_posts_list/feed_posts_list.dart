@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/empty_list/empty_list.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -22,11 +23,13 @@ class FeedPostsList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entities = ref.watch(feedPostsProvider.select((state) => state.items));
+    final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
 
-    final isAdAvailable =
-        ref.watch(ionAdClientProvider).valueOrNull?.isAvailable(IonNativeAdPlacement.feed) ?? false;
-
-    Logger.info('isAdAvailable:$isAdAvailable');
+    final isAdAvailable = useMemoized(() {
+      ionAdClient?.showConsentForm();
+      Logger.info('isAdAvailable');
+      return ionAdClient?.isAvailable(IonNativeAdPlacement.feed) ?? false;
+    });
 
     if (entities == null) {
       return const EntitiesListSkeleton();

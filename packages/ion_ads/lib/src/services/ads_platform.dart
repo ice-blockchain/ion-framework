@@ -24,4 +24,6 @@ abstract class IonAdsPlatform {
   /// for tracking impressions/clicks. Otherwise can return null and
   /// the caller can render [IonNativeAdAsset.mediaContent].
   Widget? buildPlatformMediaView(IonNativeAdAsset adAsset);
+
+  void showConsentForm();
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:ion_ads/ion_ads.dart';
@@ -77,23 +78,28 @@ class _NativeIonPageState extends State<NativeIonPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 20),
-                      fixedSize: const Size(300, 20),
-                    ),
                     onPressed: () async {
-                      final nativeAds = await Appodeal.getNativeAd(1);
-                      log('getNativeAd result:$nativeAds');
-                      if (nativeAds != null) {
-                        nativeAdAsset = IonNativeAdAsset.fromMap(nativeAds);
-                        log('getNativeAd result:$nativeAdAsset');
-
-                        setState(() {
-                          isShow = true;
-                        });
-                      }
+                      Appodeal.consentForm.load(
+                        appKey: _exampleAppodealKey,
+                        onConsentFormLoadFailure: onConsentFormDismissed,
+                        onConsentFormLoadSuccess: (status) {
+                          log('onConsentFormLoadSuccess: status - $status');
+                        },
+                      );
                     },
-                    child: const Text('Show Native Ads'),
+                    child: const Text('Load'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Appodeal.consentForm.revoke();
+                    },
+                    child: const Text('revoke'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Appodeal.consentForm.show(onConsentFormDismissed: onConsentFormDismissed);
+                    },
+                    child: const Text('Show '),
                   ),
                 ],
               ),
@@ -182,4 +188,16 @@ class _NativeIonPageState extends State<NativeIonPage> {
       ),
     );
   }
+
+  void onConsentFormDismissed(ConsentError? error) {
+    if (error != null) {
+      log('onConsentFormDismissed: error - ${error.description}');
+    } else {
+      log('onConsentFormDismissed: No error');
+    }
+  }
 }
+
+final String _exampleAppodealKey = Platform.isAndroid
+    ? const String.fromEnvironment('AD_APP_KEY_ANDROID')
+    : const String.fromEnvironment('AD_APP_KEY_IOS');
