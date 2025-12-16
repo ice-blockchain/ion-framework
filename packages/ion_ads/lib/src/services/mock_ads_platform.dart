@@ -37,4 +37,7 @@ class MockIonAdsPlatform implements IonAdsPlatform {
 
   @override
   Widget? buildPlatformMediaView(IonNativeAdAsset adAsset) => null;
+
+  @override
+  void showConsentForm() {}
 }
