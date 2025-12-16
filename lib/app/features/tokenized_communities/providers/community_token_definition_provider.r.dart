@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -286,4 +288,10 @@ Future<CommunityTokenDefinitionRepository> communityTokenDefinitionRepository(Re
     analyticsClient: analyticsClient,
     externalAddressTokenDefinitionCache: externalAddressTokenDefinitionCache,
   );
+}
+
+@riverpod
+Future<bool> ionConnectEntityHasTokenDefinition(Ref ref, EventReference eventReference) async {
+  //TODO (ice-kreios ice-orion) implement this when BE is ready
+  return Random().nextBool();
 }
