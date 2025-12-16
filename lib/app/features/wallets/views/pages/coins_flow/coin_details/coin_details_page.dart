@@ -147,8 +147,9 @@ class CoinDetailsPage extends HookConsumerWidget {
                         final transaction = transactions[index].origin;
 
                         CoinTransactionDetailsRoute(
-                          walletViewId: transaction.walletViewId,
                           txHash: transaction.txHash,
+                          typeValue: transaction.type.value,
+                          walletViewId: transaction.walletViewId,
                         ).push<void>(context);
                       },
                     ),

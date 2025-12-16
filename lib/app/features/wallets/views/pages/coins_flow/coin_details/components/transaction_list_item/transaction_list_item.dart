@@ -51,7 +51,11 @@ class TransactionListItem extends ConsumerWidget {
 
     return ListItem(
       onTap: onTap,
-      title: Text(transactionData.transactionType.getDisplayName(context)),
+      title: Text(
+        transactionData.origin.isSwap
+            ? context.i18n.wallet_swap
+            : transactionData.transactionType.getDisplayName(context),
+      ),
       subtitle: Row(
         children: [
           NetworkIconWidget(
@@ -70,6 +74,7 @@ class TransactionListItem extends ConsumerWidget {
       leading: TransactionListItemLeadingIcon(
         type: transactionData.transactionType,
         status: transactionData.origin.status,
+        isSwap: transactionData.origin.isSwap,
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,

@@ -33,6 +33,7 @@ class TransactionDetails with _$TransactionDetails {
     required CoinData? nativeCoin,
     required NetworkFeeOption? networkFeeOption,
     required String? memo,
+    required bool isSwap,
   }) = _TransactionDetails;
 
   factory TransactionDetails.fromTransactionData(
@@ -95,6 +96,7 @@ class TransactionDetails with _$TransactionDetails {
             )
           : null,
       dateBroadcasted: null,
+      isSwap: transaction.isSwap,
     );
   }
 
