@@ -61,12 +61,6 @@ class IonService {
         'Insufficient BNB balance to cover gas fees',
       );
     }
-
-    return SwapQuoteInfo(
-      type: SwapQuoteInfoType.bridge,
-      priceForSellTokenInBuyToken: 1,
-      source: SwapQuoteInfoSource.ionOnchain,
-    );
   }
 
   Future<void> ensureAllowance({
