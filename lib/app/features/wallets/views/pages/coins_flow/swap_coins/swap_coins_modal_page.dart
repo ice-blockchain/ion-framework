@@ -78,6 +78,9 @@ class SwapCoinsModalPage extends HookConsumerWidget {
               Column(
                 children: [
                   TokenCard(
+                    validator: (value) {
+                      return null;
+                    },
                     controller: amountController,
                     type: CoinSwapType.sell,
                     coinsGroup: sellNetwork != null ? sellCoins : null,
@@ -92,6 +95,9 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                     height: 10.0.s,
                   ),
                   TokenCard(
+                    validator: (value) {
+                      return null;
+                    },
                     isReadOnly: true,
                     controller: quoteController,
                     type: CoinSwapType.buy,
@@ -178,7 +184,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
         final currentText = parseAmount(amountController.text) ?? 0;
         if ((currentText - currentAmount).abs() > 0.0001) {
           isUpdatingFromState.value = true;
-          amountController.text = currentAmount.toString();
+          amountController.text = currentAmount.toStringAsFixed(2);
           isUpdatingFromState.value = false;
         }
         return null;
@@ -195,7 +201,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     useEffect(
       () {
         if (quoteAmount != null) {
-          final quoteValue = (quoteAmount.priceForSellTokenInBuyToken * amount).toString();
+          final quoteValue = (quoteAmount.priceForSellTokenInBuyToken * amount).toStringAsFixed(2);
           if (quoteController.text != quoteValue) {
             quoteController.text = quoteValue;
           }
