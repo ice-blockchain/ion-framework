@@ -264,16 +264,9 @@ class WalletsDatabase extends _$WalletsDatabase {
           await customStatement('DELETE FROM transaction_visibility_status_table');
         },
         from21To22: (m, schema) async {
-          final isSwapExists = await isColumnExists(
-            tableName: schema.transactionsTableV2.actualTableName,
-            columnName: 'is_swap',
-          );
-          if (!isSwapExists) {
-            await m.addColumn(
-              schema.transactionsTableV2,
-              schema.transactionsTableV2.isSwap,
-            );
-          }
+          // Recreate transactions table with correct primary key (tx_hash, wallet_view_id, type) with isSwap column.
+          await m.deleteTable(schema.transactionsTableV2.actualTableName);
+          await m.createTable(schema.transactionsTableV2);
         },
       ),
     );
