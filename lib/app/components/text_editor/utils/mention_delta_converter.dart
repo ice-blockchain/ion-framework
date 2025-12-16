@@ -14,8 +14,10 @@ class MentionDeltaConverter {
   // Example: {'mention': {'pubkey': 'abc', 'username': 'user'}} -> '@user' with mention attribute
   static Delta convertEmbedsToAttributes(Delta input) {
     final out = Delta();
+    final ops = input.toList();
 
-    for (final op in input.toList()) {
+    for (var i = 0; i < ops.length; i++) {
+      final op = ops[i];
       final data = op.data;
       final attrs = op.attributes;
 
@@ -24,7 +26,8 @@ class MentionDeltaConverter {
 
       final mentionData = _parseMentionData(unwrappedData);
 
-      if (mentionData != null) {
+      // Only process pure embed operations (length == 1) to avoid capturing adjacent characters
+      if (mentionData != null && (op.length ?? 1) == 1) {
         // Fall back to plain text if no pubkey is present.
         if (mentionData.pubkey.isEmpty) {
           out.insert('$mentionPrefix${mentionData.username}', attrs);
@@ -41,7 +44,15 @@ class MentionDeltaConverter {
           MentionAttribute.attributeKey: encodedRef,
         };
 
-        out.insert('$mentionPrefix${mentionData.username}', mergedAttrs);
+        final mentionText = '$mentionPrefix${mentionData.username}';
+        out.insert(mentionText, mergedAttrs);
+
+        // Insert zero-width space in case if there's a next operation with content to prevent merging
+        if (i + 1 < ops.length &&
+            ops[i + 1].data is String &&
+            (ops[i + 1].data! as String).trim().isNotEmpty) {
+          out.insert('\u200B');
+        }
       } else {
         out.push(op);
       }
@@ -58,6 +69,11 @@ class MentionDeltaConverter {
     for (final op in input.toList()) {
       final attrs = op.attributes;
       final data = op.data;
+
+      // Skip zero-width space separator (structural only, not content)
+      if (data is String && data == '\u200B') {
+        continue;
+      }
 
       final mentionAttr = attrs?[MentionAttribute.attributeKey];
       if (mentionAttr is String && data is String && data.startsWith(mentionPrefix)) {
