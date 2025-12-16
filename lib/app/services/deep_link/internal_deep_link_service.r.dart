@@ -157,10 +157,9 @@ final class InternalDeepLinkService {
 
       if (encodedShareableIdentifier == null) {
         Logger.error('Failed to decode event reference: $encodedEventReference');
-        if (context.mounted) {
-          // Fallback to regular post route
-          PostDetailsRoute(eventReference: encodedEventReference).go(context);
-        }
+        // Fallback to regular post route
+        PostDetailsRoute(eventReference: encodedEventReference).go(context);
+
         return;
       }
 
@@ -201,7 +200,9 @@ final class InternalDeepLinkService {
     } catch (error) {
       Logger.error('Error handling post deep link: $error');
       // Fallback to regular post route
-      PostDetailsRoute(eventReference: encodedEventReference).go(context);
+      if (context.mounted) {
+        PostDetailsRoute(eventReference: encodedEventReference).go(context);
+      }
     }
   }
 }
