@@ -13,6 +13,33 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'internal_deep_link_service.r.g.dart';
 
+/// Enum representing the available internal deep link host routes
+enum InternalDeepLinkHost {
+  feed('feed'),
+  chat('chat'),
+  wallet('wallet'),
+  profile('profile'),
+  invite('invite'),
+  post('post'),
+  article('article'),
+  story('story');
+
+  const InternalDeepLinkHost(this.value);
+
+  final String value;
+
+  /// Parses a string to an [InternalDeepLinkHost] enum value
+  static InternalDeepLinkHost? fromString(String value) {
+    try {
+      return InternalDeepLinkHost.values.firstWhere(
+        (host) => host.value == value.toLowerCase(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
 /// Service for handling internal deep links with the ionapp:// scheme
 ///
 /// Supports the following deep link patterns:
@@ -57,17 +84,22 @@ final class InternalDeepLinkService {
 
     try {
       final uri = Uri.parse(url);
-      final host = uri.host.toLowerCase();
+      final host = InternalDeepLinkHost.fromString(uri.host);
       final pathSegments = uri.pathSegments;
 
+      if (host == null) {
+        Logger.warning('Unsupported internal deep link path: ${uri.host}');
+        return false;
+      }
+
       switch (host) {
-        case 'feed':
+        case InternalDeepLinkHost.feed:
           FeedRoute().go(context);
-        case 'chat':
+        case InternalDeepLinkHost.chat:
           ChatRoute().go(context);
-        case 'wallet':
+        case InternalDeepLinkHost.wallet:
           WalletRoute().go(context);
-        case 'profile':
+        case InternalDeepLinkHost.profile:
           // Check if pubkey is provided in path: ionapp://profile/master_pubkey
           if (pathSegments.isNotEmpty) {
             final pubkey = pathSegments.first;
@@ -76,9 +108,9 @@ final class InternalDeepLinkService {
             // No pubkey provided, open own profile
             SelfProfileRoute().go(context);
           }
-        case 'invite':
+        case InternalDeepLinkHost.invite:
           InviteFriendsRoute().go(context);
-        case 'post':
+        case InternalDeepLinkHost.post:
           if (pathSegments.isNotEmpty) {
             final encodedEventReference = pathSegments.first;
             await _handlePostDeepLink(encodedEventReference, context);
@@ -86,7 +118,7 @@ final class InternalDeepLinkService {
             Logger.warning('Missing event reference for post deep link');
             return false;
           }
-        case 'article':
+        case InternalDeepLinkHost.article:
           if (pathSegments.isNotEmpty) {
             final encodedEventReference = pathSegments.first;
             ArticleDetailsRoute(eventReference: encodedEventReference).go(context);
@@ -94,7 +126,7 @@ final class InternalDeepLinkService {
             Logger.warning('Missing event reference for article deep link');
             return false;
           }
-        case 'story':
+        case InternalDeepLinkHost.story:
           // ionapp://story/master_pubkey/encoded_event_reference
           if (pathSegments.length >= 2) {
             final pubkey = pathSegments[0];
@@ -107,9 +139,6 @@ final class InternalDeepLinkService {
             Logger.warning('Missing parameters for story deep link');
             return false;
           }
-        default:
-          Logger.warning('Unsupported internal deep link path: $host');
-          return false;
       }
 
       Logger.log('Internal deep link handled: $url');
