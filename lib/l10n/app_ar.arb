@@ -1144,5 +1144,6 @@
   "who_can_reply_settings_title_video": "من يمكنه الرد على هذا الفيديو",
   "who_can_reply_settings_verified_accounts": "الحسابات المُوثقة",
   "write_a_message": "اكتب رسالة...",
-  "your_position_card_title": "أيتمكش"
+  "your_position_card_title": "أيتمكش",
+  "error_swap_not_enough_gas_on_bsc": "ليس لديك ما يكفي من BNB لتغطية رسوم الشبكة"
 }

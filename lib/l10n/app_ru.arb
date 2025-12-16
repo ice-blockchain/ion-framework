@@ -1131,5 +1131,6 @@
   "who_can_reply_settings_title_video": "Кто может отвечать на это видео",
   "who_can_reply_settings_verified_accounts": "Проверенные аккаунты",
   "write_a_message": "Написать сообщение...",
-  "your_position_card_title": "Ваша позиция"
+  "your_position_card_title": "Ваша позиция",
+  "error_swap_not_enough_gas_on_bsc": "Недостаточно BNB для покрытия сетевой комиссии"
 }

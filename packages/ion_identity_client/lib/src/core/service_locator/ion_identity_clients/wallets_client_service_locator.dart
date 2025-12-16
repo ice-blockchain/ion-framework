@@ -10,6 +10,7 @@ import 'package:ion_identity_client/src/wallets/services/create_wallet/create_wa
 import 'package:ion_identity_client/src/wallets/services/create_wallet/data_sources/create_wallet_data_source.dart';
 import 'package:ion_identity_client/src/wallets/services/generate_signature/data_sources/generate_signature_data_source.dart';
 import 'package:ion_identity_client/src/wallets/services/generate_signature/generate_signature_service.dart';
+import 'package:ion_identity_client/src/wallets/services/get_fees/get_fees_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallet_assets/data_sources/get_wallet_assets_data_source.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallet_assets/get_wallet_assets_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallet_history/data_sources/get_wallet_history_data_source.dart';
@@ -43,6 +44,10 @@ class WalletsClientServiceLocator {
   }) {
     return IONIdentityWallets(
       username: username,
+      getFeesService: getFees(
+        username: username,
+        config: config,
+      ),
       createWalletService: createWallet(
         username: username,
         config: config,
@@ -210,6 +215,17 @@ class WalletsClientServiceLocator {
   }) {
     return SignAndBroadcastService(
       signAndBroadcastDataSource: SignAndBroadcastDataSource(username),
+    );
+  }
+
+  GetFeesService getFees({
+    required String username,
+    required IONIdentityConfig config,
+  }) {
+    return GetFeesService(
+      username: username,
+      networkClient: IONIdentityServiceLocator.networkClient(config: config),
+      tokenStorage: IONIdentityServiceLocator.tokenStorage(),
     );
   }
 }
