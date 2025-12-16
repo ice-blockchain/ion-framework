@@ -192,9 +192,12 @@ class SendCoinsConfirmationProfileRoute extends BaseRouteData
   SendCoinsConfirmationProfileRoute()
       : super(
           child: ConfirmationSheet(
-            successRouteLocationBuilder: (walletViewId, txHash) =>
-                CoinTransactionResultProfileRoute(walletViewId: walletViewId, txHash: txHash)
-                    .location,
+            successRouteLocationBuilder: (walletViewId, txHash, typeValue) =>
+                CoinTransactionResultProfileRoute(
+              walletViewId: walletViewId,
+              txHash: txHash,
+              typeValue: typeValue,
+            ).location,
           ),
           type: IceRouteType.bottomSheet,
         );
@@ -205,19 +208,25 @@ class CoinTransactionResultProfileRoute extends BaseRouteData
   CoinTransactionResultProfileRoute({
     required this.walletViewId,
     required this.txHash,
+    required this.typeValue,
   }) : super(
           child: TransactionResultSheet(
             walletViewId: walletViewId,
             txHash: txHash,
-            transactionDetailsRouteLocationBuilder: (walletViewId, txHash) =>
-                CoinTransactionDetailsProfileRoute(walletViewId: walletViewId, txHash: txHash)
-                    .location,
+            type: TransactionType.fromValue(typeValue),
+            transactionDetailsRouteLocationBuilder: (walletViewId, txHash, type) =>
+                CoinTransactionDetailsProfileRoute(
+              txHash: txHash,
+              typeValue: type.value,
+              walletViewId: walletViewId,
+            ).location,
           ),
           type: IceRouteType.bottomSheet,
         );
 
   final String walletViewId;
   final String txHash;
+  final String typeValue;
 }
 
 class CoinTransactionDetailsProfileRoute extends BaseRouteData
@@ -225,10 +234,12 @@ class CoinTransactionDetailsProfileRoute extends BaseRouteData
   CoinTransactionDetailsProfileRoute({
     required this.walletViewId,
     required this.txHash,
+    required this.typeValue,
   }) : super(
           child: TransactionDetailsPage(
-            walletViewId: walletViewId,
             txHash: txHash,
+            walletViewId: walletViewId,
+            type: TransactionType.fromValue(typeValue),
             exploreRouteLocationBuilder: (url) =>
                 ExploreTransactionDetailsProfileRoute(url: url).location,
           ),
@@ -236,6 +247,7 @@ class CoinTransactionDetailsProfileRoute extends BaseRouteData
         );
 
   final String walletViewId;
+  final String typeValue;
   final String txHash;
 }
 

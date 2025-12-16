@@ -28,13 +28,19 @@ class TransactionResultSheet extends HookConsumerWidget {
   const TransactionResultSheet({
     required this.walletViewId,
     required this.txHash,
+    required this.type,
     required this.transactionDetailsRouteLocationBuilder,
     super.key,
   });
 
   final String walletViewId;
   final String txHash;
-  final String Function(String walletViewId, String txHash) transactionDetailsRouteLocationBuilder;
+  final TransactionType type;
+  final String Function(
+    String walletViewId,
+    String txHash,
+    TransactionType type,
+  ) transactionDetailsRouteLocationBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,6 +48,7 @@ class TransactionResultSheet extends HookConsumerWidget {
       transactionNotifierProvider(
         walletViewId: walletViewId,
         txHash: txHash,
+        type: type,
       ),
     );
 
@@ -164,6 +171,7 @@ class TransactionResultSheet extends HookConsumerWidget {
                                 transactionDetailsRouteLocationBuilder(
                                   transactionData.walletViewId,
                                   transactionData.txHash,
+                                  transactionData.type,
                                 ),
                               );
                             },
