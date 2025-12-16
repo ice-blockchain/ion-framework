@@ -99,6 +99,7 @@ class CreatePostContent extends StatelessWidget {
               scrollController: scrollController,
             ),
             if (quotedEvent != null) _QuotedEntitySection(eventReference: quotedEvent!),
+            SizedBox(height: 10.0.s),
           ],
         ),
       ),
@@ -189,87 +190,84 @@ class _TextInputSection extends HookConsumerWidget {
       [],
     );
 
-    return Padding(
-      padding: EdgeInsetsDirectional.only(bottom: 10.0.s),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsetsDirectional.only(
-              start: ScreenSideOffset.defaultSmallMargin,
-            ),
-            child: const CurrentUserAvatar(),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.only(
+            start: ScreenSideOffset.defaultSmallMargin,
           ),
-          SizedBox(width: 10.0.s),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsetsDirectional.only(
-                top: 6.0.s,
-                end: ScreenSideOffset.defaultSmallMargin,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AnimatedBuilder(
-                    animation: textEditorController,
-                    builder: (context, _) {
-                      final isEmpty = textEditorController.document.toPlainText().trim().isEmpty;
-                      return Stack(
-                        children: [
-                          TextEditor(
-                            textEditorController,
-                            key: textEditorKey,
-                            placeholder: '',
-                            scrollController: scrollController,
-                          ),
-                          if (isEmpty)
-                            IgnorePointer(
-                              child: Text(
-                                createOption.getPlaceholder(context),
-                                style: context.theme.appTextThemes.body2.copyWith(
-                                  color: context.theme.appColors.tertiaryText,
-                                ),
+          child: const CurrentUserAvatar(),
+        ),
+        SizedBox(width: 10.0.s),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(
+              top: 6.0.s,
+              end: ScreenSideOffset.defaultSmallMargin,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedBuilder(
+                  animation: textEditorController,
+                  builder: (context, _) {
+                    final isEmpty = textEditorController.document.toPlainText().trim().isEmpty;
+                    return Stack(
+                      children: [
+                        TextEditor(
+                          textEditorController,
+                          key: textEditorKey,
+                          placeholder: '',
+                          scrollController: scrollController,
+                        ),
+                        if (isEmpty)
+                          IgnorePointer(
+                            child: Text(
+                              createOption.getPlaceholder(context),
+                              style: context.theme.appTextThemes.body2.copyWith(
+                                color: context.theme.appColors.tertiaryText,
                               ),
                             ),
-                        ],
-                      );
-                    },
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                if (draftPoll.added) ...[
+                  SizedBox(height: 12.0.s),
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(end: 23.0.s),
+                    child: Poll(
+                      onRemove: () {
+                        ref.read(pollDraftNotifierProvider.notifier).reset();
+                      },
+                    ),
                   ),
-                  if (draftPoll.added) ...[
-                    SizedBox(height: 12.0.s),
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(end: 23.0.s),
-                      child: Poll(
-                        onRemove: () {
-                          ref.read(pollDraftNotifierProvider.notifier).reset();
-                        },
-                      ),
-                    ),
-                  ],
-                  if (mediaFiles.isNotEmpty || mediaLinks.isNotEmpty) ...[
-                    SizedBox(height: 12.0.s),
-                    AttachedMediaPreview(
-                      attachedMediaNotifier: attachedMediaNotifier,
-                      attachedMediaLinksNotifier: attachedMediaLinksNotifier,
-                    ),
-                  ],
-                  if (mediaFiles.isEmpty && links.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        top: 10.0.s,
-                      ),
-                      child: UrlPreviewContent(
-                        url: links.first,
-                        clickable: false,
-                      ),
-                    ),
                 ],
-              ),
+                if (mediaFiles.isNotEmpty || mediaLinks.isNotEmpty) ...[
+                  SizedBox(height: 12.0.s),
+                  AttachedMediaPreview(
+                    attachedMediaNotifier: attachedMediaNotifier,
+                    attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                  ),
+                ],
+                if (mediaFiles.isEmpty && links.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      top: 10.0.s,
+                    ),
+                    child: UrlPreviewContent(
+                      url: links.first,
+                      clickable: false,
+                    ),
+                  ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
