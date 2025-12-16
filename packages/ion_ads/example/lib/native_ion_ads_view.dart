@@ -79,7 +79,7 @@ class _NativeIonPageState extends State<NativeIonPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      Appodeal.consentForm.load(
+                      await Appodeal.consentForm.load(
                         appKey: _exampleAppodealKey,
                         onConsentFormLoadFailure: onConsentFormDismissed,
                         onConsentFormLoadSuccess: (status) {
@@ -100,6 +100,15 @@ class _NativeIonPageState extends State<NativeIonPage> {
                       Appodeal.consentForm.show(onConsentFormDismissed: onConsentFormDismissed);
                     },
                     child: const Text('Show '),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Appodeal.consentForm.loadAndShowIfRequired(
+                        appKey: _exampleAppodealKey,
+                        onConsentFormDismissed: onConsentFormDismissed,
+                      );
+                    },
+                    child: const Text('Load & show'),
                   ),
                 ],
               ),
