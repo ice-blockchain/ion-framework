@@ -31,10 +31,12 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
 
   @override
   WidgetSpan buildWidgetSpan(Widget widget) {
-    // Ensure inline sizing follows text metrics.
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
-      child: widget,
+      child: UnconstrainedBox(
+        constrainedAxis: Axis.horizontal,
+        child: IntrinsicWidth(child: widget),
+      ),
     );
   }
 

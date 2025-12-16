@@ -25,19 +25,25 @@ class MentionInsertionService {
       ..replaceText(tagStart, tagLength, '', null)
 
       // Insert the mention embed (embed length counts as 1 in Quill)
-      ..replaceText(tagStart, 0, Embeddable(mentionEmbedKey, embedData), null)
+      ..replaceText(tagStart, 0, Embeddable(mentionEmbedKey, embedData), null);
 
-      // Add trailing space after the embed
-      ..replaceText(tagStart + 1, 0, ' ', null);
+    // Insert visible space after the embed
+    final spacePosition = tagStart + 1;
+    if (spacePosition <= controller.document.length) {
+      controller.replaceText(spacePosition, 0, ' ', null);
+    }
 
     // Update cursor position: after embed (1) + space (1) = tagStart + 2
-    final newCursorPosition = tagStart + 2;
+    final newCursorPosition = spacePosition + 1;
+    final maxPosition = controller.document.length;
+    final safeCursorPosition = newCursorPosition <= maxPosition ? newCursorPosition : maxPosition;
+
     controller.updateSelection(
-      TextSelection.collapsed(offset: newCursorPosition),
+      TextSelection.collapsed(offset: safeCursorPosition),
       ChangeSource.local,
     );
 
-    return newCursorPosition;
+    return safeCursorPosition;
   }
 
   static String insertMentionAsText(
