@@ -141,9 +141,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         for (final tx in existingToUpdate) {
           batch.update(
             transactionsTable,
-            const TransactionsTableCompanion(
-              isSwap: Value(true),
-            ),
+            const TransactionsTableCompanion(isSwap: Value(true)),
             where: (tbl) =>
                 tbl.txHash.equals(tx.txHash) &
                 tbl.walletViewId.equals(tx.walletViewId) &
