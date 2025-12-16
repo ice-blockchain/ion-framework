@@ -50,7 +50,7 @@ class IonSwapService extends IonService {
   }) async {
     final direction = _getDirection(swapCoinData);
     if (!direction.isIceToIon) {
-      throw const CoinPairNotFoundException();
+      throw const IonSwapCoinPairNotFoundException();
     }
 
     return SwapQuoteInfo(
