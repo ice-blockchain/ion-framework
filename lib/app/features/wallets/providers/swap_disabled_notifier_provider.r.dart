@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:ion/app/features/wallets/data/repository/swap_disabled_repository.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_disabled_notifier_provider.r.g.dart';
@@ -35,10 +36,14 @@ class SwapDisabledNotifier extends _$SwapDisabledNotifier {
     final sellNetwork = swapNotifier.sellNetwork;
 
     final isSellBuyCoinNull = sellCoin == null || sellNetwork == null;
-    final isSellNetworkNotBsc = !(sellNetwork?.isBsc ?? false);
-    final isSellCoinNotIon = sellCoin?.abbreviation.toUpperCase() != 'ION';
+    if (isSellBuyCoinNull) {
+      state = const AsyncValue.data(false);
+      return;
+    }
 
-    if (isSellBuyCoinNull || isSellNetworkNotBsc || isSellCoinNotIon) {
+    final isIonBsc = SwapCoinIdentifier.isIonBsc(sellCoin, sellNetwork);
+
+    if (!isIonBsc) {
       state = const AsyncValue.data(false);
       return;
     }

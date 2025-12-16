@@ -19,9 +19,13 @@ class SwapDisabledRepository {
   final String _url;
 
   Future<bool> isIonTrade() async {
-    final response = await _dio.get<dynamic>(_url);
-    final data = response.data as Map<String, dynamic>;
-    return data['ionTrade'] == true;
+    try {
+      final response = await _dio.get<dynamic>(_url);
+      final data = response.data as Map<String, dynamic>;
+      return data['ionTrade'] == true;
+    } catch (e) {
+      return false;
+    }
   }
 }
 
