@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:flutter/material.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/transaction_details_actions.dart';
 
