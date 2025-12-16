@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
+import 'package:ion/app/features/feed/views/pages/token_creation_not_available_modal/token_creation_not_available_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
+import 'package:ion/app/features/user/extensions/user_metadata.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class PostTokenButton extends ConsumerWidget {
@@ -36,26 +40,41 @@ class PostTokenButton extends ConsumerWidget {
     final isCommunityTokenEntity =
         entity is CommunityTokenDefinitionEntity || entity is CommunityTokenActionEntity;
 
+    final ownerHasBscWallet = ref
+        .watch(userMetadataProvider(entity.masterPubkey).select((e) => e.valueOrNull?.hasBscWallet))
+        .falseOrValue;
+
     // We don't need token info in case of community token entities
-    final tokenInfo = !isCommunityTokenEntity
+    final tokenInfo = !isCommunityTokenEntity || ownerHasBscWallet
         ? ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull
         : null;
 
     final hasToken = tokenInfo != null;
 
-    return GestureDetector(
-      onTap: () {
-        isCommunityTokenEntity || hasToken
-            ? TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context)
-            : SwapCoinsRoute().push<void>(context);
-      },
-      child: Container(
-        constraints: BoxConstraints(minWidth: 50.0.s),
-        padding: padding,
-        alignment: AlignmentDirectional.center,
-        child: isCommunityTokenEntity || !hasToken
-            ? const _RocketIcon()
-            : _MarketCap(marketCap: tokenInfo.marketData.marketCap),
+    return Opacity(
+      opacity: ownerHasBscWallet ? 1.0 : 0.5,
+      child: GestureDetector(
+        onTap: () {
+          if (!ownerHasBscWallet) {
+            showSimpleBottomSheet<void>(
+              context: context,
+              child: const TokenCreationNotAvailableModal(),
+            );
+            return;
+          }
+
+          isCommunityTokenEntity || hasToken
+              ? TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context)
+              : SwapCoinsRoute().push<void>(context);
+        },
+        child: Container(
+          constraints: BoxConstraints(minWidth: 50.0.s),
+          padding: padding,
+          alignment: AlignmentDirectional.center,
+          child: isCommunityTokenEntity || !hasToken
+              ? const _RocketIcon()
+              : _MarketCap(marketCap: tokenInfo.marketData.marketCap),
+        ),
       ),
     );
   }
