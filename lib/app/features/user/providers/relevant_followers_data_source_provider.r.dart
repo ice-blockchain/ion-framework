@@ -7,7 +7,6 @@ import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relevant_followers_data_source_provider.r.g.dart';
@@ -28,8 +27,7 @@ List<EntitiesDataSource>? relevantFollowersDataSource(Ref ref, String pubkey, {i
         search: SearchExtensions(
           [
             MostRelevantFollowersSearchExtension(),
-            if (ref.watch(cachedProfileBadgesDataProvider(pubkey)) == null)
-              ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
+            ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
           ],
         ).toString(),
         limit: limit,
