@@ -6,8 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/mention_inline_widget.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
 
 const String mentionEmbedKey = 'mention';
 const String mentionPrefix = '@';
@@ -91,11 +90,7 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey, network: false));
-    final apiAddress = userMetadata.valueOrNull?.toEventReference().toString();
-
-    final tokenInfo = apiAddress != null ? ref.watch(tokenMarketInfoProvider(apiAddress)) : null;
-    final marketCap = tokenInfo?.valueOrNull?.marketData.marketCap;
+    final marketCap = ref.watch(userTokenMarketCapProvider(pubkey)).valueOrNull;
 
     return MentionInlineWidget(
       username: username,
