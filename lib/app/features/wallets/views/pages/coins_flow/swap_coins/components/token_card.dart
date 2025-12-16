@@ -120,7 +120,9 @@ class TokenCard extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                type == CoinSwapType.sell ? context.i18n.wallet_swap_coins_sell : context.i18n.wallet_swap_coins_buy,
+                type == CoinSwapType.sell
+                    ? context.i18n.wallet_swap_coins_sell
+                    : context.i18n.wallet_swap_coins_buy,
                 style: textStyles.subtitle3.copyWith(
                   color: colors.onTertiaryBackground,
                 ),
@@ -358,7 +360,9 @@ class TokenCard extends HookConsumerWidget {
                           final maxValue = coinForNetwork?.amount;
 
                           return Text(
-                            maxValue != null ? '${maxValue.toStringAsFixed(2)} ${coinsGroup!.abbreviation}' : '0.00',
+                            maxValue != null
+                                ? '${maxValue.toStringAsFixed(2)} ${coinsGroup!.abbreviation}'
+                                : '0.00',
                             style: textStyles.caption2.copyWith(
                               color: colors.tertiaryText,
                             ),
