@@ -4,6 +4,7 @@ library ion_ads;
 
 export 'src/appodeal/appodeal.dart';
 export 'src/appodeal/appodeal_ad_type.dart';
+export 'src/appodeal/appodeal_consent_manager.dart';
 export 'src/appodeal/appodeal_native_ad.dart';
 export 'src/appodeal/appodeal_native_ad_content_type.dart';
 export 'src/appodeal/native_ad/native_ad.dart';
