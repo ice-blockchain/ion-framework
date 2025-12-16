@@ -20,7 +20,6 @@ class TransactionData with _$TransactionData {
     String? id,
     String? fee,
     String? externalHash,
-    String? transactionIndex,
     CoinData? nativeCoin,
     DateTime? dateConfirmed,
     DateTime? dateRequested,
