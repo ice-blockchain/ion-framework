@@ -45,6 +45,7 @@ class SendNftConfirmPage extends ConsumerWidget {
           NftTransactionResultRoute(
             walletViewId: transactionDetails.walletViewId,
             txHash: transactionDetails.txHash,
+            typeValue: transactionDetails.type.value,
           ).go(context);
         }
       });

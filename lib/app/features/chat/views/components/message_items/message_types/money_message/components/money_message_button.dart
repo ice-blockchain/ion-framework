@@ -247,6 +247,7 @@ class ViewTransactionButton extends ConsumerWidget {
           CoinTransactionDetailsChatRoute(
             walletViewId: transactionData.walletViewId,
             txHash: transactionData.txHash,
+            typeValue: transactionData.type.value,
           ).push<void>(context),
         );
       },

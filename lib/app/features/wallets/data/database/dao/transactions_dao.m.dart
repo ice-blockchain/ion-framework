@@ -57,15 +57,58 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
   /// Returns true if there were changes in the database
   Future<bool> save(List<Transaction> transactions) {
     return transaction(() async {
+      String buildSwapKey(Transaction t) => '${t.txHash}_${t.walletViewId}';
+
       final existing = await (select(transactionsTable)
-            ..where((t) => t.txHash.isIn(transactions.map((e) => e.txHash))))
+            ..where(
+              (t) =>
+                  t.txHash.isIn(transactions.map((e) => e.txHash)) &
+                  t.walletViewId.isIn(transactions.map((e) => e.walletViewId)) &
+                  t.type.isIn(transactions.map((e) => e.type)),
+            ))
           .get();
 
-      final existingMap = {for (final e in existing) e.txHash: e};
+      final existingMap = {
+        for (final e in existing) '${buildSwapKey(e)}_${e.type}': e,
+      };
 
-      final newTransactions = transactions.where((t) => !existingMap.containsKey(t.txHash));
-      final toInsert = transactions.map((toInsertRaw) {
-        final existing = existingMap[toInsertRaw.txHash];
+      // Detect on-chain swaps: same txHash + walletViewId, different types
+      final txHashWalletPairs = <String, List<Transaction>>{};
+      for (final t in [...existing, ...transactions]) {
+        final key = buildSwapKey(t);
+        txHashWalletPairs[key] = [...(txHashWalletPairs[key] ?? []), t];
+      }
+
+      // Mark transactions as swaps if they have counterpart with different type
+      final swapHashes = txHashWalletPairs.entries
+          .where((e) => e.value.map((t) => t.type).toSet().length > 1)
+          .map((e) => e.key)
+          .toSet();
+
+      // Update isSwap flag for detected on-chain swaps
+      final transactionsWithSwapFlag = transactions.map((t) {
+        final key = buildSwapKey(t);
+
+        if (swapHashes.contains(key) && !t.isSwap) {
+          return t.copyWith(isSwap: true);
+        }
+        return t;
+      }).toList();
+
+      // Find existing transactions that need isSwap flag updated
+      final existingToUpdate = existing
+          .where((existingTx) {
+            final key = buildSwapKey(existingTx);
+            return swapHashes.contains(key) && !existingTx.isSwap;
+          })
+          .map((existingTx) => existingTx.copyWith(isSwap: true))
+          .toList();
+
+      final newTransactions = transactionsWithSwapFlag.where(
+        (t) => !existingMap.containsKey('${buildSwapKey(t)}_${t.type}'),
+      );
+      final toInsert = transactionsWithSwapFlag.map((toInsertRaw) {
+        final existing = existingMap['${buildSwapKey(toInsertRaw)}_${toInsertRaw.type}'];
 
         if (existing == null) return toInsertRaw;
 
@@ -88,17 +131,30 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         );
       });
       final updatedTransactions = toInsert.where((t) {
-        final existing = existingMap[t.txHash];
+        final existing = existingMap['${buildSwapKey(t)}_${t.type}'];
         return existing != null && existing != t;
       }).toList();
 
       await batch((batch) {
         batch.insertAllOnConflictUpdate(transactionsTable, toInsert);
+        // Update existing transactions that are now detected as swaps
+        for (final tx in existingToUpdate) {
+          batch.update(
+            transactionsTable,
+            const TransactionsTableCompanion(isSwap: Value(true)),
+            where: (tbl) =>
+                tbl.txHash.equals(tx.txHash) &
+                tbl.walletViewId.equals(tx.walletViewId) &
+                tbl.type.equals(tx.type),
+          );
+        }
       });
 
-      await visibilityStatusDao.addOrUpdateVisibilityStatus(transactions: transactions);
+      await visibilityStatusDao.addOrUpdateVisibilityStatus(transactions: transactionsWithSwapFlag);
 
-      return newTransactions.isNotEmpty || updatedTransactions.isNotEmpty;
+      return newTransactions.isNotEmpty ||
+          updatedTransactions.isNotEmpty ||
+          existingToUpdate.isNotEmpty;
     });
   }
 
@@ -469,6 +525,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       userPubkey: transaction.userPubkey,
       eventId: transaction.eventId,
       memo: transaction.memo,
+      isSwap: transaction.isSwap,
     );
   }
 

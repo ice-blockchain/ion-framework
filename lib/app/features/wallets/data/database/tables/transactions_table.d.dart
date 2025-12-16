@@ -16,6 +16,7 @@ class TransactionsTable extends Table {
   TextColumn get receiverWalletAddress => text().nullable()();
   TextColumn get walletViewId => text()();
   TextColumn get externalHash => text().nullable()();
+  BoolColumn get isSwap => boolean().withDefault(const Constant(false))();
 
   // Fields, that will be available from ion service
   TextColumn get id => text().nullable()();
@@ -46,7 +47,7 @@ class TransactionsTable extends Table {
   String? get tableName => 'transactions_table_v2';
 
   @override
-  Set<Column> get primaryKey => {txHash, walletViewId};
+  Set<Column> get primaryKey => {txHash, walletViewId, type};
 }
 
 /// We need to be sure that the data in the db is stored in a single format,

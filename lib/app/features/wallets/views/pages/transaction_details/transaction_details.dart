@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -23,7 +24,8 @@ import 'package:ion/app/features/wallets/views/components/nft_item.dart';
 import 'package:ion/app/features/wallets/views/components/timeline/timeline.dart';
 import 'package:ion/app/features/wallets/views/components/transaction_participant.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/confirmation/transaction_amount_summary.dart';
-import 'package:ion/app/features/wallets/views/pages/transaction_details/transaction_details_actions.dart';
+import 'package:ion/app/features/wallets/views/pages/transaction_details/components/actions_section.dart';
+import 'package:ion/app/features/wallets/views/pages/transaction_details/components/swap_details_content.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
@@ -34,45 +36,65 @@ import 'package:ion/generated/assets.gen.dart';
 // for those assets we can't build the explorer url right away and need to wait till confirmed
 const abbreviationsToExclude = {'TON', 'ION', 'ICE'};
 
-class TransactionDetailsPage extends ConsumerWidget {
+class TransactionDetailsPage extends HookConsumerWidget {
   const TransactionDetailsPage({
     required this.walletViewId,
     required this.txHash,
+    required this.type,
     required this.exploreRouteLocationBuilder,
     super.key,
   });
 
   final String txHash;
   final String walletViewId;
+  final TransactionType type;
   final String Function(String url) exploreRouteLocationBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionAsync = ref.watch(
-      transactionNotifierProvider(walletViewId: walletViewId, txHash: txHash),
+      transactionNotifierProvider(walletViewId: walletViewId, txHash: txHash, type: type),
     );
+
+    final onViewOnExplorer = useCallback((TransactionDetails data) {
+      final url = data.transactionExplorerUrl;
+      final location = exploreRouteLocationBuilder(url);
+      context.push<void>(location);
+    });
 
     return SheetContent(
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           NavigationAppBar.modal(
-            title: Text(context.i18n.transaction_details_title),
+            title: Text(
+              transactionAsync.maybeWhen(
+                data: (transaction) {
+                  return transaction.isSwap
+                      ? context.i18n.wallet_swap
+                      : context.i18n.transaction_details_title;
+                },
+                orElse: () => '',
+              ),
+            ),
             actions: const [NavigationCloseButton()],
           ),
           Flexible(
             child: transactionAsync.when(
               skipLoadingOnReload: true,
-              data: (transactionData) => _TransactionDetailsContent(
-                transaction: transactionData,
-                onViewOnExplorer: () {
-                  final url = transactionData.transactionExplorerUrl;
-                  final location = exploreRouteLocationBuilder(url);
-                  context.push<void>(location);
-                },
-              ),
+              data: (transactionData) => transactionData.isSwap
+                  ? SwapDetailsContent(
+                      selectedTransaction: transactionData,
+                      onViewOnExplorer: () => onViewOnExplorer(transactionData),
+                    )
+                  : _TransactionDetailsContent(
+                      transaction: transactionData,
+                      onViewOnExplorer: () => onViewOnExplorer(transactionData),
+                    ),
               loading: () => const Center(child: IONLoadingIndicator()),
-              error: (error, stackTrace) => const Center(child: IONLoadingIndicator()),
+              error: (error, stackTrace) {
+                return const Center(child: IONLoadingIndicator());
+              },
             ),
           ),
         ],
@@ -163,7 +185,7 @@ class _TransactionDetailsContent extends StatelessWidget {
                   ),
                   SizedBox(height: 15.0.s),
                 ],
-                _ActionsSection(
+                ActionsSection(
                   disableButtons: disableTransactionDetailsButtons,
                   onViewOnExplorer: onViewOnExplorer,
                   onShare: () => shareContent(transaction.transactionExplorerUrl),
@@ -372,26 +394,5 @@ class _NetworkFeeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListItemNetworkFee(value: value);
-  }
-}
-
-class _ActionsSection extends StatelessWidget {
-  const _ActionsSection({
-    required this.disableButtons,
-    required this.onViewOnExplorer,
-    required this.onShare,
-  });
-
-  final bool disableButtons;
-  final VoidCallback onViewOnExplorer;
-  final VoidCallback onShare;
-
-  @override
-  Widget build(BuildContext context) {
-    return TransactionDetailsActions(
-      disableButtons: disableButtons,
-      onViewOnExplorer: onViewOnExplorer,
-      onShare: onShare,
-    );
   }
 }

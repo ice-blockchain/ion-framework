@@ -9,6 +9,7 @@ import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
+import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
@@ -23,8 +24,9 @@ class TransactionNotifier extends _$TransactionNotifier {
 
   @override
   Future<TransactionDetails> build({
-    required String walletViewId,
     required String txHash,
+    required String walletViewId,
+    required TransactionType type,
   }) async {
     await _subscription?.cancel();
 
@@ -34,6 +36,7 @@ class TransactionNotifier extends _$TransactionNotifier {
     final externalHashTransactions = await repository.getTransactions(
       externalHashes: [txHash],
       walletViewIds: [walletViewId],
+      type: type,
       limit: 1,
     );
 
@@ -42,6 +45,7 @@ class TransactionNotifier extends _$TransactionNotifier {
         : await repository.getTransactions(
             txHashes: [txHash],
             walletViewIds: [walletViewId],
+            type: type,
             limit: 1,
           );
 
@@ -53,12 +57,14 @@ class TransactionNotifier extends _$TransactionNotifier {
         .watchTransactions(
           externalHashes: [txHash],
           walletViewIds: [walletViewId],
+          type: type,
           limit: 1,
         )
         .combineLatest(
           repository.watchTransactions(
             txHashes: [txHash],
             walletViewIds: [walletViewId],
+            type: type,
             limit: 1,
           ),
           (externalHashData, directHashData) {

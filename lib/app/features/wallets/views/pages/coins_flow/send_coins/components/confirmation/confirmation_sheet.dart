@@ -41,7 +41,11 @@ class ConfirmationSheet extends ConsumerWidget {
     super.key,
   });
 
-  final String Function(String walletViewId, String txHash) successRouteLocationBuilder;
+  final String Function(
+    String walletViewId,
+    String txHash,
+    String typeValue,
+  ) successRouteLocationBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,6 +77,7 @@ class ConfirmationSheet extends ConsumerWidget {
               successRouteLocationBuilder(
                 transactionDetails.walletViewId,
                 transactionDetails.txHash,
+                transactionDetails.type.value,
               ),
             ),
           );

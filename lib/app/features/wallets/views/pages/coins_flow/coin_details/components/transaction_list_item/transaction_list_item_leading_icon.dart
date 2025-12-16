@@ -13,9 +13,11 @@ class TransactionListItemLeadingIcon extends StatelessWidget {
   const TransactionListItemLeadingIcon({
     required this.type,
     required this.status,
+    required this.isSwap,
     super.key,
   });
 
+  final bool isSwap;
   final TransactionType type;
   final TransactionStatus status;
 
@@ -63,6 +65,7 @@ class TransactionListItemLeadingIcon extends StatelessWidget {
 
     // Add broadcastedIconMargin twice to place the main icon at the vertical center
     final widgetHeight = mainIconSize + broadcastedIconMargin + broadcastedIconMargin;
+    final iconColor = _getIconColor(context);
 
     return SizedBox(
       height: widgetHeight,
@@ -85,7 +88,9 @@ class TransactionListItemLeadingIcon extends StatelessWidget {
                   width: 1.0.s,
                 ),
               ),
-              child: type.iconAsset.icon(color: _getIconColor(context)),
+              child: isSwap
+                  ? Assets.svg.iconWalletSwap.icon(color: iconColor)
+                  : type.iconAsset.icon(color: iconColor),
             ),
           ),
           if (showStatusLabel)

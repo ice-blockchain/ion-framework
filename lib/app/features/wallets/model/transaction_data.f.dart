@@ -30,5 +30,6 @@ class TransactionData with _$TransactionData {
     String? userPubkey,
     String? memo,
     String? eventId,
+    @Default(false) bool isSwap,
   }) = _TransactionData;
 }
