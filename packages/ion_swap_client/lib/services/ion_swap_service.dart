@@ -6,6 +6,7 @@ import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
+import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/services/ion_service.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
@@ -43,6 +44,25 @@ class IonSwapService extends IonService {
   final EthereumAddress _ionSwapAddress;
   final EthereumAddress _iceTokenAddress;
   final EthereumAddress _ionTokenAddress;
+
+  @override
+  Future<SwapQuoteInfo> getQuote({
+    required SwapCoinParameters swapCoinData,
+    required BigInt bscBalance,
+  }) async {
+    final direction = _getDirection(swapCoinData);
+    if (!direction.isIceToIon) {
+      throw const IonSwapCoinPairNotFoundException();
+    }
+
+    await ensureEnoughGasOnBsc(bscBalance);
+
+    return SwapQuoteInfo(
+      type: SwapQuoteInfoType.bridge,
+      priceForSellTokenInBuyToken: 1,
+      source: SwapQuoteInfoSource.ionOnchain,
+    );
+  }
 
   Future<String> swapCoins({
     required SwapCoinParameters swapCoinData,

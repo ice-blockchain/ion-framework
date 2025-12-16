@@ -8,3 +8,10 @@ class IonSwapException implements Exception {
   @override
   String toString() => 'IonSwapException: $message';
 }
+
+class IonSwapCoinPairNotFoundException extends IonSwapException {
+  const IonSwapCoinPairNotFoundException()
+      : super(
+          'Ion swap coin pair not found',
+        );
+}
