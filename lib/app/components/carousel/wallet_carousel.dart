@@ -22,53 +22,47 @@ class WalletCarouselItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.theme.appColors.tertiaryBackground,
-        borderRadius: BorderRadius.circular(16.0.s),
-        border: Border.all(
-          color: context.theme.appColors.onTertiaryFill,
-          width: 0.5.s,
+    return GestureDetector(
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: context.theme.appColors.tertiaryBackground,
+          borderRadius: BorderRadius.circular(16.0.s),
+          border: Border.all(
+            color: context.theme.appColors.onTertiaryFill,
+            width: 0.5.s,
+          ),
         ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(20.s),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: context.theme.appTextThemes.title,
-                  ),
-                  SizedBox(height: 8.0.s),
-                  Text(
-                    description,
-                    style: context.theme.appTextThemes.body2.copyWith(
-                      color: Colors.black,
+        child: Padding(
+          padding: EdgeInsets.all(20.s),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: context.theme.appTextThemes.title,
                     ),
-                  ),
-                ],
+                    SizedBox(height: 8.0.s),
+                    Text(
+                      description,
+                      style: context.theme.appTextThemes.body2.copyWith(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(child: icon),
-          ],
+              Expanded(child: icon),
+            ],
+          ),
         ),
       ),
     );
-
-    if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: content,
-      );
-    }
-
-    return content;
   }
 }
 
