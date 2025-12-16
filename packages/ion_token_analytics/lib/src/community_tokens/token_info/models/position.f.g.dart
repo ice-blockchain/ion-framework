@@ -9,10 +9,10 @@ part of 'position.f.dart';
 _$PositionImpl _$$PositionImplFromJson(Map<String, dynamic> json) =>
     _$PositionImpl(
       rank: (json['rank'] as num).toInt(),
-      amount: (json['amount'] as num).toDouble(),
+      amount: json['amount'] as String,
       amountUSD: (json['amountUSD'] as num).toDouble(),
-      pnl: (json['pnl'] as num).toDouble(),
-      pnlPercentage: (json['pnlPercentage'] as num).toDouble(),
+      pnl: (json['pnl'] as num?)?.toDouble() ?? 0,
+      pnlPercentage: (json['pnlPercentage'] as num?)?.toDouble() ?? 0,
     );
 
 Map<String, dynamic> _$$PositionImplToJson(_$PositionImpl instance) =>
@@ -27,7 +27,7 @@ Map<String, dynamic> _$$PositionImplToJson(_$PositionImpl instance) =>
 _$PositionPatchImpl _$$PositionPatchImplFromJson(Map<String, dynamic> json) =>
     _$PositionPatchImpl(
       rank: (json['rank'] as num?)?.toInt(),
-      amount: (json['amount'] as num?)?.toDouble(),
+      amount: json['amount'] as String?,
       amountUSD: (json['amountUSD'] as num?)?.toDouble(),
       pnl: (json['pnl'] as num?)?.toDouble(),
       pnlPercentage: (json['pnlPercentage'] as num?)?.toDouble(),

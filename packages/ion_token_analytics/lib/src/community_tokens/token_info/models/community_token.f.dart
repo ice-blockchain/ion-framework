@@ -24,10 +24,10 @@ class CommunityToken with _$CommunityToken implements CommunityTokenBase {
   const factory CommunityToken({
     required CommunityTokenType type,
     required String title,
-    required String description,
     required Addresses addresses,
     required Creator creator,
     required MarketData marketData,
+    String? description,
     String? imageUrl,
     String? createdAt,
   }) = _CommunityToken;

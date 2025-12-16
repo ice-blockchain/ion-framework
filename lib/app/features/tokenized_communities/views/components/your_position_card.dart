@@ -141,7 +141,7 @@ class _AmountDetails extends StatelessWidget {
             ),
             SizedBox(width: 3.s),
             Text(
-              defaultAbbreviate(position.amount),
+              defaultAbbreviate(position.amountValue),
               style: context.theme.appTextThemes.body2
                   .copyWith(color: context.theme.appColors.onPrimaryAccent),
             ),

@@ -78,7 +78,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   Future<void> _updateCommunityTokenState() async {
     final externalAddress = params.externalAddress;
     final tokenInfo = ref.read(tokenMarketInfoProvider(externalAddress)).valueOrNull;
-    final balance = tokenInfo?.marketData.position?.amount ?? 0.0;
+    final balance = tokenInfo?.marketData.position?.amountValue ?? 0.0;
 
     final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
     final userData = pubkey == null ? null : ref.read(userPreviewDataProvider(pubkey)).valueOrNull;
