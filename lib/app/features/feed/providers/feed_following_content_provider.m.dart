@@ -380,8 +380,11 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
     required int? lastEventCreatedAt,
   }) async {
     final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
-
     final selectedArticleCategories = ref.read(feedSelectedArticleCategoriesProvider);
+
+    final isSpecificArticleContentRequest = selectedArticleCategories.isNotEmpty &&
+        feedType == FeedType.article &&
+        source == FeedFollowingSourceType.content;
 
     final feedConfig = await ref.read(feedConfigProvider.future);
     final FeedEntitiesDataSource(:dataSource, :responseFilter) =
@@ -389,7 +392,14 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
 
     final until = lastEventCreatedAt != null ? lastEventCreatedAt - 1 : null;
     final requestMessage = RequestMessage();
-    final filter = dataSource.requestFilter;
+    final filter = isSpecificArticleContentRequest
+        ? dataSource.requestFilter.copyWith(
+            tags: () => {
+              '#${RelatedHashtag.tagName}': selectedArticleCategories.toList(),
+            },
+          )
+        : dataSource.requestFilter;
+
     requestMessage.addFilter(
       // Do not use `since` here (from feedConfig.followingReqMaxAge),
       // as we want to request one overflow entity (if it exists),
@@ -397,13 +407,6 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
       filter.copyWith(
         limit: () => 1,
         until: () => until,
-        tags: () => selectedArticleCategories.isNotEmpty &&
-                feedType == FeedType.article &&
-                source == FeedFollowingSourceType.content
-            ? {
-                '#${RelatedHashtag.tagName}': selectedArticleCategories.toList(),
-              }
-            : null,
       ),
     );
 

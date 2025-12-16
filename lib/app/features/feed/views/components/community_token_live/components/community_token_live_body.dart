@@ -11,10 +11,13 @@ import 'package:ion/app/features/tokenized_communities/providers/token_type_prov
 class CommunityTokenLiveBody extends HookConsumerWidget {
   const CommunityTokenLiveBody({
     required this.entity,
+    this.sidePadding,
     super.key,
   });
 
   final CommunityTokenDefinitionEntity entity;
+
+  final double? sidePadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,10 +30,12 @@ class CommunityTokenLiveBody extends HookConsumerWidget {
     if (type == CommunityContentTokenType.profile) {
       return FeedProfileToken(
         externalAddress: entity.data.externalAddress,
+        sidePadding: sidePadding,
       );
     } else if (type == CommunityContentTokenType.twitter) {
       return FeedTwitterToken(
         externalAddress: entity.data.externalAddress,
+        sidePadding: sidePadding,
       );
     } else if (type == CommunityContentTokenType.postText ||
         type == CommunityContentTokenType.postImage ||
@@ -39,6 +44,7 @@ class CommunityTokenLiveBody extends HookConsumerWidget {
       return FeedContentToken(
         type: type,
         externalAddress: entity.data.externalAddress,
+        sidePadding: sidePadding,
       );
     }
 

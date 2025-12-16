@@ -90,10 +90,11 @@ class CommunityTokenIonConnectService {
     required CommunityTokenDefinitionEntity communityTokenDefinition,
     required CommunityTokenActionData communityTokenAction,
   }) async {
+    final tokenActionEvent = await _ionConnectNotifier.sign(communityTokenAction);
     await Future.wait([
-      _ionConnectNotifier.sendEntityData(communityTokenAction),
-      _ionConnectNotifier.sendEntityData(
-        communityTokenAction,
+      _ionConnectNotifier.sendEvent(tokenActionEvent),
+      _ionConnectNotifier.sendEvent(
+        tokenActionEvent,
         actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
         metadataBuilders: [_userEventsMetadataBuilder],
         cache: false,
@@ -118,21 +119,26 @@ class CommunityTokenIonConnectService {
     }
 
     final isOwnToken = _isCurrentUserSelector(communityTokenDefinition.masterPubkey);
-    final communityTokenFirstBuyAction = await _buildCommunityTokenFirstBuyAction(
+    final tokenDefinitionFirstBuy = await _buildCommunityTokenDefinitionFirstBuy(
       communityTokenDefinition: communityTokenDefinitionData,
     );
+    final (tokenActionEvent, tokenDefinitionFirstBuyEvent) = await (
+      _ionConnectNotifier.sign(communityTokenAction),
+      _ionConnectNotifier.sign(tokenDefinitionFirstBuy)
+    ).wait;
+
     await Future.wait([
-      _ionConnectNotifier.sendEntitiesData(
+      _ionConnectNotifier.sendEvents(
         [
-          communityTokenAction,
-          if (firstBuy && isOwnToken) communityTokenFirstBuyAction,
+          tokenActionEvent,
+          if (firstBuy && isOwnToken) tokenDefinitionFirstBuyEvent,
         ],
       ),
       if (!isOwnToken)
-        _ionConnectNotifier.sendEntitiesData(
+        _ionConnectNotifier.sendEvents(
           [
-            communityTokenAction,
-            if (firstBuy) communityTokenFirstBuyAction,
+            tokenActionEvent,
+            if (firstBuy) tokenDefinitionFirstBuyEvent,
           ],
           actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
           metadataBuilders: [_userEventsMetadataBuilder],
@@ -147,11 +153,12 @@ class CommunityTokenIonConnectService {
     required CommunityTokenActionData communityTokenAction,
   }) async {
     final isOwnToken = _isCurrentUserSelector(communityTokenDefinition.masterPubkey);
+    final tokenActionEvent = await _ionConnectNotifier.sign(communityTokenAction);
     await Future.wait([
-      _ionConnectNotifier.sendEntityData(communityTokenAction, cache: false),
+      _ionConnectNotifier.sendEvent(tokenActionEvent, cache: false),
       if (!isOwnToken)
-        _ionConnectNotifier.sendEntityData(
-          communityTokenAction,
+        _ionConnectNotifier.sendEvent(
+          tokenActionEvent,
           actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
           metadataBuilders: [_userEventsMetadataBuilder],
           cache: false,
@@ -191,7 +198,7 @@ class CommunityTokenIonConnectService {
     );
   }
 
-  Future<CommunityTokenDefinitionIon> _buildCommunityTokenFirstBuyAction({
+  Future<CommunityTokenDefinitionIon> _buildCommunityTokenDefinitionFirstBuy({
     required CommunityTokenDefinitionIon communityTokenDefinition,
   }) async {
     return CommunityTokenDefinitionIon.fromEventReference(

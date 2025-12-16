@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
+import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 
@@ -74,6 +75,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     required double amountPriceUsd,
     required String currency,
     required List<RelatedHashtag> relatedHashtags,
+    required RelatedPubkey relatedPubkey,
   }) = _CommunityTokenActionData;
 
   const CommunityTokenActionData._();
@@ -98,6 +100,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     final amountPriceUsd =
         double.tryParse(tags['tx_amount_price_usd']?.firstOrNull?.lastOrNull ?? '');
     final currency = tags['tx_currency']?.firstOrNull?.lastOrNull;
+    final relatedPubkey = tags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).firstOrNull;
 
     if (eventReference == null ||
         network == null ||
@@ -108,7 +111,8 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         type == null ||
         amount == null ||
         amountPriceUsd == null ||
-        currency == null) {
+        currency == null ||
+        relatedPubkey == null) {
       throw IncorrectEventTagsException(eventId: eventMessage.id);
     }
 
@@ -123,6 +127,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       amountPriceUsd: amountPriceUsd,
       currency: currency,
       relatedHashtags: _buildRelatedHashtags(),
+      relatedPubkey: relatedPubkey,
     );
   }
 
@@ -148,6 +153,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       amountPriceUsd: amountPriceUsd,
       currency: currency,
       relatedHashtags: _buildRelatedHashtags(),
+      relatedPubkey: RelatedPubkey(value: definitionReference.masterPubkey),
     );
   }
 
@@ -166,6 +172,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         ...tags,
         definitionReference.toTag(),
         ...relatedHashtags.map((hashtag) => hashtag.toTag()),
+        relatedPubkey.toTag(),
         ['network', network],
         ['bonding_curve_address', bondingCurveAddress],
         ['token_address', tokenAddress],
