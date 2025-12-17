@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
@@ -13,23 +14,59 @@ part 'token_type_provider.r.g.dart';
 
 enum CommunityContentTokenType { twitter, profile, postText, postImage, postVideo, article }
 
+/// Provides [CommunityContentTokenType] for given external address.
+///
+/// Use this to find the type for external address, if u don't know if
+/// this is an ion connect address or not - e.g. on the token details page.
+/// Works only for existing tokens because it needs to fetch token market info
+/// to get the token definition.
 @riverpod
-Future<CommunityContentTokenType?> tokenType(
+Future<CommunityContentTokenType?> tokenTypeForExternalAddress(
   Ref ref,
   String externalAddress,
 ) async {
-  CommunityContentTokenType? type;
+  final communityTokenDefinition = await ref
+      .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress).future);
 
-  final communityTokenDefinition =
-      ref.watch(communityTokenDefinitionProvider(externalAddress: externalAddress));
-
-  if (communityTokenDefinition.valueOrNull == null) {
+  if (communityTokenDefinition == null) {
     return null;
   }
 
-  if (communityTokenDefinition.valueOrNull!.data.platform == CommunityTokenPlatform.x) {
+  return ref.watch(tokenTypeForTokenDefinitionProvider(communityTokenDefinition).future);
+}
+
+/// Provides [CommunityContentTokenType] for given ion connect [EventReference].
+///
+/// Use this to find the type for ion connect entity.
+/// Works even if it has not been bought yet.
+@riverpod
+Future<CommunityContentTokenType?> tokenTypeForIonConnectReference(
+  Ref ref,
+  EventReference eventReference,
+) async {
+  final communityTokenDefinition = await ref
+      .watch(tokenDefinitionForIonConnectReferenceProvider(eventReference: eventReference).future);
+
+  if (communityTokenDefinition == null) {
+    return null;
+  }
+
+  return ref.watch(tokenTypeForTokenDefinitionProvider(communityTokenDefinition).future);
+}
+
+/// Provides [CommunityContentTokenType] for given [CommunityTokenDefinitionEntity].
+///
+/// Detects the type based on the origin entity of the token definition.
+@riverpod
+Future<CommunityContentTokenType?> tokenTypeForTokenDefinition(
+  Ref ref,
+  CommunityTokenDefinitionEntity tokenDefinition,
+) async {
+  CommunityContentTokenType? type;
+
+  if (tokenDefinition.data.platform == CommunityTokenPlatform.x) {
     type = CommunityContentTokenType.twitter;
-  } else if (communityTokenDefinition.valueOrNull!
+  } else if (tokenDefinition
       case CommunityTokenDefinitionEntity(data: final CommunityTokenDefinitionIon ionData)) {
     final originEntity = ref
         .watch(ionConnectEntityProvider(eventReference: ionData.eventReference, network: false))

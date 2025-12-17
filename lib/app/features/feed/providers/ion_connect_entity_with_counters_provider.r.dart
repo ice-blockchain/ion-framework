@@ -39,7 +39,7 @@ IonConnectEntity? ionConnectSyncEntityWithCounters(
     throw const CurrentUserNotFoundException();
   }
 
-  final search = _buildSearchForCounters(currentUserPubkey: currentUserPubkey, kind: kind);
+  final search = _buildSearchForDependencies(currentUserPubkey: currentUserPubkey, kind: kind);
 
   return ref.watch(
     ionConnectSyncEntityProvider(
@@ -74,7 +74,7 @@ Future<IonConnectEntity?> ionConnectEntityWithCounters(
     throw const CurrentUserNotFoundException();
   }
 
-  final search = _buildSearchForCounters(currentUserPubkey: currentUserPubkey, kind: kind);
+  final search = _buildSearchForDependencies(currentUserPubkey: currentUserPubkey, kind: kind);
 
   return ref.watch(
     ionConnectEntityProvider(
@@ -97,7 +97,7 @@ bool _hasCounters(int kind) {
   ].any((kindWithCounters) => kindWithCounters == kind);
 }
 
-String _buildSearchForCounters({
+String _buildSearchForDependencies({
   required String currentUserPubkey,
   required int kind,
 }) {
@@ -106,14 +106,22 @@ String _buildSearchForCounters({
       currentPubkey: currentUserPubkey,
       forKind: kind,
     ).extensions,
-    if (kind == CommunityTokenDefinitionEntity.kind) ...[
-      FollowingListSearchExtension(forKind: kind),
-      FollowersCountSearchExtension(forKind: kind),
-    ],
-    if (kind == CommunityTokenActionEntity.kind)
-      GenericIncludeSearchExtension(
-        forKind: kind,
-        includeKind: CommunityTokenDefinitionEntity.kind,
-      ),
+    ...switch (kind) {
+      ModifiablePostEntity.kind ||
+      PostEntity.kind ||
+      ArticleEntity.kind =>
+        SearchExtensions.withTokens(forKind: kind).extensions,
+      CommunityTokenDefinitionEntity.kind => [
+          FollowingListSearchExtension(forKind: kind),
+          FollowersCountSearchExtension(forKind: kind),
+        ],
+      CommunityTokenActionEntity.kind => [
+          GenericIncludeSearchExtension(
+            forKind: kind,
+            includeKind: CommunityTokenDefinitionEntity.kind,
+          ),
+        ],
+      _ => [],
+    },
   ]).toString();
 }

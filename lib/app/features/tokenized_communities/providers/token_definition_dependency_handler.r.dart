@@ -11,6 +11,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'token_definition_dependency_handler.r.g.dart';
 
+/// Handler responsible for processing ephemeral CommunityTokenDefinition events.
+/// Wrapped CommunityTokenDefinition events are the original token definitions for a given
+/// community token.
+///
+/// 1. Caches CommunityTokenDefinitionEntity instances
+/// 2. Creates and caches TokenDefinitionReferenceEntity instances for easy
+/// token externalAddress -> original CommunityTokenDefinition  lookups.
 class TokenDefinitionDependencyHandler implements EventsMetadataHandler {
   TokenDefinitionDependencyHandler({
     required ExternalAddressTokenDefinitionCache externalAddressTokenDefinitionCache,

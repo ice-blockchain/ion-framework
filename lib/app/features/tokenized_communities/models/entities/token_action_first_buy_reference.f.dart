@@ -132,4 +132,6 @@ class TokenActionFirstBuyReference
           : tokenDefinitionReference.toString(),
     );
   }
+
+  static const String anyUserMasterPubkey = 'any';
 }

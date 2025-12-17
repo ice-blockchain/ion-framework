@@ -11,12 +11,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'token_action_first_buy_dependency_handler.r.g.dart';
 
-/// Handler responsible for processing CommunityTokenActionEntity events.
+/// Handler responsible for processing ephemeral CommunityTokenActionEntity events.
 /// Wrapped CommunityTokenAction events are the "first-buy" actions for a given
 /// community token + master pubkey.
 ///
-/// 1. Caches CommunityTokenActionEntity instances
-/// 2. Creates and caches TokenActionFirstBuyReferenceEntity instances for easy "first-buy" lookups.
+/// 1. Caches CommunityTokenActionEntity
+/// 2. Creates and caches TokenActionFirstBuyReferenceEntity for easy lookups
+///   of "first-buy" actions made by a specific user.
+/// 3. Creates and caches TokenActionFirstBuyReferenceEntity for easy lookups
+///   of "first-buy" actions made by any user.
 class TokenActionFirstBuyDependencyHandler implements EventsMetadataHandler {
   TokenActionFirstBuyDependencyHandler({
     required IonConnectCache ionConnectCache,
@@ -34,10 +37,14 @@ class TokenActionFirstBuyDependencyHandler implements EventsMetadataHandler {
       tokenActionEvents.map(
         (event) async {
           final tokenAction = CommunityTokenActionEntity.fromEventMessage(event.data.metadata);
-          final tokenActionFirstBuyReference =
+          final userTokenActionFirstBuyReference =
               TokenActionFirstBuyReferenceEntity.fromCommunityTokenAction(tokenAction);
+          final tokenActionFirstBuyReference = userTokenActionFirstBuyReference.copyWith(
+            masterPubkey: TokenActionFirstBuyReference.anyUserMasterPubkey,
+          );
           return (
             _ionConnectCache.cache(tokenAction),
+            _ionConnectCache.cache(userTokenActionFirstBuyReference),
             _ionConnectCache.cache(tokenActionFirstBuyReference),
           ).wait;
         },

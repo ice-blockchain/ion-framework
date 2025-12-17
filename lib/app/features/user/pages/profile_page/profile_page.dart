@@ -44,7 +44,7 @@ class ProfilePage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(masterPubkey));
+    final userMetadata = ref.watch(userMetadataProvider(masterPubkey, cache: false));
 
     if (userMetadata.isLoading && !userMetadata.hasValue) {
       return ProfileSkeleton(showBackButton: showBackButton);

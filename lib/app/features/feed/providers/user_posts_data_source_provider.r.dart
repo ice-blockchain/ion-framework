@@ -45,6 +45,9 @@ List<EntitiesDataSource>? userPostsDataSource(Ref ref, String pubkey) {
     ).extensions,
     ReferencesSearchExtension(contain: false),
     ExpirationSearchExtension(expiration: false),
+    ...SearchExtensions.withTokens().extensions,
+    ...SearchExtensions.withTokens(forKind: PostEntity.kind).extensions,
+    ...SearchExtensions.withTokens(forKind: ArticleEntity.kind).extensions,
   ]).toString();
 
   return [

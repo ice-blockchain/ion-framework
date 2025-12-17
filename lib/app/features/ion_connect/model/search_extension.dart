@@ -2,6 +2,7 @@
 
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/block_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 
@@ -49,6 +50,16 @@ class SearchExtensions {
       GenericIncludeSearchExtension(
         forKind: forKind,
         includeKind: BlockListEntity.kind,
+      ),
+    ]);
+  }
+
+  factory SearchExtensions.withTokens({int forKind = ModifiablePostEntity.kind}) {
+    return SearchExtensions([
+      TokenFirstBuySearchExtension(forKind: forKind),
+      GenericIncludeSearchExtension(
+        forKind: forKind,
+        includeKind: CommunityTokenDefinitionEntity.kind,
       ),
     ]);
   }
@@ -428,4 +439,17 @@ class FollowingListSearchExtension extends IncludeSearchExtension {
 
   @override
   String get query => 'kind3';
+}
+
+/// For every kind [forKind] that the subscription finds also include
+///   the "first-buy" kind1175 event from any author for the token related
+///   to that event (if it exists).
+class TokenFirstBuySearchExtension extends IncludeSearchExtension {
+  TokenFirstBuySearchExtension({this.forKind = ModifiablePostEntity.kind});
+
+  @override
+  final int forKind;
+
+  @override
+  String get query => 'kind1175';
 }

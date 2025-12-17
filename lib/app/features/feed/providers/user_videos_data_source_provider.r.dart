@@ -33,6 +33,8 @@ List<EntitiesDataSource>? userVideosDataSource(Ref ref, String pubkey) {
     ReferencesSearchExtension(contain: false),
     ExpirationSearchExtension(expiration: false),
     VideosSearchExtension(contain: true),
+    ...SearchExtensions.withTokens().extensions,
+    ...SearchExtensions.withTokens(forKind: PostEntity.kind).extensions,
   ]).toString();
 
   return [

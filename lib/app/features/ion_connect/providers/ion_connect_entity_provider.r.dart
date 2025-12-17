@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/default_events_metadata_handler.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -113,24 +116,16 @@ Future<IonConnectEntity?> ionConnectNetworkEntity(
 }) async {
   final aSource = actionSource ?? ActionSourceUser(eventReference.masterPubkey);
 
-  if (eventReference is ImmutableEventReference) {
-    final requestMessage = RequestMessage()
+  final requestMessage = switch (eventReference) {
+    ImmutableEventReference() => RequestMessage()
       ..addFilter(
         RequestFilter(
           ids: [eventReference.eventId],
           search: search,
           limit: 1,
         ),
-      );
-
-    return ref.read(ionConnectNotifierProvider.notifier).requestEntity(
-          requestMessage,
-          actionSource: aSource,
-          actionType: actionType,
-          entityEventReference: eventReference,
-        );
-  } else if (eventReference is ReplaceableEventReference) {
-    final requestMessage = RequestMessage()
+      ),
+    ReplaceableEventReference() => RequestMessage()
       ..addFilter(
         RequestFilter(
           kinds: [eventReference.kind],
@@ -141,16 +136,23 @@ Future<IonConnectEntity?> ionConnectNetworkEntity(
           search: search,
           limit: 1,
         ),
-      );
-    return ref.read(ionConnectNotifierProvider.notifier).requestEntity(
-          requestMessage,
-          actionSource: aSource,
-          actionType: actionType,
-          entityEventReference: eventReference,
-        );
-  } else {
-    throw UnsupportedEventReference(eventReference);
-  }
+      ),
+    _ => throw UnsupportedEventReference(eventReference),
+  };
+
+  final entities = await ref
+      .read(ionConnectNotifierProvider.notifier)
+      .requestEntities(
+        requestMessage,
+        actionSource: aSource,
+        actionType: actionType,
+      )
+      .toList();
+  final metadataEntities = entities.whereType<EventsMetadataEntity>();
+  final defaultHandler = await ref.read(defaultEventsMetadataHandlerProvider.future);
+  await defaultHandler.handle(metadataEntities);
+  return entities.reversed
+      .firstWhereOrNull((entity) => entity.toEventReference() == eventReference);
 }
 
 @riverpod
