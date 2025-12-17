@@ -70,9 +70,9 @@ class MentionInlineWidget extends StatelessWidget {
           ),
         ),
         if (onClose != null)
-          Positioned(
+          PositionedDirectional(
             top: -6.0.s,
-            right: -6.0.s,
+            end: -6.0.s,
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: onClose,
