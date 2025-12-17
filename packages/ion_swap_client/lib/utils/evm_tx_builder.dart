@@ -3,7 +3,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ion_swap_client/utils/swap_constants.dart';
 import 'package:web3dart/web3dart.dart';
 
 // TODO(ice-erebus): move to separate package
@@ -74,19 +73,6 @@ class EvmTxBuilder {
       to: to,
       data: data,
       value: value,
-      maxFeePerGas: BigInt.zero,
-      maxPriorityFeePerGas: BigInt.zero,
-    );
-  }
-
-  EvmTransaction applyDefaultFees(EvmTransaction transaction) {
-    return EvmTransaction(
-      kind: transaction.kind,
-      to: transaction.to,
-      data: transaction.data,
-      value: transaction.value,
-      maxFeePerGas: SwapConstants.maxFeePerGas,
-      maxPriorityFeePerGas: SwapConstants.maxPriorityFeePerGas,
     );
   }
 
@@ -164,14 +150,10 @@ class EvmTransaction {
     required this.to,
     required this.data,
     required this.value,
-    required this.maxFeePerGas,
-    required this.maxPriorityFeePerGas,
   });
 
   final String kind;
   final String to;
   final String data;
   final BigInt value;
-  final BigInt maxFeePerGas;
-  final BigInt maxPriorityFeePerGas;
 }
