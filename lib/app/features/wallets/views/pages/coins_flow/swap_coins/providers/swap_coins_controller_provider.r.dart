@@ -597,7 +597,11 @@ class SwapCoinsController extends _$SwapCoinsController {
       );
     }
 
-    return exception as Exception;
+    if (exception is Exception) {
+      return exception;
+    }
+
+    return IonSwapException(exception.toString());
   }
 
   Future<bool> getIsIonBscSwap() async {
