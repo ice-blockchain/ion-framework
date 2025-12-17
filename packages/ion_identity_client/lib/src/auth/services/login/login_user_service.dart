@@ -47,7 +47,6 @@ class LoginUserService {
       config: config,
       challenge: challenge,
       username: username,
-      localCredsOnly: localCredsOnly,
     );
     final assertion = await executor.execute(
       username: username,
