@@ -162,7 +162,8 @@ class IonService {
       if (receipt != null) {
         if (receipt.status ?? false) return receipt;
         throw IonSwapException(
-            'Swap failed on-chain, tx hash: $txHash, status: ${receipt.status}, from: ${receipt.from}, to: ${receipt.to}, gasUsed: ${receipt.gasUsed}, effectiveGasPrice: ${receipt.effectiveGasPrice}');
+          'Swap failed on-chain, tx hash: $txHash, status: ${receipt.status}, from: ${receipt.from}, to: ${receipt.to}, gasUsed: ${receipt.gasUsed}, effectiveGasPrice: ${receipt.effectiveGasPrice}',
+        );
       }
       await Future<void>.delayed(pollInterval);
     }
