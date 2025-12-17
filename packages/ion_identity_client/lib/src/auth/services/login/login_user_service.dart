@@ -48,7 +48,6 @@ class LoginUserService {
       config: config,
       challenge: challenge,
       username: username,
-      localCredsOnly: localCredsOnly,
     );
 
     final authFuture = executor.execute(

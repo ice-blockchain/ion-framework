@@ -25,17 +25,11 @@ class LoginExecutorFactory {
     required AuthConfig config,
     required UserActionChallenge challenge,
     required String username,
-    required bool localCredsOnly,
   }) {
-    if (username.isEmpty) {
-      return PasskeyLoginExecutor(identitySigner: identitySigner);
-    }
-
     final supportsPasskey = challenge.supportedCredentialKinds.any(
       (credKind) => credKind.kind == CredentialKind.Fido2,
     );
-
-    if (supportsPasskey && localCredsOnly) {
+    if (username.isEmpty || supportsPasskey) {
       return PasskeyLoginExecutor(identitySigner: identitySigner);
     }
 
