@@ -20,6 +20,7 @@ class CollapsingHeaderLayout extends HookWidget {
     required this.child,
     required this.collapsedHeaderBuilder,
     required this.headerActionsBuilder,
+    required this.floatingActionButton,
     this.newUiMode = true,
     this.showBackButton = true,
     this.backgroundColor,
@@ -38,6 +39,7 @@ class CollapsingHeaderLayout extends HookWidget {
   final Color? backgroundColor;
   final bool applySafeAreaBottomPadding;
   final VoidCallback? onBackButtonPressed;
+  final Widget floatingActionButton;
 
   double get paddingTop => 60.0.s;
 
@@ -60,83 +62,87 @@ class CollapsingHeaderLayout extends HookWidget {
       color: newUiMode ? context.theme.appColors.onPrimaryAccent : null,
     );
 
-    return ScrollToTopWrapper(
-      scrollController: scrollController,
-      child: Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          SafeArea(
-            left: !newUiMode,
-            right: !newUiMode,
-            top: !newUiMode,
-            bottom: applySafeAreaBottomPadding,
-            child: NotificationListener(
-              onNotification: (notification) {
-                if (notification is UserScrollNotification) {
-                  menuCloseSignal.trigger();
-                }
-                return true;
-              },
-              child: ColoredBox(
-                color: backgroundColor,
-                child: CustomScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  controller: scrollController,
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Stack(
-                        children: [
-                          if (newUiMode)
-                            Positioned.fill(
-                              child: ProfileBackground(
-                                colors: imageColors,
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      floatingActionButton: floatingActionButton,
+      body: ScrollToTopWrapper(
+        scrollController: scrollController,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            SafeArea(
+              left: !newUiMode,
+              right: !newUiMode,
+              top: !newUiMode,
+              bottom: applySafeAreaBottomPadding,
+              child: NotificationListener(
+                onNotification: (notification) {
+                  if (notification is UserScrollNotification) {
+                    menuCloseSignal.trigger();
+                  }
+                  return true;
+                },
+                child: ColoredBox(
+                  color: backgroundColor,
+                  child: CustomScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    controller: scrollController,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Stack(
+                          children: [
+                            if (newUiMode)
+                              Positioned.fill(
+                                child: ProfileBackground(
+                                  colors: imageColors,
+                                ),
                               ),
-                            ),
-                          expandedHeader,
-                        ],
+                            expandedHeader,
+                          ],
+                        ),
                       ),
-                    ),
-                    const SliverToBoxAdapter(child: SectionSeparator()),
-                    SliverToBoxAdapter(child: child),
-                  ],
+                      const SliverToBoxAdapter(child: SectionSeparator()),
+                      SliverToBoxAdapter(child: child),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          NavigationAppBar(
-            showBackButton: showBackButton,
-            useScreenTopOffset: true,
-            extendBehindStatusBar: newUiMode,
-            backButtonIcon: backButtonIcon,
-            scrollController: scrollController,
-            horizontalPadding: 0,
-            backgroundColor:
-                showAppBarBackground ? (newUiMode ? null : backgroundColor) : Colors.transparent,
-            backgroundBuilder: newUiMode && showAppBarBackground
-                ? () => ProfileBackground(
-                      colors: imageColors,
-                      disableDarkGradient: true,
-                    )
-                : null,
-            title: IgnorePointer(
-              ignoring: opacity <= 0.5,
-              child: Opacity(
-                opacity: opacity,
-                child: collapsedHeaderBuilder(opacity),
+            NavigationAppBar(
+              showBackButton: showBackButton,
+              useScreenTopOffset: true,
+              extendBehindStatusBar: newUiMode,
+              backButtonIcon: backButtonIcon,
+              scrollController: scrollController,
+              horizontalPadding: 0,
+              backgroundColor:
+                  showAppBarBackground ? (newUiMode ? null : backgroundColor) : Colors.transparent,
+              backgroundBuilder: newUiMode && showAppBarBackground
+                  ? () => ProfileBackground(
+                        colors: imageColors,
+                        disableDarkGradient: true,
+                      )
+                  : null,
+              title: IgnorePointer(
+                ignoring: opacity <= 0.5,
+                child: Opacity(
+                  opacity: opacity,
+                  child: collapsedHeaderBuilder(opacity),
+                ),
               ),
+              actions: headerActionsBuilder(menuCloseSignal).asMap().entries.map((entry) {
+                final index = entry.key;
+                final action = entry.value;
+                if (index == 0) return action;
+                return Padding(
+                  padding: EdgeInsetsDirectional.only(start: 8.0.s, end: 16.0.s),
+                  child: action,
+                );
+              }).toList(),
+              onBackPress: onBackButtonPressed,
             ),
-            actions: headerActionsBuilder(menuCloseSignal).asMap().entries.map((entry) {
-              final index = entry.key;
-              final action = entry.value;
-              if (index == 0) return action;
-              return Padding(
-                padding: EdgeInsetsDirectional.only(start: 8.0.s, end: 16.0.s),
-                child: action,
-              );
-            }).toList(),
-            onBackPress: onBackButtonPressed,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
