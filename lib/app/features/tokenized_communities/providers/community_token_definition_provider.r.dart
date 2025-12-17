@@ -175,6 +175,9 @@ class ExternalAddressTokenDefinitionCache {
   }
 }
 
+/// Provides cached [CommunityTokenDefinitionEntity] for given external address.
+///
+/// Uses cached [TokenDefinitionReferenceEntity] to find the cached definition.
 @riverpod
 Future<CommunityTokenDefinitionEntity?> cachedTokenDefinition(
   Ref ref, {
@@ -204,6 +207,11 @@ Future<CommunityTokenDefinitionEntity?> cachedTokenDefinition(
   return null;
 }
 
+/// Provides [CommunityTokenDefinitionEntity] for given external address.
+///
+/// Use this to find the definition external address, if u don't know if
+/// this is an ion connect address or not - e.g. on the token details page.
+/// Works only for existing tokens.
 @riverpod
 Future<CommunityTokenDefinitionEntity?> tokenDefinitionForExternalAddress(
   Ref ref, {
@@ -220,6 +228,9 @@ Future<CommunityTokenDefinitionEntity?> tokenDefinitionForExternalAddress(
   return repository.getTokenDefinitionForExternalAddress(externalAddress);
 }
 
+/// Provides [CommunityTokenDefinitionEntity] for given ion connect [EventReference].
+///
+/// Checks the cache first, then fetches from ion connect if not found.
 @riverpod
 Future<CommunityTokenDefinitionEntity?> tokenDefinitionForIonConnectReference(
   Ref ref, {
@@ -236,6 +247,8 @@ Future<CommunityTokenDefinitionEntity?> tokenDefinitionForIonConnectReference(
   return repository.getTokenDefinitionForIonConnectReference(eventReference);
 }
 
+/// Checks whether the ion connect entity identified by [eventReference]
+/// has a token definition (might be null for old entities).
 @riverpod
 Future<bool> ionConnectEntityHasTokenDefinition(
   Ref ref, {

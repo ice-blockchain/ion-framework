@@ -39,8 +39,9 @@ class TokenActionFirstBuyDependencyHandler implements EventsMetadataHandler {
           final tokenAction = CommunityTokenActionEntity.fromEventMessage(event.data.metadata);
           final userTokenActionFirstBuyReference =
               TokenActionFirstBuyReferenceEntity.fromCommunityTokenAction(tokenAction);
-          final tokenActionFirstBuyReference =
-              userTokenActionFirstBuyReference.copyWith(masterPubkey: '');
+          final tokenActionFirstBuyReference = userTokenActionFirstBuyReference.copyWith(
+            masterPubkey: TokenActionFirstBuyReference.anyUserMasterPubkey,
+          );
           return (
             _ionConnectCache.cache(tokenAction),
             _ionConnectCache.cache(userTokenActionFirstBuyReference),

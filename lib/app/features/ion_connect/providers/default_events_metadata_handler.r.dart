@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/providers/missing_events_handler.r.dart';
@@ -7,6 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'default_events_metadata_handler.r.g.dart';
 
+/// Class for handling [EventsMetadataEntity]s through multiple handlers in sequence.
 class DefaultEventsMetadataHandler {
   DefaultEventsMetadataHandler(this.handlers);
 

@@ -44,6 +44,10 @@ Future<CommunityTokenActionEntity?> cachedTokenActionFirstBuy(
   return firstBuyEntity;
 }
 
+/// Provides first-buy [CommunityTokenActionEntity] for given ion connect entity reference from ANY user.
+///
+/// Works by querying the cached first-buy action from ANY user for the token definition
+/// for the provided ion connect entity.
 @riverpod
 Future<CommunityTokenActionEntity?> ionConnectEntityTokenActionFirstBuy(
   Ref ref, {
@@ -66,12 +70,14 @@ Future<CommunityTokenActionEntity?> ionConnectEntityTokenActionFirstBuy(
 
   return ref.watch(
     cachedTokenActionFirstBuyProvider(
-      masterPubkey: '',
+      masterPubkey: TokenActionFirstBuyReference.anyUserMasterPubkey,
       tokenDefinitionReference: tokenDefinitionReference,
     ).future,
   );
 }
 
+/// Checks whether the ion connect entity identified by [eventReference]
+/// has a token (was bought by someone) by querying for the first-buy action.
 @riverpod
 Future<bool> ionConnectEntityHasToken(
   Ref ref, {

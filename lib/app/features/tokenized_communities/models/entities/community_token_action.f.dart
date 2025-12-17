@@ -106,6 +106,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         typeRaw == null ||
         type == null ||
         amounts == null ||
+        amounts.isEmpty ||
         relatedPubkey == null) {
       throw IncorrectEventTagsException(eventId: eventMessage.id);
     }

@@ -14,9 +14,12 @@ part 'token_type_provider.r.g.dart';
 
 enum CommunityContentTokenType { twitter, profile, postText, postImage, postVideo, article }
 
+/// Provides [CommunityContentTokenType] for given external address.
+///
 /// Use this to find the type for external address, if u don't know if
 /// this is an ion connect address or not - e.g. on the token details page.
-/// Works only for existing tokens.
+/// Works only for existing tokens because it needs to fetch token market info
+/// to get the token definition.
 @riverpod
 Future<CommunityContentTokenType?> tokenTypeForExternalAddress(
   Ref ref,
@@ -32,8 +35,10 @@ Future<CommunityContentTokenType?> tokenTypeForExternalAddress(
   return ref.watch(tokenTypeForTokenDefinitionProvider(communityTokenDefinition).future);
 }
 
+/// Provides [CommunityContentTokenType] for given ion connect [EventReference].
+///
 /// Use this to find the type for ion connect entity.
-/// Works even it was not bought yet.
+/// Works even if it has not been bought yet.
 @riverpod
 Future<CommunityContentTokenType?> tokenTypeForIonConnectReference(
   Ref ref,
@@ -49,6 +54,9 @@ Future<CommunityContentTokenType?> tokenTypeForIonConnectReference(
   return ref.watch(tokenTypeForTokenDefinitionProvider(communityTokenDefinition).future);
 }
 
+/// Provides [CommunityContentTokenType] for given [CommunityTokenDefinitionEntity].
+///
+/// Detects the type based on the origin entity of the token definition.
 @riverpod
 Future<CommunityContentTokenType?> tokenTypeForTokenDefinition(
   Ref ref,
