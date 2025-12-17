@@ -73,13 +73,11 @@ class TokenCard extends HookConsumerWidget {
     final enteredAmountUSD = useMemoized<String>(
       () {
         final text = controller?.text.trim() ?? '';
-        if (text.isEmpty) return formatToCurrency(0);
-
-        final amount = parseAmount(text);
-        if (amount == null) return formatToCurrency(0);
-
+        final amount = parseAmount(text) ?? 0;
         final priceUSD = coinForNetwork?.coin.priceUSD ?? 0.0;
-        return formatToCurrency(amount * priceUSD);
+        final usdValue = amount * priceUSD;
+
+        return formatToCurrency(usdValue);
       },
       [controller?.text, coinForNetwork?.coin.priceUSD],
     );
