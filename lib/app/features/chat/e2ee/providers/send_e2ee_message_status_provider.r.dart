@@ -101,7 +101,9 @@ class SendE2eeMessageStatusService {
                   pubkey: pubkey,
                   masterPubkey: masterPubkey,
                   messageEventReference: eventReference,
-                  updateAllBefore: messageEventMessage.createdAt.toDateTime,
+                  updateAllBefore: verifyCurrentStatus
+                      ? messageEventMessage.createdAt.toDateTime
+                      : DateTime.now(),
                 );
               }
 
