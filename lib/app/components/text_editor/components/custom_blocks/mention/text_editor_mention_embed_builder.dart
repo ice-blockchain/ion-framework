@@ -11,7 +11,7 @@ import 'package:ion/app/features/tokenized_communities/providers/user_token_mark
 const String mentionEmbedKey = 'mention';
 const String mentionPrefix = '@';
 
-/// Minimal inline mention embed builder for validation/testing.
+// Embed builder for mention embeds
 class TextEditorMentionEmbedBuilder extends EmbedBuilder {
   const TextEditorMentionEmbedBuilder();
 
@@ -74,7 +74,7 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
   }
 }
 
-/// Wrapper widget that fetches market cap data and renders MentionInlineWidget.
+// Wrapper widget that fetches market cap data and renders MentionInlineWidget.
 class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
   const _MentionInlineWidgetWithMarketCap({
     required this.pubkey,
