@@ -15,7 +15,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'user_delegation_provider.r.g.dart';
 
 @riverpod
-Future<UserDelegationEntity?> userDelegation(Ref ref, String masterPubkey, {bool cache = true}) async {
+Future<UserDelegationEntity?> userDelegation(Ref ref, String masterPubkey,
+    {bool cache = true}) async {
   keepAliveWhenAuthenticated(ref);
   if (cache) {
     final userDelegation = await ref.watch(
@@ -39,15 +40,16 @@ Future<UserDelegationEntity?> userDelegation(Ref ref, String masterPubkey, {bool
       RequestFilter(kinds: const [UserDelegationEntity.kind], limit: 1, authors: [masterPubkey]),
     );
 
-  return ref
-      .read(ionConnectNotifierProvider.notifier)
-      .requestEntity<UserDelegationEntity>(requestMessage, actionSource: ActionSourceUser(masterPubkey));
+  return ref.read(ionConnectNotifierProvider.notifier).requestEntity<UserDelegationEntity>(
+      requestMessage,
+      actionSource: ActionSourceUser(masterPubkey));
 }
 
 @riverpod
 Future<UserDelegationEntity?> cachedUserDelegation(Ref ref, String masterPubkey) async {
   final userDelegation = await ref.read(ionConnectDatabaseCacheProvider.notifier).get(
-        ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserDelegationEntity.kind).toString(),
+        ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserDelegationEntity.kind)
+            .toString(),
       ) as UserDelegationEntity?;
 
   return userDelegation;

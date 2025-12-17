@@ -192,7 +192,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           giftWrapService: giftWrapService,
           privateKey: eventSigner.privateKey,
           verifyDelegationCallback: (String masterPubkey) async {
-            Logger.log('☁️ Background push notification verifyDelegation for pubkey: $masterPubkey');
+            Logger.log(
+                '☁️ Background push notification verifyDelegation for pubkey: $masterPubkey');
 
             final delegation = await messageContainer.read(
               cachedUserDelegationProvider(masterPubkey).future,
