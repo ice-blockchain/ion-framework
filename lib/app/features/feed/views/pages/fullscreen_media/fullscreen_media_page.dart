@@ -65,9 +65,6 @@ class FullscreenMediaPage extends HookConsumerWidget {
                       entity: entity,
                       isOwnedByCurrentUser: isOwnedByCurrentUser,
                       iconColor: context.theme.appColors.onPrimaryAccent,
-                      onDelete: () {
-                        context.canPop();
-                      },
                     ),
                   ],
           ),
