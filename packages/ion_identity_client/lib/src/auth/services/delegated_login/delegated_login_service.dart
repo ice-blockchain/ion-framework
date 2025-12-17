@@ -16,13 +16,18 @@ class DelegatedLoginService {
   Future<UserToken> delegatedLogin({
     required String username,
   }) async {
-    final tokenResponse = await dataSource.delegatedLogin(username: username);
-    await tokenStorage.setToken(username: username, newToken: tokenResponse.token);
+    try {
+      final tokenResponse = await dataSource.delegatedLogin(username: username);
+      await tokenStorage.setToken(username: username, newToken: tokenResponse.token);
 
-    final userToken = tokenStorage.getToken(username: username);
-    if (userToken == null) {
-      throw const UnauthenticatedException();
+      final userToken = tokenStorage.getToken(username: username);
+      if (userToken == null) {
+        throw const UnauthenticatedException();
+      }
+      return userToken;
+    } catch (e) {
+      await tokenStorage.removeToken(username: username);
+      rethrow;
     }
-    return userToken;
   }
 }
