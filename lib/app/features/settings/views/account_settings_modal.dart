@@ -17,6 +17,8 @@ import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/language/language_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/settings/providers/video_settings_provider.m.dart';
 import 'package:ion/app/features/settings/views/delete_confirm_modal.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_pop_if_returned_null.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -45,6 +47,16 @@ class AccountSettingsModal extends HookConsumerWidget {
     final isDelegateAccessEnabled = ref
         .watch(featureFlagsProvider.notifier)
         .get(DelegateAccessFeatureFlag.delegateAccessEnabled);
+
+    final currentUserMetadata = ref.watch(currentUserMetadataProvider).valueOrNull;
+    final hasCreatorToken = currentUserMetadata == null
+        ? null
+        : ref.watch(
+            ionConnectEntityHasTokenProvider(
+              eventReference: currentUserMetadata.toEventReference(),
+            ),
+          );
+    final hasCreatorTokenFirstBuy = hasCreatorToken?.valueOrNull ?? false;
 
     return SheetContent(
       body: SingleChildScrollView(
@@ -116,17 +128,18 @@ class AccountSettingsModal extends HookConsumerWidget {
                       onTap: () => popIfNull(() => ContentLanguagesRoute().push<bool>(context)),
                     ),
                   ),
-                  ModalActionButton(
-                    icon: Assets.svg.iconBlockDelete.icon(
-                      color: context.theme.appColors.attentionRed,
+                  if (!hasCreatorTokenFirstBuy)
+                    ModalActionButton(
+                      icon: Assets.svg.iconBlockDelete.icon(
+                        color: context.theme.appColors.attentionRed,
+                      ),
+                      label: context.i18n.settings_delete,
+                      onTap: () => showSimpleBottomSheet<void>(
+                        context: context,
+                        isDismissible: false,
+                        child: const ConfirmDeleteModal(),
+                      ),
                     ),
-                    label: context.i18n.settings_delete,
-                    onTap: () => showSimpleBottomSheet<void>(
-                      context: context,
-                      isDismissible: false,
-                      child: const ConfirmDeleteModal(),
-                    ),
-                  ),
                 ],
               ),
             ),
