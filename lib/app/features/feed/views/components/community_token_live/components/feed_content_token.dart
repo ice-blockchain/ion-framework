@@ -174,13 +174,15 @@ class ContentTokenHeader extends HookWidget {
                           ),
                     ],
                   ),
-                  SizedBox(height: 12.0.s),
-                  Text(
-                    token.description,
-                    style: context.theme.appTextThemes.caption2.copyWith(
-                      color: context.theme.appColors.onPrimaryAccent,
+                  if (token.description != null) ...[
+                    SizedBox(height: 12.0.s),
+                    Text(
+                      token.description ?? '',
+                      style: context.theme.appTextThemes.caption2.copyWith(
+                        color: context.theme.appColors.onPrimaryAccent,
+                      ),
                     ),
-                  ),
+                  ],
                   GradientHorizontalDivider(
                     margin: EdgeInsetsDirectional.symmetric(
                       vertical: 14.0.s,

@@ -79,13 +79,15 @@ class _TokenContent extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.0.s),
-          Text(
-            token.description,
-            style: context.theme.appTextThemes.caption2.copyWith(
-              color: context.theme.appColors.onPrimaryAccent,
+          if (token.description != null) ...[
+            Text(
+              token.description!,
+              style: context.theme.appTextThemes.caption2.copyWith(
+                color: context.theme.appColors.onPrimaryAccent,
+              ),
             ),
-          ),
-          SizedBox(height: 12.0.s),
+            SizedBox(height: 12.0.s),
+          ],
           GradientHorizontalDivider(
             margin: EdgeInsetsDirectional.symmetric(vertical: 12.0.s),
           ),

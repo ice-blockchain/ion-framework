@@ -22,7 +22,7 @@ Position _$PositionFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Position {
   int get rank => throw _privateConstructorUsedError;
-  double get amount => throw _privateConstructorUsedError;
+  String get amount => throw _privateConstructorUsedError;
   double get amountUSD => throw _privateConstructorUsedError;
   double get pnl => throw _privateConstructorUsedError;
   double get pnlPercentage => throw _privateConstructorUsedError;
@@ -44,7 +44,7 @@ abstract class $PositionCopyWith<$Res> {
   @useResult
   $Res call({
     int rank,
-    double amount,
+    String amount,
     double amountUSD,
     double pnl,
     double pnlPercentage,
@@ -81,7 +81,7 @@ class _$PositionCopyWithImpl<$Res, $Val extends Position>
             amount: null == amount
                 ? _value.amount
                 : amount // ignore: cast_nullable_to_non_nullable
-                      as double,
+                      as String,
             amountUSD: null == amountUSD
                 ? _value.amountUSD
                 : amountUSD // ignore: cast_nullable_to_non_nullable
@@ -111,7 +111,7 @@ abstract class _$$PositionImplCopyWith<$Res>
   @useResult
   $Res call({
     int rank,
-    double amount,
+    String amount,
     double amountUSD,
     double pnl,
     double pnlPercentage,
@@ -147,7 +147,7 @@ class __$$PositionImplCopyWithImpl<$Res>
         amount: null == amount
             ? _value.amount
             : amount // ignore: cast_nullable_to_non_nullable
-                  as double,
+                  as String,
         amountUSD: null == amountUSD
             ? _value.amountUSD
             : amountUSD // ignore: cast_nullable_to_non_nullable
@@ -167,14 +167,14 @@ class __$$PositionImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$PositionImpl implements _Position {
+class _$PositionImpl extends _Position {
   const _$PositionImpl({
     required this.rank,
     required this.amount,
     required this.amountUSD,
-    required this.pnl,
-    required this.pnlPercentage,
-  });
+    this.pnl = 0,
+    this.pnlPercentage = 0,
+  }) : super._();
 
   factory _$PositionImpl.fromJson(Map<String, dynamic> json) =>
       _$$PositionImplFromJson(json);
@@ -182,12 +182,14 @@ class _$PositionImpl implements _Position {
   @override
   final int rank;
   @override
-  final double amount;
+  final String amount;
   @override
   final double amountUSD;
   @override
+  @JsonKey()
   final double pnl;
   @override
+  @JsonKey()
   final double pnlPercentage;
 
   @override
@@ -228,14 +230,15 @@ class _$PositionImpl implements _Position {
   }
 }
 
-abstract class _Position implements Position {
+abstract class _Position extends Position {
   const factory _Position({
     required final int rank,
-    required final double amount,
+    required final String amount,
     required final double amountUSD,
-    required final double pnl,
-    required final double pnlPercentage,
+    final double pnl,
+    final double pnlPercentage,
   }) = _$PositionImpl;
+  const _Position._() : super._();
 
   factory _Position.fromJson(Map<String, dynamic> json) =
       _$PositionImpl.fromJson;
@@ -243,7 +246,7 @@ abstract class _Position implements Position {
   @override
   int get rank;
   @override
-  double get amount;
+  String get amount;
   @override
   double get amountUSD;
   @override
@@ -266,7 +269,7 @@ PositionPatch _$PositionPatchFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$PositionPatch {
   int? get rank => throw _privateConstructorUsedError;
-  double? get amount => throw _privateConstructorUsedError;
+  String? get amount => throw _privateConstructorUsedError;
   double? get amountUSD => throw _privateConstructorUsedError;
   double? get pnl => throw _privateConstructorUsedError;
   double? get pnlPercentage => throw _privateConstructorUsedError;
@@ -292,7 +295,7 @@ class _$PositionPatchImpl implements _PositionPatch {
   @override
   final int? rank;
   @override
-  final double? amount;
+  final String? amount;
   @override
   final double? amountUSD;
   @override
@@ -333,7 +336,7 @@ class _$PositionPatchImpl implements _PositionPatch {
 abstract class _PositionPatch implements PositionPatch {
   const factory _PositionPatch({
     final int? rank,
-    final double? amount,
+    final String? amount,
     final double? amountUSD,
     final double? pnl,
     final double? pnlPercentage,
@@ -345,7 +348,7 @@ abstract class _PositionPatch implements PositionPatch {
   @override
   int? get rank;
   @override
-  double? get amount;
+  String? get amount;
   @override
   double? get amountUSD;
   @override

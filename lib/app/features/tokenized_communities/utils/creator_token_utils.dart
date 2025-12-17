@@ -37,7 +37,7 @@ class CreatorTokenUtils {
   }) async {
     if (token == null) return null;
 
-    final balance = token.marketData.position?.amount ?? 0.0;
+    final balance = token.marketData.position?.amountValue ?? 0.0;
     final contractAddress = token.addresses.blockchain;
 
     if (contractAddress == null) return null;

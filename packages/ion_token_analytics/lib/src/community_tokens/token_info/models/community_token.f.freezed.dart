@@ -23,10 +23,10 @@ CommunityToken _$CommunityTokenFromJson(Map<String, dynamic> json) {
 mixin _$CommunityToken {
   CommunityTokenType get type => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
   Addresses get addresses => throw _privateConstructorUsedError;
   Creator get creator => throw _privateConstructorUsedError;
   MarketData get marketData => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
 
@@ -50,10 +50,10 @@ abstract class $CommunityTokenCopyWith<$Res> {
   $Res call({
     CommunityTokenType type,
     String title,
-    String description,
     Addresses addresses,
     Creator creator,
     MarketData marketData,
+    String? description,
     String? imageUrl,
     String? createdAt,
   });
@@ -80,10 +80,10 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
   $Res call({
     Object? type = null,
     Object? title = null,
-    Object? description = null,
     Object? addresses = null,
     Object? creator = null,
     Object? marketData = null,
+    Object? description = freezed,
     Object? imageUrl = freezed,
     Object? createdAt = freezed,
   }) {
@@ -97,10 +97,6 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
                       as String,
-            description: null == description
-                ? _value.description
-                : description // ignore: cast_nullable_to_non_nullable
-                      as String,
             addresses: null == addresses
                 ? _value.addresses
                 : addresses // ignore: cast_nullable_to_non_nullable
@@ -113,6 +109,10 @@ class _$CommunityTokenCopyWithImpl<$Res, $Val extends CommunityToken>
                 ? _value.marketData
                 : marketData // ignore: cast_nullable_to_non_nullable
                       as MarketData,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
             imageUrl: freezed == imageUrl
                 ? _value.imageUrl
                 : imageUrl // ignore: cast_nullable_to_non_nullable
@@ -169,10 +169,10 @@ abstract class _$$CommunityTokenImplCopyWith<$Res>
   $Res call({
     CommunityTokenType type,
     String title,
-    String description,
     Addresses addresses,
     Creator creator,
     MarketData marketData,
+    String? description,
     String? imageUrl,
     String? createdAt,
   });
@@ -201,10 +201,10 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
   $Res call({
     Object? type = null,
     Object? title = null,
-    Object? description = null,
     Object? addresses = null,
     Object? creator = null,
     Object? marketData = null,
+    Object? description = freezed,
     Object? imageUrl = freezed,
     Object? createdAt = freezed,
   }) {
@@ -218,10 +218,6 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
                   as String,
-        description: null == description
-            ? _value.description
-            : description // ignore: cast_nullable_to_non_nullable
-                  as String,
         addresses: null == addresses
             ? _value.addresses
             : addresses // ignore: cast_nullable_to_non_nullable
@@ -234,6 +230,10 @@ class __$$CommunityTokenImplCopyWithImpl<$Res>
             ? _value.marketData
             : marketData // ignore: cast_nullable_to_non_nullable
                   as MarketData,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
         imageUrl: freezed == imageUrl
             ? _value.imageUrl
             : imageUrl // ignore: cast_nullable_to_non_nullable
@@ -253,10 +253,10 @@ class _$CommunityTokenImpl implements _CommunityToken {
   const _$CommunityTokenImpl({
     required this.type,
     required this.title,
-    required this.description,
     required this.addresses,
     required this.creator,
     required this.marketData,
+    this.description,
     this.imageUrl,
     this.createdAt,
   });
@@ -269,13 +269,13 @@ class _$CommunityTokenImpl implements _CommunityToken {
   @override
   final String title;
   @override
-  final String description;
-  @override
   final Addresses addresses;
   @override
   final Creator creator;
   @override
   final MarketData marketData;
+  @override
+  final String? description;
   @override
   final String? imageUrl;
   @override
@@ -283,7 +283,7 @@ class _$CommunityTokenImpl implements _CommunityToken {
 
   @override
   String toString() {
-    return 'CommunityToken(type: $type, title: $title, description: $description, addresses: $addresses, creator: $creator, marketData: $marketData, imageUrl: $imageUrl, createdAt: $createdAt)';
+    return 'CommunityToken(type: $type, title: $title, addresses: $addresses, creator: $creator, marketData: $marketData, description: $description, imageUrl: $imageUrl, createdAt: $createdAt)';
   }
 
   @override
@@ -293,13 +293,13 @@ class _$CommunityTokenImpl implements _CommunityToken {
             other is _$CommunityTokenImpl &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
             (identical(other.addresses, addresses) ||
                 other.addresses == addresses) &&
             (identical(other.creator, creator) || other.creator == creator) &&
             (identical(other.marketData, marketData) ||
                 other.marketData == marketData) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
             (identical(other.createdAt, createdAt) ||
@@ -312,10 +312,10 @@ class _$CommunityTokenImpl implements _CommunityToken {
     runtimeType,
     type,
     title,
-    description,
     addresses,
     creator,
     marketData,
+    description,
     imageUrl,
     createdAt,
   );
@@ -341,10 +341,10 @@ abstract class _CommunityToken implements CommunityToken {
   const factory _CommunityToken({
     required final CommunityTokenType type,
     required final String title,
-    required final String description,
     required final Addresses addresses,
     required final Creator creator,
     required final MarketData marketData,
+    final String? description,
     final String? imageUrl,
     final String? createdAt,
   }) = _$CommunityTokenImpl;
@@ -357,13 +357,13 @@ abstract class _CommunityToken implements CommunityToken {
   @override
   String get title;
   @override
-  String get description;
-  @override
   Addresses get addresses;
   @override
   Creator get creator;
   @override
   MarketData get marketData;
+  @override
+  String? get description;
   @override
   String? get imageUrl;
   @override
