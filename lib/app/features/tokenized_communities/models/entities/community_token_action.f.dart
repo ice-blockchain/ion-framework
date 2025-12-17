@@ -131,8 +131,17 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     required String tokenAddress,
     required String transactionAddress,
     required CommunityTokenActionType type,
-    required List<TransactionAmount> amounts,
+    required TransactionAmount amountBase,
+    required TransactionAmount amountQuote,
+    required TransactionAmount amountUsd,
   }) {
+    if (amountUsd.currency != TransactionAmount.usdCurrency) {
+      throw ArgumentError.value(
+        amountUsd,
+        'amountUsd',
+        'The currency of amountUsd must be ${TransactionAmount.usdCurrency}',
+      );
+    }
     return CommunityTokenActionData(
       definitionReference: definitionReference,
       network: network,
@@ -140,7 +149,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       tokenAddress: tokenAddress,
       transactionAddress: transactionAddress,
       type: type,
-      amounts: amounts,
+      amounts: [amountBase, amountQuote, amountUsd],
       relatedHashtags: _buildRelatedHashtags(),
       relatedPubkey: RelatedPubkey(value: definitionReference.masterPubkey),
     );
@@ -174,6 +183,10 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
 
   TransactionAmount? getAmountByCurrency(String currency) {
     return amounts.firstWhereOrNull((amount) => amount.currency == currency);
+  }
+
+  TransactionAmount? getAmountByUsdCurrency() {
+    return amounts.firstWhereOrNull((amount) => amount.currency == 'USD');
   }
 
   static List<RelatedHashtag> _buildRelatedHashtags() {

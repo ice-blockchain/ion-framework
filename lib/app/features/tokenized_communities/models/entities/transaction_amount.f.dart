@@ -12,6 +12,12 @@ class TransactionAmount with _$TransactionAmount {
     required String currency,
   }) = _TransactionAmount;
 
+  factory TransactionAmount.usd({
+    required double value,
+  }) {
+    return TransactionAmount(value: value, currency: usdCurrency);
+  }
+
   const TransactionAmount._();
 
   factory TransactionAmount.fromTag(List<String> tag) {
@@ -35,4 +41,6 @@ class TransactionAmount with _$TransactionAmount {
   }
 
   static const String tagName = 'tx_amount';
+
+  static const String usdCurrency = 'USD';
 }
