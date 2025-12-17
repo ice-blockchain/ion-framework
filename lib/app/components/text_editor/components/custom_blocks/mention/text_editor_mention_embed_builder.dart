@@ -11,9 +11,10 @@ import 'package:ion/app/features/tokenized_communities/providers/user_token_mark
 const String mentionEmbedKey = 'mention';
 const String mentionPrefix = '@';
 
-// Embed builder for mention embeds
 class TextEditorMentionEmbedBuilder extends EmbedBuilder {
-  const TextEditorMentionEmbedBuilder();
+  const TextEditorMentionEmbedBuilder({this.showClose = true});
+
+  final bool showClose;
 
   @override
   String get key => mentionEmbedKey;
@@ -30,11 +31,7 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
   @override
   WidgetSpan buildWidgetSpan(Widget widget) {
     return WidgetSpan(
-      alignment: PlaceholderAlignment.middle,
-      child: UnconstrainedBox(
-        constrainedAxis: Axis.horizontal,
-        child: IntrinsicWidth(child: widget),
-      ),
+      child: widget,
     );
   }
 
@@ -46,10 +43,7 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
     final mentionData = _parseMentionData(embedContext.node.value.data);
 
     if (mentionData == null) {
-      return const MentionInlineWidget(
-        username: 'demo',
-        marketCap: 0,
-      );
+      return const SizedBox.shrink();
     }
 
     return _MentionInlineWidgetWithMarketCap(
@@ -57,6 +51,7 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
       username: mentionData.username,
       controller: embedContext.controller,
       embedNode: embedContext.node,
+      showClose: showClose,
     );
   }
 
@@ -81,12 +76,14 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
     required this.username,
     required this.controller,
     required this.embedNode,
+    required this.showClose,
   });
 
   final String pubkey;
   final String username;
   final QuillController controller;
   final Embed embedNode;
+  final bool showClose;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,9 +92,11 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
     return MentionInlineWidget(
       username: username,
       marketCap: marketCap ?? 0,
-      onClose: () {
-        MentionInsertionService.removeMentionEmbed(controller, embedNode);
-      },
+      onClose: showClose
+          ? () {
+              MentionInsertionService.removeMentionEmbed(controller, embedNode);
+            }
+          : null,
     );
   }
 }
