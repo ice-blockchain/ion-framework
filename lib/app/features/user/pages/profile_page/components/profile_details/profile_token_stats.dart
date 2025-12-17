@@ -10,11 +10,11 @@ import 'package:ion/app/features/tokenized_communities/enums/community_token_tra
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
-import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -111,16 +111,11 @@ class ProfileTokenStats extends ConsumerWidget {
           const _BuyHint(),
           SizedBox(width: 8.0.s),
           GestureDetector(
-            onTap: () {
-              showSimpleBottomSheet<void>(
-                context: context,
-                child: TradeCommunityTokenDialog(
-                  externalAddress: externalAddress,
-                  externalAddressType: const ExternalAddressType.ionConnectUser(),
-                  initialMode: CommunityTokenTradeMode.buy,
-                ),
-              );
-            },
+            onTap: () => TradeCommunityTokenProfileRoute(
+              externalAddress: externalAddress,
+              externalAddressType: const ExternalAddressType.ionConnectUser().prefix,
+              initialMode: CommunityTokenTradeMode.buy,
+            ).push<void>(context),
             child: BuyButton(externalAddress: externalAddress),
           ),
         ],
@@ -405,14 +400,11 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
           bottom: -11.5.s,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onTap: () => showSimpleBottomSheet<void>(
-              context: context,
-              child: TradeCommunityTokenDialog(
-                externalAddress: externalAddress,
-                externalAddressType: const ExternalAddressType.ionConnectUser(),
-                initialMode: CommunityTokenTradeMode.buy,
-              ),
-            ),
+            onTap: () => TradeCommunityTokenProfileRoute(
+              externalAddress: externalAddress,
+              externalAddressType: const ExternalAddressType.ionConnectUser().prefix,
+              initialMode: CommunityTokenTradeMode.buy,
+            ).push<void>(context),
             child: BuyButton(
               padding: EdgeInsetsDirectional.symmetric(horizontal: 22.s),
               externalAddress: externalAddress,

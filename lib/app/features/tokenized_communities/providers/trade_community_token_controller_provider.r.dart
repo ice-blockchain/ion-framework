@@ -69,9 +69,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     final supportedTokens = await ref.watch(supportedSwapTokensProvider.future);
 
     if (state.selectedPaymentToken == null && supportedTokens.isNotEmpty) {
-      final defaultToken =
-          supportedTokens.firstWhereOrNull((t) => t.abbreviation == 'ICE') ?? supportedTokens.first;
-      selectPaymentToken(defaultToken);
+      selectPaymentToken(supportedTokens.first);
     }
   }
 
