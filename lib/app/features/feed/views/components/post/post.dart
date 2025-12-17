@@ -26,6 +26,7 @@ import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
@@ -112,6 +113,14 @@ class Post extends ConsumerWidget {
 
     final isParentShown = displayParent && parentEventReference != null;
 
+    final hasFirstBuy = _hasFirstBuy(ref, isOwnedByCurrentUser, entity);
+    final isEditable = switch (entity) {
+      final ModifiablePostEntity post =>
+        post.data.editingEndedAt?.value.toDateTime.isAfter(DateTime.now()) ?? false,
+      _ => false,
+    };
+    final shouldShowMenuButton = !isOwnedByCurrentUser || !(hasFirstBuy && !isEditable);
+
     final content = Column(
       children: [
         SizedBox(height: headerOffset ?? 10.0.s),
@@ -159,22 +168,24 @@ class Post extends ConsumerWidget {
                       color: context.theme.appColors.onPrimaryAccent,
                     )
                   : null,
-              trailing: BottomSheetMenuButton(
-                menuBuilder: (context) => isOwnedByCurrentUser
-                    ? OwnPostMenuBottomSheet(
-                        eventReference: eventReference,
-                        onDelete: onDelete,
-                      )
-                    : PostMenuBottomSheet(
-                        eventReference: eventReference,
-                        showNotInterested: showNotInterested,
+              trailing: shouldShowMenuButton
+                  ? BottomSheetMenuButton(
+                      menuBuilder: (context) => isOwnedByCurrentUser
+                          ? OwnPostMenuBottomSheet(
+                              eventReference: eventReference,
+                              onDelete: onDelete,
+                            )
+                          : PostMenuBottomSheet(
+                              eventReference: eventReference,
+                              showNotInterested: showNotInterested,
+                            ),
+                      isAccentTheme: isAccentTheme,
+                      padding: EdgeInsetsGeometry.symmetric(
+                        horizontal: ScreenSideOffset.defaultSmallMargin,
+                        vertical: 5.0.s,
                       ),
-                isAccentTheme: isAccentTheme,
-                padding: EdgeInsetsGeometry.symmetric(
-                  horizontal: ScreenSideOffset.defaultSmallMargin,
-                  vertical: 5.0.s,
-                ),
-              ),
+                    )
+                  : const SizedBox.shrink(),
               padding: EdgeInsetsDirectional.only(
                 start: ScreenSideOffset.defaultSmallMargin,
                 top: isParentShown ? 0 : (topOffset ?? 12.0.s),
@@ -199,6 +210,21 @@ class Post extends ConsumerWidget {
       PostEntity() => entity.data.parentEvent?.eventReference,
       _ => null,
     };
+  }
+
+  bool _hasFirstBuy(
+    WidgetRef ref,
+    bool isOwnedByCurrentUser,
+    IonConnectEntity entity,
+  ) {
+    if (!isOwnedByCurrentUser) return false;
+    final eventReference = entity.toEventReference();
+    return ref
+            .watch(
+              ionConnectEntityHasTokenProvider(eventReference: eventReference),
+            )
+            .valueOrNull ??
+        false;
   }
 }
 
