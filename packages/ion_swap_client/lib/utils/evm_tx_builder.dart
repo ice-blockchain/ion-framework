@@ -3,6 +3,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ion_swap_client/utils/hex_helper.dart';
+import 'package:ion_swap_client/utils/swap_constants.dart';
 import 'package:web3dart/web3dart.dart';
 
 // TODO(ice-erebus): move to separate package
@@ -33,7 +35,7 @@ class EvmTxBuilder {
 
     return _wrapTransaction(
       to: token,
-      data: _bytesToHex(data),
+      data: HexHelper.bytesToHex(data),
       value: BigInt.zero,
     );
   }
@@ -83,17 +85,9 @@ class EvmTxBuilder {
   }) {
     return _wrapTransaction(
       to: to,
-      data: _bytesToHex(bytes),
+      data: HexHelper.bytesToHex(bytes),
       value: value,
     );
-  }
-
-  String _bytesToHex(List<int> bytes) {
-    final buffer = StringBuffer('0x');
-    for (final value in bytes) {
-      buffer.write(value.toRadixString(16).padLeft(2, '0'));
-    }
-    return buffer.toString();
   }
 }
 
