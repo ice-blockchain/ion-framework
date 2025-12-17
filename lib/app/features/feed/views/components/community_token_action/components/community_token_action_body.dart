@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
@@ -43,11 +44,11 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         )
         .valueOrNull as CommunityTokenDefinitionEntity?;
 
-    final externalAddress = definitionEntity?.data.externalAddress;
-
-    if (externalAddress == null) {
+    if (definitionEntity == null) {
       return const SizedBox.shrink();
     }
+
+    final externalAddress = definitionEntity.data.externalAddress;
 
     final tokenMarketInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
 
@@ -75,22 +76,25 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         )
         .valueOrNull;
 
-    final tokenType = ref.watch(tokenTypeProvider(externalAddress)).valueOrNull;
+    final tokenType = ref.watch(tokenTypeForTokenDefinitionProvider(definitionEntity)).valueOrNull;
+    final amount = useMemoized(() => entity.data.getAmountByCurrency(externalAddress), [entity]);
 
     return Stack(
       alignment: Alignment.center,
       children: [
         Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
-              child: ProfileBalance(
-                height: topContainerHeight,
-                coins: entity.data.amount,
-                amount: entity.data.amountPriceUsd,
+            if (amount != null) ...[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
+                child: ProfileBalance(
+                  height: topContainerHeight,
+                  coins: amount.value,
+                  amount: amount.value, //TODO: how to calculate?
+                ),
               ),
-            ),
-            SizedBox(height: padding),
+              SizedBox(height: padding),
+            ],
             if (tokenType != null)
               if (tokenType == CommunityContentTokenType.twitter)
                 FeedTwitterToken(
@@ -108,12 +112,11 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                   pnl: ProfileChart(
                     amount: position?.pnl ?? 0,
                   ),
-                  hodl:
-                      entity.data.type == CommunityTokenActionType.sell && definitionEntity != null
-                          ? ProfileHODL(
-                              actionEntity: entity,
-                            )
-                          : null,
+                  hodl: entity.data.type == CommunityTokenActionType.sell
+                      ? ProfileHODL(
+                          actionEntity: entity,
+                        )
+                      : null,
                 ),
           ],
         ),

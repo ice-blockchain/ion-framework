@@ -11,19 +11,12 @@ abstract class EventsMetadataHandler {
   FutureOr<Iterable<EventsMetadataEntity>> handle(Iterable<EventsMetadataEntity> events);
 }
 
-Future<Iterable<EventsMetadataEntity>> runEventsMetadataHandlers(
-  Iterable<EventsMetadataHandler> handlers,
-  Iterable<EventsMetadataEntity> source,
-) async {
-  var current = source;
-
-  for (final handler in handlers) {
-    current = await handler.handle(current);
-  }
-
-  return current;
-}
-
+/// Default handler for ephemeral events.
+///
+/// Fetches and caches referenced events.
+/// The purpose of default ephemeral events is to indicate that
+/// a relay does not possess the requested data and that the client
+/// should re-request it from the appropriate relays.
 class MissingEventsHandler implements EventsMetadataHandler {
   MissingEventsHandler({required IonConnectEntitiesManager ionConnectEntitiesManager})
       : _ionConnectEntitiesManager = ionConnectEntitiesManager;

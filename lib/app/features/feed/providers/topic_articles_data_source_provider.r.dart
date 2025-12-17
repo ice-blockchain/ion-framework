@@ -55,6 +55,7 @@ EntitiesDataSource _buildArticlesDataSource({
           forKind: ArticleEntity.kind,
         ).extensions,
         ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
+        ...SearchExtensions.withTokens(forKind: ArticleEntity.kind).extensions,
       ]).toString(),
       limit: 20,
       tags: {

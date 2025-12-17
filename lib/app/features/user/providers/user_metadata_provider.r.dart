@@ -44,9 +44,7 @@ class UserMetadata extends _$UserMetadata {
           kind: UserMetadataEntity.kind,
         ),
         cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
-        // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
-        // when badge data changes from null to cached
-        search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+        search: _buildSearchForDependencies(),
       ).future,
     ) as UserMetadataEntity?;
 
@@ -69,7 +67,7 @@ class UserMetadata extends _$UserMetadata {
           cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
           // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
           // when badge data changes from null to cached
-          search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+          search: _buildSearchForDependencies(),
         ).future,
       ) as UserMetadataEntity?;
 
@@ -136,10 +134,17 @@ class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier 
           kind: UserMetadataEntity.kind,
         ),
         cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
-        search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+        search: _buildSearchForDependencies(),
       ).future,
     );
   }
+}
+
+String _buildSearchForDependencies() {
+  return SearchExtensions([
+    ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
+    ...SearchExtensions.withTokens(forKind: UserMetadataEntity.kind).extensions,
+  ]).toString();
 }
 
 @riverpod

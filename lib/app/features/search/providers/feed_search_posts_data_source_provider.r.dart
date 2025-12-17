@@ -136,11 +136,15 @@ RequestFilter _buildFilter({
         marker: RelatedEventMarker.reply.toShortString(),
         negative: true,
       ),
+      ...SearchExtensions.withTokens().extensions,
+      ...SearchExtensions.withTokens(forKind: PostEntity.kind).extensions,
     ],
-    if (includeArticles)
+    if (includeArticles) ...[
       ...SearchExtensions.withCounters(currentPubkey: currentPubkey, forKind: ArticleEntity.kind)
           .extensions,
-    ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
+      ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
+      ...SearchExtensions.withTokens(forKind: ArticleEntity.kind).extensions,
+    ],
   ]).toString();
 
   return RequestFilter(

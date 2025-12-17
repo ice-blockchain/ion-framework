@@ -10,8 +10,8 @@ import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/default_events_metadata_handler.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
-import 'package:ion/app/features/ion_connect/providers/missing_events_handler.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -270,9 +270,7 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
   ) async {
     if (missingEvents.isEmpty) return;
 
-    final handlers = [
-      ref.read(missingEventsHandlerProvider),
-    ];
-    await runEventsMetadataHandlers(handlers, missingEvents);
+    final defaultHandler = await ref.read(defaultEventsMetadataHandlerProvider.future);
+    await defaultHandler.handle(missingEvents);
   }
 }

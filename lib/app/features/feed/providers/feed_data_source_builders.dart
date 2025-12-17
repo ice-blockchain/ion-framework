@@ -64,6 +64,7 @@ FeedEntitiesDataSource buildArticlesDataSource({
     ...SearchExtensions.withCounters(currentPubkey: currentPubkey, forKind: ArticleEntity.kind)
         .extensions,
     ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
+    ...SearchExtensions.withTokens(forKind: ArticleEntity.kind).extensions,
     if (searchExtensions != null) ...searchExtensions,
   ]).toString();
 
@@ -118,6 +119,8 @@ FeedEntitiesDataSource buildVideosDataSource({
       marker: RelatedEventMarker.reply.toShortString(),
       negative: true,
     ),
+    ...SearchExtensions.withTokens().extensions,
+    ...SearchExtensions.withTokens(forKind: PostEntity.kind).extensions,
     if (searchExtensions != null) ...searchExtensions,
   ]).toString();
 
@@ -183,6 +186,9 @@ FeedEntitiesDataSource buildPostsDataSource({
       marker: RelatedEventMarker.reply.toShortString(),
       negative: true,
     ),
+    ...SearchExtensions.withTokens().extensions,
+    ...SearchExtensions.withTokens(forKind: PostEntity.kind).extensions,
+    ...SearchExtensions.withTokens(forKind: ArticleEntity.kind).extensions,
     if (searchExtensions != null) ...searchExtensions,
   ]).toString();
 

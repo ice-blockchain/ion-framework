@@ -15,6 +15,7 @@ import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 
 part 'community_token_action.f.freezed.dart';
 
@@ -71,9 +72,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     required String tokenAddress,
     required String transactionAddress,
     required CommunityTokenActionType type,
-    required double amount,
-    required double amountPriceUsd,
-    required String currency,
+    required List<TransactionAmount> amounts,
     required List<RelatedHashtag> relatedHashtags,
     required RelatedPubkey relatedPubkey,
   }) = _CommunityTokenActionData;
@@ -96,10 +95,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     final type = typeRaw != null
         ? CommunityTokenActionType.values.firstWhereOrNull((e) => e.name == typeRaw)
         : null;
-    final amount = double.tryParse(tags['tx_amount']?.firstOrNull?.lastOrNull ?? '');
-    final amountPriceUsd =
-        double.tryParse(tags['tx_amount_price_usd']?.firstOrNull?.lastOrNull ?? '');
-    final currency = tags['tx_currency']?.firstOrNull?.lastOrNull;
+    final amounts = tags[TransactionAmount.tagName]?.map(TransactionAmount.fromTag).toList();
     final relatedPubkey = tags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).firstOrNull;
 
     if (eventReference == null ||
@@ -109,9 +105,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         transactionAddress == null ||
         typeRaw == null ||
         type == null ||
-        amount == null ||
-        amountPriceUsd == null ||
-        currency == null ||
+        amounts == null ||
         relatedPubkey == null) {
       throw IncorrectEventTagsException(eventId: eventMessage.id);
     }
@@ -123,9 +117,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       tokenAddress: tokenAddress,
       transactionAddress: transactionAddress,
       type: type,
-      amount: amount,
-      amountPriceUsd: amountPriceUsd,
-      currency: currency,
+      amounts: amounts,
       relatedHashtags: _buildRelatedHashtags(),
       relatedPubkey: relatedPubkey,
     );
@@ -138,9 +130,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     required String tokenAddress,
     required String transactionAddress,
     required CommunityTokenActionType type,
-    required double amount,
-    required double amountPriceUsd,
-    required String currency,
+    required List<TransactionAmount> amounts,
   }) {
     return CommunityTokenActionData(
       definitionReference: definitionReference,
@@ -149,9 +139,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       tokenAddress: tokenAddress,
       transactionAddress: transactionAddress,
       type: type,
-      amount: amount,
-      amountPriceUsd: amountPriceUsd,
-      currency: currency,
+      amounts: amounts,
       relatedHashtags: _buildRelatedHashtags(),
       relatedPubkey: RelatedPubkey(value: definitionReference.masterPubkey),
     );
@@ -172,17 +160,19 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         ...tags,
         definitionReference.toTag(),
         ...relatedHashtags.map((hashtag) => hashtag.toTag()),
+        ...amounts.map((amount) => amount.toTag()),
         relatedPubkey.toTag(),
         ['network', network],
         ['bonding_curve_address', bondingCurveAddress],
         ['token_address', tokenAddress],
         ['tx_address', transactionAddress],
         ['tx_type', type.name],
-        ['tx_amount', amount.toString()],
-        ['tx_amount_price_usd', amountPriceUsd.toString()],
-        ['tx_currency', currency],
       ],
     );
+  }
+
+  TransactionAmount? getAmountByCurrency(String currency) {
+    return amounts.firstWhereOrNull((amount) => amount.currency == currency);
   }
 
   static List<RelatedHashtag> _buildRelatedHashtags() {

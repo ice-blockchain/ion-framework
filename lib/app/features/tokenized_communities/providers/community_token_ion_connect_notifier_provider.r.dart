@@ -9,6 +9,7 @@ import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -169,9 +170,8 @@ class CommunityTokenIonConnectService {
   Future<CommunityTokenDefinitionEntity> _fetchCommunityTokenDefinition({
     required String externalAddress,
   }) async {
-    final communityTokenDefinition = await _communityTokenDefinitionRepository.getTokenDefinition(
-      externalAddress: externalAddress,
-    );
+    final communityTokenDefinition = await _communityTokenDefinitionRepository
+        .getTokenDefinitionForExternalAddress(externalAddress);
 
     if (communityTokenDefinition == null) {
       throw TokenDefinitionNotFoundException(externalAddress);
@@ -192,9 +192,13 @@ class CommunityTokenIonConnectService {
       tokenAddress: 'baz',
       transactionAddress: 'quux',
       type: type,
-      amount: Random().nextDouble() * 1000,
-      amountPriceUsd: Random().nextDouble() * 100,
-      currency: 'ION',
+      amounts: [
+        TransactionAmount(value: Random().nextDouble() * 1000, currency: 'ION'),
+        TransactionAmount(
+          value: Random().nextDouble() * 1000,
+          currency: communityTokenDefinition.data.externalAddress,
+        ),
+      ],
     );
   }
 

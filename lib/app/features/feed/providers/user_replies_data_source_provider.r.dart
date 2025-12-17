@@ -30,6 +30,8 @@ List<EntitiesDataSource>? userRepliesDataSource(Ref ref, String pubkey) {
     ).extensions,
     ReferencesSearchExtension(contain: true),
     ExpirationSearchExtension(expiration: false),
+    ...SearchExtensions.withTokens().extensions,
+    ...SearchExtensions.withTokens(forKind: PostEntity.kind).extensions,
   ]).toString();
 
   return [

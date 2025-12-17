@@ -76,7 +76,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final typeAsync = ref.watch(tokenTypeProvider(externalAddress));
+    final typeAsync = ref.watch(tokenTypeForExternalAddressProvider(externalAddress));
 
     final sectionKeys = useMemoized(
       () => List.generate(
