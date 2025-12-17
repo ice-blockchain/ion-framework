@@ -124,8 +124,12 @@ class IonService {
   }
 
   Future<BscFeeData> _getFeesOnBsc() async {
-    final fees = await _ionIdentityClient.getFeesOnBsc();
-    return BscFeeData.fromJson(fees['standard'] as Map<String, dynamic>);
+    try {
+      final fees = await _ionIdentityClient.getFeesOnBsc();
+      return BscFeeData.fromJson(fees['standard'] as Map<String, dynamic>);
+    } on Object catch (_) {
+      return SwapConstants.defaultBscFeeData;
+    }
   }
 
   EthereumAddress toEthereumAddress(String? address) {
