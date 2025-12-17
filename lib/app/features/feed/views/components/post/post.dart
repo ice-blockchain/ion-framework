@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
@@ -16,8 +15,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
@@ -26,7 +24,6 @@ import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
@@ -113,14 +110,6 @@ class Post extends ConsumerWidget {
 
     final isParentShown = displayParent && parentEventReference != null;
 
-    final hasFirstBuy = _hasFirstBuy(ref, isOwnedByCurrentUser, entity);
-    final isEditable = switch (entity) {
-      final ModifiablePostEntity post =>
-        post.data.editingEndedAt?.value.toDateTime.isAfter(DateTime.now()) ?? false,
-      _ => false,
-    };
-    final shouldShowMenuButton = !isOwnedByCurrentUser || !(hasFirstBuy && !isEditable);
-
     final content = Column(
       children: [
         SizedBox(height: headerOffset ?? 10.0.s),
@@ -168,24 +157,14 @@ class Post extends ConsumerWidget {
                       color: context.theme.appColors.onPrimaryAccent,
                     )
                   : null,
-              trailing: shouldShowMenuButton
-                  ? BottomSheetMenuButton(
-                      menuBuilder: (context) => isOwnedByCurrentUser
-                          ? OwnPostMenuBottomSheet(
-                              eventReference: eventReference,
-                              onDelete: onDelete,
-                            )
-                          : PostMenuBottomSheet(
-                              eventReference: eventReference,
-                              showNotInterested: showNotInterested,
-                            ),
-                      isAccentTheme: isAccentTheme,
-                      padding: EdgeInsetsGeometry.symmetric(
-                        horizontal: ScreenSideOffset.defaultSmallMargin,
-                        vertical: 5.0.s,
-                      ),
-                    )
-                  : const SizedBox.shrink(),
+              trailing: PostContextMenu(
+                eventReference: eventReference,
+                entity: entity,
+                isOwnedByCurrentUser: isOwnedByCurrentUser,
+                isAccentTheme: isAccentTheme,
+                onDelete: onDelete,
+                showNotInterested: showNotInterested,
+              ),
               padding: EdgeInsetsDirectional.only(
                 start: ScreenSideOffset.defaultSmallMargin,
                 top: isParentShown ? 0 : (topOffset ?? 12.0.s),
@@ -210,21 +189,6 @@ class Post extends ConsumerWidget {
       PostEntity() => entity.data.parentEvent?.eventReference,
       _ => null,
     };
-  }
-
-  bool _hasFirstBuy(
-    WidgetRef ref,
-    bool isOwnedByCurrentUser,
-    IonConnectEntity entity,
-  ) {
-    if (!isOwnedByCurrentUser) return false;
-    final eventReference = entity.toEventReference();
-    return ref
-            .watch(
-              ionConnectEntityHasTokenProvider(eventReference: eventReference),
-            )
-            .valueOrNull ??
-        false;
   }
 }
 
