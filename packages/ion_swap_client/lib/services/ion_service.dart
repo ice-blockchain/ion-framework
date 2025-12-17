@@ -161,7 +161,8 @@ class IonService {
       final receipt = await web3client.getTransactionReceipt(txHash);
       if (receipt != null) {
         if (receipt.status ?? false) return receipt;
-        throw IonSwapException('Swap failed on-chain, tx hash: $txHash, status: ${receipt.status}, from: ${receipt.from}, to: ${receipt.to}, gasUsed: ${receipt.gasUsed}, effectiveGasPrice: ${receipt.effectiveGasPrice}');
+        throw IonSwapException(
+            'Swap failed on-chain, tx hash: $txHash, status: ${receipt.status}, from: ${receipt.from}, to: ${receipt.to}, gasUsed: ${receipt.gasUsed}, effectiveGasPrice: ${receipt.effectiveGasPrice}');
       }
       await Future<void>.delayed(pollInterval);
     }
