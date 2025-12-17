@@ -37,8 +37,6 @@ class IonIdentityTransactionApi {
         to: transaction.to,
         data: transaction.data.isNotEmpty ? transaction.data : null,
         value: _encodeQuantity(transaction.value),
-        maxFeePerGas: _encodeQuantity(transaction.maxFeePerGas),
-        maxPriorityFeePerGas: _encodeQuantity(transaction.maxPriorityFeePerGas),
       ),
     );
 

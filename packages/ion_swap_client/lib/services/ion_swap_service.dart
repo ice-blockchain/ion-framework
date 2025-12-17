@@ -120,14 +120,10 @@ class IonSwapService extends IonService {
       ],
     );
 
-    final swapTx = evmTxBuilder.wrapTransactionBytes(
+    final tx = evmTxBuilder.wrapTransactionBytes(
       bytes: data,
       value: BigInt.zero,
       to: _ionSwapAddress.hex,
-    );
-
-    final tx = evmTxBuilder.applyDefaultFees(
-      swapTx,
     );
 
     return signAndBroadcast(
