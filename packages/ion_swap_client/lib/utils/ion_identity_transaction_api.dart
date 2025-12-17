@@ -2,22 +2,35 @@
 
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/models/ion_signature.m.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 
 // TODO(ice-erebus): move to separate package
 class IonIdentityTransactionApi {
   IonIdentityTransactionApi({
-    required IONIdentityClient clientResolver,
-  }) : _clientResolver = clientResolver;
+    required IONIdentityClient ionIdentityClient,
+  }) : _ionIdentityClient = ionIdentityClient;
 
-  final IONIdentityClient _clientResolver;
+  final IONIdentityClient _ionIdentityClient;
+
+  Future<IonSignature> sign({
+    required String walletId,
+    required String message,
+    required UserActionSignerNew userActionSigner,
+  }) async {
+    final wallet = await _resolveWallet(_ionIdentityClient, walletId);
+    final response = await _ionIdentityClient.wallets.sign(wallet, message, userActionSigner);
+    return IonSignature.fromJson(
+      response['signature'] as Map<String, dynamic>,
+    );
+  }
 
   Future<String> signAndBroadcast({
     required String walletId,
     required EvmTransaction transaction,
     required UserActionSignerNew userActionSigner,
   }) async {
-    final wallet = await _resolveWallet(_clientResolver, walletId);
+    final wallet = await _resolveWallet(_ionIdentityClient, walletId);
 
     final broadcastRequest = EvmBroadcastRequest.transactionJson(
       transaction: EvmTransactionJson(
@@ -27,7 +40,7 @@ class IonIdentityTransactionApi {
       ),
     );
 
-    final response = await _clientResolver.wallets.signAndBroadcast(
+    final response = await _ionIdentityClient.wallets.signAndBroadcast(
       wallet,
       broadcastRequest,
       userActionSigner,
@@ -38,7 +51,7 @@ class IonIdentityTransactionApi {
 
   Future<Map<String, dynamic>> getFeesOnBsc() async {
     /// Bsc always must be wit big first symbol
-    return _clientResolver.wallets.getFees(['Bsc']);
+    return _ionIdentityClient.wallets.getFees(['Bsc']);
   }
 
   Future<Wallet> _resolveWallet(IONIdentityClient client, String walletId) async {

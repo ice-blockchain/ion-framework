@@ -9,6 +9,7 @@ import 'package:ion_swap_client/services/cex_service.dart';
 import 'package:ion_swap_client/services/dex_service.dart';
 import 'package:ion_swap_client/services/ion_bsc_to_ion_bridge_service.dart';
 import 'package:ion_swap_client/services/ion_swap_service.dart';
+import 'package:ion_swap_client/services/ion_to_bsc_bridge_service.dart';
 import 'package:ion_swap_client/services/swap_service.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
@@ -40,29 +41,32 @@ class SwapControllerLocator {
     final exolixRepository = apiRepositoryServiceLocator.getExolixRepository(config: config);
     final letsExchangeRepository =
         apiRepositoryServiceLocator.getLetsExchangeRepository(config: config);
+    final evmTxBuilder = EvmTxBuilder(
+      contracts: EvmContractProviders(),
+      web3Client: web3client,
+    );
+    final ionIdentityTransactionApi = IonIdentityTransactionApi(
+      ionIdentityClient: ionIdentityClient,
+    );
 
     _swapCoinsController = SwapService(
       ionBscToIonBridgeService: IonBscToIonBridgeService(
         config: config,
         web3client: web3client,
-        evmTxBuilder: EvmTxBuilder(
-          contracts: EvmContractProviders(),
-          web3Client: web3client,
-        ),
-        ionIdentityClient: IonIdentityTransactionApi(
-          clientResolver: ionIdentityClient,
-        ),
+        evmTxBuilder: evmTxBuilder,
+        ionIdentityClient: ionIdentityTransactionApi,
+      ),
+      ionToBscBridgeService: IonToBscBridgeService(
+        config: config,
+        ionIdentityClient: ionIdentityTransactionApi,
       ),
       ionSwapService: IonSwapService(
         ionIdentityClient: IonIdentityTransactionApi(
-          clientResolver: ionIdentityClient,
+          ionIdentityClient: ionIdentityClient,
         ),
         config: config,
         web3client: web3client,
-        evmTxBuilder: EvmTxBuilder(
-          contracts: EvmContractProviders(),
-          web3Client: web3client,
-        ),
+        evmTxBuilder: evmTxBuilder,
       ),
       okxService: DexService(
         swapOkxRepository: okxRepository,
