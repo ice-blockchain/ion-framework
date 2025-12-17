@@ -29,10 +29,14 @@ class AuthInterceptor extends QueuedInterceptor {
           err.requestOptions.headers[newAuthHeader.key] = newAuthHeader.value;
 
           // Retry the original request
-          final response = await dio.fetch<dynamic>(err.requestOptions);
-          return handler.resolve(response);
+          try {
+            final response = await dio.fetch<dynamic>(err.requestOptions);
+            return handler.resolve(response);
+          } on DioException catch (retryError) {
+            return handler.next(retryError);
+          }
         } catch (e) {
-          // If token refresh fails, continue with the error
+          // If token refresh fails, continue with the original error
           return handler.next(err);
         }
       }
