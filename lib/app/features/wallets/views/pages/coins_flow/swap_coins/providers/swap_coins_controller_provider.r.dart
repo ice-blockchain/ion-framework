@@ -67,9 +67,14 @@ class SwapCoinsController extends _$SwapCoinsController {
   }
 
   void setAmount(double amount) {
+    final previousAmount = state.amount;
     state = state.copyWith(
       amount: amount,
     );
+
+    if (previousAmount == amount && state.swapQuoteInfo != null) {
+      return;
+    }
 
     _debouncedGetQuotes();
   }
@@ -445,6 +450,14 @@ class SwapCoinsController extends _$SwapCoinsController {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
     final amount = state.amount;
+
+    if (amount == 0) {
+      state = state.copyWith(
+        isQuoteLoading: false,
+        swapQuoteInfo: null,
+      );
+      return;
+    }
     if (amount <= 0 ||
         sellCoin == null ||
         sellNetwork == null ||
