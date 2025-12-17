@@ -33,11 +33,6 @@ class PostTokenButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasTokenDefinition = ref
-        .watch(ionConnectEntityHasTokenDefinitionProvider(eventReference: eventReference))
-        .valueOrNull
-        .falseOrValue;
-
     final ownerHasBscWallet = ref
         .watch(
           userMetadataProvider(eventReference.masterPubkey)
@@ -45,42 +40,46 @@ class PostTokenButton extends ConsumerWidget {
         )
         .falseOrValue;
 
-    final isTokenCreationAvailable = hasTokenDefinition && ownerHasBscWallet;
+    final hasTokenDefinition = ref
+        .watch(ionConnectEntityHasTokenDefinitionProvider(eventReference: eventReference))
+        .valueOrNull
+        .falseOrValue;
+
+    final isTokenCreationAvailable = ownerHasBscWallet && hasTokenDefinition;
+
+    final entity =
+        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
 
     return GestureDetector(
-      behavior: isTokenCreationAvailable ? HitTestBehavior.deferToChild : HitTestBehavior.opaque,
-      onTap: () {
-        if (!isTokenCreationAvailable) {
-          showSimpleBottomSheet<void>(
-            context: context,
-            child: const TokenCreationNotAvailableModal(),
-          );
-        }
-      },
-      child: Opacity(
-        opacity: isTokenCreationAvailable ? 1.0 : 0.4,
-        child: Builder(
-          builder: (BuildContext context) {
-            final entity = ref
-                .watch(ionConnectEntityWithCountersProvider(eventReference: eventReference))
-                .valueOrNull;
+      behavior:
+          isTokenCreationAvailable ? HitTestBehavior.deferToChild : HitTestBehavior.translucent,
+      onTap: isTokenCreationAvailable
+          ? null
+          : () {
+              showSimpleBottomSheet<void>(
+                context: context,
+                child: const TokenCreationNotAvailableModal(),
+              );
+            },
+      child: IgnorePointer(
+        ignoring: !isTokenCreationAvailable,
+        child: Opacity(
+          opacity: isTokenCreationAvailable ? 1.0 : 0.5,
+          child: Builder(
+            builder: (context) {
+              if (entity == null) {
+                return _TokenButtonPlaceholder(padding: padding);
+              }
 
-            if (entity == null) {
-              return _TokenButtonPlaceholder(padding: padding);
-            }
-
-            return switch (entity) {
-              CommunityTokenDefinitionEntity() => _TokenDefinitionButton(
-                  entity: entity,
-                  padding: padding,
-                ),
-              CommunityTokenActionEntity() => _TokenActionButton(
-                  entity: entity,
-                  padding: padding,
-                ),
-              _ => _ContentEntityButton(entity: entity, padding: padding),
-            };
-          },
+              return switch (entity) {
+                CommunityTokenDefinitionEntity() =>
+                  _TokenDefinitionButton(entity: entity, padding: padding),
+                CommunityTokenActionEntity() =>
+                  _TokenActionButton(entity: entity, padding: padding),
+                _ => _ContentEntityButton(entity: entity, padding: padding),
+              };
+            },
+          ),
         ),
       ),
     );

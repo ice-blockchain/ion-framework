@@ -875,6 +875,8 @@
   "tokenized_community_holders_tab": "Holders",
   "tokenized_community_trades_tab": "Trades",
   "tokenized_community_bonding_curve": "Bonding Curve",
+  "tokenized_community_not_available_description": "Token creation is not available for previously created posts.",
+  "tokenized_community_not_available_title": "Tokenised content error",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Add a link",
   "top_holders_empty": "Become the first holder",
