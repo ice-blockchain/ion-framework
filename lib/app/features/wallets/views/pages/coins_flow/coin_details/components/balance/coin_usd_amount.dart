@@ -10,6 +10,7 @@ import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/wallets/model/balance_display_order.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/wallet_user_preferences_provider.r.dart';
 import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
@@ -17,21 +18,43 @@ import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class CoinUsdAmount extends HookConsumerWidget {
-  const CoinUsdAmount({required this.coinsGroup, super.key});
+  const CoinUsdAmount({
+    required this.coinsGroup,
+    this.currentNetwork,
+    super.key,
+  });
 
   final CoinsGroup coinsGroup;
+  final NetworkData? currentNetwork;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final displayOrder = ref.watch(balanceDisplayOrderProvider);
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
 
+    final filteredCoins = currentNetwork == null
+        ? coinsGroup.coins // Show all when "ALL" is selected
+        : coinsGroup.coins
+            .where(
+              (coin) => coin.coin.network.id == currentNetwork!.id,
+            )
+            .toList();
+
+    final filteredTotalAmount = filteredCoins.fold<double>(
+      0,
+      (sum, coin) => sum + coin.amount,
+    );
+    final filteredTotalBalanceUSD = filteredCoins.fold<double>(
+      0,
+      (sum, coin) => sum + coin.balanceUSD,
+    );
+
     final coinText = isBalanceVisible
-        ? '${formatCrypto(coinsGroup.totalAmount)} ${coinsGroup.abbreviation}'
+        ? '${formatCrypto(filteredTotalAmount)} ${coinsGroup.abbreviation}'
         : StringConstants.obfuscated;
     final usdText = isBalanceVisible
         ? context.i18n.wallet_approximate_in_usd(
-            formatUSD(coinsGroup.totalBalanceUSD),
+            formatUSD(filteredTotalBalanceUSD),
           )
         : StringConstants.obfuscated;
 

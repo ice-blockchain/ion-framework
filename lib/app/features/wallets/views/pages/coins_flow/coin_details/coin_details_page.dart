@@ -99,7 +99,7 @@ class CoinDetailsPage extends HookConsumerWidget {
                   coinsGroup: coinsGroup,
                   currentNetwork: networkSelectorData?.selected.map(
                     network: (item) => item.network,
-                    all: (item) => item.networks.first,
+                    all: (_) => null,
                   ),
                 ),
                 const SectionSeparator(),
