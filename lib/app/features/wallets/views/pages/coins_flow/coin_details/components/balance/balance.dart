@@ -29,7 +29,10 @@ class Balance extends ConsumerWidget {
         children: [
           Padding(
             padding: EdgeInsetsDirectional.only(top: 16.0.s),
-            child: CoinUsdAmount(coinsGroup: coinsGroup),
+            child: CoinUsdAmount(
+              coinsGroup: coinsGroup,
+              currentNetwork: currentNetwork,
+            ),
           ),
           Padding(
             padding: EdgeInsetsDirectional.only(bottom: 20.0.s, top: 11.0.s),
