@@ -70,6 +70,20 @@ class TokenCard extends HookConsumerWidget {
       (CoinInWalletData c) => c.coin.network.id == network?.id,
     );
 
+    final enteredAmountUSD = useMemoized<String>(
+      () {
+        final text = controller?.text.trim() ?? '';
+        if (text.isEmpty) return formatToCurrency(0);
+
+        final amount = parseAmount(text);
+        if (amount == null) return formatToCurrency(0);
+
+        final priceUSD = coinForNetwork?.coin.priceUSD ?? 0.0;
+        return formatToCurrency(amount * priceUSD);
+      },
+      [controller?.text, coinForNetwork?.coin.priceUSD],
+    );
+
     useEffect(
       () {
         void formatAmount() {
@@ -425,7 +439,7 @@ class TokenCard extends HookConsumerWidget {
                 ),
               ),
               Text(
-                formatToCurrency(coinForNetwork?.balanceUSD ?? 0),
+                enteredAmountUSD,
                 style: textStyles.caption2.copyWith(
                   color: colors.tertiaryText,
                 ),
