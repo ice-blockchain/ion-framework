@@ -81,14 +81,10 @@ class IonService {
       // Approve 1 Trillion tokens (10^12) with token decimals
       final trillionAmount = BigInt.from(10).pow(12 + tokenDecimals);
 
-      final approvalTx = await _evmTxBuilder.encodeApprove(
+      final tx = await _evmTxBuilder.encodeApprove(
         token: token.hex,
         spender: spender.hex,
         amount: trillionAmount,
-      );
-
-      final tx = _evmTxBuilder.applyDefaultFees(
-        approvalTx,
       );
 
       final txHash = await signAndBroadcast(
