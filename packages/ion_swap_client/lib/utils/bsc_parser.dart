@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 
 class BscParser {
