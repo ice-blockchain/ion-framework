@@ -58,8 +58,6 @@ class SwapControllerLocator {
       ),
       ionToBscBridgeService: IonToBscBridgeService(
         config: config,
-        web3client: web3client,
-        evmTxBuilder: evmTxBuilder,
         ionIdentityClient: ionIdentityTransactionApi,
       ),
       ionSwapService: IonSwapService(

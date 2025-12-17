@@ -7,7 +7,9 @@ import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/services/ion_service.dart';
+import 'package:ion_swap_client/utils/bsc_parser.dart';
 import 'package:ion_swap_client/utils/hex_helper.dart';
+import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/numb.dart';
 import 'package:tonutils/tonutils.dart';
 
@@ -19,13 +21,12 @@ import 'package:tonutils/tonutils.dart';
 ///
 /// After sending ION, the service polls for oracle signatures and calls voteForMinting
 /// as documented in: https://github.com/ice-blockchain/bridge/blob/ion-mainnet/documentation/integration-vote-for-minting.md
-class IonToBscBridgeService extends IonService {
+class IonToBscBridgeService {
   IonToBscBridgeService({
-    required super.evmTxBuilder,
-    required super.ionIdentityClient,
-    required super.web3client,
+    required IonIdentityTransactionApi ionIdentityClient,
     required IONSwapConfig config,
   })  : _wIonTokenAddress = config.ionBscTokenAddress.toLowerCase(),
+        _ionIdentityClient = ionIdentityClient,
         _tonClient = TonJsonRpc(
           config.ionJrpcUrl,
         ),
@@ -34,6 +35,7 @@ class IonToBscBridgeService extends IonService {
   final String _wIonTokenAddress;
   final TonJsonRpc _tonClient;
   final String _ionBridgeContractAddress;
+  final IonIdentityTransactionApi _ionIdentityClient;
 
   Future<SwapQuoteInfo> getQuote({
     required SwapCoinParameters swapCoinData,
@@ -62,7 +64,7 @@ class IonToBscBridgeService extends IonService {
       throw const IonSwapException('User address is required for bridge');
     }
 
-    final bscDestination = parseBscAddress(swapCoinData.userBuyAddress);
+    final bscDestination = BscParser.parseBscAddress(swapCoinData.userBuyAddress);
     final amountIn = _parseAmount(swapCoinData.amount, swapCoinData.sellCoin.decimal);
 
     if (amountIn == BigInt.zero) {
@@ -120,7 +122,7 @@ class IonToBscBridgeService extends IonService {
     final cell = builder.storeRef(beginCell().store(storeMessageRelaxed(message))).endCell();
     final messageHex = HexHelper.bytesToHex(cell.toBoc());
 
-    final signature = await ionIdentityClient.sign(
+    final signature = await _ionIdentityClient.sign(
       walletId: wallet.id,
       message: messageHex,
       userActionSigner: userActionSigner,

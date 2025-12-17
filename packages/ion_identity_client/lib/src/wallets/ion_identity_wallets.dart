@@ -240,7 +240,7 @@ class IONIdentityWallets {
       );
 
   Future<Map<String, dynamic>> getFees(List<String> networks) => _getFeesService.getFees(networks);
-  
+
   Future<Map<String, dynamic>> sign(
     Wallet wallet,
     String message,
