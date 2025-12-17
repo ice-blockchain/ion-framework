@@ -3,12 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/components/adaptive_media_view.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
@@ -62,26 +60,11 @@ class FullscreenMediaPage extends HookConsumerWidget {
             actions: isEntityDeleted
                 ? null
                 : [
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(end: 6.0.s),
-                      child: isOwnedByCurrentUser
-                          ? BottomSheetMenuButton(
-                              showShadow: true,
-                              iconColor: context.theme.appColors.onPrimaryAccent,
-                              menuBuilder: (context) => OwnPostMenuBottomSheet(
-                                eventReference: eventReference,
-                                onDelete: () {
-                                  context.canPop();
-                                },
-                              ),
-                            )
-                          : BottomSheetMenuButton(
-                              showShadow: true,
-                              iconColor: context.theme.appColors.onPrimaryAccent,
-                              menuBuilder: (context) => PostMenuBottomSheet(
-                                eventReference: eventReference,
-                              ),
-                            ),
+                    PostContextMenu.forAppBar(
+                      eventReference: eventReference,
+                      entity: entity,
+                      isOwnedByCurrentUser: isOwnedByCurrentUser,
+                      iconColor: context.theme.appColors.onPrimaryAccent,
                     ),
                   ],
           ),

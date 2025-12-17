@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
@@ -16,8 +15,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
@@ -159,21 +157,13 @@ class Post extends ConsumerWidget {
                       color: context.theme.appColors.onPrimaryAccent,
                     )
                   : null,
-              trailing: BottomSheetMenuButton(
-                menuBuilder: (context) => isOwnedByCurrentUser
-                    ? OwnPostMenuBottomSheet(
-                        eventReference: eventReference,
-                        onDelete: onDelete,
-                      )
-                    : PostMenuBottomSheet(
-                        eventReference: eventReference,
-                        showNotInterested: showNotInterested,
-                      ),
+              trailing: PostContextMenu(
+                eventReference: eventReference,
+                entity: entity,
+                isOwnedByCurrentUser: isOwnedByCurrentUser,
                 isAccentTheme: isAccentTheme,
-                padding: EdgeInsetsGeometry.symmetric(
-                  horizontal: ScreenSideOffset.defaultSmallMargin,
-                  vertical: 5.0.s,
-                ),
+                onDelete: onDelete,
+                showNotInterested: showNotInterested,
               ),
               padding: EdgeInsetsDirectional.only(
                 start: ScreenSideOffset.defaultSmallMargin,

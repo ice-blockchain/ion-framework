@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/views/pages/entity_delete_confirmation_mod
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -46,8 +47,21 @@ class OwnPostMenuBottomSheet extends ConsumerWidget {
     final editMenuItems = <Widget>[];
     final deleteMenuItems = <Widget>[];
 
+    final hasFirstBuy = ref
+            .watch(
+              ionConnectEntityHasTokenProvider(eventReference: eventReference),
+            )
+            .valueOrNull ??
+        false;
+    final isEditable = _isEntityEditable(entity);
+
+    // If post already has first buy and is not editable anymore, no menu should be shown.
+    if (hasFirstBuy && !isEditable) {
+      return const SizedBox.shrink();
+    }
+
     // Edit menu item for posts and articles
-    if (entity is ModifiablePostEntity && _isEntityEditable(entity)) {
+    if (entity is ModifiablePostEntity && isEditable) {
       editMenuItems.add(
         ListItem(
           onTap: () {
@@ -121,40 +135,42 @@ class OwnPostMenuBottomSheet extends ConsumerWidget {
       menuItemsGroups.add(editMenuItems);
     }
 
-    // Add Delete menu item
-    deleteMenuItems.add(
-      ListItem(
-        onTap: () async {
-          Navigator.of(context).pop();
-          final confirmed = await showSimpleBottomSheet<bool>(
-            context: context,
-            child: EntityDeleteConfirmationModal(
-              eventReference: eventReference,
-              deleteConfirmationType: _getDeleteConfirmationType(entity),
+    // Add Delete menu item only if there was no first buy.
+    if (!hasFirstBuy) {
+      deleteMenuItems.add(
+        ListItem(
+          onTap: () async {
+            Navigator.of(context).pop();
+            final confirmed = await showSimpleBottomSheet<bool>(
+              context: context,
+              child: EntityDeleteConfirmationModal(
+                eventReference: eventReference,
+                deleteConfirmationType: _getDeleteConfirmationType(entity),
+              ),
+            );
+
+            if ((confirmed ?? false) && context.mounted) {
+              onDelete?.call();
+            }
+          },
+          leading: OutlinedIcon(
+            icon: Assets.svg.iconBlockDelete.icon(
+              size: 20.0.s,
+              color: context.theme.appColors.attentionRed,
             ),
-          );
-
-          if ((confirmed ?? false) && context.mounted) {
-            onDelete?.call();
-          }
-        },
-        leading: OutlinedIcon(
-          icon: Assets.svg.iconBlockDelete.icon(
-            size: 20.0.s,
-            color: context.theme.appColors.attentionRed,
           ),
-        ),
-        title: Text(
-          context.i18n.post_menu_delete,
-          style: context.theme.appTextThemes.body.copyWith(
-            color: context.theme.appColors.attentionRed,
+          title: Text(
+            context.i18n.post_menu_delete,
+            style: context.theme.appTextThemes.body.copyWith(
+              color: context.theme.appColors.attentionRed,
+            ),
           ),
+          backgroundColor: Colors.transparent,
         ),
-        backgroundColor: Colors.transparent,
-      ),
-    );
+      );
 
-    menuItemsGroups.add(deleteMenuItems);
+      menuItemsGroups.add(deleteMenuItems);
+    }
 
     return BottomSheetMenuContent(
       groups: menuItemsGroups,
