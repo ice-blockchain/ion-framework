@@ -34,11 +34,13 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     final swapQuoteInfo = ref.watch(swapCoinsControllerProvider).swapQuoteInfo;
     final quoteAmount = ref.watch(swapCoinsControllerProvider).swapQuoteInfo;
     final amount = ref.watch(swapCoinsControllerProvider).amount;
+    final isQuoteLoading = ref.watch(swapCoinsControllerProvider).isQuoteLoading;
     final isContinueButtonEnabled = sellCoins != null &&
         buyCoins != null &&
         sellNetwork != null &&
         buyNetwork != null &&
-        swapQuoteInfo != null;
+        swapQuoteInfo != null &&
+        !isQuoteLoading;
 
     final amountController = useTextEditingController();
     final quoteController = useTextEditingController();
