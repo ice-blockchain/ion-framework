@@ -75,13 +75,9 @@ class IonBscToIonBridgeService extends IonService {
       to: _ionBridgeRouterAddress.hex,
     );
 
-    final txWithFees = evmTxBuilder.applyDefaultFees(
-      burnTx,
-    );
-
     final txHash = await signAndBroadcast(
       request: request,
-      transaction: txWithFees,
+      transaction: burnTx,
     );
 
     if (!isBscTxHash(txHash)) {
