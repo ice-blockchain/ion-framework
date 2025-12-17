@@ -44,8 +44,26 @@ class SwapCoinsModalPage extends HookConsumerWidget {
 
     final amountController = useTextEditingController();
     final quoteController = useTextEditingController();
-    final isInsufficientFundsError =
-        ref.watch(swapCoinsControllerProvider.notifier).isInsufficientFundsError;
+    final isInsufficientFundsErrorState = useState(false);
+    useEffect(
+      () {
+        var isCancelled = false;
+
+        () async {
+          final result =
+              await ref.read(swapCoinsControllerProvider.notifier).isInsufficientFundsError();
+
+          if (!isCancelled) {
+            isInsufficientFundsErrorState.value = result;
+          }
+        }();
+
+        return () {
+          isCancelled = true;
+        };
+      },
+      [amount, sellCoins, sellNetwork],
+    );
 
     useAmountListener(
       amountController,
@@ -81,34 +99,24 @@ class SwapCoinsModalPage extends HookConsumerWidget {
             children: [
               Column(
                 children: [
-                  FutureBuilder(
-                    future: isInsufficientFundsError.call(),
-                    builder: (context, asyncSnapshot) {
-                      final isInsufficientFundsError = asyncSnapshot.data ?? false;
-                      return TokenCard(
-                        isInsufficientFundsError: isInsufficientFundsError,
-                        validator: (value) {
-                          return null;
-                        },
-                        controller: amountController,
-                        type: CoinSwapType.sell,
-                        coinsGroup: sellNetwork != null ? sellCoins : null,
-                        network: sellNetwork,
-                        onTap: () {
-                          SwapSelectCoinRoute(
-                            coinType: CoinSwapType.sell,
-                          ).push<void>(context);
-                        },
-                      );
+                  TokenCard(
+                    isInsufficientFundsError: isInsufficientFundsErrorState.value,
+                    skipValidation: true,
+                    controller: amountController,
+                    type: CoinSwapType.sell,
+                    coinsGroup: sellNetwork != null ? sellCoins : null,
+                    network: sellNetwork,
+                    onTap: () {
+                      SwapSelectCoinRoute(
+                        coinType: CoinSwapType.sell,
+                      ).push<void>(context);
                     },
                   ),
                   SizedBox(
                     height: 10.0.s,
                   ),
                   TokenCard(
-                    validator: (value) {
-                      return null;
-                    },
+                    skipValidation: true,
                     isReadOnly: true,
                     controller: quoteController,
                     type: CoinSwapType.buy,
