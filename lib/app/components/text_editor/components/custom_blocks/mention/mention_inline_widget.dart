@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
+import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -21,58 +23,77 @@ class MentionInlineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate maximum safe height to avoid pushing line height
+    // This is slightly smaller than line height to account for measurement differences
+    final maxSafeHeight = useMemoized(() => calculateMaxSafeWidgetHeight(context), []);
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Container(
-          constraints: BoxConstraints(maxHeight: 20.0.s),
-          padding: EdgeInsets.symmetric(horizontal: 4.0.s, vertical: 3.0.s),
-          decoration: BoxDecoration(
-            color: context.theme.appColors.primaryBackground,
-            borderRadius: BorderRadius.circular(8.0.s),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: maxSafeHeight,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$mentionPrefix$username',
-                style: context.theme.appTextThemes.body2.copyWith(
-                  color: context.theme.appColors.darkBlue,
-                  height: 1,
-                ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: EdgeInsetsDirectional.fromSTEB(3.0.s, 2.0.s, 3.0.s, 1.0.s),
+              decoration: BoxDecoration(
+                color: context.theme.appColors.primaryBackground,
+                borderRadius: BorderRadius.circular(8.0.s),
               ),
-              SizedBox(width: 4.0.s),
-              Container(
-                padding: EdgeInsetsDirectional.fromSTEB(3.0.s, 0.5.s, 8.0.s, 1.0.s),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(5.0.s),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Assets.svg.iconMemeMarketcap.icon(
-                      size: 12.0.s,
-                      color: context.theme.appColors.onTertiaryBackground,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$mentionPrefix$username',
+                    style: context.theme.appTextThemes.body2.copyWith(
+                      color: context.theme.appColors.darkBlue,
+                      height: 1,
+                      leadingDistribution: TextLeadingDistribution.even,
                     ),
-                    SizedBox(width: 2.0.s),
-                    Text(
-                      '\$${MarketDataFormatter.formatCompactNumber(marketCap)}',
-                      style: context.theme.appTextThemes.caption2.copyWith(
-                        color: context.theme.appColors.onTertiaryBackground,
-                        height: 1,
-                      ),
+                    strutStyle: const StrutStyle(forceStrutHeight: true),
+                    textHeightBehavior: const TextHeightBehavior(applyHeightToFirstAscent: false),
+                  ),
+                  SizedBox(width: 4.0.s),
+                  Container(
+                    padding: EdgeInsetsDirectional.fromSTEB(3.0.s, 0.5.s, 8.0.s, 1.0.s),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5.0.s),
                     ),
-                  ],
-                ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Assets.svg.iconMemeMarketcap.icon(
+                          size: 12.0.s,
+                          color: context.theme.appColors.onTertiaryBackground,
+                        ),
+                        SizedBox(width: 2.0.s),
+                        Text(
+                          '\$${MarketDataFormatter.formatCompactNumber(marketCap)}',
+                          style: context.theme.appTextThemes.caption2.copyWith(
+                            color: context.theme.appColors.onTertiaryBackground,
+                            height: 1,
+                            leadingDistribution: TextLeadingDistribution.even,
+                          ),
+                          strutStyle: const StrutStyle(forceStrutHeight: true),
+                          textHeightBehavior:
+                              const TextHeightBehavior(applyHeightToFirstAscent: false),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
         if (onClose != null)
           PositionedDirectional(
-            top: -6.0.s,
-            end: -6.0.s,
+            top: -10.0.s,
+            end: -10.0.s,
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: onClose,
