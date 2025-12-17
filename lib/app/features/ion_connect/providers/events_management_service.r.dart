@@ -16,6 +16,7 @@ import 'package:ion/app/features/feed/notifications/providers/notifications/repo
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
 import 'package:ion/app/features/user/providers/badge_award_handler.r.dart';
+import 'package:ion/app/features/user/providers/user_delegation_handler.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/queue.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -33,6 +34,7 @@ Future<EventsManagementService> eventsManagementService(Ref ref) async {
     ref.watch(replyNotificationHandlerProvider),
     ref.watch(repostNotificationHandlerProvider),
     ref.watch(badgeAwardHandlerProvider),
+    ref.watch(userDelegationHandlerProvider),
   ];
 
   final manager = EventsManagementService(handlers);

@@ -24,8 +24,8 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
 
     if (masterPubkey != null) {
       final dbModel = IonConnectCacheEventMessageDbModelExtensions.fromEventMessage(
-        masterPubkey: masterPubkey,
         cacheKey: value.cacheKey,
+        masterPubkey: masterPubkey,
         eventMessage: value.eventMessage,
       );
 
@@ -47,8 +47,8 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
       if (masterPubkey != null) {
         return IonConnectCacheEventMessageDbModelExtensions.fromEventMessage(
           cacheKey: value.cacheKey,
+          masterPubkey: masterPubkey,
           eventMessage: value.eventMessage,
-          masterPubkey: value.eventMessage.masterPubkey!,
         );
       }
 

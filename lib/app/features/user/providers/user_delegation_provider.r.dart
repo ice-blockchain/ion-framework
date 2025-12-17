@@ -7,7 +7,7 @@ import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -15,11 +15,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'user_delegation_provider.r.g.dart';
 
 @riverpod
-Future<UserDelegationEntity?> userDelegation(Ref ref, String pubkey, {bool cache = true}) async {
+Future<UserDelegationEntity?> userDelegation(Ref ref, String masterPubkey, {bool cache = true}) async {
   keepAliveWhenAuthenticated(ref);
   if (cache) {
     final userDelegation = await ref.watch(
-      cachedUserDelegationProvider(pubkey).future,
+      cachedUserDelegationProvider(masterPubkey).future,
     );
 
     if (userDelegation != null) {
@@ -36,28 +36,19 @@ Future<UserDelegationEntity?> userDelegation(Ref ref, String pubkey, {bool cache
 
   final requestMessage = RequestMessage()
     ..addFilter(
-      RequestFilter(kinds: const [UserDelegationEntity.kind], limit: 1, authors: [pubkey]),
+      RequestFilter(kinds: const [UserDelegationEntity.kind], limit: 1, authors: [masterPubkey]),
     );
 
   return ref
       .read(ionConnectNotifierProvider.notifier)
-      .requestEntity<UserDelegationEntity>(requestMessage, actionSource: ActionSourceUser(pubkey));
+      .requestEntity<UserDelegationEntity>(requestMessage, actionSource: ActionSourceUser(masterPubkey));
 }
 
 @riverpod
-Future<UserDelegationEntity?> cachedUserDelegation(Ref ref, String pubkey) async {
-  final userDelegation = ref.watch(
-    ionConnectCacheProvider.select(
-      cacheSelector<UserDelegationEntity>(
-        CacheableEntity.cacheKeyBuilder(
-          eventReference: ReplaceableEventReference(
-            masterPubkey: pubkey,
-            kind: UserDelegationEntity.kind,
-          ),
-        ),
-      ),
-    ),
-  );
+Future<UserDelegationEntity?> cachedUserDelegation(Ref ref, String masterPubkey) async {
+  final userDelegation = await ref.read(ionConnectDatabaseCacheProvider.notifier).get(
+        ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserDelegationEntity.kind).toString(),
+      ) as UserDelegationEntity?;
 
   return userDelegation;
 }

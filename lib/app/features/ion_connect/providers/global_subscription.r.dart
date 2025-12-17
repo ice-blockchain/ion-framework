@@ -9,6 +9,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
+import 'package:ion/app/features/chat/community/models/entities/tags/delegation_pubkey_tag.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/pubkey_tag.f.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -27,6 +28,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_subscription_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
+import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user_archive/model/entities/user_archive_entity.f.dart';
 import 'package:ion/app/features/user_archive/providers/user_archive_provider.r.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
@@ -73,6 +75,7 @@ class GlobalSubscription {
     ModifiablePostEntity.kind,
     GenericRepostEntity.modifiablePostRepostKind,
     ArticleEntity.kind,
+    UserDelegationEntity.kind,
   ];
   // Used when we reinstall the app to refetch all encrypted events
   int? _inMemoryEncryptedSince;
@@ -190,8 +193,10 @@ class GlobalSubscription {
         filter: RequestFilter(
           kinds: _genericEventKinds,
           tags: {
+            // Works like OR between master pubkey and device pubkey
             '#p': [
               [currentUserMasterPubkey],
+              [devicePubkey],
             ],
           },
         ),
@@ -260,8 +265,10 @@ class GlobalSubscription {
           RequestFilter(
             kinds: _genericEventKinds,
             tags: {
+              // Works like OR between master pubkey and device pubkey
               '#p': [
                 [currentUserMasterPubkey],
+                [devicePubkey],
               ],
             },
             limit: eventLimit,
@@ -410,7 +417,9 @@ class GlobalSubscription {
 
         final pubkeyTag = tags[PubkeyTag.tagName]?.firstOrNull;
         if (pubkeyTag != null) {
-          final pTagValue = PubkeyTag.fromTag(pubkeyTag).value;
+          final pTagValue = eventMessage.kind == UserDelegationEntity.kind
+              ? DelegationPubkeyTag.fromTag(pubkeyTag).value
+              : PubkeyTag.fromTag(pubkeyTag).value;
           if (pTagValue == currentUserMasterPubkey) {
             if (_inMemoryPFilterSince == null) {
               _inMemoryPFilterSince = eventTimestamp;
