@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:math';
-
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -38,6 +36,13 @@ class CommunityTokenIonConnectService {
   Future<void> sendBuyEvents({
     required String externalAddress,
     required bool firstBuy,
+    required String network,
+    required String bondingCurveAddress,
+    required String tokenAddress,
+    required String transactionAddress,
+    required TransactionAmount amountBase,
+    required TransactionAmount amountQuote,
+    required TransactionAmount amountUsd,
   }) async {
     final communityTokenDefinition =
         await _fetchCommunityTokenDefinition(externalAddress: externalAddress);
@@ -45,6 +50,13 @@ class CommunityTokenIonConnectService {
     final communityTokenAction = await _buildCommunityTokenAction(
       communityTokenDefinition: communityTokenDefinition,
       type: CommunityTokenActionType.buy,
+      network: network,
+      bondingCurveAddress: bondingCurveAddress,
+      tokenAddress: tokenAddress,
+      transactionAddress: transactionAddress,
+      amountBase: amountBase,
+      amountQuote: amountQuote,
+      amountUsd: amountUsd,
     );
 
     final communityTokenDefinitionData = communityTokenDefinition.data;
@@ -69,6 +81,13 @@ class CommunityTokenIonConnectService {
 
   Future<void> sendSellEvents({
     required String externalAddress,
+    required String network,
+    required String bondingCurveAddress,
+    required String tokenAddress,
+    required String transactionAddress,
+    required TransactionAmount amountBase,
+    required TransactionAmount amountQuote,
+    required TransactionAmount amountUsd,
   }) async {
     final communityTokenDefinition =
         await _fetchCommunityTokenDefinition(externalAddress: externalAddress);
@@ -76,6 +95,13 @@ class CommunityTokenIonConnectService {
     final communityTokenAction = await _buildCommunityTokenAction(
       communityTokenDefinition: communityTokenDefinition,
       type: CommunityTokenActionType.sell,
+      network: network,
+      bondingCurveAddress: bondingCurveAddress,
+      tokenAddress: tokenAddress,
+      transactionAddress: transactionAddress,
+      amountBase: amountBase,
+      amountQuote: amountQuote,
+      amountUsd: amountUsd,
     );
 
     return _sendSellEvents(
@@ -180,26 +206,35 @@ class CommunityTokenIonConnectService {
     return communityTokenDefinition;
   }
 
-  //TODO: pass all required data
   Future<CommunityTokenActionData> _buildCommunityTokenAction({
     required CommunityTokenDefinitionEntity communityTokenDefinition,
     required CommunityTokenActionType type,
+    required String network,
+    required String bondingCurveAddress,
+    required String tokenAddress,
+    required String transactionAddress,
+    required TransactionAmount amountBase,
+    required TransactionAmount amountQuote,
+    required TransactionAmount amountUsd,
   }) async {
+    if (amountUsd.currency != TransactionAmount.usdCurrency) {
+      throw ArgumentError.value(
+        amountUsd,
+        'amountUsd',
+        'The currency of amountUsd must be ${TransactionAmount.usdCurrency}',
+      );
+    }
+
     return CommunityTokenActionData.fromData(
       definitionReference: communityTokenDefinition.toEventReference(),
-      network: 'foo',
-      bondingCurveAddress: 'bar',
-      tokenAddress: 'baz',
-      transactionAddress: 'quux',
+      network: network,
+      bondingCurveAddress: bondingCurveAddress,
+      tokenAddress: tokenAddress,
+      transactionAddress: transactionAddress,
       type: type,
-      amountBase: TransactionAmount(value: Random().nextDouble() * 1000, currency: 'ION'),
-      amountQuote: TransactionAmount(
-        value: Random().nextDouble() * 1000,
-        currency: communityTokenDefinition.data.externalAddress,
-      ),
-      amountUsd: TransactionAmount.usd(
-        value: Random().nextDouble() * 1000,
-      ),
+      amountBase: amountBase,
+      amountQuote: amountQuote,
+      amountUsd: amountUsd,
     );
   }
 

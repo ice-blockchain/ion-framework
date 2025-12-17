@@ -3,18 +3,25 @@
 import 'dart:convert';
 
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 typedef TransactionResult = Map<String, dynamic>;
 
 class TradeCommunityTokenService {
   TradeCommunityTokenService({
     required this.repository,
+    required this.ionConnectService,
   });
 
   final TradeCommunityTokenRepository repository;
+  final CommunityTokenIonConnectService ionConnectService;
 
   Future<TransactionResult> buyCommunityToken({
     required String externalAddress,
@@ -22,19 +29,30 @@ class TradeCommunityTokenService {
     required BigInt amountIn,
     required String walletId,
     required String walletAddress,
+    required String walletNetwork,
     required String baseTokenAddress,
+    required String baseTokenTicker,
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
+    BigInt? expectedOutQuote,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
   }) async {
-    final toTokenBytes = await _resolveTokenBytes(externalAddress, externalAddressType);
+    final tokenInfo = await repository.fetchTokenInfo(externalAddress);
+    final existingTokenAddress = _extractTokenAddress(tokenInfo);
+    final firstBuy = _isFirstBuy(existingTokenAddress);
+    final toTokenBytes = _buildBuyToTokenBytes(
+      externalAddress: externalAddress,
+      externalAddressType: externalAddressType,
+      tokenAddress: existingTokenAddress,
+    );
 
-    return _performSwap(
+    final (:transaction, :quote) = await _performSwap(
       fromTokenAddress: baseTokenAddress,
       toTokenBytes: toTokenBytes,
       amountIn: amountIn,
+      expectedOutQuote: expectedOutQuote,
       slippagePercent: slippagePercent,
       walletId: walletId,
       walletAddress: walletAddress,
@@ -45,6 +63,21 @@ class TradeCommunityTokenService {
           maxPriorityFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxPriorityFeePerGas,
       userActionSigner: userActionSigner,
     );
+
+    await _trySendBuyEvents(
+      externalAddress: externalAddress,
+      firstBuy: firstBuy,
+      transaction: transaction,
+      quote: quote,
+      amountIn: amountIn,
+      walletNetwork: walletNetwork,
+      baseTokenTicker: baseTokenTicker,
+      tokenDecimals: tokenDecimals,
+      existingTokenAddress: existingTokenAddress,
+      tokenInfo: tokenInfo,
+    );
+
+    return transaction;
   }
 
   Future<TransactionResult> sellCommunityToken({
@@ -52,20 +85,26 @@ class TradeCommunityTokenService {
     required BigInt amountIn,
     required String walletId,
     required String walletAddress,
+    required String walletNetwork,
     required String paymentTokenAddress,
+    required String paymentTokenTicker,
+    required int paymentTokenDecimals,
     required String communityTokenAddress,
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
+    BigInt? expectedOutQuote,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
   }) async {
+    final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final toTokenBytes = _getBytesFromAddress(paymentTokenAddress);
 
-    return _performSwap(
+    final (:transaction, :quote) = await _performSwap(
       fromTokenAddress: communityTokenAddress,
       toTokenBytes: toTokenBytes,
       amountIn: amountIn,
+      expectedOutQuote: expectedOutQuote,
       slippagePercent: slippagePercent,
       walletId: walletId,
       walletAddress: walletAddress,
@@ -76,6 +115,20 @@ class TradeCommunityTokenService {
           maxPriorityFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxPriorityFeePerGas,
       userActionSigner: userActionSigner,
     );
+
+    await _trySendSellEvents(
+      externalAddress: externalAddress,
+      transaction: transaction,
+      quote: quote,
+      amountIn: amountIn,
+      walletNetwork: walletNetwork,
+      communityTokenAddress: communityTokenAddress,
+      paymentTokenTicker: paymentTokenTicker,
+      paymentTokenDecimals: paymentTokenDecimals,
+      tokenInfo: tokenInfo,
+    );
+
+    return transaction;
   }
 
   Future<BigInt> getQuote({
@@ -116,21 +169,20 @@ class TradeCommunityTokenService {
     String externalAddress,
     ExternalAddressType externalAddressType,
   ) async {
-    final contractAddress = await repository.fetchContractAddress(externalAddress);
-
-    if (contractAddress != null) {
-      // Token already exists, use contract address bytes
-      return _getBytesFromAddress(contractAddress);
+    final tokenInfo = await repository.fetchTokenInfo(externalAddress);
+    final tokenAddress = tokenInfo?.addresses.blockchain;
+    if (tokenAddress != null) {
+      return _getBytesFromAddress(tokenAddress);
     }
 
-    // First purchase: build FatAddress (creatorTokenAddress + externalAddress)
     return _buildFatAddress(externalAddress, externalAddressType);
   }
 
-  Future<TransactionResult> _performSwap({
+  Future<({TransactionResult transaction, BigInt quote})> _performSwap({
     required String fromTokenAddress,
     required List<int> toTokenBytes,
     required BigInt amountIn,
+    required BigInt? expectedOutQuote,
     required double slippagePercent,
     required String walletId,
     required String walletAddress,
@@ -142,11 +194,12 @@ class TradeCommunityTokenService {
   }) async {
     final fromTokenBytes = _getBytesFromAddress(fromTokenAddress);
 
-    final quote = await repository.fetchQuote(
-      fromTokenIdentifier: fromTokenBytes,
-      toTokenIdentifier: toTokenBytes,
-      amountIn: amountIn,
-    );
+    final quote = expectedOutQuote ??
+        await repository.fetchQuote(
+          fromTokenIdentifier: fromTokenBytes,
+          toTokenIdentifier: toTokenBytes,
+          amountIn: amountIn,
+        );
 
     final minReturn = _calculateMinReturn(
       expectedOut: quote,
@@ -164,7 +217,7 @@ class TradeCommunityTokenService {
       userActionSigner: userActionSigner,
     );
 
-    return repository.swapCommunityToken(
+    final transaction = await repository.swapCommunityToken(
       walletId: walletId,
       fromTokenIdentifier: fromTokenBytes,
       toTokenIdentifier: toTokenBytes,
@@ -174,6 +227,134 @@ class TradeCommunityTokenService {
       maxPriorityFeePerGas: maxPriorityFeePerGas,
       userActionSigner: userActionSigner,
     );
+    return (transaction: transaction, quote: quote);
+  }
+
+  Future<void> _trySendBuyEvents({
+    required String externalAddress,
+    required bool firstBuy,
+    required TransactionResult transaction,
+    required BigInt quote,
+    required BigInt amountIn,
+    required String walletNetwork,
+    required String baseTokenTicker,
+    required int tokenDecimals,
+    required String? existingTokenAddress,
+    required CommunityToken? tokenInfo,
+  }) async {
+    if (!_isBroadcasted(transaction)) return;
+
+    final txHash = transaction['txHash'] as String?;
+    if (txHash == null || txHash.isEmpty) return;
+
+    final bondingCurveAddress = await repository.fetchBondingCurveAddress();
+    var tokenAddress = existingTokenAddress ?? _extractTokenAddress(tokenInfo);
+    if (tokenAddress == null && firstBuy) {
+      // First buy can create token contract, analytics may lag behind.
+      // Retry once to avoid excessive requests.
+      tokenAddress = _extractTokenAddress(await repository.fetchTokenInfo(externalAddress));
+    }
+    if (tokenAddress == null || tokenAddress.isEmpty) return;
+
+    final communityTokenTicker = tokenInfo?.title ?? externalAddress;
+    const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
+
+    final baseTokenAmountValue = fromBlockchainUnits(amountIn.toString(), tokenDecimals);
+
+    final communityTokenAmountValue = fromBlockchainUnits(quote.toString(), communityTokenDecimals);
+
+    // TODO(ion): Replace with PricingResponse.amountUSD from pricing API.
+    const usdAmountValue = 1.0;
+
+    final amountBase = TransactionAmount(value: baseTokenAmountValue, currency: baseTokenTicker);
+    final amountQuote =
+        TransactionAmount(value: communityTokenAmountValue, currency: communityTokenTicker);
+    const amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+
+    try {
+      await ionConnectService.sendBuyEvents(
+        externalAddress: externalAddress,
+        firstBuy: firstBuy,
+        network: walletNetwork,
+        bondingCurveAddress: bondingCurveAddress,
+        tokenAddress: tokenAddress,
+        transactionAddress: txHash,
+        amountBase: amountBase,
+        amountQuote: amountQuote,
+        amountUsd: amountUsd,
+      );
+    } on Exception catch (e, stackTrace) {
+      Logger.error('Failed to send buy events: $e', stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> _trySendSellEvents({
+    required String externalAddress,
+    required TransactionResult transaction,
+    required BigInt quote,
+    required BigInt amountIn,
+    required String walletNetwork,
+    required String communityTokenAddress,
+    required String paymentTokenTicker,
+    required int paymentTokenDecimals,
+    required CommunityToken? tokenInfo,
+  }) async {
+    if (!_isBroadcasted(transaction)) return;
+
+    final txHash = transaction['txHash'] as String?;
+    if (txHash == null || txHash.isEmpty) return;
+
+    final bondingCurveAddress = await repository.fetchBondingCurveAddress();
+    final communityTokenTicker = tokenInfo?.title ?? externalAddress;
+    const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
+
+    final communityTokenAmountValue =
+        fromBlockchainUnits(amountIn.toString(), communityTokenDecimals);
+    final paymentTokenAmountValue = fromBlockchainUnits(quote.toString(), paymentTokenDecimals);
+
+    // TODO(ion): Replace with PricingResponse.amountUSD from pricing API.
+    const usdAmountValue = 1.0;
+
+    final amountBase =
+        TransactionAmount(value: communityTokenAmountValue, currency: communityTokenTicker);
+    final amountQuote =
+        TransactionAmount(value: paymentTokenAmountValue, currency: paymentTokenTicker);
+    const amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+
+    try {
+      await ionConnectService.sendSellEvents(
+        externalAddress: externalAddress,
+        network: walletNetwork,
+        bondingCurveAddress: bondingCurveAddress,
+        tokenAddress: communityTokenAddress,
+        transactionAddress: txHash,
+        amountBase: amountBase,
+        amountQuote: amountQuote,
+        amountUsd: amountUsd,
+      );
+    } on Exception catch (e, stackTrace) {
+      Logger.error('Failed to send sell events: $e', stackTrace: stackTrace);
+    }
+  }
+
+  bool _isBroadcasted(TransactionResult transaction) {
+    final status = transaction['status']?.toString() ?? '';
+    return status.toLowerCase() == 'broadcasted';
+  }
+
+  bool _isFirstBuy(String? tokenAddress) => tokenAddress == null || tokenAddress.isEmpty;
+
+  String? _extractTokenAddress(CommunityToken? tokenInfo) => tokenInfo?.addresses.blockchain;
+
+  List<int> _buildBuyToTokenBytes({
+    required String externalAddress,
+    required ExternalAddressType externalAddressType,
+    required String? tokenAddress,
+  }) {
+    if (tokenAddress != null && tokenAddress.isNotEmpty) {
+      return _getBytesFromAddress(tokenAddress);
+    }
+    return _buildFatAddress(externalAddress, externalAddressType);
   }
 
   Future<void> _ensureAllowance({
