@@ -32,7 +32,6 @@ class TokenCard extends HookConsumerWidget {
     this.showSelectButton = true,
     this.showArrow = true,
     this.skipValidation = false,
-    this.validator,
     super.key,
     this.isInsufficientFundsError = false,
   });
@@ -48,7 +47,6 @@ class TokenCard extends HookConsumerWidget {
   final bool showSelectButton;
   final bool showArrow;
   final bool skipValidation;
-  final FormFieldValidator<String>? validator;
   final bool isInsufficientFundsError;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
@@ -302,35 +300,34 @@ class TokenCard extends HookConsumerWidget {
                           color: colors.attentionRed,
                         ),
                       ),
-                      validator: validator ??
-                          (value) {
-                            if (skipValidation) return null;
+                      validator: (value) {
+                        if (skipValidation) return null;
 
-                            final trimmedValue = value?.trim() ?? '';
-                            if (trimmedValue.isEmpty) return null;
+                        final trimmedValue = value?.trim() ?? '';
+                        if (trimmedValue.isEmpty) return null;
 
-                            final parsed = parseAmount(trimmedValue);
-                            if (parsed == null) return '';
+                        final parsed = parseAmount(trimmedValue);
+                        if (parsed == null) return '';
 
-                            final maxValue = coinForNetwork?.amount;
-                            if (maxValue != null && (parsed > maxValue || parsed < 0)) {
-                              return context.i18n.wallet_coin_amount_insufficient_funds;
-                            } else if (parsed < 0) {
-                              return context.i18n.wallet_coin_amount_must_be_positive;
-                            }
+                        final maxValue = coinForNetwork?.amount;
+                        if (maxValue != null && (parsed > maxValue || parsed < 0)) {
+                          return context.i18n.wallet_coin_amount_insufficient_funds;
+                        } else if (parsed < 0) {
+                          return context.i18n.wallet_coin_amount_must_be_positive;
+                        }
 
-                            // If we know decimals for the selected network, enforce min amount check
+                        // If we know decimals for the selected network, enforce min amount check
 
-                            final decimals = coinForNetwork?.coin.decimals;
-                            if (decimals != null) {
-                              final amount = toBlockchainUnits(parsed, decimals);
-                              if (amount == BigInt.zero && parsed > 0) {
-                                return context.i18n.wallet_coin_amount_too_low_for_sending;
-                              }
-                            }
+                        final decimals = coinForNetwork?.coin.decimals;
+                        if (decimals != null) {
+                          final amount = toBlockchainUnits(parsed, decimals);
+                          if (amount == BigInt.zero && parsed > 0) {
+                            return context.i18n.wallet_coin_amount_too_low_for_sending;
+                          }
+                        }
 
-                            return null;
-                          },
+                        return null;
+                      },
                     ),
                   ),
                 ),
