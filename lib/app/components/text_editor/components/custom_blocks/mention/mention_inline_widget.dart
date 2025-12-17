@@ -21,54 +21,87 @@ class MentionInlineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = context.theme.appColors.primaryBackground;
-    final capTextColor = context.theme.appColors.onTertiaryBackground;
-    final usernameColor = context.theme.appColors.darkBlue;
-    final textStyle = context.theme.appTextThemes.body2;
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4.0.s, vertical: 1.0.s),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10.0.s),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$mentionPrefix$username',
-            style: textStyle.copyWith(
-              color: usernameColor,
-              height: 1,
-            ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          constraints: BoxConstraints(maxHeight: 20.0.s),
+          padding: EdgeInsets.symmetric(horizontal: 4.0.s, vertical: 3.0.s),
+          decoration: BoxDecoration(
+            color: context.theme.appColors.primaryBackground,
+            borderRadius: BorderRadius.circular(8.0.s),
           ),
-          SizedBox(width: 4.0.s),
-          Container(
-            padding: EdgeInsetsDirectional.fromSTEB(3.0.s, 0.5.s, 8.0.s, 1.0.s),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.0.s),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Assets.svg.iconMemeMarketcap.icon(
-                  size: 12.0.s,
-                  color: capTextColor,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$mentionPrefix$username',
+                style: context.theme.appTextThemes.body2.copyWith(
+                  color: context.theme.appColors.darkBlue,
+                  height: 1,
                 ),
-                SizedBox(width: 2.0.s),
-                Text(
-                  '\$${MarketDataFormatter.formatCompactNumber(marketCap)}',
-                  style: context.theme.appTextThemes.caption2.copyWith(
-                    color: capTextColor,
-                    height: 1,
+              ),
+              SizedBox(width: 4.0.s),
+              Container(
+                padding: EdgeInsetsDirectional.fromSTEB(3.0.s, 0.5.s, 8.0.s, 1.0.s),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(5.0.s),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Assets.svg.iconMemeMarketcap.icon(
+                      size: 12.0.s,
+                      color: context.theme.appColors.onTertiaryBackground,
+                    ),
+                    SizedBox(width: 2.0.s),
+                    Text(
+                      '\$${MarketDataFormatter.formatCompactNumber(marketCap)}',
+                      style: context.theme.appTextThemes.caption2.copyWith(
+                        color: context.theme.appColors.onTertiaryBackground,
+                        height: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (onClose != null)
+          Positioned(
+            top: -6.0.s,
+            right: -6.0.s,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: onClose,
+              child: Container(
+                width: 20.0.s, // larger hit target
+                height: 20.0.s,
+                alignment: Alignment.center,
+                child: Container(
+                  width: 14.0.s,
+                  height: 14.0.s,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: context.theme.appColors.attentionBlock,
+                    borderRadius: BorderRadius.circular(12.0.s),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 1.4.s,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    size: 9.0.s,
+                    color: context.theme.appColors.secondaryText,
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 }
