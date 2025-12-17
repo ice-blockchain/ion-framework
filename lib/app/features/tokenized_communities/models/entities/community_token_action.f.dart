@@ -185,6 +185,10 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     return amounts.firstWhereOrNull((amount) => amount.currency == currency);
   }
 
+  TransactionAmount? getAmountByUsdCurrency() {
+    return amounts.firstWhereOrNull((amount) => amount.currency == 'USD');
+  }
+
   static List<RelatedHashtag> _buildRelatedHashtags() {
     return [
       const RelatedHashtag(value: communityTokenTopic),
