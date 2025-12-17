@@ -9,7 +9,7 @@ import 'package:ion/app/features/tokenized_communities/utils/market_data_formatt
 import 'package:ion/generated/assets.gen.dart';
 
 /// Inline mention widget for the editor (badge-style with market cap and close).
-class MentionInlineWidget extends StatelessWidget {
+class MentionInlineWidget extends HookWidget {
   const MentionInlineWidget({
     required this.username,
     required this.marketCap,
