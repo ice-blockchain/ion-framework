@@ -77,15 +77,17 @@ class _CreateUpdateRequestBuilder {
 
     for (final coin in coins) {
       final walletViewId = walletView?.id;
-      final mainWalletId = mainUserWallet.id;
-      final wallets = networkWithWallet[coin.network.id];
+      final coinNetworkId = coin.network.id;
+      final walletsInNetwork = networkWithWallet[coinNetworkId];
       final isMainWalletView = walletView?.isMainWalletView ?? false;
 
-      final walletId = wallets?.firstWhereOrNull((wallet) {
-        return isMainWalletView
-            ? wallet.name == walletViewId || wallet.id == mainWalletId
-            : wallet.name == walletViewId;
-      })?.id;
+      final walletId = _resolveWalletIdForCoin(
+        mainUserWallet: mainUserWallet,
+        coinNetworkId: coinNetworkId,
+        walletsInNetwork: walletsInNetwork,
+        walletViewId: walletViewId,
+        isMainWalletView: isMainWalletView,
+      );
 
       symbolGroups.add(coin.symbolGroup);
       walletViewItems.add(
@@ -97,5 +99,28 @@ class _CreateUpdateRequestBuilder {
     }
 
     return (symbolGroups, walletViewItems);
+  }
+
+  String? _resolveWalletIdForCoin({
+    required Wallet mainUserWallet,
+    required String coinNetworkId,
+    required List<Wallet>? walletsInNetwork,
+    required String? walletViewId,
+    required bool isMainWalletView,
+  }) {
+    // No wallets found for this network: only safe fallback is main wallet if it matches the network.
+    if (walletsInNetwork == null || walletsInNetwork.isEmpty) {
+      return mainUserWallet.network == coinNetworkId ? mainUserWallet.id : null;
+    }
+
+    final matched = walletsInNetwork.firstWhereOrNull((wallet) {
+      if (isMainWalletView) {
+        return wallet.id == mainUserWallet.id || wallet.name == walletViewId;
+      }
+      return wallet.name == walletViewId;
+    });
+
+    // If we can't match by name/id (e.g., walletViewId is null), fall back to "any wallet in network".
+    return matched?.id ?? walletsInNetwork.first.id;
   }
 }
