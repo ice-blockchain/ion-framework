@@ -39,9 +39,9 @@ class AdsBenefitsPage extends HookConsumerWidget {
                     ),
                   ),
                   PositionedDirectional(
-                    start: 17.s,
-                    end: 17.s,
-                    bottom: 15,
+                    start: 16.s,
+                    end: 16.s,
+                    bottom: 16.s,
                     child: Image.asset(
                       Assets.images.ads.adsBenefits.path,
                       fit: BoxFit.fitWidth,
