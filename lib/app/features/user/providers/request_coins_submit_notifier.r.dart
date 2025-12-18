@@ -8,7 +8,9 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user/model/request_coins_form_data.f.dart';
+import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/request_coins_form_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -152,10 +154,32 @@ class RequestCoinsSubmitNotifier extends _$RequestCoinsSubmitNotifier {
     final currentUserDelegation = await ref.read(currentUserDelegationProvider.future);
     final contactDelegation = await ref.read(userDelegationProvider(contactPubkey).future);
 
-    final senderDevicePubkeys =
-        currentUserDelegation?.data.delegates.map((e) => e.pubkey).toList() ?? [];
-    final receiverDevicePubkeys =
-        contactDelegation?.data.delegates.map((e) => e.pubkey).toList() ?? [];
+    final eventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
+
+    if (eventSigner == null) {
+      throw EventSignerNotFoundException();
+    }
+
+    final currentUserActiveDelegates = currentUserDelegation?.data.delegates
+            .where((delegate) => delegate.status == DelegationStatus.active)
+            .toList() ??
+        [];
+
+    final senderDevicePubkeys = currentUserActiveDelegates.map((e) => e.pubkey).toList();
+
+    if (!senderDevicePubkeys.contains(eventSigner.publicKey)) {
+      throw FormException(
+        'Current device pubkey is revoked',
+        formName: _formName,
+      );
+    }
+
+    final contactActiveDelegates = contactDelegation?.data.delegates
+            .where((delegate) => delegate.status == DelegationStatus.active)
+            .toList() ??
+        [];
+
+    final receiverDevicePubkeys = contactActiveDelegates.map((e) => e.pubkey).toList();
 
     if (senderDevicePubkeys.isEmpty && receiverDevicePubkeys.isEmpty) {
       throw FormException(
