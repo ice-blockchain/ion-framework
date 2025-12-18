@@ -40,4 +40,7 @@ class MockIonAdsPlatform implements IonAdsPlatform {
 
   @override
   void showConsentForm() {}
+
+  @override
+  List<int> computeInsertionIndices(int contentCount, {int startOffset = 0}) => [];
 }
