@@ -26,4 +26,6 @@ abstract class IonAdsPlatform {
   Widget? buildPlatformMediaView(IonNativeAdAsset adAsset);
 
   void showConsentForm();
+
+  List<int> computeInsertionIndices(int contentCount, {int startOffset = 0});
 }
