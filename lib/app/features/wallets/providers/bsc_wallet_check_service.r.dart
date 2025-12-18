@@ -11,6 +11,8 @@ import 'package:ion/app/features/tokenized_communities/providers/token_action_fi
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/bsc_wallet_check_provider.m.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/router/providers/route_location_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
@@ -34,6 +36,7 @@ class BscWalletCheckService {
   bool? _onboardingComplete;
   bool _splashCompleted = false;
   bool? _currentUserHasToken;
+  String _route = '';
   final _lock = Lock();
 
   final void Function() _emitDialog;
@@ -71,11 +74,17 @@ class BscWalletCheckService {
     _maybeTrigger();
   }
 
+  void onRouteChanged(String value) {
+    _route = value;
+    _maybeTrigger();
+  }
+
   Future<void> _maybeTrigger() async {
     return _lock.synchronized(() async {
       if (!_splashCompleted) return;
       if (!_authenticated) return;
       if (_onboardingComplete != true) return;
+      if (_route != FeedRoute().location) return;
       if (_currentUserHasToken == null || (_currentUserHasToken ?? false)) return;
       final prefs = _userPreferencesService;
       if (prefs == null) return;
@@ -129,6 +138,13 @@ BscWalletCheckService bscWalletCheckService(Ref ref) {
       fireImmediately: true,
       (_, AsyncValue<bool?> next) {
         service.onOnboardingComplete(next.valueOrNull);
+      },
+    )
+    ..listen<String>(
+      routeLocationProvider,
+      fireImmediately: true,
+      (_, String next) {
+        service.onRouteChanged(next);
       },
     )
     ..listen<UserPreferencesService?>(

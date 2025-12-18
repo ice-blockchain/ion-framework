@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -8,9 +9,11 @@ import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/views/pages/required_bsc_wallet/required_bsc_wallet_dialog.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/bsc_wallet_check_provider.m.dart';
+import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
+import 'package:ion/app/features/wallets/views/components/address_not_found_modal.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
@@ -114,10 +117,28 @@ class _ContentState extends HookConsumerWidget {
                     final bscWalletCheck = await ref.watch(bscWalletCheckProvider.future);
                     if (!context.mounted) return;
                     if (!bscWalletCheck.hasBscWallet) {
+                      final bscNetwork = bscWalletCheck.bscNetwork ??
+                          (await ref.read(networksProvider.future))
+                              .firstWhereOrNull((n) => n.isBsc);
+
+                      if (!context.mounted || bscNetwork == null) return;
+
                       await showSimpleBottomSheet<void>(
                         context: context,
                         isDismissible: false,
-                        child: const RequiredBscWalletDialog(),
+                        child: AddressNotFoundModal(
+                          isBottomSheet: true,
+                          network: bscNetwork,
+                          onWalletCreated: (_) {
+                            // Close the AddressNotFoundModal sheet
+                            if (ref.context.mounted) {
+                              Navigator.of(ref.context).pop();
+                            }
+                            ref
+                              ..invalidate(bscWalletCheckProvider)
+                              ..invalidate(currentUserMetadataProvider);
+                          },
+                        ),
                       );
                     }
                   } finally {

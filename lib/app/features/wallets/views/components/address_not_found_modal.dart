@@ -22,11 +22,13 @@ class AddressNotFoundModal extends HookConsumerWidget {
   const AddressNotFoundModal({
     required this.network,
     required this.onWalletCreated,
+    this.isBottomSheet = false,
     super.key,
   });
 
   final NetworkData? network;
   final ValueChanged<String> onWalletCreated;
+  final bool isBottomSheet;
 
   static double get buttonsSize => 56.0.s;
 
@@ -40,57 +42,61 @@ class AddressNotFoundModal extends HookConsumerWidget {
 
     final networkDisplayName = network?.displayName ?? '';
 
-    return SheetContent(
-      body: ScreenSideOffset.small(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            NavigationAppBar.modal(
-              title: Text(context.i18n.wallet_address_not_found),
-              actions: const [NavigationCloseButton()],
+    final content = ScreenSideOffset.small(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          NavigationAppBar.modal(
+            title: Text(context.i18n.wallet_address_not_found),
+            actions: const [NavigationCloseButton()],
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.only(top: 22.0.s, bottom: 4.0.s),
+            child: _WalletNetworkIcon(networkIconUrl: network?.image ?? ''),
+          ),
+          Text(
+            context.i18n.wallet_address_set_up(networkDisplayName),
+            style: context.theme.appTextThemes.title.copyWith(
+              color: context.theme.appColors.primaryText,
             ),
-            Padding(
-              padding: EdgeInsetsDirectional.only(top: 22.0.s, bottom: 4.0.s),
-              child: _WalletNetworkIcon(networkIconUrl: network?.image ?? ''),
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.only(
+              top: 8.0.s,
+              bottom: 21.0.s,
+              start: 10.0.s,
+              end: 10.0.s,
             ),
-            Text(
-              context.i18n.wallet_address_set_up(networkDisplayName),
-              style: context.theme.appTextThemes.title.copyWith(
-                color: context.theme.appColors.primaryText,
+            child: Text(
+              context.i18n.wallet_address_create_one(networkDisplayName),
+              style: context.theme.appTextThemes.body2.copyWith(
+                color: context.theme.appColors.secondaryText,
               ),
+              textAlign: TextAlign.center,
             ),
-            Padding(
-              padding: EdgeInsetsDirectional.only(
-                top: 8.0.s,
-                bottom: 21.0.s,
-                start: 10.0.s,
-                end: 10.0.s,
+          ),
+          ScreenBottomOffset(
+            child: Button(
+              label: Text(context.i18n.wallet_address_create_button),
+              leadingIcon: Assets.svg.iconPostAddanswer.icon(
+                size: 24.0.s,
+                color: context.theme.appColors.onPrimaryAccent,
               ),
-              child: Text(
-                context.i18n.wallet_address_create_one(networkDisplayName),
-                style: context.theme.appTextThemes.body2.copyWith(
-                  color: context.theme.appColors.secondaryText,
-                ),
-                textAlign: TextAlign.center,
-              ),
+              trailingIcon: isCreatingWallet ? const IONLoadingIndicator() : null,
+              onPressed: () => _createWalletAddress(ref, network),
+              minimumSize: buttonMinimalSize,
+              mainAxisSize: MainAxisSize.max,
             ),
-            ScreenBottomOffset(
-              child: Button(
-                label: Text(context.i18n.wallet_address_create_button),
-                leadingIcon: Assets.svg.iconPostAddanswer.icon(
-                  size: 24.0.s,
-                  color: context.theme.appColors.onPrimaryAccent,
-                ),
-                trailingIcon: isCreatingWallet ? const IONLoadingIndicator() : null,
-                onPressed: () => _createWalletAddress(ref, network),
-                minimumSize: buttonMinimalSize,
-                mainAxisSize: MainAxisSize.max,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+
+    return isBottomSheet
+        ? content
+        : SheetContent(
+            body: content,
+          );
   }
 
   Future<void> _createWalletAddress(WidgetRef ref, NetworkData? network) async {
