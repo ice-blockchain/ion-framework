@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
@@ -13,14 +12,12 @@ import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/text_editor/text_editor_preview.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
 import 'package:ion/app/features/feed/views/pages/article_details_page/components/article_content_measurer.dart';
 import 'package:ion/app/features/feed/views/pages/article_details_page/components/article_details_date_topics.dart';
@@ -47,8 +44,6 @@ class ArticleDetailsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final articleEntity =
         ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
-    final isOwnedByCurrentUser =
-        ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
 
     if (articleEntity is! ArticleEntity) {
       return const SizedBox.shrink();
@@ -149,20 +144,11 @@ class ArticleDetailsPage extends HookConsumerWidget {
     return Scaffold(
       appBar: NavigationAppBar.screen(
         actions: [
-          if (isOwnedByCurrentUser)
-            BottomSheetMenuButton(
-              menuBuilder: (context) => OwnPostMenuBottomSheet(
-                eventReference: eventReference,
-                onDelete: context.pop,
-              ),
-            )
-          else
-            BottomSheetMenuButton(
-              menuBuilder: (context) => PostMenuBottomSheet(
-                eventReference: eventReference,
-                showNotInterested: false,
-              ),
-            ),
+          PostContextMenu.forAppBar(
+            eventReference: eventReference,
+            entity: articleEntity,
+            onDelete: context.pop,
+          ),
         ],
       ),
       body: Stack(
