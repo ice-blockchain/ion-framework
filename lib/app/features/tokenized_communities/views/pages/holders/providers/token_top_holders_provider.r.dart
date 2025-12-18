@@ -66,10 +66,12 @@ class TokenTopHolders extends _$TokenTopHolders {
   }
 
   void _applyUpdate(List<TopHolder> list, TopHolderBase item) {
-    final index = list.indexWhere(
-      (element) => element.position.holder.addresses == item.position?.holder?.addresses,
-    );
+    final rank = item.position?.rank;
+    if (rank == null) {
+      return;
+    }
 
+    final index = list.indexWhere((element) => element.position.rank == rank);
     if (index != -1) {
       final existing = list[index];
       if (item is TopHolderPatch) {

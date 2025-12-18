@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:ion_token_analytics/src/community_tokens/bonding_curve_progress/bonding_curve_progress_repository.dart';
+import 'package:ion_token_analytics/src/community_tokens/bonding_curve_progress/bonding_curve_progress_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
@@ -32,6 +34,7 @@ class IonCommunityTokensService {
     required LatestTokensRepository latestTokensRepository,
     required CategoryTokensRepository categoryTokensRepository,
     required GlobalSearchTokensRepository globalSearchTokensRepository,
+    required BondingCurveProgressRepository bondingCurveProgressRepository,
   }) : _tokenInfoRepository = tokenInfoRepository,
        _ohlcvCandlesRepository = ohlcvCandlesRepository,
        _tradingStatsRepository = tradingStatsRepository,
@@ -40,7 +43,8 @@ class IonCommunityTokensService {
        _featuredTokensRepository = featuredTokensRepository,
        _latestTokensRepository = latestTokensRepository,
        _categoryTokensRepository = categoryTokensRepository,
-       _globalSearchTokensRepository = globalSearchTokensRepository;
+       _globalSearchTokensRepository = globalSearchTokensRepository,
+       _bondingCurveProgressRepository = bondingCurveProgressRepository;
 
   final TokenInfoRepository _tokenInfoRepository;
   final OhlcvCandlesRepository _ohlcvCandlesRepository;
@@ -51,6 +55,7 @@ class IonCommunityTokensService {
   final LatestTokensRepository _latestTokensRepository;
   final CategoryTokensRepository _categoryTokensRepository;
   final GlobalSearchTokensRepository _globalSearchTokensRepository;
+  final BondingCurveProgressRepository _bondingCurveProgressRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
     final service = IonCommunityTokensService._(
@@ -63,6 +68,7 @@ class IonCommunityTokensService {
       latestTokensRepository: LatestTokensRepositoryImpl(networkClient),
       categoryTokensRepository: CategoryTokensRepositoryImpl(networkClient),
       globalSearchTokensRepository: GlobalSearchTokensRepositoryRemote(networkClient),
+      bondingCurveProgressRepository: BondingCurveProgressRepositoryImpl(networkClient),
     );
     return service;
   }
@@ -96,6 +102,12 @@ class IonCommunityTokensService {
     required int limit,
   }) {
     return _topHoldersRepository.subscribeToTopHolders(ionConnectAddress, limit: limit);
+  }
+
+  Future<NetworkSubscription<BondingCurveProgressBase>> subscribeToBondingCurveProgress({
+    required String externalAddress,
+  }) {
+    return _bondingCurveProgressRepository.subscribeToBondingCurveProgress(externalAddress);
   }
 
   Future<List<LatestTrade>> fetchLatestTrades({

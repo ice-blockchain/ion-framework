@@ -874,6 +874,7 @@
   "tokenized_community_comments_tab": "Commentaires",
   "tokenized_community_holders_tab": "Détenteurs",
   "tokenized_community_trades_tab": "Transactions",
+  "tokenized_community_bonding_curve": "Courbe de liaison",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Ajouter un lien",
   "top_holders_empty": "Devenez le premier détenteur",

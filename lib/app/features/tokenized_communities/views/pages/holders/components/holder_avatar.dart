@@ -9,7 +9,9 @@ import 'package:ion/generated/assets.gen.dart';
 
 class HolderAvatar extends StatelessWidget {
   const HolderAvatar({super.key, this.imageUrl});
+
   final String? imageUrl;
+
   @override
   Widget build(BuildContext context) {
     final emptyIcon = Container(
@@ -28,14 +30,17 @@ class HolderAvatar extends StatelessWidget {
     }
 
     if (imageUrl!.isSvg) {
+      final size = 30.0.s;
       return ClipRRect(
         borderRadius: BorderRadius.circular(10.0.s),
-        child: SvgPicture.network(
-          imageUrl!,
-          width: 30.0.s,
-          height: 30.0.s,
-          errorBuilder: (context, url, error) => emptyIcon,
-        ),
+        child: imageUrl!.isNetworkSvg
+            ? SvgPicture.network(
+                imageUrl!,
+                width: size,
+                height: size,
+                errorBuilder: (context, url, error) => emptyIcon,
+              )
+            : imageUrl!.icon(size: size),
       );
     }
 
