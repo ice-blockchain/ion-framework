@@ -46,7 +46,7 @@ class EntitiesList extends HookWidget {
   final bool showAds;
 
   /// Loads ad after every 5th widget
-  static const int showAdAfter = 6;
+  static const int showAdAfter = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -204,10 +204,10 @@ class _CustomNativeAd extends StatelessWidget {
     return _BottomSeparator(
       height: separatorHeight,
       child: Container(
-        height: 260,
+        height: 298,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: AppodealNativeAd(
-          options: NativeAdOptions.contentStreamOptions(),
+          options: NativeAdOptions.customOptions(),
         ),
       ),
     );
