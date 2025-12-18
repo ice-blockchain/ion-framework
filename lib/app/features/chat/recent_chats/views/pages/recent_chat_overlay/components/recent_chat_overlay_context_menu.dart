@@ -10,6 +10,7 @@ import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/toggle_archive_conversation_provider.r.dart';
@@ -60,7 +61,8 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
             child: Column(
               children: [
                 OverlayMenuItem(
-                  label: conversation.isArchived
+                  label: ref.watch(archivedConversationsProvider).value?.contains(conversation) ??
+                          false
                       ? context.i18n.common_unarchive_single
                       : context.i18n.common_add_to_archive,
                   icon: Assets.svg.iconChatArchive.icon(
@@ -70,7 +72,7 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
                   onPressed: () {
                     ref
                         .read(toggleArchivedConversationsProvider.notifier)
-                        .toggleConversations([conversation]);
+                        .toggleConversations([conversation.conversationId]);
                     Navigator.of(context).pop();
                   },
                   minWidth: 128.0.s,
