@@ -43,9 +43,7 @@ class ProfileBalance extends StatelessWidget {
                   width: 4.0.s,
                 ),
                 Text(
-                  formatCount(
-                    coins.toInt(),
-                  ),
+                  coins >= 1 ? formatCount(coins.toInt()) : coins.toString(),
                   style: context.theme.appTextThemes.body2.copyWith(
                     color: context.theme.appColors.primaryBackground,
                   ),
