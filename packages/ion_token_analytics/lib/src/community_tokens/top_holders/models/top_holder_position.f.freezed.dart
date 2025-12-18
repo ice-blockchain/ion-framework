@@ -23,7 +23,7 @@ TopHolderPosition _$TopHolderPositionFromJson(Map<String, dynamic> json) {
 mixin _$TopHolderPosition {
   Creator get holder => throw _privateConstructorUsedError;
   int get rank => throw _privateConstructorUsedError;
-  double get amount => throw _privateConstructorUsedError;
+  String get amount => throw _privateConstructorUsedError;
   double get amountUSD => throw _privateConstructorUsedError;
   double get supplyShare => throw _privateConstructorUsedError;
 
@@ -47,7 +47,7 @@ abstract class $TopHolderPositionCopyWith<$Res> {
   $Res call({
     Creator holder,
     int rank,
-    double amount,
+    String amount,
     double amountUSD,
     double supplyShare,
   });
@@ -89,7 +89,7 @@ class _$TopHolderPositionCopyWithImpl<$Res, $Val extends TopHolderPosition>
             amount: null == amount
                 ? _value.amount
                 : amount // ignore: cast_nullable_to_non_nullable
-                      as double,
+                      as String,
             amountUSD: null == amountUSD
                 ? _value.amountUSD
                 : amountUSD // ignore: cast_nullable_to_non_nullable
@@ -126,7 +126,7 @@ abstract class _$$TopHolderPositionImplCopyWith<$Res>
   $Res call({
     Creator holder,
     int rank,
-    double amount,
+    String amount,
     double amountUSD,
     double supplyShare,
   });
@@ -168,7 +168,7 @@ class __$$TopHolderPositionImplCopyWithImpl<$Res>
         amount: null == amount
             ? _value.amount
             : amount // ignore: cast_nullable_to_non_nullable
-                  as double,
+                  as String,
         amountUSD: null == amountUSD
             ? _value.amountUSD
             : amountUSD // ignore: cast_nullable_to_non_nullable
@@ -201,7 +201,7 @@ class _$TopHolderPositionImpl implements _TopHolderPosition {
   @override
   final int rank;
   @override
-  final double amount;
+  final String amount;
   @override
   final double amountUSD;
   @override
@@ -252,7 +252,7 @@ abstract class _TopHolderPosition implements TopHolderPosition {
   const factory _TopHolderPosition({
     required final Creator holder,
     required final int rank,
-    required final double amount,
+    required final String amount,
     required final double amountUSD,
     required final double supplyShare,
   }) = _$TopHolderPositionImpl;
@@ -265,7 +265,7 @@ abstract class _TopHolderPosition implements TopHolderPosition {
   @override
   int get rank;
   @override
-  double get amount;
+  String get amount;
   @override
   double get amountUSD;
   @override
@@ -289,7 +289,7 @@ TopHolderPositionPatch _$TopHolderPositionPatchFromJson(
 mixin _$TopHolderPositionPatch {
   CreatorPatch? get holder => throw _privateConstructorUsedError;
   int? get rank => throw _privateConstructorUsedError;
-  double? get amount => throw _privateConstructorUsedError;
+  String? get amount => throw _privateConstructorUsedError;
   double? get amountUSD => throw _privateConstructorUsedError;
   double? get supplyShare => throw _privateConstructorUsedError;
 
@@ -316,7 +316,7 @@ class _$TopHolderPositionPatchImpl implements _TopHolderPositionPatch {
   @override
   final int? rank;
   @override
-  final double? amount;
+  final String? amount;
   @override
   final double? amountUSD;
   @override
@@ -356,7 +356,7 @@ abstract class _TopHolderPositionPatch implements TopHolderPositionPatch {
   const factory _TopHolderPositionPatch({
     final CreatorPatch? holder,
     final int? rank,
-    final double? amount,
+    final String? amount,
     final double? amountUSD,
     final double? supplyShare,
   }) = _$TopHolderPositionPatchImpl;
@@ -369,7 +369,7 @@ abstract class _TopHolderPositionPatch implements TopHolderPositionPatch {
   @override
   int? get rank;
   @override
-  double? get amount;
+  String? get amount;
   @override
   double? get amountUSD;
   @override

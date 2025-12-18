@@ -21,12 +21,12 @@ BondingCurveProgress _$BondingCurveProgressFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$BondingCurveProgress {
-  int get currentAmount => throw _privateConstructorUsedError;
+  String get currentAmount => throw _privateConstructorUsedError;
   double get currentAmountUSD => throw _privateConstructorUsedError;
-  int get goalAmount => throw _privateConstructorUsedError;
+  String get goalAmount => throw _privateConstructorUsedError;
   double get goalAmountUSD => throw _privateConstructorUsedError;
   bool get migrated => throw _privateConstructorUsedError;
-  int get raisedAmount => throw _privateConstructorUsedError;
+  String get raisedAmount => throw _privateConstructorUsedError;
 
   /// Serializes this BondingCurveProgress to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -46,12 +46,12 @@ abstract class $BondingCurveProgressCopyWith<$Res> {
   ) = _$BondingCurveProgressCopyWithImpl<$Res, BondingCurveProgress>;
   @useResult
   $Res call({
-    int currentAmount,
+    String currentAmount,
     double currentAmountUSD,
-    int goalAmount,
+    String goalAmount,
     double goalAmountUSD,
     bool migrated,
-    int raisedAmount,
+    String raisedAmount,
   });
 }
 
@@ -85,7 +85,7 @@ class _$BondingCurveProgressCopyWithImpl<
             currentAmount: null == currentAmount
                 ? _value.currentAmount
                 : currentAmount // ignore: cast_nullable_to_non_nullable
-                      as int,
+                      as String,
             currentAmountUSD: null == currentAmountUSD
                 ? _value.currentAmountUSD
                 : currentAmountUSD // ignore: cast_nullable_to_non_nullable
@@ -93,7 +93,7 @@ class _$BondingCurveProgressCopyWithImpl<
             goalAmount: null == goalAmount
                 ? _value.goalAmount
                 : goalAmount // ignore: cast_nullable_to_non_nullable
-                      as int,
+                      as String,
             goalAmountUSD: null == goalAmountUSD
                 ? _value.goalAmountUSD
                 : goalAmountUSD // ignore: cast_nullable_to_non_nullable
@@ -105,7 +105,7 @@ class _$BondingCurveProgressCopyWithImpl<
             raisedAmount: null == raisedAmount
                 ? _value.raisedAmount
                 : raisedAmount // ignore: cast_nullable_to_non_nullable
-                      as int,
+                      as String,
           )
           as $Val,
     );
@@ -122,12 +122,12 @@ abstract class _$$BondingCurveProgressImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    int currentAmount,
+    String currentAmount,
     double currentAmountUSD,
-    int goalAmount,
+    String goalAmount,
     double goalAmountUSD,
     bool migrated,
-    int raisedAmount,
+    String raisedAmount,
   });
 }
 
@@ -157,7 +157,7 @@ class __$$BondingCurveProgressImplCopyWithImpl<$Res>
         currentAmount: null == currentAmount
             ? _value.currentAmount
             : currentAmount // ignore: cast_nullable_to_non_nullable
-                  as int,
+                  as String,
         currentAmountUSD: null == currentAmountUSD
             ? _value.currentAmountUSD
             : currentAmountUSD // ignore: cast_nullable_to_non_nullable
@@ -165,7 +165,7 @@ class __$$BondingCurveProgressImplCopyWithImpl<$Res>
         goalAmount: null == goalAmount
             ? _value.goalAmount
             : goalAmount // ignore: cast_nullable_to_non_nullable
-                  as int,
+                  as String,
         goalAmountUSD: null == goalAmountUSD
             ? _value.goalAmountUSD
             : goalAmountUSD // ignore: cast_nullable_to_non_nullable
@@ -177,7 +177,7 @@ class __$$BondingCurveProgressImplCopyWithImpl<$Res>
         raisedAmount: null == raisedAmount
             ? _value.raisedAmount
             : raisedAmount // ignore: cast_nullable_to_non_nullable
-                  as int,
+                  as String,
       ),
     );
   }
@@ -199,17 +199,17 @@ class _$BondingCurveProgressImpl implements _BondingCurveProgress {
       _$$BondingCurveProgressImplFromJson(json);
 
   @override
-  final int currentAmount;
+  final String currentAmount;
   @override
   final double currentAmountUSD;
   @override
-  final int goalAmount;
+  final String goalAmount;
   @override
   final double goalAmountUSD;
   @override
   final bool migrated;
   @override
-  final int raisedAmount;
+  final String raisedAmount;
 
   @override
   String toString() {
@@ -267,29 +267,29 @@ class _$BondingCurveProgressImpl implements _BondingCurveProgress {
 
 abstract class _BondingCurveProgress implements BondingCurveProgress {
   const factory _BondingCurveProgress({
-    required final int currentAmount,
+    required final String currentAmount,
     required final double currentAmountUSD,
-    required final int goalAmount,
+    required final String goalAmount,
     required final double goalAmountUSD,
     required final bool migrated,
-    required final int raisedAmount,
+    required final String raisedAmount,
   }) = _$BondingCurveProgressImpl;
 
   factory _BondingCurveProgress.fromJson(Map<String, dynamic> json) =
       _$BondingCurveProgressImpl.fromJson;
 
   @override
-  int get currentAmount;
+  String get currentAmount;
   @override
   double get currentAmountUSD;
   @override
-  int get goalAmount;
+  String get goalAmount;
   @override
   double get goalAmountUSD;
   @override
   bool get migrated;
   @override
-  int get raisedAmount;
+  String get raisedAmount;
 
   /// Create a copy of BondingCurveProgress
   /// with the given fields replaced by the non-null parameter values.
@@ -307,12 +307,12 @@ BondingCurveProgressPatch _$BondingCurveProgressPatchFromJson(
 
 /// @nodoc
 mixin _$BondingCurveProgressPatch {
-  int? get currentAmount => throw _privateConstructorUsedError;
+  String? get currentAmount => throw _privateConstructorUsedError;
   double? get currentAmountUSD => throw _privateConstructorUsedError;
-  int? get goalAmount => throw _privateConstructorUsedError;
+  String? get goalAmount => throw _privateConstructorUsedError;
   double? get goalAmountUSD => throw _privateConstructorUsedError;
   bool? get migrated => throw _privateConstructorUsedError;
-  int? get raisedAmount => throw _privateConstructorUsedError;
+  String? get raisedAmount => throw _privateConstructorUsedError;
 
   /// Serializes this BondingCurveProgressPatch to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -334,17 +334,17 @@ class _$BondingCurveProgressPatchImpl implements _BondingCurveProgressPatch {
       _$$BondingCurveProgressPatchImplFromJson(json);
 
   @override
-  final int? currentAmount;
+  final String? currentAmount;
   @override
   final double? currentAmountUSD;
   @override
-  final int? goalAmount;
+  final String? goalAmount;
   @override
   final double? goalAmountUSD;
   @override
   final bool? migrated;
   @override
-  final int? raisedAmount;
+  final String? raisedAmount;
 
   @override
   String toString() {
@@ -390,27 +390,27 @@ class _$BondingCurveProgressPatchImpl implements _BondingCurveProgressPatch {
 
 abstract class _BondingCurveProgressPatch implements BondingCurveProgressPatch {
   const factory _BondingCurveProgressPatch({
-    final int? currentAmount,
+    final String? currentAmount,
     final double? currentAmountUSD,
-    final int? goalAmount,
+    final String? goalAmount,
     final double? goalAmountUSD,
     final bool? migrated,
-    final int? raisedAmount,
+    final String? raisedAmount,
   }) = _$BondingCurveProgressPatchImpl;
 
   factory _BondingCurveProgressPatch.fromJson(Map<String, dynamic> json) =
       _$BondingCurveProgressPatchImpl.fromJson;
 
   @override
-  int? get currentAmount;
+  String? get currentAmount;
   @override
   double? get currentAmountUSD;
   @override
-  int? get goalAmount;
+  String? get goalAmount;
   @override
   double? get goalAmountUSD;
   @override
   bool? get migrated;
   @override
-  int? get raisedAmount;
+  String? get raisedAmount;
 }

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 
@@ -93,7 +95,41 @@ class NetworkClient {
       headers: _addAuthorizationHeader(headers),
     );
 
-    return NetworkSubscription<T>(stream: subscription.stream, close: subscription.close);
+    // Some SSE endpoints use a marker event with `Data: nil` (Go), which may be
+    // delivered as a literal `<nil>` string. If the SSE decoder attempts to
+    // `jsonDecode('<nil>')`, it throws a FormatException and would otherwise
+    // terminate the stream.
+    //
+    // We intercept that error and convert it into an empty map event for
+    // map-typed subscriptions. Downstream repositories can
+    // interpret an empty map as the EOSE marker.
+    final stream = subscription.stream.transform(
+      StreamTransformer<T, T>.fromHandlers(
+        handleData: (data, sink) => sink.add(data),
+        handleError: (error, stackTrace, sink) {
+          final text = error.toString();
+          final isNil = error is FormatException && text.contains('<nil>');
+
+          if (isNil) {
+            if (<String, dynamic>{} is T) {
+              sink.add(<String, dynamic>{} as T);
+              return;
+            }
+            if (<dynamic, dynamic>{} is T) {
+              sink.add(<dynamic, dynamic>{} as T);
+              return;
+            }
+
+            // If the subscription type isn't map-like/list-like, just swallow the marker.
+            return;
+          }
+
+          sink.addError(error, stackTrace);
+        },
+      ),
+    );
+
+    return NetworkSubscription<T>(stream: stream, close: subscription.close);
   }
 
   Future<void> dispose() {
@@ -148,6 +184,7 @@ class NetworkClient {
 
 class NetworkSubscription<T> {
   NetworkSubscription({required this.stream, required this.close});
+
   final Stream<T> stream;
   final Future<void> Function() close;
 }

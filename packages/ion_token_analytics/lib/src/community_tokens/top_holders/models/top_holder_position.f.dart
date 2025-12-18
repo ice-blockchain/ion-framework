@@ -8,9 +8,13 @@ part 'top_holder_position.f.g.dart';
 
 abstract class TopHolderPositionBase {
   CreatorBase? get holder;
+
   int? get rank;
-  double? get amount;
+
+  String? get amount;
+
   double? get amountUSD;
+
   double? get supplyShare;
 }
 
@@ -19,7 +23,7 @@ class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionBas
   const factory TopHolderPosition({
     required Creator holder,
     required int rank,
-    required double amount,
+    required String amount,
     required double amountUSD,
     required double supplyShare,
   }) = _TopHolderPosition;
@@ -33,7 +37,7 @@ class TopHolderPositionPatch with _$TopHolderPositionPatch implements TopHolderP
   const factory TopHolderPositionPatch({
     CreatorPatch? holder,
     int? rank,
-    double? amount,
+    String? amount,
     double? amountUSD,
     double? supplyShare,
   }) = _TopHolderPositionPatch;

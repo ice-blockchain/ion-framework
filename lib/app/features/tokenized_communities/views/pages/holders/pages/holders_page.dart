@@ -7,7 +7,6 @@ import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_bonding_curve_progress_provider.r.dart';
@@ -34,9 +33,7 @@ class HoldersPage extends HookConsumerWidget {
     final topHolders =
         topHoldersAsync.isLoading ? previousTopHolders.value : topHoldersAsync.valueOrNull ?? [];
 
-    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
-
-    final showBondingCurve = token != null && bondingCurveProgress != null;
+    final showBondingCurve = bondingCurveProgress != null;
     final extra = showBondingCurve ? 1 : 0;
 
     return Scaffold(
@@ -70,7 +67,6 @@ class HoldersPage extends HookConsumerWidget {
                           bottomPadding: bottomPadding,
                           child: BondingCurveHolderTile(
                             bondingCurveProgress: bondingCurveProgress,
-                            token: token,
                           ),
                         );
                       }

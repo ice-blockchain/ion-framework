@@ -9,12 +9,12 @@ part of 'bonding_curve_progress.f.dart';
 _$BondingCurveProgressImpl _$$BondingCurveProgressImplFromJson(
   Map<String, dynamic> json,
 ) => _$BondingCurveProgressImpl(
-  currentAmount: (json['currentAmount'] as num).toInt(),
+  currentAmount: json['currentAmount'] as String,
   currentAmountUSD: (json['currentAmountUSD'] as num).toDouble(),
-  goalAmount: (json['goalAmount'] as num).toInt(),
+  goalAmount: json['goalAmount'] as String,
   goalAmountUSD: (json['goalAmountUSD'] as num).toDouble(),
   migrated: json['migrated'] as bool,
-  raisedAmount: (json['raisedAmount'] as num).toInt(),
+  raisedAmount: json['raisedAmount'] as String,
 );
 
 Map<String, dynamic> _$$BondingCurveProgressImplToJson(
@@ -31,12 +31,12 @@ Map<String, dynamic> _$$BondingCurveProgressImplToJson(
 _$BondingCurveProgressPatchImpl _$$BondingCurveProgressPatchImplFromJson(
   Map<String, dynamic> json,
 ) => _$BondingCurveProgressPatchImpl(
-  currentAmount: (json['currentAmount'] as num?)?.toInt(),
+  currentAmount: json['currentAmount'] as String?,
   currentAmountUSD: (json['currentAmountUSD'] as num?)?.toDouble(),
-  goalAmount: (json['goalAmount'] as num?)?.toInt(),
+  goalAmount: json['goalAmount'] as String?,
   goalAmountUSD: (json['goalAmountUSD'] as num?)?.toDouble(),
   migrated: json['migrated'] as bool?,
-  raisedAmount: (json['raisedAmount'] as num?)?.toInt(),
+  raisedAmount: json['raisedAmount'] as String?,
 );
 
 Map<String, dynamic> _$$BondingCurveProgressPatchImplToJson(

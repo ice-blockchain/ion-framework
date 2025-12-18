@@ -10,7 +10,6 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/provi
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 const int holdersCountLimit = 5;
@@ -18,13 +17,11 @@ const int holdersCountLimit = 5;
 class TopHolders extends StatelessWidget {
   const TopHolders({
     required this.externalAddress,
-    required this.token,
     this.onTitleVisibilityChanged,
     super.key,
   });
 
   final String externalAddress;
-  final CommunityToken token;
   final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
@@ -43,7 +40,7 @@ class TopHolders extends StatelessWidget {
               onTitleVisibilityChanged: onTitleVisibilityChanged,
             ),
             SizedBox(height: 14.0.s),
-            _TopHolderList(token: token, externalAddress: externalAddress),
+            _TopHolderList(externalAddress: externalAddress),
           ],
         ),
       ),
@@ -154,10 +151,8 @@ class _HeaderViewAllButton extends ConsumerWidget {
 class _TopHolderList extends ConsumerWidget {
   const _TopHolderList({
     required this.externalAddress,
-    required this.token,
   });
 
-  final CommunityToken token;
   final String externalAddress;
 
   @override
@@ -185,7 +180,6 @@ class _TopHolderList extends ConsumerWidget {
             if (hasBondingCurve && index == 0) {
               return BondingCurveHolderTile(
                 bondingCurveProgress: bondingCurveProgress,
-                token: token,
               );
             }
 

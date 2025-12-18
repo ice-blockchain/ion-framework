@@ -191,7 +191,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             children: [
               TopHolders(
                 externalAddress: externalAddress,
-                token: token,
                 onTitleVisibilityChanged: visibilityCallbacks[1],
               ),
               SimpleSeparator(height: 4.0.s),

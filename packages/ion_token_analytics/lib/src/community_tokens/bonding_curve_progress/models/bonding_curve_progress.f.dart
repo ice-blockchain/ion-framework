@@ -7,28 +7,28 @@ part 'bonding_curve_progress.f.freezed.dart';
 part 'bonding_curve_progress.f.g.dart';
 
 abstract class BondingCurveProgressBase {
-  int? get currentAmount;
+  String? get currentAmount;
 
   double? get currentAmountUSD;
 
-  int? get goalAmount;
+  String? get goalAmount;
 
   double? get goalAmountUSD;
 
   bool? get migrated;
 
-  int? get raisedAmount;
+  String? get raisedAmount;
 }
 
 @freezed
 class BondingCurveProgress with _$BondingCurveProgress implements BondingCurveProgressBase {
   const factory BondingCurveProgress({
-    required int currentAmount,
+    required String currentAmount,
     required double currentAmountUSD,
-    required int goalAmount,
+    required String goalAmount,
     required double goalAmountUSD,
     required bool migrated,
-    required int raisedAmount,
+    required String raisedAmount,
   }) = _BondingCurveProgress;
 
   factory BondingCurveProgress.fromJson(Map<String, dynamic> json) =>
@@ -40,12 +40,12 @@ class BondingCurveProgressPatch
     with _$BondingCurveProgressPatch
     implements BondingCurveProgressBase {
   const factory BondingCurveProgressPatch({
-    int? currentAmount,
+    String? currentAmount,
     double? currentAmountUSD,
-    int? goalAmount,
+    String? goalAmount,
     double? goalAmountUSD,
     bool? migrated,
-    int? raisedAmount,
+    String? raisedAmount,
   }) = _BondingCurveProgressPatch;
 
   factory BondingCurveProgressPatch.fromJson(Map<String, dynamic> json) =>

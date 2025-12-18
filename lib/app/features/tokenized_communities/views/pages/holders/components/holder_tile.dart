@@ -10,19 +10,23 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 class BondingCurveHolderTile extends StatelessWidget {
   const BondingCurveHolderTile({
     required this.bondingCurveProgress,
-    required this.token,
     super.key,
   });
 
-  final CommunityToken token;
   final BondingCurveProgress bondingCurveProgress;
 
   @override
   Widget build(BuildContext context) {
-    final supplyShare = bondingCurveProgress.currentAmount / (token.marketData.volume / 100);
+    final progressRaw = BigInt.tryParse(bondingCurveProgress.raisedAmount) ?? BigInt.zero;
+    final goalRaw = BigInt.tryParse(bondingCurveProgress.goalAmount) ?? BigInt.zero;
+
+    final supplyShare = goalRaw == BigInt.zero
+        ? 0.0
+        : ((progressRaw * BigInt.from(10000)) ~/ goalRaw).toDouble() / 100.0;
+
     return HolderTile(
       rank: 0,
-      amount: bondingCurveProgress.currentAmount as double,
+      amountText: formatAmountCompactFromRaw(bondingCurveProgress.raisedAmount),
       displayName: context.i18n.tokenized_community_bonding_curve,
       supplyShare: supplyShare,
       avatarUrl: Assets.svg.iconBondingCurveAvatar,
@@ -46,7 +50,7 @@ class TopHolderTile extends StatelessWidget {
 
     return HolderTile(
       rank: holder.position.rank,
-      amount: holder.position.amount,
+      amountText: formatAmountCompactFromRaw(holder.position.amount),
       displayName: holder.position.holder.display,
       username: holder.position.holder.name,
       supplyShare: holder.position.supplyShare,
@@ -60,7 +64,7 @@ class TopHolderTile extends StatelessWidget {
 class HolderTile extends StatelessWidget {
   const HolderTile({
     required this.rank,
-    required this.amount,
+    required this.amountText,
     required this.displayName,
     required this.supplyShare,
     this.verified = false,
@@ -71,7 +75,7 @@ class HolderTile extends StatelessWidget {
   });
 
   final int rank;
-  final double amount;
+  final String amountText;
   final String displayName;
   final double supplyShare;
   final bool isCreator;
@@ -83,8 +87,6 @@ class HolderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
-
-    final amountText = formatDoubleCompact(amount);
 
     return GestureDetector(
       onTap: () {},
@@ -98,12 +100,14 @@ class HolderTile extends StatelessWidget {
                 SizedBox(width: 12.0.s),
                 HolderAvatar(imageUrl: avatarUrl),
                 SizedBox(width: 8.0.s),
-                _NameAndAmount(
-                  name: displayName,
-                  handle: username,
-                  isCreator: isCreator,
-                  verified: verified,
-                  amountText: amountText,
+                Expanded(
+                  child: _NameAndAmount(
+                    name: displayName,
+                    handle: username,
+                    isCreator: isCreator,
+                    verified: verified,
+                    amountText: amountText,
+                  ),
                 ),
               ],
             ),
@@ -197,7 +201,7 @@ class _NameAndAmount extends StatelessWidget {
       children: [
         Row(
           children: [
-            Flexible(
+            Expanded(
               child: Text(
                 name,
                 style: texts.subtitle3.copyWith(

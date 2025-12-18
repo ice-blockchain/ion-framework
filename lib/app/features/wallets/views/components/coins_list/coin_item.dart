@@ -36,7 +36,10 @@ class CoinsGroupItem extends HookConsumerWidget {
 
     useEffect(
       () {
-        if (coinsGroup.iconUrl.isEmpty) return;
+        if (coinsGroup.iconUrl.isEmpty) {
+          isContentReady.value = true;
+          return;
+        }
         precachePictures(context, [coinsGroup.iconUrl!]).whenComplete(
           () => isContentReady.value = true,
         );
