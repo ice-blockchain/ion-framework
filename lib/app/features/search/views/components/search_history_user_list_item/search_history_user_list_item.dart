@@ -19,7 +19,7 @@ class SearchHistoryUserListItem extends ConsumerWidget {
   });
 
   final String pubkey;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
   @override

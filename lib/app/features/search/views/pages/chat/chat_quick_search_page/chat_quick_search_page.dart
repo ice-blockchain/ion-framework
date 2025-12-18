@@ -5,6 +5,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_top_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
+import 'package:ion/app/features/chat/views/components/chat_privacy_tooltip.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
@@ -79,12 +81,22 @@ class ChatQuickSearchPage extends HookConsumerWidget {
                           ChatQuickSearchRoute(query: text).replace(context),
                       onClearHistory: ref.read(chatSearchHistoryProvider.notifier).clear,
                       itemBuilder: (context, index) {
-                        final pubkey = history.pubKeys[index];
-                        return SearchHistoryUserListItem(
-                          key: ValueKey(pubkey),
-                          pubkey: pubkey,
-                          onTap: () =>
-                              ConversationRoute(receiverMasterPubkey: pubkey).push<void>(context),
+                        final masterPubkey = history.pubKeys[index];
+                        final canSendMessage =
+                            ref.watch(canSendMessageProvider(masterPubkey)).valueOrNull ?? false;
+
+                        return ChatPrivacyTooltip(
+                          canSendMessage: canSendMessage,
+                          child: SearchHistoryUserListItem(
+                            key: ValueKey(masterPubkey),
+                            pubkey: masterPubkey,
+                            onTap: canSendMessage
+                                ? () {
+                                    ConversationRoute(receiverMasterPubkey: masterPubkey)
+                                        .push<void>(context);
+                                  }
+                                : null,
+                          ),
                         );
                       },
                     )
