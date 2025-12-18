@@ -61,16 +61,9 @@ class TradeCommunityTokenApi {
     );
   }
 
-  /// Fetches the contract address for an asset from the backend
-  ///
-  /// [externalAddress] - external address for the asset (fatAddress without userExternalID)
-  ///
-  /// Uses endpoint GET /v1/community-tokens?externalAddresses[]=...
-  /// Returns the contract address (addresses.blockchain) if token already exists, otherwise null
-  Future<String?> fetchContractAddress(String externalAddress) async {
+  Future<CommunityToken?> fetchTokenInfo(String externalAddress) async {
     try {
-      final token = await _analyticsClient.communityTokens.getTokenInfo(externalAddress);
-      return token?.addresses.blockchain;
+      return await _analyticsClient.communityTokens.getTokenInfo(externalAddress);
     } catch (e) {
       return null;
     }

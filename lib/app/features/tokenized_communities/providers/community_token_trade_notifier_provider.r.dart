@@ -47,6 +47,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final amountIn =
           toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
       final service = await ref.read(tradeCommunityTokenServiceProvider.future);
+      final expectedOutQuote = !formState.isQuoting ? formState.quoteAmount : null;
 
       final response = await service.buyCommunityToken(
         externalAddress: externalAddress,
@@ -54,8 +55,11 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         amountIn: amountIn,
         walletId: wallet.id,
         walletAddress: wallet.address!,
+        walletNetwork: wallet.network,
         baseTokenAddress: token.contractAddress,
+        baseTokenTicker: token.abbreviation,
         tokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
+        expectedOutQuote: expectedOutQuote,
         userActionSigner: signer,
       );
       // Invalidate token market info to refresh balance
@@ -103,15 +107,20 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final amountIn =
           toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
       final service = await ref.read(tradeCommunityTokenServiceProvider.future);
+      final expectedOutQuote = !formState.isQuoting ? formState.quoteAmount : null;
 
       final response = await service.sellCommunityToken(
         externalAddress: externalAddress,
         amountIn: amountIn,
         walletId: wallet.id,
         walletAddress: wallet.address!,
+        walletNetwork: wallet.network,
         paymentTokenAddress: token.contractAddress,
+        paymentTokenTicker: token.abbreviation,
+        paymentTokenDecimals: token.decimals,
         communityTokenAddress: communityTokenAddress,
         tokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
+        expectedOutQuote: expectedOutQuote,
         userActionSigner: signer,
       );
 

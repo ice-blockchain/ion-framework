@@ -9,6 +9,7 @@ import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_t
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
@@ -86,9 +87,11 @@ Future<TradeCommunityTokenService> tradeCommunityTokenService(
   Ref ref,
 ) async {
   final repository = await ref.watch(tradeCommunityTokenRepositoryProvider.future);
+  final ionConnectService = await ref.watch(communityTokenIonConnectServiceProvider.future);
 
   return TradeCommunityTokenService(
     repository: repository,
+    ionConnectService: ionConnectService,
   );
 }
 

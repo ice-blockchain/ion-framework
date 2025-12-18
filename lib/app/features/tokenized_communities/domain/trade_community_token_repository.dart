@@ -6,6 +6,7 @@ import 'package:ion/app/features/tokenized_communities/data/trade_community_toke
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
 import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TradeCommunityTokenRepository {
   TradeCommunityTokenRepository({
@@ -27,8 +28,13 @@ class TradeCommunityTokenRepository {
     _cachedAddress = await api.fetchBondingCurveAddress();
   }
 
-  Future<String?> fetchContractAddress(String externalAddress) async {
-    return api.fetchContractAddress(externalAddress);
+  Future<CommunityToken?> fetchTokenInfo(String externalAddress) async {
+    return api.fetchTokenInfo(externalAddress);
+  }
+
+  Future<String> fetchBondingCurveAddress() async {
+    await _ensureConfigLoaded();
+    return _cachedAddress!;
   }
 
   Future<BigInt> fetchQuote({
