@@ -105,7 +105,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                 )
               else
                 FeedContentToken(
-                  externalAddress: externalAddress,
+                  tokenDefinition: definitionEntity,
                   type: tokenType,
                   showBuyButton: false,
                   pnl: ProfileChart(
