@@ -11,6 +11,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_holder_position_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
@@ -78,19 +79,21 @@ class CommunityTokenActionBody extends HookConsumerWidget {
 
     final tokenType = ref.watch(tokenTypeForTokenDefinitionProvider(definitionEntity)).valueOrNull;
     final amount = useMemoized(() => entity.data.getAmountByCurrency(externalAddress), [entity]);
+    final amountUsd =
+        useMemoized(() => entity.data.getAmountByCurrency(TransactionAmount.usdCurrency), [entity]);
 
     return Stack(
       alignment: Alignment.center,
       children: [
         Column(
           children: [
-            if (amount != null) ...[
+            if (amount != null && amountUsd != null) ...[
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
                 child: ProfileBalance(
                   height: topContainerHeight,
                   coins: amount.value,
-                  amount: amount.value, //TODO: how to calculate?
+                  amount: amountUsd.value,
                 ),
               ),
               SizedBox(height: padding),

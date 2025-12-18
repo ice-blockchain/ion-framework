@@ -192,13 +192,14 @@ class CommunityTokenIonConnectService {
       tokenAddress: 'baz',
       transactionAddress: 'quux',
       type: type,
-      amounts: [
-        TransactionAmount(value: Random().nextDouble() * 1000, currency: 'ION'),
-        TransactionAmount(
-          value: Random().nextDouble() * 1000,
-          currency: communityTokenDefinition.data.externalAddress,
-        ),
-      ],
+      amountBase: TransactionAmount(value: Random().nextDouble() * 1000, currency: 'ION'),
+      amountQuote: TransactionAmount(
+        value: Random().nextDouble() * 1000,
+        currency: communityTokenDefinition.data.externalAddress,
+      ),
+      amountUsd: TransactionAmount.usd(
+        value: Random().nextDouble() * 1000,
+      ),
     );
   }
 
