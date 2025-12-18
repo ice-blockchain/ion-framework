@@ -35,10 +35,7 @@ flutter:
   fonts:
     - family: NotoSans
       fonts:
-        - asset: assets/fonts/NotoSans-Light.ttf
-        - asset: assets/fonts/NotoSans-Medium.ttf
         - asset: assets/fonts/NotoSans-Regular.ttf
-        - asset: assets/fonts/NotoSans-SemiBold.ttf
   assets:
     - assets/images/
 

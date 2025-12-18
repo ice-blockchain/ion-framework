@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/empty_list/empty_list.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -14,22 +15,17 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/invite_fr
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FeedPostsList extends HookConsumerWidget {
   const FeedPostsList({super.key});
 
+  static const int startAdOffset = 4;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entities = ref.watch(feedPostsProvider.select((state) => state.items));
     final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
-
-    final isAdAvailable = useMemoized(() {
-      ionAdClient?.showConsentForm();
-      Logger.info('isAdAvailable');
-      return ionAdClient?.isAvailable(IonNativeAdPlacement.feed) ?? false;
-    });
 
     if (entities == null) {
       return const EntitiesListSkeleton();
@@ -38,7 +34,7 @@ class FeedPostsList extends HookConsumerWidget {
     }
 
     return EntitiesList(
-      items: _getFeedListItems(entities),
+      items: _getFeedListItems(entities, ionAdClient),
       onVideoTap: ({
         required String eventReference,
         required int initialMediaIndex,
@@ -51,11 +47,11 @@ class FeedPostsList extends HookConsumerWidget {
         ).push<void>(context);
       },
       plainInlineStyles: true,
-      showAds: isAdAvailable,
     );
   }
 
-  List<IonEntityListItem> _getFeedListItems(Iterable<IonConnectEntity> entities) {
+  List<IonEntityListItem> _getFeedListItems(
+      Iterable<IonConnectEntity> entities, AppodealIonAdsPlatform? ionAdClient) {
     final initialListItems = entities
         .map((entity) => IonEntityListItem.event(eventReference: entity.toEventReference()))
         .toList();
@@ -65,6 +61,17 @@ class FeedPostsList extends HookConsumerWidget {
         2,
         const IonEntityListItem.custom(child: InviteFriendsListItem()),
       );
+    }
+    if (initialListItems.length >= startAdOffset &&
+        ionAdClient != null &&
+        ionAdClient.isNativeLoaded) {
+      log('_getFeedListItems length:${initialListItems.length}');
+      final adIndices =
+          ionAdClient.computeInsertionIndices(initialListItems.length, startOffset: startAdOffset);
+      log('_getFeedListItems adIndices:$adIndices');
+      for (final index in adIndices) {
+        initialListItems.insert(index, const IonEntityListItem.custom(child: _CustomNativeAd()));
+      }
     }
 
     return initialListItems;
@@ -84,6 +91,21 @@ class _EmptyState extends ConsumerWidget {
       child: EmptyList(
         asset: Assets.svg.walletIconProfileEmptyposts,
         title: context.i18n.feed_posts_empty(postsTypes),
+      ),
+    );
+  }
+}
+
+class _CustomNativeAd extends StatelessWidget {
+  const _CustomNativeAd();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 298,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: AppodealNativeAd(
+        options: NativeAdOptions.customOptions(),
       ),
     );
   }
