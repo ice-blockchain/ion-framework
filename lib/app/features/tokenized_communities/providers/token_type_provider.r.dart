@@ -68,28 +68,32 @@ Future<CommunityContentTokenType?> tokenTypeForTokenDefinition(
     type = CommunityContentTokenType.twitter;
   } else if (tokenDefinition
       case CommunityTokenDefinitionEntity(data: final CommunityTokenDefinitionIon ionData)) {
-    final originEntity = ref
-        .watch(ionConnectEntityProvider(eventReference: ionData.eventReference, network: false))
-        .valueOrNull;
-    if (originEntity == null) {
-      return null;
-    }
-
-    if (originEntity is UserMetadataEntity) {
-      type = CommunityContentTokenType.profile;
-    } else if (ionConnectEntity is ArticleEntity) {
-      type = CommunityContentTokenType.article;
-    } else if (ionConnectEntity is EntityDataWithMediaContent) {
-      final entity = ionConnectEntity as EntityDataWithMediaContent;
-      if (entity.hasVideo) {
-        type = CommunityContentTokenType.postVideo;
-      } else if (entity.visualMedias.isNotEmpty) {
-        type = CommunityContentTokenType.postImage;
-      } else {
-        type = CommunityContentTokenType.postText;
-      }
-    }
+    return ref
+        .watch(tokenTypeForIonConnectEntityProvider(eventReference: ionData.eventReference).future);
   }
 
   return type;
+}
+
+@riverpod
+Future<CommunityContentTokenType?> tokenTypeForIonConnectEntity(
+  Ref ref, {
+  required EventReference eventReference,
+}) async {
+  final entity = await ref.watch(ionConnectEntityProvider(eventReference: eventReference).future);
+
+  if (entity == null) {
+    return null;
+  }
+
+  return switch (entity) {
+    UserMetadataEntity() => CommunityContentTokenType.profile,
+    ArticleEntity() => CommunityContentTokenType.article,
+    final EntityDataWithMediaContent entityWithMedia when entityWithMedia.hasVideo =>
+      CommunityContentTokenType.postVideo,
+    final EntityDataWithMediaContent entityWithMedia when entityWithMedia.visualMedias.isNotEmpty =>
+      CommunityContentTokenType.postImage,
+    EntityDataWithMediaContent() => CommunityContentTokenType.postText,
+    _ => null,
+  };
 }

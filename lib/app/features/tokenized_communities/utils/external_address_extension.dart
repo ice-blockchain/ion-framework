@@ -3,6 +3,7 @@
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 
@@ -19,20 +20,18 @@ class ExternalAddressType {
 
 extension ExternalAddressExtension on IonConnectEntity {
   String? get externalAddress {
-    final type = switch (this) {
-      UserMetadataEntity() => ExternalAddressType.ionConnectUser,
-      ModifiablePostEntity(:final data) when data.hasVideo =>
-        ExternalAddressType.ionConnectVideoPost,
-      ModifiablePostEntity() => ExternalAddressType.ionConnectTextPost,
-      PostEntity(:final data) when data.hasVideo => ExternalAddressType.ionConnectVideoPost,
-      PostEntity() => ExternalAddressType.ionConnectTextPost,
-      ArticleEntity() => ExternalAddressType.ionConnectArticle,
+    if (externalAddressType == null) return null;
+    return '${externalAddressType!.prefix}${toEventReference()}';
+  }
+
+  ExternalAddressType? get externalAddressType {
+    return switch (this) {
+      UserMetadataEntity() => const ExternalAddressType.ionConnectUser(),
+      ArticleEntity() => const ExternalAddressType.ionConnectArticle(),
+      final EntityDataWithMediaContent entityWithMedia when entityWithMedia.hasVideo =>
+        const ExternalAddressType.ionConnectVideoPost(),
+      ModifiablePostEntity() || PostEntity() => const ExternalAddressType.ionConnectTextPost(),
       _ => null,
     };
-
-    if (type == null) return null;
-
-    final data = '${type().prefix}${toEventReference()}';
-    return data;
   }
 }

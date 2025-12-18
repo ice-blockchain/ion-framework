@@ -38,11 +38,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final definitionEntity = ref
-        .watch(
-          ionConnectEntityProvider(
-            eventReference: entity.data.definitionReference,
-          ),
-        )
+        .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
         .valueOrNull as CommunityTokenDefinitionEntity?;
 
     if (definitionEntity == null) {
