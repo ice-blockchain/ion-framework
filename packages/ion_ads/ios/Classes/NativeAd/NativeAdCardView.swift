@@ -3,30 +3,14 @@ import Flutter
 import Foundation
 import os.log
 import SwiftUI
-import SwiftSVG
 
 final class NativeAdCardView: UIView {
     private lazy var adChoiceContainer: UIImageView = {
         let imageView = UIImageView()
         let bundle = Bundle(for: NativeAdCardView.self)
-        
-        if let svgUrl = bundle.url(forResource: "ad_choices", withExtension: "svg") {
-            do {
-                let svgData = try Data(contentsOf: svgUrl)
-                imageView.image = UIImage(data: svgData)
-            } catch {
-                print("Error loading SVG: \(error)")
-                if #available(iOS 13.0, *) {
-                    imageView.image = UIImage(systemName: "info.circle")
-                }
-            }
-        }
-
+        imageView.image = UIImage(named: "ad_choices", in: bundle, compatibleWith: nil)
         imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = .lightGray
-        imageView.backgroundColor = UIColor.white
-        imageView.layer.cornerRadius = 6
-        imageView.clipsToBounds = true
+        imageView.backgroundColor = .clear
 
         return imageView
     }()
@@ -43,7 +27,7 @@ final class NativeAdCardView: UIView {
     private lazy var titleTextLabel: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.darkText
-        label.font = UIFont.App.header
+        label.font = AppFonts.header
         label.textAlignment = .left
 
         return label
@@ -52,7 +36,7 @@ final class NativeAdCardView: UIView {
     private lazy var descriptionTextLabel: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.darkGray
-        label.font = UIFont.App.primaryLabel
+        label.font = AppFonts.primaryLabel
         label.numberOfLines = 2
         label.textAlignment = .left
 
@@ -61,7 +45,7 @@ final class NativeAdCardView: UIView {
 
     private lazy var mediaContainer: UIView = {
         let view = UIView()
-        view.layer.cornerRadius = 9
+        view.layer.cornerRadius = 12
         view.clipsToBounds = true
         return view
     }()
@@ -71,7 +55,7 @@ final class NativeAdCardView: UIView {
         label.backgroundColor = UIColor.App.accent
         label.textColor = UIColor.white
         label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+        label.font = AppFonts.secondaryLabel
         label.layer.cornerRadius = 10
         label.clipsToBounds = true
         return label
@@ -79,7 +63,7 @@ final class NativeAdCardView: UIView {
 
     private lazy var cardBackgroundView: UIView = {
         let view = UIView()
-        view.layer.cornerRadius = 9
+        view.layer.cornerRadius = 12
         view.clipsToBounds = true
         view.backgroundColor = UIColor.App.secondaryBackground
         return view
@@ -88,14 +72,15 @@ final class NativeAdCardView: UIView {
     private lazy var starRatingView: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.darkText
-        label.font = UIFont.systemFont(ofSize: 12)
-        // The SDK will automatically hide this if there's no rating, so we don't need to.
+        label.font = AppFonts.primaryLabel
         return label
     }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         clipsToBounds = true
+
+        AppFonts.loadFonts()
 
         layoutViews()
     }
@@ -111,7 +96,7 @@ final class NativeAdCardView: UIView {
             label.backgroundColor = UIColor.white
             label.textColor = UIColor.App.text
             label.textAlignment = .center
-            label.font = UIFont.systemFont(ofSize: 9, weight: .bold)
+            label.font = AppFonts.caption3
             label.layer.cornerRadius = 6
             label.clipsToBounds = true
 
@@ -141,14 +126,14 @@ final class NativeAdCardView: UIView {
         NSLayoutConstraint.activate([
             // --- (Icon, Title, Description, CTA constraints are mostly unchanged) ---
             iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             iconImageView.widthAnchor.constraint(equalToConstant: 32),
             iconImageView.heightAnchor.constraint(equalToConstant: 32),
 
-            titleTextLabel.topAnchor.constraint(equalTo: iconImageView.topAnchor),
+            titleTextLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
 
-            descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor),
+            descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -2),
             descriptionTextLabel.leadingAnchor.constraint(equalTo: titleTextLabel.leadingAnchor),
             descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
 
@@ -159,23 +144,23 @@ final class NativeAdCardView: UIView {
 
             callToActionView.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
             callToActionView.leadingAnchor.constraint(equalTo: titleTextLabel.trailingAnchor, constant: 10),
-            callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            callToActionView.heightAnchor.constraint(equalToConstant: 33),
-            callToActionView.widthAnchor.constraint(equalToConstant: 120),
+            callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+            callToActionView.heightAnchor.constraint(equalToConstant: 32),
+            callToActionView.widthAnchor.constraint(equalToConstant: 100),
 
             // --- (Media, AdTag, AdChoice constraints are unchanged) ---
-            cardBackgroundView.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 0),
+            cardBackgroundView.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 12),
             cardBackgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             cardBackgroundView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
             cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: 0),
-            cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 9.0/16.0),
+            cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 10.0/16.0),
 
             mediaContainer.topAnchor.constraint(equalTo: cardBackgroundView.topAnchor),
             mediaContainer.bottomAnchor.constraint(equalTo: cardBackgroundView.bottomAnchor),
             mediaContainer.leadingAnchor.constraint(equalTo: cardBackgroundView.leadingAnchor),
             mediaContainer.trailingAnchor.constraint(equalTo: cardBackgroundView.trailingAnchor),
 
-            adChoiceContainer.topAnchor.constraint(equalTo: cardBackgroundView.topAnchor, constant: 8),
+            adChoiceContainer.topAnchor.constraint(equalTo: cardBackgroundView.topAnchor, constant: 10),
             adChoiceContainer.trailingAnchor.constraint(equalTo: cardBackgroundView.trailingAnchor, constant: -8),
             adChoiceContainer.widthAnchor.constraint(equalToConstant: 18),
             adChoiceContainer.heightAnchor.constraint(equalToConstant: 18),

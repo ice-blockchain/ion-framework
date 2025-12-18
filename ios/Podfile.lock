@@ -331,7 +331,6 @@ PODS:
     - APDIABAdapter (= 3.10.0.0)
     - Appodeal (= 3.10.0)
     - Flutter
-    - SwiftSVG
   - ion_content_labeler (0.0.1):
     - Flutter
   - ion_screenshot_detector (0.0.1):
@@ -372,9 +371,9 @@ PODS:
     - MTBBarcodeScanner
   - quill_native_bridge_ios (0.0.1):
     - Flutter
-  - SDWebImage (5.21.4):
-    - SDWebImage/Core (= 5.21.4)
-  - SDWebImage/Core (5.21.4)
+  - SDWebImage (5.21.5):
+    - SDWebImage/Core (= 5.21.5)
+  - SDWebImage/Core (5.21.5)
   - SecureBiometricSwift (0.0.2)
   - sensors_plus (0.0.1):
     - Flutter
@@ -433,7 +432,6 @@ PODS:
     - StackModules/Core-Static
     - StackModules/ProductPresentation-Static
     - StackModules/Rendering-Static
-  - SwiftSVG (2.3.2)
   - SwiftyGif (5.4.5)
   - TensorFlowLiteC (2.12.0):
     - TensorFlowLiteC/Core (= 2.12.0)
@@ -579,7 +577,6 @@ SPEC REPOS:
     - sqlite3
     - StackConsentManager
     - StackModules
-    - SwiftSVG
     - SwiftyGif
     - TensorFlowLiteC
     - TensorFlowLiteSwift
@@ -769,7 +766,7 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   icloud_storage: e55639f0c0d7cb2b0ba9c0b3d5968ccca9cd9aa2
   image_cropper: 64567491beea6cd1bc4b11948e2babb590de5826
-  ion_ads: 48c522c5dc22157e18a1b1175b2c38cb77980568
+  ion_ads: 9bc91ec68e331aba94fb4f7fc0132ad9e9808320
   ion_content_labeler: f7b0a605150742a6e41c82730110b008c582d788
   ion_screenshot_detector: 12965038c2274b1876c39ee328507e8bb9c7b794
   local_auth_crypto: 0f489ce05f51504fc091a53ce357e98313696085
@@ -788,7 +785,7 @@ SPEC CHECKSUMS:
   Protobuf: e2de96d939c642ce8da186343ff8929b35223212
   qr_code_scanner_plus: 7e087021bc69873140e0754750eb87d867bed755
   quill_native_bridge_ios: f47af4b14e7757968486641656c5d23250cee521
-  SDWebImage: d0184764be51240d49c761c37f53dd017e1ccaaf
+  SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
   SecureBiometricSwift: f8a373c07fb46c9ca1b2b53be51a485d2828a3d8
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
   Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
@@ -801,7 +798,6 @@ SPEC CHECKSUMS:
   sqlite3_flutter_libs: 83f8e9f5b6554077f1d93119fe20ebaa5f3a9ef1
   StackConsentManager: 80684e96361f88476985a2ed91a9299bc9196be8
   StackModules: 0b77df5a1453951c9e6aa0e32cab0b055fbf68e1
-  SwiftSVG: ca7f64e403b8ea7ea8eba8c823b83ba4a059834c
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   TensorFlowLiteC: 20785a69299185a379ba9852b6625f00afd7984a
   TensorFlowLiteSwift: 3a4928286e9e35bdd3e17970f48e53c80d25e793
