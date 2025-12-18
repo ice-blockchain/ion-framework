@@ -21,17 +21,13 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     required String androidAppKey,
     required String iosAppKey,
     required bool hasConsent,
-    bool testMode = true,
+    bool testMode = false,
     bool verbose = false,
   }) async {
     _hasConsent = hasConsent;
-    Appodeal.setTesting(false); //only not release mode
+    Appodeal.setTesting(testMode);
     Appodeal.setLogLevel(verbose ? Appodeal.LogLevelVerbose : Appodeal.LogLevelNone);
-
-    //Appodeal.setAutoCache(AppodealAdType.Interstitial, true);
-    //Appodeal.setAutoCache(AppodealAdType.RewardedVideo, true);
     Appodeal.setAutoCache(AppodealAdType.NativeAd, true);
-    Appodeal.setUseSafeArea(true);
 
     if (hasConsent) {
       await Appodeal.consentForm.load(
@@ -147,8 +143,8 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
         log('onNativeLoaded');
       },
       onNativeFailedToLoad: () {
-        //_isNativeLoaded = false;
         log('onNativeFailedToLoad');
+        _isNativeLoaded = false;
       },
       onNativeShown: () => log('onNativeShown'),
       onNativeShowFailed: () => log('onNativeShowFailed'),
@@ -158,19 +154,11 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
   }
 
   Future<void> _checkAdAvailability() async {
-    //final bannerReady = await Appodeal.canShow(AppodealAdType.Banner);
-    //final interstitialReady = await Appodeal.canShow(AppodealAdType.Interstitial);
-    // final rewardedReady = await Appodeal.canShow(AppodealAdType.RewardedVideo);
     final isNativeInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
     final canShowNative = await Appodeal.canShow(AppodealAdType.NativeAd);
-    final nativeAd = await Appodeal.getNativeAd(1);
-    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative, nativeAd:$nativeAd');
-
+    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative');
     await Appodeal.cache(AppodealAdType.NativeAd);
 
-    // _isBannerLoaded = bannerReady ?? false;
-    // _isInterstitialLoaded = interstitialReady ?? false;
-    // _isRewardedLoaded = rewardedReady ?? false;
     _isNativeLoaded = isNativeInitialized ?? false;
   }
 
@@ -185,6 +173,14 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
       Appodeal.consentForm.show(onConsentFormDismissed: _onConsentFormDismissed);
     }
   }
+
+  bool get isBannerLoaded => _isBannerLoaded;
+
+  bool get isInterstitialLoaded => _isInterstitialLoaded;
+
+  bool get isRewardedLoaded => _isRewardedLoaded;
+
+  bool get isNativeLoaded => _isNativeLoaded;
 
   void _onConsentFormDismissed(ConsentError? error) {
     if (error != null) {

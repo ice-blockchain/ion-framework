@@ -91,14 +91,33 @@ extension UIColor {
 }
 
 
-extension UIFont {
-    struct App {
-        static let largeTitle = UIFont.systemFont(ofSize: 22, weight: .heavy)
-        static let title = UIFont.systemFont(ofSize: 16, weight: .bold)
-        static let header = UIFont.systemFont(ofSize: 14, weight: .semibold)
-        static let primaryLabel = UIFont.systemFont(ofSize: 14, weight: .regular)
-        static let secondaryLabel = UIFont.systemFont(ofSize: 12, weight: .light)
+enum AppFonts {
+    static func loadFonts() {
+        // A static flag to ensure we only try to register fonts once.
+        struct Static { static var once = false }
+        if Static.once { return }
+        Static.once = true
+
+        // The names of your font files.
+        let fontNames = ["NotoSans-Regular.ttf", "NotoSans-Medium.ttf", "NotoSans-SemiBold.ttf", "NotoSans-Bold.ttf"]
+        let bundle = Bundle(for: NativeAdCardView.self)
+
+        for fontName in fontNames {
+            guard let url = bundle.url(forResource: fontName.components(separatedBy: ".")[0], withExtension: fontName.components(separatedBy: ".")[1]) else {
+                print("Failed to find font \(fontName) in bundle")
+                continue
+            }
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        }
     }
+
+    static let header = UIFont(name: "NotoSans-Medium", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .medium)
+    static let primaryLabel = UIFont(name: "NotoSans-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .regular)
+    
+    static let secondaryLabel = UIFont(name: "NotoSans-SemiBold", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
+    
+    static let caption3 = UIFont(name: "NotoSans-Bold", size: 11) ?? UIFont.systemFont(ofSize: 11, weight: .heavy)
+    static let title = UIFont.systemFont(ofSize: 16, weight: .bold)
 }
 
 
