@@ -100,7 +100,7 @@ class _TokenRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$amount ${coinsGroup.abbreviation}',
+                '${formatDouble(amountDouble)} ${coinsGroup.abbreviation}',
                 style: textStyles.title.copyWith(
                   color: colors.primaryText,
                 ),
