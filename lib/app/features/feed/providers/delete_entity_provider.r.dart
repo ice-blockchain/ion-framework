@@ -125,7 +125,7 @@ class DeleteEntityController extends _$DeleteEntityController {
       PostEntity() => parseAndConvertDelta(
           entity.data.richText?.content,
           entity.data.content,
-        ).extractPubkeys(),
+        ).extractMentionPubkeys(),
       RepostEntity() => [entity.data.eventReference.masterPubkey],
       GenericRepostEntity() => [entity.data.eventReference.masterPubkey],
       _ => <String>[],

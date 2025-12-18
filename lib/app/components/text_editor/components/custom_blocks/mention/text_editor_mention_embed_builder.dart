@@ -7,6 +7,7 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/mention/
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
 import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 const String mentionEmbedKey = 'mention';
 const String mentionPrefix = '@';
@@ -58,9 +59,17 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
   static MentionEmbedData? _parseMentionData(dynamic data) {
     try {
       if (data is Map) {
-        return MentionEmbedData.fromJson(
-          Map<String, dynamic>.from(data),
-        );
+        // Quill can pass mention data either as {pubkey, username} (edit mode)
+        // or {mention: {pubkey, username}} (view mode). Normalize by unwrapping
+        // the wrapped form so downstream parsing always receives {pubkey, username}.
+        final unwrappedData =
+            data.containsKey(mentionEmbedKey) && data.length == 1 ? data[mentionEmbedKey] : data;
+
+        if (unwrappedData is Map) {
+          return MentionEmbedData.fromJson(
+            Map<String, dynamic>.from(unwrappedData),
+          );
+        }
       }
     } catch (_) {
       // Invalid data
@@ -97,6 +106,11 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
               MentionInsertionService.removeMentionEmbed(controller, embedNode);
             }
           : null,
+      onTap: showClose
+          ? null
+          : () {
+              ProfileRoute(pubkey: pubkey).push<void>(context);
+            },
     );
   }
 }

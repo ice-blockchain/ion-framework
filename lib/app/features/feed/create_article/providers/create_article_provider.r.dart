@@ -423,7 +423,15 @@ class CreateArticle extends _$CreateArticle {
   }
 
   List<RelatedPubkey> _buildMentions(Delta content) {
-    return content.extractPubkeys().map((pubkey) => RelatedPubkey(value: pubkey)).toList();
+    return content
+        .extractMentionsWithFlags()
+        .map(
+          (mention) => RelatedPubkey(
+            value: mention.pubkey,
+            showMarketCap: mention.showMarketCap,
+          ),
+        )
+        .toList();
   }
 
   // Builds relatedHashtags by combining:
