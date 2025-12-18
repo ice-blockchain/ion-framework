@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separated_column.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -42,8 +41,8 @@ class PrivacySettingsModal extends ConsumerWidget {
               ],
             ),
             ScreenSideOffset.small(
-              child: ScreenBottomOffset(
-                margin: 32.0.s,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.0.s),
                 child: SeparatedColumn(
                   mainAxisSize: MainAxisSize.min,
                   separator: SelectableOptionsGroup.separator,
