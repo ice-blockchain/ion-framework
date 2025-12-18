@@ -339,9 +339,14 @@ Delta processDeltaMatches(Delta delta) {
 /// Parameters:
 /// - [delta]: The Delta to process
 /// - [usernameToPubkey]: Map of username (without @) to pubkey
+/// - [pubkeyShowMarketCap]: Map of pubkey to showMarketCap flag (optional)
 ///
 /// Returns: Delta with MentionAttribute restored for matching mentions
-Delta restoreMentions(Delta delta, Map<String, String> usernameToPubkey) {
+Delta restoreMentions(
+  Delta delta,
+  Map<String, String> usernameToPubkey, {
+  Map<String, bool>? pubkeyShowMarketCap,
+}) {
   if (usernameToPubkey.isEmpty) {
     return delta;
   }
@@ -382,10 +387,16 @@ Delta restoreMentions(Delta delta, Map<String, String> usernameToPubkey) {
             kind: UserMetadataEntity.kind,
           );
           final encodedRef = userMetadataRef.encode();
+
+          // Restore showMarketCap flag from relatedPubkeys tags
+          final showMarketCap = pubkeyShowMarketCap?[pubkey] ?? false;
+
           final mentionAttrs = {
             ...?op.attributes,
             MentionAttribute.attributeKey: encodedRef,
+            if (showMarketCap) MentionAttribute.showMarketCapKey: true,
           };
+
           newDelta.insert(mentionText, mentionAttrs);
         } else {
           // No matching pubkey found, insert as plain text

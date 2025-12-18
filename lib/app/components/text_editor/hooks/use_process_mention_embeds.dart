@@ -2,6 +2,7 @@
 
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
@@ -147,14 +148,63 @@ Future<void> downgradeMentionEmbedsWithoutMarketCapAsync(
   }
 }
 
-// Hook that downgrades mention embeds without market cap when controller is created.
-// For posts: processes immediately (document already loaded synchronously).
-void useDowngradeMentionEmbedsWithoutMarketCap(QuillController? controller, WidgetRef ref) {
+// Extracts mention pubkeys from a document delta.
+// Returns list of unique pubkeys found in mention embeds.
+List<String> _extractMentionPubkeys(Delta delta) {
+  final pubkeys = <String>{};
+
+  for (final op in delta.operations) {
+    final data = op.data;
+    if (data is Map && data.containsKey(mentionEmbedKey)) {
+      try {
+        final mentionData = MentionEmbedData.fromJson(
+          Map<String, dynamic>.from(data[mentionEmbedKey] as Map),
+        );
+        pubkeys.add(mentionData.pubkey);
+      } catch (_) {
+        // Skip invalid mention data
+      }
+    }
+  }
+
+  return pubkeys.toList();
+}
+
+// Hook that downgrades mention embeds without market cap reactively.
+// Watches market cap providers and downgrades when they finish loading.
+// Works for both edit mode and preview mode (read-only controllers).
+//
+// [enabled]: If false, hook does nothing. Use this when mentions are rendered as text
+// (e.g., replies) instead of embeds, so there's nothing to downgrade.
+void useDowngradeMentionEmbedsWithoutMarketCap(
+  QuillController? controller,
+  WidgetRef ref, {
+  bool enabled = true,
+}) {
+  // Extract mention pubkeys from document (memoized to avoid recalculation)
+  final mentionPubkeys = useMemoized(
+    () {
+      if (controller == null || !enabled) return <String>[];
+      final delta = controller.document.toDelta();
+      return _extractMentionPubkeys(delta);
+    },
+    [controller?.document, enabled],
+  );
+
+  // Watch all market cap providers reactively
+  final marketCapStates =
+      mentionPubkeys.map((pubkey) => ref.watch(userTokenMarketCapProvider(pubkey))).toList();
+
+  // Re-run downgrade when providers finish loading (reactive to provider changes)
   useEffect(() {
-    if (controller == null) return null;
-    downgradeMentionEmbedsWithoutMarketCap(controller, ref);
+    if (!enabled || controller == null || mentionPubkeys.isEmpty) return null;
+
+    // Check if all providers finished loading
+    final allLoaded = marketCapStates.every((state) => state.hasValue);
+    if (allLoaded) {
+      // Call downgrade function (same logic for all modes)
+      downgradeMentionEmbedsWithoutMarketCap(controller, ref);
+    }
     return null;
-  }, [
-    controller,
-  ]);
+  }, [controller, marketCapStates, enabled]);
 }
