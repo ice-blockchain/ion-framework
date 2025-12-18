@@ -16,6 +16,8 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
 
   bool _hasConsent = false;
 
+  final AdInsertionHelper _insertionHelper = AdInsertionHelper(baseInterval: 3, randomDelta: 5);
+
   @override
   Future<void> initialize({
     required String androidAppKey,
@@ -173,6 +175,10 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
       Appodeal.consentForm.show(onConsentFormDismissed: _onConsentFormDismissed);
     }
   }
+
+  @override
+  List<int> computeInsertionIndices(int contentCount, {int startOffset = 0}) =>
+      _insertionHelper.computeInsertionIndices(contentCount, startOffset: startOffset);
 
   bool get isBannerLoaded => _isBannerLoaded;
 
