@@ -67,7 +67,7 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
             ),
             TokenStatItem(
               icon: Assets.svg.iconSearchGroups,
-              text: MarketDataFormatter.formatCompactNumber(marketData.volume),
+              text: marketData.holders.toString(),
               onTap: () => showSimpleBottomSheet<void>(
                 context: context,
                 child: const InfoModal(infoType: InfoType.holders),
@@ -143,7 +143,7 @@ class ProfileTokenStats extends ConsumerWidget {
         ),
         TokenStatItem(
           icon: Assets.svg.iconSearchGroups,
-          text: MarketDataFormatter.formatCompactNumber(marketData.volume),
+          text: marketData.holders.toString(),
           onTap: () => showSimpleBottomSheet<void>(
             context: context,
             child: const InfoModal(infoType: InfoType.holders),
@@ -379,9 +379,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
                     ),
                     TokenStatItem(
                       icon: Assets.svg.iconSearchGroups,
-                      text: MarketDataFormatter.formatCompactNumber(
-                        marketData.volume,
-                      ),
+                      text: marketData.holders.toString(),
                       onTap: () => showSimpleBottomSheet<void>(
                         context: context,
                         child: const InfoModal(infoType: InfoType.holders),

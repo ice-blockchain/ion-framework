@@ -183,9 +183,7 @@ class TwitterTokenHeader extends StatelessWidget {
                     ),
                     TokenStatItem(
                       icon: Assets.svg.iconSearchGroups,
-                      text: MarketDataFormatter.formatCompactNumber(
-                        token.marketData.volume,
-                      ),
+                      text: token.marketData.holders.toString(),
                     ),
                   ],
                 ),
@@ -234,9 +232,7 @@ class TwitterTokenHeader extends StatelessWidget {
                   ),
                   TokenStatItem(
                     icon: Assets.svg.iconSearchGroups,
-                    text: MarketDataFormatter.formatCompactNumber(
-                      token.marketData.volume,
-                    ),
+                    text: token.marketData.holders.toString(),
                   ),
                 ],
               ),
