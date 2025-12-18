@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/views/components/community_token_live/comp
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/section_visibility_controller.dart';
 import 'package:ion/app/features/tokenized_communities/models/trading_stats_formatted.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
@@ -69,10 +70,13 @@ class TokenizedCommunityPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
+    final tokenDefinition = ref
+        .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
+        .valueOrNull;
 
     final token = tokenInfo.valueOrNull;
 
-    if (token == null) {
+    if (token == null || tokenDefinition == null) {
       return const SizedBox.shrink();
     }
 
@@ -132,6 +136,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                       type: t,
                       token: token,
                       externalAddress: externalAddress,
+                      tokenDefinition: tokenDefinition,
                     ),
                   );
                 }

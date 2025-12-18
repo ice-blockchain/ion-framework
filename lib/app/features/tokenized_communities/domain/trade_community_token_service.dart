@@ -256,7 +256,6 @@ class TradeCommunityTokenService {
     }
     if (tokenAddress == null || tokenAddress.isEmpty) return;
 
-    final communityTokenTicker = tokenInfo?.title ?? externalAddress;
     const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
 
     final baseTokenAmountValue = fromBlockchainUnits(amountIn.toString(), tokenDecimals);
@@ -268,7 +267,7 @@ class TradeCommunityTokenService {
 
     final amountBase = TransactionAmount(value: baseTokenAmountValue, currency: baseTokenTicker);
     final amountQuote =
-        TransactionAmount(value: communityTokenAmountValue, currency: communityTokenTicker);
+        TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
     const amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
 
     try {
@@ -305,7 +304,6 @@ class TradeCommunityTokenService {
     if (txHash == null || txHash.isEmpty) return;
 
     final bondingCurveAddress = await repository.fetchBondingCurveAddress();
-    final communityTokenTicker = tokenInfo?.title ?? externalAddress;
     const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
 
     final communityTokenAmountValue =
@@ -316,7 +314,7 @@ class TradeCommunityTokenService {
     const usdAmountValue = 1.0;
 
     final amountBase =
-        TransactionAmount(value: communityTokenAmountValue, currency: communityTokenTicker);
+        TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
     final amountQuote =
         TransactionAmount(value: paymentTokenAmountValue, currency: paymentTokenTicker);
     const amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');

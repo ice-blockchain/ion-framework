@@ -43,7 +43,7 @@ class CommunityTokenLiveBody extends HookConsumerWidget {
         type == CommunityContentTokenType.article) {
       return FeedContentToken(
         type: type,
-        externalAddress: entity.data.externalAddress,
+        tokenDefinition: entity,
         sidePadding: sidePadding,
       );
     }

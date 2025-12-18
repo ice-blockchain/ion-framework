@@ -9,7 +9,9 @@ import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
@@ -22,9 +24,9 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class FeedContentToken extends HookConsumerWidget {
+class FeedContentToken extends StatelessWidget {
   const FeedContentToken({
-    required this.externalAddress,
+    required this.tokenDefinition,
     required this.type,
     this.hodl,
     this.pnl,
@@ -33,7 +35,7 @@ class FeedContentToken extends HookConsumerWidget {
     super.key,
   });
 
-  final String externalAddress;
+  final CommunityTokenDefinitionEntity tokenDefinition;
   final CommunityContentTokenType type;
   final Widget? hodl;
   final Widget? pnl;
@@ -41,7 +43,8 @@ class FeedContentToken extends HookConsumerWidget {
   final bool showBuyButton;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final externalAddress = tokenDefinition.data.externalAddress;
     return TokenCardBuilder(
       externalAddress: externalAddress,
       skeleton: _Skeleton(type: type),
@@ -62,6 +65,7 @@ class FeedContentToken extends HookConsumerWidget {
                   child: Column(
                     children: [
                       ContentTokenHeader(
+                        tokenDefinition: tokenDefinition,
                         type: type,
                         token: token,
                         pnl: pnl,
@@ -83,6 +87,7 @@ class FeedContentToken extends HookConsumerWidget {
 
 class ContentTokenHeader extends HookWidget {
   const ContentTokenHeader({
+    required this.tokenDefinition,
     required this.type,
     required this.token,
     required this.externalAddress,
@@ -91,6 +96,7 @@ class ContentTokenHeader extends HookWidget {
     super.key,
   });
 
+  final CommunityTokenDefinitionEntity tokenDefinition;
   final CommunityContentTokenType type;
   final CommunityToken token;
   final String externalAddress;
@@ -214,24 +220,52 @@ class ContentTokenHeader extends HookWidget {
             if (showBuyButton)
               PositionedDirectional(
                 bottom: -11.5.s,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () => TradeCommunityTokenProfileRoute(
-                    externalAddress: externalAddress,
-                    externalAddressType: const ExternalAddressType.ionConnectUser().prefix,
-                    initialMode: CommunityTokenTradeMode.buy,
-                  ).push<void>(context),
-                  child: BuyButton(
-                    padding: EdgeInsetsDirectional.symmetric(
-                      horizontal: 22.s,
-                    ),
-                    externalAddress: externalAddress,
-                  ),
-                ),
+                child: _BuyButton(tokenDefinition: tokenDefinition),
               ),
           ],
         ),
       ],
+    );
+  }
+}
+
+class _BuyButton extends ConsumerWidget {
+  const _BuyButton({
+    required this.tokenDefinition,
+  });
+
+  final CommunityTokenDefinitionEntity tokenDefinition;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokenDefinitionData = tokenDefinition.data;
+
+    if (tokenDefinitionData is! CommunityTokenDefinitionIon) {
+      return const SizedBox.shrink();
+    }
+
+    final externalAddressType = ref
+        .watch(ionConnectEntityProvider(eventReference: tokenDefinitionData.eventReference))
+        .valueOrNull
+        ?.externalAddressType;
+
+    if (externalAddressType == null) {
+      return const SizedBox.shrink();
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => TradeCommunityTokenProfileRoute(
+        externalAddress: tokenDefinition.data.externalAddress,
+        externalAddressType: externalAddressType.prefix,
+        initialMode: CommunityTokenTradeMode.buy,
+      ).push<void>(context),
+      child: BuyButton(
+        padding: EdgeInsetsDirectional.symmetric(
+          horizontal: 22.s,
+        ),
+        externalAddress: tokenDefinition.data.externalAddress,
+      ),
     );
   }
 }

@@ -5,9 +5,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -28,34 +32,120 @@ class PostTokenButton extends ConsumerWidget {
         ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
 
     if (entity == null) {
-      return const _RocketIcon();
+      return _TokenButtonPlaceholder(padding: padding);
     }
 
-    final externalAddress = entity.toEventReference().toString();
+    return switch (entity) {
+      CommunityTokenDefinitionEntity() => _TokenDefinitionButton(entity: entity, padding: padding),
+      CommunityTokenActionEntity() => _TokenActionButton(entity: entity, padding: padding),
+      _ => _ContentEntityButton(entity: entity, padding: padding),
+    };
+  }
+}
 
-    final isCommunityTokenEntity =
-        entity is CommunityTokenDefinitionEntity || entity is CommunityTokenActionEntity;
+class _TokenDefinitionButton extends StatelessWidget {
+  const _TokenDefinitionButton({required this.entity, this.padding});
 
-    // We don't need token info in case of community token entities
-    final tokenInfo = !isCommunityTokenEntity
-        ? ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull
-        : null;
+  final CommunityTokenDefinitionEntity entity;
+  final EdgeInsetsGeometry? padding;
 
-    final hasToken = tokenInfo != null;
+  @override
+  Widget build(BuildContext context) {
+    return _TokenButton(
+      padding: padding,
+      child: const _RocketIcon(),
+      onTap: () =>
+          TokenizedCommunityRoute(externalAddress: entity.data.externalAddress).push<void>(context),
+    );
+  }
+}
 
-    return GestureDetector(
+class _TokenActionButton extends ConsumerWidget {
+  const _TokenActionButton({required this.entity, this.padding});
+
+  final CommunityTokenActionEntity entity;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokenDefinition = ref
+        .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
+        .valueOrNull as CommunityTokenDefinitionEntity?;
+
+    if (tokenDefinition == null) {
+      return _TokenButtonPlaceholder(padding: padding);
+    }
+
+    return _TokenButton(
+      padding: padding,
+      child: const _RocketIcon(),
+      onTap: () => TokenizedCommunityRoute(externalAddress: tokenDefinition.data.externalAddress)
+          .push<void>(context),
+    );
+  }
+}
+
+class _ContentEntityButton extends ConsumerWidget {
+  const _ContentEntityButton({required this.entity, this.padding});
+
+  final IonConnectEntity entity;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventReference = entity.toEventReference();
+    final hasToken = ref
+        .watch(ionConnectEntityHasTokenProvider(eventReference: eventReference))
+        .valueOrNull
+        .falseOrValue;
+
+    final externalAddressType = entity.externalAddressType;
+
+    return _TokenButton(
+      padding: padding,
+      child:
+          hasToken ? _MarketCap(externalAddress: eventReference.toString()) : const _RocketIcon(),
       onTap: () {
-        isCommunityTokenEntity || hasToken
-            ? TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context)
-            : SwapCoinsRoute().push<void>(context);
+        if (hasToken) {
+          TokenizedCommunityRoute(externalAddress: eventReference.toString()).push<void>(context);
+        } else if (externalAddressType != null) {
+          TradeCommunityTokenProfileRoute(
+            externalAddress: eventReference.toString(),
+            externalAddressType: externalAddressType.prefix,
+          ).push<void>(context);
+        }
       },
+    );
+  }
+}
+
+class _TokenButtonPlaceholder extends StatelessWidget {
+  const _TokenButtonPlaceholder({this.padding});
+
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return _TokenButton(padding: padding, child: const _RocketIcon());
+  }
+}
+
+class _TokenButton extends StatelessWidget {
+  const _TokenButton({required this.child, this.padding, this.onTap});
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
         constraints: BoxConstraints(minWidth: 50.0.s),
         padding: padding,
         alignment: AlignmentDirectional.center,
-        child: isCommunityTokenEntity || !hasToken
-            ? const _RocketIcon()
-            : _MarketCap(marketCap: tokenInfo.marketData.marketCap),
+        child: child,
       ),
     );
   }
@@ -72,13 +162,19 @@ class _RocketIcon extends StatelessWidget {
   }
 }
 
-class _MarketCap extends StatelessWidget {
-  const _MarketCap({required this.marketCap});
+class _MarketCap extends ConsumerWidget {
+  const _MarketCap({required this.externalAddress});
 
-  final double marketCap;
+  final String externalAddress;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+
+    if (tokenInfo == null) {
+      return const _RocketIcon();
+    }
+
     return Row(
       children: [
         Assets.svg.iconMemeMarketcap.icon(
@@ -88,7 +184,7 @@ class _MarketCap extends StatelessWidget {
         Padding(
           padding: EdgeInsetsDirectional.only(start: 4.0.s),
           child: Text(
-            defaultUsdCompact(marketCap),
+            defaultUsdCompact(tokenInfo.marketData.marketCap),
             style: context.theme.appTextThemes.caption2.copyWith(
               color: context.theme.appColors.onTertiaryBackground,
               height: 1.1,
