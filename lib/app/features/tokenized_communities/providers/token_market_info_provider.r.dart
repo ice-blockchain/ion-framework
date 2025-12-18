@@ -21,18 +21,20 @@ Stream<CommunityToken?> tokenMarketInfo(Ref ref, String externalAddress) async* 
 
   try {
     if (subscription == null) {
-      yield null;
+      return;
     }
-    await for (final patch in subscription!.stream) {
-      if (currentToken == null) {
-        yield patch as CommunityToken;
+
+    var mutableToken = currentToken;
+    await for (final patch in subscription.stream) {
+      if (mutableToken == null) {
+        mutableToken = patch as CommunityToken;
       } else {
-        final patchedToken = currentToken.merge(patch);
-        yield patchedToken;
+        mutableToken = mutableToken.merge(patch);
       }
+      yield mutableToken;
     }
   } catch (e) {
-    yield null;
+    return;
   } finally {
     await subscription?.close();
   }

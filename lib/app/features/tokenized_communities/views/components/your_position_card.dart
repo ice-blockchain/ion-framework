@@ -6,10 +6,13 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
+
+const _minDisplayUSD = 0.01;
 
 class YourPositionCard extends HookConsumerWidget {
   const YourPositionCard({
@@ -23,8 +26,18 @@ class YourPositionCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final avatarColors = useImageColors(token.imageUrl);
     final position = token.marketData.position;
+
+    // Only show card if user has an active position (not null and amount > 0)
+    if (position == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Use current user's avatar (the logged-in user's avatar from profile)
+    final currentUserMetadata = ref.watch(currentUserMetadataProvider).valueOrNull;
+    final avatarUrl = currentUserMetadata?.data.avatarUrl ?? token.imageUrl;
+
+    final avatarColors = useImageColors(avatarUrl);
 
     return Column(
       children: [
@@ -44,7 +57,7 @@ class YourPositionCard extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         CommunityTokenImage(
-                          imageUrl: token.imageUrl,
+                          imageUrl: avatarUrl,
                           width: 49.6.s,
                           height: 49.6.s,
                           outerBorderRadius: 12.8.s,
@@ -57,11 +70,11 @@ class YourPositionCard extends HookConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const _YourPositionCardTitle(),
-                            if (position != null) _ProfitDetails(position: position),
+                            _ProfitDetails(position: position),
                           ],
                         ),
                         const Spacer(),
-                        if (position != null) _AmountDetails(position: position),
+                        _AmountDetails(position: position),
                       ],
                     ),
                   ),
@@ -102,6 +115,15 @@ class _ProfitDetails extends StatelessWidget {
         ? context.theme.appColors.profitGreen
         : context.theme.appColors.lossRed;
 
+    final displayPnl = position.pnl.abs() < _minDisplayUSD && position.pnl != 0
+        ? _minDisplayUSD
+        : position.pnl.abs();
+
+    final pnlSign = getNumericSign(position.pnl);
+    final pnlAmount = formatUSD(displayPnl);
+    final percentageSign = getNumericSign(position.pnlPercentage);
+    final percentageValue = position.pnlPercentage.abs().toStringAsFixed(2);
+
     return Row(
       children: [
         Assets.svg.iconCreatecoinProfit.icon(
@@ -110,7 +132,7 @@ class _ProfitDetails extends StatelessWidget {
         ),
         SizedBox(width: 3.s),
         Text(
-          '${getNumericSign(position.pnl)}${position.pnl.toStringAsFixed(2)} (${getNumericSign(position.pnlPercentage)}${position.pnlPercentage.toStringAsFixed(2)}%)',
+          '$pnlSign$pnlAmount ($percentageSign$percentageValue%)',
           style: context.theme.appTextThemes.body2.copyWith(
             color: profitColor,
           ),
@@ -129,6 +151,10 @@ class _AmountDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayAmountUSD = position.amountUSD < _minDisplayUSD && position.amountUSD != 0
+        ? _minDisplayUSD
+        : position.amountUSD;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -155,7 +181,7 @@ class _AmountDetails extends StatelessWidget {
             ),
             SizedBox(width: 1.s),
             Text(
-              formatUSD(position.amountUSD),
+              formatUSD(displayAmountUSD),
               style: context.theme.appTextThemes.body2
                   .copyWith(color: context.theme.appColors.onPrimaryAccent),
             ),
