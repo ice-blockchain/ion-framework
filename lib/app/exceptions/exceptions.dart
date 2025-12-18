@@ -756,6 +756,13 @@ class UgcCounterFetchException extends IONException {
       : super(
           10139,
           message ?? 'Failed to fetch UGC counter',
+      );
+}
+class UserDeviceRevokedException extends IONException {
+  UserDeviceRevokedException()
+      : super(
+          10140,
+          'User device has been revoked',
         );
 }
 
