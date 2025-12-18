@@ -60,7 +60,7 @@ class PostDetailsPage extends HookConsumerWidget {
                     ReplyList(
                       eventReference: eventReference,
                       scrollController: scrollController,
-                      hideEmptyState: isReply,
+                      isReply: isReply,
                       onPullToRefresh: () {
                         ref.read(ionConnectCacheProvider.notifier).remove(
                               CacheableEntity.cacheKeyBuilder(
