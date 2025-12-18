@@ -30,7 +30,7 @@ class SecureAccountDialogEvent extends UiEvent {
         child: const SecureAccountModal(
           isBottomSheet: true,
         ),
-      ).then((_) => shown = false);
+      ).whenComplete(() => shown = false);
     }
   }
 }
