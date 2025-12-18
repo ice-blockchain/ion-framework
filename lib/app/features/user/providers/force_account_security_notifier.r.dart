@@ -10,7 +10,9 @@ import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.d
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/recovery_credentials_enabled_notifier.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/user_details_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/views/pages/secure_account_modal.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -27,14 +29,11 @@ class ForceAccountSecurityService {
     required void Function() emitDialog,
   })  : _enforceDelay = enforceDelay,
         _emitDialog = emitDialog;
-  bool _authenticated = false;
+
   UserMetadataEntity? _metadata;
-  bool _delegationComplete = false;
   bool _secured = true;
   String _route = '';
   AppLifecycleState _lifecycle = AppLifecycleState.resumed;
-  bool _splashCompleted = false;
-  String? _masterPubkey;
 
   final Duration _enforceDelay;
   final void Function() _emitDialog;
@@ -46,28 +45,17 @@ class ForceAccountSecurityService {
     _timer = null;
   }
 
-  void onSplashCompleted({required bool splashCompleted}) {
-    _splashCompleted = splashCompleted;
-    _maybeTrigger();
-  }
-
-  void onAuthenticated({required bool authenticated}) {
-    _authenticated = authenticated;
-    _maybeTrigger();
-  }
-
-  void onMasterPubkey(String? value) {
-    _masterPubkey = value;
-    _maybeTrigger();
+  void reset() {
+    _metadata = null;
+    _secured = true;
+    _route = '';
+    _lifecycle = AppLifecycleState.resumed;
+    _timer?.cancel();
+    _timer = null;
   }
 
   void onUserMetadata(UserMetadataEntity? value) {
     _metadata = value;
-    _maybeTrigger();
-  }
-
-  void onDelegationComplete({required bool delegationComplete}) {
-    _delegationComplete = delegationComplete;
     _maybeTrigger();
   }
 
@@ -87,32 +75,17 @@ class ForceAccountSecurityService {
   }
 
   void _maybeTrigger() {
-    // 1. splash done
-    if (!_splashCompleted) return;
-
-    // 2. context exists
     if (rootNavigatorKey.currentContext == null) return;
 
-    // 3. auth
-    if (!_authenticated) return;
-
-    // 4. delegation + masterPubkey
-    if (_masterPubkey == null || !_delegationComplete) return;
-
-    // 5. metadata
     if (_metadata == null) return;
     final metadata = _metadata!;
 
-    // 6. secured?
     if (_secured) return;
 
-    // 7. lifecycle
     if (_lifecycle != AppLifecycleState.resumed) return;
 
-    // 8. route
     if (_route != FeedRoute().location) return;
 
-    // 9. enforce time
     final now = DateTime.now();
     final enforceTime = (metadata.data.registeredAt?.toDateTime ?? now).add(_enforceDelay);
     final canShowPopUp = enforceTime.isBefore(now);
@@ -128,7 +101,6 @@ class ForceAccountSecurityService {
     _timer?.cancel();
     _timer = null;
 
-    // 10. emit dialog
     _emitDialog();
   }
 }
@@ -144,44 +116,37 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
     },
   );
 
-  ref
-    ..onDispose(service.dispose)
-    ..listen<bool>(
-      splashProvider,
-      fireImmediately: true,
-      (_, bool next) {
-        service.onSplashCompleted(splashCompleted: next);
-      },
-    )
-    ..listen<AsyncValue<AuthState>>(
-      authProvider,
-      fireImmediately: true,
-      (_, AsyncValue<AuthState> next) {
-        service.onAuthenticated(authenticated: next.valueOrNull?.isAuthenticated ?? false);
-      },
-    )
-    ..listen<String?>(
-      currentPubkeySelectorProvider,
-      fireImmediately: true,
-      (_, String? next) {
-        service.onMasterPubkey(next);
-      },
-    )
-    ..listen<AsyncValue<UserMetadataEntity?>>(
+  var splashCompleted = false;
+  var isAuthenticated = false;
+  String? masterPubkey;
+  var delegationComplete = false;
+  var secondaryListenersRegistered = false;
+
+  ProviderSubscription<AsyncValue<UserMetadataEntity?>>? userMetadataSub;
+  ProviderSubscription<AsyncValue<bool>>? isSecuredSub;
+  ProviderSubscription<String>? routeSub;
+  ProviderSubscription<AppLifecycleState>? lifecycleSub;
+
+  var lastIsAuthenticated = false;
+
+  bool canStart() =>
+      splashCompleted && isAuthenticated && masterPubkey != null && delegationComplete;
+
+  void registerSecondaryListeners() {
+    if (secondaryListenersRegistered || !canStart()) {
+      return;
+    }
+    secondaryListenersRegistered = true;
+
+    userMetadataSub = ref.listen<AsyncValue<UserMetadataEntity?>>(
       currentUserMetadataProvider,
       fireImmediately: true,
       (_, AsyncValue<UserMetadataEntity?> next) {
         service.onUserMetadata(next.valueOrNull);
       },
-    )
-    ..listen<AsyncValue<bool>>(
-      delegationCompleteProvider,
-      fireImmediately: true,
-      (_, AsyncValue<bool> next) {
-        service.onDelegationComplete(delegationComplete: next.valueOrNull.falseOrValue);
-      },
-    )
-    ..listen<AsyncValue<bool>>(
+    );
+
+    isSecuredSub = ref.listen<AsyncValue<bool>>(
       isCurrentUserSecuredProvider,
       fireImmediately: true,
       (_, AsyncValue<bool> next) {
@@ -190,19 +155,89 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
           service.onSecured(secured: value);
         }
       },
-    )
-    ..listen<String>(
+    );
+
+    routeSub = ref.listen<String>(
       routeLocationProvider,
       fireImmediately: true,
       (_, String next) {
         service.onRouteChanged(next);
       },
-    )
-    ..listen<AppLifecycleState>(
+    );
+
+    lifecycleSub = ref.listen<AppLifecycleState>(
       appLifecycleProvider,
       fireImmediately: true,
       (_, AppLifecycleState next) {
         service.onLifecycleChanged(next);
+        if (next == AppLifecycleState.resumed) {
+          ref
+            ..invalidate(userDetailsProvider)
+            ..invalidate(recoveryCredentialsEnabledProvider);
+        }
+      },
+    );
+  }
+
+  ref
+    ..onDispose(service.dispose)
+    ..listen<bool>(
+      splashProvider,
+      fireImmediately: true,
+      (_, bool next) {
+        splashCompleted = next;
+        registerSecondaryListeners();
+      },
+    )
+    ..listen<AsyncValue<AuthState>>(
+      authProvider,
+      fireImmediately: true,
+      (_, AsyncValue<AuthState> next) {
+        final authenticated = next.valueOrNull?.isAuthenticated ?? false;
+
+        // detect logout: was authenticated, now not
+        if (lastIsAuthenticated && !authenticated) {
+          secondaryListenersRegistered = false;
+
+          userMetadataSub?.close();
+          userMetadataSub = null;
+
+          isSecuredSub?.close();
+          isSecuredSub = null;
+
+          routeSub?.close();
+          routeSub = null;
+
+          lifecycleSub?.close();
+          lifecycleSub = null;
+
+          service.reset();
+
+          isAuthenticated = false;
+          masterPubkey = null;
+          delegationComplete = false;
+        } else {
+          isAuthenticated = authenticated;
+          registerSecondaryListeners();
+        }
+
+        lastIsAuthenticated = authenticated;
+      },
+    )
+    ..listen<String?>(
+      currentPubkeySelectorProvider,
+      fireImmediately: true,
+      (_, String? next) {
+        masterPubkey = next;
+        registerSecondaryListeners();
+      },
+    )
+    ..listen<AsyncValue<bool>>(
+      delegationCompleteProvider,
+      fireImmediately: true,
+      (_, AsyncValue<bool> next) {
+        delegationComplete = next.valueOrNull.falseOrValue;
+        registerSecondaryListeners();
       },
     );
 
