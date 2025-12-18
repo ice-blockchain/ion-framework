@@ -19,7 +19,6 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
-import 'package:ion_ads/ion_ads.dart';
 
 class EntitiesList extends HookWidget {
   const EntitiesList({
@@ -31,7 +30,6 @@ class EntitiesList extends HookWidget {
     this.showNotInterested = true,
     this.plainInlineStyles = false,
     this.network = false,
-    this.showAds = false,
     super.key,
   });
 
@@ -43,10 +41,6 @@ class EntitiesList extends HookWidget {
   final bool showNotInterested;
   final bool plainInlineStyles;
   final bool network;
-  final bool showAds;
-
-  /// Loads ad after every 5th widget
-  static const int showAdAfter = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -54,29 +48,23 @@ class EntitiesList extends HookWidget {
       child: SliverList.builder(
         itemCount: items.length,
         itemBuilder: (BuildContext context, int index) {
-          if (index % showAdAfter == 0 && index != 0 && showAds) {
-            return _CustomNativeAd(separatorHeight: separatorHeight);
-          } else {
-            final mainIndex = index - (index ~/ showAdAfter);
-            final feedListItem = items[mainIndex];
-
-            return switch (feedListItem) {
-              CustomIonEntityListItem(child: final child) =>
-                _CustomListItem(separatorHeight: separatorHeight, child: child),
-              EventIonEntityListItem(eventReference: final eventReference) => _EntityListItem(
-                  key: ValueKey(eventReference),
-                  eventReference: eventReference,
-                  displayParent: displayParent,
-                  separatorHeight: separatorHeight,
-                  onVideoTap: onVideoTap,
-                  showMuted: showMuted,
-                  network: network,
-                  showNotInterested: showNotInterested,
-                  plainInlineStyles: plainInlineStyles,
-                ),
-              IonEntityListItem() => const SizedBox.shrink()
-            };
-          }
+          final feedListItem = items[index];
+          return switch (feedListItem) {
+            CustomIonEntityListItem(child: final child) =>
+              _CustomListItem(separatorHeight: separatorHeight, child: child),
+            EventIonEntityListItem(eventReference: final eventReference) => _EntityListItem(
+                key: ValueKey(eventReference),
+                eventReference: eventReference,
+                displayParent: displayParent,
+                separatorHeight: separatorHeight,
+                onVideoTap: onVideoTap,
+                showMuted: showMuted,
+                network: network,
+                showNotInterested: showNotInterested,
+                plainInlineStyles: plainInlineStyles,
+              ),
+            IonEntityListItem() => const SizedBox.shrink()
+          };
         },
       ),
     );
@@ -191,25 +179,5 @@ class _CustomListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return _BottomSeparator(height: separatorHeight, child: child);
-  }
-}
-
-class _CustomNativeAd extends StatelessWidget {
-  const _CustomNativeAd({double? separatorHeight}) : separatorHeight = separatorHeight ?? 4.0;
-
-  final double separatorHeight;
-
-  @override
-  Widget build(BuildContext context) {
-    return _BottomSeparator(
-      height: separatorHeight,
-      child: Container(
-        height: 298,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: AppodealNativeAd(
-          options: NativeAdOptions.customOptions(),
-        ),
-      ),
-    );
   }
 }
