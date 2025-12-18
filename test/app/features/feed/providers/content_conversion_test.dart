@@ -3,6 +3,7 @@
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/features/feed/providers/content_conversion.dart';
 import 'package:ion/app/features/ion_connect/model/pmo_tag.f.dart';
 
@@ -348,6 +349,26 @@ void main() {
       expect(result.operations.first.attributes?['link'], 'https://example.com/media');
     });
 
+    test('preserves image-only post (space with link attribute only)', () {
+      final delta = Delta()..insert(' ', {'link': 'https://example.com/image.jpg'});
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(result.operations.length, 1);
+      expect(result.operations.first.data, ' ');
+      expect(result.operations.first.attributes?['link'], 'https://example.com/image.jpg');
+    });
+
+    test('preserves image-only post with newline', () {
+      final delta = Delta()
+        ..insert(' ', {'link': 'https://example.com/image.jpg'})
+        ..insert('\n');
+      final result = trimLineWhitespaceInDelta(delta);
+      // The space should be preserved, newline should remain
+      expect(result.operations.length, 2);
+      expect(result.operations.first.data, ' ');
+      expect(result.operations.first.attributes?['link'], 'https://example.com/image.jpg');
+      expect(result.operations.last.data, '\n');
+    });
+
     test('preserves attributes', () {
       final delta = Delta()
         ..insert('test', {'bold': true})
@@ -415,6 +436,47 @@ void main() {
       final plain = deltaToPlainText(trimmedDelta);
       final result = trimEmptyLines(plain, allowExtraLineBreak: false);
       expect(result.trimmedText, 'test\ntest\ntest');
+    });
+  });
+
+  group('Delta.isBlank extension', () {
+    test('returns true for empty delta', () {
+      final delta = Delta();
+      expect(delta.isBlank, true);
+    });
+
+    test('returns true for delta with only whitespace', () {
+      final delta = Delta()..insert('   \n  ');
+      expect(delta.isBlank, true);
+    });
+
+    test('returns false for delta with text content', () {
+      final delta = Delta()..insert('Hello world');
+      expect(delta.isBlank, false);
+    });
+
+    test('returns false for image-only post (space with link attribute)', () {
+      // Image-only post: space with link attribute should not be considered blank
+      final delta = Delta()..insert(' ', {'link': 'https://example.com/image.jpg'});
+      expect(delta.isBlank, false);
+    });
+
+    test('returns false for image-only post with newline', () {
+      final delta = Delta()
+        ..insert(' ', {'link': 'https://example.com/image.jpg'})
+        ..insert('\n');
+      expect(delta.isBlank, false);
+    });
+
+    test('returns false for delta with text-editor-single-image attribute', () {
+      final delta = Delta()
+        ..insert(' ', {'text-editor-single-image': 'https://example.com/image.jpg'});
+      expect(delta.isBlank, false);
+    });
+
+    test('returns true for delta with only whitespace even if it has other attributes', () {
+      final delta = Delta()..insert('   ', {'bold': true});
+      expect(delta.isBlank, true);
     });
   });
 }
