@@ -50,11 +50,9 @@ class SecureAccountModal extends HookConsumerWidget {
 
     useRoutePresence(
       onBecameActive: () async {
-        final isSecured = await ref.watch(isCurrentUserSecuredProvider.future);
-        if (context.mounted) {
-          if (isSecured) {
-            Navigator.of(ref.context).pop();
-          }
+        final isSecured = await ref.read(isCurrentUserSecuredProvider.future);
+        if (context.mounted && isSecured) {
+          Navigator.of(ref.context).pop();
         }
       },
     );
