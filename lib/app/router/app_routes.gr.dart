@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/ads/views/pages/ads_benefits_page.dart';
+import 'package:ion/app/features/ads/views/pages/ads_modal_page.dart';
 import 'package:ion/app/features/auth/views/pages/discover_creators/discover_creators.dart';
 import 'package:ion/app/features/auth/views/pages/fill_profile/fill_profile.dart';
 import 'package:ion/app/features/auth/views/pages/get_started/get_started.dart';
@@ -187,6 +189,7 @@ import 'package:ion/app/router/components/modal_wrapper/modal_wrapper.dart';
 import 'package:ion/app/router/main_tabs/main_tab_navigation.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
+part 'ads_routes.dart';
 part 'app_routes.gr.g.dart';
 part 'auth_routes.dart';
 part 'chat_routes.dart';

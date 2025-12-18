@@ -28,6 +28,7 @@ class FeedRoutes {
         TypedGoRoute<FeedVisibleArticleCategoriesRoute>(path: 'feed-visible-article-categories'),
       ],
     ),
+    ...AdsRoutes.routes,
     TypedShellRoute<ModalShellRouteData>(
       routes: [
         TypedGoRoute<SwitchAccountRoute>(path: 'switch-account'),
