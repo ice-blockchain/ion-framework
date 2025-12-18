@@ -7,6 +7,7 @@ import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
+import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
@@ -35,7 +36,7 @@ class SecureAccountDialogEvent extends UiEvent {
   }
 }
 
-class SecureAccountModal extends ConsumerWidget {
+class SecureAccountModal extends HookConsumerWidget {
   const SecureAccountModal({
     super.key,
     this.isBottomSheet = false,
@@ -46,6 +47,15 @@ class SecureAccountModal extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
+
+    useRoutePresence(
+      onBecameActive: () async {
+        final isSecured = await ref.read(isCurrentUserSecuredProvider.future);
+        if (context.mounted && isSecured) {
+          Navigator.of(ref.context).pop();
+        }
+      },
+    );
 
     final content = Column(
       mainAxisSize: MainAxisSize.min,
@@ -76,15 +86,8 @@ class SecureAccountModal extends ConsumerWidget {
                   color: context.theme.appColors.onPrimaryAccent,
                 ),
                 label: Text(locale.protect_account_button),
-                onPressed: () async {
-                  final result = SecureAccountOptionsRoute().push<void>(context);
-                  if (isBottomSheet) {
-                    await result;
-                    final isSecured = await ref.read(isCurrentUserSecuredProvider.future);
-                    if (isSecured && context.mounted) {
-                      Navigator.of(ref.context).pop();
-                    }
-                  }
+                onPressed: () {
+                  SecureAccountOptionsRoute(showCloseButton: false).push<void>(context);
                 },
               ),
               ScreenBottomOffset(margin: 36.0.s),

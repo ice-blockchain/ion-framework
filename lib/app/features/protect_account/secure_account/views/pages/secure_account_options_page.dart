@@ -13,16 +13,21 @@ import 'package:ion/app/features/protect_account/email/data/model/email_steps.da
 import 'package:ion/app/features/protect_account/phone/models/phone_steps.dart';
 import 'package:ion/app/features/protect_account/secure_account/data/models/security_methods.f.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/show_close_button_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/user_details_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SecureAccountOptionsPage extends HookConsumerWidget {
-  const SecureAccountOptionsPage({super.key});
+  const SecureAccountOptionsPage({
+    super.key,
+    this.showCloseButton = true,
+  });
+
+  final bool showCloseButton;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,6 +40,15 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
       ref.invalidate(userDetailsProvider);
     });
 
+    useOnInit(
+      () {
+        ref
+            .read(showCloseButtonProvider.notifier)
+            .setShowCloseButton(showCloseButton: showCloseButton);
+      },
+      [showCloseButton],
+    );
+
     final isPhoneOptionEnabled = securityMethods?.isPhoneEnabled ?? false;
 
     return SheetContent(
@@ -45,9 +59,7 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
             NavigationAppBar.modal(
               onBackPress: () => context.pop(true),
               title: Text(locale.protect_account_header_security),
-              actions: const [
-                NavigationCloseButton(),
-              ],
+              showCloseButton: ref.watch(showCloseButtonProvider),
             ),
             SizedBox(height: 36.0.s),
             ScreenSideOffset.small(

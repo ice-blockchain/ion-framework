@@ -32,11 +32,13 @@ class ProtectAccountRoutes {
 }
 
 class SecureAccountOptionsRoute extends BaseRouteData with _$SecureAccountOptionsRoute {
-  SecureAccountOptionsRoute()
+  SecureAccountOptionsRoute({this.showCloseButton = true})
       : super(
-          child: const SecureAccountOptionsPage(),
+          child: SecureAccountOptionsPage(showCloseButton: showCloseButton),
           type: IceRouteType.bottomSheet,
         );
+
+  bool showCloseButton;
 }
 
 class SecureAccountModalRoute extends BaseRouteData with _$SecureAccountModalRoute {

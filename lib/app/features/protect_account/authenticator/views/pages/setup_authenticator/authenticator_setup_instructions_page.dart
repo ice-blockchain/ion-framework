@@ -13,9 +13,9 @@ import 'package:ion/app/features/components/verify_identity/hooks/use_on_get_pas
 import 'package:ion/app/features/protect_account/authenticator/views/pages/setup_authenticator/components/authenticator_setup_instructions_error_state.dart';
 import 'package:ion/app/features/protect_account/authenticator/views/pages/setup_authenticator/components/authenticator_setup_instructions_success_state.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/request_twofa_code_notifier.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/show_close_button_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -41,9 +41,7 @@ class AuthenticatorSetupInstructionsPage extends HookConsumerWidget {
           SliverAppBar(
             primary: false,
             flexibleSpace: NavigationAppBar.modal(
-              actions: const [
-                NavigationCloseButton(),
-              ],
+              showCloseButton: ref.watch(showCloseButtonProvider),
             ),
             automaticallyImplyLeading: false,
             toolbarHeight: NavigationAppBar.modalHeaderHeight,
