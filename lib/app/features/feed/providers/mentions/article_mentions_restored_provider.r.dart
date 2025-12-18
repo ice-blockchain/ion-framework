@@ -22,8 +22,14 @@ Future<Delta> articleMentionsRestored(
 
   // Build username → pubkey map (async lookups)
   final usernameToPubkey = <String, String>{};
+  final pubkeyShowMarketCap = <String, bool>{};
+
   for (final relatedPubkey in relatedPubkeys) {
     final pubkey = relatedPubkey.value;
+
+    // Store showMarketCap flag from backend tag
+    pubkeyShowMarketCap[pubkey] = relatedPubkey.showMarketCap;
+
     try {
       final userMetadata = await ref.read(
         userMetadataProvider(pubkey, network: false).future,
@@ -37,5 +43,9 @@ Future<Delta> articleMentionsRestored(
   }
 
   // Restore mentions using username lookup
-  return restoreMentions(delta, usernameToPubkey);
+  return restoreMentions(
+    delta,
+    usernameToPubkey,
+    pubkeyShowMarketCap: pubkeyShowMarketCap,
+  );
 }

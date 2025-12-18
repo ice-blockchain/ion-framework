@@ -42,6 +42,7 @@ class MentionDeltaConverter {
         final mergedAttrs = {
           ...?attrs,
           MentionAttribute.attributeKey: encodedRef,
+          MentionAttribute.showMarketCapKey: true,
         };
 
         final mentionText = '$mentionPrefix${mentionData.username}';
@@ -62,6 +63,8 @@ class MentionDeltaConverter {
   }
 
   // Converts mention attributes to embed operations for editor rendering.
+  // Only converts if author chose to display with market cap (showMarketCap == true).
+  // Reactive downgrade hook will handle removing embeds if market cap disappears.
   // Example: '@user' with mention attribute -> {'mention': {'pubkey': 'abc', 'username': 'user'}}
   static Delta convertAttributesToEmbeds(Delta input) {
     final out = Delta();
@@ -81,12 +84,29 @@ class MentionDeltaConverter {
         final pubkey = _tryDecodePubkey(mentionAttr);
 
         if (pubkey != null) {
-          final mentionData = MentionEmbedData(pubkey: pubkey, username: username);
-          out.insert({mentionEmbedKey: mentionData.toJson()});
+          // Check if author wanted to display with market cap
+          final showMarketCap = attrs?[MentionAttribute.showMarketCapKey] == true;
+
+          if (showMarketCap) {
+            // Author chose embed display - convert to embed
+            // Market cap will be checked reactively by downgrade hook
+            final mentionData = MentionEmbedData(pubkey: pubkey, username: username);
+            final embedData = {mentionEmbedKey: mentionData.toJson()};
+            out.insert(embedData);
+          } else {
+            // Author chose text display or legacy mention (showMarketCap absent/false)
+            // Keep as text with attribute
+            out.push(op);
+          }
         } else {
+          // Failed to decode pubkey, keep as text with attribute
           out.push(op);
         }
+      } else if (data is Map && data.containsKey(mentionEmbedKey)) {
+        // Already an embed, keep as-is
+        out.push(op);
       } else {
+        // Not a mention with attribute, keep as-is
         out.push(op);
       }
     }

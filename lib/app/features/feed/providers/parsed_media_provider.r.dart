@@ -56,10 +56,15 @@ Future<Delta> mentionsOverlay(
   }
 
   final usernameToPubkey = <String, String>{};
+  final pubkeyShowMarketCap = <String, bool>{};
 
   await Future.wait(
     relatedPubkeys.map((relatedPubkey) async {
       final pubkey = relatedPubkey.value;
+
+      // Store showMarketCap flag from backend tag
+      pubkeyShowMarketCap[pubkey] = relatedPubkey.showMarketCap;
+
       try {
         final userMetadata = await ref.read(userMetadataProvider(pubkey, network: false).future);
         if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
@@ -75,7 +80,11 @@ Future<Delta> mentionsOverlay(
     return baseParsedMedia.content;
   }
 
-  final restoredDelta = restoreMentions(baseParsedMedia.content, usernameToPubkey);
+  final restoredDelta = restoreMentions(
+    baseParsedMedia.content,
+    usernameToPubkey,
+    pubkeyShowMarketCap: pubkeyShowMarketCap,
+  );
   return processDeltaMatches(restoredDelta);
 }
 
