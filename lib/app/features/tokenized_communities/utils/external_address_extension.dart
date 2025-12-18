@@ -28,9 +28,14 @@ extension ExternalAddressExtension on IonConnectEntity {
     return switch (this) {
       UserMetadataEntity() => const ExternalAddressType.ionConnectUser(),
       ArticleEntity() => const ExternalAddressType.ionConnectArticle(),
-      final EntityDataWithMediaContent entityWithMedia when entityWithMedia.hasVideo =>
-        const ExternalAddressType.ionConnectVideoPost(),
-      ModifiablePostEntity() || PostEntity() => const ExternalAddressType.ionConnectTextPost(),
+      ModifiablePostEntity(data: final EntityDataWithMediaContent postData) => switch (postData) {
+          _ when postData.hasVideo => const ExternalAddressType.ionConnectVideoPost(),
+          _ => const ExternalAddressType.ionConnectTextPost(),
+        },
+      PostEntity(data: final EntityDataWithMediaContent postData) => switch (postData) {
+          _ when postData.hasVideo => const ExternalAddressType.ionConnectVideoPost(),
+          _ => const ExternalAddressType.ionConnectTextPost(),
+        },
       _ => null,
     };
   }

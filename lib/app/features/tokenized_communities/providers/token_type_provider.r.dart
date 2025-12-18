@@ -2,6 +2,8 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -62,17 +64,15 @@ Future<CommunityContentTokenType?> tokenTypeForTokenDefinition(
   Ref ref,
   CommunityTokenDefinitionEntity tokenDefinition,
 ) async {
-  CommunityContentTokenType? type;
-
   if (tokenDefinition.data.platform == CommunityTokenPlatform.x) {
-    type = CommunityContentTokenType.twitter;
+    return CommunityContentTokenType.twitter;
   } else if (tokenDefinition
       case CommunityTokenDefinitionEntity(data: final CommunityTokenDefinitionIon ionData)) {
     return ref
         .watch(tokenTypeForIonConnectEntityProvider(eventReference: ionData.eventReference).future);
   }
 
-  return type;
+  return null;
 }
 
 @riverpod
@@ -89,11 +89,16 @@ Future<CommunityContentTokenType?> tokenTypeForIonConnectEntity(
   return switch (entity) {
     UserMetadataEntity() => CommunityContentTokenType.profile,
     ArticleEntity() => CommunityContentTokenType.article,
-    final EntityDataWithMediaContent entityWithMedia when entityWithMedia.hasVideo =>
-      CommunityContentTokenType.postVideo,
-    final EntityDataWithMediaContent entityWithMedia when entityWithMedia.visualMedias.isNotEmpty =>
-      CommunityContentTokenType.postImage,
-    EntityDataWithMediaContent() => CommunityContentTokenType.postText,
+    ModifiablePostEntity(data: final EntityDataWithMediaContent postData) => switch (postData) {
+        _ when postData.hasVideo => CommunityContentTokenType.postVideo,
+        _ when postData.visualMedias.isNotEmpty => CommunityContentTokenType.postImage,
+        _ => CommunityContentTokenType.postText,
+      },
+    PostEntity(data: final EntityDataWithMediaContent postData) => switch (postData) {
+        _ when postData.hasVideo => CommunityContentTokenType.postVideo,
+        _ when postData.visualMedias.isNotEmpty => CommunityContentTokenType.postImage,
+        _ => CommunityContentTokenType.postText,
+      },
     _ => null,
   };
 }
