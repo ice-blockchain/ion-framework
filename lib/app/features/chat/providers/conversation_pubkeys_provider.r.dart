@@ -50,7 +50,7 @@ class ConversationPubkeys extends _$ConversationPubkeys {
 
       usersKeys.addAll({masterPubkey: pubkeys});
     }
-    
+
     return usersKeys;
   }
 }
