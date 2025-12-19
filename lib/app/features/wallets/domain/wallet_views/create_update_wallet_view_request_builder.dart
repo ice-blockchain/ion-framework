@@ -125,7 +125,6 @@ class _CreateUpdateRequestBuilder {
       return wallet.name == walletViewId;
     });
 
-    // If we can't match by name/id (e.g., walletViewId is null), fall back to "any wallet in network".
-    return matched?.id ?? walletsInNetwork.first.id;
+    return matched?.id;
   }
 }
