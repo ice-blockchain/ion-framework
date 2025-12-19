@@ -422,16 +422,34 @@ class CreateArticle extends _$CreateArticle {
     return updatedContent;
   }
 
+  // Helper to add or merge RelatedPubkey into map, prioritizing showMarketCap=true
+  // TODO: handle case if we have 2 mentions with different showMarketCap flags
+  static void _addOrMergePubkey(
+    Map<String, RelatedPubkey> pubkeyMap,
+    RelatedPubkey rp,
+  ) {
+    final existing = pubkeyMap[rp.value];
+    if (existing == null || (!existing.showMarketCap && rp.showMarketCap)) {
+      // Add new or replace if new one has showMarketCap=true
+      pubkeyMap[rp.value] = rp;
+    }
+  }
+
   List<RelatedPubkey> _buildMentions(Delta content) {
-    return content
-        .extractMentionsWithFlags()
-        .map(
-          (mention) => RelatedPubkey(
-            value: mention.pubkey,
-            showMarketCap: mention.showMarketCap,
-          ),
-        )
-        .toList();
+    // Use Map to deduplicate by pubkey value, keeping highest showMarketCap
+    final pubkeyMap = <String, RelatedPubkey>{};
+
+    for (final mention in content.extractMentionsWithFlags()) {
+      _addOrMergePubkey(
+        pubkeyMap,
+        RelatedPubkey(
+          value: mention.pubkey,
+          showMarketCap: mention.showMarketCap,
+        ),
+      );
+    }
+
+    return pubkeyMap.values.toList();
   }
 
   // Builds relatedHashtags by combining:
