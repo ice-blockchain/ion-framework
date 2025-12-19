@@ -30,31 +30,32 @@ class ProfileBalance extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.0.s),
       ),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 44.0.s, vertical: 16.0.s),
+        padding: EdgeInsets.symmetric(horizontal: 8.s, vertical: 16.0.s),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                SvgPicture.asset(
-                  Assets.svg.iconMemeCoins,
-                ),
-                SizedBox(
-                  width: 4.0.s,
-                ),
-                Text(
-                  coins >= 1 ? formatCount(coins.toInt()) : coins.toString(),
-                  style: context.theme.appTextThemes.body2.copyWith(
-                    color: context.theme.appColors.primaryBackground,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            const GradientVerticalDivider(),
-            const Spacer(),
             Expanded(
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    Assets.svg.iconMemeCoins,
+                  ),
+                  SizedBox(
+                    width: 4.0.s,
+                  ),
+                  Text(
+                    coins >= 1 ? formatCount(coins.toInt()) : coins.toString(),
+                    style: context.theme.appTextThemes.body2.copyWith(
+                      color: context.theme.appColors.primaryBackground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const GradientVerticalDivider(),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset(
                     Assets.svg.iconCreatecoinDollar,
