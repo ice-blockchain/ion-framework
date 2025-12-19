@@ -5,9 +5,9 @@ import 'package:uuid/uuid.dart';
 
 String generateConversationId({
   required ConversationType conversationType,
-  List<String> receiverMasterPubkeys = const [],
+  List<String> participantsMasterPubkeys = const [],
 }) {
-  final sorted = List<String>.from(receiverMasterPubkeys)..sort();
+  final sorted = List<String>.from(participantsMasterPubkeys)..sort();
 
   // For one-to-one conversations, we use v5 UUID to ensure the same conversation ID for the same participants.
   switch (conversationType) {

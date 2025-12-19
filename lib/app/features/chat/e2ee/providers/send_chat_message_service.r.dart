@@ -6,7 +6,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
-import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
+import 'package:ion/app/features/chat/model/participants_keys.f.dart';
 import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
@@ -63,7 +63,7 @@ class SendChatMessageService {
     final conversationId = existingConversationId ??
         generateConversationId(
           conversationType: ConversationType.oneToOne,
-          receiverMasterPubkeys: [receiverPubkey, currentPubkey],
+          participantsMasterPubkeys: [receiverPubkey, currentPubkey],
         );
 
     await sendChatMessageService.sendMessage(

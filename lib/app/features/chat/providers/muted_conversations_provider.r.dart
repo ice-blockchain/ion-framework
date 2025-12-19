@@ -7,11 +7,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
-import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
+import 'package:ion/app/features/chat/model/participants_keys.f.dart';
 import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
-import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/mute_set.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
+import 'package:ion/app/features/user_mute/providers/user_mute_provider.r.dart';
 import 'package:ion/app/services/local_notifications/local_notifications.r.dart';
 import 'package:ion/app/services/uuid/generate_conversation_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -19,111 +18,82 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'muted_conversations_provider.r.g.dart';
 
 @riverpod
-class MutedConversations extends _$MutedConversations {
-  @override
-  FutureOr<MuteSetEntity?> build() async {
-    final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
-
-    if (currentUserMasterPubkey == null) {
-      throw UserMasterPubkeyNotFoundException();
-    }
-
-    final requestMessage = RequestMessage()
-      ..addFilter(
-        RequestFilter(
-          kinds: const [MuteSetEntity.kind],
-          authors: [currentUserMasterPubkey],
-          tags: {
-            '#d': [MuteSetType.chatConversations.dTagName],
-          },
-        ),
-      );
-
-    final mutedConversationsEntity =
-        await ref.read(ionConnectNotifierProvider.notifier).requestEntity<MuteSetEntity>(
-              requestMessage,
-            );
-
-    return mutedConversationsEntity;
-  }
-
-  Future<void> toggleMutedMasterPubkey(String masterPubkey) async {
-    state = const AsyncValue.loading();
-
-    state = await AsyncValue.guard(() async {
-      final existingMutedMasterPubkeys = state.value?.data.masterPubkeys ?? [];
-
-      final shouldBeMuted = !existingMutedMasterPubkeys.contains(masterPubkey);
-
-      final List<String> newMutedMasterPubkeys;
-      if (shouldBeMuted) {
-        newMutedMasterPubkeys = [...existingMutedMasterPubkeys, masterPubkey];
-        unawaited(_cleanConversationNotifications(masterPubkey));
-      } else {
-        newMutedMasterPubkeys = existingMutedMasterPubkeys.where((p) => p != masterPubkey).toList();
-      }
-
-      final MuteSetData muteSetData;
-      if (state.value != null) {
-        muteSetData = state.value!.data.copyWith(masterPubkeys: newMutedMasterPubkeys);
-      } else {
-        muteSetData = MuteSetData(
-          type: MuteSetType.chatConversations,
-          masterPubkeys: newMutedMasterPubkeys,
-        );
-      }
-
-      final muteSetEntity =
-          await ref.read(ionConnectNotifierProvider.notifier).sendEntityData<MuteSetEntity>(
-                muteSetData,
-              );
-
-      return muteSetEntity;
-    });
-  }
-
-  Future<void> _cleanConversationNotifications(
-    String masterPubkey,
-  ) async {
-    final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
-    if (currentUserMasterPubkey == null) {
-      return;
-    }
-
-    final participantsMasterPubkeys =
-        ParticipantKeys(keys: [masterPubkey, currentUserMasterPubkey].sorted());
-    final conversationId = await ref.read(
-      existOneToOneChatConversationIdProvider(participantsMasterPubkeys).future,
-    );
-    final localNotificationsService = await ref.read(localNotificationsServiceProvider.future);
-    unawaited(localNotificationsService.cancelByGroupKey(conversationId));
-  }
-}
-
-@riverpod
-Future<List<String>> mutedConversationIds(Ref ref) async {
+Future<List<String>> mutedConversations(Ref ref) async {
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
   if (currentUserMasterPubkey == null) {
     throw UserMasterPubkeyNotFoundException();
   }
 
-  final mutedConversations = await ref.watch(mutedConversationsProvider.future);
-  final mutedCommunityIds = mutedConversations?.data.communityIds ?? [];
+  // As for now only one-to-one conversations can be muted, we need to clarify
+  // if same will be used for public channels or group chats in future or we
+  // will have to use muted sets 3007
+  final mutedUsers = ref.watch(mutedUsersProvider).valueOrNull ?? [];
 
-  final mutedReceiverPubkeys = mutedConversations?.data.masterPubkeys ?? [];
+  final mutedConversations = mutedUsers
+      .map(
+        (masterPubkey) => generateConversationId(
+          conversationType: ConversationType.oneToOne,
+          participantsMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
+        ),
+      )
+      .toList();
 
-  final mutedOneToOneConversationIds = [
-    ...mutedReceiverPubkeys.map(
-      (masterPubkey) => generateConversationId(
-        conversationType: ConversationType.oneToOne,
-        receiverMasterPubkeys: [masterPubkey, currentUserMasterPubkey],
-      ),
-    ),
-  ];
+  return mutedConversations;
+}
 
-  return [
-    ...mutedOneToOneConversationIds,
-    ...mutedCommunityIds,
-  ];
+@riverpod
+Future<MuteConversationService> muteConversationService(Ref ref) async {
+  return MuteConversationService(
+    userMuteService: await ref.watch(userMuteServiceProvider.future),
+    currentUserMasterPubkey: ref.watch(currentPubkeySelectorProvider),
+    mutedUsersMasterPubkeys: await ref.watch(mutedUsersProvider.future),
+    localNotificationsService: await ref.watch(localNotificationsServiceProvider.future),
+    conversationIdProvider: (ParticipantKeys participants) =>
+        ref.read(existOneToOneChatConversationIdProvider(participants).future),
+  );
+}
+
+class MuteConversationService {
+  MuteConversationService({
+    required this.userMuteService,
+    required this.conversationIdProvider,
+    required this.mutedUsersMasterPubkeys,
+    required this.currentUserMasterPubkey,
+    required this.localNotificationsService,
+  });
+
+  final String? currentUserMasterPubkey;
+  final UserMuteService userMuteService;
+  final List<String> mutedUsersMasterPubkeys;
+  final LocalNotificationsService localNotificationsService;
+  final Future<String> Function(ParticipantKeys participants) conversationIdProvider;
+
+  Future<void> toggleMutedConversation(String masterPubkey) async {
+    final mutedUsers = List<String>.from(mutedUsersMasterPubkeys);
+
+    final isCurrentlyMuted = mutedUsers.contains(masterPubkey);
+
+    if (isCurrentlyMuted) {
+      mutedUsers.remove(masterPubkey);
+    } else {
+      mutedUsers.add(masterPubkey);
+      await cleanConversationNotifications(masterPubkey);
+    }
+
+    await userMuteService.sendUserMuteEvent(mutedUsers);
+  }
+
+  Future<void> cleanConversationNotifications(String masterPubkey) async {
+    if (currentUserMasterPubkey == null) {
+      throw UserMasterPubkeyNotFoundException();
+    }
+
+    final participantsMasterPubkeys =
+        ParticipantKeys(keys: [masterPubkey, currentUserMasterPubkey!].sorted());
+
+    final conversationId = await conversationIdProvider(participantsMasterPubkeys);
+
+    unawaited(localNotificationsService.cancelByGroupKey(conversationId));
+  }
 }

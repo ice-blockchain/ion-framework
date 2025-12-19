@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_signal.dart';
@@ -190,9 +192,12 @@ class _UnmutePostsMenuItem extends ConsumerWidget {
     return ContextMenuItem(
       label: context.i18n.button_unmute_posts,
       iconAsset: Assets.svg.iconChannelUnmute,
-      onPressed: () {
+      onPressed: () async {
+        final muteUserService = await ref.read(muteUserServiceProvider.future);
+
+        unawaited(muteUserService.toggleMutedUser(masterPubkey));
+
         closeMenu();
-        ref.read(mutedUsersProvider.notifier).toggleMutedMasterPubkey(masterPubkey);
       },
     );
   }

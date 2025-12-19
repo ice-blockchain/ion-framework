@@ -330,17 +330,13 @@ class NotificationTranslationService {
         if cacheDB.openDatabase() {
             defer { cacheDB.closeDatabase() }
             
-            // Check if user is muted (not_interested)
+            // Check if user is muted (not_interested), as we have only one to one conversations
+            // for now muting conversation == muting the user and we don't need to check 
+            // conversations separately but later we will need to check muted conversations ids
+            // instead of muted user pubkeys
             let mutedUsers = cacheDB.getMutedUsers()
             if mutedUsers.contains(senderPubkey) {
                 NSLog("[NSE] Sender is muted (not_interested): \(senderPubkey)")
-                return true
-            }
-            
-            // Check if conversation is muted (chat_conversations)
-            let mutedConversationPubkeys = cacheDB.getMutedConversationPubkeys()
-            if mutedConversationPubkeys.contains(senderPubkey) {
-                NSLog("[NSE] Conversation with sender is muted (chat_conversations): \(senderPubkey)")
                 return true
             }
         }
