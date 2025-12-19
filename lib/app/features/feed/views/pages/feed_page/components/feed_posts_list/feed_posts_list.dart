@@ -20,7 +20,7 @@ import 'package:ion/generated/assets.gen.dart';
 class FeedPostsList extends HookConsumerWidget {
   const FeedPostsList({super.key});
 
-  static const int startAdOffset = 4;
+  static const int startAdOffset = 3;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,6 +62,7 @@ class FeedPostsList extends HookConsumerWidget {
         const IonEntityListItem.custom(child: InviteFriendsListItem()),
       );
     }
+    log('_getFeedListItems ionAdClient :${ionAdClient?.isNativeLoaded}');
     if (initialListItems.length >= startAdOffset &&
         ionAdClient != null &&
         ionAdClient.isNativeLoaded) {
@@ -105,7 +106,7 @@ class _CustomNativeAd extends StatelessWidget {
       height: 298,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: AppodealNativeAd(
-        options: NativeAdOptions.customOptions(),
+        options: NativeAdOptions.contentStreamOptions(),
       ),
     );
   }
