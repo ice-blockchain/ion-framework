@@ -33,7 +33,7 @@ import 'package:ion/app/utils/retry.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'deep_link_service.r.g.dart';
+part 'appsflyer_deep_link_service.r.g.dart';
 
 const _contentTypeKey = 'content_type';
 
@@ -74,7 +74,7 @@ Future<void> deepLinkHandler(Ref ref) async {
 
     if (initialLink != null) {
       handledInitialLink = initialLink;
-      final deepLinkService = ref.read(deepLinkServiceProvider);
+      final appsflyerDeepLinkService = ref.read(appsflyerDeepLinkServiceProvider);
       ref.read(splashProvider.notifier).animationCompleted = true;
 
       await ref.watch(appReadyProvider.future);
@@ -102,7 +102,7 @@ Future<void> deepLinkHandler(Ref ref) async {
         router.routerDelegate.removeListener(listener);
       }
 
-      deepLinkService.resolveDeeplink(initialLink);
+      appsflyerDeepLinkService.resolveDeeplink(initialLink);
     }
   } catch (e) {
     Logger.error('Error getting initial link: $e');
@@ -112,7 +112,7 @@ Future<void> deepLinkHandler(Ref ref) async {
   if (Platform.isAndroid) {
     appLinks.stringLinkStream.listen((link) {
       if (link != handledInitialLink) {
-        ref.read(deepLinkServiceProvider).resolveDeeplink(link);
+        ref.read(appsflyerDeepLinkServiceProvider).resolveDeeplink(link);
       }
     });
   }
@@ -153,7 +153,7 @@ class DeeplinkPath extends _$DeeplinkPath {
 }
 
 @Riverpod(keepAlive: true)
-DeepLinkService deepLinkService(Ref ref) {
+AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
   final env = ref.read(envProvider.notifier);
   final devKey = env.get<String>(EnvVariable.AF_DEV_KEY);
   final appId = env.get<String>(EnvVariable.AF_APP_ID);
@@ -173,7 +173,7 @@ DeepLinkService deepLinkService(Ref ref) {
     ),
   );
 
-  return DeepLinkService(
+  return AppsFlyerDeepLinkService(
     sdk,
     templateId: templateId,
     brandDomain: brandDomain,
@@ -183,7 +183,7 @@ DeepLinkService deepLinkService(Ref ref) {
 
 @riverpod
 Future<void> deeplinkInitializer(Ref ref) async {
-  final service = ref.read(deepLinkServiceProvider);
+  final service = ref.read(appsflyerDeepLinkServiceProvider);
 
   Future<String?> handlePostDeepLink(
     EventReference eventReference,
@@ -298,8 +298,8 @@ Future<void> deeplinkInitializer(Ref ref) async {
   );
 }
 
-final class DeepLinkService {
-  DeepLinkService(
+final class AppsFlyerDeepLinkService {
+  AppsFlyerDeepLinkService(
     this._appsflyerSdk, {
     required String templateId,
     required String brandDomain,
