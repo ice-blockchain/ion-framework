@@ -19,11 +19,17 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         val layoutInflater = activity.layoutInflater
         // Create the NativeAdView
         val nativeAdView = when (val nativeAdViewType = nativeAdOptions.nativeAdViewType) {
-            NativeAdViewType.ContentStream -> NativeAdViewContentStream(context)
+            NativeAdViewType.ContentStream -> layoutInflater.inflate(
+                R.layout.apd_native_ad_view_custom,
+                null
+            ) as NativeAdView // NativeAdViewContentStream(context)
             NativeAdViewType.AppWall -> NativeAdViewAppWall(context)
-            //NativeAdViewType.NewsFeed -> NativeAdViewNewsFeed(context)
-            NativeAdViewType.NewsFeed -> layoutInflater.inflate(R.layout.apd_native_ad_view_custom, null) as NativeAdView
+            NativeAdViewType.NewsFeed -> NativeAdViewNewsFeed(context)
             else -> throw IllegalArgumentException("Unknown NativeAdViewType: $nativeAdViewType")
+        }
+
+        if (nativeAdOptions.nativeAdViewType == NativeAdViewType.ContentStream) {
+            return nativeAdView
         }
 
         // set ad choices config
