@@ -9,7 +9,6 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
-import 'package:ion/app/features/chat/community/models/entities/tags/delegation_pubkey_tag.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/pubkey_tag.f.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -417,10 +416,10 @@ class GlobalSubscription {
 
         final pubkeyTag = tags[PubkeyTag.tagName]?.firstOrNull;
         if (pubkeyTag != null) {
-          final pTagValue = eventMessage.kind == UserDelegationEntity.kind
-              ? DelegationPubkeyTag.fromTag(pubkeyTag).value
+          final masterPubkeyKeyFromTag = eventMessage.kind == UserDelegationEntity.kind
+              ? eventMessage.pubkey
               : PubkeyTag.fromTag(pubkeyTag).value;
-          if (pTagValue == currentUserMasterPubkey) {
+          if (masterPubkeyKeyFromTag == currentUserMasterPubkey) {
             if (_inMemoryPFilterSince == null) {
               _inMemoryPFilterSince = eventTimestamp;
             } else if (_inMemoryPFilterSince! < eventTimestamp) {
