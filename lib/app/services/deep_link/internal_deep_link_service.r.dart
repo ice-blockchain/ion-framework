@@ -81,6 +81,47 @@ final class InternalDeepLinkService {
     }
   }
 
+  /// Extracts the route location from internal deep link parameters
+  /// Returns null if the route cannot be determined
+  String? getRouteLocation(String host, List<String> pathSegments) {
+    try {
+      final internalHost = InternalDeepLinkHost.values.firstWhere(
+        (h) => h.value.toLowerCase() == host.toLowerCase(),
+      );
+
+      return switch (internalHost) {
+        InternalDeepLinkHost.feed => FeedRoute().location,
+        InternalDeepLinkHost.chat => pathSegments.isNotEmpty
+            ? ConversationRoute(receiverMasterPubkey: pathSegments.first).location
+            : ChatRoute().location,
+        InternalDeepLinkHost.wallet => WalletRoute().location,
+        InternalDeepLinkHost.profile => pathSegments.isNotEmpty
+            ? ProfileRoute(pubkey: pathSegments.first).location
+            : SelfProfileRoute().location,
+        InternalDeepLinkHost.invite => InviteFriendsRoute().location,
+        InternalDeepLinkHost.story => pathSegments.length >= 2
+            ? StoryViewerRoute(
+                pubkey: pathSegments[0],
+                initialStoryReference: pathSegments[1],
+              ).location
+            : null,
+        InternalDeepLinkHost.article => pathSegments.isNotEmpty
+            ? ArticleDetailsRoute(eventReference: pathSegments.first).location
+            : null,
+        InternalDeepLinkHost.post => pathSegments.isNotEmpty
+            ? PostDetailsRoute(eventReference: pathSegments.first).location
+            : null,
+        InternalDeepLinkHost.video => pathSegments.isNotEmpty
+            ? FullscreenMediaRoute(eventReference: pathSegments.first, initialMediaIndex: 0)
+                .location
+            : null,
+      };
+    } catch (e) {
+      Logger.error('Error extracting route location from host: $host, error: $e');
+      return null;
+    }
+  }
+
   /// Handles an internal deep link by navigating to the appropriate route
   ///
   /// Returns true if the deep link was handled successfully, false otherwise

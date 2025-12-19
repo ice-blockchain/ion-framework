@@ -25,6 +25,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/providers/go_router_provider.r.dart';
+import 'package:ion/app/services/deep_link/internal_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
@@ -65,6 +66,39 @@ Future<void> appReady(Ref ref) async {
 
 @riverpod
 Future<void> deepLinkHandler(Ref ref) async {
+  void closeOpenModalsIfNeeded() {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) {
+      return;
+    }
+
+    final router = GoRouter.maybeOf(context);
+    final isMainModalOpen = router?.state.isMainModalOpen ?? false;
+
+    if (isMainModalOpen || context.canPop()) {
+      Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
+    }
+  }
+
+  // Set up the listener FIRST to catch any state changes from initial link handling
+  ref.listen<String?>(deeplinkPathProvider, (prev, next) {
+    if (next != null) {
+      closeOpenModalsIfNeeded();
+      final currentContext = rootNavigatorKey.currentContext;
+      if (currentContext != null && currentContext.mounted) {
+        if (next == FeedRoute().location ||
+            next == ChatRoute().location ||
+            next == WalletRoute().location ||
+            next == SelfProfileRoute().location) {
+          GoRouter.of(currentContext).go(next);
+        } else {
+          GoRouter.of(currentContext).push(next);
+        }
+        ref.read(deeplinkPathProvider.notifier).clear();
+      }
+    }
+  });
+
   // used only first time when app is opened from closed state (cold start)
   final appLinks = AppLinks();
   String? handledInitialLink;
@@ -75,6 +109,7 @@ Future<void> deepLinkHandler(Ref ref) async {
     if (initialLink != null) {
       handledInitialLink = initialLink;
       final appsflyerDeepLinkService = ref.read(appsflyerDeepLinkServiceProvider);
+      final internalDeepLinkService = ref.read(internalDeepLinkServiceProvider);
       ref.read(splashProvider.notifier).animationCompleted = true;
 
       await ref.watch(appReadyProvider.future);
@@ -102,7 +137,16 @@ Future<void> deepLinkHandler(Ref ref) async {
         router.routerDelegate.removeListener(listener);
       }
 
-      appsflyerDeepLinkService.resolveDeeplink(initialLink);
+      // If it's an internal link, handle it directly. Otherwise, let AppsFlyer resolve it.
+      if (internalDeepLinkService.isInternalDeepLink(initialLink)) {
+        final uri = Uri.parse(initialLink);
+        final location = internalDeepLinkService.getRouteLocation(uri.host, uri.pathSegments);
+        if (location != null) {
+          ref.read(deeplinkPathProvider.notifier).path = location;
+        }
+      } else {
+        appsflyerDeepLinkService.resolveDeeplink(initialLink);
+      }
     }
   } catch (e) {
     Logger.error('Error getting initial link: $e');
@@ -112,35 +156,19 @@ Future<void> deepLinkHandler(Ref ref) async {
   if (Platform.isAndroid) {
     appLinks.stringLinkStream.listen((link) {
       if (link != handledInitialLink) {
-        ref.read(appsflyerDeepLinkServiceProvider).resolveDeeplink(link);
+        final internalDeepLinkService = ref.read(internalDeepLinkServiceProvider);
+        if (internalDeepLinkService.isInternalDeepLink(link)) {
+          final uri = Uri.parse(link);
+          final location = internalDeepLinkService.getRouteLocation(uri.host, uri.pathSegments);
+          if (location != null) {
+            ref.read(deeplinkPathProvider.notifier).path = location;
+          }
+        } else {
+          ref.read(appsflyerDeepLinkServiceProvider).resolveDeeplink(link);
+        }
       }
     });
   }
-
-  void closeOpenModalsIfNeeded() {
-    final context = rootNavigatorKey.currentContext;
-    if (context == null || !context.mounted) {
-      return;
-    }
-
-    final router = GoRouter.maybeOf(context);
-    final isMainModalOpen = router?.state.isMainModalOpen ?? false;
-
-    if (isMainModalOpen || context.canPop()) {
-      Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
-    }
-  }
-
-  ref.listen<String?>(deeplinkPathProvider, (prev, next) {
-    if (next != null) {
-      closeOpenModalsIfNeeded();
-      final currentContext = rootNavigatorKey.currentContext;
-      if (currentContext != null && currentContext.mounted) {
-        GoRouter.of(currentContext).push(next);
-        ref.read(deeplinkPathProvider.notifier).clear();
-      }
-    }
-  });
 }
 
 @riverpod
@@ -255,8 +283,21 @@ Future<void> deeplinkInitializer(Ref ref) async {
   }
 
   await service.init(
+    internalDeepLinkService: ref.read(internalDeepLinkServiceProvider),
     onDeeplink: (encodedEventReference, contentType) async {
       try {
+        // Check if this is an internal deep link first
+        final internalDeepLinkService = ref.read(internalDeepLinkServiceProvider);
+        if (internalDeepLinkService.isInternalDeepLink(encodedEventReference)) {
+          // For cold start (which is when this callback runs), use deeplinkPathProvider
+          final uri = Uri.parse(encodedEventReference);
+          final location = internalDeepLinkService.getRouteLocation(uri.host, uri.pathSegments);
+          if (location != null) {
+            ref.read(deeplinkPathProvider.notifier).path = location;
+          }
+          return;
+        }
+
         if (isFallbackUrl(encodedEventReference)) {
           // Just open the app in case of fallback url
           return;
@@ -328,6 +369,7 @@ final class AppsFlyerDeepLinkService {
 
   Future<void> init({
     required void Function(String path, SharedContentType? contentType) onDeeplink,
+    required InternalDeepLinkService internalDeepLinkService,
   }) async {
     await _appsflyerSdk.setAppInviteOneLinkID(_templateId, (dynamic data) {
       Logger.log('AppsFlyer setAppInviteOneLinkIDCallback callback: $data');
@@ -345,6 +387,16 @@ final class AppsFlyerDeepLinkService {
           }
         } else {
           final clickEvent = link.deepLink?.clickEvent;
+
+          // Check if this is an internal deep link (uses env scheme)
+          final rawLink = clickEvent?['link'] as String?;
+          if (rawLink != null) {
+            if (internalDeepLinkService.isInternalDeepLink(rawLink)) {
+              // This is an internal deep link, pass it through
+              return onDeeplink(rawLink, null);
+            }
+          }
+
           final host = clickEvent?['host'] as String?;
           if (host == _brandDomain) {
             final url = clickEvent?['link'] as String?;
