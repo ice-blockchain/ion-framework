@@ -875,6 +875,8 @@
   "tokenized_community_holders_tab": "Détenteurs",
   "tokenized_community_trades_tab": "Transactions",
   "tokenized_community_bonding_curve": "Courbe de liaison",
+  "tokenized_community_not_available_description": "La création de tokens n'est pas disponible pour les publications déjà créées.",
+  "tokenized_community_not_available_title": "Erreur de contenu tokenisé",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Ajouter un lien",
   "top_holders_empty": "Devenez le premier détenteur",

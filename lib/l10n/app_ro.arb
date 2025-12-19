@@ -875,6 +875,8 @@
   "tokenized_community_holders_tab": "Deținători",
   "tokenized_community_trades_tab": "Tranzacții",
   "tokenized_community_bonding_curve": "Curba de legătură",
+  "tokenized_community_not_available_description": "Crearea de tokenuri nu este disponibilă pentru postările create anterior.",
+  "tokenized_community_not_available_title": "Eroare de conținut tokenizat",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Adaugă un link",
   "top_holders_empty": "Fii primul deținător",

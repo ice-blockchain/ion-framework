@@ -875,6 +875,8 @@
   "tokenized_community_holders_tab": "Sahipler",
   "tokenized_community_trades_tab": "İşlemler",
   "tokenized_community_bonding_curve": "Bağlanma Eğrisi",
+  "tokenized_community_not_available_description": "Önceden oluşturulmuş gönderiler için token oluşturma kullanılamaz.",
+  "tokenized_community_not_available_title": "Tokenlaştırılmış içerik hatası",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Bağlantı ekle",
   "top_holders_empty": "İlk sahip ol",
