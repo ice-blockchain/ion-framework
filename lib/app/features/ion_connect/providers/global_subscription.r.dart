@@ -30,6 +30,8 @@ import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user_archive/model/entities/user_archive_entity.f.dart';
 import 'package:ion/app/features/user_archive/providers/user_archive_provider.r.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
+import 'package:ion/app/features/user_mute/model/entities/user_mute_entity.f.dart';
+import 'package:ion/app/features/user_mute/providers/user_mute_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -51,10 +53,12 @@ class GlobalSubscription {
     required this.eventsManagementService,
     required this.eventBackfillService,
     required this.userArchiveService,
+    required this.userMuteService,
   });
 
   final String currentUserMasterPubkey;
   final String devicePubkey;
+  final UserMuteService? userMuteService;
   final UserArchiveService? userArchiveService;
   final GlobalSubscriptionLatestEventTimestampService latestEventTimestampService;
   final IonConnectNotifier ionConnectNotifier;
@@ -90,6 +94,7 @@ class GlobalSubscription {
     // This prevents processing events that were deleted later on.
     await _subscribeToPriorityEvents();
     await userArchiveService?.checkArchiveMigrated();
+    await userMuteService?.checkMuteMigrated();
 
     Logger.log('[GLOBAL_SUBSCRIPTION] init fetched encrypted delete events)');
 
@@ -362,6 +367,7 @@ class GlobalSubscription {
                 [DeletionRequestEntity.kind.toString()],
                 [UserArchiveEntity.kind.toString()],
                 [BlockedUserEntity.kind.toString()],
+                [UserMuteEntity.kind.toString()],
               ],
             },
             since: encryptedLatestTimestampFromStorage,
@@ -538,6 +544,7 @@ GlobalSubscription? globalSubscription(Ref ref) {
   final eventsManagementService = ref.watch(eventsManagementServiceProvider).valueOrNull;
   final eventBackfillService = ref.watch(eventBackfillServiceProvider);
   final userArchiveService = ref.watch(userArchiveServiceProvider).valueOrNull;
+  final userMuteService = ref.watch(userMuteServiceProvider).valueOrNull;
 
   if (latestEventTimestampService == null || eventsManagementService == null) {
     return null;
@@ -551,6 +558,7 @@ GlobalSubscription? globalSubscription(Ref ref) {
     globalSubscriptionNotifier: globalSubscriptionNotifier,
     eventsManagementService: eventsManagementService,
     eventBackfillService: eventBackfillService,
+    userMuteService: userMuteService,
     userArchiveService: userArchiveService,
   );
 }

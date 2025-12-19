@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
-import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
@@ -62,6 +61,79 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     if (currentPubkey != null && data.isSelfInteraction(currentPubkey: currentPubkey)) {
       return;
     }
+    
+    // Handle IonConnect notifications
+    try {
+      final data = await IonConnectPushDataPayload.fromEncoded(
+        response.data,
+        unwrapGift: (eventMassage) async {
+          final giftUnwrapService = await ref.read(giftUnwrapServiceProvider.future);
+
+          final event = await giftUnwrapService.unwrap(eventMassage);
+          final userMetadata = await ref.read(
+            userMetadataProvider(event.masterPubkey).future,
+          );
+
+          return (event, userMetadata);
+        },
+      );
+
+      if (await _shouldSkipOwnGiftWrap(data: data)) {
+        return;
+      }
+
+      // Skip notifications for self-interactions (e.g., quoting/reposting own content)
+      final currentPubkey = ref.read(currentPubkeySelectorProvider);
+      if (currentPubkey != null && data.isSelfInteraction(currentPubkey: currentPubkey)) {
+        return;
+      }
+
+      // Skip notifications from muted users or muted conversations
+      if (await _shouldSkipMutedNotification(data)) {
+        return;
+      }
+
+      final parser = await ref.read(notificationDataParserProvider.future);
+      final parsedData = await parser.parse(
+        data,
+        getFundsRequestData: (eventMessage) =>
+            ref.read(fundsRequestDisplayDataProvider(eventMessage).future),
+        getTransactionData: (eventMessage) =>
+            ref.read(transactionDisplayDataProvider(eventMessage).future),
+        getRelatedEntity: (eventReference) =>
+            ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference).future),
+      );
+
+      final title = parsedData?.title ?? response.notification?.title;
+      final body = parsedData?.body ?? response.notification?.body;
+
+      if (title == null || body == null) {
+        return;
+      }
+
+      final avatar = parsedData?.avatar;
+      final media = parsedData?.media;
+
+      if (_shouldSkipChatPush(data, parsedData?.notificationType)) {
+        return;
+      }
+
+      final notificationsService = await ref.read(localNotificationsServiceProvider.future);
+      await notificationsService.showNotification(
+        title: title,
+        body: body,
+        payload: jsonEncode(response.data),
+        icon: avatar,
+        attachment: media,
+        groupKey: parsedData?.groupKey,
+      );
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Error handling IonConnect foreground push',
+      );
+    }
 
     // Skip notifications from muted users or muted conversations
     if (_shouldSkipMutedNotification(data)) {
@@ -104,7 +176,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     );
   }
 
-  bool _shouldSkipMutedNotification(IonConnectPushDataPayload data) {
+  Future<bool> _shouldSkipMutedNotification(IonConnectPushDataPayload data) async {
     // Check if this is a gift wrap (chat) notification
     if (data.event.kind != IonConnectGiftWrapEntity.kind) {
       return false;
@@ -116,21 +188,13 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       return false;
     }
 
-    final senderPubkey = decryptedEvent.masterPubkey;
+    final senderMasterPubkey = decryptedEvent.masterPubkey;
 
     // Check if sender is muted
-    final mutedUsers = ref.read(cachedMutedUsersProvider)?.data.masterPubkeys ?? [];
-    if (mutedUsers.contains(senderPubkey)) {
+    // For one-to-one chats it is enough to check muted users
+    final mutedUsers = await ref.read(mutedUsersProvider.future);
+    if (mutedUsers.contains(senderMasterPubkey)) {
       return true;
-    }
-
-    // Check if conversation is muted
-    final mutedConversations = ref.read(mutedConversationsProvider).valueOrNull;
-    if (mutedConversations != null) {
-      final mutedPubkeys = mutedConversations.data.masterPubkeys;
-      if (mutedPubkeys.contains(senderPubkey)) {
-        return true;
-      }
     }
 
     return false;
