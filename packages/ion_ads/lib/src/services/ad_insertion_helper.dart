@@ -14,12 +14,16 @@ class AdInsertionHelper {
     final indices = <int>[];
     if (contentCount <= 0 || baseInterval <= 0) return indices;
 
-    final rng = Random(startOffset);
-    final next = max(1, baseInterval + rng.nextInt(randomDelta * 2 + 1) - randomDelta);
+    final rng = Random(baseInterval);
+
+    // Initial position: It is okay for the first ad to be at index 1.
+    final next = max(1, startOffset + rng.nextInt(randomDelta));
     var cursor = next;
     while (cursor < contentCount) {
       indices.add(cursor);
-      final gap = max(1, baseInterval + rng.nextInt(randomDelta * 2 + 1) - randomDelta);
+
+      // Subsequent gaps: Enforce a minimum of 2 to prevent adjacent ads (e.g., 20, 21).
+      final gap = max(2, startOffset + rng.nextInt(randomDelta));
       cursor += gap;
     }
     return indices;
