@@ -8,14 +8,58 @@ class QuillStyleManager {
 
   void toggleHeaderStyle(Attribute<dynamic> headerAttribute) {
     final currentStyle = controller.getSelectionStyle();
+    final docPlainText = controller.document.toPlainText();
+    final docLength = controller.document.length;
 
     final isSameHeaderStyle =
         currentStyle.attributes[headerAttribute.key]?.value == headerAttribute.value;
 
+    // Find the line/block containing the cursor
+    // Headers in Quill are block-level attributes that apply to entire lines
+    final cursorPos = controller.selection.baseOffset;
+    var blockStart = 0;
+    var blockEnd = docLength;
+
+    // Find the start of the line (previous newline or start of doc)
+    final textBeforeCursor = docPlainText.substring(0, cursorPos);
+    final lastNewlineBefore = textBeforeCursor.lastIndexOf('\n');
+    if (lastNewlineBefore >= 0) {
+      blockStart = lastNewlineBefore + 1;
+    } else {
+      blockStart = 0;
+    }
+
+    // Find the end of the line (next newline or end of doc)
+    final textAfterCursor = docPlainText.substring(cursorPos);
+    final firstNewlineAfter = textAfterCursor.indexOf('\n');
+    if (firstNewlineAfter >= 0) {
+      blockEnd = cursorPos + firstNewlineAfter + 1; // Include the newline
+    } else {
+      blockEnd = docLength;
+    }
+
+    // Wipe all styles from the entire block range first
+    final blockLength = blockEnd - blockStart;
+    if (blockLength > 0) {
+      // Wipe inline styles from the entire block using formatText
+      controller
+        ..formatText(blockStart, blockLength, Attribute.clone(Attribute.bold, null))
+        ..formatText(blockStart, blockLength, Attribute.clone(Attribute.italic, null))
+        ..formatText(blockStart, blockLength, Attribute.clone(Attribute.underline, null))
+        ..formatText(blockStart, blockLength, Attribute.clone(Attribute.link, null));
+    }
+
+    // Wipe header styles (these are block-level, so formatSelection should work)
     wipeAllStyles();
 
     if (!isSameHeaderStyle) {
-      controller.formatSelection(headerAttribute);
+      // Apply header to the entire block using formatText
+      if (blockLength > 0) {
+        controller.formatText(blockStart, blockLength, headerAttribute);
+      } else {
+        // Fallback to formatSelection
+        controller.formatSelection(headerAttribute);
+      }
     }
   }
 
