@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
 import 'package:ion/app/features/feed/views/pages/fullscreen_media/components/adaptive_media_view.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
@@ -56,7 +56,7 @@ class FullscreenMediaPage extends HookConsumerWidget {
             actions: isEntityDeleted
                 ? null
                 : [
-                    PostContextMenu.forAppBar(
+                    ContentBottomSheetMenu.forAppBar(
                       eventReference: eventReference,
                       entity: entity,
                       iconColor: context.theme.appColors.onPrimaryAccent,

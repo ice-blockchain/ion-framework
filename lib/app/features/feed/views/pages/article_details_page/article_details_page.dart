@@ -17,7 +17,7 @@ import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
 import 'package:ion/app/features/feed/views/pages/article_details_page/components/article_content_measurer.dart';
 import 'package:ion/app/features/feed/views/pages/article_details_page/components/article_details_date_topics.dart';
@@ -144,7 +144,7 @@ class ArticleDetailsPage extends HookConsumerWidget {
     return Scaffold(
       appBar: NavigationAppBar.screen(
         actions: [
-          PostContextMenu.forAppBar(
+          ContentBottomSheetMenu.forAppBar(
             eventReference: eventReference,
             entity: articleEntity,
             onDelete: context.pop,

@@ -14,7 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -204,7 +204,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
           ),
           onBackPress: () => context.pop(),
           actions: [
-            PostContextMenu.forAppBar(
+            ContentBottomSheetMenu.forAppBar(
               eventReference: currentEventReference.value,
               entity: currentEntity,
               iconColor: secondaryBackgroundColor,

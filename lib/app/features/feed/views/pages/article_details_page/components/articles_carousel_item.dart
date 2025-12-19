@@ -7,7 +7,7 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
 import 'package:ion/app/features/feed/views/components/feed_network_image/feed_network_image.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -40,7 +40,7 @@ class ArticlesCarouselItem extends ConsumerWidget {
         children: [
           UserInfo(
             pubkey: article.masterPubkey,
-            trailing: PostContextMenu(
+            trailing: ContentBottomSheetMenu(
               eventReference: eventReference,
               entity: article,
             ),
