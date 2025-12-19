@@ -30,6 +30,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     Appodeal.setTesting(testMode);
     Appodeal.setLogLevel(verbose ? Appodeal.LogLevelVerbose : Appodeal.LogLevelNone);
     Appodeal.setAutoCache(AppodealAdType.NativeAd, true);
+    Appodeal.setUseSafeArea(true);
 
     if (hasConsent) {
       await Appodeal.consentForm.load(
@@ -56,16 +57,16 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
         // AppodealAdType.MREC,
         AppodealAdType.NativeAd,
       ],
-      onInitializationFinished: (errors) {
+      onInitializationFinished: (errors) async {
         errors?.forEach((error) => log(error.description));
         log('onInitializationFinished: errors - ${errors?.length ?? 0}');
+        await _checkAdAvailability();
+
+        _initialized = true;
       },
     );
 
     _setupAppodealCallbacks();
-    await _checkAdAvailability();
-
-    _initialized = true;
   }
 
   void _setupAppodealCallbacks() {
@@ -162,7 +163,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     await Appodeal.cache(AppodealAdType.NativeAd);
     log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative, nativeAd:$nativeAd');
 
-    _isNativeLoaded = isNativeInitialized ?? false;
+    _isNativeLoaded = (isNativeInitialized ?? false) && (canShowNative ?? false);
   }
 
   @override
