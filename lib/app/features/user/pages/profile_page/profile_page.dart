@@ -151,7 +151,7 @@ class ProfilePage extends HookConsumerWidget {
                 ProfileAvatar(
                   profileMode: profileMode,
                   pubkey: masterPubkey,
-                  size: profileMode == ProfileMode.dark ? 90.0.s : null,
+                  size: profileMode == ProfileMode.dark ? 88.0.s : null,
                 ),
                 PositionedDirectional(
                   bottom: -6.0.s,
