@@ -561,29 +561,51 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         .toList();
   }
 
+  // Helper to add or merge RelatedPubkey into map, prioritizing showMarketCap=true
+  // TODO: handle case if we have 2 mentions with different showMarketCap flags
+  static void _addOrMergePubkey(
+    Map<String, RelatedPubkey> pubkeyMap,
+    RelatedPubkey rp,
+  ) {
+    final existing = pubkeyMap[rp.value];
+    if (existing == null || (!existing.showMarketCap && rp.showMarketCap)) {
+      // Add new or replace if new one has showMarketCap=true
+      pubkeyMap[rp.value] = rp;
+    }
+  }
+
   Set<RelatedPubkey> _buildRelatedPubkeys({
     required List<RelatedPubkey> mentions,
     IonConnectEntity? parentEntity,
     EventReference? quotedEvent,
   }) {
-    final allPubkeys = <RelatedPubkey>{...mentions};
+    // Use Map to deduplicate by pubkey value, keeping highest showMarketCap
+    final pubkeyMap = <String, RelatedPubkey>{};
+
+    // Add mentions (may have duplicates with different flags)
+    for (final mention in mentions) {
+      _addOrMergePubkey(pubkeyMap, mention);
+    }
+
     if (quotedEvent != null) {
-      allPubkeys.add(RelatedPubkey(value: quotedEvent.masterPubkey));
+      _addOrMergePubkey(pubkeyMap, RelatedPubkey(value: quotedEvent.masterPubkey));
     }
 
     if (parentEntity != null) {
-      allPubkeys.add(RelatedPubkey(value: parentEntity.masterPubkey));
+      _addOrMergePubkey(pubkeyMap, RelatedPubkey(value: parentEntity.masterPubkey));
       final parentPubkeys = parentEntity is ModifiablePostEntity
           ? parentEntity.data.relatedPubkeys
           : parentEntity is PostEntity
               ? parentEntity.data.relatedPubkeys
               : null;
       if (parentPubkeys != null) {
-        allPubkeys.addAll(parentPubkeys);
+        for (final pp in parentPubkeys) {
+          _addOrMergePubkey(pubkeyMap, pp);
+        }
       }
     }
 
-    return allPubkeys;
+    return pubkeyMap.values.toSet();
   }
 
   List<String> _buildRemovedMediaHashes({

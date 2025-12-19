@@ -37,11 +37,14 @@ Delta decoratedMentionsWithMarketCap(
       }
 
       if (pubkey != null) {
-        // Watch market cap provider - reactive to changes
+        // Check if author wanted to display with market cap
+        final showMarketCap = attrs?[MentionAttribute.showMarketCapKey] == true;
+
         final marketCapAsync = ref.watch(userTokenMarketCapProvider(pubkey));
         final marketCap = marketCapAsync.valueOrNull;
 
-        if (marketCap != null && !data.contains('(')) {
+        // Only decorate if author chose to display with market cap AND market cap exists
+        if (showMarketCap && marketCap != null && !data.contains('(')) {
           final formattedCap = MarketDataFormatter.formatCompactNumber(marketCap);
           out.insert('$data ($formattedCap)', attrs);
           continue;

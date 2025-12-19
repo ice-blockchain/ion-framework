@@ -130,8 +130,9 @@ class MentionInsertionService {
       );
   }
 
-  // Removes a mention embed from the document.
-  // Finds the embed position and deletes it along with any trailing space.
+  // Downgrades a mention embed to text format (user clicked X button).
+  // This persists the author's choice to NOT display with market cap.
+  // The mention stays in the document but without showMarketCap flag.
   static void removeMentionEmbed(
     QuillController controller,
     Embed embedNode,
@@ -168,23 +169,9 @@ class MentionInsertionService {
     }
 
     if (embedIndex != -1) {
-      // Delete the embed (length 1) and check for trailing space
-      var deleteLength = 1;
-
-      // Check if there's a trailing space after the embed
-      if (embedIndex + 1 < controller.document.length &&
-          controller.document.toPlainText()[embedIndex + 1] == ' ') {
-        deleteLength = 2; // Delete embed + space
-      }
-
-      controller
-        ..replaceText(embedIndex, deleteLength, '', null)
-
-        // Update cursor position to where the embed was
-        ..updateSelection(
-          TextSelection.collapsed(offset: embedIndex),
-          ChangeSource.local,
-        );
+      // Downgrade embed to text format (keeps mention but without showMarketCap flag)
+      // This ensures author's choice to not display with market cap is persisted
+      downgradeMentionEmbedToText(controller, embedIndex, nodeMentionData);
     }
   }
 
