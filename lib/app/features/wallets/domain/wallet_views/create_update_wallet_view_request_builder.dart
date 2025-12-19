@@ -115,7 +115,12 @@ class _CreateUpdateRequestBuilder {
 
     final matched = walletsInNetwork.firstWhereOrNull((wallet) {
       if (isMainWalletView) {
-        return wallet.id == mainUserWallet.id || wallet.name == walletViewId;
+        final isAutoCreatedMainWallet =
+            wallet.name != null && wallet.name!.toLowerCase().contains('main');
+
+        return wallet.id == mainUserWallet.id ||
+            wallet.name == walletViewId ||
+            isAutoCreatedMainWallet;
       }
       return wallet.name == walletViewId;
     });
