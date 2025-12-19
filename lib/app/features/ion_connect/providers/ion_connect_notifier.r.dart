@@ -50,6 +50,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     List<EventMessage> events, {
     ActionSource actionSource = const ActionSourceCurrentUser(),
     bool cache = true,
+    bool ignoreAuthoritativeErrors = true,
   }) async {
     _warnSendIssues(events);
 
@@ -85,7 +86,11 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               .read(relayAuthProvider(relay))
               .handleRelayAuthOnAction(actionSource: actionSource, error: error);
 
-          await _sendEventsToRelay(events, relay: relay);
+          await _sendEventsToRelay(
+            events,
+            relay: relay,
+            ignoreAuthoritativeErrors: ignoreAuthoritativeErrors,
+          );
 
           if (cache) {
             return events.map(_parseAndCache).toList();
@@ -142,6 +147,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     ActionSource actionSource = const ActionSourceCurrentUser(),
     List<EventsMetadataBuilder> metadataBuilders = const [],
     bool cache = true,
+    bool ignoreAuthoritativeErrors = true,
   }) async {
     final eventsToSend = [...events];
     if (metadataBuilders.isNotEmpty) {
@@ -151,7 +157,12 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       );
       eventsToSend.addAll(metadataEvents);
     }
-    return _sendEvents(eventsToSend, actionSource: actionSource, cache: cache);
+    return _sendEvents(
+      eventsToSend,
+      actionSource: actionSource,
+      cache: cache,
+      ignoreAuthoritativeErrors: ignoreAuthoritativeErrors,
+    );
   }
 
   Future<IonConnectEntity?> sendEvent(
@@ -497,6 +508,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   Future<void> _sendEventsToRelay(
     List<EventMessage> events, {
     required IonConnectRelay relay,
+    required bool ignoreAuthoritativeErrors,
   }) async {
     try {
       await relay.sendEvents(events).timeout(
@@ -514,7 +526,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       // and those relays are shared with the current user. In this case the
       // error can be safely ignored as it basically means that the event
       // was already published to the relay.
-      if (RelayAuthService.isRelayAuthoritativeError(error)) {
+      if (ignoreAuthoritativeErrors && RelayAuthService.isRelayAuthoritativeError(error)) {
         return;
       } else {
         rethrow;

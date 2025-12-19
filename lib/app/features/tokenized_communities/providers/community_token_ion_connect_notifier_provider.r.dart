@@ -5,6 +5,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
@@ -124,7 +125,6 @@ class CommunityTokenIonConnectService {
         tokenActionEvent,
         actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
         metadataBuilders: [_userEventsMetadataBuilder],
-        cache: false,
       ),
     ]);
   }
@@ -154,24 +154,46 @@ class CommunityTokenIonConnectService {
       _ionConnectNotifier.sign(tokenDefinitionFirstBuy)
     ).wait;
 
-    await Future.wait([
-      _ionConnectNotifier.sendEvents(
-        [
-          tokenActionEvent,
-          if (firstBuy && isOwnToken) tokenDefinitionFirstBuyEvent,
-        ],
-      ),
-      if (!isOwnToken)
+    if (firstBuy) {
+      // Since we send [tokenDefinitionFirstBuyEvent] only to the token owner's relays,
+      // we must ensure the event is accepted by the relay.
+      // If a RelayAuthoritativeError occurs (i.e., the token owner shares the same relays
+      // as the current user and the event is rejected), we need to retry sending the event
+      // to our own relays.
+      await Future.wait([
         _ionConnectNotifier.sendEvents(
           [
             tokenActionEvent,
-            if (firstBuy) tokenDefinitionFirstBuyEvent,
+            if (isOwnToken) tokenDefinitionFirstBuyEvent,
           ],
-          actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
-          metadataBuilders: [_userEventsMetadataBuilder],
-          cache: false,
         ),
-    ]);
+        if (!isOwnToken)
+          _ionConnectNotifier
+              .sendEvents(
+                [
+                  tokenActionEvent,
+                  tokenDefinitionFirstBuyEvent,
+                ],
+                actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
+                metadataBuilders: [_userEventsMetadataBuilder],
+                ignoreAuthoritativeErrors: false,
+              )
+              .catchError(
+                (_) => _ionConnectNotifier.sendEvents([tokenDefinitionFirstBuyEvent]),
+                test: RelayAuthService.isRelayAuthoritativeError,
+              ),
+      ]);
+    } else {
+      await Future.wait([
+        _ionConnectNotifier.sendEvent(tokenActionEvent),
+        if (!isOwnToken)
+          _ionConnectNotifier.sendEvent(
+            tokenActionEvent,
+            actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
+            metadataBuilders: [_userEventsMetadataBuilder],
+          ),
+      ]);
+    }
   }
 
   /// For sell actions, we create only community token action events.
@@ -182,13 +204,12 @@ class CommunityTokenIonConnectService {
     final isOwnToken = _isCurrentUserSelector(communityTokenDefinition.masterPubkey);
     final tokenActionEvent = await _ionConnectNotifier.sign(communityTokenAction);
     await Future.wait([
-      _ionConnectNotifier.sendEvent(tokenActionEvent, cache: false),
+      _ionConnectNotifier.sendEvent(tokenActionEvent),
       if (!isOwnToken)
         _ionConnectNotifier.sendEvent(
           tokenActionEvent,
           actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
           metadataBuilders: [_userEventsMetadataBuilder],
-          cache: false,
         ),
     ]);
   }
