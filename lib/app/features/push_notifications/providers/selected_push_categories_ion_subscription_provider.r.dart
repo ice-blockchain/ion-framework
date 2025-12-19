@@ -26,6 +26,7 @@ import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.d
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/services/device_id/device_id.r.dart';
 import 'package:ion/app/services/ion_connect/encrypted_message_service.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'selected_push_categories_ion_subscription_provider.r.g.dart';
@@ -61,6 +62,8 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     if (fcmToken == null) {
       return null;
     }
+
+    Logger.log('FCM token: $fcmToken');
 
     final encryptedMessageService = await ref.watch(encryptedMessageServiceProvider.future);
     return encryptedMessageService.encryptMessage(fcmToken, publicKey: relayPubkey);

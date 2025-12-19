@@ -2,7 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/clipboard/clipboard.dart';
-import 'package:ion/app/services/deep_link/deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
@@ -12,14 +12,14 @@ part 'social_share_service.r.g.dart';
 
 @riverpod
 SocialShareService socialShareService(Ref ref) {
-  final deepLinkService = ref.watch(deepLinkServiceProvider);
-  return SocialShareService(deepLinkService);
+  final appsflyerDeepLinkService = ref.watch(appsflyerDeepLinkServiceProvider);
+  return SocialShareService(appsflyerDeepLinkService);
 }
 
 class SocialShareService {
-  SocialShareService(this._deepLinkService);
+  SocialShareService(this._appsflyerDeepLinkService);
 
-  final DeepLinkService _deepLinkService;
+  final AppsFlyerDeepLinkService _appsflyerDeepLinkService;
 
   Future<void> shareToWhatsApp(
     String shareUrl, {
@@ -77,7 +77,7 @@ class SocialShareService {
     String? imageUrl,
     String? description,
   }) async {
-    final url = await _deepLinkService.createDeeplink(
+    final url = await _appsflyerDeepLinkService.createDeeplink(
       path: shareUrl,
       contentType: contentType,
       ogTitle: title,
@@ -94,7 +94,7 @@ class SocialShareService {
     String? imageUrl,
     String? description,
   }) async {
-    final url = await _deepLinkService.createDeeplink(
+    final url = await _appsflyerDeepLinkService.createDeeplink(
       path: shareUrl,
       contentType: contentType,
       ogTitle: title,
@@ -111,7 +111,7 @@ class SocialShareService {
     String? imageUrl,
     String? description,
   }) async {
-    final url = await _deepLinkService.createDeeplink(
+    final url = await _appsflyerDeepLinkService.createDeeplink(
       path: shareUrl,
       contentType: contentType,
       ogTitle: title,
