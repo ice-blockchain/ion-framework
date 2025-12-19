@@ -78,7 +78,10 @@ class FeedPostsList extends HookConsumerWidget {
           ionAdClient.computeInsertionIndices(initialListItems.length, startOffset: startAdOffset);
       log('_getFeedListItems adIndices:$adIndices');
       for (final index in adIndices) {
-        initialListItems.insert(index, const IonEntityListItem.custom(child: _CustomNativeAd()));
+        initialListItems.insert(
+          index,
+          IonEntityListItem.custom(child: _CustomNativeAd(key: ValueKey(index))),
+        );
       }
     }
 
@@ -105,11 +108,12 @@ class _EmptyState extends ConsumerWidget {
 }
 
 class _CustomNativeAd extends StatelessWidget {
-  const _CustomNativeAd();
+  const _CustomNativeAd({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: key,
       height: 298,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: AppodealNativeAd(
