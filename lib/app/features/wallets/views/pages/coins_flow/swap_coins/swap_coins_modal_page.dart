@@ -80,24 +80,28 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     useResetSwapStateOnClose(controller);
 
     return SheetContent(
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0.s),
-            child: NavigationAppBar.screen(
-              title: Text(context.i18n.wallet_swap_coins),
-              actions: [
-                const SlippageAction(),
-                SizedBox(
-                  width: 8.0.s,
-                ),
-              ],
-            ),
-          ),
-          Stack(
+      body: SingleChildScrollView(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0.s),
+                child: NavigationAppBar.screen(
+                  title: Text(context.i18n.wallet_swap_coins),
+                  actions: [
+                    const SlippageAction(),
+                    SizedBox(
+                      width: 8.0.s,
+                    ),
+                  ],
+                ),
+              ),
+              Stack(
                 children: [
                   Column(
                     children: [
@@ -134,66 +138,50 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: 10.0.s,
-                  ),
-                  TokenCard(
-                    skipValidation: true,
-                    isReadOnly: true,
-                    controller: quoteController,
-                    type: CoinSwapType.buy,
-                    coinsGroup: buyNetwork != null ? buyCoins : null,
-                    network: buyNetwork,
-                    onTap: () {
-                      SwapSelectCoinRoute(
-                        coinType: CoinSwapType.buy,
-                      ).push<void>(context);
-                    },
+                  PositionedDirectional(
+                    top: 0,
+                    start: 0,
+                    end: 0,
+                    bottom: 0,
+                    child: SwapButton(
+                      onTap: () {
+                        ref.read(swapCoinsControllerProvider.notifier).switchCoins();
+                      },
+                    ),
                   ),
                 ],
               ),
-              PositionedDirectional(
-                top: 0,
-                start: 0,
-                end: 0,
-                bottom: 0,
-                child: SwapButton(
-                  onTap: () {
-                    ref.read(swapCoinsControllerProvider.notifier).switchCoins();
-                  },
+              if (sellCoins != null && buyCoins != null)
+                ConversionInfoRow(
+                  sellCoin: sellCoins,
+                  buyCoin: buyCoins,
+                )
+              else
+                SizedBox(
+                  height: 32.0.s,
                 ),
+              ContinueButton(
+                isEnabled: isContinueButtonEnabled,
+                onPressed: () async {
+                  if (isContinueButtonEnabled) {
+                    final result = await SwapCoinsConfirmationRoute().push<bool?>(context);
+                    if (result != null && result == true) {
+                      /// Waiting until confirmation page is closed
+                      Future.delayed(const Duration(milliseconds: 50), () {
+                        if (context.mounted) {
+                          context.pop();
+                        }
+                      });
+                    }
+                  }
+                },
+              ),
+              SizedBox(
+                height: 16.0.s,
               ),
             ],
           ),
-          if (sellCoins != null && buyCoins != null)
-            ConversionInfoRow(
-              sellCoin: sellCoins,
-              buyCoin: buyCoins,
-            )
-          else
-            SizedBox(
-              height: 32.0.s,
-            ),
-          ContinueButton(
-            isEnabled: isContinueButtonEnabled,
-            onPressed: () async {
-              if (isContinueButtonEnabled) {
-                final result = await SwapCoinsConfirmationRoute().push<bool?>(context);
-                if (result != null && result == true) {
-                  /// Waiting until confirmation page is closed
-                  Future.delayed(const Duration(milliseconds: 50), () {
-                    if (context.mounted) {
-                      context.pop();
-                    }
-                  });
-                }
-              }
-            },
-          ),
-          SizedBox(
-            height: 16.0.s,
-          ),
-        ],
+        ),
       ),
     );
   }
