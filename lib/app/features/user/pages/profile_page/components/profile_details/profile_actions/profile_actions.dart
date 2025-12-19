@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
 import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
@@ -29,7 +28,6 @@ class ProfileActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isCurrentUser = ref.watch(isCurrentUserSelectorProvider(pubkey));
     final accountNotifications = ref.watch(accountNotificationsWatchProvider(pubkey)).valueOrNull;
     final notificationsEnabled =
         accountNotifications?.selected.contains(UserNotificationsType.none) == false;
@@ -46,36 +44,26 @@ class ProfileActions extends ConsumerWidget {
       spacing: 12.0.s,
       children: [
         if (profileMode != ProfileMode.dark) FollowUserButton(pubkey: pubkey),
-        if (isCurrentUser)
+        if (!hasPrivateWallets && canSendMessage)
+          ProfileAction(
+            onPressed: () async {
+              final needToEnable2FA =
+                  await PaymentSelectionProfileRoute(pubkey: pubkey).push<bool>(context);
+              if (needToEnable2FA != null && needToEnable2FA && context.mounted) {
+                await SecureAccountModalRoute().push<void>(context);
+              }
+            },
+            assetName: Assets.svg.iconProfileTips,
+            profileMode: profileMode,
+          ),
+        if (canSendMessage)
           ProfileAction(
             onPressed: () {
-              BookmarksRoute().push<void>(context);
+              ConversationRoute(receiverMasterPubkey: pubkey).push<void>(context);
             },
-            assetName: Assets.svg.iconBookmarks,
+            assetName: Assets.svg.iconChatOff,
             profileMode: profileMode,
-          )
-        else ...[
-          if (!hasPrivateWallets && canSendMessage)
-            ProfileAction(
-              onPressed: () async {
-                final needToEnable2FA =
-                    await PaymentSelectionProfileRoute(pubkey: pubkey).push<bool>(context);
-                if (needToEnable2FA != null && needToEnable2FA && context.mounted) {
-                  await SecureAccountModalRoute().push<void>(context);
-                }
-              },
-              assetName: Assets.svg.iconProfileTips,
-              profileMode: profileMode,
-            ),
-          if (canSendMessage)
-            ProfileAction(
-              onPressed: () {
-                ConversationRoute(receiverMasterPubkey: pubkey).push<void>(context);
-              },
-              assetName: Assets.svg.iconChatOff,
-              profileMode: profileMode,
-            ),
-        ],
+          ),
         if (following && profileMode != ProfileMode.dark)
           ProfileAction(
             onPressed: () {
