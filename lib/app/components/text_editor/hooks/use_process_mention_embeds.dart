@@ -196,15 +196,18 @@ void useDowngradeMentionEmbedsWithoutMarketCap(
       mentionPubkeys.map((pubkey) => ref.watch(userTokenMarketCapProvider(pubkey))).toList();
 
   // Re-run downgrade when providers finish loading (reactive to provider changes)
-  useEffect(() {
-    if (!enabled || controller == null || mentionPubkeys.isEmpty) return null;
+  useEffect(
+    () {
+      if (!enabled || controller == null || mentionPubkeys.isEmpty) return null;
 
-    // Check if all providers finished loading
-    final allLoaded = marketCapStates.every((state) => state.hasValue);
-    if (allLoaded) {
-      // Call downgrade function (same logic for all modes)
-      downgradeMentionEmbedsWithoutMarketCap(controller, ref);
-    }
-    return null;
-  }, [controller, marketCapStates, enabled]);
+      // Check if all providers finished loading
+      final allLoaded = marketCapStates.every((state) => state.hasValue);
+      if (allLoaded) {
+        // Call downgrade function (same logic for all modes)
+        downgradeMentionEmbedsWithoutMarketCap(controller, ref);
+      }
+      return null;
+    },
+    [controller, marketCapStates, enabled],
+  );
 }
