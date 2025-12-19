@@ -58,4 +58,5 @@ dependencies {
     implementation 'com.appodeal.ads.sdk.networks:iab:3.10.0.0'
     // ConstraintLayout for Appodeal Native Ads
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.cardview:cardview:1.0.0'
 }
