@@ -158,8 +158,9 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
   Future<void> _checkAdAvailability() async {
     final isNativeInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
     final canShowNative = await Appodeal.canShow(AppodealAdType.NativeAd);
-    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative');
+    final nativeAd = await Appodeal.getNativeAd(1);
     await Appodeal.cache(AppodealAdType.NativeAd);
+    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative, nativeAd:$nativeAd');
 
     _isNativeLoaded = isNativeInitialized ?? false;
   }
