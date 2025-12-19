@@ -58,7 +58,7 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         (nativeAdView.callToActionView as? Button)?.apply {
             textSize = adActionButtonFontSize
             setBackgroundColor(nativeAdOptions.adActionButtonConfig.backgroundColor)
-            setBackgroundResource(R.drawable.apd_native_custom_round_outline)
+            setBackgroundResource(R.drawable.apd_native_cta_round_outline)
             setTextColor(nativeAdOptions.adActionButtonConfig.textColor)
         }
 
