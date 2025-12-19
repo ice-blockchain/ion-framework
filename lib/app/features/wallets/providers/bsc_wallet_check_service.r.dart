@@ -54,10 +54,10 @@ class BscWalletCheckService {
     _maybeTrigger();
   }
 
-  // ignore: avoid_positional_boolean_parameters
+  // ignore: avoid_positional_boolean_parameters, use_setters_to_change_properties
   void onOnboardingComplete(bool? onboardingComplete) {
     _onboardingComplete = onboardingComplete;
-    _maybeTrigger();
+    //no need to call _maybeTrigger as right after onboarding we are showing link device and notifications permission modals
   }
 
   void onUserMetadataChanged() {
