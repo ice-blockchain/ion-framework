@@ -53,6 +53,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
           title: title,
           body: body,
           payload: jsonEncode(response.data),
+          conversationStyle: false,
         );
       }
       return;

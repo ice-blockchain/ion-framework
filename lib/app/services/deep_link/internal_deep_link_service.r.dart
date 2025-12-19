@@ -2,10 +2,13 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -22,7 +25,8 @@ enum InternalDeepLinkHost {
   invite('invite'),
   post('post'),
   article('article'),
-  story('story');
+  story('story'),
+  video('video');
 
   const InternalDeepLinkHost(this.value);
 
@@ -45,12 +49,14 @@ enum InternalDeepLinkHost {
 /// Supports the following deep link patterns:
 /// - ionapp://feed - Opens the feed tab
 /// - ionapp://chat - Opens the chat tab
+/// - ionapp://chat/master_pubkey - Opens a specific conversation
 /// - ionapp://wallet - Opens the wallet tab
 /// - ionapp://profile - Opens the profile tab or ionapp://profile/master_pubkey for specific user
 /// - ionapp://invite - Opens the invite friends page
 /// - ionapp://post/encoded_event_reference - Opens a post detail
 /// - ionapp://article/encoded_event_reference - Opens an article detail
 /// - ionapp://story/master_pubkey/encoded_event_reference - Opens a story viewer
+/// - ionapp://video/encoded_event_reference - Opens fullscreen video viewer
 @Riverpod(keepAlive: true)
 InternalDeepLinkService internalDeepLinkService(Ref ref) {
   return InternalDeepLinkService(ref);
@@ -61,13 +67,14 @@ final class InternalDeepLinkService {
 
   final Ref _ref;
 
-  static const String scheme = 'ionapp';
-
   /// Checks if the given URL is an internal deep link
   bool isInternalDeepLink(String url) {
     try {
       final uri = Uri.parse(url);
-      return uri.scheme.toLowerCase() == scheme;
+      final internalScheme =
+          _ref.read(envProvider.notifier).get<String>(EnvVariable.ION_INTERNAL_DEEP_LINK_SCHEME);
+
+      return uri.scheme.toLowerCase() == internalScheme.toLowerCase();
     } catch (e) {
       Logger.error('Error parsing URL: $url, error: $e');
       return false;
@@ -92,53 +99,38 @@ final class InternalDeepLinkService {
         return false;
       }
 
-      switch (host) {
-        case InternalDeepLinkHost.feed:
-          FeedRoute().go(context);
-        case InternalDeepLinkHost.chat:
-          ChatRoute().go(context);
-        case InternalDeepLinkHost.wallet:
-          WalletRoute().go(context);
-        case InternalDeepLinkHost.profile:
-          // Check if pubkey is provided in path: ionapp://profile/master_pubkey
-          if (pathSegments.isNotEmpty) {
-            final pubkey = pathSegments.first;
-            ProfileRoute(pubkey: pubkey).go(context);
-          } else {
-            // No pubkey provided, open own profile
-            SelfProfileRoute().go(context);
-          }
-        case InternalDeepLinkHost.invite:
-          InviteFriendsRoute().go(context);
-        case InternalDeepLinkHost.post:
-          if (pathSegments.isNotEmpty) {
-            final encodedEventReference = pathSegments.first;
-            await _handlePostDeepLink(encodedEventReference, context);
-          } else {
-            Logger.warning('Missing event reference for post deep link');
-            return false;
-          }
-        case InternalDeepLinkHost.article:
-          if (pathSegments.isNotEmpty) {
-            final encodedEventReference = pathSegments.first;
-            ArticleDetailsRoute(eventReference: encodedEventReference).go(context);
-          } else {
-            Logger.warning('Missing event reference for article deep link');
-            return false;
-          }
-        case InternalDeepLinkHost.story:
-          // ionapp://story/master_pubkey/encoded_event_reference
-          if (pathSegments.length >= 2) {
-            final pubkey = pathSegments[0];
-            final encodedEventReference = pathSegments[1];
-            StoryViewerRoute(
-              pubkey: pubkey,
-              initialStoryReference: encodedEventReference,
-            ).go(context);
-          } else {
-            Logger.warning('Missing parameters for story deep link');
-            return false;
-          }
+      final location = switch (host) {
+        InternalDeepLinkHost.feed => FeedRoute().location,
+        // ionapp://chat/master_pubkey for direct conversation
+        InternalDeepLinkHost.chat => pathSegments.isNotEmpty
+            ? ConversationRoute(receiverMasterPubkey: pathSegments.first).location
+            : ChatRoute().location,
+        InternalDeepLinkHost.wallet => WalletRoute().location,
+        // Check if pubkey is provided in path: ionapp://profile/master_pubkey
+        // if no pubkey provided, open own profile
+        InternalDeepLinkHost.profile => pathSegments.isNotEmpty
+            ? ProfileRoute(pubkey: pathSegments.first).location
+            : SelfProfileRoute().location,
+        InternalDeepLinkHost.invite => InviteFriendsRoute().location,
+        // ionapp://story/master_pubkey/encoded_event_reference
+        InternalDeepLinkHost.story => pathSegments.length >= 2
+            ? StoryViewerRoute(
+                pubkey: pathSegments[0],
+                initialStoryReference: pathSegments[1],
+              ).location
+            : null,
+        InternalDeepLinkHost.article => pathSegments.isNotEmpty
+            ? ArticleDetailsRoute(eventReference: pathSegments.first).location
+            : null,
+        InternalDeepLinkHost.post =>
+          pathSegments.isNotEmpty ? await _handlePostDeepLink(pathSegments.first, context) : null,
+        // ionapp://video/encoded_event_reference for fullscreen video viewer
+        InternalDeepLinkHost.video =>
+          pathSegments.isNotEmpty ? await _handleVideoDeepLink(pathSegments.first, context) : null,
+      };
+
+      if (location != null) {
+        _ref.read(deeplinkPathProvider.notifier).path = location;
       }
 
       Logger.log('Internal deep link handled: $url');
@@ -149,7 +141,7 @@ final class InternalDeepLinkService {
     }
   }
 
-  Future<void> _handlePostDeepLink(String encodedEventReference, BuildContext context) async {
+  Future<String?> _handlePostDeepLink(String encodedEventReference, BuildContext context) async {
     try {
       // Decode the event reference to get the entity
       final encodedShareableIdentifier =
@@ -158,9 +150,7 @@ final class InternalDeepLinkService {
       if (encodedShareableIdentifier == null) {
         Logger.error('Failed to decode event reference: $encodedEventReference');
         // Fallback to regular post route
-        PostDetailsRoute(eventReference: encodedEventReference).go(context);
-
-        return;
+        return PostDetailsRoute(eventReference: encodedEventReference).location;
       }
 
       final shareableIdentifier = _ref
@@ -173,30 +163,28 @@ final class InternalDeepLinkService {
       final entity =
           await _ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
 
-      if (!context.mounted) return;
+      if (!context.mounted) return null;
 
       if (entity is ModifiablePostEntity) {
         if (entity.isStory) {
           // Navigate to story viewer
-          StoryViewerRoute(
+          return StoryViewerRoute(
             pubkey: entity.masterPubkey,
             initialStoryReference: encodedEventReference,
-          ).go(context);
-          return;
+          ).location;
         }
 
         if (entity.data.hasVideo) {
           // Navigate to fullscreen media viewer
-          FullscreenMediaRoute(
+          return FullscreenMediaRoute(
             eventReference: encodedEventReference,
             initialMediaIndex: 0,
-          ).go(context);
-          return;
+          ).location;
         }
       }
 
       // Default: navigate to post details
-      PostDetailsRoute(eventReference: encodedEventReference).go(context);
+      return PostDetailsRoute(eventReference: encodedEventReference).location;
     } catch (error) {
       Logger.error('Error handling post deep link: $error');
       // Fallback to regular post route
@@ -204,5 +192,57 @@ final class InternalDeepLinkService {
         PostDetailsRoute(eventReference: encodedEventReference).go(context);
       }
     }
+    return null;
+  }
+
+  Future<String?> _handleVideoDeepLink(String encodedEventReference, BuildContext context) async {
+    try {
+      // Decode the event reference to get the entity
+      final encodedShareableIdentifier =
+          _ref.read(ionConnectUriProtocolServiceProvider).decode(encodedEventReference);
+
+      if (encodedShareableIdentifier == null) {
+        Logger.error('Failed to decode event reference: $encodedEventReference');
+        // Fallback to fullscreen media route
+        return FullscreenMediaRoute(
+          eventReference: encodedEventReference,
+          initialMediaIndex: 0,
+        ).location;
+      }
+
+      final shareableIdentifier = _ref
+          .read(ionConnectUriIdentifierServiceProvider)
+          .decodeShareableIdentifiers(payload: encodedShareableIdentifier);
+
+      final eventReference = EventReference.fromShareableIdentifier(shareableIdentifier);
+
+      // Fetch the entity to verify it's a video post
+      final entity =
+          await _ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
+
+      if (!context.mounted) return null;
+
+      if (entity is ModifiablePostEntity && entity.data.hasVideo) {
+        // Navigate to fullscreen media viewer
+        return FullscreenMediaRoute(
+          eventReference: encodedEventReference,
+          initialMediaIndex: 0,
+        ).location;
+      }
+
+      // Fallback to post details if not a video
+      Logger.warning('Video deep link used for non-video post, falling back to post details');
+      return PostDetailsRoute(eventReference: encodedEventReference).location;
+    } catch (error) {
+      Logger.error('Error handling video deep link: $error');
+      // Fallback to fullscreen media route
+      if (context.mounted) {
+        FullscreenMediaRoute(
+          eventReference: encodedEventReference,
+          initialMediaIndex: 0,
+        ).go(context);
+      }
+    }
+    return null;
   }
 }
