@@ -11,7 +11,7 @@ import 'package:ion/app/features/chat/components/messaging_header/one_to_one_mes
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/e2ee_conversation_empty_view.dart';
 import 'package:ion/app/features/chat/e2ee/views/components/one_to_one_messages_list.dart';
-import 'package:ion/app/features/chat/model/participiant_keys.f.dart';
+import 'package:ion/app/features/chat/model/participants_keys.f.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
 import 'package:ion/app/features/chat/providers/exist_one_to_one_chat_conversation_id_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_edit_message_provider.r.dart';
