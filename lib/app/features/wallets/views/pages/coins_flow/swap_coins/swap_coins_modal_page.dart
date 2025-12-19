@@ -103,49 +103,36 @@ class SwapCoinsModalPage extends HookConsumerWidget {
               ),
               Stack(
                 children: [
-                  Column(
-                    children: [
-                      TokenCard(
-                        isInsufficientFundsError: isInsufficientFundsErrorState.value,
-                        skipValidation: true,
-                        controller: amountController,
-                        type: CoinSwapType.sell,
-                        coinsGroup: sellNetwork != null ? sellCoins : null,
-                        network: sellNetwork,
-                        onTap: () {
-                          SwapSelectCoinRoute(
-                            coinType: CoinSwapType.sell,
-                          ).push<void>(context);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10.0.s,
-                      ),
-                      TokenCard(
-                        skipValidation: true,
-                        isReadOnly: true,
-                        controller: quoteController,
-                        type: CoinSwapType.buy,
-                        coinsGroup: buyNetwork != null ? buyCoins : null,
-                        network: buyNetwork,
-                        onTap: () {
-                          SwapSelectCoinRoute(
-                            coinType: CoinSwapType.buy,
-                          ).push<void>(context);
-                        },
-                      ),
-                    ],
+                  TokenCard(
+                    skipAmountFormatting: true,
+                    isInsufficientFundsError: isInsufficientFundsErrorState.value,
+                    skipValidation: true,
+                    controller: amountController,
+                    type: CoinSwapType.sell,
+                    coinsGroup: sellNetwork != null ? sellCoins : null,
+                    network: sellNetwork,
+                    onTap: () {
+                      SwapSelectCoinRoute(
+                        coinType: CoinSwapType.sell,
+                      ).push<void>(context);
+                    },
                   ),
-                  PositionedDirectional(
-                    top: 0,
-                    start: 0,
-                    end: 0,
-                    bottom: 0,
-                    child: SwapButton(
-                      onTap: () {
-                        ref.read(swapCoinsControllerProvider.notifier).switchCoins();
-                      },
-                    ),
+                  SizedBox(
+                    height: 10.0.s,
+                  ),
+                  TokenCard(
+                    skipAmountFormatting: true,
+                    skipValidation: true,
+                    isReadOnly: true,
+                    controller: quoteController,
+                    type: CoinSwapType.buy,
+                    coinsGroup: buyNetwork != null ? buyCoins : null,
+                    network: buyNetwork,
+                    onTap: () {
+                      SwapSelectCoinRoute(
+                        coinType: CoinSwapType.buy,
+                      ).push<void>(context);
+                    },
                   ),
                 ],
               ),
