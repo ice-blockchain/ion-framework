@@ -4,13 +4,19 @@ import 'dart:async';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/bool.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/local_passkey_creds_provider.r.dart';
 import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/features/push_notifications/providers/push_subscription_sync_provider.r.dart';
 import 'package:ion/app/features/user/providers/biometrics_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
+import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -100,6 +106,9 @@ class Auth extends _$Auth {
     final authenticatedIdentityKeyNames = state.valueOrNull?.authenticatedIdentityKeyNames ?? [];
     if (authenticatedIdentityKeyNames.length > 1) {
       ref.read(userSwitchInProgressProvider.notifier).startSwitchingViaLogout();
+
+      // Remove push subscription for logged out user
+      await ref.read(pushSubscriptionSyncProvider.notifier).deletePushSubscriptionForCurrentUser();
     }
 
     final ionIdentity = await ref.read(ionIdentityProvider.future);
@@ -262,6 +271,7 @@ class UserSwitchState with _$UserSwitchState {
   const factory UserSwitchState({
     @Default(false) bool isSwitchingProgress,
     @Default(false) bool isLogoutTriggered,
+    @Default(false) bool isShowNotification,
   }) = _UserSwitchState;
 }
 
@@ -274,6 +284,10 @@ class UserSwitchInProgress extends _$UserSwitchInProgress {
       (prev, next) {
         if (prev != null && next != null && prev != next) {
           completeSwitching();
+        }
+
+        if (state.isShowNotification) {
+          _showPushNotificationAfterSwitching(next);
         }
       },
     );
@@ -291,11 +305,39 @@ class UserSwitchInProgress extends _$UserSwitchInProgress {
     );
   }
 
+  void needToShowPushSwitchNotification() {
+    state = state.copyWith(
+      isShowNotification: true,
+    );
+  }
+
   void completeSwitching() {
     if (state.isLogoutTriggered) {
       state = state.copyWith(isLogoutTriggered: false);
     } else {
-      state = const UserSwitchState();
+      state = state.copyWith(
+        isSwitchingProgress: false,
+        isLogoutTriggered: false,
+      );
     }
+  }
+
+  void _showPushNotificationAfterSwitching(String? identityKeyName) {
+    state = state.copyWith(isShowNotification: false);
+    if (identityKeyName == null) return;
+
+    final userMetadata = ref.read(userMetadataProvider(identityKeyName)).valueOrNull;
+    final username = userMetadata?.data.name ?? identityKeyName;
+
+    final context = rootNavigatorKey.currentContext;
+    final message =
+        (context != null && context.mounted) ? context.i18n.switched_to_username(username) : '';
+
+    ref.read(messageNotificationNotifierProvider.notifier).show(
+          MessageNotification(
+            message: message,
+            icon: Assets.svg.iconCheckSuccess.icon(size: 16.0.s),
+          ),
+        );
   }
 }

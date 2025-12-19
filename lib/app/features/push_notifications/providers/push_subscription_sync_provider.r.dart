@@ -10,6 +10,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
 import 'package:ion/app/features/push_notifications/providers/push_subscription_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/selected_push_categories_ion_subscription_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'push_subscription_sync_provider.r.g.dart';
@@ -23,6 +24,9 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
     if (!authState.isAuthenticated) {
       return;
     }
+
+    // React to user switch and sync push subscription
+    ref.watch(currentIdentityKeyNameSelectorProvider);
 
     final delegationComplete = await ref.watch(delegationCompleteProvider.future);
 
@@ -65,5 +69,39 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
           cache: false,
         );
     ref.read(ionConnectCacheProvider.notifier).remove(entity.cacheKey);
+  }
+
+  Future<void> deletePushSubscriptionForCurrentUser() async {
+    try {
+      // Use currentUserPushSubscriptionProvider since user is still active before logout
+      final subscription = await ref.read(currentUserPushSubscriptionProvider.future);
+
+      if (subscription == null) {
+        return;
+      }
+
+      // First, update subscription with empty filters (same as when unsubscribing from all categories)
+      final relayUrl = subscription.data.relay.url;
+      final emptyFiltersSubscription = PushSubscriptionData(
+        deviceId: subscription.data.deviceId,
+        platform: subscription.data.platform,
+        relay: subscription.data.relay,
+        fcmToken: subscription.data.fcmToken,
+        filters: [], // Set empty filters
+      );
+
+      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
+            emptyFiltersSubscription,
+            actionSource: ActionSourceRelayUrl(relayUrl),
+          );
+
+      await _deleteSubscription(subscription);
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        message: 'Failed to delete current user push subscription',
+        stackTrace: stackTrace,
+      );
+    }
   }
 }
