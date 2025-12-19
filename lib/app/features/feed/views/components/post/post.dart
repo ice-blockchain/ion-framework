@@ -7,7 +7,6 @@ import 'package:ion/app/components/counter_items_footer/counter_items_footer.dar
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -15,7 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_context_menu.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
 import 'package:ion/app/features/feed/views/components/deleted_entity/deleted_entity.dart';
 import 'package:ion/app/features/feed/views/components/post/components/post_body/post_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
@@ -102,8 +101,6 @@ class Post extends ConsumerWidget {
       return ScreenSideOffset.small(child: DeletedEntity(entityType: DeletedEntityType.post));
     }
 
-    final isOwnedByCurrentUser = ref.watch(isCurrentUserSelectorProvider(entity.masterPubkey));
-
     final quotedEventReference = _getQuotedEventReference(entity: entity);
 
     final parentEventReference = _getParentEventReference(entity: entity);
@@ -157,10 +154,9 @@ class Post extends ConsumerWidget {
                       color: context.theme.appColors.onPrimaryAccent,
                     )
                   : null,
-              trailing: PostContextMenu(
+              trailing: ContentBottomSheetMenu(
                 eventReference: eventReference,
                 entity: entity,
-                isOwnedByCurrentUser: isOwnedByCurrentUser,
                 isAccentTheme: isAccentTheme,
                 onDelete: onDelete,
                 showNotInterested: showNotInterested,
