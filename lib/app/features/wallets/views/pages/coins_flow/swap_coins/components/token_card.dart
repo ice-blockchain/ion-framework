@@ -32,8 +32,10 @@ class TokenCard extends HookConsumerWidget {
     this.showSelectButton = true,
     this.showArrow = true,
     this.skipValidation = false,
-    super.key,
     this.isInsufficientFundsError = false,
+    this.enabled = true,
+    this.skipAmountFormatting = false,
+    super.key,
   });
 
   final CoinSwapType type;
@@ -48,6 +50,8 @@ class TokenCard extends HookConsumerWidget {
   final bool showArrow;
   final bool skipValidation;
   final bool isInsufficientFundsError;
+  final bool enabled;
+  final bool skipAmountFormatting;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
     final coin = coinsGroup?.coins.firstWhereOrNull(
@@ -85,22 +89,24 @@ class TokenCard extends HookConsumerWidget {
     useEffect(
       () {
         void formatAmount() {
+          if (skipAmountFormatting) return;
+
           if (!focusNode.hasFocus && !(isReadOnly ?? false)) {
             // Format to 2 decimal places when focus is lost
             WidgetsBinding.instance.addPostFrameCallback((_) {
               // Check controller != null inside callback to handle async cases
-              if (controller != null) {
-                final currentText = controller!.text.trim();
-                if (currentText.isNotEmpty) {
-                  final parsed = parseAmount(currentText);
-                  if (parsed != null && parsed > 0) {
-                    final formatted = formatDouble(parsed);
-                    if (controller!.text != formatted) {
-                      controller!.text = formatted;
-                    }
-                  }
-                }
-              }
+              if (controller == null) return;
+
+              final currentText = controller!.text.trim();
+              if (currentText.isEmpty) return;
+
+              final parsed = parseAmount(currentText);
+              if (parsed == null || parsed <= 0) return;
+
+              final formatted = formatDouble(parsed);
+              if (controller!.text == formatted) return;
+
+              controller!.text = formatted;
             });
           }
         }
@@ -108,7 +114,7 @@ class TokenCard extends HookConsumerWidget {
         focusNode.addListener(formatAmount);
         return () => focusNode.removeListener(formatAmount);
       },
-      [focusNode, controller, isReadOnly],
+      [focusNode, controller, isReadOnly, skipAmountFormatting],
     );
 
     return Container(
@@ -347,6 +353,7 @@ class TokenCard extends HookConsumerWidget {
                       style: textStyles.headline2.copyWith(
                         color: isInsufficientFundsError ? colors.attentionRed : colors.primaryText,
                       ),
+                      enabled: enabled,
                       inputFormatters: [
                         CoinInputFormatter(
                           maxDecimals: 2,

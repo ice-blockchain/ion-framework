@@ -6,3 +6,4 @@ export 'creator.f.dart';
 export 'market_data.f.dart';
 export 'patch.dart';
 export 'position.f.dart';
+export 'pricing_response.f.dart';

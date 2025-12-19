@@ -68,4 +68,20 @@ class TradeCommunityTokenApi {
       return null;
     }
   }
+
+  /// Fetches pricing information for buy or sell operations
+  ///
+  /// [externalAddress] - external address for the asset
+  /// [type] - 'buy' or 'sell'
+  /// [amount] - amount in smallest units (wei)
+  ///
+  /// Uses endpoint GET /v1/community-tokens/{externalAddress}/pricing?type={type}&amount={amount}
+  /// Returns PricingResponse if found, otherwise null
+  Future<PricingResponse?> fetchPricing(String externalAddress, String type, String amount) async {
+    try {
+      return await _analyticsClient.communityTokens.getPricing(externalAddress, type, amount);
+    } catch (e) {
+      return null;
+    }
+  }
 }

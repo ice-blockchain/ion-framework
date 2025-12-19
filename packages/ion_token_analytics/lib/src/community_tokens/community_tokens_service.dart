@@ -199,4 +199,8 @@ class IonCommunityTokensService {
   Future<Position?> getHolderPosition(String tokenExternalAddress, String holderExternalAddress) {
     return _tokenInfoRepository.getHolderPosition(tokenExternalAddress, holderExternalAddress);
   }
+
+  Future<PricingResponse?> getPricing(String externalAddress, String type, String amount) {
+    return _tokenInfoRepository.getPricing(externalAddress, type, amount);
+  }
 }

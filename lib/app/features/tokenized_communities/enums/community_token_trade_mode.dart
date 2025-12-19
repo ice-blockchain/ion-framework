@@ -3,4 +3,9 @@
 enum CommunityTokenTradeMode {
   buy,
   sell;
+
+  String get apiType => switch (this) {
+        buy => 'buy',
+        sell => 'sell',
+      };
 }

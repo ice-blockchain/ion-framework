@@ -2,6 +2,7 @@
 
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/community_token.f.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/position.f.dart';
+import 'package:ion_token_analytics/src/community_tokens/token_info/models/pricing_response.f.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
@@ -67,6 +68,20 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
         stream: tokenStream,
         close: subscription.close,
       );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<PricingResponse?> getPricing(String externalAddress, String type, String amount) async {
+    try {
+      final pricingRawData = await client.get<Map<String, dynamic>>(
+        '/v1/community-tokens/$externalAddress/pricing',
+        queryParameters: {'type': type, 'amount': amount},
+      );
+
+      return PricingResponse.fromJson(pricingRawData);
     } catch (e) {
       return null;
     }

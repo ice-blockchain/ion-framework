@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
@@ -37,19 +38,16 @@ class TradeCommunityTokenRepository {
     return _cachedAddress!;
   }
 
-  Future<BigInt> fetchQuote({
-    required List<int> fromTokenIdentifier,
-    required List<int> toTokenIdentifier,
-    required BigInt amountIn,
+  Future<PricingResponse> fetchPricing({
+    required String externalAddress,
+    required String type,
+    required String amount,
   }) async {
-    await _ensureConfigLoaded();
-    return txBuilder.quote(
-      fromTokenIdentifier: fromTokenIdentifier,
-      toTokenIdentifier: toTokenIdentifier,
-      amountIn: amountIn,
-      bondingCurveAbi: _cachedAbi!,
-      bondingCurveAddress: _cachedAddress!,
-    );
+    final pricing = await api.fetchPricing(externalAddress, type, amount);
+    if (pricing == null) {
+      throw TokenPricingNotFoundException(externalAddress);
+    }
+    return pricing;
   }
 
   Future<BigInt> fetchAllowance({
