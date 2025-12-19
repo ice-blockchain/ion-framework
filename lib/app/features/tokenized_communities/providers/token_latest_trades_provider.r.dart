@@ -40,34 +40,52 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
     ref.onDispose(subscription.close);
 
-    // 3. Listen to updates and prepend them
-    await for (final newTrades in subscription.stream) {
-      for (final newTrade in newTrades) {
-        final existIndex = _currentTrades.indexWhere(
-          (element) =>
-              element.position.createdAt == newTrade.position?.createdAt &&
-              element.position.addresses.ionConnect == newTrade.position?.addresses?.ionConnect,
+    // 3. Listen to updates and prepend them.
+    // Contract: this endpoint only emits new immutable trades (transactions).
+    // Ignore any partial/patch entities on the provider layer.
+    await for (final updates in subscription.stream) {
+      if (updates.isEmpty) continue;
+
+      var changed = false;
+
+      for (final update in updates) {
+        if (update is! LatestTrade) {
+          // Patches are not expected for this endpoint. Ignore.
+          continue;
+        }
+
+        final createdAt = update.position.createdAt;
+        final ionConnect = update.position.addresses.ionConnect;
+
+        // De-dupe on reconnect / retries.
+        final existingIndex = _currentTrades.indexWhere(
+          (t) => t.position.createdAt == createdAt && t.position.addresses.ionConnect == ionConnect,
         );
 
-        if (existIndex >= 0) {
-          final existTrade = _currentTrades[existIndex];
-
-          if (newTrade is LatestTradePatch) {
-            final patchedTrade = existTrade.merge(newTrade);
-
-            _currentTrades = List.of(_currentTrades);
-            _currentTrades[existIndex] = patchedTrade;
-          } else if (newTrade is LatestTrade) {
-            _currentTrades = List.of(_currentTrades);
-            _currentTrades[existIndex] = newTrade;
-          }
-        } else {
-          if (newTrade is LatestTrade) {
-            _currentTrades = [newTrade, ..._currentTrades];
-          }
+        if (existingIndex == 0) {
+          // Already at the top.
+          continue;
         }
+
+        _currentTrades = List.of(_currentTrades);
+
+        if (existingIndex >= 0) {
+          _currentTrades.removeAt(existingIndex);
+        }
+
+        _currentTrades.insert(0, update);
+
+        // Keep a fixed-size window of the latest trades.
+        if (_currentTrades.length > _limit) {
+          _currentTrades = _currentTrades.take(_limit).toList(growable: false);
+        }
+
+        changed = true;
       }
-      yield _currentTrades;
+
+      if (changed) {
+        yield _currentTrades;
+      }
     }
   }
 

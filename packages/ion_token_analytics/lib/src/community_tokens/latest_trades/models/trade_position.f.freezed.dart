@@ -25,9 +25,9 @@ mixin _$TradePosition {
   Addresses get addresses => throw _privateConstructorUsedError;
   String get createdAt => throw _privateConstructorUsedError;
   TradeType get type => throw _privateConstructorUsedError;
-  double get amount => throw _privateConstructorUsedError;
+  String get amount => throw _privateConstructorUsedError;
   double get amountUSD => throw _privateConstructorUsedError;
-  double get balance => throw _privateConstructorUsedError;
+  String get balance => throw _privateConstructorUsedError;
   double get balanceUSD => throw _privateConstructorUsedError;
 
   /// Serializes this TradePosition to a JSON map.
@@ -52,9 +52,9 @@ abstract class $TradePositionCopyWith<$Res> {
     Addresses addresses,
     String createdAt,
     TradeType type,
-    double amount,
+    String amount,
     double amountUSD,
-    double balance,
+    String balance,
     double balanceUSD,
   });
 
@@ -107,7 +107,7 @@ class _$TradePositionCopyWithImpl<$Res, $Val extends TradePosition>
             amount: null == amount
                 ? _value.amount
                 : amount // ignore: cast_nullable_to_non_nullable
-                      as double,
+                      as String,
             amountUSD: null == amountUSD
                 ? _value.amountUSD
                 : amountUSD // ignore: cast_nullable_to_non_nullable
@@ -115,7 +115,7 @@ class _$TradePositionCopyWithImpl<$Res, $Val extends TradePosition>
             balance: null == balance
                 ? _value.balance
                 : balance // ignore: cast_nullable_to_non_nullable
-                      as double,
+                      as String,
             balanceUSD: null == balanceUSD
                 ? _value.balanceUSD
                 : balanceUSD // ignore: cast_nullable_to_non_nullable
@@ -160,9 +160,9 @@ abstract class _$$TradePositionImplCopyWith<$Res>
     Addresses addresses,
     String createdAt,
     TradeType type,
-    double amount,
+    String amount,
     double amountUSD,
-    double balance,
+    String balance,
     double balanceUSD,
   });
 
@@ -216,7 +216,7 @@ class __$$TradePositionImplCopyWithImpl<$Res>
         amount: null == amount
             ? _value.amount
             : amount // ignore: cast_nullable_to_non_nullable
-                  as double,
+                  as String,
         amountUSD: null == amountUSD
             ? _value.amountUSD
             : amountUSD // ignore: cast_nullable_to_non_nullable
@@ -224,7 +224,7 @@ class __$$TradePositionImplCopyWithImpl<$Res>
         balance: null == balance
             ? _value.balance
             : balance // ignore: cast_nullable_to_non_nullable
-                  as double,
+                  as String,
         balanceUSD: null == balanceUSD
             ? _value.balanceUSD
             : balanceUSD // ignore: cast_nullable_to_non_nullable
@@ -260,11 +260,11 @@ class _$TradePositionImpl implements _TradePosition {
   @override
   final TradeType type;
   @override
-  final double amount;
+  final String amount;
   @override
   final double amountUSD;
   @override
-  final double balance;
+  final String balance;
   @override
   final double balanceUSD;
 
@@ -326,9 +326,9 @@ abstract class _TradePosition implements TradePosition {
     required final Addresses addresses,
     required final String createdAt,
     required final TradeType type,
-    required final double amount,
+    required final String amount,
     required final double amountUSD,
-    required final double balance,
+    required final String balance,
     required final double balanceUSD,
   }) = _$TradePositionImpl;
 
@@ -344,11 +344,11 @@ abstract class _TradePosition implements TradePosition {
   @override
   TradeType get type;
   @override
-  double get amount;
+  String get amount;
   @override
   double get amountUSD;
   @override
-  double get balance;
+  String get balance;
   @override
   double get balanceUSD;
 
@@ -370,9 +370,9 @@ mixin _$TradePositionPatch {
   AddressesPatch? get addresses => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
   TradeType? get type => throw _privateConstructorUsedError;
-  double? get amount => throw _privateConstructorUsedError;
+  String? get amount => throw _privateConstructorUsedError;
   double? get amountUSD => throw _privateConstructorUsedError;
-  double? get balance => throw _privateConstructorUsedError;
+  String? get balance => throw _privateConstructorUsedError;
   double? get balanceUSD => throw _privateConstructorUsedError;
 
   /// Serializes this TradePositionPatch to a JSON map.
@@ -405,11 +405,11 @@ class _$TradePositionPatchImpl implements _TradePositionPatch {
   @override
   final TradeType? type;
   @override
-  final double? amount;
+  final String? amount;
   @override
   final double? amountUSD;
   @override
-  final double? balance;
+  final String? balance;
   @override
   final double? balanceUSD;
 
@@ -463,9 +463,9 @@ abstract class _TradePositionPatch implements TradePositionPatch {
     final AddressesPatch? addresses,
     final String? createdAt,
     final TradeType? type,
-    final double? amount,
+    final String? amount,
     final double? amountUSD,
-    final double? balance,
+    final String? balance,
     final double? balanceUSD,
   }) = _$TradePositionPatchImpl;
 
@@ -481,11 +481,11 @@ abstract class _TradePositionPatch implements TradePositionPatch {
   @override
   TradeType? get type;
   @override
-  double? get amount;
+  String? get amount;
   @override
   double? get amountUSD;
   @override
-  double? get balance;
+  String? get balance;
   @override
   double? get balanceUSD;
 }

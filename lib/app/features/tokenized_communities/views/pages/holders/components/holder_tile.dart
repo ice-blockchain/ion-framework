@@ -17,16 +17,19 @@ class BondingCurveHolderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progressRaw = BigInt.tryParse(bondingCurveProgress.raisedAmount) ?? BigInt.zero;
+    final soldRaw = BigInt.tryParse(bondingCurveProgress.currentAmount) ?? BigInt.zero;
     final goalRaw = BigInt.tryParse(bondingCurveProgress.goalAmount) ?? BigInt.zero;
+
+    // `raisedAmount` is the amount of sold coins. The bonding curve holds the remaining supply.
+    final heldRaw = goalRaw > soldRaw ? (goalRaw - soldRaw) : BigInt.zero;
 
     final supplyShare = goalRaw == BigInt.zero
         ? 0.0
-        : ((progressRaw * BigInt.from(10000)) ~/ goalRaw).toDouble() / 100.0;
+        : ((heldRaw * BigInt.from(10000)) ~/ goalRaw).toDouble() / 100.0;
 
     return HolderTile(
       rank: 0,
-      amountText: formatAmountCompactFromRaw(bondingCurveProgress.raisedAmount),
+      amountText: formatAmountCompactFromRaw(heldRaw.toString()),
       displayName: context.i18n.tokenized_community_bonding_curve,
       supplyShare: supplyShare,
       avatarUrl: Assets.svg.iconBondingCurveAvatar,
@@ -88,6 +91,11 @@ class HolderTile extends StatelessWidget {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
 
+    // too small percents should be rounded to min 0.01
+    final supplyShareText = (supplyShare > 0 && supplyShare.toStringAsFixed(2) == '0.00')
+        ? '0.01'
+        : supplyShare.toStringAsFixed(2);
+
     return GestureDetector(
       onTap: () {},
       child: Row(
@@ -119,7 +127,7 @@ class HolderTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(12.0.s),
             ),
             child: Text(
-              '${supplyShare.toStringAsFixed(2)}%',
+              '$supplyShareText%',
               style: texts.caption2
                   .copyWith(color: colors.primaryText, height: 18 / texts.caption2.fontSize!),
             ),
@@ -201,7 +209,7 @@ class _NameAndAmount extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(
+            Flexible(
               child: Text(
                 name,
                 style: texts.subtitle3.copyWith(

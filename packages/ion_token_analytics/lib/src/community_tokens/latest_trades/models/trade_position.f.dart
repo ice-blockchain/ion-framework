@@ -11,12 +11,19 @@ enum TradeType { buy, sell }
 
 abstract class TradePositionBase {
   CreatorBase? get holder;
+
   AddressesBase? get addresses;
+
   String? get createdAt;
+
   TradeType? get type;
-  double? get amount;
+
+  String? get amount;
+
   double? get amountUSD;
-  double? get balance;
+
+  String? get balance;
+
   double? get balanceUSD;
 }
 
@@ -27,9 +34,9 @@ class TradePosition with _$TradePosition implements TradePositionBase {
     required Addresses addresses,
     required String createdAt,
     required TradeType type,
-    required double amount,
+    required String amount,
     required double amountUSD,
-    required double balance,
+    required String balance,
     required double balanceUSD,
   }) = _TradePosition;
 
@@ -43,9 +50,9 @@ class TradePositionPatch with _$TradePositionPatch implements TradePositionBase 
     AddressesPatch? addresses,
     String? createdAt,
     TradeType? type,
-    double? amount,
+    String? amount,
     double? amountUSD,
-    double? balance,
+    String? balance,
     double? balanceUSD,
   }) = _TradePositionPatch;
 

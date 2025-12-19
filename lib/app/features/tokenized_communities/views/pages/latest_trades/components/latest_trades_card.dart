@@ -120,6 +120,7 @@ class LatestTradesCard extends HookConsumerWidget {
 
 class _CardTitle extends StatelessWidget {
   const _CardTitle({required this.title, required this.tradesCount});
+
   final String title;
   final int tradesCount;
 
@@ -156,6 +157,7 @@ class _CardTitle extends StatelessWidget {
 
 class _TradeRow extends StatelessWidget {
   const _TradeRow({required this.trade, required this.minTextWidth, this.onTap});
+
   final LatestTrade trade;
   final double minTextWidth;
   final ValueChanged<LatestTrade>? onTap;
@@ -167,7 +169,7 @@ class _TradeRow extends StatelessWidget {
     final i18n = context.i18n;
 
     final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
-    final amountText = formatDoubleCompact(trade.position.amount);
+    final amountText = formatAmountCompactFromRaw(trade.position.amount);
     final usdText = formatUSD(trade.position.amountUSD);
     final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
     final badgeText = trade.position.type == TradeType.buy ? i18n.trade_buy : i18n.trade_sell;

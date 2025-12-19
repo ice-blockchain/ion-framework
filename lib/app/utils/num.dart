@@ -40,11 +40,7 @@ String formatAmountCompactFromRaw(String raw, {int decimals = 18}) {
     return '0.$shown';
   }
 
-  // Use intl compact if it safely fits
-  if (whole.bitLength < 53) {
-    return formatDoubleCompact(whole.toInt());
-  }
-
+  // Use our truncating compact formatter to avoid rounding up (e.g. 999,928 -> 999K, not 1M).
   return formatBigIntCompact(whole);
 }
 
