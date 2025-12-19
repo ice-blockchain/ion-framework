@@ -335,6 +335,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     return TradeCommunityTokenQuoteRequest(
       externalAddress: params.externalAddress,
+      externalAddressType: params.externalAddressType,
       mode: mode,
       amount: state.amount,
       amountDecimals: amountDecimals,

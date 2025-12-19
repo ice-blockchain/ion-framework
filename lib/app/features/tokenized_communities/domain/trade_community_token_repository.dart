@@ -3,8 +3,10 @@
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
+import 'package:ion/app/features/tokenized_communities/data/token_info_cache.dart';
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -14,7 +16,8 @@ class TradeCommunityTokenRepository {
     required this.txBuilder,
     required this.ionIdentity,
     required this.api,
-  });
+    required TokenInfoCache tokenInfoCache,
+  }) : _tokenInfoCache = tokenInfoCache;
 
   final EvmTxBuilder txBuilder;
   final IonIdentityTransactionApi ionIdentity;
@@ -23,6 +26,8 @@ class TradeCommunityTokenRepository {
   String? _cachedAbi;
   String? _cachedAddress;
 
+  final TokenInfoCache _tokenInfoCache;
+
   Future<void> _ensureConfigLoaded() async {
     if (_cachedAbi != null && _cachedAddress != null) return;
     _cachedAbi = await api.fetchBondingCurveAbi();
@@ -30,7 +35,11 @@ class TradeCommunityTokenRepository {
   }
 
   Future<CommunityToken?> fetchTokenInfo(String externalAddress) async {
-    return api.fetchTokenInfo(externalAddress);
+    return _tokenInfoCache.get(externalAddress);
+  }
+
+  Future<CommunityToken?> fetchTokenInfoFresh(String externalAddress) async {
+    return _tokenInfoCache.refresh(externalAddress);
   }
 
   Future<String> fetchBondingCurveAddress() async {
@@ -39,13 +48,13 @@ class TradeCommunityTokenRepository {
   }
 
   Future<PricingResponse> fetchPricing({
-    required String externalAddress,
-    required String type,
+    required String pricingIdentifier,
+    required CommunityTokenTradeMode mode,
     required String amount,
   }) async {
-    final pricing = await api.fetchPricing(externalAddress, type, amount);
+    final pricing = await api.fetchPricing(pricingIdentifier, mode.apiType, amount);
     if (pricing == null) {
-      throw TokenPricingNotFoundException(externalAddress);
+      throw TokenPricingNotFoundException(pricingIdentifier);
     }
     return pricing;
   }

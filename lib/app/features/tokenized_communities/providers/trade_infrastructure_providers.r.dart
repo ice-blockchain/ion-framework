@@ -6,6 +6,7 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
+import 'package:ion/app/features/tokenized_communities/data/token_info_cache.dart';
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
@@ -75,14 +76,17 @@ Future<TradeCommunityTokenRepository> tradeCommunityTokenRepository(
   final ionIdentity = ref.watch(ionIdentityTransactionApiProvider);
   final api = await ref.watch(tradeCommunityTokenApiProvider.future);
 
+  final tokenInfoCache = TokenInfoCache(loader: api.fetchTokenInfo);
+
   return TradeCommunityTokenRepository(
     txBuilder: txBuilder,
     ionIdentity: ionIdentity,
     api: api,
+    tokenInfoCache: tokenInfoCache,
   );
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 Future<TradeCommunityTokenService> tradeCommunityTokenService(
   Ref ref,
 ) async {

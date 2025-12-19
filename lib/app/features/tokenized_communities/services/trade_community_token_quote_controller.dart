@@ -4,18 +4,21 @@ import 'dart:async';
 
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TradeCommunityTokenQuoteRequest {
   TradeCommunityTokenQuoteRequest({
     required this.externalAddress,
+    required this.externalAddressType,
     required this.mode,
     required this.amount,
     required this.amountDecimals,
   });
 
   final String externalAddress;
+  final ExternalAddressType externalAddressType;
   final CommunityTokenTradeMode mode;
 
   /// User-entered amount in human units.
@@ -148,6 +151,7 @@ class TradeCommunityTokenQuoteController {
 
       final pricing = await service.getQuote(
         externalAddress: request.externalAddress,
+        externalAddressType: request.externalAddressType,
         mode: request.mode,
         amount: apiAmount,
       );
