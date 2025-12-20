@@ -106,6 +106,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                   Column(
                     children: [
                       TokenCard(
+                        skipAmountFormatting: true,
                         isInsufficientFundsError: isInsufficientFundsErrorState.value,
                         skipValidation: true,
                         controller: amountController,
@@ -122,6 +123,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                         height: 10.0.s,
                       ),
                       TokenCard(
+                        skipAmountFormatting: true,
                         skipValidation: true,
                         isReadOnly: true,
                         controller: quoteController,
