@@ -3,7 +3,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -74,7 +73,12 @@ final class InternalDeepLinkService {
       final internalScheme =
           _ref.read(envProvider.notifier).get<String>(EnvVariable.ION_INTERNAL_DEEP_LINK_SCHEME);
 
-      return uri.scheme.toLowerCase() == internalScheme.toLowerCase();
+      final scheme = uri.scheme.toLowerCase();
+      final isInternalScheme = scheme == internalScheme.toLowerCase();
+      final isInternalHost = InternalDeepLinkHost.fromString(uri.host) != null;
+      final usesCustomScheme = scheme != 'http' && scheme != 'https';
+
+      return isInternalScheme || (isInternalHost && usesCustomScheme);
     } catch (e) {
       Logger.error('Error parsing URL: $url, error: $e');
       return false;
@@ -140,6 +144,8 @@ final class InternalDeepLinkService {
         return false;
       }
 
+      await _ref.read(appReadyProvider.future);
+
       final location = switch (host) {
         InternalDeepLinkHost.feed => FeedRoute().location,
         // ionapp://chat/master_pubkey for direct conversation
@@ -163,11 +169,13 @@ final class InternalDeepLinkService {
         InternalDeepLinkHost.article => pathSegments.isNotEmpty
             ? ArticleDetailsRoute(eventReference: pathSegments.first).location
             : null,
-        InternalDeepLinkHost.post =>
-          pathSegments.isNotEmpty ? await _handlePostDeepLink(pathSegments.first, context) : null,
+        InternalDeepLinkHost.post => pathSegments.isNotEmpty && context.mounted
+            ? await _handlePostDeepLink(pathSegments.first, context)
+            : null,
         // ionapp://video/encoded_event_reference for fullscreen video viewer
-        InternalDeepLinkHost.video =>
-          pathSegments.isNotEmpty ? await _handleVideoDeepLink(pathSegments.first, context) : null,
+        InternalDeepLinkHost.video => pathSegments.isNotEmpty && context.mounted
+            ? await _handleVideoDeepLink(pathSegments.first, context)
+            : null,
       };
 
       if (location != null) {
