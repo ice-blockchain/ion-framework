@@ -437,7 +437,7 @@ class CreateArticle extends _$CreateArticle {
     final labelEntries = <(String pubkey, int instance)>[];
 
     // Iterate using shared logic (guarantees symmetry with load flow)
-    content.forEachMention((pubkey, showMarketCap) {
+    content.forEachMention((pubkey, {required bool showMarketCap}) {
       final currentInstance = counters[pubkey] ?? 0;
       counters[pubkey] = currentInstance + 1;
 
