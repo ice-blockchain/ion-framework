@@ -140,12 +140,31 @@ class TradeCommunityTokenService {
 
   Future<PricingResponse> getQuote({
     required String externalAddress,
+    required ExternalAddressType externalAddressType,
     required CommunityTokenTradeMode mode,
     required String amount,
   }) async {
+    if (mode == CommunityTokenTradeMode.sell) {
+      return repository.fetchPricing(
+        pricingIdentifier: externalAddress,
+        mode: mode,
+        amount: amount,
+      );
+    }
+
+    final tokenInfo = await repository.fetchTokenInfo(externalAddress);
+    final tokenExists = _tokenExists(tokenInfo);
+
+    final pricingIdentifier = tokenExists
+        ? externalAddress
+        : _buildFatAddressHex(
+            externalAddress: externalAddress,
+            externalAddressType: externalAddressType,
+          );
+
     return repository.fetchPricing(
-      externalAddress: externalAddress,
-      type: mode.apiType,
+      pricingIdentifier: pricingIdentifier,
+      mode: mode,
       amount: amount,
     );
   }
@@ -222,7 +241,7 @@ class TradeCommunityTokenService {
     if (tokenAddress == null && firstBuy) {
       // First buy can create token contract, analytics may lag behind.
       // Retry once to avoid excessive requests.
-      tokenAddress = _extractTokenAddress(await repository.fetchTokenInfo(externalAddress));
+      tokenAddress = _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
     }
     if (tokenAddress == null || tokenAddress.isEmpty) return;
 
@@ -415,5 +434,25 @@ class TradeCommunityTokenService {
     final externalAddressBytes = _encodeIdentifier(fullExternalAddress);
 
     return [...creatorTokenAddressBytes, ...externalAddressBytes];
+  }
+
+  bool _tokenExists(CommunityToken? tokenInfo) {
+    return tokenInfo?.addresses.blockchain != null;
+  }
+
+  String _buildFatAddressHex({
+    required String externalAddress,
+    required ExternalAddressType externalAddressType,
+  }) {
+    final bytes = _buildFatAddress(externalAddress, externalAddressType);
+    return _toHex(bytes);
+  }
+
+  String _toHex(List<int> bytes) {
+    final out = StringBuffer('0x');
+    for (final byte in bytes) {
+      out.write(byte.toRadixString(16).padLeft(2, '0'));
+    }
+    return out.toString();
   }
 }
