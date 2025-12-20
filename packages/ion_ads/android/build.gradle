@@ -53,10 +53,10 @@ android {
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:$kotlin_version"))
-    // Appodeal SDK 3.10.0.0
-    implementation 'com.appodeal.ads.sdk:core:3.10.0'
-    implementation 'com.appodeal.ads.sdk.networks:iab:3.10.0.0'
+    // Appodeal SDK 3.12.0.0
+    implementation 'com.appodeal.ads.sdk:core:3.12.0'
+    implementation 'com.appodeal.ads.sdk.networks:iab:3.12.0.0'
     // ConstraintLayout for Appodeal Native Ads
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.cardview:cardview:1.0.0'
 }
