@@ -17,7 +17,7 @@ part 'ugc_counter_provider.r.g.dart';
 class UgcCounter extends _$UgcCounter {
   @override
   FutureOr<int?> build({
-    bool cache = true,
+    bool cache = false,
     bool network = true,
   }) async {
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
