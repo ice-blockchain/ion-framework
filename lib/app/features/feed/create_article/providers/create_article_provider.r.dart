@@ -35,11 +35,11 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
-import 'package:ion/app/services/ugc_serial/ugc_serial_service.r.dart';
 import 'package:ion/app/utils/image_path.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -88,10 +88,14 @@ class CreateArticle extends _$CreateArticle {
         files: files,
         mediaAttachments: mediaAttachments,
       );
-      final ugcSerialFuture = ref.read(currentUserUgcSerialServiceProvider)?.getNextLabel();
+
+      final ugcCounter = await ref.read(ugcCounterProvider().future);
+      final ugcSerialLabel = EntityLabel(
+        values: [(ugcCounter + 1).toString()],
+        namespace: EntityLabelNamespace.ugcSerial,
+      );
 
       final (imageUrl, updatedContent) = await (mainImageFuture, contentFuture).wait;
-      final ugcSerialLabel = ugcSerialFuture != null ? await ugcSerialFuture : null;
 
       final markdownContent = convertDeltaToMarkdown(updatedContent);
 

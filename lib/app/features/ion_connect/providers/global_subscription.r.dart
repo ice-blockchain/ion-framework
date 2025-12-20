@@ -14,7 +14,6 @@ import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
@@ -75,16 +74,10 @@ class GlobalSubscription {
     GenericRepostEntity.modifiablePostRepostKind,
     ArticleEntity.kind,
   ];
-  static const List<int> _ugcEventKinds = [
-    PostEntity.kind,
-    ModifiablePostEntity.kind,
-    ArticleEntity.kind,
-  ];
   // Used when we reinstall the app to refetch all encrypted events
   int? _inMemoryEncryptedSince;
   int? _inMemoryPFilterSince;
   int? _inMemoryQFilterSince;
-  int? _inMemoryUgcFilterSince;
 
   bool _isEoseProcessed = false;
 
@@ -130,7 +123,6 @@ class GlobalSubscription {
 
       final pFilterTimestamp = regularFilterTimestamps[RegularFilterType.pFilter];
       final qFilterTimestamp = regularFilterTimestamps[RegularFilterType.qFilter];
-      final ugcFilterTimestamp = regularFilterTimestamps[RegularFilterType.ugcFilter];
 
       Logger.log('[GLOBAL_SUBSCRIPTION] _backfill restart pFilterTimestamp: $pFilterTimestamp');
       Logger.log('[GLOBAL_SUBSCRIPTION] _backfill restart qFilterTimestamp: $qFilterTimestamp');
@@ -138,14 +130,12 @@ class GlobalSubscription {
       final latestTimestamps = await _backfill(
         pFilterTimestamp: pFilterTimestamp,
         qFilterTimestamp: qFilterTimestamp,
-        ugcFilterTimestamp: ugcFilterTimestamp,
         now: now,
       );
 
       final fetchedTimestamps = {for (final entry in latestTimestamps) entry.$1: entry.$2};
       final fetchedPFilterTimestamp = fetchedTimestamps[RegularFilterType.pFilter];
       final fetchedQFilterTimestamp = fetchedTimestamps[RegularFilterType.qFilter];
-      final fetchedUgcFilterTimestamp = fetchedTimestamps[RegularFilterType.ugcFilter];
 
       Logger.log(
         '[GLOBAL_SUBSCRIPTION] _backfill restart fetchedPFilterTimestamp: $fetchedPFilterTimestamp',
@@ -153,13 +143,8 @@ class GlobalSubscription {
       Logger.log(
         '[GLOBAL_SUBSCRIPTION] _backfill restart fetchedQFilterTimestamp: $fetchedQFilterTimestamp',
       );
-      Logger.log(
-        '[GLOBAL_SUBSCRIPTION] _backfill restart fetchedUgcFilterTimestamp: $fetchedUgcFilterTimestamp',
-      );
-
       if (fetchedPFilterTimestamp == pFilterTimestamp &&
-          fetchedQFilterTimestamp == qFilterTimestamp &&
-          fetchedUgcFilterTimestamp == ugcFilterTimestamp) {
+          fetchedQFilterTimestamp == qFilterTimestamp) {
         Logger.log('[GLOBAL_SUBSCRIPTION] _backfill restart break');
         break;
       }
@@ -188,14 +173,12 @@ class GlobalSubscription {
   Future<List<(RegularFilterType, int)>> _backfill({
     required int? pFilterTimestamp,
     required int? qFilterTimestamp,
-    required int? ugcFilterTimestamp,
     required int now,
   }) async {
     // Run backfill for each filter in parallel with separate event handlers
     final backfillServices = <Future<(RegularFilterType, int)>>[];
 
     Logger.log('[GLOBAL_SUBSCRIPTION] _backfill pFilterTimestamp: $pFilterTimestamp');
-    Logger.log('[GLOBAL_SUBSCRIPTION] _backfill ugcFilterTimestamp: $ugcFilterTimestamp');
 
     // P filter backfill
     backfillServices.add(
@@ -221,44 +204,25 @@ class GlobalSubscription {
     Logger.log('[GLOBAL_SUBSCRIPTION] _backfill qFilterTimestamp: $qFilterTimestamp');
 
     // Q filter backfill
-    backfillServices
-      ..add(
-        eventBackfillService
-            .startBackfill(
-          latestEventTimestamp: qFilterTimestamp ?? now,
-          filter: RequestFilter(
-            kinds: const [ModifiablePostEntity.kind],
-            tags: {
-              '#Q': [
-                [null, null, currentUserMasterPubkey],
-              ],
-            },
-          ),
-          onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
-        )
-            .then((result) {
-          latestEventTimestampService.updateRegularFilter(result, RegularFilterType.qFilter);
-          return (RegularFilterType.qFilter, result);
-        }),
+    backfillServices.add(
+      eventBackfillService
+          .startBackfill(
+        latestEventTimestamp: qFilterTimestamp ?? now,
+        filter: RequestFilter(
+          kinds: const [ModifiablePostEntity.kind],
+          tags: {
+            '#Q': [
+              [null, null, currentUserMasterPubkey],
+            ],
+          },
+        ),
+        onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
       )
-
-      // UGC filter backfill
-      ..add(
-        eventBackfillService
-            .startBackfill(
-          latestEventTimestamp: ugcFilterTimestamp ?? now,
-          filter: RequestFilter(
-            kinds: _ugcEventKinds,
-            authors: [currentUserMasterPubkey],
-            search: 'expiration:false !amarker:reply !emarker:reply',
-          ),
-          onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
-        )
-            .then((result) {
-          latestEventTimestampService.updateRegularFilter(result, RegularFilterType.ugcFilter);
-          return (RegularFilterType.ugcFilter, result);
-        }),
-      );
+          .then((result) {
+        latestEventTimestampService.updateRegularFilter(result, RegularFilterType.qFilter);
+        return (RegularFilterType.qFilter, result);
+      }),
+    );
 
     final result = await Future.wait(backfillServices);
     Logger.log('[GLOBAL_SUBSCRIPTION] _backfill result: $result');
@@ -276,8 +240,6 @@ class GlobalSubscription {
           latestEventTimestampService.getRegularFilter(RegularFilterType.pFilter);
       final qFilterTimestamp =
           latestEventTimestampService.getRegularFilter(RegularFilterType.qFilter);
-      final ugcFilterTimestamp =
-          latestEventTimestampService.getRegularFilter(RegularFilterType.ugcFilter);
 
       Logger.log(
         '[GLOBAL_SUBSCRIPTION] _subscribe pFilterTimestamp: $pFilterTimestamp'
@@ -290,10 +252,6 @@ class GlobalSubscription {
       Logger.log(
         '[GLOBAL_SUBSCRIPTION] _subscribe encryptedSince: $encryptedSince'
         ' formatted:  ${encryptedSince != null ? DateTime.fromMicrosecondsSinceEpoch(encryptedSince).toIso8601String() : 'null'}',
-      );
-      Logger.log(
-        '[GLOBAL_SUBSCRIPTION] _subscribe ugcFilterTimestamp: $ugcFilterTimestamp'
-        ' formatted:  ${ugcFilterTimestamp != null ? DateTime.fromMicrosecondsSinceEpoch(ugcFilterTimestamp).toIso8601String() : 'null'}',
       );
       final requestMessage = RequestMessage(
         filters: [
@@ -316,13 +274,6 @@ class GlobalSubscription {
             },
             limit: eventLimit,
             since: qFilterTimestamp,
-          ),
-          RequestFilter(
-            kinds: _ugcEventKinds,
-            authors: [currentUserMasterPubkey],
-            search: 'expiration:false !amarker:reply !emarker:reply',
-            limit: eventLimit,
-            since: ugcFilterTimestamp,
           ),
           RequestFilter(
             kinds: _encryptedEventKinds,
@@ -378,19 +329,6 @@ class GlobalSubscription {
             )
                 .then((_) {
               _inMemoryQFilterSince = null;
-            });
-          }
-          if (_inMemoryUgcFilterSince != null) {
-            Logger.log(
-              '[GLOBAL_SUBSCRIPTION] EOSE updating ugc filter timestamp in storage with in-memory timestamp: $_inMemoryUgcFilterSince formatted: ${DateTime.fromMicrosecondsSinceEpoch(_inMemoryUgcFilterSince!).toIso8601String()}',
-            );
-            latestEventTimestampService
-                .updateRegularFilter(
-              _inMemoryUgcFilterSince!,
-              RegularFilterType.ugcFilter,
-            )
-                .then((_) {
-              _inMemoryUgcFilterSince = null;
             });
           }
         },
@@ -509,24 +447,6 @@ class GlobalSubscription {
               );
               _inMemoryQFilterSince = null;
             }
-          }
-        }
-        if (_ugcEventKinds.contains(eventMessage.kind) &&
-            eventMessage.masterPubkey == currentUserMasterPubkey) {
-          if (_inMemoryUgcFilterSince == null) {
-            _inMemoryUgcFilterSince = eventTimestamp;
-          } else if (_inMemoryUgcFilterSince! < eventTimestamp) {
-            _inMemoryUgcFilterSince = eventTimestamp;
-          }
-          if (_isEoseProcessed) {
-            Logger.log(
-              '[GLOBAL_SUBSCRIPTION] _handleEvent updating ugc filter timestamp in storage with in-memory timestamp: $_inMemoryUgcFilterSince formatted: ${DateTime.fromMicrosecondsSinceEpoch(_inMemoryUgcFilterSince!).toIso8601String()}',
-            );
-            await latestEventTimestampService.updateRegularFilter(
-              _inMemoryUgcFilterSince!,
-              RegularFilterType.ugcFilter,
-            );
-            _inMemoryUgcFilterSince = null;
           }
         }
       } else {

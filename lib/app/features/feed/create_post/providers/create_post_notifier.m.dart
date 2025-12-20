@@ -51,12 +51,12 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/verified_user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
-import 'package:ion/app/services/ugc_serial/ugc_serial_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'create_post_notifier.m.g.dart';
@@ -407,9 +407,11 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       return null;
     }
 
-    final ugcSerialService = ref.read(currentUserUgcSerialServiceProvider);
-
-    return ugcSerialService?.getNextLabel();
+    final counter = await ref.read(ugcCounterProvider().future);
+    return EntityLabel(
+      values: [(counter + 1).toString()],
+      namespace: EntityLabelNamespace.ugcSerial,
+    );
   }
 
   Future<({List<FileMetadata> files, Map<String, MediaAttachment> media})> _uploadMediaFiles({
