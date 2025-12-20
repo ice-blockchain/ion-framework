@@ -221,43 +221,44 @@ class GlobalSubscription {
     Logger.log('[GLOBAL_SUBSCRIPTION] _backfill qFilterTimestamp: $qFilterTimestamp');
 
     // Q filter backfill
-    backfillServices.add(
-      eventBackfillService
-          .startBackfill(
-        latestEventTimestamp: qFilterTimestamp ?? now,
-        filter: RequestFilter(
-          kinds: const [ModifiablePostEntity.kind],
-          tags: {
-            '#Q': [
-              [null, null, currentUserMasterPubkey],
-            ],
-          },
-        ),
-        onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
+    backfillServices
+      ..add(
+        eventBackfillService
+            .startBackfill(
+          latestEventTimestamp: qFilterTimestamp ?? now,
+          filter: RequestFilter(
+            kinds: const [ModifiablePostEntity.kind],
+            tags: {
+              '#Q': [
+                [null, null, currentUserMasterPubkey],
+              ],
+            },
+          ),
+          onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
+        )
+            .then((result) {
+          latestEventTimestampService.updateRegularFilter(result, RegularFilterType.qFilter);
+          return (RegularFilterType.qFilter, result);
+        }),
       )
-          .then((result) {
-        latestEventTimestampService.updateRegularFilter(result, RegularFilterType.qFilter);
-        return (RegularFilterType.qFilter, result);
-      }),
-    );
 
-    // UGC filter backfill
-    backfillServices.add(
-      eventBackfillService
-          .startBackfill(
-        latestEventTimestamp: ugcFilterTimestamp ?? now,
-        filter: RequestFilter(
-          kinds: _ugcEventKinds,
-          authors: [currentUserMasterPubkey],
-          search: 'expiration:false !amarker:reply !emarker:reply',
-        ),
-        onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
-      )
-          .then((result) {
-        latestEventTimestampService.updateRegularFilter(result, RegularFilterType.ugcFilter);
-        return (RegularFilterType.ugcFilter, result);
-      }),
-    );
+      // UGC filter backfill
+      ..add(
+        eventBackfillService
+            .startBackfill(
+          latestEventTimestamp: ugcFilterTimestamp ?? now,
+          filter: RequestFilter(
+            kinds: _ugcEventKinds,
+            authors: [currentUserMasterPubkey],
+            search: 'expiration:false !amarker:reply !emarker:reply',
+          ),
+          onEvent: (event) => _handleEvent(event, eventSource: EventSource.subscription),
+        )
+            .then((result) {
+          latestEventTimestampService.updateRegularFilter(result, RegularFilterType.ugcFilter);
+          return (RegularFilterType.ugcFilter, result);
+        }),
+      );
 
     final result = await Future.wait(backfillServices);
     Logger.log('[GLOBAL_SUBSCRIPTION] _backfill result: $result');
