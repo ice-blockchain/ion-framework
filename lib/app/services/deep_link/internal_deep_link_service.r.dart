@@ -7,7 +7,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/app_links_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
