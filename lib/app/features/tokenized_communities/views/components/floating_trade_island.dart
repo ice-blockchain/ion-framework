@@ -3,14 +3,15 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
-import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/providers/external_address_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class FloatingTradeIsland extends StatelessWidget {
+class FloatingTradeIsland extends ConsumerWidget {
   const FloatingTradeIsland({
     required this.externalAddress,
     super.key,
@@ -19,7 +20,9 @@ class FloatingTradeIsland extends StatelessWidget {
   final String externalAddress;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final externalAddressType =
+        ref.watch(externalAddressTypeProvider(externalAddress: externalAddress)).valueOrNull;
     final colors = context.theme.appColors;
     final i18n = context.i18n;
 
@@ -42,11 +45,13 @@ class FloatingTradeIsland extends StatelessWidget {
               leading: Assets.svg.iconButtonReceive.icon(size: 20.0.s, color: Colors.white),
               label: i18n.trade_buy,
               onTap: () {
+                if (externalAddressType == null) return;
+
                 showSimpleBottomSheet<void>(
                   context: context,
                   child: TradeCommunityTokenDialog(
                     externalAddress: externalAddress,
-                    externalAddressType: const ExternalAddressType.ionConnectUser(),
+                    externalAddressType: externalAddressType,
                     initialMode: CommunityTokenTradeMode.buy,
                   ),
                 );
@@ -59,11 +64,13 @@ class FloatingTradeIsland extends StatelessWidget {
               leading: Assets.svg.iconButtonReceive.icon(size: 20.0.s, color: Colors.white),
               label: i18n.trade_sell,
               onTap: () {
+                if (externalAddressType == null) return;
+
                 showSimpleBottomSheet<void>(
                   context: context,
                   child: TradeCommunityTokenDialog(
                     externalAddress: externalAddress,
-                    externalAddressType: const ExternalAddressType.ionConnectUser(),
+                    externalAddressType: externalAddressType,
                     initialMode: CommunityTokenTradeMode.sell,
                   ),
                 );

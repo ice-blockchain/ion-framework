@@ -7,6 +7,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart'
 import 'package:ion/app/features/ion_connect/providers/missing_events_handler.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/token_action_first_buy_reference.f.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'token_action_first_buy_dependency_handler.r.g.dart';
@@ -33,24 +34,31 @@ class TokenActionFirstBuyDependencyHandler implements EventsMetadataHandler {
           (event) => event.data.metadata.kind == CommunityTokenActionEntity.kind,
         );
 
-    await Future.wait(
-      tokenActionEvents.map(
-        (event) async {
-          final tokenAction = CommunityTokenActionEntity.fromEventMessage(event.data.metadata);
-          final userTokenActionFirstBuyReference =
-              TokenActionFirstBuyReferenceEntity.fromCommunityTokenAction(tokenAction);
-          final tokenActionFirstBuyReference = userTokenActionFirstBuyReference.copyWith(
-            masterPubkey: TokenActionFirstBuyReference.anyUserMasterPubkey,
-          );
-          return (
-            _ionConnectCache.cache(tokenAction),
-            _ionConnectCache.cache(userTokenActionFirstBuyReference),
-            _ionConnectCache.cache(tokenActionFirstBuyReference),
-          ).wait;
-        },
-      ),
-    );
-
+    try {
+      await Future.wait(
+        tokenActionEvents.map(
+          (event) async {
+            final tokenAction = CommunityTokenActionEntity.fromEventMessage(event.data.metadata);
+            final userTokenActionFirstBuyReference =
+                TokenActionFirstBuyReferenceEntity.fromCommunityTokenAction(tokenAction);
+            final tokenActionFirstBuyReference = userTokenActionFirstBuyReference.copyWith(
+              masterPubkey: TokenActionFirstBuyReference.anyUserMasterPubkey,
+            );
+            return (
+              _ionConnectCache.cache(tokenAction),
+              _ionConnectCache.cache(userTokenActionFirstBuyReference),
+              _ionConnectCache.cache(tokenActionFirstBuyReference),
+            ).wait;
+          },
+        ),
+      );
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Handler TokenActionFirstBuyDependencyHandler failed to process events',
+      );
+    }
     return restEvents;
   }
 }

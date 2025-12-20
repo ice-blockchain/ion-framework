@@ -15,6 +15,9 @@ class ExternalAddressType {
   const ExternalAddressType.ionConnectVideoPost() : prefix = 'c';
   const ExternalAddressType.ionConnectArticle() : prefix = 'd';
 
+  /// For X tokens we don't need to know the prefix (and we don't have it in the app)
+  const ExternalAddressType.x() : prefix = '';
+
   final String prefix;
 }
 
