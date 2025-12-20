@@ -56,6 +56,7 @@ import 'package:ion/app/features/user/providers/verified_user_events_metadata_pr
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/ugc_serial/ugc_serial_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'create_post_notifier.m.g.dart';
@@ -109,6 +110,11 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       );
 
       final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
+      final expiration = _buildExpiration();
+      final ugcSerialLabel = await _buildUgcSerialLabel(
+        parentEntity: parentEntity,
+        expiration: expiration,
+      );
 
       final postData = ModifiablePostData(
         textContent: conversion.contentToSign,
@@ -126,10 +132,11 @@ class CreatePostNotifier extends _$CreatePostNotifier {
             _buildRelatedPubkeys(mentions: mentions, parentEntity: parentEntity).toList(),
         settings:
             parentEntity != null ? null : EntityDataWithSettings.build(whoCanReply: whoCanReply),
-        expiration: _buildExpiration(),
+        expiration: expiration,
         communityId: communityId,
         poll: poll,
         language: _buildLanguageLabel(language),
+        ugcSerial: ugcSerialLabel,
       );
 
       final post = await _publishPost(
@@ -390,6 +397,19 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
     }
     return null;
+  }
+
+  Future<EntityLabel?> _buildUgcSerialLabel({
+    required IonConnectEntity? parentEntity,
+    required EntityExpiration? expiration,
+  }) async {
+    if (parentEntity != null || expiration != null) {
+      return null;
+    }
+
+    final ugcSerialService = ref.read(currentUserUgcSerialServiceProvider);
+
+    return ugcSerialService?.getNextLabel();
   }
 
   Future<({List<FileMetadata> files, Map<String, MediaAttachment> media})> _uploadMediaFiles({

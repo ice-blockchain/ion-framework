@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_request_data.f.dart';
@@ -9,7 +8,6 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
-import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/user/providers/count_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -59,15 +57,4 @@ class UgcCounter extends _$UgcCounter {
       return 0;
     }
   }
-}
-
-/// Helper to create the next UGC serial label
-Future<EntityLabel?> getNextUgcSerialLabel(WidgetRef ref) async {
-  final currentCount = await ref.read(ugcCounterProvider().future);
-  final nextValue = currentCount + 1;
-
-  return EntityLabel(
-    values: [nextValue.toString()],
-    namespace: EntityLabelNamespace.ugcSerial,
-  );
 }

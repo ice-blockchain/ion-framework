@@ -39,6 +39,7 @@ import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/ugc_serial/ugc_serial_service.r.dart';
 import 'package:ion/app/utils/image_path.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -87,8 +88,10 @@ class CreateArticle extends _$CreateArticle {
         files: files,
         mediaAttachments: mediaAttachments,
       );
+      final ugcSerialFuture = ref.read(currentUserUgcSerialServiceProvider)?.getNextLabel();
 
       final (imageUrl, updatedContent) = await (mainImageFuture, contentFuture).wait;
+      final ugcSerialLabel = ugcSerialFuture != null ? await ugcSerialFuture : null;
 
       final markdownContent = convertDeltaToMarkdown(updatedContent);
 
@@ -116,6 +119,7 @@ class CreateArticle extends _$CreateArticle {
         imageColor: imageColor,
         textContent: markdownContent,
         language: _buildLanguageLabel(language),
+        ugcSerial: ugcSerialLabel,
       );
 
       final article = await _sendArticleEntities(

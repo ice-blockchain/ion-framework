@@ -23,12 +23,15 @@ enum EventType {
 
 enum RegularFilterType {
   pFilter,
-  qFilter;
+  qFilter,
+  ugcFilter;
 
   String get localKey {
     return switch (this) {
       RegularFilterType.pFilter => EventType.regular.localKey,
       RegularFilterType.qFilter => 'global_subscription_latest_q_filter_event_timestamp',
+      RegularFilterType.ugcFilter =>
+        'global_subscription_latest_ugc_filter_event_timestamp',
     };
   }
 }
@@ -69,6 +72,7 @@ class GlobalSubscriptionLatestEventTimestampService {
     await Future.wait([
       updateRegularFilter(createdAt, RegularFilterType.pFilter),
       updateRegularFilter(createdAt, RegularFilterType.qFilter),
+      updateRegularFilter(createdAt, RegularFilterType.ugcFilter),
     ]);
   }
 
@@ -76,6 +80,7 @@ class GlobalSubscriptionLatestEventTimestampService {
     return {
       RegularFilterType.pFilter: _get(EventType.regular), // Use regular events timestamp directly
       RegularFilterType.qFilter: getRegularFilter(RegularFilterType.qFilter),
+      RegularFilterType.ugcFilter: getRegularFilter(RegularFilterType.ugcFilter),
     };
   }
 
