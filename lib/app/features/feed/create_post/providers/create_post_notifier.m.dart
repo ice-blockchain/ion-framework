@@ -408,6 +408,9 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     }
 
     final counter = await ref.read(ugcCounterProvider().future);
+    if (counter == null) {
+      throw Exception('Failed to fetch UGC counter');
+    }
     return EntityLabel(
       values: [(counter + 1).toString()],
       namespace: EntityLabelNamespace.ugcSerial,

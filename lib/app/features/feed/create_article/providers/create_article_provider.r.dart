@@ -90,6 +90,9 @@ class CreateArticle extends _$CreateArticle {
       );
 
       final ugcCounter = await ref.read(ugcCounterProvider().future);
+      if (ugcCounter == null) {
+        throw Exception('Failed to fetch UGC counter');
+      }
       final ugcSerialLabel = EntityLabel(
         values: [(ugcCounter + 1).toString()],
         namespace: EntityLabelNamespace.ugcSerial,

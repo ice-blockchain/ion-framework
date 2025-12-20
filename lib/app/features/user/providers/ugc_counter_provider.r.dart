@@ -16,14 +16,14 @@ part 'ugc_counter_provider.r.g.dart';
 @riverpod
 class UgcCounter extends _$UgcCounter {
   @override
-  FutureOr<int> build({
+  FutureOr<int?> build({
     bool cache = true,
     bool network = true,
   }) async {
     final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
 
     if (currentIdentityKeyName == null) {
-      return 0;
+      return null;
     }
 
     final filters = [
@@ -38,23 +38,18 @@ class UgcCounter extends _$UgcCounter {
       ),
     ];
 
-    try {
-      final count = await ref.watch(
-        countProvider(
-          key: 'ugc_counter_$currentIdentityKeyName',
-          type: EventCountResultType.ugc,
-          requestData: EventCountRequestData(filters: filters),
-          actionSource: ActionSourceUser(currentIdentityKeyName),
-          cacheExpirationDuration: const Duration(minutes: 5),
-          cache: cache,
-          network: network,
-        ).future,
-      );
+    final count = await ref.watch(
+      countProvider(
+        key: 'ugc_counter_$currentIdentityKeyName',
+        type: EventCountResultType.ugc,
+        requestData: EventCountRequestData(filters: filters),
+        actionSource: ActionSourceUser(currentIdentityKeyName),
+        cacheExpirationDuration: const Duration(minutes: 5),
+        cache: cache,
+        network: network,
+      ).future,
+    );
 
-      return count is int ? count : 0;
-    } catch (e) {
-      // If count fails, return 0 and let the user retry
-      return 0;
-    }
+    return count is int ? count : null;
   }
 }
