@@ -8,6 +8,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/transacti
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/utils/fat_address_data.f.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -36,6 +37,7 @@ class TradeCommunityTokenService {
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
     required PricingResponse expectedPricing,
+    FatAddressData? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
@@ -47,6 +49,7 @@ class TradeCommunityTokenService {
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
       tokenAddress: existingTokenAddress,
+      fatAddressData: fatAddressData,
     );
 
     final transaction = await _performSwap(
@@ -139,29 +142,10 @@ class TradeCommunityTokenService {
   }
 
   Future<PricingResponse> getQuote({
-    required String externalAddress,
-    required ExternalAddressType externalAddressType,
+    required String pricingIdentifier,
     required CommunityTokenTradeMode mode,
     required String amount,
   }) async {
-    if (mode == CommunityTokenTradeMode.sell) {
-      return repository.fetchPricing(
-        pricingIdentifier: externalAddress,
-        mode: mode,
-        amount: amount,
-      );
-    }
-
-    final tokenInfo = await repository.fetchTokenInfo(externalAddress);
-    final tokenExists = _tokenExists(tokenInfo);
-
-    final pricingIdentifier = tokenExists
-        ? externalAddress
-        : _buildFatAddressHex(
-            externalAddress: externalAddress,
-            externalAddressType: externalAddressType,
-          );
-
     return repository.fetchPricing(
       pricingIdentifier: pricingIdentifier,
       mode: mode,
@@ -342,11 +326,15 @@ class TradeCommunityTokenService {
     required String externalAddress,
     required ExternalAddressType externalAddressType,
     required String? tokenAddress,
+    required FatAddressData? fatAddressData,
   }) {
     if (tokenAddress != null && tokenAddress.isNotEmpty) {
       return _getBytesFromAddress(tokenAddress);
     }
-    return _buildFatAddress(externalAddress, externalAddressType);
+    if (fatAddressData == null) {
+      throw StateError('fatAddressData is required for first buy of $externalAddress');
+    }
+    return fatAddressData.toFatAddressBytes();
   }
 
   Future<void> _ensureAllowance({
@@ -421,38 +409,5 @@ class TradeCommunityTokenService {
       return _hexToBytes(address);
     }
     return _encodeIdentifier(address);
-  }
-
-  /// Builds FatAddress for first-time token purchase.
-  /// FatAddress format: creatorTokenAddress (20 bytes) + externalAddress bytes
-  /// For Twitter (z/y/x/w) and creatorToken (a): creatorTokenAddress = 20 zero bytes
-  /// For contentToken (b/c/d): creatorTokenAddress should be the creator's token address
-  List<int> _buildFatAddress(String externalAddress, ExternalAddressType externalAddressType) {
-    final creatorTokenAddressBytes = List<int>.filled(20, 0);
-
-    final fullExternalAddress = '${externalAddressType.prefix}$externalAddress';
-    final externalAddressBytes = _encodeIdentifier(fullExternalAddress);
-
-    return [...creatorTokenAddressBytes, ...externalAddressBytes];
-  }
-
-  bool _tokenExists(CommunityToken? tokenInfo) {
-    return tokenInfo?.addresses.blockchain != null;
-  }
-
-  String _buildFatAddressHex({
-    required String externalAddress,
-    required ExternalAddressType externalAddressType,
-  }) {
-    final bytes = _buildFatAddress(externalAddress, externalAddressType);
-    return _toHex(bytes);
-  }
-
-  String _toHex(List<int> bytes) {
-    final out = StringBuffer('0x');
-    for (final byte in bytes) {
-      out.write(byte.toRadixString(16).padLeft(2, '0'));
-    }
-    return out.toString();
   }
 }

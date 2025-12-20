@@ -3,6 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/services/trade_community_token_quote_controller.dart';
@@ -335,11 +336,34 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     return TradeCommunityTokenQuoteRequest(
       externalAddress: params.externalAddress,
-      externalAddressType: params.externalAddressType,
       mode: mode,
       amount: state.amount,
       amountDecimals: amountDecimals,
+      pricingIdentifierResolver: () => _resolvePricingIdentifier(mode),
     );
+  }
+
+  Future<String> _resolvePricingIdentifier(CommunityTokenTradeMode mode) async {
+    final externalAddress = params.externalAddress;
+
+    if (mode == CommunityTokenTradeMode.sell) {
+      return externalAddress;
+    }
+
+    final tokenInfo = await ref.read(tokenMarketInfoProvider(externalAddress).future);
+    final tokenAddress = tokenInfo?.addresses.blockchain;
+    final tokenExists = tokenAddress != null && tokenAddress.isNotEmpty;
+    if (tokenExists) {
+      return externalAddress;
+    }
+
+    final fatAddressData = await ref.read(
+      fatAddressDataProvider(
+        externalAddress: externalAddress,
+        externalAddressType: params.externalAddressType,
+      ).future,
+    );
+    return fatAddressData.toFatAddressHex();
   }
 
   CoinsGroup _buildInterimCommunityTokenGroup({
