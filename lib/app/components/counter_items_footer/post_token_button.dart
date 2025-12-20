@@ -4,16 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
+import 'package:ion/app/features/feed/views/pages/token_creation_not_available_modal/token_creation_not_available_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
+import 'package:ion/app/features/user/extensions/user_metadata.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class PostTokenButton extends ConsumerWidget {
@@ -28,18 +33,56 @@ class PostTokenButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ownerHasBscWallet = ref
+        .watch(
+          userMetadataProvider(eventReference.masterPubkey)
+              .select((e) => e.valueOrNull?.hasBscWallet),
+        )
+        .falseOrValue;
+
+    final hasTokenDefinition = ref
+        .watch(ionConnectEntityHasTokenDefinitionProvider(eventReference: eventReference))
+        .valueOrNull
+        .falseOrValue;
+
+    final isTokenCreationAvailable = ownerHasBscWallet && hasTokenDefinition;
+
     final entity =
         ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
 
-    if (entity == null) {
-      return _TokenButtonPlaceholder(padding: padding);
-    }
+    return GestureDetector(
+      behavior:
+          isTokenCreationAvailable ? HitTestBehavior.deferToChild : HitTestBehavior.translucent,
+      onTap: isTokenCreationAvailable
+          ? null
+          : () {
+              showSimpleBottomSheet<void>(
+                context: context,
+                child: const TokenCreationNotAvailableModal(),
+              );
+            },
+      child: IgnorePointer(
+        ignoring: !isTokenCreationAvailable,
+        child: Opacity(
+          opacity: isTokenCreationAvailable ? 1.0 : 0.5,
+          child: Builder(
+            builder: (context) {
+              if (entity == null) {
+                return _TokenButtonPlaceholder(padding: padding);
+              }
 
-    return switch (entity) {
-      CommunityTokenDefinitionEntity() => _TokenDefinitionButton(entity: entity, padding: padding),
-      CommunityTokenActionEntity() => _TokenActionButton(entity: entity, padding: padding),
-      _ => _ContentEntityButton(entity: entity, padding: padding),
-    };
+              return switch (entity) {
+                CommunityTokenDefinitionEntity() =>
+                  _TokenDefinitionButton(entity: entity, padding: padding),
+                CommunityTokenActionEntity() =>
+                  _TokenActionButton(entity: entity, padding: padding),
+                _ => _ContentEntityButton(entity: entity, padding: padding),
+              };
+            },
+          ),
+        ),
+      ),
+    );
   }
 }
 

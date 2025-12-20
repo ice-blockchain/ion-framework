@@ -875,6 +875,8 @@
   "tokenized_community_holders_tab": "Притежатели",
   "tokenized_community_trades_tab": "Сделки",
   "tokenized_community_bonding_curve": "Крива на обвързване",
+  "tokenized_community_not_available_description": "Създаването на токени не е налично за вече създадени публикации.",
+  "tokenized_community_not_available_title": "Грешка при токенизирано съдържание",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Добави връзка",
   "top_holders_empty": "Станете първият притежател",
