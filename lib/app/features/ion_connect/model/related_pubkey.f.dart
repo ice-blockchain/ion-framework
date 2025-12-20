@@ -9,7 +9,6 @@ part 'related_pubkey.f.freezed.dart';
 class RelatedPubkey with _$RelatedPubkey {
   const factory RelatedPubkey({
     required String value,
-    @Default(false) bool showMarketCap,
   }) = _RelatedPubkey;
 
   const RelatedPubkey._();
@@ -23,21 +22,13 @@ class RelatedPubkey with _$RelatedPubkey {
       throw IncorrectEventTagException(tag: tag.toString());
     }
 
-    // TODO: Check how complatible with protocol
-    // TODO: Check if we need to implement this in Swift model
-    // Parse optional 4th element for showMarketCap flag (position 3 reserved for relay)
-    final showMarketCap = tag.length > 3 && tag[3] == 'showMarketCap';
-
     return RelatedPubkey(
       value: tag[1],
-      showMarketCap: showMarketCap,
     );
   }
 
   List<String> toTag() {
-    // Follow project pattern: [type, value, relay, custom_data...]
-    // Position 3 (relay) kept empty, position 4 for custom data
-    return showMarketCap ? [tagName, value, '', 'showMarketCap'] : [tagName, value];
+    return [tagName, value];
   }
 
   static const String tagName = 'p';

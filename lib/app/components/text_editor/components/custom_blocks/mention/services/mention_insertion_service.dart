@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
@@ -18,7 +19,11 @@ class MentionInsertionService {
     int tagLength,
     MentionEmbedData mentionData,
   ) {
-    final embedData = mentionData.toJson();
+    // Generate unique ID to distinguish duplicate mentions (ephemeral, not saved to Nostr)
+    final mentionWithId = mentionData.copyWith(
+      id: DateTime.now().toString(),
+    );
+    final embedData = mentionWithId.toJson();
 
     // Remove the '@...' placeholder text
     controller
@@ -97,18 +102,24 @@ class MentionInsertionService {
       return;
     }
 
+    // Generate unique ID if not present (ephemeral, not saved to Nostr)
+    final mentionWithId =
+        mentionData.id == null ? mentionData.copyWith(id: DateTime.now().toString()) : mentionData;
+
     controller
       ..replaceText(start, mentionTextLength, '', null)
-      ..replaceText(start, 0, Embeddable(mentionEmbedKey, mentionData.toJson()), null);
+      ..replaceText(start, 0, Embeddable(mentionEmbedKey, mentionWithId.toJson()), null);
   }
 
   // Converts a mention embed back to text with mention attribute.
   // Used when market cap is not available (for proper text editing behavior).
+  // If showMarketCap=false, explicitly marks this mention as text-only (X button clicked).
   static void downgradeMentionEmbedToText(
     QuillController controller,
     int embedPosition,
-    MentionEmbedData mentionData,
-  ) {
+    MentionEmbedData mentionData, {
+    bool showMarketCap = true,
+  }) {
     if (embedPosition < 0 || embedPosition >= controller.document.length) {
       return;
     }
@@ -120,14 +131,23 @@ class MentionInsertionService {
 
     final mentionText = '$mentionPrefix${mentionData.username}';
 
-    // Replace embed (length = 1) with text
-    controller
-      ..replaceText(embedPosition, 1, mentionText, null)
-      ..formatText(
-        embedPosition,
-        mentionText.length,
-        MentionAttribute.withValue(encodedRef),
-      );
+    // Build attributes
+    final attributes = {
+      MentionAttribute.attributeKey: encodedRef,
+      if (!showMarketCap) MentionAttribute.showMarketCapKey: false,
+    };
+
+    // Use Delta to replace embed with attributed text
+    final replaceDelta = Delta()
+      ..retain(embedPosition)
+      ..delete(1) // Remove embed (length = 1)
+      ..insert(mentionText, attributes);
+
+    controller.compose(
+      replaceDelta,
+      TextSelection.collapsed(offset: embedPosition + mentionText.length),
+      ChangeSource.local,
+    );
   }
 
   // Downgrades a mention embed to text format (user clicked X button).
@@ -137,42 +157,67 @@ class MentionInsertionService {
     QuillController controller,
     Embed embedNode,
   ) {
-    // Parse the embed node data to get mention info
+    // Parse the embed node data to get mention info (includes unique ID)
     final nodeMentionData = _parseMentionDataFromNode(embedNode.value.data);
-    if (nodeMentionData == null) return;
+    if (nodeMentionData == null) {
+      return;
+    }
 
-    final delta = controller.document.toDelta();
-    var embedIndex = -1; // Will store the position of the embed we're looking for
-    var currentIndex = 0; // Tracks our position as we iterate through operations
+    // Find embed position by matching unique ID - works for duplicate mentions
+    final embedOffset = _findEmbedOffsetInDelta(
+      controller.document.toDelta(),
+      nodeMentionData,
+    );
 
-    // Find the position of the embed in the document
+    if (embedOffset != -1) {
+      // Downgrade embed to text format and explicitly set showMarketCap: false
+      // This ensures author's choice to not display with market cap is persisted
+      downgradeMentionEmbedToText(
+        controller,
+        embedOffset,
+        nodeMentionData,
+        showMarketCap: false,
+      );
+    }
+  }
+
+  // Finds embed offset by matching unique ID in delta operations.
+  // Each mention embed has a unique ID, so this works correctly even with
+  // multiple mentions of the same user.
+  static int _findEmbedOffsetInDelta(Delta delta, MentionEmbedData targetMentionData) {
+    var currentIndex = 0;
+
     for (final operation in delta.operations) {
       final length = operation.length ?? 1;
 
       if (operation.isInsert && operation.data is Map<String, dynamic>) {
         final data = operation.data! as Map<String, dynamic>;
         if (data.containsKey(mentionEmbedKey)) {
-          // Parse the mention data from delta operation
           final opMentionData = MentionEmbedData.fromJson(
             Map<String, dynamic>.from(data[mentionEmbedKey] as Map),
           );
 
-          // Check if this is the embed we're looking for by comparing pubkey and username
-          if (opMentionData.pubkey == nodeMentionData.pubkey &&
-              opMentionData.username == nodeMentionData.username) {
-            embedIndex = currentIndex;
-            break;
+          // Match by unique ID if both have IDs
+          if (opMentionData.id != null &&
+              targetMentionData.id != null &&
+              opMentionData.id == targetMentionData.id) {
+            return currentIndex;
+          }
+
+          // Fallback: If no IDs, match by pubkey+username (first occurrence)
+          // This handles legacy embeds without IDs
+          if (opMentionData.id == null &&
+              targetMentionData.id == null &&
+              opMentionData.pubkey == targetMentionData.pubkey &&
+              opMentionData.username == targetMentionData.username) {
+            return currentIndex;
           }
         }
       }
       currentIndex += length;
     }
 
-    if (embedIndex != -1) {
-      // Downgrade embed to text format (keeps mention but without showMarketCap flag)
-      // This ensures author's choice to not display with market cap is persisted
-      downgradeMentionEmbedToText(controller, embedIndex, nodeMentionData);
-    }
+    return -1;
   }
 
   // Helper to parse mention data from embed node value data

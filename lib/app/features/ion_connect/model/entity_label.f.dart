@@ -9,7 +9,8 @@ part 'entity_label.f.freezed.dart';
 enum EntityLabelNamespace {
   language('ISO-639-1'),
   color('color'),
-  ugcSerial('ugc.serial');
+  ugcSerial('ugc.serial'),
+  mentionMarketCap('community.token.marketcap.show');
 
   const EntityLabelNamespace(this.value);
   final String value;
@@ -24,14 +25,22 @@ class EntityLabel with _$EntityLabel {
   const factory EntityLabel({
     required List<String> values,
     required EntityLabelNamespace namespace,
+    // Map of index in values list -> additional tag elements (e.g., instance numbers)
+    Map<String, List<String>>? additionalElements,
   }) = _EntityLabel;
 
   const EntityLabel._();
 
+  // Generates NIP-32 label tags: ['L', namespace], ['l', value, namespace, ...additionalElements]
   List<List<String>> toTags() {
     return [
       LabelNamespaceTag(namespace: namespace).toTag(),
-      for (final value in values) LabelValueTag(value: value, namespace: namespace).toTag(),
+      for (var i = 0; i < values.length; i++)
+        LabelValueTag(
+          value: values[i],
+          namespace: namespace,
+          additionalElements: additionalElements?[i.toString()],
+        ).toTag(),
     ];
   }
 
@@ -55,9 +64,18 @@ class EntityLabel with _$EntityLabel {
       throw IncorrectEventTagException(tag: tags);
     }
 
+    // Build additionalElements map using index-based keys
+    final additionalElementsMap = <String, List<String>>{};
+    for (var i = 0; i < valueTags.length; i++) {
+      if (valueTags[i].additionalElements != null && valueTags[i].additionalElements!.isNotEmpty) {
+        additionalElementsMap[i.toString()] = valueTags[i].additionalElements!;
+      }
+    }
+
     return EntityLabel(
       values: valueTags.map((valueTag) => valueTag.value).toList(),
       namespace: namespace,
+      additionalElements: additionalElementsMap.isNotEmpty ? additionalElementsMap : null,
     );
   }
 }
@@ -91,8 +109,9 @@ class LabelNamespaceTag with _$LabelNamespaceTag {
     Map<String, List<List<String>>> tags, {
     required EntityLabelNamespace namespace,
   }) {
+    // LabelNamespaceTag structure: ['L', 'namespace'], namespace is at index 1
     final namespaceTag =
-        tags[tagName]?.firstWhereOrNull((tag) => tag.lastOrNull == namespace.value);
+        tags[tagName]?.firstWhereOrNull((tag) => tag.length == 2 && tag[1] == namespace.value);
     return namespaceTag != null ? LabelNamespaceTag.fromTag(namespaceTag) : null;
   }
 
@@ -106,6 +125,8 @@ class LabelValueTag with _$LabelValueTag {
   const factory LabelValueTag({
     required String value,
     required EntityLabelNamespace namespace,
+    // Optional additional tag elements beyond the standard 3 (e.g., ['l', value, namespace, extra1, extra2, ...])
+    List<String>? additionalElements,
   }) = _LabelValueTag;
 
   const LabelValueTag._();
@@ -114,7 +135,8 @@ class LabelValueTag with _$LabelValueTag {
     if (tag[0] != tagName) {
       throw IncorrectEventTagNameException(actual: tag[0], expected: tagName);
     }
-    if (tag.length != 3) {
+    // Minimum 3 elements required; 4+ elements allowed for additional data (NIP-32 compliant)
+    if (tag.length < 3) {
       throw IncorrectEventTagException(tag: tag.toString());
     }
 
@@ -124,18 +146,31 @@ class LabelValueTag with _$LabelValueTag {
       throw IncorrectEventTagException(tag: tag.toString());
     }
 
-    return LabelValueTag(value: tag[1], namespace: namespace);
+    return LabelValueTag(
+      value: tag[1],
+      namespace: namespace,
+      additionalElements: tag.length > 3 ? tag.sublist(3) : null,
+    );
   }
 
   static List<LabelValueTag>? fromTags(
     Map<String, List<List<String>>> tags, {
     required EntityLabelNamespace namespace,
   }) {
-    final namespaceTags = tags[tagName]?.where((tag) => tag.lastOrNull == namespace.value);
+    // Namespace is always at index 2
+    final namespaceTags =
+        tags[tagName]?.where((tag) => tag.length >= 3 && tag[2] == namespace.value);
     return namespaceTags?.map(LabelValueTag.fromTag).toList();
   }
 
   static const String tagName = 'l';
 
-  List<String> toTag() => [tagName, value, namespace.value];
+  List<String> toTag() {
+    return [
+      tagName,
+      value,
+      namespace.value,
+      if (additionalElements != null) ...additionalElements!,
+    ];
+  }
 }

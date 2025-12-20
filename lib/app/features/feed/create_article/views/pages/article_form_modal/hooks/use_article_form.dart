@@ -129,6 +129,7 @@ ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) 
               articleMentionsRestoredProvider(
                 delta: parsedDelta,
                 relatedPubkeys: modifiableEntity.data.relatedPubkeys,
+                mentionMarketCapLabel: modifiableEntity.data.mentionMarketCapLabel,
               ).future,
             );
 

@@ -56,6 +56,9 @@ class ArticleDetailsPage extends HookConsumerWidget {
       parsedMediaWithMentionsProvider(articleEntity.data),
     );
     final delta = parsedMedia.content;
+    final media = {
+      for (final attachment in parsedMedia.media) attachment.url: attachment,
+    };
 
     final topics = articleEntity.data.topics;
     final availableSubcategories = ref.watch(
@@ -91,11 +94,11 @@ class ArticleDetailsPage extends HookConsumerWidget {
             child: forMeasurement
                 ? ArticleContentMeasurer(
                     content: delta,
-                    media: articleEntity.data.media,
+                    media: media,
                   )
                 : TextEditorPreview(
                     content: delta,
-                    media: articleEntity.data.media,
+                    media: media,
                     authorPubkey: articleEntity.masterPubkey,
                     enableInteractiveSelection: true,
                     eventReference: eventReference.encode(),
