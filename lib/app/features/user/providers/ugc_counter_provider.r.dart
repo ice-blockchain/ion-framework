@@ -20,9 +20,8 @@ class UgcCounter extends _$UgcCounter {
     bool cache = true,
     bool network = true,
   }) async {
-    final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
-
-    if (currentIdentityKeyName == null) {
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentPubkey == null) {
       return null;
     }
 
@@ -33,19 +32,17 @@ class UgcCounter extends _$UgcCounter {
           ModifiablePostEntity.kind,
           ArticleEntity.kind,
         ],
-        authors: [currentIdentityKeyName],
+        authors: [currentPubkey],
         search: 'expiration:false !amarker:reply !emarker:reply',
       ),
     ];
 
-    final pubkey = ref.read(currentPubkeySelectorProvider)!;
-
     final count = await ref.watch(
       countProvider(
-        key: 'ugc_counter_$currentIdentityKeyName',
+        key: 'ugc_counter_$currentPubkey',
         type: EventCountResultType.ugc,
         requestData: EventCountRequestData(filters: filters),
-        actionSource: ActionSourceUser(pubkey),
+        actionSource: ActionSourceUser(currentPubkey),
         cacheExpirationDuration: const Duration(minutes: 5),
         cache: cache,
         network: network,
