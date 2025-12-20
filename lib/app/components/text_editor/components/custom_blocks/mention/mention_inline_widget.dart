@@ -38,7 +38,7 @@ class MentionInlineWidget extends HookWidget {
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: Container(
               padding: EdgeInsetsDirectional.fromSTEB(3.0.s, 2.0.s, 3.0.s, 1.0.s),
               decoration: BoxDecoration(
