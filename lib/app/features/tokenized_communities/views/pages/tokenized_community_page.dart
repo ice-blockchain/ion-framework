@@ -224,34 +224,28 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           SimpleSeparator(height: 4.0.s),
           _TokenStats(externalAddress: externalAddress),
           SimpleSeparator(height: 4.0.s),
-          KeyedSubtree(
+          TopHolders(
             key: sectionKeys[TokenizedCommunityTabType.holders.index],
-            child: TopHolders(
-              externalAddress: externalAddress,
-              onTitleVisibilityChanged: (double visibility) {
-                //do not handle with current implementation
-              },
-            ),
+            externalAddress: externalAddress,
+            onTitleVisibilityChanged: (double visibility) {
+              //do not handle with current implementation
+            },
           ),
           SimpleSeparator(height: 4.0.s),
-          KeyedSubtree(
+          LatestTradesCard(
             key: sectionKeys[TokenizedCommunityTabType.trades.index],
-            child: LatestTradesCard(
-              externalAddress: externalAddress,
-              onTitleVisibilityChanged: (double visibility) {
-                //do not handle with current implementation
-              },
-            ),
+            externalAddress: externalAddress,
+            onTitleVisibilityChanged: (double visibility) {
+              //do not handle with current implementation
+            },
           ),
           SimpleSeparator(height: 4.0.s),
-          KeyedSubtree(
+          CommentsSectionCompact(
             key: sectionKeys[TokenizedCommunityTabType.comments.index],
-            child: CommentsSectionCompact(
-              commentCount: 10,
-              onTitleVisibilityChanged: (double visibility) {
-                //do not handle with current implementation
-              },
-            ),
+            commentCount: 10,
+            onTitleVisibilityChanged: (double visibility) {
+              //do not handle with current implementation
+            },
           ),
           SizedBox(height: 120.0.s),
         ],
