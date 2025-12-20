@@ -4,13 +4,14 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/layouts/collapsing_header_scroll_links_layout.dart';
+import 'package:ion/app/components/layouts/collapsing_header_layout.dart';
+import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/separated/separator.dart';
+import 'package:ion/app/components/tabs_header/scroll_links_tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
-import 'package:ion/app/features/tokenized_communities/hooks/section_visibility_controller.dart';
 import 'package:ion/app/features/tokenized_communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
@@ -65,8 +66,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
 
   final String externalAddress;
 
-  static double get _expandedHeaderHeight => 350.0.s;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
@@ -74,78 +73,62 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
         .valueOrNull;
 
-    final token = tokenInfo.valueOrNull;
-
-    if (token == null || tokenDefinition == null) {
-      return const SizedBox.shrink();
-    }
-
     final typeAsync = ref.watch(tokenTypeForExternalAddressProvider(externalAddress));
+    final activeTab = useState(TokenizedCommunityTabType.chart);
 
     final sectionKeys = useMemoized(
       () => List.generate(
         TokenizedCommunityTabType.values.length,
         (_) => GlobalKey(),
       ),
-    );
-    final tabCount = TokenizedCommunityTabType.values.length;
-
-    // Hook for visibility logic - manages active tab index automatically
-    final visibilityState = useSectionVisibilityController(tabCount);
-    final visibilityCallbacks = visibilityState.callbacks;
-
-    final scrollToSection = useMemoized(
-      () => visibilityState.createScrollToSection(
-        sectionKeys,
-      ),
-      [visibilityState, sectionKeys],
+      [],
     );
 
-    return CollapsingHeaderScrollLinksLayout(
+    return CollapsingHeaderLayout(
       backgroundColor: context.theme.appColors.secondaryBackground,
-      tabs: TokenizedCommunityTabType.values,
-      sectionKeys: sectionKeys,
-      activeIndex: visibilityState.activeIndex.value,
-      onTabTapped: scrollToSection,
-      expandedHeaderHeight: _expandedHeaderHeight,
-      expandedHeader: Column(
-        children: [
-          SizedBox(height: MediaQuery.viewPaddingOf(context).top),
-          if (typeAsync.valueOrNull != null)
-            Builder(
-              builder: (context) {
-                final t = typeAsync.valueOrNull!;
-
-                if (t == CommunityContentTokenType.profile) {
-                  return ProfileTokenHeader(
-                    token: token,
-                    externalAddress: externalAddress,
-                    minimal: true,
-                  );
-                } else if (t == CommunityContentTokenType.twitter) {
-                  return TwitterTokenHeader(
-                    token: token,
-                    showBuyButton: false,
-                  );
-                } else {
-                  return Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      top: t == CommunityContentTokenType.postText ? 26.s : 0,
-                    ),
-                    child: ContentTokenHeader(
-                      type: t,
-                      token: token,
-                      externalAddress: externalAddress,
-                      tokenDefinition: tokenDefinition,
-                    ),
-                  );
-                }
-              },
+      applySafeAreaBottomPadding: false,
+      imageUrl: tokenInfo.valueOrNull?.imageUrl,
+      collapsedHeaderBuilder: (opacity) => SizedBox(
+        height: 36.s,
+        child: Row(
+          children: [
+            CommunityTokenImage(
+              imageUrl: tokenInfo.valueOrNull?.imageUrl,
+              width: 36.s,
+              height: 36.s,
+              innerBorderRadius: 10.s,
+              outerBorderRadius: 10.s,
+              innerPadding: 0.s,
             ),
-        ],
+            SizedBox(
+              width: 8.s,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      tokenInfo.valueOrNull?.title ?? '',
+                      style: context.theme.appTextThemes.subtitle3.copyWith(
+                        color: context.theme.appColors.onPrimaryAccent,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  tokenInfo.valueOrNull?.marketData.ticker ?? '',
+                  style: context.theme.appTextThemes.caption.copyWith(
+                    color: context.theme.appColors.attentionBlock,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      imageUrl: token.imageUrl,
-      actions: [
+      floatingActionButton: FloatingTradeIsland(externalAddress: externalAddress),
+      headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
         IconButton(
           onPressed: () {
             //TODO (ice-kreios): navigate to bookmarks page
@@ -163,107 +146,110 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           ),
         ),
       ],
-      sectionsBuilder: (keys) => [
-        // Chart section
-        KeyedSubtree(
-          key: keys[0],
-          child: Column(
-            children: [
-              SimpleSeparator(height: 4.0.s),
-              YourPositionCard(
-                token: token,
-                trailing: SimpleSeparator(height: 4.0.s),
-              ),
-              _TokenChart(
-                externalAddress: externalAddress,
-                onTitleVisibilityChanged: visibilityCallbacks[0],
-              ),
-              SimpleSeparator(height: 4.0.s),
-              _TokenStats(externalAddress: externalAddress),
-              SimpleSeparator(height: 4.0.s),
-            ],
-          ),
-        ),
-        // Holders section
-        KeyedSubtree(
-          key: keys[1],
-          child: Column(
-            children: [
-              TopHolders(
-                externalAddress: externalAddress,
-                onTitleVisibilityChanged: visibilityCallbacks[1],
-              ),
-              SimpleSeparator(height: 4.0.s),
-            ],
-          ),
-        ),
-        // Trades section
-        KeyedSubtree(
-          key: keys[2],
-          child: Column(
-            children: [
-              LatestTradesCard(
-                externalAddress: externalAddress,
-                onTitleVisibilityChanged: visibilityCallbacks[2],
-              ),
-              SimpleSeparator(height: 4.0.s),
-            ],
-          ),
-        ),
-        // Comments section
-        KeyedSubtree(
-          key: keys[3],
-          child: Column(
-            children: [
-              CommentsSectionCompact(
-                commentCount: 10,
-                onTitleVisibilityChanged: visibilityCallbacks[3],
-              ),
-              SizedBox(height: 120.0.s),
-            ],
-          ),
-        ),
-      ],
-      collapsedTitle: SizedBox(
-        height: 36.s,
-        child: Row(
-          children: [
-            CommunityTokenImage(
-              imageUrl: token.imageUrl,
-              width: 36.s,
-              height: 36.s,
-              innerBorderRadius: 10.s,
-              outerBorderRadius: 10.s,
-              innerPadding: 0.s,
-            ),
-            SizedBox(
-              width: 8.s,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      token.title,
-                      style: context.theme.appTextThemes.subtitle3.copyWith(
-                        color: context.theme.appColors.onPrimaryAccent,
-                      ),
+      expandedHeader: Column(
+        children: [
+          SizedBox(height: MediaQuery.viewPaddingOf(context).top + 16.s),
+          if (typeAsync.valueOrNull != null)
+            Builder(
+              builder: (context) {
+                if (tokenInfo.valueOrNull == null) {
+                  return const SizedBox.shrink();
+                }
+
+                final token = tokenInfo.valueOrNull!;
+
+                final t = typeAsync.valueOrNull!;
+
+                if (t == CommunityContentTokenType.profile) {
+                  return ProfileTokenHeader(
+                    token: token,
+                    externalAddress: externalAddress,
+                    minimal: true,
+                  );
+                } else if (t == CommunityContentTokenType.twitter) {
+                  return TwitterTokenHeader(
+                    token: token,
+                    showBuyButton: false,
+                  );
+                } else {
+                  if (tokenDefinition == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      top: t == CommunityContentTokenType.postText ? 60.s : 0,
                     ),
-                  ],
-                ),
-                Text(
-                  token.marketData.ticker ?? '',
-                  style: context.theme.appTextThemes.caption.copyWith(
-                    color: context.theme.appColors.attentionBlock,
-                  ),
-                ),
-              ],
+                    child: ContentTokenHeader(
+                      type: t,
+                      token: token,
+                      externalAddress: externalAddress,
+                      tokenDefinition: tokenDefinition,
+                    ),
+                  );
+                }
+              },
             ),
-          ],
-        ),
+          SizedBox(height: 16.0.s),
+          ScrollLinksTabsHeader(
+            tabs: TokenizedCommunityTabType.values,
+            activeIndex: activeTab.value.index,
+            onTabTapped: (int index) {
+              Scrollable.ensureVisible(
+                sectionKeys[index].currentContext!,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                alignment: 0.5,
+              );
+            },
+          ),
+        ],
       ),
-      floatingActionButton: FloatingTradeIsland(externalAddress: externalAddress),
+      child: Column(
+        children: [
+          SimpleSeparator(height: 4.0.s),
+          if (tokenInfo.valueOrNull != null && tokenInfo.valueOrNull?.marketData.position != null)
+            YourPositionCard(
+              token: tokenInfo.valueOrNull!,
+              trailing: SimpleSeparator(height: 4.0.s),
+            ),
+          KeyedSubtree(
+            key: sectionKeys[TokenizedCommunityTabType.chart.index],
+            child: _TokenChart(
+              externalAddress: externalAddress,
+              onTitleVisibilityChanged: (double visibility) {
+                //do not handle with current implementation
+              },
+            ),
+          ),
+          SimpleSeparator(height: 4.0.s),
+          _TokenStats(externalAddress: externalAddress),
+          SimpleSeparator(height: 4.0.s),
+          TopHolders(
+            key: sectionKeys[TokenizedCommunityTabType.holders.index],
+            externalAddress: externalAddress,
+            onTitleVisibilityChanged: (double visibility) {
+              //do not handle with current implementation
+            },
+          ),
+          SimpleSeparator(height: 4.0.s),
+          LatestTradesCard(
+            key: sectionKeys[TokenizedCommunityTabType.trades.index],
+            externalAddress: externalAddress,
+            onTitleVisibilityChanged: (double visibility) {
+              //do not handle with current implementation
+            },
+          ),
+          SimpleSeparator(height: 4.0.s),
+          CommentsSectionCompact(
+            key: sectionKeys[TokenizedCommunityTabType.comments.index],
+            commentCount: 10,
+            onTitleVisibilityChanged: (double visibility) {
+              //do not handle with current implementation
+            },
+          ),
+          SizedBox(height: 120.0.s),
+        ],
+      ),
     );
   }
 }
