@@ -23,6 +23,7 @@ import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_pr
 import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
+import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
@@ -71,8 +72,22 @@ class ArticlePreviewModal extends HookConsumerWidget {
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
     final shownTooltip = useRef(false);
     final isProcessing = useState(false);
+    final prefetchedUgcCounter = useState<int?>(null);
 
     usePreselectTopics(ref, eventReference: modifiedEvent);
+
+    useEffect(
+      () {
+        unawaited(
+          ref.read(ugcCounterProvider().future).then((value) {
+            prefetchedUgcCounter.value = value;
+            return value;
+          }).catchError((_) => null),
+        );
+        return null;
+      },
+      const [],
+    );
 
     return SheetContent(
       body: ShowCaseWidget(
@@ -174,6 +189,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                                   whoCanReply: whoCanReply,
                                   imageColor: imageColor,
                                   language: detectedLanguage?.value,
+                                  ugcCounter: prefetchedUgcCounter.value,
                                 ),
                           );
                         }
