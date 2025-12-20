@@ -72,22 +72,9 @@ class ArticlePreviewModal extends HookConsumerWidget {
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
     final shownTooltip = useRef(false);
     final isProcessing = useState(false);
-    final prefetchedUgcCounter = useState<int?>(null);
+    final prefetchedUgcCounter = ref.watch(ugcCounterProvider());
 
     usePreselectTopics(ref, eventReference: modifiedEvent);
-
-    useEffect(
-      () {
-        unawaited(
-          ref.read(ugcCounterProvider().future).then((value) {
-            prefetchedUgcCounter.value = value;
-            return value;
-          }).catchError((_) => null),
-        );
-        return null;
-      },
-      const [],
-    );
 
     return SheetContent(
       body: ShowCaseWidget(

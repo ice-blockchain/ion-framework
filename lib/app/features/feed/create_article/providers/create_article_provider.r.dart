@@ -473,7 +473,7 @@ class CreateArticle extends _$CreateArticle {
 
   Future<EntityLabel> _buildUgcSerialLabel({int? ugcCounter}) async {
     try {
-      final counter = ugcCounter ?? await ref.read(ugcCounterProvider().future);
+      final counter = ugcCounter ?? await ref.refresh(ugcCounterProvider().future);
       if (counter == null) {
         throw UgcCounterFetchException();
       }

@@ -411,7 +411,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     }
 
     try {
-      final counter = ugcCounter ?? await ref.read(ugcCounterProvider().future);
+      final counter = ugcCounter ?? await ref.refresh(ugcCounterProvider().future);
       if (counter == null) {
         throw UgcCounterFetchException();
       }

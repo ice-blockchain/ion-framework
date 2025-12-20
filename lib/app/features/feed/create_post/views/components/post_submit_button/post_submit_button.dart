@@ -84,20 +84,7 @@ class PostSubmitButton extends HookConsumerWidget {
     );
 
     final loading = useState(false);
-    final prefetchedUgcCounter = useState<int?>(null);
-
-    useEffect(
-      () {
-        unawaited(
-          ref.read(ugcCounterProvider().future).then((value) {
-            prefetchedUgcCounter.value = value;
-            return value;
-          }).catchError((_) => null),
-        );
-        return null;
-      },
-      const [],
-    );
+    final prefetchedUgcCounter = ref.watch(ugcCounterProvider());
 
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
