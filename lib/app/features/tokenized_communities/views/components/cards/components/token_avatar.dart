@@ -127,7 +127,7 @@ class _NoImage extends StatelessWidget {
         alignment: AlignmentDirectional.center,
         color: context.theme.appColors.onTertiaryFill,
         child: Assets.svg.iconProfileNoimage.icon(
-          size: size - 18.s,
+          size: size * 0.9,
         ),
       ),
     );

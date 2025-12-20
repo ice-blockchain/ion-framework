@@ -2,24 +2,29 @@
 
 import 'dart:ui';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
+import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_price.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
+import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -111,28 +116,51 @@ class ContentTokenHeader extends HookConsumerWidget {
 
     final eventReference = (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference;
 
-    final entity = ref
-        .watch(
-          ionConnectEntityProvider(eventReference: eventReference),
-        )
-        .valueOrNull;
+    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
 
-    if (entity == null) {
+    final owner = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
+
+    final isVerified = ref.watch(isUserVerifiedProvider(eventReference.masterPubkey));
+
+    if (entity == null || owner == null) {
       return const SizedBox.shrink();
     }
 
-    final (imageUrl, content) = useMemoized<(String? imageUrl, String? content)>(
+    final (mediaAttachment, content) =
+        useMemoized<(MediaAttachment? mediaAttachment, String? content)>(
       () {
         if (entity is ModifiablePostEntity) {
-          if (entity.data.hasVideo) {
-            return (entity.data.primaryVideo?.thumb, entity.data.content);
-          } else if (entity.data.visualMedias.isNotEmpty) {
-            return (entity.data.visualMedias.first.url, entity.data.content);
-          }
+          return (entity.data.primaryMedia, entity.data.textContent.trim());
+        } else if (entity is ArticleEntity) {
+          final headerMedia =
+              entity.data.media.entries.firstWhereOrNull((t) => t.value.url == entity.data.image);
+
+          return (headerMedia?.value, entity.data.title?.trim());
         }
         return (null, null);
       },
       [entity],
+    );
+
+    final (imageSize, containerSize, outerBorderRadius, innerBorderRadius, borderWidth) =
+        useMemoized<
+            (
+              Size imageSize,
+              Size containerSize,
+              double outerBorderRadius,
+              double innerBorderRadius,
+              double borderWidth
+            )>(
+      () {
+        if (mediaAttachment?.aspectRatio == null || mediaAttachment?.aspectRatio == 1) {
+          return (Size.square(88.s), Size.square(96.s), 20.0.s, 16.0.s, 2.s);
+        } else if (mediaAttachment!.aspectRatio! > 1) {
+          return (Size(153.s, 86.s), Size(163.s, 96.s), 24.0.s, 20.0.s, 2.s);
+        } else {
+          return (Size(86.s, 101.s), Size(96.s, 111.s), 24.0.s, 20.0.s, 2.s);
+        }
+      },
+      [mediaAttachment, DateTime.now()],
     );
 
     return Column(
@@ -146,12 +174,12 @@ class ContentTokenHeader extends HookConsumerWidget {
               alignment: AlignmentDirectional.center,
               children: [
                 TokenAvatar(
-                  imageSize: Size.square(88.s),
-                  containerSize: Size.square(96.s),
-                  outerBorderRadius: 20.0.s,
-                  innerBorderRadius: 16.0.s,
-                  imageUrl: imageUrl,
-                  borderWidth: 2.s,
+                  imageSize: imageSize,
+                  containerSize: containerSize,
+                  outerBorderRadius: outerBorderRadius,
+                  innerBorderRadius: innerBorderRadius,
+                  imageUrl: mediaAttachment?.thumb ?? mediaAttachment?.url,
+                  borderWidth: borderWidth,
                 ),
                 if (type == CommunityContentTokenType.postVideo)
                   ClipRRect(
@@ -195,7 +223,16 @@ class ContentTokenHeader extends HookConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: UserNameTile(pubkey: entity.masterPubkey),
+                        child: TokenCreatorTile(
+                          creator: Creator(
+                            avatar: owner.data.avatarUrl,
+                            display: owner.data.displayName,
+                            name: owner.data.name,
+                            verified: isVerified,
+                          ),
+                          nameColor: context.theme.appColors.onPrimaryAccent,
+                          handleColor: context.theme.appColors.attentionBlock,
+                        ),
                       ),
                       pnl ??
                           ProfileTokenPrice(
@@ -203,10 +240,13 @@ class ContentTokenHeader extends HookConsumerWidget {
                           ),
                     ],
                   ),
-                  if (token.description != null) ...[
+                  if (content != null && content.isNotEmpty) ...[
                     SizedBox(height: 12.0.s),
                     Text(
-                      content ?? '',
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      content,
                       style: context.theme.appTextThemes.caption2.copyWith(
                         color: context.theme.appColors.onPrimaryAccent,
                       ),
