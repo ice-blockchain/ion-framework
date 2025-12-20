@@ -750,3 +750,11 @@ class TokenPricingNotFoundException extends IONException {
           'Token pricing not found for external address: $externalAddress',
         );
 }
+
+class UgcCounterFetchException extends IONException {
+  UgcCounterFetchException([String? message])
+      : super(
+          10139,
+          message ?? 'Failed to fetch UGC counter',
+        );
+}

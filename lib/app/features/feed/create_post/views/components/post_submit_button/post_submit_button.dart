@@ -25,6 +25,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
 import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
 import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
+import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -83,6 +84,7 @@ class PostSubmitButton extends HookConsumerWidget {
     );
 
     final loading = useState(false);
+    final prefetchedUgcCounter = ref.watch(ugcCounterProvider());
 
     return ToolbarSendButton(
       enabled: isSubmitButtonEnabled,
@@ -159,6 +161,7 @@ class PostSubmitButton extends HookConsumerWidget {
                   topics: selectedTopics,
                   poll: PollUtils.pollDraftToPollData(draftPoll),
                   language: language?.value,
+                  ugcCounter: prefetchedUgcCounter.value,
                 ),
               );
             }

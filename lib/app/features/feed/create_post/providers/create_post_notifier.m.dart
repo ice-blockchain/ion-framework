@@ -51,6 +51,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/verified_user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -83,6 +84,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     PollData? poll,
     Set<String> topics = const {},
     String? language,
+    int? ugcCounter,
   }) async {
     state = const AsyncValue.loading();
 
@@ -109,6 +111,12 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       );
 
       final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
+      final expiration = _buildExpiration();
+      final ugcSerialLabel = await _buildUgcSerialLabel(
+        parentEntity: parentEntity,
+        expiration: expiration,
+        ugcCounter: ugcCounter,
+      );
 
       final postData = ModifiablePostData(
         textContent: conversion.contentToSign,
@@ -126,10 +134,11 @@ class CreatePostNotifier extends _$CreatePostNotifier {
             _buildRelatedPubkeys(mentions: mentions, parentEntity: parentEntity).toList(),
         settings:
             parentEntity != null ? null : EntityDataWithSettings.build(whoCanReply: whoCanReply),
-        expiration: _buildExpiration(),
+        expiration: expiration,
         communityId: communityId,
         poll: poll,
         language: _buildLanguageLabel(language),
+        ugcSerial: ugcSerialLabel,
       );
 
       final post = await _publishPost(
@@ -390,6 +399,29 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
     }
     return null;
+  }
+
+  Future<EntityLabel?> _buildUgcSerialLabel({
+    required IonConnectEntity? parentEntity,
+    required EntityExpiration? expiration,
+    int? ugcCounter,
+  }) async {
+    if (parentEntity != null || expiration != null) {
+      return null;
+    }
+
+    try {
+      final counter = ugcCounter ?? await ref.refresh(ugcCounterProvider().future);
+      if (counter == null) {
+        throw UgcCounterFetchException();
+      }
+      return EntityLabel(
+        values: [(counter + 1).toString()],
+        namespace: EntityLabelNamespace.ugcSerial,
+      );
+    } on EventCountException {
+      rethrow;
+    }
   }
 
   Future<({List<FileMetadata> files, Map<String, MediaAttachment> media})> _uploadMediaFiles({
