@@ -87,7 +87,7 @@ extension MentionDeltaExt on Delta {
   // Iterate over all mentions in document order with symmetric extraction logic.
   // Ensures save and load flows process mentions identically (prevents divergence).
   // Callback receives (pubkey, showMarketCap) for each valid mention found.
-  void forEachMention(void Function(String pubkey, bool showMarketCap) callback) {
+  void forEachMention(void Function(String pubkey, {required bool showMarketCap}) callback) {
     for (final op in operations) {
       if (op.key == 'insert') {
         final data = op.data;
@@ -102,7 +102,7 @@ extension MentionDeltaExt on Delta {
 
             if (pubkey.isNotEmpty) {
               final showMarketCap = attrs[MentionAttribute.showMarketCapKey] == true;
-              callback(pubkey, showMarketCap);
+              callback(pubkey, showMarketCap: showMarketCap);
             }
           } catch (_) {
             // Skip invalid references
@@ -117,7 +117,7 @@ extension MentionDeltaExt on Delta {
               final pubkey = mentionData['pubkey'] as String?;
               if (pubkey != null && pubkey.isNotEmpty) {
                 // Embeds always have showMarketCap=true (user chose to display with market cap)
-                callback(pubkey, true);
+                callback(pubkey, showMarketCap: true);
               }
             }
           }
