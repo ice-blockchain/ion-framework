@@ -11,6 +11,7 @@ import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -131,6 +132,8 @@ class ContentTokenHeader extends HookConsumerWidget {
       () {
         if (entity is ModifiablePostEntity) {
           return (entity.data.primaryMedia, entity.data.textContent.trim());
+        } else if (entity is PostEntity) {
+          return (entity.data.primaryMedia, entity.data.content.trim());
         } else if (entity is ArticleEntity) {
           final headerMedia =
               entity.data.media.entries.firstWhereOrNull((t) => t.value.url == entity.data.image);
@@ -142,25 +145,11 @@ class ContentTokenHeader extends HookConsumerWidget {
       [entity],
     );
 
-    final (imageSize, containerSize, outerBorderRadius, innerBorderRadius, borderWidth) =
-        useMemoized<
-            (
-              Size imageSize,
-              Size containerSize,
-              double outerBorderRadius,
-              double innerBorderRadius,
-              double borderWidth
-            )>(
+    final layoutConfig = useMemoized<_MediaLayoutConfig>(
       () {
-        if (mediaAttachment?.aspectRatio == null || mediaAttachment?.aspectRatio == 1) {
-          return (Size.square(88.s), Size.square(96.s), 20.0.s, 16.0.s, 2.s);
-        } else if (mediaAttachment!.aspectRatio! > 1) {
-          return (Size(153.s, 86.s), Size(163.s, 96.s), 24.0.s, 20.0.s, 2.s);
-        } else {
-          return (Size(86.s, 101.s), Size(96.s, 111.s), 24.0.s, 20.0.s, 2.s);
-        }
+        return _MediaLayoutConfig.fromAspectRatio(mediaAttachment?.aspectRatio);
       },
-      [mediaAttachment, DateTime.now()],
+      [mediaAttachment?.aspectRatio],
     );
 
     return Column(
@@ -174,12 +163,12 @@ class ContentTokenHeader extends HookConsumerWidget {
               alignment: AlignmentDirectional.center,
               children: [
                 TokenAvatar(
-                  imageSize: imageSize,
-                  containerSize: containerSize,
-                  outerBorderRadius: outerBorderRadius,
-                  innerBorderRadius: innerBorderRadius,
+                  imageSize: layoutConfig.imageSize,
+                  containerSize: layoutConfig.containerSize,
+                  outerBorderRadius: layoutConfig.outerBorderRadius,
+                  innerBorderRadius: layoutConfig.innerBorderRadius,
                   imageUrl: mediaAttachment?.thumb ?? mediaAttachment?.url,
-                  borderWidth: borderWidth,
+                  borderWidth: layoutConfig.borderWidth,
                 ),
                 if (type == CommunityContentTokenType.postVideo)
                   ClipRRect(
@@ -571,4 +560,48 @@ class _Skeleton extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MediaLayoutConfig {
+  _MediaLayoutConfig({
+    required this.imageSize,
+    required this.containerSize,
+    required this.outerBorderRadius,
+    required this.innerBorderRadius,
+    required this.borderWidth,
+  });
+
+  factory _MediaLayoutConfig.fromAspectRatio(double? aspectRatio) {
+    if (aspectRatio == null || aspectRatio == 1) {
+      return _MediaLayoutConfig(
+        imageSize: Size.square(88.s),
+        containerSize: Size.square(96.s),
+        outerBorderRadius: 20.0.s,
+        innerBorderRadius: 16.0.s,
+        borderWidth: 2.s,
+      );
+    } else if (aspectRatio > 1) {
+      return _MediaLayoutConfig(
+        imageSize: Size(153.s, 86.s),
+        containerSize: Size(163.s, 96.s),
+        outerBorderRadius: 24.0.s,
+        innerBorderRadius: 20.0.s,
+        borderWidth: 2.s,
+      );
+    } else {
+      return _MediaLayoutConfig(
+        imageSize: Size(86.s, 101.s),
+        containerSize: Size(96.s, 111.s),
+        outerBorderRadius: 24.0.s,
+        innerBorderRadius: 20.0.s,
+        borderWidth: 2.s,
+      );
+    }
+  }
+
+  final Size imageSize;
+  final Size containerSize;
+  final double outerBorderRadius;
+  final double innerBorderRadius;
+  final double borderWidth;
 }
