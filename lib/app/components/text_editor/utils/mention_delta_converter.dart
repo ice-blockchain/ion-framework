@@ -90,7 +90,12 @@ class MentionDeltaConverter {
           if (showMarketCap) {
             // Author chose embed display - convert to embed
             // Market cap will be checked reactively by downgrade hook
-            final mentionData = MentionEmbedData(pubkey: pubkey, username: username);
+            // Generate unique ID for each embed instance to handle duplicates
+            final mentionData = MentionEmbedData(
+              pubkey: pubkey,
+              username: username,
+              id: DateTime.now().toString(),
+            );
             final embedData = {mentionEmbedKey: mentionData.toJson()};
             out.insert(embedData);
           } else {

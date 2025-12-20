@@ -127,7 +127,9 @@ class MentionInlineWidget extends HookWidget {
       ],
     );
 
-    if (onTap != null) {
+    // Only wrap with GestureDetector for navigation when no close button (view mode).
+    // In edit mode (when onClose is present), the close button needs to be reachable.
+    if (onTap != null && onClose == null) {
       return GestureDetector(
         onTap: onTap,
         child: widget,

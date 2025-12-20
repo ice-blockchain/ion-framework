@@ -119,6 +119,7 @@ class CreateArticle extends _$CreateArticle {
         imageColor: imageColor,
         textContent: markdownContent,
         language: _buildLanguageLabel(language),
+        mentionMarketCapLabel: _buildMentionMarketCapLabel(preparedContent.content),
         ugcSerial: ugcSerialLabel,
       );
 
@@ -265,6 +266,7 @@ class CreateArticle extends _$CreateArticle {
             ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
             : null,
         language: _buildLanguageLabel(language),
+        mentionMarketCapLabel: _buildMentionMarketCapLabel(preparedContent.content),
       );
 
       if (unusedMediaFileHashes.isNotEmpty) {
@@ -422,34 +424,48 @@ class CreateArticle extends _$CreateArticle {
     return updatedContent;
   }
 
-  // Helper to add or merge RelatedPubkey into map, prioritizing showMarketCap=true
-  // TODO: handle case if we have 2 mentions with different showMarketCap flags
-  static void _addOrMergePubkey(
-    Map<String, RelatedPubkey> pubkeyMap,
-    RelatedPubkey rp,
-  ) {
-    final existing = pubkeyMap[rp.value];
-    if (existing == null || (!existing.showMarketCap && rp.showMarketCap)) {
-      // Add new or replace if new one has showMarketCap=true
-      pubkeyMap[rp.value] = rp;
-    }
+  List<RelatedPubkey> _buildMentions(Delta content) {
+    return content
+        .extractMentionsWithFlags()
+        .map((mention) => RelatedPubkey(value: mention.pubkey))
+        .toSet()
+        .toList();
   }
 
-  List<RelatedPubkey> _buildMentions(Delta content) {
-    // Use Map to deduplicate by pubkey value, keeping highest showMarketCap
-    final pubkeyMap = <String, RelatedPubkey>{};
+  EntityLabel? _buildMentionMarketCapLabel(Delta content) {
+    final counters = <String, int>{};
+    final labelEntries = <(String pubkey, int instance)>[];
 
-    for (final mention in content.extractMentionsWithFlags()) {
-      _addOrMergePubkey(
-        pubkeyMap,
-        RelatedPubkey(
-          value: mention.pubkey,
-          showMarketCap: mention.showMarketCap,
-        ),
-      );
+    // Iterate using shared logic (guarantees symmetry with load flow)
+    content.forEachMention((pubkey, showMarketCap) {
+      final currentInstance = counters[pubkey] ?? 0;
+      counters[pubkey] = currentInstance + 1;
+
+      if (showMarketCap) {
+        labelEntries.add((pubkey, currentInstance));
+      }
+    });
+
+    if (labelEntries.isEmpty) {
+      return null;
     }
 
-    return pubkeyMap.values.toList();
+    // Build values list and additionalElements map with index-based keys
+    final values = <String>[];
+    final additionalElements = <String, List<String>>{};
+
+    for (var i = 0; i < labelEntries.length; i++) {
+      final (pubkey, instanceIndex) = labelEntries[i];
+      values.add(pubkey);
+      // Wrap instance index as List<String> for generic additionalElements format
+      additionalElements[i.toString()] = [instanceIndex.toString()];
+    }
+
+    return EntityLabel(
+      values: values,
+      namespace: EntityLabelNamespace.mentionMarketCap,
+      additionalElements: additionalElements.isNotEmpty ? additionalElements : null,
+    );
   }
 
   // Builds relatedHashtags by combining:

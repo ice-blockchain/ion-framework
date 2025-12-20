@@ -345,7 +345,7 @@ Delta processDeltaMatches(Delta delta) {
 Delta restoreMentions(
   Delta delta,
   Map<String, String> usernameToPubkey, {
-  Map<String, bool>? pubkeyShowMarketCap,
+  Map<String, Set<int>>? pubkeyInstanceShowMarketCap,
 }) {
   if (usernameToPubkey.isEmpty) {
     return delta;
@@ -353,6 +353,7 @@ Delta restoreMentions(
 
   final textParser = TextParser.tagsMatchers();
   final newDelta = Delta();
+  final mentionInstanceTracker = <String, int>{}; // Track mention instance index per pubkey
 
   for (final op in delta.operations) {
     if (op.data is Map) {
@@ -381,6 +382,11 @@ Delta restoreMentions(
         final pubkey = usernameToPubkey[username];
 
         if (pubkey != null) {
+          // Get current instance index for this pubkey
+          final currentInstance = mentionInstanceTracker[pubkey] ?? 0;
+          mentionInstanceTracker[pubkey] =
+              currentInstance + 1; // Increment per-pubkey (matches save logic for symmetry)
+
           // Create MentionAttribute with encoded reference
           final userMetadataRef = ReplaceableEventReference(
             masterPubkey: pubkey,
@@ -388,8 +394,9 @@ Delta restoreMentions(
           );
           final encodedRef = userMetadataRef.encode();
 
-          // Restore showMarketCap flag from relatedPubkeys tags
-          final showMarketCap = pubkeyShowMarketCap?[pubkey] ?? false;
+          // Check if THIS specific instance should show market cap (per-instance control)
+          final instanceNumbers = pubkeyInstanceShowMarketCap?[pubkey];
+          final showMarketCap = instanceNumbers?.contains(currentInstance) ?? false;
 
           final mentionAttrs = {
             ...?op.attributes,
