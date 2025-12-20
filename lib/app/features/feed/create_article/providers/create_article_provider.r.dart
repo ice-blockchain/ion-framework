@@ -74,6 +74,7 @@ class CreateArticle extends _$CreateArticle {
     List<String>? mediaIds,
     String? imageColor,
     String? language,
+    int? ugcCounter,
   }) async {
     state = const AsyncValue.loading();
 
@@ -89,14 +90,7 @@ class CreateArticle extends _$CreateArticle {
         mediaAttachments: mediaAttachments,
       );
 
-      final ugcCounter = await ref.read(ugcCounterProvider().future);
-      if (ugcCounter == null) {
-        throw Exception('Failed to fetch UGC counter');
-      }
-      final ugcSerialLabel = EntityLabel(
-        values: [(ugcCounter + 1).toString()],
-        namespace: EntityLabelNamespace.ugcSerial,
-      );
+      final ugcSerialLabel = await _buildUgcSerialLabel(ugcCounter: ugcCounter);
 
       final (imageUrl, updatedContent) = await (mainImageFuture, contentFuture).wait;
 
@@ -474,6 +468,21 @@ class CreateArticle extends _$CreateArticle {
       await ref
           .read(feedUserInterestsNotifierProvider.notifier)
           .updateInterests(FeedInterestInteraction.createArticle, interactionCategories);
+    }
+  }
+
+  Future<EntityLabel> _buildUgcSerialLabel({int? ugcCounter}) async {
+    try {
+      final counter = ugcCounter ?? await ref.read(ugcCounterProvider().future);
+      if (counter == null) {
+        throw Exception('Failed to fetch UGC counter');
+      }
+      return EntityLabel(
+        values: [(counter + 1).toString()],
+        namespace: EntityLabelNamespace.ugcSerial,
+      );
+    } on EventCountException {
+      rethrow;
     }
   }
 

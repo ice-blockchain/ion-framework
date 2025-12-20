@@ -84,6 +84,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     PollData? poll,
     Set<String> topics = const {},
     String? language,
+    int? ugcCounter,
   }) async {
     state = const AsyncValue.loading();
 
@@ -114,6 +115,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       final ugcSerialLabel = await _buildUgcSerialLabel(
         parentEntity: parentEntity,
         expiration: expiration,
+        ugcCounter: ugcCounter,
       );
 
       final postData = ModifiablePostData(
@@ -402,19 +404,24 @@ class CreatePostNotifier extends _$CreatePostNotifier {
   Future<EntityLabel?> _buildUgcSerialLabel({
     required IonConnectEntity? parentEntity,
     required EntityExpiration? expiration,
+    int? ugcCounter,
   }) async {
     if (parentEntity != null || expiration != null) {
       return null;
     }
 
-    final counter = await ref.read(ugcCounterProvider().future);
-    if (counter == null) {
-      throw Exception('Failed to fetch UGC counter');
+    try {
+      final counter = ugcCounter ?? await ref.read(ugcCounterProvider().future);
+      if (counter == null) {
+        throw Exception('Failed to fetch UGC counter');
+      }
+      return EntityLabel(
+        values: [(counter + 1).toString()],
+        namespace: EntityLabelNamespace.ugcSerial,
+      );
+    } on EventCountException {
+      rethrow;
     }
-    return EntityLabel(
-      values: [(counter + 1).toString()],
-      namespace: EntityLabelNamespace.ugcSerial,
-    );
   }
 
   Future<({List<FileMetadata> files, Map<String, MediaAttachment> media})> _uploadMediaFiles({
