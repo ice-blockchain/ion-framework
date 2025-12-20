@@ -7,6 +7,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'external_address_type_provider.r.g.dart';
 
+/// Provides the [ExternalAddressType] for a given external address.
+///
+/// It fetches the token info associated with the external address, then
+/// fetches the token definition based on the token info, and finally
+/// determines the external address type from the token definition.
+///
+/// [IMPORTANT]: This provider works only with the existing tokens.
+/// If u need to get `ExternalAddressType` for an ion connect entity, use `entity.externalAddressType` instead.
 @riverpod
 Future<ExternalAddressType?> externalAddressType(
   Ref ref, {
