@@ -139,6 +139,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         communityId: communityId,
         poll: poll,
         language: _buildLanguageLabel(language),
+        mentionMarketCapLabel: _buildMentionMarketCapLabel(postContent),
         ugcSerial: ugcSerialLabel,
       );
 
@@ -228,6 +229,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ),
         poll: poll,
         language: _buildLanguageLabel(language),
+        mentionMarketCapLabel: _buildMentionMarketCapLabel(postContent),
       );
 
       final originalContentDelta = parseAndConvertDelta(
@@ -552,26 +554,44 @@ class CreatePostNotifier extends _$CreatePostNotifier {
   List<RelatedPubkey> _buildMentions(Delta content) {
     return content
         .extractMentionsWithFlags()
-        .map(
-          (mention) => RelatedPubkey(
-            value: mention.pubkey,
-            showMarketCap: mention.showMarketCap,
-          ),
-        )
+        .map((mention) => RelatedPubkey(value: mention.pubkey))
         .toList();
   }
 
-  // Helper to add or merge RelatedPubkey into map, prioritizing showMarketCap=true
-  // TODO: handle case if we have 2 mentions with different showMarketCap flags
-  static void _addOrMergePubkey(
-    Map<String, RelatedPubkey> pubkeyMap,
-    RelatedPubkey rp,
-  ) {
-    final existing = pubkeyMap[rp.value];
-    if (existing == null || (!existing.showMarketCap && rp.showMarketCap)) {
-      // Add new or replace if new one has showMarketCap=true
-      pubkeyMap[rp.value] = rp;
+  // Builds NIP-32 label storing which mention instances should display with market cap
+  EntityLabel? _buildMentionMarketCapLabel(Delta content) {
+    final counters = <String, int>{};
+    final labelEntries = <(String pubkey, int instance)>[];
+
+    // Iterate using shared logic (guarantees symmetry with load flow)
+    content.forEachMention((pubkey, showMarketCap) {
+      final currentInstance = counters[pubkey] ?? 0;
+      counters[pubkey] = currentInstance + 1;
+
+      if (showMarketCap) {
+        labelEntries.add((pubkey, currentInstance));
+      }
+    });
+
+    if (labelEntries.isEmpty) {
+      return null;
     }
+
+    // Build values list and additionalElements map with index-based keys
+    final values = <String>[];
+    final additionalElements = <String, List<String>>{};
+
+    for (var i = 0; i < labelEntries.length; i++) {
+      final (pubkey, instanceIndex) = labelEntries[i];
+      values.add(pubkey);
+      additionalElements[i.toString()] = [instanceIndex.toString()];
+    }
+
+    return EntityLabel(
+      values: values,
+      namespace: EntityLabelNamespace.mentionMarketCap,
+      additionalElements: additionalElements.isNotEmpty ? additionalElements : null,
+    );
   }
 
   Set<RelatedPubkey> _buildRelatedPubkeys({
@@ -579,33 +599,25 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     IonConnectEntity? parentEntity,
     EventReference? quotedEvent,
   }) {
-    // Use Map to deduplicate by pubkey value, keeping highest showMarketCap
-    final pubkeyMap = <String, RelatedPubkey>{};
-
-    // Add mentions (may have duplicates with different flags)
-    for (final mention in mentions) {
-      _addOrMergePubkey(pubkeyMap, mention);
-    }
+    final allPubkeys = <RelatedPubkey>{...mentions};
 
     if (quotedEvent != null) {
-      _addOrMergePubkey(pubkeyMap, RelatedPubkey(value: quotedEvent.masterPubkey));
+      allPubkeys.add(RelatedPubkey(value: quotedEvent.masterPubkey));
     }
 
     if (parentEntity != null) {
-      _addOrMergePubkey(pubkeyMap, RelatedPubkey(value: parentEntity.masterPubkey));
+      allPubkeys.add(RelatedPubkey(value: parentEntity.masterPubkey));
       final parentPubkeys = parentEntity is ModifiablePostEntity
           ? parentEntity.data.relatedPubkeys
           : parentEntity is PostEntity
               ? parentEntity.data.relatedPubkeys
               : null;
       if (parentPubkeys != null) {
-        for (final pp in parentPubkeys) {
-          _addOrMergePubkey(pubkeyMap, pp);
-        }
+        allPubkeys.addAll(parentPubkeys);
       }
     }
 
-    return pubkeyMap.values.toSet();
+    return allPubkeys;
   }
 
   List<String> _buildRemovedMediaHashes({

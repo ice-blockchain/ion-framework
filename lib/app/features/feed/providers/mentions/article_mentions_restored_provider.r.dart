@@ -2,8 +2,10 @@
 
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/services/markdown/mention_label_utils.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -14,6 +16,7 @@ Future<Delta> articleMentionsRestored(
   Ref ref, {
   required Delta delta,
   List<RelatedPubkey>? relatedPubkeys,
+  EntityLabel? mentionMarketCapLabel,
 }) async {
   // If no mentions, return delta as-is
   if (relatedPubkeys == null || relatedPubkeys.isEmpty) {
@@ -22,13 +25,12 @@ Future<Delta> articleMentionsRestored(
 
   // Build username → pubkey map (async lookups)
   final usernameToPubkey = <String, String>{};
-  final pubkeyShowMarketCap = <String, bool>{};
+
+  // Convert EntityLabel to restore format using shared utility
+  final pubkeyInstanceShowMarketCap = buildInstanceMapFromLabel(mentionMarketCapLabel);
 
   for (final relatedPubkey in relatedPubkeys) {
     final pubkey = relatedPubkey.value;
-
-    // Store showMarketCap flag from backend tag
-    pubkeyShowMarketCap[pubkey] = relatedPubkey.showMarketCap;
 
     try {
       final userMetadata = await ref.read(
@@ -46,6 +48,6 @@ Future<Delta> articleMentionsRestored(
   return restoreMentions(
     delta,
     usernameToPubkey,
-    pubkeyShowMarketCap: pubkeyShowMarketCap,
+    pubkeyInstanceShowMarketCap: pubkeyInstanceShowMarketCap,
   );
 }

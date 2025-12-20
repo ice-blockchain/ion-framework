@@ -12,6 +12,7 @@ class MentionEmbedData with _$MentionEmbedData {
   const factory MentionEmbedData({
     required String pubkey,
     required String username,
+    String? id, // Unique instance ID for distinguishing duplicate mentions
   }) = _MentionEmbedData;
 
   const MentionEmbedData._();
