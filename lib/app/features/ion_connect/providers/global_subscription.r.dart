@@ -133,9 +133,10 @@ class GlobalSubscription {
         now: now,
       );
 
-      final fetchedTimestamps = {for (final entry in latestTimestamps) entry.$1: entry.$2};
-      final fetchedPFilterTimestamp = fetchedTimestamps[RegularFilterType.pFilter];
-      final fetchedQFilterTimestamp = fetchedTimestamps[RegularFilterType.qFilter];
+      final fetchedPFilterTimestamp =
+          latestTimestamps.firstWhere((result) => result.$1 == RegularFilterType.pFilter).$2;
+      final fetchedQFilterTimestamp =
+          latestTimestamps.firstWhere((result) => result.$1 == RegularFilterType.qFilter).$2;
 
       Logger.log(
         '[GLOBAL_SUBSCRIPTION] _backfill restart fetchedPFilterTimestamp: $fetchedPFilterTimestamp',
@@ -143,6 +144,7 @@ class GlobalSubscription {
       Logger.log(
         '[GLOBAL_SUBSCRIPTION] _backfill restart fetchedQFilterTimestamp: $fetchedQFilterTimestamp',
       );
+
       if (fetchedPFilterTimestamp == pFilterTimestamp &&
           fetchedQFilterTimestamp == qFilterTimestamp) {
         Logger.log('[GLOBAL_SUBSCRIPTION] _backfill restart break');
