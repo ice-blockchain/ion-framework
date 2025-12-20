@@ -19,8 +19,6 @@ part 'token_action_first_buy_dependency_handler.r.g.dart';
 /// 1. Caches CommunityTokenActionEntity
 /// 2. Creates and caches TokenActionFirstBuyReferenceEntity for easy lookups
 ///   of "first-buy" actions made by a specific user.
-/// 3. Creates and caches TokenActionFirstBuyReferenceEntity for easy lookups
-///   of "first-buy" actions made by any user.
 class TokenActionFirstBuyDependencyHandler implements EventsMetadataHandler {
   TokenActionFirstBuyDependencyHandler({
     required IonConnectCache ionConnectCache,
@@ -41,13 +39,9 @@ class TokenActionFirstBuyDependencyHandler implements EventsMetadataHandler {
             final tokenAction = CommunityTokenActionEntity.fromEventMessage(event.data.metadata);
             final userTokenActionFirstBuyReference =
                 TokenActionFirstBuyReferenceEntity.fromCommunityTokenAction(tokenAction);
-            final tokenActionFirstBuyReference = userTokenActionFirstBuyReference.copyWith(
-              masterPubkey: TokenActionFirstBuyReference.anyUserMasterPubkey,
-            );
             return (
               _ionConnectCache.cache(tokenAction),
               _ionConnectCache.cache(userTokenActionFirstBuyReference),
-              _ionConnectCache.cache(tokenActionFirstBuyReference),
             ).wait;
           },
         ),

@@ -3,14 +3,13 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/token_action_first_buy_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_definition_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
@@ -191,9 +190,8 @@ class CommunityTokenIonConnectService {
               ),
       ]);
 
-      await _cacheTokenActionFirstBuyReference(
+      await _cacheTokenDefinitionFirstBuyReference(
         communityTokenDefinition: communityTokenDefinition,
-        communityTokenActionEvent: tokenActionEvent,
       );
     } else {
       await Future.wait([
@@ -281,19 +279,13 @@ class CommunityTokenIonConnectService {
     );
   }
 
-  /// Caches TokenActionFirstBuyReferenceEntity to indicate that an event has
-  /// a token created (it is created on the first buy from any user).
-  Future<void> _cacheTokenActionFirstBuyReference({
+  /// Caches TokenDefinitionReferenceEntity to indicate that an event has
+  /// a token (it is created on the first buy from any user).
+  Future<void> _cacheTokenDefinitionFirstBuyReference({
     required CommunityTokenDefinitionEntity communityTokenDefinition,
-    required EventMessage communityTokenActionEvent,
   }) async {
-    final communityTokenAction =
-        CommunityTokenActionEntity.fromEventMessage(communityTokenActionEvent);
     final firstBuyReferenceEntity =
-        TokenActionFirstBuyReferenceEntity.fromCommunityTokenAction(communityTokenAction).copyWith(
-      masterPubkey: TokenActionFirstBuyReference.anyUserMasterPubkey,
-    );
-
+        TokenDefinitionReferenceEntity.forDefinition(tokenDefinition: communityTokenDefinition);
     await _ionConnectCache.cache(firstBuyReferenceEntity);
   }
 }
