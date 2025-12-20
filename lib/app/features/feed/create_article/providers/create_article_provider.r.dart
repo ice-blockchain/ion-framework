@@ -475,7 +475,7 @@ class CreateArticle extends _$CreateArticle {
     try {
       final counter = ugcCounter ?? await ref.read(ugcCounterProvider().future);
       if (counter == null) {
-        throw Exception('Failed to fetch UGC counter');
+        throw UgcCounterFetchException();
       }
       return EntityLabel(
         values: [(counter + 1).toString()],
