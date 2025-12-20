@@ -38,12 +38,14 @@ class UgcCounter extends _$UgcCounter {
       ),
     ];
 
+    final pubkey = ref.read(currentPubkeySelectorProvider)!;
+
     final count = await ref.watch(
       countProvider(
         key: 'ugc_counter_$currentIdentityKeyName',
         type: EventCountResultType.ugc,
         requestData: EventCountRequestData(filters: filters),
-        actionSource: ActionSourceUser(currentIdentityKeyName),
+        actionSource: ActionSourceUser(pubkey),
         cacheExpirationDuration: const Duration(minutes: 5),
         cache: cache,
         network: network,
