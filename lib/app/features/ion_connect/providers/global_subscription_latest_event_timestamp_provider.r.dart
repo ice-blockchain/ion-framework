@@ -30,8 +30,7 @@ enum RegularFilterType {
     return switch (this) {
       RegularFilterType.pFilter => EventType.regular.localKey,
       RegularFilterType.qFilter => 'global_subscription_latest_q_filter_event_timestamp',
-      RegularFilterType.ugcFilter =>
-        'global_subscription_latest_ugc_filter_event_timestamp',
+      RegularFilterType.ugcFilter => 'global_subscription_latest_ugc_filter_event_timestamp',
     };
   }
 }
