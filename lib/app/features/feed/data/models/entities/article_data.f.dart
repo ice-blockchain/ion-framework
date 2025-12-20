@@ -94,6 +94,7 @@ class ArticleData
     EntityLabel? colorLabel,
     EntityEditingEndedAt? editingEndedAt,
     EntityLabel? language,
+    EntityLabel? ugcSerial,
   }) = _ArticleData;
 
   const ArticleData._();
@@ -125,6 +126,7 @@ class ArticleData
           ? EntityEditingEndedAt.fromTag(tags[EntityEditingEndedAt.tagName]!.first)
           : null,
       language: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.language),
+      ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
 
@@ -141,6 +143,7 @@ class ArticleData
     RichText? richText,
     EntityEditingEndedAt? editingEndedAt,
     EntityLabel? language,
+    EntityLabel? ugcSerial,
     String textContent = '',
   }) {
     return ArticleData(
@@ -160,6 +163,7 @@ class ArticleData
       richText: richText,
       editingEndedAt: editingEndedAt,
       language: language,
+      ugcSerial: ugcSerial,
     );
   }
 
@@ -192,6 +196,7 @@ class ArticleData
         // Articles don't use rich_text tag - content is 100% markdown
         if (editingEndedAt != null) editingEndedAt!.toTag(),
         if (language != null) ...language!.toTags(),
+        if (ugcSerial != null) ...ugcSerial!.toTags(),
       ],
     );
   }

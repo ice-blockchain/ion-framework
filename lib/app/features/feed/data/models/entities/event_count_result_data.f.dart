@@ -7,9 +7,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/community/models/entities/community_join_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_request_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_vote.f.dart';
@@ -31,6 +33,7 @@ enum EventCountResultType {
   members,
   pollVotes,
   stories,
+  ugc,
 }
 
 @Freezed(equal: false)
@@ -161,6 +164,13 @@ class EventCountResultData with _$EventCountResultData {
         filter.search != null &&
         filter.search!.contains(ExpirationSearchExtension(expiration: true).query)) {
       return EventCountResultType.stories;
+    } else if (filter.kinds != null &&
+        filter.kinds!.contains(PostEntity.kind) &&
+        filter.kinds!.contains(ModifiablePostEntity.kind) &&
+        filter.kinds!.contains(ArticleEntity.kind) &&
+        filter.search != null &&
+        filter.search!.contains('expiration:false')) {
+      return EventCountResultType.ugc;
     } else {
       throw UnknownEventCountResultType(eventReference);
     }
@@ -177,6 +187,7 @@ class EventCountResultData with _$EventCountResultData {
 
     final key = switch (type) {
       EventCountResultType.stories when authors != null && authors.isNotEmpty => authors.first,
+      EventCountResultType.ugc when authors != null && authors.isNotEmpty => authors.first,
       EventCountResultType.quotes =>
         qTag != null && qTag.isNotEmpty ? (qTag.first! as List<dynamic>).first : null,
       EventCountResultType.followers =>

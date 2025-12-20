@@ -11,6 +11,7 @@ import 'package:ion/app/features/ion_connect/model/entity_data_with_media_conten
 import 'package:ion/app/features/ion_connect/model/entity_data_with_parent.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
 import 'package:ion/app/features/ion_connect/model/entity_expiration.f.dart';
+import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/event_setting.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -79,6 +80,7 @@ class PostData
     List<RelatedPubkey>? relatedPubkeys,
     List<RelatedHashtag>? relatedHashtags,
     List<EventSetting>? settings,
+    EntityLabel? ugcSerial,
   }) = _PostData;
 
   factory PostData.fromEventMessage(EventMessage eventMessage) {
@@ -100,6 +102,7 @@ class PostData
       relatedHashtags: tags[RelatedHashtag.tagName]?.map(RelatedHashtag.fromTag).toList(),
       settings: tags[EventSetting.settingTagName]?.map(EventSetting.fromTag).toList(),
       richText: richText,
+      ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
 
@@ -125,6 +128,7 @@ class PostData
         if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
         if (settings != null) ...settings!.map((setting) => setting.toTag()),
+        if (ugcSerial != null) ...ugcSerial!.toTags(),
         // Posts (kind 1) use 100% text only with PMO tags, no rich_text tag
       ],
     );
