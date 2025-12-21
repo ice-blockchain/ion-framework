@@ -906,6 +906,7 @@
   "tokenized_community_bonding_curve": "Bonding Curve",
   "tokenized_community_chart_tab": "Chart",
   "tokenized_community_comments_tab": "Comments",
+  "tokenized_community_comments_empty": "Be the first to join the conversation",
   "tokenized_community_holders_tab": "Holders",
   "tokenized_community_not_available_description": "Token creation is not available for previously created posts.",
   "tokenized_community_not_available_title": "Tokenized content error",

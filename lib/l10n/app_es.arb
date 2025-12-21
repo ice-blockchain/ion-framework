@@ -906,6 +906,7 @@
   "tokenized_community_bonding_curve": "Curva de vinculación",
   "tokenized_community_chart_tab": "Gráfico",
   "tokenized_community_comments_tab": "Comentarios",
+  "tokenized_community_comments_empty": "Sé el primero en unirse a la conversación",
   "tokenized_community_holders_tab": "Tenedores",
   "tokenized_community_not_available_description": "La creación de tokens no está disponible para publicaciones creadas previamente.",
   "tokenized_community_not_available_title": "Error de contenido tokenizado",
