@@ -360,7 +360,7 @@ class NotificationResponseService {
     final routePath = route.location.contains(IonConnectUriProtocolService.ionPrefix)
         ? route.location.split(IonConnectUriProtocolService.ionPrefix).first
         : route.location.split(IonConnectUriProtocolService.nostrPrefix).first;
-        
+
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
