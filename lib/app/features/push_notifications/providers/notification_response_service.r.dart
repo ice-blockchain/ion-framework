@@ -45,13 +45,15 @@ class NotificationResponseService {
     required String? currentPubkey,
     required AppsFlyerDeepLinkService appsflyerDeepLinkService,
     required InternalDeepLinkService internalDeepLinkService,
+    required IonConnectUriProtocolService ionConnectUriProtocolService,
   })  : _getGiftUnwrapService = getGiftUnwrapService,
         _getUserMetadata = getUserMetadata,
         _getEntityData = getEntityData,
         _eventParser = eventParser,
         _currentPubkey = currentPubkey,
         _appsflyerDeepLinkService = appsflyerDeepLinkService,
-        _internalDeepLinkService = internalDeepLinkService;
+        _internalDeepLinkService = internalDeepLinkService,
+        _ionConnectUriProtocolService = ionConnectUriProtocolService;
 
   /// Key for the deep link parameter in push notification payloads
   static const String deepLinkKey = 'deeplink';
@@ -63,6 +65,7 @@ class NotificationResponseService {
   final String? _currentPubkey;
   final AppsFlyerDeepLinkService _appsflyerDeepLinkService;
   final InternalDeepLinkService _internalDeepLinkService;
+  final IonConnectUriProtocolService _ionConnectUriProtocolService;
 
   /// Checks if any modal is open and closes it before navigation
   void _checkModal() {
@@ -228,9 +231,7 @@ class NotificationResponseService {
 
     final route = PostDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
-    final routePath = route.location.contains(IonConnectUriProtocolService.ionPrefix)
-        ? route.location.split(IonConnectUriProtocolService.ionPrefix).first
-        : route.location.split(IonConnectUriProtocolService.nostrPrefix).first;
+    final routePath = _ionConnectUriProtocolService.decode(route.location);
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
@@ -263,9 +264,7 @@ class NotificationResponseService {
 
     final route = ArticleDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
-    final routePath = route.location.contains(IonConnectUriProtocolService.ionPrefix)
-        ? route.location.split(IonConnectUriProtocolService.ionPrefix).first
-        : route.location.split(IonConnectUriProtocolService.nostrPrefix).first;
+    final routePath = _ionConnectUriProtocolService.decode(route.location);
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
@@ -357,9 +356,7 @@ class NotificationResponseService {
       initialStoryReference: eventReference.encode(),
     );
     // Get path without query parameters
-    final routePath = route.location.contains(IonConnectUriProtocolService.ionPrefix)
-        ? route.location.split(IonConnectUriProtocolService.ionPrefix).first
-        : route.location.split(IonConnectUriProtocolService.nostrPrefix).first;
+    final routePath = _ionConnectUriProtocolService.decode(route.location);
 
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
@@ -394,6 +391,7 @@ NotificationResponseService notificationResponseService(Ref ref) {
   final eventParser = ref.watch(eventParserProvider);
   final appsflyerDeepLinkService = ref.watch(appsflyerDeepLinkServiceProvider);
   final internalDeepLinkService = ref.watch(internalDeepLinkServiceProvider);
+  final ionConnectUriProtocolService = ref.watch(ionConnectUriProtocolServiceProvider);
 
   return NotificationResponseService(
     getGiftUnwrapService: getGiftUnwrapService,
@@ -403,5 +401,6 @@ NotificationResponseService notificationResponseService(Ref ref) {
     currentPubkey: currentPubkey,
     appsflyerDeepLinkService: appsflyerDeepLinkService,
     internalDeepLinkService: internalDeepLinkService,
+    ionConnectUriProtocolService: ionConnectUriProtocolService,
   );
 }

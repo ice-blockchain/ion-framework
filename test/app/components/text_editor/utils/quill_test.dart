@@ -231,7 +231,7 @@ void main() {
       const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       const mentionIonValue =
-          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+          'ion:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
@@ -289,7 +289,7 @@ void main() {
       const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       const mentionIonValue =
-          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+          'ion:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
@@ -344,7 +344,7 @@ void main() {
       const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       const mentionIonValue =
-          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+          'ion:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
@@ -459,7 +459,7 @@ void main() {
       const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       const mentionIonValue =
-          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+          'ion:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
@@ -533,7 +533,7 @@ void main() {
       const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       const mentionIonValue =
-          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+          'ion:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       final nostrInput = deltaJson([
         {'insert': '\n\n'},
         {'insert': 'Mention '},
@@ -629,7 +629,7 @@ void main() {
       const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       const mentionIonValue =
-          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+          'ion:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {

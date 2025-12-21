@@ -5,9 +5,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_uri_protocol_service.r.g.dart';
 
-///
-/// https://github.com/nostr-protocol/nips/blob/master/21.md
-///
+/// Based on NIP-21 (`nostr:` URI scheme): https://github.com/nostr-protocol/nips/blob/master/21.md
+/// This is an Ion-specific adaptation that uses the `ion:` prefix as primary,
+/// while still supporting `nostr:` for backwards compatibility. It is not a strict
+/// implementation of NIP-21.
 class IonConnectUriProtocolService {
   static const String nostrPrefix = 'nostr:';
   static const String ionPrefix = 'ion:';
