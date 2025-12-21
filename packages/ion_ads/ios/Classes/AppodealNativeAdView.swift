@@ -46,7 +46,7 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
         nativeAdQueue = APDNativeAdQueue()
         nativeAdQueue.settings = APDNativeAdSettings.default()
         nativeAdQueue.settings.adViewClass = NativeAdCardView.self
-        nativeAdQueue.settings.autocacheMask = [.icon, .media]
+        //nativeAdQueue.settings.autocacheMask = [.icon, .media]
         nativeAdQueue.settings.type = .auto
         nativeAdQueue.delegate = self
 
