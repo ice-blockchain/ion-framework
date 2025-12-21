@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
 import 'package:ion/app/utils/hex_encoding.dart';
@@ -59,8 +60,13 @@ class EvmTxBuilder {
       EthereumAddress.fromHex(contract.address),
     );
 
-    final function = deployedContract.function('swap');
-    final data = function.encodeCall([
+    final swapFunction = _findOverloadedFunction(
+      deployedContract: deployedContract,
+      name: 'swap',
+      parameterCount: 4,
+    );
+
+    final data = swapFunction.encodeCall([
       Uint8List.fromList(fromTokenIdentifier),
       Uint8List.fromList(toTokenIdentifier),
       amountIn,
@@ -157,6 +163,27 @@ class EvmTxBuilder {
       value: value,
       maxFeePerGas: BigInt.zero,
       maxPriorityFeePerGas: BigInt.zero,
+    );
+  }
+
+  ContractFunction _findOverloadedFunction({
+    required DeployedContract deployedContract,
+    required String name,
+    required int parameterCount,
+  }) {
+    final candidates = deployedContract.findFunctionsByName(name);
+    final function = candidates.firstWhereOrNull(
+      (func) => func.parameters.length == parameterCount,
+    );
+    if (function != null) return function;
+
+    final signatures = candidates
+        .map(
+          (func) => '$name(${func.parameters.map((p) => p.type.name).join(',')})',
+        )
+        .join('; ');
+    throw StateError(
+      'Function "$name" with $parameterCount params not found. Candidates: $signatures',
     );
   }
 }
