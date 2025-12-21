@@ -170,12 +170,14 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     ActionSource actionSource = const ActionSourceCurrentUser(),
     List<EventsMetadataBuilder> metadataBuilders = const [],
     bool cache = true,
+    bool ignoreAuthoritativeErrors = true,
   }) async {
     final result = await sendEvents(
       [event],
       cache: cache,
       actionSource: actionSource,
       metadataBuilders: metadataBuilders,
+      ignoreAuthoritativeErrors: ignoreAuthoritativeErrors,
     );
     return result?.elementAtOrNull(0);
   }

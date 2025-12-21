@@ -21,6 +21,7 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
     CoinsGroup? paymentCoinsGroup,
     Wallet? targetWallet,
     NetworkData? targetNetwork,
+    @Default(true) bool shouldSendEvents,
     // Sell-specific fields
     @Default(0) double communityTokenBalance,
     CoinsGroup? communityTokenCoinsGroup,

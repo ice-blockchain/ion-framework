@@ -87,6 +87,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         expectedPricing: expectedPricing,
         fatAddressData: fatAddressData,
         userActionSigner: signer,
+        shouldSendEvents: formState.shouldSendEvents,
       );
       // Invalidate token market info to refresh balance
       ref.invalidate(
@@ -152,6 +153,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         tokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
         expectedPricing: expectedPricing,
         userActionSigner: signer,
+        shouldSendEvents: formState.shouldSendEvents,
       );
 
       // Invalidate token market info to refresh balance
