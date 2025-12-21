@@ -26,15 +26,24 @@ class TokenTypeFilterButton extends HookWidget {
       onOpen: () => opened.value = true,
       onClose: () => opened.value = false,
       menuBuilder: (closeMenu) => TokenTypeFilterMenu(closeMenu: closeMenu),
-      child: _FilterButton(opened: opened.value),
+      child: _FilterButton(
+        opened: opened.value,
+        onPressed: () {
+          opened.value = !opened.value;
+        },
+      ),
     );
   }
 }
 
 class _FilterButton extends ConsumerWidget {
-  const _FilterButton({required this.opened});
+  const _FilterButton({
+    required this.opened,
+    required this.onPressed,
+  });
 
   final bool opened;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,7 +56,7 @@ class _FilterButton extends ConsumerWidget {
         horizontal: 8.0.s,
       ),
       child: Button.dropdown(
-        onPressed: () {},
+        onPressed: onPressed,
         useDefaultBorderRadius: true,
         useDefaultPaddings: true,
         backgroundColor: colors.secondaryBackground,
