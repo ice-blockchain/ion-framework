@@ -14,6 +14,7 @@ import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_tokens_button.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/user/providers/friends_section_providers.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
@@ -62,6 +63,8 @@ class WalletPage extends HookConsumerWidget {
         .watch(featureFlagsProvider.notifier)
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
 
+    final showFriendsSection = ref.watch(shouldShowFriendsListProvider);
+
     return Scaffold(
       appBar: NavigationAppBar.root(
         title: const WalletHeader(),
@@ -89,7 +92,11 @@ class WalletPage extends HookConsumerWidget {
                 children: [
                   const SectionSeparator(),
                   const WalletCarousel(),
-                  const FriendsList(),
+                  if (showFriendsSection) ...[
+                    const SectionSeparator(),
+                    const FriendsList(),
+                  ],
+                  const SectionSeparator(),
                   WalletTabsHeader(
                     activeTab: activeTab.value,
                     onTabSwitch: (WalletTabType newTab) {
