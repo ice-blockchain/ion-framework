@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -79,7 +80,7 @@ class CommunityTokenIonConnectService {
         );
 
     await _cacheTokenDefinitionFirstBuyReference(
-      communityTokenDefinition: communityTokenDefinition,
+      tokenDefinitionFirstBuyEvent: tokenDefinitionFirstBuyEvent,
     );
   }
 
@@ -220,10 +221,12 @@ class CommunityTokenIonConnectService {
   /// Caches TokenDefinitionReferenceEntity to indicate that an event has
   /// a token (it is created on the first buy from any user).
   Future<void> _cacheTokenDefinitionFirstBuyReference({
-    required CommunityTokenDefinitionEntity communityTokenDefinition,
+    required EventMessage tokenDefinitionFirstBuyEvent,
   }) async {
+    final tokenDefinitionFirstBuy =
+        CommunityTokenDefinitionEntity.fromEventMessage(tokenDefinitionFirstBuyEvent);
     final firstBuyReferenceEntity =
-        TokenDefinitionReferenceEntity.forDefinition(tokenDefinition: communityTokenDefinition);
+        TokenDefinitionReferenceEntity.forDefinition(tokenDefinition: tokenDefinitionFirstBuy);
     await _ionConnectCache.cache(firstBuyReferenceEntity);
   }
 }

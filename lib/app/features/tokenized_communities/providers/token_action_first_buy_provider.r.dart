@@ -51,14 +51,14 @@ Future<bool> ionConnectEntityHasToken(
   Ref ref, {
   required EventReference eventReference,
 }) async {
-  final firstBuyAction = await ref.watch(
+  final firstBuyDefinition = await ref.watch(
     cachedTokenDefinitionProvider(
       externalAddress: eventReference.toString(),
       type: CommunityTokenDefinitionIonType.firstBuyAction,
     ).future,
   );
 
-  return firstBuyAction != null;
+  return firstBuyDefinition != null;
 }
 
 @riverpod
