@@ -23,7 +23,10 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
                 R.layout.apd_native_ad_view_custom,
                 null
             ) as NativeAdView // NativeAdViewContentStream(context)
-            NativeAdViewType.AppWall -> NativeAdViewAppWall(context)
+            NativeAdViewType.AppWall -> layoutInflater.inflate(
+                R.layout.apd_native_ad_view_full,
+                null
+            ) as NativeAdView // NativeAdViewAppWall(context)
             NativeAdViewType.NewsFeed -> NativeAdViewNewsFeed(context)
             else -> throw IllegalArgumentException("Unknown NativeAdViewType: $nativeAdViewType")
         }
