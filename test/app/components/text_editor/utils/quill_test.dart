@@ -288,7 +288,9 @@ void main() {
     test('preserves mention attributes with multiple newlines', () {
       const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
-      final input = deltaJson([
+      const mentionIonValue =
+          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+      final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
           'insert': '@ice',
@@ -298,11 +300,31 @@ void main() {
         {'insert': 'More text'},
       ]);
 
-      final result = QuillTextUtils.trimBioDeltaJson(input)!;
-      final decoded = (jsonDecode(result) as List).cast<Map<String, dynamic>>();
+      final ionInput = deltaJson([
+        {'insert': 'Mention '},
+        {
+          'insert': '@ice',
+          'attributes': {'mention': mentionIonValue},
+        },
+        {'insert': '\n\n\n'},
+        {'insert': 'More text'},
+      ]);
+
+      final nostrResult = QuillTextUtils.trimBioDeltaJson(nostrInput)!;
+      final ionResult = QuillTextUtils.trimBioDeltaJson(ionInput)!;
+
+      final decodedNostr = (jsonDecode(nostrResult) as List).cast<Map<String, dynamic>>();
+      final decodedIon = (jsonDecode(ionResult) as List).cast<Map<String, dynamic>>();
 
       // Find the operation with mention attribute
-      final mentionOp = decoded.firstWhere(
+      final mentionNostrOp = decodedNostr.firstWhere(
+        (op) {
+          final attributes = op['attributes'] as Map<String, dynamic>?;
+          return attributes != null && attributes['mention'] != null;
+        },
+        orElse: () => <String, dynamic>{},
+      );
+      final mentionIonOp = decodedIon.firstWhere(
         (op) {
           final attributes = op['attributes'] as Map<String, dynamic>?;
           return attributes != null && attributes['mention'] != null;
@@ -310,29 +332,54 @@ void main() {
         orElse: () => <String, dynamic>{},
       );
 
-      expect(mentionOp, isNotEmpty, reason: 'Mention attribute should be preserved');
-      final attributes = mentionOp['attributes'] as Map<String, dynamic>?;
-      expect(attributes?['mention'], mentionNostrValue);
+      expect(mentionNostrOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      expect(mentionIonOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      final nostrAttributes = mentionNostrOp['attributes'] as Map<String, dynamic>?;
+      final ionAttributes = mentionIonOp['attributes'] as Map<String, dynamic>?;
+      expect(nostrAttributes?['mention'], mentionNostrValue);
+      expect(ionAttributes?['mention'], mentionIonValue);
     });
 
     test('preserves mention attributes with newline-space-newline', () {
-      const mentionValue =
+      const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
-      final input = deltaJson([
+      const mentionIonValue =
+          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+      final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
           'insert': '@ice',
-          'attributes': {'mention': mentionValue},
+          'attributes': {'mention': mentionNostrValue},
         },
         {'insert': '\n \n'},
         {'insert': 'More text\n'},
       ]);
 
-      final result = QuillTextUtils.trimBioDeltaJson(input)!;
-      final decoded = (jsonDecode(result) as List).cast<Map<String, dynamic>>();
+      final ionInput = deltaJson([
+        {'insert': 'Mention '},
+        {
+          'insert': '@ice',
+          'attributes': {'mention': mentionIonValue},
+        },
+        {'insert': '\n \n'},
+        {'insert': 'More text\n'},
+      ]);
+
+      final nostrResult = QuillTextUtils.trimBioDeltaJson(nostrInput)!;
+      final ionResult = QuillTextUtils.trimBioDeltaJson(ionInput)!;
+
+      final decodedNostr = (jsonDecode(nostrResult) as List).cast<Map<String, dynamic>>();
+      final decodedIon = (jsonDecode(ionResult) as List).cast<Map<String, dynamic>>();
 
       // Find the operation with mention attribute
-      final mentionOp = decoded.firstWhere(
+      final mentionNostrOp = decodedNostr.firstWhere(
+        (op) {
+          final attributes = op['attributes'] as Map<String, dynamic>?;
+          return attributes != null && attributes['mention'] != null;
+        },
+        orElse: () => <String, dynamic>{},
+      );
+      final mentionIonOp = decodedIon.firstWhere(
         (op) {
           final attributes = op['attributes'] as Map<String, dynamic>?;
           return attributes != null && attributes['mention'] != null;
@@ -340,14 +387,20 @@ void main() {
         orElse: () => <String, dynamic>{},
       );
 
-      expect(mentionOp, isNotEmpty, reason: 'Mention attribute should be preserved');
-      final attributes = mentionOp['attributes'] as Map<String, dynamic>?;
-      expect(attributes?['mention'], mentionValue);
+      expect(mentionNostrOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      expect(mentionIonOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      final nostrAttributes = mentionNostrOp['attributes'] as Map<String, dynamic>?;
+      final ionAttributes = mentionIonOp['attributes'] as Map<String, dynamic>?;
+      expect(nostrAttributes?['mention'], mentionNostrValue);
+      expect(ionAttributes?['mention'], mentionIonValue);
 
       // Verify the pattern was collapsed
-      final doc = Document.fromJson(decoded);
-      final plainText = doc.toPlainText();
-      expect(plainText, isNot(contains('\n \n')));
+      final docNostr = Document.fromJson(decodedNostr);
+      final plainTextNostr = docNostr.toPlainText();
+      expect(plainTextNostr, isNot(contains('\n \n')));
+      final docIon = Document.fromJson(decodedIon);
+      final plainTextIon = docIon.toPlainText();
+      expect(plainTextIon, isNot(contains('\n \n')));
     });
 
     test('preserves link attributes', () {
@@ -403,13 +456,15 @@ void main() {
     });
 
     test('preserves multiple attributes in same text', () {
-      const mentionValue =
+      const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
-      final input = deltaJson([
+      const mentionIonValue =
+          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+      final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
           'insert': '@ice',
-          'attributes': {'mention': mentionValue},
+          'attributes': {'mention': mentionNostrValue},
         },
         {'insert': ' and '},
         {
@@ -419,17 +474,48 @@ void main() {
         {'insert': '\n\n\n'},
       ]);
 
-      final result = QuillTextUtils.trimBioDeltaJson(input)!;
-      final decoded = (jsonDecode(result) as List).cast<Map<String, dynamic>>();
+      final ionInput = deltaJson([
+        {'insert': 'Mention '},
+        {
+          'insert': '@ice',
+          'attributes': {'mention': mentionIonValue},
+        },
+        {'insert': ' and '},
+        {
+          'insert': '#hashtag',
+          'attributes': {'hashtag': 'hashtag'},
+        },
+        {'insert': '\n\n\n'},
+      ]);
 
-      final mentionOp = decoded.firstWhere(
+      final nostrResult = QuillTextUtils.trimBioDeltaJson(nostrInput)!;
+      final ionResult = QuillTextUtils.trimBioDeltaJson(ionInput)!;
+
+      final decodedNostr = (jsonDecode(nostrResult) as List).cast<Map<String, dynamic>>();
+      final decodedIon = (jsonDecode(ionResult) as List).cast<Map<String, dynamic>>();
+
+      final mentionNostrOp = decodedNostr.firstWhere(
         (op) {
           final attributes = op['attributes'] as Map<String, dynamic>?;
           return attributes != null && attributes['mention'] != null;
         },
         orElse: () => <String, dynamic>{},
       );
-      final hashtagOp = decoded.firstWhere(
+      final hashtagNostrOp = decodedNostr.firstWhere(
+        (op) {
+          final attributes = op['attributes'] as Map<String, dynamic>?;
+          return attributes != null && attributes['hashtag'] != null;
+        },
+        orElse: () => <String, dynamic>{},
+      );
+      final mentionIonOp = decodedIon.firstWhere(
+        (op) {
+          final attributes = op['attributes'] as Map<String, dynamic>?;
+          return attributes != null && attributes['mention'] != null;
+        },
+        orElse: () => <String, dynamic>{},
+      );
+      final hashtagIonOp = decodedIon.firstWhere(
         (op) {
           final attributes = op['attributes'] as Map<String, dynamic>?;
           return attributes != null && attributes['hashtag'] != null;
@@ -437,44 +523,76 @@ void main() {
         orElse: () => <String, dynamic>{},
       );
 
-      expect(mentionOp, isNotEmpty, reason: 'Mention attribute should be preserved');
-      expect(hashtagOp, isNotEmpty, reason: 'Hashtag attribute should be preserved');
+      expect(mentionNostrOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      expect(hashtagNostrOp, isNotEmpty, reason: 'Hashtag attribute should be preserved');
+      expect(mentionIonOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      expect(hashtagIonOp, isNotEmpty, reason: 'Hashtag attribute should be preserved');
     });
 
     test('handles complex text with mentions and multiple newlines', () {
-      const mentionValue =
+      const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
-      final input = deltaJson([
+      const mentionIonValue =
+          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+      final nostrInput = deltaJson([
         {'insert': '\n\n'},
         {'insert': 'Mention '},
         {
           'insert': '@ice',
-          'attributes': {'mention': mentionValue},
+          'attributes': {'mention': mentionNostrValue},
         },
         {'insert': '  \n\n\n'},
         {'insert': 'More text\n'},
       ]);
 
-      final result = QuillTextUtils.trimBioDeltaJson(input)!;
-      final decoded = (jsonDecode(result) as List).cast<Map<String, dynamic>>();
+      final ionInput = deltaJson([
+        {'insert': '\n\n'},
+        {'insert': 'Mention '},
+        {
+          'insert': '@ice',
+          'attributes': {'mention': mentionIonValue},
+        },
+        {'insert': '  \n\n\n'},
+        {'insert': 'More text\n'},
+      ]);
+
+      final nostrResult = QuillTextUtils.trimBioDeltaJson(nostrInput)!;
+      final ionResult = QuillTextUtils.trimBioDeltaJson(ionInput)!;
+
+      final decodedNostr = (jsonDecode(nostrResult) as List).cast<Map<String, dynamic>>();
+      final decodedIon = (jsonDecode(ionResult) as List).cast<Map<String, dynamic>>();
 
       // Should preserve mention
-      final mentionOp = decoded.firstWhere(
+      final mentionNostrOp = decodedNostr.firstWhere(
         (op) {
           final attributes = op['attributes'] as Map<String, dynamic>?;
           return attributes != null && attributes['mention'] != null;
         },
         orElse: () => <String, dynamic>{},
       );
-      expect(mentionOp, isNotEmpty, reason: 'Mention attribute should be preserved');
-      final attributes = mentionOp['attributes'] as Map<String, dynamic>?;
-      expect(attributes?['mention'], mentionValue);
+      final mentionIonOp = decodedIon.firstWhere(
+        (op) {
+          final attributes = op['attributes'] as Map<String, dynamic>?;
+          return attributes != null && attributes['mention'] != null;
+        },
+        orElse: () => <String, dynamic>{},
+      );
+      expect(mentionNostrOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      expect(mentionIonOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      final nostrAttributes = mentionNostrOp['attributes'] as Map<String, dynamic>?;
+      final ionAttributes = mentionIonOp['attributes'] as Map<String, dynamic>?;
+      expect(nostrAttributes?['mention'], mentionNostrValue);
+      expect(ionAttributes?['mention'], mentionIonValue);
 
       // Should have trimmed newlines
-      final doc = Document.fromJson(decoded);
-      final plainText = doc.toPlainText();
-      expect(plainText, startsWith('Mention'));
-      expect(plainText, isNot(contains('\n\n\n')));
+      final docNostr = Document.fromJson(decodedNostr);
+      final plainTextNostr = docNostr.toPlainText();
+      expect(plainTextNostr, startsWith('Mention'));
+      expect(plainTextNostr, isNot(contains('\n\n\n')));
+      final docIon = Document.fromJson(decodedIon);
+      final plainTextIon = docIon.toPlainText();
+      expect(plainTextIon, startsWith('Mention'));
+      expect(plainTextIon, isNot(contains('\n\n\n')));
     });
 
     test('preserves text without attributes', () {
@@ -508,39 +626,67 @@ void main() {
     });
 
     test('adds newline as separate operation when last operation has attributes', () {
-      const mentionValue =
+      const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
-      final input = deltaJson([
+      const mentionIonValue =
+          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+      final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
           'insert': '@ice',
-          'attributes': {'mention': mentionValue},
+          'attributes': {'mention': mentionNostrValue},
         },
       ]);
 
-      final result = QuillTextUtils.trimBioDeltaJson(input)!;
-      final decoded = (jsonDecode(result) as List).cast<Map<String, dynamic>>();
+      final ionInput = deltaJson([
+        {'insert': 'Mention '},
+        {
+          'insert': '@ice',
+          'attributes': {'mention': mentionIonValue},
+        },
+      ]);
+
+      final nostrResult = QuillTextUtils.trimBioDeltaJson(nostrInput)!;
+      final ionResult = QuillTextUtils.trimBioDeltaJson(ionInput)!;
+
+      final decodedNostr = (jsonDecode(nostrResult) as List).cast<Map<String, dynamic>>();
+      final decodedIon = (jsonDecode(ionResult) as List).cast<Map<String, dynamic>>();
 
       // Last operation should be a separate newline operation without attributes
-      final lastOp = decoded.last;
-      expect(lastOp['insert'], '\n');
-      expect(lastOp['attributes'], isNull);
+      final lastNostrOp = decodedNostr.last;
+      expect(lastNostrOp['insert'], '\n');
+      expect(lastNostrOp['attributes'], isNull);
+      final lastIonOp = decodedIon.last;
+      expect(lastIonOp['insert'], '\n');
+      expect(lastIonOp['attributes'], isNull);
 
       // The mention operation should remain unchanged (not have \n appended)
-      final mentionOp = decoded.firstWhere(
+      final mentionNostrOp = decodedNostr.firstWhere(
         (op) {
           final attributes = op['attributes'] as Map<String, dynamic>?;
           return attributes != null && attributes['mention'] != null;
         },
         orElse: () => <String, dynamic>{},
       );
-      expect(mentionOp['insert'], '@ice');
-      expect(mentionOp['insert'], isNot(endsWith('\n')));
+      expect(mentionNostrOp['insert'], '@ice');
+      expect(mentionNostrOp['insert'], isNot(endsWith('\n')));
+      final mentionIonOp = decodedIon.firstWhere(
+        (op) {
+          final attributes = op['attributes'] as Map<String, dynamic>?;
+          return attributes != null && attributes['mention'] != null;
+        },
+        orElse: () => <String, dynamic>{},
+      );
+      expect(mentionIonOp['insert'], '@ice');
+      expect(mentionIonOp['insert'], isNot(endsWith('\n')));
 
       // Verify the document ends with newline
-      final doc = Document.fromJson(decoded);
-      final plainText = doc.toPlainText();
-      expect(plainText, endsWith('\n'));
+      final docNostr = Document.fromJson(decodedNostr);
+      final plainTextNostr = docNostr.toPlainText();
+      expect(plainTextNostr, endsWith('\n'));
+      final docIon = Document.fromJson(decodedIon);
+      final plainTextIon = docIon.toPlainText();
+      expect(plainTextIon, endsWith('\n'));
     });
   });
 }
