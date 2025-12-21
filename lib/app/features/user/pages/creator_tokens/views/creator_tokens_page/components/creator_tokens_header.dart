@@ -25,6 +25,7 @@ class CreatorTokensHeader extends ConsumerWidget {
     required this.backButtonIcon,
     required this.onPop,
     required this.onSearchToggle,
+    this.scrollController,
     super.key,
   });
 
@@ -37,6 +38,7 @@ class CreatorTokensHeader extends ConsumerWidget {
   final Widget backButtonIcon;
   final VoidCallback onPop;
   final VoidCallback onSearchToggle;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

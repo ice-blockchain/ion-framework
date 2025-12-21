@@ -17,6 +17,7 @@ import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_body.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_header.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_search_bar.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/filter/creator_tokens_filter_bar.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -187,6 +188,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                         selectedToken: selectedToken,
                         avatarColors: avatarColors,
                         backButtonIcon: backButtonIcon,
+                        scrollController: scrollController,
                         onPop: context.pop,
                         onSearchToggle: () {
                           final nextVisible = !isGlobalSearchVisible.value;
@@ -195,6 +197,14 @@ class CreatorTokensPage extends HookConsumerWidget {
                             resetGlobalSearch();
                           }
                         },
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SectionSeparator(),
+                      ),
+                      SliverToBoxAdapter(
+                        child: CreatorTokensFilterBar(
+                          scrollController: scrollController,
+                        ),
                       ),
                       const SliverToBoxAdapter(
                         child: SectionSeparator(),
