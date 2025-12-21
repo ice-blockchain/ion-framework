@@ -192,7 +192,8 @@ extension MessageTypes on ReplaceablePrivateDirectMessageData {
   MessageType get messageType {
     if (primaryAudio != null) {
       return MessageType.audio;
-    } else if (IonConnectProtocolIdentifierTypeValidator.isProfileIdentifier(content)) {
+    } else if (IonConnectProtocolIdentifierTypeValidator.isNostrProfileIdentifier(content) ||
+        IonConnectProtocolIdentifierTypeValidator.isIonProfileIdentifier(content)) {
       return MessageType.profile;
     } else if (content.isEmoji) {
       return MessageType.emoji;
@@ -206,7 +207,8 @@ extension MessageTypes on ReplaceablePrivateDirectMessageData {
     }
     if (paymentSent != null) {
       return MessageType.moneySent;
-    } else if (IonConnectProtocolIdentifierTypeValidator.isEventIdentifier(content)) {
+    } else if (IonConnectProtocolIdentifierTypeValidator.isNostrEventIdentifier(content) ||
+        IonConnectProtocolIdentifierTypeValidator.isIonEventIdentifier(content)) {
       if (EventReference.fromEncoded(content) case final ImmutableEventReference eventReference) {
         return switch (eventReference.kind) {
           FundsRequestEntity.kind => MessageType.requestFunds,

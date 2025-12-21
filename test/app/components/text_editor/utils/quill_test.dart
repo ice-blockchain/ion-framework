@@ -228,22 +228,43 @@ void main() {
     });
 
     test('preserves mention attributes', () {
-      const mentionValue =
+      const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
-      final input = deltaJson([
+      const mentionIonValue =
+          'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
+      final nostrInput = deltaJson([
         {'insert': 'Mention '},
         {
           'insert': '@ice',
-          'attributes': {'mention': mentionValue},
+          'attributes': {'mention': mentionNostrValue},
         },
         {'insert': '  \n'},
       ]);
 
-      final result = QuillTextUtils.trimBioDeltaJson(input)!;
-      final decoded = (jsonDecode(result) as List).cast<Map<String, dynamic>>();
+      final ionInput = deltaJson([
+        {'insert': 'Mention '},
+        {
+          'insert': '@ice',
+          'attributes': {'mention': mentionIonValue},
+        },
+        {'insert': '  \n'},
+      ]);
+
+      final nostrResult = QuillTextUtils.trimBioDeltaJson(nostrInput)!;
+      final ionResult = QuillTextUtils.trimBioDeltaJson(ionInput)!;
+
+      final decodedNostr = (jsonDecode(nostrResult) as List).cast<Map<String, dynamic>>();
+      final decodedIon = (jsonDecode(ionResult) as List).cast<Map<String, dynamic>>();
 
       // Find the operation with mention attribute
-      final mentionOp = decoded.firstWhere(
+      final mentionNostrOp = decodedNostr.firstWhere(
+        (op) {
+          final attributes = op['attributes'] as Map<String, dynamic>?;
+          return attributes != null && attributes['mention'] != null;
+        },
+        orElse: () => <String, dynamic>{},
+      );
+      final mentionIonOp = decodedIon.firstWhere(
         (op) {
           final attributes = op['attributes'] as Map<String, dynamic>?;
           return attributes != null && attributes['mention'] != null;
@@ -251,21 +272,27 @@ void main() {
         orElse: () => <String, dynamic>{},
       );
 
-      expect(mentionOp, isNotEmpty, reason: 'Mention attribute should be preserved');
-      final attributes = mentionOp['attributes'] as Map<String, dynamic>?;
-      expect(attributes?['mention'], mentionValue);
-      final insert = mentionOp['insert'] as String?;
-      expect(insert, contains('@ice'));
+      expect(mentionNostrOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      expect(mentionIonOp, isNotEmpty, reason: 'Mention attribute should be preserved');
+      final nostrAttributes = mentionNostrOp['attributes'] as Map<String, dynamic>?;
+      final ionAttributes = mentionIonOp['attributes'] as Map<String, dynamic>?;
+
+      expect(nostrAttributes?['mention'], mentionNostrValue);
+      expect(ionAttributes?['mention'], mentionIonValue);
+      final nostrInsert = mentionNostrOp['insert'] as String?;
+      final ionInsert = mentionIonOp['insert'] as String?;
+      expect(nostrInsert, contains('@ice'));
+      expect(ionInsert, contains('@ice'));
     });
 
     test('preserves mention attributes with multiple newlines', () {
-      const mentionValue =
+      const mentionNostrValue =
           'nostr:nprofile1qqsw5lnjgw2upfuavsatwj2e70cajcwwsk66j7a3ewcamuadk3ca7mcv3crs0';
       final input = deltaJson([
         {'insert': 'Mention '},
         {
           'insert': '@ice',
-          'attributes': {'mention': mentionValue},
+          'attributes': {'mention': mentionNostrValue},
         },
         {'insert': '\n\n\n'},
         {'insert': 'More text'},
@@ -285,7 +312,7 @@ void main() {
 
       expect(mentionOp, isNotEmpty, reason: 'Mention attribute should be preserved');
       final attributes = mentionOp['attributes'] as Map<String, dynamic>?;
-      expect(attributes?['mention'], mentionValue);
+      expect(attributes?['mention'], mentionNostrValue);
     });
 
     test('preserves mention attributes with newline-space-newline', () {

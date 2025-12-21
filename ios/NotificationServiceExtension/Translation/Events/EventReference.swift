@@ -59,14 +59,14 @@ struct ReplaceableEventReference: EventReference {
 
     static func fromEncoded(_ encoded: String) -> EventReference? {
         // Check if the encoded string is in the naddr format
-        if encoded.hasPrefix("nostr:naddr") || encoded.hasPrefix("naddr") {
+        if encoded.hasPrefix("nostr:naddr") || encoded.hasPrefix("ion:naddr") || encoded.hasPrefix("naddr") {
             // In a real implementation, you would use a Bech32 decoder here
             // For now, we'll just return a placeholder
             return ReplaceableEventReference(masterPubkey: "", kind: 0)
         }
 
         // Check if the encoded string is in the nprofile format
-        if encoded.hasPrefix("nostr:nprofile") || encoded.hasPrefix("nprofile") {
+        if encoded.hasPrefix("nostr:nprofile") || encoded.hasPrefix("ion:nprofile") || encoded.hasPrefix("nprofile") {
             // In a real implementation, you would use a Bech32 decoder here
             // For now, we'll just return a placeholder
             return ReplaceableEventReference(masterPubkey: "", kind: 0)
@@ -147,7 +147,7 @@ struct ImmutableEventReference: EventReference {
 
     static func fromEncoded(_ encoded: String) -> EventReference? {
         // Check if the encoded string is in the nevent format
-        if encoded.hasPrefix("nostr:nevent") || encoded.hasPrefix("nevent") {
+        if encoded.hasPrefix("nostr:nevent") || encoded.hasPrefix("ion:nevent") || encoded.hasPrefix("nevent") {
             // In a real implementation, you would use a Bech32 decoder here
             // For now, we'll just return a placeholder with a default kind
             return ImmutableEventReference(id: "", pubkey: "", kind: 0)
