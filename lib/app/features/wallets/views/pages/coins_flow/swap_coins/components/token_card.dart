@@ -274,6 +274,7 @@ class TokenCard extends HookConsumerWidget {
                                 style: textStyles.caption3.copyWith(
                                   color: colors.quaternaryText,
                                   fontSize: 11.0.s,
+                                  height: 1,
                                 ),
                               ),
                             ),
@@ -320,6 +321,7 @@ class TokenCard extends HookConsumerWidget {
                   Button(
                     onPressed: onTap,
                     type: ButtonType.outlined,
+                    leadingIconOffset: 4.0.s,
                     label: Text(
                       context.i18n.wallet_swap_coins_select_coin,
                       style: textStyles.body.copyWith(
@@ -353,6 +355,9 @@ class TokenCard extends HookConsumerWidget {
                       style: textStyles.headline2.copyWith(
                         color: isInsufficientFundsError ? colors.attentionRed : colors.primaryText,
                       ),
+                      cursorHeight: 24.0.s,
+                      cursorWidth: 3.0.s,
+                      cursorRadius: Radius.circular(0.s),
                       enabled: enabled,
                       inputFormatters: [
                         CoinInputFormatter(
