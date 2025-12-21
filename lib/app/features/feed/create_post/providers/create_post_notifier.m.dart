@@ -281,6 +281,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         expiration: null,
         poll: null,
         language: null,
+        mentionMarketCapLabel: null,
         ugcSerial: null,
       );
 
