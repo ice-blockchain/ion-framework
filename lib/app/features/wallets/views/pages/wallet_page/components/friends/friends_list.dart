@@ -3,10 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
-import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
-import 'package:ion/app/features/user/providers/friends_section_providers.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/friends/friends_list_header.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/friends/friends_list_item.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/friends/friends_list_loader.dart';
@@ -18,11 +16,6 @@ class FriendsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final showFriendsSection = ref.watch(shouldShowFriendsListProvider);
-    if (!showFriendsSection) {
-      return const SizedBox.shrink();
-    }
-
     final isPageLoading = ref.watch(walletPageLoaderNotifierProvider);
 
     final friendsPubkeys = ref.watch(
@@ -32,18 +25,12 @@ class FriendsList extends ConsumerWidget {
     );
     final isLoading = isPageLoading || friendsPubkeys == null;
 
-    final footer = Column(
-      children: [
-        SizedBox(
-          height: ScreenSideOffset.defaultSmallMargin,
-        ),
-        const SectionSeparator(),
-      ],
+    final footer = SizedBox(
+      height: ScreenSideOffset.defaultSmallMargin,
     );
 
     return Column(
       children: [
-        const SectionSeparator(),
         if (isLoading)
           FriendsListLoader(footer: footer)
         else if (friendsPubkeys.isNotEmpty)
