@@ -100,9 +100,7 @@ SyncStrategy<UserFollow> followSyncStrategy(Ref ref) {
 
       final updatedFollowList = followList.data.copyWith(list: followees.toList());
       final updatedFollowEntity = followList.copyWith(data: updatedFollowList);
-      await ref
-          .read(ionConnectCacheProvider.notifier)
-          .cache(updatedFollowEntity, waitForSave: true);
+      await ref.read(ionConnectCacheProvider.notifier).cache(updatedFollowEntity);
       ref.read(followersCountProvider(pubkey).notifier).removeOne();
     },
   );

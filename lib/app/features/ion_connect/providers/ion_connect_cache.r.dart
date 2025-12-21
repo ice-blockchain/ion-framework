@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_cache_save_mixin.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -31,31 +32,22 @@ class CacheEntry {
 }
 
 @Riverpod(keepAlive: true)
-class IonConnectCache extends _$IonConnectCache {
-  final List<DbCacheableEntity> _pendingDbEntities = [];
-  Timer? _batchSaveTimer;
-  static const _batchSaveDelay = Duration(milliseconds: 1000);
-  static const _batchSize = 50;
-
+class IonConnectCache extends _$IonConnectCache with IonConnectCacheSaveMixin {
   @override
   Map<String, CacheEntry> build() {
-    ref.onDispose(() {
-      _batchSaveTimer?.cancel();
-    });
+    ref.onDispose(disposeSaveQueue);
     onLogout(ref, () {
       state = {};
-      _pendingDbEntities.clear();
-      _batchSaveTimer?.cancel();
+      disposeSaveQueue();
     });
     onUserSwitch(ref, () {
       state = {};
-      _pendingDbEntities.clear();
-      _batchSaveTimer?.cancel();
+      disposeSaveQueue();
     });
     return {};
   }
 
-  Future<void> cache(IonConnectEntity entity, {bool waitForSave = false}) async {
+  Future<void> cache(IonConnectEntity entity) async {
     if (entity is CacheableEntity) {
       final entry = CacheEntry(
         entity: entity,
@@ -68,53 +60,8 @@ class IonConnectCache extends _$IonConnectCache {
     }
 
     if (entity is DbCacheableEntity) {
-      _pendingDbEntities.add(entity as DbCacheableEntity);
-
-      if (_pendingDbEntities.length >= _batchSize) {
-        if (waitForSave) {
-          await _flushPendingEntitiesSync();
-        } else {
-          _flushPendingEntities();
-        }
-      } else {
-        if (waitForSave) {
-          await _flushPendingEntitiesSync();
-        } else {
-          _scheduleBatchSave();
-        }
-      }
+      return saveEntity(entity as DbCacheableEntity, ref);
     }
-  }
-
-  void _scheduleBatchSave() {
-    _batchSaveTimer?.cancel();
-    _batchSaveTimer = Timer(_batchSaveDelay, _flushPendingEntities);
-  }
-
-  void _flushPendingEntities() {
-    if (_pendingDbEntities.isEmpty) {
-      return;
-    }
-
-    final entitiesToSave = List<DbCacheableEntity>.from(_pendingDbEntities);
-    _pendingDbEntities.clear();
-    _batchSaveTimer?.cancel();
-
-    unawaited(
-      ref.read(ionConnectDatabaseCacheProvider.notifier).saveAllEntities(entitiesToSave),
-    );
-  }
-
-  Future<void> _flushPendingEntitiesSync() async {
-    if (_pendingDbEntities.isEmpty) {
-      return;
-    }
-
-    final entitiesToSave = List<DbCacheableEntity>.from(_pendingDbEntities);
-    _pendingDbEntities.clear();
-    _batchSaveTimer?.cancel();
-
-    await ref.read(ionConnectDatabaseCacheProvider.notifier).saveAllEntities(entitiesToSave);
   }
 
   void remove(String key) {
