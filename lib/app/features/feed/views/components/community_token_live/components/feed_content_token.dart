@@ -2,13 +2,18 @@
 
 import 'dart:ui';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
+import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
@@ -19,6 +24,8 @@ import 'package:ion/app/features/tokenized_communities/views/components/token_cr
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_price.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
+import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -45,6 +52,7 @@ class FeedContentToken extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final externalAddress = tokenDefinition.data.externalAddress;
+
     return TokenCardBuilder(
       externalAddress: externalAddress,
       skeleton: _Skeleton(type: type),
@@ -85,7 +93,7 @@ class FeedContentToken extends StatelessWidget {
   }
 }
 
-class ContentTokenHeader extends HookWidget {
+class ContentTokenHeader extends HookConsumerWidget {
   const ContentTokenHeader({
     required this.tokenDefinition,
     required this.type,
@@ -104,8 +112,45 @@ class ContentTokenHeader extends HookWidget {
   final Widget? pnl;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = useImageColors(token.imageUrl);
+
+    final eventReference = (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference;
+
+    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+
+    final owner = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
+
+    final isVerified = ref.watch(isUserVerifiedProvider(eventReference.masterPubkey));
+
+    if (entity == null || owner == null) {
+      return const SizedBox.shrink();
+    }
+
+    final (mediaAttachment, content) =
+        useMemoized<(MediaAttachment? mediaAttachment, String? content)>(
+      () {
+        if (entity is ModifiablePostEntity) {
+          return (entity.data.primaryMedia, entity.data.textContent.trim());
+        } else if (entity is PostEntity) {
+          return (entity.data.primaryMedia, entity.data.content.trim());
+        } else if (entity is ArticleEntity) {
+          final headerMedia =
+              entity.data.media.entries.firstWhereOrNull((t) => t.value.url == entity.data.image);
+
+          return (headerMedia?.value, entity.data.title?.trim());
+        }
+        return (null, null);
+      },
+      [entity],
+    );
+
+    final layoutConfig = useMemoized<_MediaLayoutConfig>(
+      () {
+        return _MediaLayoutConfig.fromAspectRatio(mediaAttachment?.aspectRatio);
+      },
+      [mediaAttachment?.aspectRatio],
+    );
 
     return Column(
       children: [
@@ -118,12 +163,12 @@ class ContentTokenHeader extends HookWidget {
               alignment: AlignmentDirectional.center,
               children: [
                 TokenAvatar(
-                  imageSize: Size.square(88.s),
-                  containerSize: Size.square(96.s),
-                  outerBorderRadius: 20.0.s,
-                  innerBorderRadius: 16.0.s,
-                  imageUrl: token.imageUrl,
-                  borderWidth: 2.s,
+                  imageSize: layoutConfig.imageSize,
+                  containerSize: layoutConfig.containerSize,
+                  outerBorderRadius: layoutConfig.outerBorderRadius,
+                  innerBorderRadius: layoutConfig.innerBorderRadius,
+                  imageUrl: mediaAttachment?.thumb ?? mediaAttachment?.url,
+                  borderWidth: layoutConfig.borderWidth,
                 ),
                 if (type == CommunityContentTokenType.postVideo)
                   ClipRRect(
@@ -168,7 +213,12 @@ class ContentTokenHeader extends HookWidget {
                     children: [
                       Expanded(
                         child: TokenCreatorTile(
-                          creator: token.creator,
+                          creator: Creator(
+                            avatar: owner.data.avatarUrl,
+                            display: owner.data.displayName,
+                            name: owner.data.name,
+                            verified: isVerified,
+                          ),
                           nameColor: context.theme.appColors.onPrimaryAccent,
                           handleColor: context.theme.appColors.attentionBlock,
                         ),
@@ -179,10 +229,13 @@ class ContentTokenHeader extends HookWidget {
                           ),
                     ],
                   ),
-                  if (token.description != null) ...[
+                  if (content != null && content.isNotEmpty) ...[
                     SizedBox(height: 12.0.s),
                     Text(
-                      token.description ?? '',
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      content,
                       style: context.theme.appTextThemes.caption2.copyWith(
                         color: context.theme.appColors.onPrimaryAccent,
                       ),
@@ -507,4 +560,48 @@ class _Skeleton extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MediaLayoutConfig {
+  _MediaLayoutConfig({
+    required this.imageSize,
+    required this.containerSize,
+    required this.outerBorderRadius,
+    required this.innerBorderRadius,
+    required this.borderWidth,
+  });
+
+  factory _MediaLayoutConfig.fromAspectRatio(double? aspectRatio) {
+    if (aspectRatio == null || aspectRatio == 1) {
+      return _MediaLayoutConfig(
+        imageSize: Size.square(88.s),
+        containerSize: Size.square(96.s),
+        outerBorderRadius: 20.0.s,
+        innerBorderRadius: 16.0.s,
+        borderWidth: 2.s,
+      );
+    } else if (aspectRatio > 1) {
+      return _MediaLayoutConfig(
+        imageSize: Size(153.s, 86.s),
+        containerSize: Size(163.s, 96.s),
+        outerBorderRadius: 24.0.s,
+        innerBorderRadius: 20.0.s,
+        borderWidth: 2.s,
+      );
+    } else {
+      return _MediaLayoutConfig(
+        imageSize: Size(86.s, 101.s),
+        containerSize: Size(96.s, 111.s),
+        outerBorderRadius: 24.0.s,
+        innerBorderRadius: 20.0.s,
+        borderWidth: 2.s,
+      );
+    }
+  }
+
+  final Size imageSize;
+  final Size containerSize;
+  final double outerBorderRadius;
+  final double innerBorderRadius;
+  final double borderWidth;
 }

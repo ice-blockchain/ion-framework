@@ -177,13 +177,14 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                   }
                   return Padding(
                     padding: EdgeInsetsDirectional.only(
-                      top: t == CommunityContentTokenType.postText ? 60.s : 0,
+                      top: t == CommunityContentTokenType.postText ? 36.s : 0,
                     ),
                     child: ContentTokenHeader(
                       type: t,
                       token: token,
                       externalAddress: externalAddress,
                       tokenDefinition: tokenDefinition,
+                      showBuyButton: false,
                     ),
                   );
                 }
