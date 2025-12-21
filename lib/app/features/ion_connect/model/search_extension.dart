@@ -56,7 +56,7 @@ class SearchExtensions {
 
   factory SearchExtensions.withTokens({int forKind = ModifiablePostEntity.kind}) {
     return SearchExtensions([
-      TokenFirstBuySearchExtension(forKind: forKind),
+      // It returns both original 31175 and first-buy 31175 events
       GenericIncludeSearchExtension(
         forKind: forKind,
         includeKind: CommunityTokenDefinitionEntity.kind,
@@ -439,17 +439,4 @@ class FollowingListSearchExtension extends IncludeSearchExtension {
 
   @override
   String get query => 'kind3';
-}
-
-/// For every kind [forKind] that the subscription finds also include
-///   the "first-buy" kind1175 event from any author for the token related
-///   to that event (if it exists).
-class TokenFirstBuySearchExtension extends IncludeSearchExtension {
-  TokenFirstBuySearchExtension({this.forKind = ModifiablePostEntity.kind});
-
-  @override
-  final int forKind;
-
-  @override
-  String get query => 'kind1175';
 }

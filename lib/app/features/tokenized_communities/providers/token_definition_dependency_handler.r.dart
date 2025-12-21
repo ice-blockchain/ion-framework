@@ -18,7 +18,7 @@ part 'token_definition_dependency_handler.r.g.dart';
 ///
 /// 1. Caches CommunityTokenDefinitionEntity instances
 /// 2. Creates and caches TokenDefinitionReferenceEntity instances for easy
-/// token externalAddress -> original/first-buy CommunityTokenDefinition  lookups.
+/// token externalAddress -> original/first-buy CommunityTokenDefinition lookups.
 class TokenDefinitionDependencyHandler implements EventsMetadataHandler {
   TokenDefinitionDependencyHandler({
     required IonConnectCache ionConnectCache,
