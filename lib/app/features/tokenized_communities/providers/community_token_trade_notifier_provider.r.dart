@@ -2,6 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
@@ -62,6 +63,17 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
       await _sendFirstBuyMetadataIfNeeded();
 
+      final existingTokenInfo = ref.read(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+      final existingTokenAddress = existingTokenInfo?.addresses.blockchain;
+      final fatAddressData = (existingTokenAddress != null && existingTokenAddress.isNotEmpty)
+          ? null
+          : await ref.read(
+              fatAddressDataProvider(
+                externalAddress: externalAddress,
+                externalAddressType: externalAddressType,
+              ).future,
+            );
+
       final response = await service.buyCommunityToken(
         externalAddress: externalAddress,
         externalAddressType: externalAddressType,
@@ -73,6 +85,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         baseTokenTicker: token.abbreviation,
         tokenDecimals: token.decimals,
         expectedPricing: expectedPricing,
+        fatAddressData: fatAddressData,
         userActionSigner: signer,
       );
       // Invalidate token market info to refresh balance

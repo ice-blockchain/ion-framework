@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
+import 'package:ion/app/utils/hex_encoding.dart';
 import 'package:web3dart/web3dart.dart';
 
 class EvmTxBuilder {
@@ -35,7 +36,7 @@ class EvmTxBuilder {
 
     return _wrapTransaction(
       to: token,
-      data: _bytesToHex(data),
+      data: bytesToHex(data),
       value: BigInt.zero,
     );
   }
@@ -68,7 +69,7 @@ class EvmTxBuilder {
 
     return _wrapTransaction(
       to: bondingCurveAddress,
-      data: _bytesToHex(data),
+      data: bytesToHex(data),
       value: BigInt.zero,
     );
   }
@@ -157,13 +158,5 @@ class EvmTxBuilder {
       maxFeePerGas: BigInt.zero,
       maxPriorityFeePerGas: BigInt.zero,
     );
-  }
-
-  String _bytesToHex(List<int> bytes) {
-    final buffer = StringBuffer('0x');
-    for (final value in bytes) {
-      buffer.write(value.toRadixString(16).padLeft(2, '0'));
-    }
-    return buffer.toString();
   }
 }
