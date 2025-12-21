@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -64,6 +65,7 @@ Future<CommunityContentTokenType?> tokenTypeForTokenDefinition(
   Ref ref,
   CommunityTokenDefinitionEntity tokenDefinition,
 ) async {
+  keepAliveWhenAuthenticated(ref);
   if (tokenDefinition.data.platform == CommunityTokenPlatform.x) {
     return CommunityContentTokenType.twitter;
   } else if (tokenDefinition
