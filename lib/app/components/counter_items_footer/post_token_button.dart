@@ -85,13 +85,17 @@ class _TokenDefinitionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final route = switch (entity.data) {
+      CommunityTokenDefinitionIon(:final eventReference) =>
+        TokenizedCommunityRoute(eventReference: eventReference.encode()),
+      CommunityTokenDefinitionExternal(:final externalId) =>
+        TokenizedCommunityRoute(externalAddress: externalId),
+      _ => null,
+    };
     return _TokenButton(
       padding: padding,
+      onTap: route == null ? null : () => route.push<void>(context),
       child: const _RocketIcon(),
-      onTap: () => TokenizedCommunityRoute(
-        externalAddress: entity.data.externalAddress,
-        externalAddressType: entity.externalAddressType?.prefix ?? '',
-      ).push<void>(context),
     );
   }
 }
@@ -112,13 +116,17 @@ class _TokenActionButton extends ConsumerWidget {
       return _TokenButtonPlaceholder(padding: padding);
     }
 
+    final route = switch (tokenDefinition.data) {
+      CommunityTokenDefinitionIon(:final eventReference) =>
+        TokenizedCommunityRoute(eventReference: eventReference.encode()),
+      CommunityTokenDefinitionExternal(:final externalId) =>
+        TokenizedCommunityRoute(externalAddress: externalId),
+      _ => null,
+    };
     return _TokenButton(
       padding: padding,
+      onTap: route == null ? null : () => route.push<void>(context),
       child: const _RocketIcon(),
-      onTap: () => TokenizedCommunityRoute(
-        externalAddress: tokenDefinition.data.externalAddress,
-        externalAddressType: tokenDefinition.externalAddressType?.prefix ?? '',
-      ).push<void>(context),
     );
   }
 }
@@ -160,13 +168,11 @@ class _ContentEntityButton extends ConsumerWidget {
         onTap: () {
           if (hasToken) {
             TokenizedCommunityRoute(
-              externalAddress: eventReference.toString(),
-              externalAddressType: externalAddressType?.prefix ?? '',
+              eventReference: eventReference.encode(),
             ).push<void>(context);
           } else if (externalAddressType != null) {
             TradeCommunityTokenRoute(
-              externalAddress: eventReference.toString(),
-              externalAddressType: externalAddressType.prefix,
+              eventReference: eventReference.encode(),
             ).push<void>(context);
           }
         },

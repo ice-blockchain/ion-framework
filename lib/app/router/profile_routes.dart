@@ -276,20 +276,25 @@ class RequestCoinsFormRoute extends BaseRouteData with _$RequestCoinsFormRoute {
 
 class TradeCommunityTokenRoute extends BaseRouteData with _$TradeCommunityTokenRoute {
   TradeCommunityTokenRoute({
-    required this.externalAddress,
-    required this.externalAddressType,
+    this.eventReference,
+    this.externalAddress,
     this.initialMode,
-  }) : super(
+  })  : assert(
+          (eventReference == null) != (externalAddress == null),
+          'Either eventReference or externalAddress must be provided',
+        ),
+        super(
           child: TradeCommunityTokenDialog(
+            eventReference:
+                eventReference != null ? EventReference.fromEncoded(eventReference) : null,
             externalAddress: externalAddress,
-            externalAddressType: ExternalAddressType(externalAddressType),
             initialMode: initialMode,
           ),
           type: IceRouteType.bottomSheet,
         );
 
-  final String externalAddress;
-  final String externalAddressType;
+  final String? eventReference;
+  final String? externalAddress;
   final CommunityTokenTradeMode? initialMode;
 }
 
@@ -390,17 +395,22 @@ class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
 
 class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRoute {
   TokenizedCommunityRoute({
-    required this.externalAddress,
-    required this.externalAddressType,
-  }) : super(
+    this.eventReference,
+    this.externalAddress,
+  })  : assert(
+          (eventReference == null) != (externalAddress == null),
+          'Either eventReference or externalAddress must be provided',
+        ),
+        super(
           child: TokenizedCommunityPage(
+            eventReference:
+                eventReference != null ? EventReference.fromEncoded(eventReference) : null,
             externalAddress: externalAddress,
-            externalAddressType: ExternalAddressType(externalAddressType),
           ),
         );
 
-  final String externalAddress;
-  final String externalAddressType;
+  final String? eventReference;
+  final String? externalAddress;
 }
 
 class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
