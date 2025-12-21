@@ -27,7 +27,7 @@ class ProfileRoutes {
         TypedGoRoute<CoinTransactionResultProfileRoute>(path: 'coin-transaction-result'),
         TypedGoRoute<CoinTransactionDetailsProfileRoute>(path: 'coin-transaction-details'),
         TypedGoRoute<ExploreTransactionDetailsProfileRoute>(path: 'coin-transaction-explore'),
-        TypedGoRoute<TradeCommunityTokenProfileRoute>(path: 'trade-community-token'),
+        TypedGoRoute<TradeCommunityTokenRoute>(path: 'trade-community-token'),
         TypedGoRoute<SelectTradePaymentTokenProfileRoute>(path: 'select-swap-token'),
         TypedGoRoute<RequestCoinsFormRoute>(path: 'request-coins-form'),
         TypedGoRoute<AddressNotFoundProfileRoute>(path: 'address-not-found'),
@@ -274,8 +274,8 @@ class RequestCoinsFormRoute extends BaseRouteData with _$RequestCoinsFormRoute {
         );
 }
 
-class TradeCommunityTokenProfileRoute extends BaseRouteData with _$TradeCommunityTokenProfileRoute {
-  TradeCommunityTokenProfileRoute({
+class TradeCommunityTokenRoute extends BaseRouteData with _$TradeCommunityTokenRoute {
+  TradeCommunityTokenRoute({
     required this.externalAddress,
     required this.externalAddressType,
     this.initialMode,
@@ -389,14 +389,18 @@ class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
 }
 
 class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRoute {
-  TokenizedCommunityRoute({required this.externalAddress})
-      : super(
+  TokenizedCommunityRoute({
+    required this.externalAddress,
+    required this.externalAddressType,
+  }) : super(
           child: TokenizedCommunityPage(
             externalAddress: externalAddress,
+            externalAddressType: ExternalAddressType(externalAddressType),
           ),
         );
 
   final String externalAddress;
+  final String externalAddressType;
 }
 
 class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {

@@ -7,17 +7,19 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/external_address_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FloatingTradeIsland extends ConsumerWidget {
   const FloatingTradeIsland({
     required this.externalAddress,
+    required this.externalAddressType,
     super.key,
   });
 
   final String externalAddress;
+  final ExternalAddressType externalAddressType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,14 +49,11 @@ class FloatingTradeIsland extends ConsumerWidget {
               onTap: () {
                 if (externalAddressType == null) return;
 
-                showSimpleBottomSheet<void>(
-                  context: context,
-                  child: TradeCommunityTokenDialog(
-                    externalAddress: externalAddress,
-                    externalAddressType: externalAddressType,
-                    initialMode: CommunityTokenTradeMode.buy,
-                  ),
-                );
+                TradeCommunityTokenRoute(
+                  externalAddress: externalAddress,
+                  externalAddressType: externalAddressType.prefix,
+                  initialMode: CommunityTokenTradeMode.buy,
+                ).push<void>(context);
               },
               flipIconUp: true,
             ),
@@ -66,14 +65,11 @@ class FloatingTradeIsland extends ConsumerWidget {
               onTap: () {
                 if (externalAddressType == null) return;
 
-                showSimpleBottomSheet<void>(
-                  context: context,
-                  child: TradeCommunityTokenDialog(
-                    externalAddress: externalAddress,
-                    externalAddressType: externalAddressType,
-                    initialMode: CommunityTokenTradeMode.sell,
-                  ),
-                );
+                TradeCommunityTokenRoute(
+                  externalAddress: externalAddress,
+                  externalAddressType: externalAddressType.prefix,
+                  initialMode: CommunityTokenTradeMode.sell,
+                ).push<void>(context);
               },
             ),
           ],

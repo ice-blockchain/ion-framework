@@ -191,7 +191,6 @@ class TwitterTokenHeader extends StatelessWidget {
               PositionedDirectional(
                 bottom: -11.5.s,
                 child: BuyButton(
-                  externalAddress: token.externalAddress,
                   padding: EdgeInsetsDirectional.symmetric(
                     horizontal: 22.s,
                   ),

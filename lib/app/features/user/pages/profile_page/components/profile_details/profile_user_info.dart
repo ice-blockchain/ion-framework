@@ -7,7 +7,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/user/user_about/user_about.dart';
 import 'package:ion/app/features/components/user/user_info_summary/user_info_summary.dart';
-import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
@@ -79,14 +78,13 @@ class ProfileUserInfo extends ConsumerWidget {
                           externalAddress: eventReferenceString,
                           leading: GestureDetector(
                             onTap: () {
-                              TradeCommunityTokenProfileRoute(
+                              TokenizedCommunityRoute(
                                 externalAddress: eventReferenceString,
                                 externalAddressType:
                                     const ExternalAddressType.ionConnectUser().prefix,
-                                initialMode: CommunityTokenTradeMode.buy,
                               ).push<void>(context);
                             },
-                            child: BuyButton(externalAddress: eventReferenceString),
+                            child: const BuyButton(),
                           ),
                         ),
                       ),

@@ -5,6 +5,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 
 class ExternalAddressType {
@@ -19,6 +20,16 @@ class ExternalAddressType {
   const ExternalAddressType.x() : prefix = '';
 
   final String prefix;
+
+  static ExternalAddressType fromCommunityContentTokenType(CommunityContentTokenType input) {
+    return switch (input) {
+      CommunityContentTokenType.profile => ExternalAddressType.ionConnectUser,
+      CommunityContentTokenType.postText => ExternalAddressType.ionConnectTextPost,
+      CommunityContentTokenType.postVideo => ExternalAddressType.ionConnectVideoPost,
+      CommunityContentTokenType.article => ExternalAddressType.ionConnectArticle,
+      _ => throw ArgumentError('Invalid community content token type: $input'),
+    }();
+  }
 }
 
 extension ExternalAddressExtension on IonConnectEntity {
