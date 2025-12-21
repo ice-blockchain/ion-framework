@@ -161,6 +161,7 @@ class CreateArticle extends _$CreateArticle {
         settings: null,
         editingEndedAt: null,
         language: null,
+        mentionMarketCapLabel: null,
         ugcSerial: null,
       );
 
