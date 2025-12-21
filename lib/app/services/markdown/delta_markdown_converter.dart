@@ -20,6 +20,8 @@ abstract class DeltaMarkdownConverter {
   /// Internal static function for use with [compute].
   static PmoConversionResult _mapDeltaToPmo(List<dynamic> deltaJson) {
     final delta = Delta.fromJson(deltaJson);
+    final mergedOps = _mergeConsecutiveFormattingOps(delta.operations);
+
     final buffer = StringBuffer();
     final pmoTags = <PmoTag>[];
 
@@ -27,7 +29,7 @@ abstract class DeltaMarkdownConverter {
     var lineStartIndex = 0;
     var inCodeBlock = false;
 
-    for (final op in delta.operations) {
+    for (final op in mergedOps) {
       if (op.key == 'insert') {
         final data = op.data;
         final attributes = op.attributes;
@@ -66,6 +68,121 @@ abstract class DeltaMarkdownConverter {
     }
 
     return (text: buffer.toString(), tags: pmoTags);
+  }
+
+  /// Merges consecutive string operations that have the same formatting attributes.
+  /// This prevents splitting bold/italic formatting at hashtag boundaries.
+  /// Formatting attributes include: bold, italic, strike, underline, code, link.
+  /// Styling attributes (hashtag, cashtag, mention) are preserved but don't prevent merging.
+  static List<Operation> _mergeConsecutiveFormattingOps(List<Operation> operations) {
+    if (operations.isEmpty) return operations;
+
+    final merged = <Operation>[];
+    Operation? pendingOp;
+
+    for (final op in operations) {
+      if (op.key != 'insert' || op.data is! String) {
+        // Flush pending operation before non-string operations
+        if (pendingOp != null) {
+          merged.add(pendingOp);
+          pendingOp = null;
+        }
+        merged.add(op);
+        continue;
+      }
+
+      final opData = op.data! as String;
+      final opAttrs = _getFormattingAttributes(op.attributes);
+
+      if (pendingOp == null) {
+        pendingOp = op;
+      } else {
+        final pendingData = pendingOp.data! as String;
+        final pendingAttrs = _getFormattingAttributes(pendingOp.attributes);
+
+        // Check if operations can be merged (same formatting attributes)
+        if (_areFormattingAttributesEqual(pendingAttrs, opAttrs)) {
+          final mergedData = pendingData + opData;
+          final mergedAttrs = _mergeAttributes(pendingOp.attributes, op.attributes);
+          pendingOp = Operation.insert(mergedData, mergedAttrs);
+        } else {
+          merged.add(pendingOp);
+          pendingOp = op;
+        }
+      }
+    }
+
+    if (pendingOp != null) {
+      merged.add(pendingOp);
+    }
+
+    return merged;
+  }
+
+  /// Extracts formatting attributes from operation attributes, excluding styling-only attributes.
+  /// Formatting attributes: bold, italic, strike, underline, code, link
+  /// Styling attributes (excluded): hashtag, cashtag, mention
+  static Map<String, dynamic>? _getFormattingAttributes(Map<String, dynamic>? attributes) {
+    if (attributes == null) return null;
+
+    const formattingKeys = {
+      'bold',
+      'italic',
+      'strike',
+      'underline',
+      'code',
+      'link',
+      'header',
+      'list',
+      'blockquote',
+      'code-block',
+    };
+
+    final formattingAttrs = <String, dynamic>{};
+    for (final entry in attributes.entries) {
+      if (formattingKeys.contains(entry.key)) {
+        formattingAttrs[entry.key] = entry.value;
+      }
+    }
+
+    return formattingAttrs.isEmpty ? null : formattingAttrs;
+  }
+
+  /// Compares two attribute maps for equality, considering only formatting attributes.
+  static bool _areFormattingAttributesEqual(
+    Map<String, dynamic>? attrs1,
+    Map<String, dynamic>? attrs2,
+  ) {
+    if (attrs1 == null && attrs2 == null) return true;
+    if (attrs1 == null || attrs2 == null) return false;
+
+    final keys1 = attrs1.keys.toSet();
+    final keys2 = attrs2.keys.toSet();
+
+    if (keys1.length != keys2.length) return false;
+
+    for (final key in keys1) {
+      if (!keys2.contains(key)) return false;
+      if (attrs1[key] != attrs2[key]) return false;
+    }
+
+    return true;
+  }
+
+  /// Merges two attribute maps, preserving all attributes from both.
+  /// Formatting attributes should be the same (already checked), so we preserve them.
+  /// Styling attributes (hashtag, cashtag, mention) are preserved from both operations.
+  static Map<String, dynamic>? _mergeAttributes(
+    Map<String, dynamic>? attrs1,
+    Map<String, dynamic>? attrs2,
+  ) {
+    if (attrs1 == null && attrs2 == null) return null;
+    if (attrs1 == null) return attrs2;
+    if (attrs2 == null) return attrs1;
+
+    // Start with attrs1, then add/override with attrs2
+    // Since formatting attributes are the same, this mainly preserves styling attributes
+    return {...attrs1, ...attrs2};
   }
 
   /// Maps markdown content to plain text and PMO tags.
