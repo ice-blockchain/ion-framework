@@ -228,7 +228,9 @@ class NotificationResponseService {
 
     final route = PostDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
-    final routePath = route.location.split(IonConnectUriProtocolService.ionPrefix).first;
+    final routePath = route.location.contains(IonConnectUriProtocolService.ionPrefix)
+        ? route.location.split(IonConnectUriProtocolService.ionPrefix).first
+        : route.location.split(IonConnectUriProtocolService.nostrPrefix).first;
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
@@ -261,7 +263,9 @@ class NotificationResponseService {
 
     final route = ArticleDetailsRoute(eventReference: eventReference.encode());
     // Get path without query parameters
-    final routePath = route.location.split(IonConnectUriProtocolService.ionPrefix).first;
+    final routePath = route.location.contains(IonConnectUriProtocolService.ionPrefix)
+        ? route.location.split(IonConnectUriProtocolService.ionPrefix).first
+        : route.location.split(IonConnectUriProtocolService.nostrPrefix).first;
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
@@ -353,7 +357,10 @@ class NotificationResponseService {
       initialStoryReference: eventReference.encode(),
     );
     // Get path without query parameters
-    final routePath = route.location.split(IonConnectUriProtocolService.ionPrefix).first;
+    final routePath = route.location.contains(IonConnectUriProtocolService.ionPrefix)
+        ? route.location.split(IonConnectUriProtocolService.ionPrefix).first
+        : route.location.split(IonConnectUriProtocolService.nostrPrefix).first;
+        
     final currentPath = _currentRouteMatchList.fullPath.split(':').first;
 
     if (isInitialNotification) {
