@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
@@ -13,7 +10,7 @@ import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/hooks/use_story_viewer_story_preload.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_content.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_gesture_handler.dart';
-import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/viewers/story_viewer_content.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/viewers/ad_story_viewer.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 
 class UserStoryPageView extends HookConsumerWidget {
@@ -31,8 +28,6 @@ class UserStoryPageView extends HookConsumerWidget {
   final VoidCallback onPreviousUser;
   final VoidCallback onClose;
   final String pubkey;
-
-  static const int showAdAfter = 6;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,9 +68,6 @@ class UserStoryPageView extends HookConsumerWidget {
       callback();
     }
 
-    final randomSeed = useMemoized(() => Random(stories.length), [stories.length]);
-    final adIndex = randomSeed.nextInt(showAdAfter);
-
     return KeyboardVisibilityProvider(
       child: StoryGestureHandler(
         key: storyGestureKeyFor(pubkey),
@@ -87,7 +79,7 @@ class UserStoryPageView extends HookConsumerWidget {
           storiesLength: stories.length,
           onSeenAll: () => handleUserExit(onNextUser),
         ),
-        child: (currentIndex % adIndex == 0 && currentIndex != 0)
+        child: (!currentStory.id.endsWith('_ad'))
             ? StoryContent(
                 key: Key(currentStory.id),
                 story: currentStory,
