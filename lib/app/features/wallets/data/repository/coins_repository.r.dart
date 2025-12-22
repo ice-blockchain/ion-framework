@@ -42,7 +42,10 @@ class CoinsRepository {
 
   Future<List<CoinData>> searchCoins(String query) => _coinsDao.search(query);
 
-  Future<void> updateCoins(List<Coin> coins) => _coinsDao.upsertAll(coins);
+  Future<void> updateCoins(List<Coin> coins) {
+    final validCoins = coins.where((coin) => coin.id.isNotEmpty && coin.decimals > 0).toList();
+    return _coinsDao.upsertAll(validCoins);
+  }
 
   Future<void> updateCoinSyncQueue(
     Iterable<SyncCoinAfter> syncCoins, {
