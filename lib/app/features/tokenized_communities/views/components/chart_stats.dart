@@ -117,9 +117,8 @@ class _TimeframeChip extends StatelessWidget {
 
     final isZero = data.percent == 0.0;
     final displayText = isZero ? '--' : formatPercent(data.percent);
-    final changeColor = isZero
-        ? colors.primaryText
-        : (data.percent > 0 ? colors.success : colors.lossRed); // Green/Red for non-zero
+    final changeColor =
+        isZero ? colors.primaryText : (data.percent > 0 ? colors.success : colors.lossRed);
 
     return GestureDetector(
       onTap: onTap,

@@ -36,11 +36,8 @@ double calculatePriceChangePercent(
     }
   }
 
-  // Edge cases: no past candle found or past price is zero
   if (pastCandle == null || pastCandle.close == 0) return 0;
 
   final pastPrice = pastCandle.close;
-
-  // Calculate percentage change: ((current - past) / past) * 100
   return ((currentPrice - pastPrice) / pastPrice) * 100;
 }

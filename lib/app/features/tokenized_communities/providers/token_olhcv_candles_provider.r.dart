@@ -25,19 +25,16 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
 
   await for (final batch in subscription.stream) {
     if (batch.isEmpty) {
-      // EOSE marker - end of initial load, emit current state
       yield currentCandles;
       continue;
     }
 
     for (final candle in batch) {
-      // Check if candle with same timestamp already exists
       final existingIndex = currentCandles.indexWhere(
         (existing) => existing.timestamp == candle.timestamp,
       );
 
       if (existingIndex >= 0) {
-        // Replace existing candle with same timestamp
         currentCandles[existingIndex] = candle;
       } else {
         currentCandles.add(candle);

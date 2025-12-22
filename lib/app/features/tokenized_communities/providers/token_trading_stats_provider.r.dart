@@ -23,7 +23,6 @@ Stream<Map<String, TradingStats>> tokenTradingStats(
 
   try {
     await for (final statsMap in subscription.stream) {
-      // Update state: merge new stats into current
       currentStats.addAll(statsMap);
 
       yield currentStats;
