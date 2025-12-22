@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_cache_save_mixin.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -31,14 +32,17 @@ class CacheEntry {
 }
 
 @Riverpod(keepAlive: true)
-class IonConnectCache extends _$IonConnectCache {
+class IonConnectCache extends _$IonConnectCache with IonConnectCacheSaveMixin {
   @override
   Map<String, CacheEntry> build() {
+    ref.onDispose(disposeSaveQueue);
     onLogout(ref, () {
       state = {};
+      disposeSaveQueue();
     });
     onUserSwitch(ref, () {
       state = {};
+      disposeSaveQueue();
     });
     return {};
   }
@@ -56,9 +60,7 @@ class IonConnectCache extends _$IonConnectCache {
     }
 
     if (entity is DbCacheableEntity) {
-      return ref
-          .read(ionConnectDatabaseCacheProvider.notifier)
-          .saveEntity(entity as DbCacheableEntity);
+      return saveEntity(entity as DbCacheableEntity, ref);
     }
   }
 

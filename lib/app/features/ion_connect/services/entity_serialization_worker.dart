@@ -22,7 +22,7 @@ Future<IonConnectCacheServiceEntity> serializeEntityFn(
 Future<List<IonConnectCacheServiceEntity>> serializeEntitiesFn(
   List<DbCacheableEntity> entities,
 ) async {
-  const results = <IonConnectCacheServiceEntity>[];
+  final results = <IonConnectCacheServiceEntity>[];
 
   for (final entity in entities) {
     final cacheKey = entity.toEventReference().toString();
