@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -32,9 +33,27 @@ class Chart extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedRange = useState(ChartTimeRange.m15);
 
+    final pubkey = useMemoized(
+      () => CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress),
+      [externalAddress],
+    );
+
+    if (pubkey == null) {
+      return _ChartContent(
+        price: price,
+        label: label,
+        changePercent: 0,
+        candles: _buildFlatCandles(price),
+        isLoading: false,
+        selectedRange: selectedRange.value,
+        onRangeChanged: (range) => selectedRange.value = range,
+        onTitleVisibilityChanged: onTitleVisibilityChanged,
+      );
+    }
+
     final candlesAsync = ref.watch(
       tokenOhlcvCandlesProvider(
-        externalAddress,
+        pubkey,
         selectedRange.value.intervalString,
       ),
     );

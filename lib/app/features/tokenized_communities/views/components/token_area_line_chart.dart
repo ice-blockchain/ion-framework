@@ -18,6 +18,18 @@ class TokenAreaLineChart extends StatelessWidget {
   final List<ChartCandle> candles;
   final bool isLoading;
 
+  // Calculates Y-axis padding for chart visualization.
+  // Returns 10% of the range if values differ, or 5% of the minimum value
+  // (with a minimum of 0.0001) when all values are identical to prevent flat lines.
+  static double _calculateYPadding(double minY, double maxY) {
+    final range = maxY - minY;
+    if (range > 0) {
+      return range * 0.1;
+    }
+    // Minimum 5% padding when all values are identical
+    return (minY * 0.05).clamp(0.0001, double.infinity);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
@@ -30,7 +42,7 @@ class TokenAreaLineChart extends StatelessWidget {
     final minY = candles.map((c) => c.close).reduce(math.min);
     final maxY = candles.map((c) => c.close).reduce(math.max);
 
-    final yPadding = (maxY - minY) * 0.1;
+    final yPadding = _calculateYPadding(minY, maxY);
     final chartMinY = minY - yPadding;
     final chartMaxY = maxY + yPadding;
 

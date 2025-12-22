@@ -19,6 +19,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_latest_tr
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/trading_stats_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
@@ -336,7 +337,13 @@ class _TokenStats extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTimeframe = useState(0);
-    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(externalAddress));
+    final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
+
+    if (pubkey == null) {
+      return const SizedBox.shrink();
+    }
+
+    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(pubkey));
 
     return tradingStatsAsync.when(
       data: (tradingStats) {
@@ -370,9 +377,7 @@ class _TokenStats extends HookConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (error, stackTrace) {
-        return const SizedBox.shrink();
-      },
+      error: (error, stackTrace) => const SizedBox.shrink(),
     );
   }
 }

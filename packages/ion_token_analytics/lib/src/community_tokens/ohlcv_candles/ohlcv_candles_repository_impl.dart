@@ -18,10 +18,17 @@ class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
       '/v1sse/community-tokens/$ionConnectAddress/ohlcv',
       queryParameters: {'interval': interval},
     );
-    final stream = subscription.stream.map((json) {
-      final data = OhlcvCandle.fromJson(json);
-      return data;
-    });
+    final stream = subscription.stream
+        .map((json) {
+          try {
+            return OhlcvCandle.fromJson(json);
+          } catch (e) {
+            // Skip invalid candle data
+            return null;
+          }
+        })
+        .where((candle) => candle != null)
+        .cast<OhlcvCandle>();
 
     return NetworkSubscription(stream: stream, close: subscription.close);
   }
