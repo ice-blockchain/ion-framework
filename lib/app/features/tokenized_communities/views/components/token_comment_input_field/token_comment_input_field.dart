@@ -51,10 +51,13 @@ class TokenCommentInputField extends HookConsumerWidget {
     final attachedMediaLinksNotifier = useState<Map<String, MediaAttachment>>({});
     final scrollController = useScrollController();
 
-    useEffect(() {
-      onFocusChanged?.call(hasFocus.value);
-      return null;
-    }, [hasFocus.value],);
+    useEffect(
+      () {
+        onFocusChanged?.call(hasFocus.value);
+        return null;
+      },
+      [hasFocus.value],
+    );
 
     return ScreenSideOffset.small(
       child: Column(
@@ -107,21 +110,15 @@ class TokenCommentInputField extends HookConsumerWidget {
                             maxHeight: 68.0.s,
                             minHeight: 36.0.s,
                           ),
-                          child: Row(
-                            children: [
-                              Flexible(
-                                child: TextFieldTapRegion(
-                                  child: TextEditor(
-                                    textEditorController,
-                                    focusNode: focusNode,
-                                    autoFocus: false,
-                                    placeholder: context.i18n.feed_write_comment,
-                                    key: textEditorKey,
-                                    scrollable: true,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          child: TextFieldTapRegion(
+                            child: TextEditor(
+                              textEditorController,
+                              focusNode: focusNode,
+                              autoFocus: false,
+                              placeholder: context.i18n.feed_write_comment,
+                              key: textEditorKey,
+                              scrollable: true,
+                            ),
                           ),
                         ),
                       ],

@@ -15,6 +15,7 @@ import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/can_reply_notifier.r.dart';
+import 'package:ion/app/features/feed/providers/counters/replies_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -53,7 +54,8 @@ class CommentsSectionCompact extends HookConsumerWidget {
     final hasData = comments?.data is PagedData;
     final isInitialLoad = entities == null && !hasData;
 
-    // Filter out deleted, muted, and blocked entities for count and display
+    // Filter out deleted, muted, and blocked entities for display only
+    // Note: Count uses repliesCountProvider which provides the total count
     final visibleEntities = useMemoized(
       () {
         if (entities == null) return null;
@@ -80,60 +82,63 @@ class CommentsSectionCompact extends HookConsumerWidget {
       [entities],
     );
 
-    final commentCount = visibleEntities?.length ?? 0;
+    final repliesCount = ref.watch(repliesCountProvider(tokenDefinitionEventReference!));
     final hasMore = comments?.hasMore ?? false;
     final canReply =
         ref.watch(canReplyProvider(tokenDefinitionEventReference!)).valueOrNull ?? false;
     final isLoadingMore = useRef(false);
 
     // Use Scrollable.of to access parent scroll controller
-    useEffect(() {
-      if (!hasMore) return null;
+    useEffect(
+      () {
+        if (!hasMore) return null;
 
-      VoidCallback? removeListener;
+        VoidCallback? removeListener;
 
-      // Try to find the scrollable ancestor
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final scrollable = Scrollable.maybeOf(context);
-        if (scrollable == null) return;
+        // Try to find the scrollable ancestor
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final scrollable = Scrollable.maybeOf(context);
+          if (scrollable == null) return;
 
-        final scrollPosition = scrollable.position;
-        if (!scrollPosition.hasContentDimensions) return;
+          final scrollPosition = scrollable.position;
+          if (!scrollPosition.hasContentDimensions) return;
 
-        void checkScrollPosition() {
-          if (!hasMore || isLoadingMore.value || isLoading) return;
+          void checkScrollPosition() {
+            if (!hasMore || isLoadingMore.value || isLoading) return;
 
-          final distanceToBottom = scrollPosition.maxScrollExtent - scrollPosition.pixels;
-          const loadMoreOffset = 200.0;
+            final distanceToBottom = scrollPosition.maxScrollExtent - scrollPosition.pixels;
+            const loadMoreOffset = 200.0;
 
-          if (distanceToBottom <= loadMoreOffset && !isLoadingMore.value) {
-            isLoadingMore.value = true;
-            ref
-                .read(tokenCommentsProvider(tokenDefinitionEventReference!).notifier)
-                .loadMore(tokenDefinitionEventReference!)
-                .whenComplete(() {
-              isLoadingMore.value = false;
-            });
+            if (distanceToBottom <= loadMoreOffset && !isLoadingMore.value) {
+              isLoadingMore.value = true;
+              ref
+                  .read(tokenCommentsProvider(tokenDefinitionEventReference!).notifier)
+                  .loadMore(tokenDefinitionEventReference!)
+                  .whenComplete(() {
+                isLoadingMore.value = false;
+              });
+            }
           }
-        }
 
-        scrollPosition.addListener(checkScrollPosition);
-        removeListener = () {
-          scrollPosition.removeListener(checkScrollPosition);
+          scrollPosition.addListener(checkScrollPosition);
+          removeListener = () {
+            scrollPosition.removeListener(checkScrollPosition);
+          };
+        });
+
+        return () {
+          removeListener?.call();
         };
-      });
-
-      return () {
-        removeListener?.call();
-      };
-    }, [hasMore, isLoading, tokenDefinitionEventReference],);
+      },
+      [hasMore, isLoading, tokenDefinitionEventReference],
+    );
 
     final titleRow = Row(
       children: [
         Assets.svg.iconBlockComment.icon(size: 18.0.s, color: colors.onTertiaryBackground),
         SizedBox(width: 6.0.s),
         Text(
-          '${i18n.common_comments} ($commentCount)',
+          '${i18n.common_comments} ($repliesCount)',
           style: texts.subtitle3.copyWith(color: colors.onTertiaryBackground),
         ),
       ],
@@ -166,7 +171,6 @@ class CommentsSectionCompact extends HookConsumerWidget {
                     )
                   else
                     titleRow,
-                  // SizedBox(height: 12.0.s),
                 ],
               ),
             ),
@@ -186,7 +190,7 @@ class CommentsSectionCompact extends HookConsumerWidget {
                           inputContext,
                           duration: const Duration(milliseconds: 200),
                           curve: Curves.easeOut,
-                          alignment: 0.1,
+                          alignment: 0.4,
                         );
                       }
                     });
@@ -200,18 +204,18 @@ class CommentsSectionCompact extends HookConsumerWidget {
                 child: const _CommentsSkeleton(),
               )
             else if (hasData)
-              Column(
-                children: [
-                  if (visibleEntities == null || visibleEntities.isEmpty)
-                    const _EmptyState()
-                  else
-                    ...visibleEntities.map(
-                      (entity) => _CommentItem(
-                        eventReference: entity.toEventReference(),
-                      ),
+              visibleEntities == null || visibleEntities.isEmpty
+                  ? const _EmptyState()
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: visibleEntities.length,
+                      itemBuilder: (context, index) {
+                        return _CommentItem(
+                          eventReference: visibleEntities[index].toEventReference(),
+                        );
+                      },
                     ),
-                ],
-              ),
           ],
         ),
       ),
@@ -262,13 +266,8 @@ class _CommentItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity = ref.watch(
-          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
-            final entity = value.valueOrNull;
-            return entity;
-          }),
-        ) ??
-        ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
+    final entity =
+        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
 
     if (entity == null ||
         ListEntityHelper.isUserMuted(ref, entity.masterPubkey, showMuted: false) ||

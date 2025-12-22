@@ -6,7 +6,9 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/paged.f.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/providers/replies_data_source_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
@@ -15,7 +17,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_subscription_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_comments_data_source_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -28,19 +29,18 @@ class TokenComments extends _$TokenComments {
   bool _pollsFetchScheduled = false;
   StreamSubscription<EventMessage>? _initialSubscription;
   bool _initialSubscriptionSetup = false;
-  EventReference? _tokenDefinitionEventReference;
 
   @override
   EntitiesPagedDataState? build(EventReference tokenDefinitionEventReference) {
-    _tokenDefinitionEventReference ??= tokenDefinitionEventReference;
     final dataSource = ref.watch(
-        tokenCommentsDataSourceProvider(
-          tokenDefinitionEventReference: tokenDefinitionEventReference,
-        ),
-      );
+      repliesDataSourceProvider(
+        eventReference: tokenDefinitionEventReference,
+      ),
+    );
     final entitiesPagedData = ref.watch(entitiesPagedDataProvider(dataSource));
 
-    // Listen to new replies from createPostNotifierStreamProvider
+    // Listen to new replies from createPostNotifierStreamProvider for immediate updates
+    // when user creates a comment (optimistic update)
     final subscription = ref
         .watch(createPostNotifierStreamProvider)
         .where((IonConnectEntity entity) => _isReply(entity, tokenDefinitionEventReference))
@@ -54,13 +54,21 @@ class TokenComments extends _$TokenComments {
       })
       ..listen<EntitiesPagedDataState?>(
         entitiesPagedDataProvider(dataSource),
-        (_, EntitiesPagedDataState? next) {
+        (EntitiesPagedDataState? previous, EntitiesPagedDataState? next) {
           if (next?.data is PagedData) {
             final pagedData = next!.data as PagedData;
             _queuePollFetch(pagedData.items as Set<IonConnectEntity>?);
             // Set up initial subscription after first fetch completes
-            if (!_initialSubscriptionSetup && pagedData.items != null && dataSource != null) {
-              _setupInitialSubscription(tokenDefinitionEventReference, dataSource);
+            // Check if we transitioned from loading to data (fetch completed)
+            final wasLoading = previous?.data is PagedLoading;
+            final isData = next.data is PagedData;
+            if (!_initialSubscriptionSetup &&
+                wasLoading &&
+                isData &&
+                pagedData.items != null &&
+                dataSource != null) {
+              final pagination = pagedData.pagination as Map<ActionSource, PaginationParams>;
+              _setupInitialSubscription(dataSource, pagination);
               _initialSubscriptionSetup = true;
             }
           }
@@ -72,20 +80,27 @@ class TokenComments extends _$TokenComments {
   }
 
   void _setupInitialSubscription(
-    EventReference tokenDefinitionEventReference,
     List<EntitiesDataSource> dataSource,
+    Map<ActionSource, PaginationParams> pagination,
   ) {
     if (dataSource.isEmpty) return;
 
     final firstDataSource = dataSource.first;
-    final requestMessage = RequestMessage()..addFilter(firstDataSource.requestFilter);
+    final paginationParams = pagination[firstDataSource.actionSource];
+    // Use the last event time as 'since' to only get new events, not re-fetch existing ones
+    final sinceTimestamp = paginationParams?.lastEventTime?.microsecondsSinceEpoch;
+
+    final requestFilter = firstDataSource.requestFilter.copyWith(
+      since: () => sinceTimestamp,
+    );
+    final requestMessage = RequestMessage()..addFilter(requestFilter);
 
     final eventsStream = ref.read(
-        ionConnectEventsSubscriptionProvider(
-          requestMessage,
-          actionSource: firstDataSource.actionSource,
-        ),
-      );
+      ionConnectEventsSubscriptionProvider(
+        requestMessage,
+        actionSource: firstDataSource.actionSource,
+      ),
+    );
 
     _initialSubscription = eventsStream.listen((EventMessage event) {
       try {
@@ -116,68 +131,28 @@ class TokenComments extends _$TokenComments {
   }
 
   void _handleReply(IonConnectEntity entity) {
-    final tokenDefinitionRef = _tokenDefinitionEventReference;
-    if (tokenDefinitionRef == null) return;
-
-    final dataSource = ref
-        .read(tokenCommentsDataSourceProvider(tokenDefinitionEventReference: tokenDefinitionRef));
-    if (dataSource == null) return;
-
-    final notifier = ref.read(entitiesPagedDataProvider(dataSource).notifier);
-
-    // For replaceable entities (ModifiablePostEntity), we need to handle replacement
-    if (entity is ModifiablePostEntity) {
-      final newEventRef = entity.toEventReference();
-      final currentItems = ref.read(entitiesPagedDataProvider(dataSource))?.data.items;
-
-      if (currentItems != null) {
-        // Convert to list to preserve order and find index
-        final itemsList = currentItems.toList();
-        int? oldEntityIndex;
-
-        // Find and remove old entity with the same ReplaceableEventReference
-        for (var i = 0; i < itemsList.length; i++) {
-          final existingEntity = itemsList[i];
-          if (existingEntity is ModifiablePostEntity) {
-            final existingEventRef = existingEntity.toEventReference();
-            // Compare replaceable event references (same kind, masterPubkey, and dTag)
-            if (existingEventRef.kind == newEventRef.kind &&
-                existingEventRef.masterPubkey == newEventRef.masterPubkey &&
-                existingEventRef.dTag == newEventRef.dTag) {
-              // Store the index before removing
-              oldEntityIndex = i;
-              // Remove the old entity
-              notifier.deleteEntity(existingEntity);
-              break;
-            }
-          }
-        }
-
-        if (entity.isDeleted) {
-          return;
-        }
-
-        // Insert at the same position if we found the old entity, otherwise at the end
-        final insertIndex = oldEntityIndex ?? itemsList.length;
-        notifier.insertEntity(entity, index: insertIndex);
-        return;
-      }
-
-      if (entity.isDeleted) {
-        return;
-      }
+    // Skip deleted entities - they will be handled by the cache and UI watching by EventReference
+    if (entity is ModifiablePostEntity && entity.isDeleted) {
+      return;
     }
 
-    // Insert the new/updated entity (for non-replaceable entities or if currentItems is null)
-    notifier.insertEntity(entity);
+    final dataSource =
+        ref.read(repliesDataSourceProvider(eventReference: tokenDefinitionEventReference));
+    if (dataSource == null) return;
+
+    // The cache automatically handles entity replacements, and the UI watches entities
+    // by EventReference, so it will always show the latest version from cache.
+    // We just need to insert the entity - if it's an update, the UI will show the
+    // updated version from cache when rendering.
+    ref.read(entitiesPagedDataProvider(dataSource).notifier).insertEntity(entity);
   }
 
   Future<void> loadMore(EventReference tokenDefinitionEventReference) async {
     final dataSource = ref.read(
-        tokenCommentsDataSourceProvider(
-          tokenDefinitionEventReference: tokenDefinitionEventReference,
-        ),
-      );
+      repliesDataSourceProvider(
+        eventReference: tokenDefinitionEventReference,
+      ),
+    );
     if (dataSource == null) return;
     await ref.read(entitiesPagedDataProvider(dataSource).notifier).fetchEntities();
   }
