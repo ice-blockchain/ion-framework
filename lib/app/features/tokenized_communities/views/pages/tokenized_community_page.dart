@@ -268,17 +268,19 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               //do not handle with current implementation
             },
           ),
-          SimpleSeparator(height: 4.0.s),
-          CommentsSectionCompact(
-            key: sectionKeys[TokenizedCommunityTabType.comments.index],
-            tokenDefinitionEventReference: tokenDefinition?.toEventReference(),
-            onTitleVisibilityChanged: (double visibility) {
-              //do not handle with current implementation
-            },
-            onCommentInputFocusChanged: (bool isFocused) {
-              isCommentInputFocused.value = isFocused;
-            },
-          ),
+          if (tokenDefinition != null) ...[
+            SimpleSeparator(height: 4.0.s),
+            CommentsSectionCompact(
+              key: sectionKeys[TokenizedCommunityTabType.comments.index],
+              tokenDefinitionEventReference: tokenDefinition.toEventReference(),
+              onTitleVisibilityChanged: (double visibility) {
+                //do not handle with current implementation
+              },
+              onCommentInputFocusChanged: (bool isFocused) {
+                isCommentInputFocused.value = isFocused;
+              },
+            ),
+          ],
           SizedBox(height: 120.0.s),
         ],
       ),

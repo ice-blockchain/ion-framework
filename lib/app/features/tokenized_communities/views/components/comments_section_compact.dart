@@ -19,7 +19,6 @@ import 'package:ion/app/features/feed/providers/counters/replies_count_provider.
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_comments_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_comment_input_field/token_comment_input_field.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -33,7 +32,7 @@ class CommentsSectionCompact extends HookConsumerWidget {
     super.key,
   });
 
-  final EventReference? tokenDefinitionEventReference;
+  final EventReference tokenDefinitionEventReference;
   final ValueChanged<double>? onTitleVisibilityChanged;
   final ValueChanged<bool>? onCommentInputFocusChanged;
 
@@ -44,48 +43,17 @@ class CommentsSectionCompact extends HookConsumerWidget {
     final i18n = context.i18n;
     final commentInputKey = useRef(GlobalKey());
 
-    if (tokenDefinitionEventReference == null) {
-      return const SizedBox.shrink();
-    }
-
-    final comments = ref.watch(tokenCommentsProvider(tokenDefinitionEventReference!));
+    final comments = ref.watch(tokenCommentsProvider(tokenDefinitionEventReference));
     final entities = comments?.data.items;
     final isLoading = comments?.data is PagedLoading;
     final hasData = comments?.data is PagedData;
     final isInitialLoad = entities == null && !hasData;
 
-    // Filter out deleted, muted, and blocked entities for display only
-    // Note: Count uses repliesCountProvider which provides the total count
-    final visibleEntities = useMemoized(
-      () {
-        if (entities == null) return null;
-        return entities.where((entity) {
-          // Check if entity is deleted
-          if (entity is SoftDeletableEntity && entity.isDeleted) {
-            return false;
-          }
-          // Check if user is muted
-          if (ListEntityHelper.isUserMuted(ref, entity.masterPubkey, showMuted: false)) {
-            return false;
-          }
-          // Check if user is blocked or blocking
-          if (ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity)) {
-            return false;
-          }
-          // Check if entity or reposted entity is deleted
-          if (ListEntityHelper.isEntityOrRepostedEntityDeleted(context, ref, entity)) {
-            return false;
-          }
-          return true;
-        }).toList();
-      },
-      [entities],
-    );
 
-    final repliesCount = ref.watch(repliesCountProvider(tokenDefinitionEventReference!));
+    final repliesCount = ref.watch(repliesCountProvider(tokenDefinitionEventReference, network: true),).valueOrNull;
     final hasMore = comments?.hasMore ?? false;
     final canReply =
-        ref.watch(canReplyProvider(tokenDefinitionEventReference!)).valueOrNull ?? false;
+        ref.watch(canReplyProvider(tokenDefinitionEventReference)).valueOrNull ?? false;
     final isLoadingMore = useRef(false);
 
     // Use Scrollable.of to access parent scroll controller
@@ -112,8 +80,8 @@ class CommentsSectionCompact extends HookConsumerWidget {
             if (distanceToBottom <= loadMoreOffset && !isLoadingMore.value) {
               isLoadingMore.value = true;
               ref
-                  .read(tokenCommentsProvider(tokenDefinitionEventReference!).notifier)
-                  .loadMore(tokenDefinitionEventReference!)
+                  .read(tokenCommentsProvider(tokenDefinitionEventReference).notifier)
+                  .loadMore(tokenDefinitionEventReference)
                   .whenComplete(() {
                 isLoadingMore.value = false;
               });
@@ -177,7 +145,7 @@ class CommentsSectionCompact extends HookConsumerWidget {
             if (canReply)
               TokenCommentInputField(
                 key: commentInputKey.value,
-                tokenDefinitionEventReference: tokenDefinitionEventReference!,
+                tokenDefinitionEventReference: tokenDefinitionEventReference,
                 onFocusChanged: (bool isFocused) {
                   onCommentInputFocusChanged?.call(isFocused);
                   if (isFocused) {
@@ -198,24 +166,24 @@ class CommentsSectionCompact extends HookConsumerWidget {
                 },
               ),
             // Comments list
-            if (isInitialLoad || (isLoading && !hasData))
+            if (isInitialLoad || (isLoading && entities == null))
               Padding(
                 padding: EdgeInsets.all(16.0.s),
                 child: const _CommentsSkeleton(),
               )
+            else if (entities != null && entities.isNotEmpty)
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: entities.length,
+                itemBuilder: (context, index) {
+                  return _CommentItem(
+                    eventReference: entities.elementAt(index).toEventReference(),
+                  );
+                },
+              )
             else if (hasData)
-              visibleEntities == null || visibleEntities.isEmpty
-                  ? const _EmptyState()
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: visibleEntities.length,
-                      itemBuilder: (context, index) {
-                        return _CommentItem(
-                          eventReference: visibleEntities[index].toEventReference(),
-                        );
-                      },
-                    ),
+              const _EmptyState(),
           ],
         ),
       ),
