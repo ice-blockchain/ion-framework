@@ -51,7 +51,7 @@ class _ScrollLinkTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = context.theme.appColors.primaryAccent;
+    final activeColor = context.theme.appColors.lightBlue;
     final inactiveColor = context.theme.appColors.tertiaryText;
 
     return InkWell(
