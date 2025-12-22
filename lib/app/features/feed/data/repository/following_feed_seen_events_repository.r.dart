@@ -55,13 +55,22 @@ class FollowingFeedSeenEventsRepository {
       _ => throw UnsupportedEntityType(entity),
     };
 
+    // In case of CommunityTokenDefinition and CommunityTokenAction, events belong to
+    // external users, so we're extracting the master pubkey from the events they are pointing to
+    final pubkey = switch (entity) {
+      CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data) =>
+        data.eventReference.masterPubkey,
+      CommunityTokenActionEntity() => entity.data.definitionReference.masterPubkey,
+      _ => entity.masterPubkey,
+    };
+
     return _seenEventsDao.insert(
       SeenEvent(
         eventReference: entity.toEventReference(),
         createdAt: entity.createdAt,
         feedType: feedType,
         feedModifier: feedModifier,
-        pubkey: entity.masterPubkey,
+        pubkey: pubkey,
         kind: kind,
       ),
     );
