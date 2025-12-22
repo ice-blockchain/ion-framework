@@ -187,7 +187,7 @@ Future<CommunityTokenDefinitionEntity?> cachedTokenDefinition(
 ///
 /// Use this to find the definition external address, if u don't know if
 /// this is an ion connect address or not - e.g. on the token details page.
-/// Works only for existing tokens.
+/// [IMPORTANT] Works only for existing tokens.
 @riverpod
 Future<CommunityTokenDefinitionEntity?> tokenDefinitionForExternalAddress(
   Ref ref, {
