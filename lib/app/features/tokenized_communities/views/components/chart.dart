@@ -64,7 +64,6 @@ class Chart extends HookConsumerWidget {
         );
       },
       error: (error, stackTrace) {
-        // On error, show empty state (flat blue line)
         return _ChartContent(
           price: price,
           label: label,
@@ -84,7 +83,7 @@ class Chart extends HookConsumerWidget {
           candles: demoCandles,
           isLoading: true,
           selectedRange: selectedRange.value,
-          onRangeChanged: null, // Disabled while loading
+          onRangeChanged: null,
           onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
@@ -439,7 +438,6 @@ List<ChartCandle> _generateDemoCandles() {
   return candles;
 }
 
-// Flat blue line for empty state (all candles at same price)
 List<ChartCandle> _buildFlatCandles(Decimal price) {
   final now = DateTime.now();
   const count = 20;
@@ -458,15 +456,12 @@ List<ChartCandle> _buildFlatCandles(Decimal price) {
   });
 }
 
-// Expands a single candle into a flat line for better visualization
-// Creates 2 candles at the same price, spanning the selected timeframe
 List<ChartCandle> _expandSingleCandleToFlatLine(ChartCandle candle, ChartTimeRange range) {
   final timeSpan = range.duration;
-  const count = 2; // Two points: start and end of timeframe for flat line
+  const count = 2;
   final price = candle.close;
 
   return List<ChartCandle>.generate(count, (index) {
-    // Distribute points across the time span, ending at candle's date
     final progress = index / (count - 1);
     final date = candle.date.subtract(timeSpan * (1 - progress));
 
@@ -481,7 +476,6 @@ List<ChartCandle> _expandSingleCandleToFlatLine(ChartCandle candle, ChartTimeRan
   });
 }
 
-// Maps OHLCV candles from analytics package to ChartCandle format
 List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
   final mapped = source
       .map(
@@ -492,7 +486,7 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
           close: candle.close,
           price: Decimal.parse(candle.close.toString()),
           date: DateTime.fromMillisecondsSinceEpoch(
-            candle.timestamp ~/ 1000, // timestamp is in microseconds
+            candle.timestamp ~/ 1000,
             isUtc: true,
           ),
         ),

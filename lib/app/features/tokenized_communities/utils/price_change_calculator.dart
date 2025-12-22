@@ -22,19 +22,12 @@ double calculatePriceChangePercent(
 ) {
   if (candles.isEmpty) return 0;
 
-  // Sort candles by timestamp (oldest first) to ensure correct order
   final sortedCandles = List<OhlcvCandle>.from(candles)
     ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
   final latestCandle = sortedCandles.last;
   final currentPrice = latestCandle.close;
-
-  // Calculate target timestamp (duration ago from latest candle)
-  // Note: candle.timestamp is in microseconds
   final targetTimestamp = latestCandle.timestamp - duration.inMicroseconds;
-
-  // Find the candle closest to (but not after) the target timestamp
-  // Search backwards from latest for efficiency
   OhlcvCandle? pastCandle;
   for (var i = sortedCandles.length - 1; i >= 0; i--) {
     if (sortedCandles[i].timestamp <= targetTimestamp) {
