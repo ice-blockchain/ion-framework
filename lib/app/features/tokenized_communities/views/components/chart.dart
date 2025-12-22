@@ -46,7 +46,11 @@ class Chart extends HookConsumerWidget {
       data: (candles) {
         final chartCandles = _mapOhlcvToChartCandles(candles);
         final isEmpty = chartCandles.isEmpty;
-        final candlesToShow = isEmpty ? _buildFlatCandles(price) : chartCandles;
+        final candlesToShow = isEmpty
+            ? _buildFlatCandles(price)
+            : chartCandles.length == 1
+                ? _expandSingleCandleToFlatLine(chartCandles.first, selectedRange.value)
+                : chartCandles;
         final displayChangePercent = isEmpty ? 0.0 : changePercent;
 
         return _ChartContent(
@@ -296,6 +300,16 @@ extension on ChartTimeRange {
       };
 
   String get intervalString => label;
+
+  Duration get duration => switch (this) {
+        ChartTimeRange.m1 => const Duration(minutes: 1),
+        ChartTimeRange.m3 => const Duration(minutes: 3),
+        ChartTimeRange.m5 => const Duration(minutes: 5),
+        ChartTimeRange.m15 => const Duration(minutes: 15),
+        ChartTimeRange.m30 => const Duration(minutes: 30),
+        ChartTimeRange.h1 => const Duration(hours: 1),
+        ChartTimeRange.d1 => const Duration(days: 1),
+      };
 }
 
 class _RangeSelector extends StatelessWidget {
@@ -440,6 +454,29 @@ List<ChartCandle> _buildFlatCandles(Decimal price) {
       low: value,
       close: value,
       price: price,
+      date: date,
+    );
+  });
+}
+
+// Expands a single candle into a flat line for better visualization
+// Creates 2 candles at the same price, spanning the selected timeframe
+List<ChartCandle> _expandSingleCandleToFlatLine(ChartCandle candle, ChartTimeRange range) {
+  final timeSpan = range.duration;
+  const count = 2; // Two points: start and end of timeframe for flat line
+  final price = candle.close;
+
+  return List<ChartCandle>.generate(count, (index) {
+    // Distribute points across the time span, ending at candle's date
+    final progress = index / (count - 1);
+    final date = candle.date.subtract(timeSpan * (1 - progress));
+
+    return ChartCandle(
+      open: price,
+      high: price,
+      low: price,
+      close: price,
+      price: Decimal.parse(price.toStringAsFixed(4)),
       date: date,
     );
   });
