@@ -34,7 +34,7 @@ class RepliesCounterButton extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final repliesCount = ref.watch(repliesCountProvider(eventReference));
+    final repliesCount = ref.watch(repliesCountProvider(eventReference)).valueOrNull ?? 0;
     final isReplied = ref.watch(isRepliedProvider(eventReference));
     final canReply = ref.watch(canReplyProvider(eventReference)).valueOrNull ?? true;
     final isLoading = useRef(false);
