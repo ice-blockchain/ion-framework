@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/price_change_calculator.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -39,9 +40,6 @@ class Chart extends HookConsumerWidget {
       ),
     );
 
-    // TODO: Calculate changePercent from candles instead of hardcoded value.
-    const changePercent = 145.84;
-
     return candlesAsync.when(
       data: (candles) {
         final chartCandles = _mapOhlcvToChartCandles(candles);
@@ -51,12 +49,13 @@ class Chart extends HookConsumerWidget {
             : chartCandles.length == 1
                 ? _expandSingleCandleToFlatLine(chartCandles.first, selectedRange.value)
                 : chartCandles;
-        final displayChangePercent = isEmpty ? 0.0 : changePercent;
+        final changePercent =
+            isEmpty ? 0.0 : calculatePriceChangePercent(candles, selectedRange.value.duration);
 
         return _ChartContent(
           price: price,
           label: label,
-          changePercent: displayChangePercent,
+          changePercent: changePercent,
           candles: candlesToShow,
           isLoading: false,
           selectedRange: selectedRange.value,
