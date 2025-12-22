@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
+import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
@@ -26,6 +27,7 @@ class CollapsingHeaderLayout extends HookWidget {
     this.backgroundColor,
     this.applySafeAreaBottomPadding = true,
     this.onBackButtonPressed,
+    this.onRefresh,
     super.key,
   });
 
@@ -40,8 +42,57 @@ class CollapsingHeaderLayout extends HookWidget {
   final bool applySafeAreaBottomPadding;
   final VoidCallback? onBackButtonPressed;
   final Widget floatingActionButton;
+  final Future<void> Function()? onRefresh;
 
   double get paddingTop => 60.0.s;
+
+  Widget _buildScrollView({
+    required ScrollController scrollController,
+    required AvatarColors? imageColors,
+    required Widget child,
+  }) {
+    final headerSliver = SliverToBoxAdapter(
+      child: Stack(
+        children: [
+          if (newUiMode)
+            Positioned.fill(
+              child: ProfileBackground(
+                colors: imageColors,
+              ),
+            ),
+          expandedHeader,
+        ],
+      ),
+    );
+
+    if (onRefresh != null) {
+      return NestedScrollView(
+        controller: scrollController,
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          headerSliver,
+          const SliverToBoxAdapter(child: SectionSeparator()),
+        ],
+        body: PullToRefreshBuilder(
+          onRefresh: onRefresh!,
+          builder: (context, slivers) => CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: slivers,
+          ),
+          slivers: [SliverToBoxAdapter(child: child)],
+        ),
+      );
+    }
+
+    return CustomScrollView(
+      physics: const ClampingScrollPhysics(),
+      controller: scrollController,
+      slivers: [
+        headerSliver,
+        const SliverToBoxAdapter(child: SectionSeparator()),
+        SliverToBoxAdapter(child: child),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,26 +136,10 @@ class CollapsingHeaderLayout extends HookWidget {
                 },
                 child: ColoredBox(
                   color: backgroundColor,
-                  child: CustomScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    controller: scrollController,
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Stack(
-                          children: [
-                            if (newUiMode)
-                              Positioned.fill(
-                                child: ProfileBackground(
-                                  colors: imageColors,
-                                ),
-                              ),
-                            expandedHeader,
-                          ],
-                        ),
-                      ),
-                      const SliverToBoxAdapter(child: SectionSeparator()),
-                      SliverToBoxAdapter(child: child),
-                    ],
+                  child: _buildScrollView(
+                    scrollController: scrollController,
+                    imageColors: imageColors,
+                    child: child,
                   ),
                 ),
               ),

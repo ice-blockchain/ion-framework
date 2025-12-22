@@ -15,6 +15,7 @@ import 'package:ion/app/features/feed/views/components/community_token_live/comp
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
@@ -27,6 +28,7 @@ import 'package:ion/app/features/tokenized_communities/views/components/communit
 import 'package:ion/app/features/tokenized_communities/views/components/floating_trade_island.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/your_position_card.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/top_holders.dart';
+import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_card.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -107,6 +109,15 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       backgroundColor: context.theme.appColors.secondaryBackground,
       applySafeAreaBottomPadding: false,
       imageUrl: tokenInfo?.imageUrl,
+      onRefresh: () async {
+        final externalAddress = this.externalAddress ?? eventReference!.toString();
+
+        ref
+          ..invalidate(tokenMarketInfoProvider(externalAddress))
+          ..invalidate(tokenTradingStatsProvider(externalAddress))
+          ..invalidate(tokenLatestTradesProvider(externalAddress, limit: LatestTradesCard.limit))
+          ..invalidate(tokenTopHoldersProvider(externalAddress, limit: holdersCountLimit));
+      },
       collapsedHeaderBuilder: (opacity) => SizedBox(
         height: 36.s,
         child: Row(
