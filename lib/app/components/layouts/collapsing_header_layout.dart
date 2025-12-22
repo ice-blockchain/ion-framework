@@ -65,6 +65,7 @@ class CollapsingHeaderLayout extends HookWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: ScrollToTopWrapper(
         scrollController: scrollController,
         child: Stack(
