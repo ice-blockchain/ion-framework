@@ -19,6 +19,47 @@ class ProfileBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final targetColors = colors ?? useAvatarFallbackColors;
 
+    final isDark = useMemoized(
+      () => isColorDark(targetColors.first),
+      [targetColors.first],
+    );
+
+    if (isDark) {
+      return StatusBarColorWrapper.light(
+        child: ProfileGradientBackground(
+          colors: targetColors,
+          disableDarkGradient: disableDarkGradient,
+          child: child,
+        ),
+      );
+    } else {
+      return StatusBarColorWrapper.dark(
+        child: ProfileGradientBackground(
+          colors: targetColors,
+          disableDarkGradient: disableDarkGradient,
+          child: child,
+        ),
+      );
+    }
+  }
+}
+
+class ProfileGradientBackground extends StatelessWidget {
+  const ProfileGradientBackground({
+    required this.colors,
+    required this.disableDarkGradient,
+    this.translateY,
+    super.key,
+    this.child,
+  });
+
+  final AvatarColors colors;
+  final bool disableDarkGradient;
+  final double? translateY;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
     return TweenAnimationBuilder<AvatarColors>(
       duration: const Duration(milliseconds: 500),
       tween: _AvatarColorsTween(
@@ -26,6 +67,7 @@ class ProfileBackground extends StatelessWidget {
         end: targetColors,
       ),
       builder: (context, animatedColors, child) {
+        final gradientTransform = translateY == null ? null : _GradientTranslate(translateY!);
         return Stack(
           children: [
             Positioned.fill(
@@ -34,6 +76,7 @@ class ProfileBackground extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [animatedColors.first, animatedColors.second],
                     stops: const [0.0, 1.0],
+                    transform: gradientTransform,
                   ),
                 ),
               ),
@@ -52,6 +95,7 @@ class ProfileBackground extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       stops: const [0.0, 0.4, 1.0],
+                      transform: gradientTransform,
                     ),
                   ),
                 ),
@@ -62,6 +106,17 @@ class ProfileBackground extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _GradientTranslate extends GradientTransform {
+  const _GradientTranslate(this.translateY);
+
+  final double translateY;
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(0, translateY, 0);
   }
 }
 
