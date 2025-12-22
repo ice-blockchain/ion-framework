@@ -174,6 +174,12 @@ class _TradeRow extends StatelessWidget {
     final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
     final badgeText = trade.position.type == TradeType.buy ? i18n.trade_buy : i18n.trade_sell;
 
+    final holderAddress =
+        trade.position.holder.addresses?.ionConnect ?? trade.position.addresses.ionConnect;
+    final creatorAddress = trade.creator.addresses?.ionConnect;
+    final isCreator =
+        creatorAddress != null && holderAddress != null && holderAddress == creatorAddress;
+
     final textStyle = texts.caption6.copyWith(color: colors.secondaryBackground);
 
     final badge = Container(
@@ -196,18 +202,24 @@ class _TradeRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              HolderAvatar(imageUrl: trade.position.holder.avatar),
-              SizedBox(width: 8.0.s),
-              _TitleAndMeta(
-                name: trade.position.holder.display,
-                handle: trade.position.holder.name,
-                verified: trade.position.holder.verified,
-                meta: '$amountText • \$$usdText • $timeText',
-              ),
-            ],
+          Expanded(
+            child: Row(
+              children: [
+                HolderAvatar(imageUrl: trade.position.holder.avatar),
+                SizedBox(width: 8.0.s),
+                Expanded(
+                  child: _TitleAndMeta(
+                    name: trade.position.holder.display,
+                    handle: trade.position.holder.name,
+                    verified: trade.position.holder.verified,
+                    isCreator: isCreator,
+                    meta: '$amountText • \$$usdText • $timeText',
+                  ),
+                ),
+              ],
+            ),
           ),
+          SizedBox(width: 8.0.s),
           badge,
         ],
       ),
@@ -221,12 +233,14 @@ class _TitleAndMeta extends StatelessWidget {
     required this.handle,
     required this.meta,
     this.verified = false,
+    this.isCreator = false,
   });
 
   final String name;
   final String handle;
   final String meta;
   final bool verified;
+  final bool isCreator;
 
   @override
   Widget build(BuildContext context) {
@@ -237,18 +251,44 @@ class _TitleAndMeta extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(name, style: texts.subtitle3.copyWith(color: colors.primaryText)),
+            Flexible(
+              child: Text(
+                name,
+                style: texts.subtitle3.copyWith(color: colors.primaryText),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+              ),
+            ),
             if (handle.isNotEmpty) ...[
               SizedBox(width: 4.0.s),
-              Text(handle, style: texts.caption2.copyWith(color: colors.quaternaryText)),
+              Flexible(
+                child: Text(
+                  handle,
+                  style: texts.caption2.copyWith(color: colors.quaternaryText),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
+              ),
             ],
             if (verified) ...[
               SizedBox(width: 4.0.s),
               Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
             ],
+            if (isCreator) ...[
+              SizedBox(width: 4.0.s),
+              Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
+            ],
           ],
         ),
-        Text(meta, style: texts.caption.copyWith(color: colors.quaternaryText)),
+        Text(
+          meta,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+          style: texts.caption.copyWith(color: colors.quaternaryText),
+        ),
       ],
     );
   }

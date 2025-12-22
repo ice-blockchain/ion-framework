@@ -100,3 +100,41 @@ String getNumericSign(num value) {
     return '-';
   }
 }
+
+String formatSupplySharePercent(double value, {int decimals = 2}) {
+// We want *truncation* (never rounding up) to avoid values like 99.9999 -> 100.00.
+// Also ensure very small positive values show at least 0.01%.
+  if (!value.isFinite || value <= 0) {
+    return '0.${'0' * decimals}';
+  }
+
+  const maxPercent = 100.0;
+  final factor = pow10(decimals);
+
+// Cap at 100.00% (in case of tiny floating overshoots).
+  if (value >= maxPercent) {
+    return formatScaledInt((maxPercent * factor).round(), factor, decimals);
+  }
+
+// Truncate instead of round.
+  final scaled = (value * factor + 1e-9).floor();
+
+// Ensure a minimum display of 0.01% for any positive value that would truncate to 0.00.
+  final safeScaled = scaled == 0 ? 1 : scaled;
+
+  return formatScaledInt(safeScaled, factor, decimals);
+}
+
+int pow10(int n) {
+  var result = 1;
+  for (var i = 0; i < n; i++) {
+    result *= 10;
+  }
+  return result;
+}
+
+String formatScaledInt(int scaled, int factor, int decimals) {
+  final whole = scaled ~/ factor;
+  final frac = scaled % factor;
+  return '$whole.${frac.toString().padLeft(decimals, '0')}';
+}

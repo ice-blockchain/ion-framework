@@ -27,7 +27,20 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
         return [];
       }
 
-      return response.map((e) => LatestTrade.fromJson(e as Map<String, dynamic>)).toList();
+      final result = <LatestTrade>[];
+
+      for (var i = 0; i < response.length; i++) {
+        final entity = response[i];
+        if (entity is! Map<String, dynamic>) {
+          continue;
+        }
+
+        try {
+          result.add(LatestTrade.fromJson(entity));
+        } catch (_) {}
+      }
+
+      return result;
     } catch (e) {
       return [];
     }
