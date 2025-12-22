@@ -79,8 +79,8 @@ class ProfileTokenHeader extends StatelessWidget {
     return Column(
       children: [
         TokenAvatar(
-          imageSize: Size.square(88.s),
-          containerSize: Size.square(96.s),
+          imageSize: const Size.square(88),
+          containerSize: const Size.square(96),
           outerBorderRadius: 20.0.s,
           innerBorderRadius: 16.0.s,
           imageUrl: token.imageUrl,

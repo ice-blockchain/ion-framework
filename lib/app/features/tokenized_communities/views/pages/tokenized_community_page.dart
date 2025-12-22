@@ -151,18 +151,20 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
         IconButton(
+          padding: EdgeInsets.zero,
           onPressed: () {
             //TODO (ice-kreios): navigate to bookmarks page
           },
           icon: Assets.svg.iconBookmarks.icon(
-            size: 24.0.s,
+            size: 24.s,
             color: context.theme.appColors.onPrimaryAccent,
           ),
         ),
         IconButton(
+          padding: EdgeInsets.zero,
           onPressed: () {},
           icon: Assets.svg.iconMoreStoriesshadow.icon(
-            size: 24.0.s,
+            size: 24.s,
             color: context.theme.appColors.onPrimaryAccent,
           ),
         ),
