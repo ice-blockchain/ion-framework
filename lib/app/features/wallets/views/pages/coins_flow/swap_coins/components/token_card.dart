@@ -34,6 +34,7 @@ class TokenCard extends HookConsumerWidget {
     this.skipValidation = false,
     super.key,
     this.isInsufficientFundsError = false,
+    this.skipAmountFormatting = false,
   });
 
   final CoinSwapType type;
@@ -48,6 +49,7 @@ class TokenCard extends HookConsumerWidget {
   final bool showArrow;
   final bool skipValidation;
   final bool isInsufficientFundsError;
+  final bool skipAmountFormatting;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
     final coin = coinsGroup?.coins.firstWhereOrNull(
@@ -85,6 +87,8 @@ class TokenCard extends HookConsumerWidget {
     useEffect(
       () {
         void formatAmount() {
+          if (skipAmountFormatting) return;
+
           if (!focusNode.hasFocus && !(isReadOnly ?? false)) {
             // Format to 2 decimal places when focus is lost
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -108,7 +112,7 @@ class TokenCard extends HookConsumerWidget {
         focusNode.addListener(formatAmount);
         return () => focusNode.removeListener(formatAmount);
       },
-      [focusNode, controller, isReadOnly],
+      [focusNode, controller, isReadOnly, skipAmountFormatting],
     );
 
     return Container(
