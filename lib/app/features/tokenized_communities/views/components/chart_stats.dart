@@ -183,9 +183,13 @@ class _KpiColumn extends StatelessWidget {
             style: texts.caption2.copyWith(color: colors.quaternaryText),
           ),
           SizedBox(height: 4.0.s),
-          Text(
-            value,
-            style: texts.body.copyWith(color: valueColor),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: texts.body.copyWith(color: valueColor),
+              maxLines: 1,
+            ),
           ),
         ],
       ),
