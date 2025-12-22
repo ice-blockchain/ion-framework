@@ -210,7 +210,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   ) async {
     final state = ref.read(tradeCommunityTokenControllerProvider(params));
 
-    if (state.targetWallet == null || state.selectedPaymentToken == null) {
+    if (state.targetWallet == null || state.selectedPaymentToken == null || state.amount <= 0) {
       return;
     }
 
