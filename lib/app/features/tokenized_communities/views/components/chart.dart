@@ -438,6 +438,7 @@ List<ChartCandle> _generateDemoCandles() {
   return candles;
 }
 
+// Flat blue line for empty state (all candles at same price)
 List<ChartCandle> _buildFlatCandles(Decimal price) {
   final now = DateTime.now();
   const count = 20;
@@ -456,6 +457,7 @@ List<ChartCandle> _buildFlatCandles(Decimal price) {
   });
 }
 
+// Expands a single candle into a flat line for better visualization
 List<ChartCandle> _expandSingleCandleToFlatLine(ChartCandle candle, ChartTimeRange range) {
   final timeSpan = range.duration;
   const count = 2;
@@ -476,6 +478,7 @@ List<ChartCandle> _expandSingleCandleToFlatLine(ChartCandle candle, ChartTimeRan
   });
 }
 
+// Maps OHLCV candles from analytics package to ChartCandle format
 List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
   final mapped = source
       .map(
@@ -486,7 +489,7 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
           close: candle.close,
           price: Decimal.parse(candle.close.toString()),
           date: DateTime.fromMillisecondsSinceEpoch(
-            candle.timestamp ~/ 1000,
+            candle.timestamp ~/ 1000, // timestamp is in microseconds
             isUtc: true,
           ),
         ),
