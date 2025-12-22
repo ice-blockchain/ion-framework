@@ -186,6 +186,10 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     _scheduleQuoteUpdates();
   }
 
+  void setShouldSendEvents({required bool send}) {
+    state = state.copyWith(shouldSendEvents: send);
+  }
+
   void _resetTradeFormOnModeChange() {
     _quoteController.cancel();
     state = state.copyWith(

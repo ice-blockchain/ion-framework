@@ -33,27 +33,32 @@ class PostTokenButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ownerHasBscWallet = ref
-        .watch(
-          userMetadataProvider(eventReference.masterPubkey)
-              .select((e) => e.valueOrNull?.hasBscWallet),
-        )
-        .falseOrValue;
-
-    final hasTokenDefinition = ref
-        .watch(ionConnectEntityHasTokenDefinitionProvider(eventReference: eventReference))
-        .valueOrNull
-        .falseOrValue;
-
-    final isTokenCreationAvailable = ownerHasBscWallet && hasTokenDefinition;
-
     final entity =
         ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
 
+    if (entity == null) {
+      return _TokenButtonPlaceholder(padding: padding);
+    }
+    return switch (entity) {
+      CommunityTokenDefinitionEntity() => _TokenDefinitionButton(entity: entity, padding: padding),
+      CommunityTokenActionEntity() => _TokenActionButton(entity: entity, padding: padding),
+      _ => _ContentEntityButton(entity: entity, padding: padding),
+    };
+  }
+}
+
+class _TokenAvailability extends StatelessWidget {
+  const _TokenAvailability({required this.available, required this.child});
+
+  final bool available;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      behavior:
-          isTokenCreationAvailable ? HitTestBehavior.deferToChild : HitTestBehavior.translucent,
-      onTap: isTokenCreationAvailable
+      behavior: available ? HitTestBehavior.deferToChild : HitTestBehavior.translucent,
+      onTap: available
           ? null
           : () {
               showSimpleBottomSheet<void>(
@@ -62,24 +67,10 @@ class PostTokenButton extends ConsumerWidget {
               );
             },
       child: IgnorePointer(
-        ignoring: !isTokenCreationAvailable,
+        ignoring: !available,
         child: Opacity(
-          opacity: isTokenCreationAvailable ? 1.0 : 0.5,
-          child: Builder(
-            builder: (context) {
-              if (entity == null) {
-                return _TokenButtonPlaceholder(padding: padding);
-              }
-
-              return switch (entity) {
-                CommunityTokenDefinitionEntity() =>
-                  _TokenDefinitionButton(entity: entity, padding: padding),
-                CommunityTokenActionEntity() =>
-                  _TokenActionButton(entity: entity, padding: padding),
-                _ => _ContentEntityButton(entity: entity, padding: padding),
-              };
-            },
-          ),
+          opacity: available ? 1.0 : 0.5,
+          child: child,
         ),
       ),
     );
@@ -141,30 +132,45 @@ class _ContentEntityButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventReference = entity.toEventReference();
+    final ownerHasBscWallet = ref
+        .watch(
+          userMetadataProvider(eventReference.masterPubkey)
+              .select((e) => e.valueOrNull?.hasBscWallet),
+        )
+        .falseOrValue;
+    final hasTokenDefinition = ref
+        .watch(ionConnectEntityHasTokenDefinitionProvider(eventReference: eventReference))
+        .valueOrNull
+        .falseOrValue;
     final hasToken = ref
         .watch(ionConnectEntityHasTokenProvider(eventReference: eventReference))
         .valueOrNull
         .falseOrValue;
 
+    final isTokenCreationAvailable = ownerHasBscWallet && hasTokenDefinition;
+
     final externalAddressType = entity.externalAddressType;
 
-    return _TokenButton(
-      padding: padding,
-      child:
-          hasToken ? _MarketCap(externalAddress: eventReference.toString()) : const _RocketIcon(),
-      onTap: () {
-        if (hasToken) {
-          TokenizedCommunityRoute(
-            externalAddress: eventReference.toString(),
-            externalAddressType: externalAddressType?.prefix ?? '',
-          ).push<void>(context);
-        } else if (externalAddressType != null) {
-          TradeCommunityTokenRoute(
-            externalAddress: eventReference.toString(),
-            externalAddressType: externalAddressType.prefix,
-          ).push<void>(context);
-        }
-      },
+    return _TokenAvailability(
+      available: isTokenCreationAvailable,
+      child: _TokenButton(
+        padding: padding,
+        child:
+            hasToken ? _MarketCap(externalAddress: eventReference.toString()) : const _RocketIcon(),
+        onTap: () {
+          if (hasToken) {
+            TokenizedCommunityRoute(
+              externalAddress: eventReference.toString(),
+              externalAddressType: externalAddressType?.prefix ?? '',
+            ).push<void>(context);
+          } else if (externalAddressType != null) {
+            TradeCommunityTokenRoute(
+              externalAddress: eventReference.toString(),
+              externalAddressType: externalAddressType.prefix,
+            ).push<void>(context);
+          }
+        },
+      ),
     );
   }
 }

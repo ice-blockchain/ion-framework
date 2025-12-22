@@ -10,7 +10,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/token_action_first_buy_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_definition_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
@@ -41,9 +41,51 @@ class CommunityTokenIonConnectService {
 
   final bool Function(String masterPubkey) _isCurrentUserSelector;
 
-  Future<void> sendBuyEvents({
+  Future<void> sendFirstBuyEvents({
     required String externalAddress,
-    required bool firstBuy,
+  }) async {
+    final communityTokenDefinition =
+        await _fetchCommunityTokenDefinition(externalAddress: externalAddress);
+    final communityTokenDefinitionData = communityTokenDefinition.data;
+
+    if (communityTokenDefinitionData is! CommunityTokenDefinitionIon) {
+      // For external tokens (X), we don't create "first buy" definition events
+      throw StateError('communityTokenDefinitionData must be of type CommunityTokenDefinitionIon');
+    }
+
+    final tokenDefinitionFirstBuy = await _buildCommunityTokenDefinitionFirstBuy(
+      communityTokenDefinition: communityTokenDefinitionData,
+    );
+    final tokenDefinitionFirstBuyEvent = await _ionConnectNotifier.sign(tokenDefinitionFirstBuy);
+    final isOwnToken = _isCurrentUserSelector(communityTokenDefinition.masterPubkey);
+
+    if (isOwnToken) {
+      await _ionConnectNotifier.sendEvent(tokenDefinitionFirstBuyEvent);
+      return;
+    }
+
+    await _ionConnectNotifier
+        .sendEvent(
+          tokenDefinitionFirstBuyEvent,
+          actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
+          metadataBuilders: [_userEventsMetadataBuilder],
+          // Since we're sending this event only to the token owner, if owner shares
+          // relays with the current user, we need to retry the sending to the current
+          // user's relays in case of is-relay-authoritative error.
+          ignoreAuthoritativeErrors: false,
+        )
+        .catchError(
+          (_) => _ionConnectNotifier.sendEvent(tokenDefinitionFirstBuyEvent),
+          test: RelayAuthService.isRelayAuthoritativeError,
+        );
+
+    await _cacheTokenDefinitionFirstBuyReference(
+      tokenDefinitionFirstBuyEvent: tokenDefinitionFirstBuyEvent,
+    );
+  }
+
+  Future<void> sendBuyActionEvents({
+    required String externalAddress,
     required String network,
     required String bondingCurveAddress,
     required String tokenAddress,
@@ -67,27 +109,13 @@ class CommunityTokenIonConnectService {
       amountUsd: amountUsd,
     );
 
-    final communityTokenDefinitionData = communityTokenDefinition.data;
-
-    if (communityTokenDefinitionData is CommunityTokenDefinitionExternal) {
-      await _sendExternalBuyEvents(
-        communityTokenDefinition: communityTokenDefinition,
-        communityTokenAction: communityTokenAction,
-      );
-    } else if (communityTokenDefinitionData is CommunityTokenDefinitionIon) {
-      await _sendIonBuyEvents(
-        communityTokenDefinition: communityTokenDefinition,
-        communityTokenAction: communityTokenAction,
-        firstBuy: firstBuy,
-      );
-    } else {
-      throw StateError(
-        'Unsupported CommunityTokenDefinitionData type: ${communityTokenDefinition.data.runtimeType}',
-      );
-    }
+    await _sendActionEvents(
+      communityTokenDefinition: communityTokenDefinition,
+      communityTokenAction: communityTokenAction,
+    );
   }
 
-  Future<void> sendSellEvents({
+  Future<void> sendSellActionEvents({
     required String externalAddress,
     required String network,
     required String bondingCurveAddress,
@@ -112,104 +140,13 @@ class CommunityTokenIonConnectService {
       amountUsd: amountUsd,
     );
 
-    return _sendSellEvents(
+    return _sendActionEvents(
       communityTokenDefinition: communityTokenDefinition,
       communityTokenAction: communityTokenAction,
     );
   }
 
-  /// For external tokens (X), we don't create "first buy" definition events
-  /// and it can't be the user's own token, because external token definitions
-  /// are created by internal backend users.
-  Future<void> _sendExternalBuyEvents({
-    required CommunityTokenDefinitionEntity communityTokenDefinition,
-    required CommunityTokenActionData communityTokenAction,
-  }) async {
-    final tokenActionEvent = await _ionConnectNotifier.sign(communityTokenAction);
-    await Future.wait([
-      _ionConnectNotifier.sendEvent(tokenActionEvent),
-      _ionConnectNotifier.sendEvent(
-        tokenActionEvent,
-        actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
-        metadataBuilders: [_userEventsMetadataBuilder],
-      ),
-    ]);
-  }
-
-  /// For Ion tokens, if this is a first token buy action,
-  /// "first-buy" definition event must be sent to the profile / content
-  /// owner’s relays.
-  Future<void> _sendIonBuyEvents({
-    required CommunityTokenDefinitionEntity communityTokenDefinition,
-    required CommunityTokenActionData communityTokenAction,
-    required bool firstBuy,
-  }) async {
-    final communityTokenDefinitionData = communityTokenDefinition.data;
-
-    if (communityTokenDefinitionData is! CommunityTokenDefinitionIon) {
-      throw StateError(
-        'communityTokenDefinitionData must be of type CommunityTokenDefinitionIon',
-      );
-    }
-
-    final isOwnToken = _isCurrentUserSelector(communityTokenDefinition.masterPubkey);
-    final tokenDefinitionFirstBuy = await _buildCommunityTokenDefinitionFirstBuy(
-      communityTokenDefinition: communityTokenDefinitionData,
-    );
-    final (tokenActionEvent, tokenDefinitionFirstBuyEvent) = await (
-      _ionConnectNotifier.sign(communityTokenAction),
-      _ionConnectNotifier.sign(tokenDefinitionFirstBuy)
-    ).wait;
-
-    if (firstBuy) {
-      // Since we send [tokenDefinitionFirstBuyEvent] only to the token owner's relays,
-      // we must ensure the event is accepted by the relay.
-      // If a RelayAuthoritativeError occurs (i.e., the token owner shares the same relays
-      // as the current user and the event is rejected), we need to retry sending the event
-      // to our own relays.
-      await Future.wait([
-        _ionConnectNotifier.sendEvents(
-          [
-            tokenActionEvent,
-            if (isOwnToken) tokenDefinitionFirstBuyEvent,
-          ],
-        ),
-        if (!isOwnToken)
-          _ionConnectNotifier
-              .sendEvents(
-                [
-                  tokenActionEvent,
-                  tokenDefinitionFirstBuyEvent,
-                ],
-                actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
-                metadataBuilders: [_userEventsMetadataBuilder],
-                ignoreAuthoritativeErrors: false,
-              )
-              .catchError(
-                (_) => _ionConnectNotifier.sendEvents([tokenDefinitionFirstBuyEvent]),
-                test: RelayAuthService.isRelayAuthoritativeError,
-              ),
-      ]);
-
-      await _cacheTokenActionFirstBuyReference(
-        communityTokenDefinition: communityTokenDefinition,
-        communityTokenActionEvent: tokenActionEvent,
-      );
-    } else {
-      await Future.wait([
-        _ionConnectNotifier.sendEvent(tokenActionEvent),
-        if (!isOwnToken)
-          _ionConnectNotifier.sendEvent(
-            tokenActionEvent,
-            actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
-            metadataBuilders: [_userEventsMetadataBuilder],
-          ),
-      ]);
-    }
-  }
-
-  /// For sell actions, we create only community token action events.
-  Future<void> _sendSellEvents({
+  Future<void> _sendActionEvents({
     required CommunityTokenDefinitionEntity communityTokenDefinition,
     required CommunityTokenActionData communityTokenAction,
   }) async {
@@ -281,19 +218,15 @@ class CommunityTokenIonConnectService {
     );
   }
 
-  /// Caches TokenActionFirstBuyReferenceEntity to indicate that an event has
-  /// a token created (it is created on the first buy from any user).
-  Future<void> _cacheTokenActionFirstBuyReference({
-    required CommunityTokenDefinitionEntity communityTokenDefinition,
-    required EventMessage communityTokenActionEvent,
+  /// Caches TokenDefinitionReferenceEntity to indicate that an event has
+  /// a token (it is created on the first buy from any user).
+  Future<void> _cacheTokenDefinitionFirstBuyReference({
+    required EventMessage tokenDefinitionFirstBuyEvent,
   }) async {
-    final communityTokenAction =
-        CommunityTokenActionEntity.fromEventMessage(communityTokenActionEvent);
+    final tokenDefinitionFirstBuy =
+        CommunityTokenDefinitionEntity.fromEventMessage(tokenDefinitionFirstBuyEvent);
     final firstBuyReferenceEntity =
-        TokenActionFirstBuyReferenceEntity.fromCommunityTokenAction(communityTokenAction).copyWith(
-      masterPubkey: TokenActionFirstBuyReference.anyUserMasterPubkey,
-    );
-
+        TokenDefinitionReferenceEntity.forDefinition(tokenDefinition: tokenDefinitionFirstBuy);
     await _ionConnectCache.cache(firstBuyReferenceEntity);
   }
 }

@@ -21,7 +21,7 @@ class ProfileHODL extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final firstBuyAction = ref
         .watch(
-          cachedTokenActionFirstBuyProvider(
+          cachedTokenFirstBuyActionProvider(
             masterPubkey: actionEntity.masterPubkey,
             tokenDefinitionReference: actionEntity.data.definitionReference,
           ),

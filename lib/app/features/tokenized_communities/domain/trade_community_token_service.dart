@@ -37,6 +37,7 @@ class TradeCommunityTokenService {
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
     required PricingResponse expectedPricing,
+    required bool shouldSendEvents,
     FatAddressData? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
     BigInt? maxFeePerGas,
@@ -71,18 +72,24 @@ class TradeCommunityTokenService {
       userActionSigner: userActionSigner,
     );
 
-    await _trySendBuyEvents(
-      externalAddress: externalAddress,
-      firstBuy: firstBuy,
-      transaction: transaction,
-      pricing: expectedPricing,
-      amountIn: amountIn,
-      walletNetwork: walletNetwork,
-      baseTokenTicker: baseTokenTicker,
-      tokenDecimals: tokenDecimals,
-      existingTokenAddress: existingTokenAddress,
-      tokenInfo: tokenInfo,
-    );
+    await Future.wait([
+      if (firstBuy)
+        // First-buy events are always sent, regardless of [shouldSendEvents].
+        _sendFirstBuyEvents(externalAddress: externalAddress),
+      if (shouldSendEvents)
+        _trySendBuyEvents(
+          externalAddress: externalAddress,
+          firstBuy: firstBuy,
+          transaction: transaction,
+          pricing: expectedPricing,
+          amountIn: amountIn,
+          walletNetwork: walletNetwork,
+          baseTokenTicker: baseTokenTicker,
+          tokenDecimals: tokenDecimals,
+          existingTokenAddress: existingTokenAddress,
+          tokenInfo: tokenInfo,
+        ),
+    ]);
 
     return transaction;
   }
@@ -100,6 +107,7 @@ class TradeCommunityTokenService {
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
     required PricingResponse expectedPricing,
+    required bool shouldSendEvents,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
     BigInt? maxFeePerGas,
     BigInt? maxPriorityFeePerGas,
@@ -126,17 +134,19 @@ class TradeCommunityTokenService {
       userActionSigner: userActionSigner,
     );
 
-    await _trySendSellEvents(
-      externalAddress: externalAddress,
-      transaction: transaction,
-      pricing: expectedPricing,
-      amountIn: amountIn,
-      walletNetwork: walletNetwork,
-      communityTokenAddress: communityTokenAddress,
-      paymentTokenTicker: paymentTokenTicker,
-      paymentTokenDecimals: paymentTokenDecimals,
-      tokenInfo: tokenInfo,
-    );
+    if (shouldSendEvents) {
+      await _trySendSellEvents(
+        externalAddress: externalAddress,
+        transaction: transaction,
+        pricing: expectedPricing,
+        amountIn: amountIn,
+        walletNetwork: walletNetwork,
+        communityTokenAddress: communityTokenAddress,
+        paymentTokenTicker: paymentTokenTicker,
+        paymentTokenDecimals: paymentTokenDecimals,
+        tokenInfo: tokenInfo,
+      );
+    }
 
     return transaction;
   }
@@ -203,6 +213,12 @@ class TradeCommunityTokenService {
     return transaction;
   }
 
+  Future<void> _sendFirstBuyEvents({
+    required String externalAddress,
+  }) async {
+    return ionConnectService.sendFirstBuyEvents(externalAddress: externalAddress);
+  }
+
   Future<void> _trySendBuyEvents({
     required String externalAddress,
     required bool firstBuy,
@@ -248,9 +264,8 @@ class TradeCommunityTokenService {
     final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
 
     try {
-      await ionConnectService.sendBuyEvents(
+      await ionConnectService.sendBuyActionEvents(
         externalAddress: externalAddress,
-        firstBuy: firstBuy,
         network: walletNetwork,
         bondingCurveAddress: bondingCurveAddress,
         tokenAddress: tokenAddress,
@@ -298,7 +313,7 @@ class TradeCommunityTokenService {
     final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
 
     try {
-      await ionConnectService.sendSellEvents(
+      await ionConnectService.sendSellActionEvents(
         externalAddress: externalAddress,
         network: walletNetwork,
         bondingCurveAddress: bondingCurveAddress,

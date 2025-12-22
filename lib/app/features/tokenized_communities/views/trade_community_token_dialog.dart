@@ -62,7 +62,6 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
     final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
-    final shouldSharePost = useState(true);
 
     ref
       ..displayErrors(
@@ -115,7 +114,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                 ),
               ),
             SizedBox(height: 29.0.s),
-            _SharePostCheckbox(shouldSharePost: shouldSharePost),
+            _SharePostCheckbox(
+              value: state.shouldSendEvents,
+              onChanged: (value) => controller.setShouldSendEvents(send: value),
+            ),
             SizedBox(height: 16.0.s),
             ContinueButton(
               isEnabled: state.mode == CommunityTokenTradeMode.buy
@@ -346,18 +348,17 @@ class _TokenCards extends HookConsumerWidget {
 }
 
 class _SharePostCheckbox extends StatelessWidget {
-  const _SharePostCheckbox({required this.shouldSharePost});
+  const _SharePostCheckbox({required this.value, required this.onChanged});
 
-  final ValueNotifier<bool> shouldSharePost;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return LabeledCheckbox(
-      isChecked: shouldSharePost.value,
+      isChecked: value,
       label: context.i18n.wallet_swap_confirmation_automatically_share_post_about_trade,
-      onChanged: (value) {
-        shouldSharePost.value = value;
-      },
+      onChanged: onChanged,
     );
   }
 }

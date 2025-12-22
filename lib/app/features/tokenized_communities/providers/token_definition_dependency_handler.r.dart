@@ -6,7 +6,7 @@ import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/missing_events_handler.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_definition_reference.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -18,15 +18,11 @@ part 'token_definition_dependency_handler.r.g.dart';
 ///
 /// 1. Caches CommunityTokenDefinitionEntity instances
 /// 2. Creates and caches TokenDefinitionReferenceEntity instances for easy
-/// token externalAddress -> original CommunityTokenDefinition  lookups.
+/// token externalAddress -> original/first-buy CommunityTokenDefinition lookups.
 class TokenDefinitionDependencyHandler implements EventsMetadataHandler {
   TokenDefinitionDependencyHandler({
-    required ExternalAddressTokenDefinitionCache externalAddressTokenDefinitionCache,
     required IonConnectCache ionConnectCache,
-  })  : _externalAddressTokenDefinitionCache = externalAddressTokenDefinitionCache,
-        _ionConnectCache = ionConnectCache;
-
-  final ExternalAddressTokenDefinitionCache _externalAddressTokenDefinitionCache;
+  }) : _ionConnectCache = ionConnectCache;
 
   final IonConnectCache _ionConnectCache;
 
@@ -40,12 +36,14 @@ class TokenDefinitionDependencyHandler implements EventsMetadataHandler {
       await Future.wait(
         tokenDefinitionEvents.map(
           (event) async {
-            final entity = CommunityTokenDefinitionEntity.fromEventMessage(event.data.metadata);
-            await _externalAddressTokenDefinitionCache.saveReference(
-              externalAddress: entity.data.externalAddress,
-              eventReference: entity.toEventReference(),
-            );
-            await _ionConnectCache.cache(entity);
+            final tokenDefinition =
+                CommunityTokenDefinitionEntity.fromEventMessage(event.data.metadata);
+            final tokenDefinitionReference =
+                TokenDefinitionReferenceEntity.forDefinition(tokenDefinition: tokenDefinition);
+            return (
+              _ionConnectCache.cache(tokenDefinition),
+              _ionConnectCache.cache(tokenDefinitionReference),
+            ).wait;
           },
         ),
       );
@@ -65,11 +63,8 @@ class TokenDefinitionDependencyHandler implements EventsMetadataHandler {
 Future<TokenDefinitionDependencyHandler> tokenDefinitionDependencyHandler(
   Ref ref,
 ) async {
-  final externalAddressTokenDefinitionCache =
-      await ref.watch(externalAddressTokenDefinitionCacheProvider.future);
   final ionConnectCache = ref.watch(ionConnectCacheProvider.notifier);
   return TokenDefinitionDependencyHandler(
-    externalAddressTokenDefinitionCache: externalAddressTokenDefinitionCache,
     ionConnectCache: ionConnectCache,
   );
 }
