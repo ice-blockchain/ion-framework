@@ -57,10 +57,10 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
         AppodealAdType.MREC,
         AppodealAdType.NativeAd,
       ],
-      onInitializationFinished: (errors) async {
+      onInitializationFinished: (errors) {
         errors?.forEach((error) => log(error.description));
         log('onInitializationFinished: errors - ${errors?.length ?? 0}');
-        await _checkAdAvailability();
+        _checkAdAvailability();
 
         _initialized = true;
       },
