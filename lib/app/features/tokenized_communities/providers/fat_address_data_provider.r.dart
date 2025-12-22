@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
@@ -50,14 +51,15 @@ Future<FatAddressData> _buildCreatorFatAddressData(
 
   final metadata = await ref.watch(userMetadataProvider(pubkey).future);
   if (metadata == null) {
-    throw StateError('Metadata not found for pubkey $pubkey');
+    throw UserMetadataNotFoundException(pubkey);
   }
 
   final bscNetworkId = await _requireBscNetworkId(ref);
   final creatorAddress = metadata.data.wallets?[bscNetworkId];
   if (creatorAddress == null || creatorAddress.isEmpty) {
-    throw StateError(
-      'Creator wallet address is missing for pubkey $pubkey on network $bscNetworkId',
+    throw CreatorWalletAddressNotFoundException(
+      pubkey: pubkey,
+      networkId: bscNetworkId,
     );
   }
 
@@ -86,14 +88,15 @@ Future<FatAddressData> _buildContentFatAddressData(
 
   final metadata = await ref.watch(userMetadataProvider(masterPubkey).future);
   if (metadata == null) {
-    throw StateError('Metadata not found for pubkey $masterPubkey');
+    throw UserMetadataNotFoundException(masterPubkey);
   }
 
   final bscNetworkId = await _requireBscNetworkId(ref);
   final creatorAddress = metadata.data.wallets?[bscNetworkId];
   if (creatorAddress == null || creatorAddress.isEmpty) {
-    throw StateError(
-      'Creator wallet address is missing for pubkey $masterPubkey on network $bscNetworkId',
+    throw CreatorWalletAddressNotFoundException(
+      pubkey: masterPubkey,
+      networkId: bscNetworkId,
     );
   }
 
@@ -106,9 +109,7 @@ Future<FatAddressData> _buildContentFatAddressData(
       await ref.watch(tokenMarketInfoProvider(creatorTokenExternalAddress).future);
   final creatorTokenAddress = creatorTokenInfo?.addresses.blockchain;
   if (creatorTokenAddress == null || creatorTokenAddress.isEmpty) {
-    throw StateError(
-      'Creator token address is missing for externalAddress=$creatorTokenExternalAddress',
-    );
+    throw TokenAddressNotFoundException(creatorTokenExternalAddress);
   }
 
   return FatAddressData.content(
@@ -131,7 +132,7 @@ Future<String> _requireBscNetworkId(Ref ref) async {
   final bscNetwork = networks.firstWhereOrNull((n) => n.isBsc && !n.isTestnet) ??
       networks.firstWhereOrNull((n) => n.isBsc);
   if (bscNetwork == null) {
-    throw StateError('BSC network is missing');
+    throw BscNetworkNotFoundException();
   }
   return bscNetwork.id;
 }
