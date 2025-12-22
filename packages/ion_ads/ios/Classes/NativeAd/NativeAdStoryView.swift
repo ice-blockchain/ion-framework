@@ -37,7 +37,7 @@ final class NativeAdStoryView: UIView {
         let label = UILabel()
         label.textColor = UIColor.darkGray
         label.font = AppFonts.primaryLabel
-        label.numberOfLines = 2
+        label.numberOfLines = 1
         label.textAlignment = .left
 
         return label
@@ -45,8 +45,9 @@ final class NativeAdStoryView: UIView {
 
     private lazy var mediaContainer: UIView = {
         let view = UIView()
-        view.layer.cornerRadius = 12
         view.clipsToBounds = true
+        view.backgroundColor = .black
+        view.contentMode = .scaleAspectFit
         return view
     }()
 
@@ -61,11 +62,15 @@ final class NativeAdStoryView: UIView {
         return label
     }()
 
-    private lazy var cardBackgroundView: UIView = {
+    private lazy var bottomContainerView: UIView = {
         let view = UIView()
-        view.layer.cornerRadius = 12
+        view.backgroundColor = .white.withAlphaComponent(0.9)
+        view.layer.cornerRadius = 14
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.3 // Adjust for darkness (0.0 - 1.0)
+        view.layer.shadowOffset = CGSize(width: 0, height: -2) // Negative height moves shadow up
+        view.layer.shadowRadius = 4 // Adjust for blurriness
         view.clipsToBounds = true
-        view.backgroundColor = UIColor.App.secondaryBackground
         return view
     }()
 
@@ -104,71 +109,86 @@ final class NativeAdStoryView: UIView {
             return label
         }()
 
-        // Add all subviews to the main view
+        // 1. Add mediaContainer first so it's the background
+        addSubview(mediaContainer)
+        mediaContainer.translatesAutoresizingMaskIntoConstraints = false
+
+        // 2. Add the bottom container
+        addSubview(bottomContainerView)
+        bottomContainerView.translatesAutoresizingMaskIntoConstraints = false
+
+        // 3. Add content elements inside the bottom container
         [
+            iconImageView,
             titleTextLabel,
             descriptionTextLabel,
-            cardBackgroundView,
-            iconImageView,
             callToActionView,
-            adTag,
-            adChoiceContainer,
             starRatingView
         ].forEach {
+            bottomContainerView.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+
+        // 4. Add overlays (AdTag, AdChoices) to the main view (on top of media)
+        [adTag, adChoiceContainer].forEach {
             addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
 
-        // The mediaContainer goes inside the cardBackgroundView
-        cardBackgroundView.addSubview(mediaContainer)
-        mediaContainer.translatesAutoresizingMaskIntoConstraints = false
-
         NSLayoutConstraint.activate([
-            // --- (Icon, Title, Description, CTA constraints are mostly unchanged) ---
-            iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
-            iconImageView.widthAnchor.constraint(equalToConstant: 32),
-            iconImageView.heightAnchor.constraint(equalToConstant: 32),
+            // --- Media Container (Fullscreen) ---
+            mediaContainer.topAnchor.constraint(equalTo: topAnchor),
+            mediaContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
+            mediaContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
+            mediaContainer.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            titleTextLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
+            // --- Bottom Container ---
+            bottomContainerView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            bottomContainerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            bottomContainerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            // No fixed height, let content dictate it + padding
 
-            descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -2),
+            // --- Icon ---
+            iconImageView.topAnchor.constraint(equalTo: bottomContainerView.topAnchor, constant: 12),
+            iconImageView.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor, constant: 12),
+            iconImageView.widthAnchor.constraint(equalToConstant: 40),
+            iconImageView.heightAnchor.constraint(equalToConstant: 40),
+            // Constrain bottom of container to be at least below icon + padding
+            bottomContainerView.bottomAnchor.constraint(greaterThanOrEqualTo: iconImageView.bottomAnchor, constant: 12),
+
+            // --- Title ---
+            titleTextLabel.topAnchor.constraint(equalTo: iconImageView.topAnchor),
+            titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 12),
+            titleTextLabel.trailingAnchor.constraint(equalTo: callToActionView.leadingAnchor, constant: -8),
+
+            // --- Description ---
+            descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: 2),
             descriptionTextLabel.leadingAnchor.constraint(equalTo: titleTextLabel.leadingAnchor),
-            descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
+            descriptionTextLabel.trailingAnchor.constraint(equalTo: titleTextLabel.trailingAnchor),
 
-            // 3. Adjust layout to make space for the rating view
+            // --- Star Rating ---
             starRatingView.topAnchor.constraint(equalTo: descriptionTextLabel.bottomAnchor, constant: 4),
             starRatingView.leadingAnchor.constraint(equalTo: descriptionTextLabel.leadingAnchor),
-            starRatingView.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
+            // Ensure bottom container wraps this content
+            bottomContainerView.bottomAnchor.constraint(greaterThanOrEqualTo: descriptionTextLabel.bottomAnchor, constant: 12),
 
-            callToActionView.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
-            callToActionView.leadingAnchor.constraint(equalTo: titleTextLabel.trailingAnchor, constant: 10),
-            callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            callToActionView.heightAnchor.constraint(equalToConstant: 32),
+            // --- Call to Action Button ---
+            callToActionView.centerYAnchor.constraint(equalTo: bottomContainerView.centerYAnchor), // Center vertically in the panel
+            callToActionView.trailingAnchor.constraint(equalTo: bottomContainerView.trailingAnchor, constant: -12),
             callToActionView.widthAnchor.constraint(equalToConstant: 100),
+            callToActionView.heightAnchor.constraint(equalToConstant: 36),
 
-            // --- (Media, AdTag, AdChoice constraints are unchanged) ---
-            cardBackgroundView.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 12),
-            cardBackgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
-            cardBackgroundView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: 0),
-            cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 10.0/16.0),
+            // --- Overlays (Ad Tag & Choices) ---
+            // Position them at the top of the fullscreen media
+            adTag.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            adTag.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            adTag.widthAnchor.constraint(equalToConstant: 27),
+            adTag.heightAnchor.constraint(equalToConstant: 18),
 
-            mediaContainer.topAnchor.constraint(equalTo: cardBackgroundView.topAnchor),
-            mediaContainer.bottomAnchor.constraint(equalTo: cardBackgroundView.bottomAnchor),
-            mediaContainer.leadingAnchor.constraint(equalTo: cardBackgroundView.leadingAnchor),
-            mediaContainer.trailingAnchor.constraint(equalTo: cardBackgroundView.trailingAnchor),
-
-            adChoiceContainer.topAnchor.constraint(equalTo: cardBackgroundView.topAnchor, constant: 10),
-            adChoiceContainer.trailingAnchor.constraint(equalTo: cardBackgroundView.trailingAnchor, constant: -8),
+            adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            adChoiceContainer.trailingAnchor.constraint(equalTo: adTag.leadingAnchor, constant: -8),
             adChoiceContainer.widthAnchor.constraint(equalToConstant: 18),
             adChoiceContainer.heightAnchor.constraint(equalToConstant: 18),
-
-            adTag.topAnchor.constraint(equalTo: cardBackgroundView.topAnchor, constant: 8),
-            adTag.leadingAnchor.constraint(equalTo: cardBackgroundView.leadingAnchor, constant: 8),
-            adTag.widthAnchor.constraint(equalToConstant: 27),
-            adTag.heightAnchor.constraint(equalToConstant: 18)
         ])
     }
 }
