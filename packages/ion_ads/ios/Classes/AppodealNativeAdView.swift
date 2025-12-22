@@ -40,12 +40,19 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
 
     private func loadAndPrepareAd() {
         let placement = args["placement"] as? String ?? "default"
-        logToFlutter("Loading ad for placement: \(placement)")
+        let options = args["options"] as? [String: Any] ?? [:]
+        let nativeAdType = options["nativeAdType"] as? Int ?? -1
+        logToFlutter("Loading ad for placement: \(placement), nativeAdType: \(nativeAdType), options: \(options)")
 
         // Setup the ad queue
         nativeAdQueue = APDNativeAdQueue()
         nativeAdQueue.settings = APDNativeAdSettings.default()
-        nativeAdQueue.settings.adViewClass = NativeAdCardView.self
+        // { custom, contentStream, appWall, newsFeed, chat }
+        if(nativeAdType == 2) {
+            nativeAdQueue.settings.adViewClass = NativeAdStoryView.self
+        } else {
+            nativeAdQueue.settings.adViewClass = NativeAdCardView.self
+        }
         //nativeAdQueue.settings.autocacheMask = [.icon, .media]
         nativeAdQueue.settings.type = .auto
         nativeAdQueue.delegate = self
