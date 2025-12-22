@@ -8,7 +8,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -33,27 +32,9 @@ class Chart extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedRange = useState(ChartTimeRange.m15);
 
-    final pubkey = useMemoized(
-      () => CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress),
-      [externalAddress],
-    );
-
-    if (pubkey == null) {
-      return _ChartContent(
-        price: price,
-        label: label,
-        changePercent: 0,
-        candles: _buildFlatCandles(price),
-        isLoading: false,
-        selectedRange: selectedRange.value,
-        onRangeChanged: (range) => selectedRange.value = range,
-        onTitleVisibilityChanged: onTitleVisibilityChanged,
-      );
-    }
-
     final candlesAsync = ref.watch(
       tokenOhlcvCandlesProvider(
-        pubkey,
+        externalAddress,
         selectedRange.value.intervalString,
       ),
     );
@@ -311,7 +292,7 @@ extension on ChartTimeRange {
         ChartTimeRange.m15 => '15m',
         ChartTimeRange.m30 => '30m',
         ChartTimeRange.h1 => '1h',
-        ChartTimeRange.d1 => '1d',
+        ChartTimeRange.d1 => '24h',
       };
 
   String get intervalString => label;
@@ -466,7 +447,7 @@ List<ChartCandle> _buildFlatCandles(Decimal price) {
 
 // Maps OHLCV candles from analytics package to ChartCandle format
 List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
-  return source
+  final mapped = source
       .map(
         (candle) => ChartCandle(
           open: candle.open,
@@ -481,4 +462,6 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
         ),
       )
       .toList();
+
+  return mapped;
 }

@@ -10,27 +10,40 @@ part 'token_olhcv_candles_provider.r.g.dart';
 @riverpod
 Stream<List<OhlcvCandle>> tokenOhlcvCandles(
   Ref ref,
-  String ionConnectAddress,
+  String externalAddress,
   String interval,
 ) async* {
-  // Loading state: while connection is being established
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
   final subscription = await client.communityTokens.subscribeToOhlcvCandles(
-    ionConnectAddress: ionConnectAddress,
+    ionConnectAddress: externalAddress,
     interval: interval,
   );
 
-  // Connection established - yield empty list to transition from loading to data state
-  // This allows widget to show "no data" state instead of loading forever
-  final currentCandles = <OhlcvCandle>[];
-  yield currentCandles;
+  ref.onDispose(subscription.close);
 
-  try {
-    await for (final candle in subscription.stream) {
-      currentCandles.add(candle);
+  final currentCandles = <OhlcvCandle>[];
+
+  await for (final batch in subscription.stream) {
+    if (batch.isEmpty) {
+      // EOSE marker - end of initial load, emit current state
       yield currentCandles;
+      continue;
     }
-  } finally {
-    await subscription.close();
+
+    for (final candle in batch) {
+      // Check if candle with same timestamp already exists
+      final existingIndex = currentCandles.indexWhere(
+        (existing) => existing.timestamp == candle.timestamp,
+      );
+
+      if (existingIndex >= 0) {
+        // Replace existing candle with same timestamp
+        currentCandles[existingIndex] = candle;
+      } else {
+        currentCandles.add(candle);
+      }
+    }
+
+    yield currentCandles;
   }
 }
