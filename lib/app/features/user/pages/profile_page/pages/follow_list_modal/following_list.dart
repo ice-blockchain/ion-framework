@@ -81,14 +81,18 @@ class FollowingList extends HookConsumerWidget {
               ),
             )
         else if (followeePubkeys != null)
-          SliverList.builder(
-            itemCount: followeePubkeys.length,
-            itemBuilder: (context, index) => ScreenSideOffset.small(
-              child: FollowListItem(
-                key: ValueKey<String>(followeePubkeys[index]),
-                pubkey: followeePubkeys[index],
-                network: true,
+          SliverFixedExtentList(
+            itemExtent: FollowListItem.itemHeight + 16.0.s,
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => ScreenSideOffset.small(
+                child: FollowListItem(
+                  key: ValueKey<String>(followeePubkeys[index]),
+                  pubkey: followeePubkeys[index],
+                  network: true,
+                ),
               ),
+              childCount: followeePubkeys.length,
+              addAutomaticKeepAlives: false,
             ),
           )
         else
