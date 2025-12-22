@@ -18,7 +18,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
@@ -297,20 +296,10 @@ class _BuyButton extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final externalAddressType = ref
-        .watch(ionConnectEntityProvider(eventReference: tokenDefinitionData.eventReference))
-        .valueOrNull
-        ?.externalAddressType;
-
-    if (externalAddressType == null) {
-      return const SizedBox.shrink();
-    }
-
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => TradeCommunityTokenRoute(
-        externalAddress: tokenDefinition.data.externalAddress,
-        externalAddressType: externalAddressType.prefix,
+        eventReference: tokenDefinitionData.eventReference.encode(),
         initialMode: CommunityTokenTradeMode.buy,
       ).push<void>(context),
       child: BuyButton(

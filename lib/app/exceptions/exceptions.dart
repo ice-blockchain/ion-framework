@@ -758,3 +758,17 @@ class UgcCounterFetchException extends IONException {
           message ?? 'Failed to fetch UGC counter',
         );
 }
+
+class BscNetworkNotFoundException extends IONException {
+  BscNetworkNotFoundException() : super(10140, 'BSC network is missing');
+}
+
+class CreatorWalletAddressNotFoundException extends IONException {
+  CreatorWalletAddressNotFoundException({
+    required String pubkey,
+    required String networkId,
+  }) : super(
+          10141,
+          'Creator wallet address is missing for pubkey $pubkey on network $networkId',
+        );
+}

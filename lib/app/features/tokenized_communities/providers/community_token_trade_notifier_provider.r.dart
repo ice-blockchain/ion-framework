@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
@@ -19,12 +20,18 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'community_token_trade_notifier_provider.r.g.dart';
 
+typedef CommunityTokenTradeNotifierParams = ({
+  String externalAddress,
+  ExternalAddressType externalAddressType,
+  EventReference? eventReference,
+});
+
 @riverpod
 class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
   static const _firstBuyMetadataSentKey = 'community_token_first_buy';
 
   @override
-  FutureOr<String?> build(String externalAddress, ExternalAddressType externalAddressType) => null;
+  FutureOr<String?> build(CommunityTokenTradeNotifierParams params) => null;
 
   Future<void> buy(UserActionSignerNew signer) async {
     if (state.isLoading) return;
@@ -32,10 +39,6 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      final params = (
-        externalAddress: externalAddress,
-        externalAddressType: externalAddressType,
-      );
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
 
       final token = formState.selectedPaymentToken;
@@ -63,20 +66,22 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
       await _sendFirstBuyMetadataIfNeeded();
 
-      final existingTokenInfo = ref.read(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+      final existingTokenInfo =
+          ref.read(tokenMarketInfoProvider(params.externalAddress)).valueOrNull;
       final existingTokenAddress = existingTokenInfo?.addresses.blockchain;
       final fatAddressData = (existingTokenAddress != null && existingTokenAddress.isNotEmpty)
           ? null
           : await ref.read(
               fatAddressDataProvider(
-                externalAddress: externalAddress,
-                externalAddressType: externalAddressType,
+                externalAddress: params.externalAddress,
+                externalAddressType: params.externalAddressType,
+                eventReference: params.eventReference,
               ).future,
             );
 
       final response = await service.buyCommunityToken(
-        externalAddress: externalAddress,
-        externalAddressType: externalAddressType,
+        externalAddress: params.externalAddress,
+        externalAddressType: params.externalAddressType,
         amountIn: amountIn,
         walletId: wallet.id,
         walletAddress: wallet.address!,
@@ -91,7 +96,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       );
       // Invalidate token market info to refresh balance
       ref.invalidate(
-        tokenMarketInfoProvider(externalAddress),
+        tokenMarketInfoProvider(params.externalAddress),
       );
 
       return response['status'] as String?;
@@ -104,10 +109,6 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      final params = (
-        externalAddress: externalAddress,
-        externalAddressType: externalAddressType,
-      );
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
 
       final token = formState.selectedPaymentToken;
@@ -125,7 +126,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         throw Exception('Wallet address is missing');
       }
 
-      final tokenInfo = ref.read(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+      final tokenInfo = ref.read(tokenMarketInfoProvider(params.externalAddress)).valueOrNull;
       final communityTokenAddress = tokenInfo?.addresses.blockchain;
       if (communityTokenAddress == null || communityTokenAddress.isEmpty) {
         throw StateError('Community token contract address is missing');
@@ -141,7 +142,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       }
 
       final response = await service.sellCommunityToken(
-        externalAddress: externalAddress,
+        externalAddress: params.externalAddress,
         amountIn: amountIn,
         walletId: wallet.id,
         walletAddress: wallet.address!,
@@ -158,7 +159,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
       // Invalidate token market info to refresh balance
       ref.invalidate(
-        tokenMarketInfoProvider(externalAddress),
+        tokenMarketInfoProvider(params.externalAddress),
       );
 
       return response['status'] as String?;

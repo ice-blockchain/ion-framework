@@ -2,6 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
@@ -28,6 +29,7 @@ part 'trade_community_token_controller_provider.r.g.dart';
 typedef TradeCommunityTokenControllerParams = ({
   String externalAddress,
   ExternalAddressType externalAddressType,
+  EventReference? eventReference,
 });
 
 @riverpod
@@ -46,7 +48,8 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       ),
     );
 
-    final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
+    final pubkey = params.eventReference?.masterPubkey ??
+        CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
 
     ref
       ..listen(currentWalletViewDataProvider, (_, __) => _updateDerivedState())
@@ -84,7 +87,8 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     final tokenInfo = ref.read(tokenMarketInfoProvider(externalAddress)).valueOrNull;
     final balance = tokenInfo?.marketData.position?.amountValue ?? 0.0;
 
-    final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
+    final pubkey = params.eventReference?.masterPubkey ??
+        CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
     final userData = pubkey == null ? null : ref.read(userPreviewDataProvider(pubkey)).valueOrNull;
 
     final tokenTitle = tokenInfo?.title ??
@@ -365,6 +369,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       fatAddressDataProvider(
         externalAddress: externalAddress,
         externalAddressType: params.externalAddressType,
+        eventReference: params.eventReference,
       ).future,
     );
     return fatAddressData.toFatAddressHex();

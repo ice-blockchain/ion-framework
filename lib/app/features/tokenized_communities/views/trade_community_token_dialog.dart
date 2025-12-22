@@ -8,6 +8,8 @@ import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_trade_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
@@ -31,21 +33,36 @@ import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 
 class TradeCommunityTokenDialog extends HookConsumerWidget {
   const TradeCommunityTokenDialog({
-    required this.externalAddress,
-    required this.externalAddressType,
+    this.eventReference,
+    this.externalAddress,
     this.initialMode,
     super.key,
-  });
+  }) : assert(
+          (eventReference == null) != (externalAddress == null),
+          'Either eventReference or externalAddress must be provided',
+        );
 
-  final String externalAddress;
-  final ExternalAddressType externalAddressType;
+  final EventReference? eventReference;
+  final String? externalAddress;
   final CommunityTokenTradeMode? initialMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final resolvedExternalAddress = externalAddress ?? eventReference!.toString();
+    final resolvedExternalAddressType = externalAddress != null
+        ? const ExternalAddressType.x()
+        : ref
+            .watch(ionConnectEntityProvider(eventReference: eventReference!))
+            .valueOrNull
+            ?.externalAddressType;
+    if (resolvedExternalAddressType == null) {
+      return const SheetContent(body: SizedBox.shrink());
+    }
+
     final params = (
-      externalAddress: externalAddress,
-      externalAddressType: externalAddressType,
+      externalAddress: resolvedExternalAddress,
+      externalAddressType: resolvedExternalAddressType,
+      eventReference: eventReference,
     );
     final state = ref.watch(tradeCommunityTokenControllerProvider(params));
     final controller = ref.read(tradeCommunityTokenControllerProvider(params).notifier);
@@ -60,17 +77,16 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
       [controller, initialMode],
     );
 
-    final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
+    final pubkey = eventReference?.masterPubkey ??
+        CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(resolvedExternalAddress);
     final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
 
     ref
       ..displayErrors(
-        communityTokenTradeNotifierProvider(externalAddress, externalAddressType),
+        communityTokenTradeNotifierProvider(params),
         excludedExceptions: excludedPasskeyExceptions,
       )
-      ..listenSuccess<String?>(
-          communityTokenTradeNotifierProvider(externalAddress, externalAddressType),
-          (String? txHash) {
+      ..listenSuccess<String?>(communityTokenTradeNotifierProvider(params), (String? txHash) {
         if (context.mounted) {
           Navigator.of(context).pop();
           final rootNavigator = Navigator.of(context, rootNavigator: true);
@@ -126,7 +142,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
               onPressed: () => _handleButtonPress(
                 context,
                 ref,
-                externalAddress,
+                params,
                 state.mode,
               ),
             ),
@@ -189,13 +205,9 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   Future<void> _handleButtonPress(
     BuildContext context,
     WidgetRef ref,
-    String externalAddress,
+    TradeCommunityTokenControllerParams params,
     CommunityTokenTradeMode mode,
   ) async {
-    final params = (
-      externalAddress: externalAddress,
-      externalAddressType: externalAddressType,
-    );
     final state = ref.read(tradeCommunityTokenControllerProvider(params));
 
     if (state.targetWallet == null || state.selectedPaymentToken == null) {
@@ -205,16 +217,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     await guardPasskeyDialog(
       context,
       (child) => RiverpodUserActionSignerRequestBuilder(
-        provider: communityTokenTradeNotifierProvider(
-          externalAddress,
-          externalAddressType,
-        ),
+        provider: communityTokenTradeNotifierProvider(params),
         request: (signer) async {
           final notifier = ref.read(
-            communityTokenTradeNotifierProvider(
-              externalAddress,
-              externalAddressType,
-            ).notifier,
+            communityTokenTradeNotifierProvider(params).notifier,
           );
           if (mode == CommunityTokenTradeMode.buy) {
             await notifier.buy(signer);

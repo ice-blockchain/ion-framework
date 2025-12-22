@@ -7,7 +7,6 @@ import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
@@ -111,8 +110,7 @@ class ProfileTokenStats extends ConsumerWidget {
           SizedBox(width: 8.0.s),
           GestureDetector(
             onTap: () => TokenizedCommunityRoute(
-              externalAddress: externalAddress,
-              externalAddressType: const ExternalAddressType.ionConnectUser().prefix,
+              eventReference: ReplaceableEventReference.fromString(externalAddress).encode(),
             ).push<void>(context),
             child: const BuyButton(),
           ),
@@ -395,8 +393,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () => TokenizedCommunityRoute(
-              externalAddress: externalAddress,
-              externalAddressType: const ExternalAddressType.ionConnectUser().prefix,
+              eventReference: ReplaceableEventReference.fromString(externalAddress).encode(),
             ).push<void>(context),
             child: BuyButton(
               padding: EdgeInsetsDirectional.symmetric(horizontal: 22.s),

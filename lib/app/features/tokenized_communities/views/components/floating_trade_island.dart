@@ -5,26 +5,26 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
-import 'package:ion/app/features/tokenized_communities/providers/external_address_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class FloatingTradeIsland extends ConsumerWidget {
   const FloatingTradeIsland({
-    required this.externalAddress,
-    required this.externalAddressType,
+    this.eventReference,
+    this.externalAddress,
     super.key,
-  });
+  }) : assert(
+          (eventReference == null) != (externalAddress == null),
+          'Either eventReference or externalAddress must be provided',
+        );
 
-  final String externalAddress;
-  final ExternalAddressType externalAddressType;
+  final EventReference? eventReference;
+  final String? externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final externalAddressType =
-        ref.watch(externalAddressTypeProvider(externalAddress: externalAddress)).valueOrNull;
     final colors = context.theme.appColors;
     final i18n = context.i18n;
 
@@ -47,11 +47,9 @@ class FloatingTradeIsland extends ConsumerWidget {
               leading: Assets.svg.iconButtonReceive.icon(size: 20.0.s, color: Colors.white),
               label: i18n.trade_buy,
               onTap: () {
-                if (externalAddressType == null) return;
-
                 TradeCommunityTokenRoute(
+                  eventReference: eventReference?.encode(),
                   externalAddress: externalAddress,
-                  externalAddressType: externalAddressType.prefix,
                   initialMode: CommunityTokenTradeMode.buy,
                 ).push<void>(context);
               },
@@ -63,11 +61,9 @@ class FloatingTradeIsland extends ConsumerWidget {
               leading: Assets.svg.iconButtonReceive.icon(size: 20.0.s, color: Colors.white),
               label: i18n.trade_sell,
               onTap: () {
-                if (externalAddressType == null) return;
-
                 TradeCommunityTokenRoute(
+                  eventReference: eventReference?.encode(),
                   externalAddress: externalAddress,
-                  externalAddressType: externalAddressType.prefix,
                   initialMode: CommunityTokenTradeMode.sell,
                 ).push<void>(context);
               },
