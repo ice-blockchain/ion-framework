@@ -13,6 +13,8 @@ class ChartStats extends StatelessWidget {
     required this.sellsText,
     required this.netBuyText,
     required this.isNetBuyPositive,
+    required this.isSellsZero,
+    required this.isNetBuyZero,
     required this.onTimeframeTap,
     super.key,
   });
@@ -24,6 +26,8 @@ class ChartStats extends StatelessWidget {
   final String sellsText;
   final String netBuyText;
   final bool isNetBuyPositive;
+  final bool isSellsZero;
+  final bool isNetBuyZero;
   final ValueChanged<int> onTimeframeTap;
 
   @override
@@ -76,12 +80,14 @@ class ChartStats extends StatelessWidget {
                 _KpiColumn(
                   title: i18n.chart_stats_sells,
                   value: sellsText,
-                  valueColor: colors.lossRed,
+                  valueColor: isSellsZero ? colors.primaryText : colors.lossRed,
                 ),
                 _KpiColumn(
                   title: i18n.chart_stats_net_buy,
                   value: netBuyText,
-                  valueColor: isNetBuyPositive ? colors.success : colors.lossRed,
+                  valueColor: isNetBuyZero
+                      ? colors.primaryText
+                      : (isNetBuyPositive ? colors.success : colors.lossRed),
                   crossAxisAlignment: CrossAxisAlignment.end,
                 ),
               ],
@@ -109,7 +115,11 @@ class _TimeframeChip extends StatelessWidget {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
 
-    final changeColor = data.percent >= 0 ? colors.success : colors.lossRed;
+    final isZero = data.percent == 0.0;
+    final displayText = isZero ? '--' : formatPercent(data.percent);
+    final changeColor = isZero
+        ? colors.primaryText
+        : (data.percent > 0 ? colors.success : colors.lossRed); // Green/Red for non-zero
 
     return GestureDetector(
       onTap: onTap,
@@ -134,7 +144,7 @@ class _TimeframeChip extends StatelessWidget {
             ),
             SizedBox(height: 4.0.s),
             Text(
-              formatPercent(data.percent),
+              displayText,
               textAlign: TextAlign.center,
               style: texts.body.copyWith(color: changeColor, height: 18 / texts.body.fontSize!),
             ),

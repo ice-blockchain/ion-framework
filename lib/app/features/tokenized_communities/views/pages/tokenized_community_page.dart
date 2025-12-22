@@ -20,6 +20,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/trading_stats_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
@@ -370,9 +371,9 @@ class _TokenStats extends HookConsumerWidget {
           buysText: selectedStatsFormatted.buysText,
           sellsText: selectedStatsFormatted.sellsText,
           netBuyText: selectedStatsFormatted.netBuyText,
-          //TODO: handle this new prop
-          // isNetBuyPositive: selectedStatsFormatted.isNetBuyPositive,
-          isNetBuyPositive: true,
+          isNetBuyPositive: selectedStatsFormatted.isNetBuyPositive,
+          isSellsZero: selectedStatsFormatted.isSellsZero,
+          isNetBuyZero: selectedStatsFormatted.isNetBuyZero,
           onTimeframeTap: (index) => selectedTimeframe.value = index,
         );
       },
