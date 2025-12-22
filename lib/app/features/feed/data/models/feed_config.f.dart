@@ -32,6 +32,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     @Default(true) bool allowNewRegistrations,
     @Default(false) bool enableEarlyAccessRegistrations,
     @Default(true) bool forceSecurityEnabled,
+    @DurationMillisecondsConverter() @Default(Duration(days: 5)) Duration tokenizedCommunitiesMaxAge,
   }) = _FeedConfig;
 
   const FeedConfig._();
