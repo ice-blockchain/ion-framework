@@ -24,8 +24,8 @@ class MarketDataFormatter {
   // Formats a USD price value.
   // - 123.45 -> $123.45
   // - 0.123 -> $0.12
-  static String formatPrice(double value) {
-    final formatter = NumberFormat.currency(symbol: r'$', decimalDigits: 2);
+  static String formatPrice(double value, {String symbol = r'$'}) {
+    final formatter = NumberFormat.currency(symbol: symbol, decimalDigits: 2);
     return formatter.format(value);
   }
 }
