@@ -78,12 +78,20 @@ class TokenizedCommunityPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final resolvedExternalAddress = externalAddress ?? eventReference!.toString();
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(resolvedExternalAddress));
-    final tokenDefinition = ref
-        .watch(tokenDefinitionForExternalAddressProvider(externalAddress: resolvedExternalAddress))
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
+    final tokenDefinition = (eventReference != null
+            ? ref.watch(
+                tokenDefinitionForIonConnectReferenceProvider(eventReference: eventReference!),
+              )
+            : ref.watch(
+                tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress!),
+              ))
         .valueOrNull;
 
-    final typeAsync = ref.watch(tokenTypeForExternalAddressProvider(resolvedExternalAddress));
+    final tokenType = (eventReference != null
+            ? ref.watch(tokenTypeForIonConnectEntityProvider(eventReference: eventReference!))
+            : ref.watch(tokenTypeForExternalAddressProvider(externalAddress!)))
+        .valueOrNull;
     final activeTab = useState(TokenizedCommunityTabType.chart);
 
     final sectionKeys = useMemoized(
@@ -97,13 +105,13 @@ class TokenizedCommunityPage extends HookConsumerWidget {
     return CollapsingHeaderLayout(
       backgroundColor: context.theme.appColors.secondaryBackground,
       applySafeAreaBottomPadding: false,
-      imageUrl: tokenInfo.valueOrNull?.imageUrl,
+      imageUrl: tokenInfo?.imageUrl,
       collapsedHeaderBuilder: (opacity) => SizedBox(
         height: 36.s,
         child: Row(
           children: [
             CommunityTokenImage(
-              imageUrl: tokenInfo.valueOrNull?.imageUrl,
+              imageUrl: tokenInfo?.imageUrl,
               width: 36.s,
               height: 36.s,
               innerBorderRadius: 10.s,
@@ -119,7 +127,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                 Row(
                   children: [
                     Text(
-                      tokenInfo.valueOrNull?.title ?? '',
+                      tokenInfo?.title ?? '',
                       style: context.theme.appTextThemes.subtitle3.copyWith(
                         color: context.theme.appColors.onPrimaryAccent,
                       ),
@@ -127,7 +135,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                   ],
                 ),
                 Text(
-                  tokenInfo.valueOrNull?.marketData.ticker ?? '',
+                  tokenInfo?.marketData.ticker ?? '',
                   style: context.theme.appTextThemes.caption.copyWith(
                     color: context.theme.appColors.attentionBlock,
                   ),
@@ -162,26 +170,22 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       expandedHeader: Column(
         children: [
           SizedBox(height: MediaQuery.viewPaddingOf(context).top + 16.s),
-          if (typeAsync.valueOrNull != null)
+          if (tokenType != null)
             Builder(
               builder: (context) {
-                if (tokenInfo.valueOrNull == null) {
+                if (tokenInfo == null) {
                   return const SizedBox.shrink();
                 }
 
-                final token = tokenInfo.valueOrNull!;
-
-                final t = typeAsync.valueOrNull!;
-
-                if (t == CommunityContentTokenType.profile) {
+                if (tokenType == CommunityContentTokenType.profile) {
                   return ProfileTokenHeader(
-                    token: token,
+                    token: tokenInfo,
                     externalAddress: resolvedExternalAddress,
                     minimal: true,
                   );
-                } else if (t == CommunityContentTokenType.twitter) {
+                } else if (tokenType == CommunityContentTokenType.twitter) {
                   return TwitterTokenHeader(
-                    token: token,
+                    token: tokenInfo,
                     showBuyButton: false,
                   );
                 } else {
@@ -190,11 +194,11 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                   }
                   return Padding(
                     padding: EdgeInsetsDirectional.only(
-                      top: t == CommunityContentTokenType.postText ? 36.s : 0,
+                      top: tokenType == CommunityContentTokenType.postText ? 36.s : 0,
                     ),
                     child: ContentTokenHeader(
-                      type: t,
-                      token: token,
+                      type: tokenType,
+                      token: tokenInfo,
                       externalAddress: resolvedExternalAddress,
                       tokenDefinition: tokenDefinition,
                       showBuyButton: false,
@@ -221,9 +225,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       child: Column(
         children: [
           SimpleSeparator(height: 4.0.s),
-          if (tokenInfo.valueOrNull != null && tokenInfo.valueOrNull?.marketData.position != null)
+          if (tokenInfo != null && tokenInfo.marketData.position != null)
             YourPositionCard(
-              token: tokenInfo.valueOrNull!,
+              token: tokenInfo,
               trailing: SimpleSeparator(height: 4.0.s),
             ),
           KeyedSubtree(
@@ -279,20 +283,19 @@ class _TokenChart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
-    final token = tokenInfo.valueOrNull;
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
 
     // If token info is not yet available, render nothing (unchanged behaviour).
-    if (token == null) {
+    if (tokenInfo == null) {
       return const SizedBox.shrink();
     }
 
-    final price = Decimal.parse(token.marketData.priceUSD.toStringAsFixed(4));
+    final price = Decimal.parse(tokenInfo.marketData.priceUSD.toStringAsFixed(4));
 
     return Chart(
       externalAddress: externalAddress,
       price: price,
-      label: token.title,
+      label: tokenInfo.title,
       onTitleVisibilityChanged: onTitleVisibilityChanged,
     );
   }
