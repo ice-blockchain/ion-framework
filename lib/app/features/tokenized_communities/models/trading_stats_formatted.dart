@@ -16,13 +16,9 @@ class TradingStatsFormatted {
   });
 
   factory TradingStatsFormatted.fromStats(TradingStats stats) {
-    final volumeText = stats.volumeUSD == 0
-        ? '--'
-        : r'$' + MarketDataFormatter.formatCompactNumber(stats.volumeUSD);
-
-    final buysText = (stats.numberOfBuys == 0 && stats.buysTotalAmountUSD == 0)
-        ? '--'
-        : '${stats.numberOfBuys}/\$${MarketDataFormatter.formatCompactNumber(stats.buysTotalAmountUSD)}';
+    final volumeText = r'$' + MarketDataFormatter.formatCompactNumber(stats.volumeUSD);
+    final buysText =
+        '${stats.numberOfBuys}/\$${MarketDataFormatter.formatCompactNumber(stats.buysTotalAmountUSD)}';
 
     final sellsAmount = MarketDataFormatter.formatCompactNumber(stats.sellsTotalAmountUSD);
     final sellsText = '${stats.numberOfSells}/\$$sellsAmount';

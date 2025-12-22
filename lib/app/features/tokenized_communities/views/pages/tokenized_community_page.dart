@@ -19,7 +19,6 @@ import 'package:ion/app/features/tokenized_communities/providers/token_latest_tr
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/trading_stats_extension.dart';
@@ -338,13 +337,8 @@ class _TokenStats extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTimeframe = useState(0);
-    final pubkey = CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
 
-    if (pubkey == null) {
-      return const SizedBox.shrink();
-    }
-
-    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(pubkey));
+    final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(externalAddress));
 
     return tradingStatsAsync.when(
       data: (tradingStats) {
@@ -354,6 +348,10 @@ class _TokenStats extends HookConsumerWidget {
           ..sort(
             (a, b) => a.key.sortValue.compareTo(b.key.sortValue),
           );
+
+        if (timeframeEntries.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
         final selectedTimeframeStats = timeframeEntries[selectedTimeframe.value].value;
         final selectedStatsFormatted = TradingStatsFormatted.fromStats(selectedTimeframeStats);
