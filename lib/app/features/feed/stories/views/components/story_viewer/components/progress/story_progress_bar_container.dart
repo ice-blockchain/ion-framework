@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -41,7 +43,8 @@ class StoryProgressBarContainer extends ConsumerWidget {
     );
     final currentStoryIndex = singleUserStoriesViewingState.currentStoryIndex;
     final stories = ref.watch(userStoriesProvider(currentUserPubkey))?.toList() ?? [];
-    final storiesCount = ref.watch(storiesCountProvider(currentUserPubkey)).valueOrNull;
+    final storiesCount =
+        max(ref.watch(storiesCountProvider(currentUserPubkey)).valueOrNull ?? 0, stories.length);
 
     if (stories.isEmpty || storiesCount == null) {
       return const SizedBox();
