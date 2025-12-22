@@ -153,6 +153,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
       onNativeShowFailed: () => log('onNativeShowFailed'),
       onNativeClicked: () => log('onNativeClicked'),
       onNativeExpired: () => log('onNativeExpired'),
+      onLog: (message) => log('onLog: $message'),
     );
   }
 
