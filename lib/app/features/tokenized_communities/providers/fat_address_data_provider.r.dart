@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_data.f.dart';
+import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -47,14 +47,14 @@ Future<FatAddressData> _buildCreatorFatAddressData(
   required String externalTypePrefix,
   required EventReference? eventReference,
 }) async {
-  final pubkey = _resolveMasterPubkey(externalAddress, eventReference: eventReference);
+  final pubkey = MasterPubkeyResolver.resolve(externalAddress, eventReference: eventReference);
 
   final metadata = await ref.watch(userMetadataProvider(pubkey).future);
   if (metadata == null) {
     throw UserMetadataNotFoundException(pubkey);
   }
 
-  final bscNetworkId = await _requireBscNetworkId(ref);
+  final bscNetworkId = (await ref.watch(bscNetworkDataProvider.future)).id;
   final creatorAddress = metadata.data.wallets?[bscNetworkId];
   if (creatorAddress == null || creatorAddress.isEmpty) {
     throw CreatorWalletAddressNotFoundException(
@@ -84,14 +84,15 @@ Future<FatAddressData> _buildContentFatAddressData(
   required String externalTypePrefix,
   required EventReference? eventReference,
 }) async {
-  final masterPubkey = _resolveMasterPubkey(externalAddress, eventReference: eventReference);
+  final masterPubkey =
+      MasterPubkeyResolver.resolve(externalAddress, eventReference: eventReference);
 
   final metadata = await ref.watch(userMetadataProvider(masterPubkey).future);
   if (metadata == null) {
     throw UserMetadataNotFoundException(masterPubkey);
   }
 
-  final bscNetworkId = await _requireBscNetworkId(ref);
+  final bscNetworkId = (await ref.watch(bscNetworkDataProvider.future)).id;
   final creatorAddress = metadata.data.wallets?[bscNetworkId];
   if (creatorAddress == null || creatorAddress.isEmpty) {
     throw CreatorWalletAddressNotFoundException(
@@ -120,19 +121,4 @@ Future<FatAddressData> _buildContentFatAddressData(
     creatorAddress: creatorAddress,
     creatorTokenAddress: creatorTokenAddress,
   );
-}
-
-String _resolveMasterPubkey(String externalAddress, {required EventReference? eventReference}) {
-  return eventReference?.masterPubkey ??
-      ReplaceableEventReference.fromString(externalAddress).masterPubkey;
-}
-
-Future<String> _requireBscNetworkId(Ref ref) async {
-  final networks = await ref.watch(networksProvider.future);
-  final bscNetwork = networks.firstWhereOrNull((n) => n.isBsc && !n.isTestnet) ??
-      networks.firstWhereOrNull((n) => n.isBsc);
-  if (bscNetwork == null) {
-    throw BscNetworkNotFoundException();
-  }
-  return bscNetwork.id;
 }

@@ -3,6 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
@@ -11,7 +12,6 @@ import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
@@ -177,9 +177,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final currentMetadata = await ref.read(currentUserMetadataProvider.future);
       if (currentMetadata == null) return;
 
-      final networks = await ref.read(networksProvider.future);
-      final bscNetwork = networks.firstWhereOrNull((n) => n.isBsc);
-      if (bscNetwork == null) return;
+      final bscNetwork = await ref.read(bscNetworkDataProvider.future);
 
       final mainWallets = await ref.read(mainCryptoWalletsProvider.future);
       final bscWallet = mainWallets.firstWhereOrNull(
