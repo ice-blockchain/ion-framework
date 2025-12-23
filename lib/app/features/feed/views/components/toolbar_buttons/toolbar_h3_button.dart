@@ -18,6 +18,8 @@ class ToolbarH3Button extends HookWidget {
     final styleManager =
         useMemoized(() => QuillStyleManager(textEditorController), [textEditorController]);
 
+    useEffect(() => styleManager.dispose, [styleManager]);
+
     return ActionsToolbarButton(
       icon: Assets.svg.iconArticleH3Off,
       iconSelected: Assets.svg.iconArticleH3On,

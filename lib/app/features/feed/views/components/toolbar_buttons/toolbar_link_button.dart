@@ -24,6 +24,8 @@ class ToolbarLinkButton extends HookWidget {
     final styleManager =
         useMemoized(() => QuillStyleManager(textEditorController), [textEditorController]);
 
+    useEffect(() => styleManager.dispose, [styleManager]);
+
     final selectionState = useState<TextSelection>(textEditorController.selection);
     useEffect(
       () {
