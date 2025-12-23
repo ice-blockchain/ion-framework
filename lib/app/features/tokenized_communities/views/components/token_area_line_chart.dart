@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:math' as math;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
+import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 
-class TokenAreaLineChart extends StatelessWidget {
+class TokenAreaLineChart extends ConsumerWidget {
   const TokenAreaLineChart({
     required this.candles,
     this.isLoading = false,
@@ -18,62 +17,29 @@ class TokenAreaLineChart extends StatelessWidget {
   final List<ChartCandle> candles;
   final bool isLoading;
 
-  // Calculates Y-axis padding for chart visualization.
-  // Returns 10% of the range if values differ, or 5% of the minimum value
-  // (with a minimum of 0.0001) when all values are identical to prevent flat lines.
-  static double _calculateYPadding(double minY, double maxY) {
-    final range = maxY - minY;
-    if (range > 0) {
-      return range * 0.1;
-    }
-    // Minimum 5% padding when all values are identical
-    return (minY * 0.05).clamp(0.0001, double.infinity);
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
     final styles = context.theme.appTextThemes;
 
-    if (candles.isEmpty) {
+    final calcData = ref.watch(
+      chartCalculationDataProvider(candles: candles),
+    );
+
+    if (calcData == null) {
       return const SizedBox.shrink();
     }
 
-    final minY = candles.map((c) => c.close).reduce(math.min);
-    final maxY = candles.map((c) => c.close).reduce(math.max);
-
-    final yPadding = _calculateYPadding(minY, maxY);
-    final chartMinY = minY - yPadding;
-    final chartMaxY = maxY + yPadding;
-
-    final spots = candles
-        .asMap()
-        .entries
-        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.close))
-        .toList();
-
-    // Build bottom labels from candle times (max 8 evenly spaced)
-    final desiredBottom = math.min(8, candles.length);
-    final indexToLabel = <int, String>{};
-    double xAxisStep = 1;
-    if (desiredBottom > 0 && candles.length > 1) {
-      xAxisStep = (candles.length - 1) / (desiredBottom - 1);
-      for (var i = 0; i < desiredBottom; i++) {
-        final idx = (i * xAxisStep).round().clamp(0, candles.length - 1);
-        indexToLabel[idx] = formatChartTime(candles[idx].date);
-      }
-    }
-
-    // In loading state we use a neutral/disabled color instead of blue.
+    // UI logic stays here
     final lineColor = isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
 
     return ClipRect(
       child: LineChart(
         LineChartData(
-          minY: chartMinY,
-          maxY: chartMaxY,
+          minY: calcData.chartMinY,
+          maxY: calcData.chartMaxY,
           minX: 0,
-          maxX: (candles.length - 1).toDouble(),
+          maxX: calcData.maxX,
           clipData: const FlClipData.all(), // Clip line to chart bounds
           borderData: FlBorderData(show: false),
           gridData: const FlGridData(
@@ -94,10 +60,10 @@ class TokenAreaLineChart extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 26.0.s,
-                interval: xAxisStep,
+                interval: calcData.xAxisStep,
                 getTitlesWidget: (value, meta) {
                   final i = value.round();
-                  final text = indexToLabel[i];
+                  final text = calcData.indexToLabel[i];
                   if (text == null) return const SizedBox.shrink();
                   return Align(
                     alignment: Alignment.bottomCenter,
@@ -143,7 +109,7 @@ class TokenAreaLineChart extends StatelessWidget {
               : const LineTouchData(enabled: false),
           lineBarsData: [
             LineChartBarData(
-              spots: spots,
+              spots: calcData.spots,
               color: lineColor,
               barWidth: 1.5.s,
               dotData: FlDotData(
