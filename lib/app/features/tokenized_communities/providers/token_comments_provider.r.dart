@@ -4,8 +4,8 @@ import 'dart:async';
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/paged.f.dart';
-import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/providers/counters/replies_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/replies_data_source_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -37,18 +37,10 @@ class TokenComments extends _$TokenComments {
     );
     final entitiesPagedData = ref.watch(entitiesPagedDataProvider(dataSource));
 
-    // Listen to new replies from createPostNotifierStreamProvider for immediate updates
-    // when user creates a comment (optimistic update)
-    final optimisticSubscription = ref
-        .watch(createPostNotifierStreamProvider)
-        .where((IonConnectEntity entity) => _isReply(entity, tokenDefinitionEventReference))
-        .distinct()
-        .listen(_handleReply);
-
-    // Set up live subscription for new comments from other users
+    // Set up live subscription for new comments (from all users)
     // Only set up if not already active
     if (_subscription == null && dataSource != null && dataSource.isNotEmpty) {
-      _setupSubscription(dataSource, tokenDefinitionEventReference);
+      _setupSubscription(dataSource);
     }
 
     // Listen to state changes for poll fetching
@@ -64,17 +56,13 @@ class TokenComments extends _$TokenComments {
         },
         fireImmediately: true,
       )
-      ..onDispose(() {
-        optimisticSubscription.cancel();
-        _closeSubscription();
-      });
+      ..onDispose(_closeSubscription);
 
     return entitiesPagedData;
   }
 
   void _setupSubscription(
     List<EntitiesDataSource> dataSource,
-    EventReference tokenDefinitionEventReference,
   ) {
     if (dataSource.isEmpty) return;
 
@@ -96,6 +84,10 @@ class TokenComments extends _$TokenComments {
       ),
     );
 
+    final repliesCountNotifier = ref.read(
+      repliesCountProvider(tokenDefinitionEventReference, network: true).notifier,
+    );
+
     _subscription = eventsStream.listen(
       (EventMessage event) {
         try {
@@ -106,7 +98,7 @@ class TokenComments extends _$TokenComments {
           ref.read(ionConnectCacheProvider.notifier).cache(entity);
 
           if (_isReply(entity, tokenDefinitionEventReference)) {
-            _handleReply(entity);
+            _handleReply(entity, repliesCountNotifier);
           }
         } catch (e, stackTrace) {
           Logger.error(e, stackTrace: stackTrace, message: 'Error processing token comment event');
@@ -129,27 +121,33 @@ class TokenComments extends _$TokenComments {
         entity.data.parentEvent?.eventReference == parentEventReference;
   }
 
-  void _handleReply(IonConnectEntity entity) {
-    // Skip deleted entities - they will be handled by the cache and UI watching by EventReference
-    if (entity is ModifiablePostEntity && entity.isDeleted) {
-      return;
-    }
-
+  void _handleReply(
+    IonConnectEntity entity,
+    RepliesCount repliesCountNotifier,
+  ) {
     final dataSource =
         ref.read(repliesDataSourceProvider(eventReference: tokenDefinitionEventReference));
     if (dataSource == null) {
       return;
     }
 
-    // Check if entity already exists before inserting
     final currentState = ref.read(entitiesPagedDataProvider(dataSource));
-    if (currentState?.data.items?.contains(entity) ?? false) {
+    final items = currentState?.data.items;
+
+    // Check if entity already exists before inserting
+    if (items != null && items.contains(entity)) {
       return;
     }
 
     // Comments are sorted newest first, and new comments from subscription are always the newest
     // So we can always insert at the top (index 0)
     ref.read(entitiesPagedDataProvider(dataSource).notifier).insertEntity(entity);
+
+    if (entity is ModifiablePostEntity && entity.isDeleted) {
+      repliesCountNotifier.removeOne();
+    } else {
+      repliesCountNotifier.addOne();
+    }
   }
 
   Future<void> loadMore(EventReference tokenDefinitionEventReference) async {
