@@ -6,6 +6,7 @@ import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
@@ -101,6 +102,7 @@ class ProfileTokenStats extends ConsumerWidget {
     }
 
     final marketData = tokenInfo.valueOrNull?.marketData;
+    final hasTokenInfo = tokenInfo.valueOrNull != null;
 
     if (marketData == null) {
       return Row(
@@ -109,9 +111,20 @@ class ProfileTokenStats extends ConsumerWidget {
           const _BuyHint(),
           SizedBox(width: 8.0.s),
           GestureDetector(
-            onTap: () => TokenizedCommunityRoute(
-              eventReference: ReplaceableEventReference.fromString(externalAddress).encode(),
-            ).push<void>(context),
+            onTap: () {
+              if (hasTokenInfo) {
+                // Someone already bought, open token page
+                TokenizedCommunityRoute(
+                  eventReference: ReplaceableEventReference.fromString(externalAddress).encode(),
+                ).push<void>(context);
+              } else {
+                // No one bought yet, open trade dialog
+                TradeCommunityTokenRoute(
+                  externalAddress: externalAddress,
+                  initialMode: CommunityTokenTradeMode.buy,
+                ).push<void>(context);
+              }
+            },
             child: const BuyButton(),
           ),
         ],
