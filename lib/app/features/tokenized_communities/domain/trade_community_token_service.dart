@@ -72,24 +72,26 @@ class TradeCommunityTokenService {
       userActionSigner: userActionSigner,
     );
 
-    await Future.wait([
-      if (firstBuy)
-        // First-buy events are always sent, regardless of [shouldSendEvents].
-        _sendFirstBuyEvents(externalAddress: externalAddress),
-      if (shouldSendEvents)
-        _trySendBuyEvents(
-          externalAddress: externalAddress,
-          firstBuy: firstBuy,
-          transaction: transaction,
-          pricing: expectedPricing,
-          amountIn: amountIn,
-          walletNetwork: walletNetwork,
-          baseTokenTicker: baseTokenTicker,
-          tokenDecimals: tokenDecimals,
-          existingTokenAddress: existingTokenAddress,
-          tokenInfo: tokenInfo,
-        ),
-    ]);
+    if (_isBroadcasted(transaction)) {
+      await Future.wait([
+        if (firstBuy)
+          // First-buy events are always sent, regardless of [shouldSendEvents].
+          _sendFirstBuyEvents(externalAddress: externalAddress),
+        if (shouldSendEvents)
+          _trySendBuyEvents(
+            externalAddress: externalAddress,
+            firstBuy: firstBuy,
+            transaction: transaction,
+            pricing: expectedPricing,
+            amountIn: amountIn,
+            walletNetwork: walletNetwork,
+            baseTokenTicker: baseTokenTicker,
+            tokenDecimals: tokenDecimals,
+            existingTokenAddress: existingTokenAddress,
+            tokenInfo: tokenInfo,
+          ),
+      ]);
+    }
 
     return transaction;
   }
@@ -134,7 +136,7 @@ class TradeCommunityTokenService {
       userActionSigner: userActionSigner,
     );
 
-    if (shouldSendEvents) {
+    if (shouldSendEvents && _isBroadcasted(transaction)) {
       await _trySendSellEvents(
         externalAddress: externalAddress,
         transaction: transaction,
@@ -231,8 +233,6 @@ class TradeCommunityTokenService {
     required String? existingTokenAddress,
     required CommunityToken? tokenInfo,
   }) async {
-    if (!_isBroadcasted(transaction)) return;
-
     final txHash = transaction['txHash'] as String?;
     if (txHash == null || txHash.isEmpty) return;
 
@@ -290,8 +290,6 @@ class TradeCommunityTokenService {
     required int paymentTokenDecimals,
     required CommunityToken? tokenInfo,
   }) async {
-    if (!_isBroadcasted(transaction)) return;
-
     final txHash = transaction['txHash'] as String?;
     if (txHash == null || txHash.isEmpty) return;
 

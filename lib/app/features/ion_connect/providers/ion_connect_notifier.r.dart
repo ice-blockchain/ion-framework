@@ -106,7 +106,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
           Logger.log(
             '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
           );
-          return triedRelayUrl != null;
+          return triedRelayUrl != null && !RelayAuthService.isRelayAuthoritativeError(error);
         },
         onRetry: (error) async {
           final triedRelayUrl =
