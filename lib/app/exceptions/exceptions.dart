@@ -777,3 +777,16 @@ class TransactionHashNotFoundException extends IONException {
   TransactionHashNotFoundException(String externalAddress)
       : super(10142, 'Transaction hash not found for external address: $externalAddress');
 }
+
+class CommunityTokenTradeTransactionException extends IONException {
+  CommunityTokenTradeTransactionException({
+    required String reason,
+    String? status,
+    String? txHash,
+  }) : super(
+          10143,
+          'Community token trade transaction error: $reason'
+          '${status != null ? ', status: $status' : ''}'
+          '${txHash != null ? ', txHash: $txHash' : ''}',
+        );
+}
