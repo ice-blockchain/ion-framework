@@ -149,9 +149,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       floatingActionButton: isCommentInputFocused.value
           ? const SizedBox.shrink()
           : FloatingTradeIsland(
-        eventReference: eventReference,
-        externalAddress: externalAddress,
-      ),
+              eventReference: eventReference,
+              externalAddress: externalAddress,
+            ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
         IconButton(
           padding: EdgeInsets.zero,
