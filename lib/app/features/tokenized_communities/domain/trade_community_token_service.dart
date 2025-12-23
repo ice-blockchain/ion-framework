@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
@@ -11,6 +12,7 @@ import 'package:ion/app/features/tokenized_communities/utils/external_address_ex
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_data.f.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -231,37 +233,42 @@ class TradeCommunityTokenService {
     required String? existingTokenAddress,
     required CommunityToken? tokenInfo,
   }) async {
-    final txHash = transaction['txHash'] as String?;
-    if (txHash == null || txHash.isEmpty) return;
-
-    final bondingCurveAddress = await repository.fetchBondingCurveAddress();
-    var tokenAddress = existingTokenAddress ?? _extractTokenAddress(tokenInfo);
-    if (tokenAddress == null && firstBuy) {
-      // First buy can create token contract, analytics may lag behind.
-      // Retry once to avoid excessive requests.
-      tokenAddress = _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
-    }
-    if (tokenAddress == null || tokenAddress.isEmpty) return;
-
-    const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
-
-    final baseTokenAmountValue = fromBlockchainUnits(amountIn.toString(), tokenDecimals);
-
-    final communityTokenAmountValue = fromBlockchainUnits(pricing.amount, communityTokenDecimals);
-
-    final usdAmountValue = pricing.amountUSD;
-
-    final amountBase = TransactionAmount(
-      value: baseTokenAmountValue,
-      currency: baseTokenTicker,
-    );
-    final amountQuote = TransactionAmount(
-      value: communityTokenAmountValue,
-      currency: externalAddress,
-    );
-    final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
-
     try {
+      final txHash = transaction['txHash'] as String?;
+      if (txHash == null || txHash.isEmpty) {
+        throw StateError('Transaction hash is missing in the transaction result');
+      }
+
+      final bondingCurveAddress = await repository.fetchBondingCurveAddress();
+      var tokenAddress = existingTokenAddress ?? _extractTokenAddress(tokenInfo);
+      if (tokenAddress == null && firstBuy) {
+        // First buy can create token contract, analytics may lag behind.
+        // Retry once to avoid excessive requests.
+        tokenAddress = _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
+      }
+
+      if (tokenAddress == null || tokenAddress.isEmpty) {
+        throw StateError('Token address is missing for $externalAddress');
+      }
+
+      const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
+
+      final baseTokenAmountValue = fromBlockchainUnits(amountIn.toString(), tokenDecimals);
+
+      final communityTokenAmountValue = fromBlockchainUnits(pricing.amount, communityTokenDecimals);
+
+      final usdAmountValue = pricing.amountUSD;
+
+      final amountBase = TransactionAmount(
+        value: baseTokenAmountValue,
+        currency: baseTokenTicker,
+      );
+      final amountQuote = TransactionAmount(
+        value: communityTokenAmountValue,
+        currency: externalAddress,
+      );
+      final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+
       await ionConnectService.sendBuyActionEvents(
         externalAddress: externalAddress,
         network: walletNetwork,
@@ -272,8 +279,13 @@ class TradeCommunityTokenService {
         amountQuote: amountQuote,
         amountUsd: amountUsd,
       );
-    } on Exception catch (e, stackTrace) {
-      Logger.error('Failed to send buy events: $e', stackTrace: stackTrace);
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to send buy events for $externalAddress',
+      );
+      unawaited(SentryService.logException(error, stackTrace: stackTrace));
     }
   }
 
@@ -288,27 +300,29 @@ class TradeCommunityTokenService {
     required int paymentTokenDecimals,
     required CommunityToken? tokenInfo,
   }) async {
-    final txHash = transaction['txHash'] as String?;
-    if (txHash == null || txHash.isEmpty) return;
-
-    final bondingCurveAddress = await repository.fetchBondingCurveAddress();
-    const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
-
-    final communityTokenAmountValue =
-        fromBlockchainUnits(amountIn.toString(), communityTokenDecimals);
-    final paymentTokenAmountValue = fromBlockchainUnits(pricing.amount, paymentTokenDecimals);
-
-    final usdAmountValue = pricing.amountUSD;
-
-    final amountBase =
-        TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
-    final amountQuote = TransactionAmount(
-      value: paymentTokenAmountValue,
-      currency: paymentTokenTicker,
-    );
-    final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
-
     try {
+      final txHash = transaction['txHash'] as String?;
+      if (txHash == null || txHash.isEmpty) {
+        throw StateError('Transaction hash is missing in the transaction result');
+      }
+
+      final bondingCurveAddress = await repository.fetchBondingCurveAddress();
+      const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
+
+      final communityTokenAmountValue =
+          fromBlockchainUnits(amountIn.toString(), communityTokenDecimals);
+      final paymentTokenAmountValue = fromBlockchainUnits(pricing.amount, paymentTokenDecimals);
+
+      final usdAmountValue = pricing.amountUSD;
+
+      final amountBase =
+          TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
+      final amountQuote = TransactionAmount(
+        value: paymentTokenAmountValue,
+        currency: paymentTokenTicker,
+      );
+      final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+
       await ionConnectService.sendSellActionEvents(
         externalAddress: externalAddress,
         network: walletNetwork,
@@ -319,8 +333,13 @@ class TradeCommunityTokenService {
         amountQuote: amountQuote,
         amountUsd: amountUsd,
       );
-    } on Exception catch (e, stackTrace) {
-      Logger.error('Failed to send sell events: $e', stackTrace: stackTrace);
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to send sell events for $externalAddress',
+      );
+      unawaited(SentryService.logException(error, stackTrace: stackTrace));
     }
   }
 
