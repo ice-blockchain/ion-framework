@@ -121,6 +121,7 @@ import 'package:ion/app/features/settings/views/settings_modal.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/select_trade_payment_token_modal_page.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/pages/holders_page.dart';
+import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/pages/trades_page.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/tokenized_community_page.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
