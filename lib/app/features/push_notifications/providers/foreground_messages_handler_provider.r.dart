@@ -38,21 +38,24 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
   Future<void> _handleForegroundMessage(RemoteMessage response) async {
     Logger.log('☁️ Foreground push notification received: ${response.toMap()}');
 
-    final data = await IonConnectPushDataPayload.fromEncoded(
-      response.data,
-      unwrapGift: (eventMassage) async {
-        final giftUnwrapService = await ref.read(giftUnwrapServiceProvider.future);
+    // Check if this is a generic campaign notification (has notification but not IonConnect data)
+    final hasNotification = response.notification != null;
+    final hasIonConnectData = response.data.containsKey('event');
 
-        final event = await giftUnwrapService.unwrap(eventMassage);
-        final userMetadata = await ref.read(
-          userMetadataProvider(event.masterPubkey).future,
+    // Handle generic notifications (campaigns, deep link notifications)
+    if (hasNotification && !hasIonConnectData) {
+      final title = response.notification?.title;
+      final body = response.notification?.body;
+
+      if (title != null && body != null) {
+        final notificationsService = await ref.read(localNotificationsServiceProvider.future);
+        await notificationsService.showNotification(
+          title: title,
+          body: body,
+          payload: jsonEncode(response.data),
+          conversationStyle: false,
         );
-
-        return (event, userMetadata);
-      },
-    );
-
-    if (await _shouldSkipOwnGiftWrap(data: data)) {
+      }
       return;
     }
 
@@ -128,46 +131,6 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
         message: 'Error handling IonConnect foreground push',
       );
     }
-
-    // Skip notifications from muted users or muted conversations
-    if (await _shouldSkipMutedNotification(data)) {
-      return;
-    }
-
-    final parser = await ref.read(notificationDataParserProvider.future);
-    final parsedData = await parser.parse(
-      data,
-      getFundsRequestData: (eventMessage) =>
-          ref.read(fundsRequestDisplayDataProvider(eventMessage).future),
-      getTransactionData: (eventMessage) =>
-          ref.read(transactionDisplayDataProvider(eventMessage).future),
-      getRelatedEntity: (eventReference) =>
-          ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference).future),
-    );
-
-    final title = parsedData?.title ?? response.notification?.title;
-    final body = parsedData?.body ?? response.notification?.body;
-
-    if (title == null || body == null) {
-      return;
-    }
-
-    final avatar = parsedData?.avatar;
-    final media = parsedData?.media;
-
-    if (_shouldSkipChatPush(data, parsedData?.notificationType)) {
-      return;
-    }
-
-    final notificationsService = await ref.read(localNotificationsServiceProvider.future);
-    await notificationsService.showNotification(
-      title: title,
-      body: body,
-      payload: jsonEncode(response.data),
-      icon: avatar,
-      attachment: media,
-      groupKey: parsedData?.groupKey,
-    );
   }
 
   Future<bool> _shouldSkipMutedNotification(IonConnectPushDataPayload data) async {
