@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/providers/content_creator_payment_coins_group_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
@@ -34,14 +35,14 @@ typedef TradeCommunityTokenControllerParams = ({
 
 @riverpod
 class TradeCommunityTokenController extends _$TradeCommunityTokenController {
-  late final TradeCommunityTokenQuoteController _quoteController;
+  TradeCommunityTokenQuoteController? _quoteController;
 
   @override
   TradeCommunityTokenState build(TradeCommunityTokenControllerParams params) {
     final externalAddress = params.externalAddress;
     state = const TradeCommunityTokenState();
 
-    _quoteController = TradeCommunityTokenQuoteController(
+    _quoteController ??= TradeCommunityTokenQuoteController(
       serviceResolver: () => ref.read(tradeCommunityTokenServiceProvider.future),
       debounce: const Duration(
         milliseconds: TokenizedCommunitiesConstants.quoteDebounceMilliseconds,
@@ -58,6 +59,16 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         tokenMarketInfoProvider(externalAddress),
         (_, __) => _updateCommunityTokenState(),
       );
+    if (params.externalAddressType.isContentToken) {
+      ref.listen(
+        contentCreatorPaymentCoinsGroupProvider(
+          externalAddress: externalAddress,
+          externalAddressType: params.externalAddressType,
+          eventReference: params.eventReference,
+        ),
+        (_, __) => _updateDerivedState(),
+      );
+    }
     if (pubkey != null) {
       ref.listen(
         userPreviewDataProvider(pubkey),
@@ -65,7 +76,8 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       );
     }
     ref.onDispose(() {
-      _quoteController.dispose();
+      _quoteController?.dispose();
+      _quoteController = null;
     });
 
     _initialize();
@@ -75,10 +87,60 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   Future<void> _initialize() async {
-    final supportedTokens = await ref.watch(supportedSwapTokensProvider.future);
+    try {
+      if (params.externalAddressType.isContentToken) {
+        await _initializeContentPayment();
+        return;
+      }
 
-    if (state.selectedPaymentToken == null && supportedTokens.isNotEmpty) {
-      selectPaymentToken(supportedTokens.first);
+      final supportedTokens = await ref.read(supportedSwapTokensProvider.future);
+      if (state.selectedPaymentToken == null && supportedTokens.isNotEmpty) {
+        selectPaymentToken(supportedTokens.first);
+      }
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to initialize trade form',
+      );
+    }
+  }
+
+  Future<void> _initializeContentPayment() async {
+    if (state.selectedPaymentToken != null && state.paymentCoinsGroup != null) {
+      return;
+    }
+
+    try {
+      final group = await ref.read(
+        contentCreatorPaymentCoinsGroupProvider(
+          externalAddress: params.externalAddress,
+          externalAddressType: params.externalAddressType,
+          eventReference: params.eventReference,
+        ).future,
+      );
+
+      final paymentToken = group.coins.firstOrNull?.coin;
+      if (paymentToken == null) {
+        throw StateError('Creator payment token is missing.');
+      }
+
+      state = state.copyWith(
+        selectedPaymentToken: paymentToken,
+        paymentCoinsGroup: group,
+      );
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to resolve content payment token',
+      );
+      state = state.copyWith(
+        selectedPaymentToken: null,
+        paymentCoinsGroup: null,
+        targetWallet: null,
+        targetNetwork: null,
+      );
     }
   }
 
@@ -185,6 +247,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   void selectPaymentToken(CoinData token) {
+    if (params.externalAddressType.isContentToken) return;
     state = state.copyWith(selectedPaymentToken: token);
     _updateDerivedState();
     _scheduleQuoteUpdates();
@@ -195,7 +258,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   void _resetTradeFormOnModeChange() {
-    _quoteController.cancel();
+    _quoteController?.cancel();
     state = state.copyWith(
       amount: 0,
       quotePricing: null,
@@ -204,9 +267,14 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   Future<void> _updateDerivedState() async {
-    final paymentToken = state.selectedPaymentToken;
-    if (paymentToken == null) {
+    final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+
+    final paymentContext = await _resolvePaymentContext(walletView);
+    final paymentToken = paymentContext.token;
+    final paymentCoinsGroup = paymentContext.coinsGroup;
+    if (paymentToken == null || paymentCoinsGroup == null) {
       state = state.copyWith(
+        selectedPaymentToken: null,
         paymentCoinsGroup: null,
         targetWallet: null,
         targetNetwork: null,
@@ -214,18 +282,47 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       return;
     }
 
-    final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
-    final paymentCoinsGroup = _derivePaymentCoinsGroup(paymentToken, walletView);
-
     final (targetWallet, targetNetwork) = state.mode == CommunityTokenTradeMode.sell
         ? await _updateDerivedStateForSell()
         : await _updateDerivedStateForBuy(paymentToken, paymentCoinsGroup);
 
     state = state.copyWith(
+      selectedPaymentToken: paymentToken,
       paymentCoinsGroup: paymentCoinsGroup,
       targetWallet: targetWallet,
       targetNetwork: targetNetwork,
     );
+  }
+
+  Future<({CoinData? token, CoinsGroup? coinsGroup})> _resolvePaymentContext(
+    WalletViewData? walletView,
+  ) async {
+    if (params.externalAddressType.isContentToken) {
+      try {
+        final group = await ref.read(
+          contentCreatorPaymentCoinsGroupProvider(
+            externalAddress: params.externalAddress,
+            externalAddressType: params.externalAddressType,
+            eventReference: params.eventReference,
+          ).future,
+        );
+        final token = group.coins.firstOrNull?.coin;
+        return (token: token, coinsGroup: group);
+      } catch (error, stackTrace) {
+        Logger.error(
+          error,
+          stackTrace: stackTrace,
+          message: 'Failed to resolve content payment token',
+        );
+        return (token: null, coinsGroup: null);
+      }
+    }
+
+    final token = state.selectedPaymentToken;
+    if (token == null) return (token: null, coinsGroup: null);
+
+    final paymentCoinsGroup = _derivePaymentCoinsGroup(token, walletView);
+    return (token: token, coinsGroup: paymentCoinsGroup);
   }
 
   Future<(Wallet?, NetworkData?)> _updateDerivedStateForBuy(
@@ -295,7 +392,10 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   void _scheduleQuoteUpdates() {
-    _quoteController.schedule(
+    final quoteController = _quoteController;
+    if (quoteController == null) return;
+
+    quoteController.schedule(
       request: _buildQuoteRequest(),
       onReset: () {
         state = state.copyWith(

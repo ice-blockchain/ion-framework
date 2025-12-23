@@ -32,6 +32,12 @@ class ExternalAddressType {
   }
 }
 
+extension ExternalAddressTypeTokenKind on ExternalAddressType {
+  bool get isCreatorToken => prefix == const ExternalAddressType.ionConnectUser().prefix;
+  bool get isXToken => prefix == const ExternalAddressType.x().prefix;
+  bool get isContentToken => !isCreatorToken && !isXToken;
+}
+
 extension ExternalAddressExtension on IonConnectEntity {
   String? get externalAddress {
     if (externalAddressType == null) return null;
