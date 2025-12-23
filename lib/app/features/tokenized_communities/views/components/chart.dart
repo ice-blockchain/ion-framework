@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class Chart extends HookConsumerWidget {
@@ -39,21 +39,21 @@ class Chart extends HookConsumerWidget {
       ),
     );
 
-    // TODO: Calculate changePercent from candles instead of hardcoded value.
-    const changePercent = 145.84;
+    final chartDisplayData = ref.watch(
+      chartProcessedDataProvider(
+        candles: candlesAsync.valueOrNull ?? const [],
+        price: price,
+        selectedRange: selectedRange.value,
+      ),
+    );
 
     return candlesAsync.when(
-      data: (candles) {
-        final chartCandles = _mapOhlcvToChartCandles(candles);
-        final isEmpty = chartCandles.isEmpty;
-        final candlesToShow = isEmpty ? _buildFlatCandles(price) : chartCandles;
-        final displayChangePercent = isEmpty ? 0.0 : changePercent;
-
+      data: (_) {
         return _ChartContent(
           price: price,
           label: label,
-          changePercent: displayChangePercent,
-          candles: candlesToShow,
+          changePercent: chartDisplayData.changePercent,
+          candles: chartDisplayData.candlesToShow,
           isLoading: false,
           selectedRange: selectedRange.value,
           onRangeChanged: (range) => selectedRange.value = range,
@@ -61,12 +61,11 @@ class Chart extends HookConsumerWidget {
         );
       },
       error: (error, stackTrace) {
-        // On error, show empty state (flat blue line)
         return _ChartContent(
           price: price,
           label: label,
           changePercent: 0,
-          candles: _buildFlatCandles(price),
+          candles: chartDisplayData.candlesToShow,
           isLoading: false,
           selectedRange: selectedRange.value,
           onRangeChanged: (range) => selectedRange.value = range,
@@ -81,7 +80,7 @@ class Chart extends HookConsumerWidget {
           candles: demoCandles,
           isLoading: true,
           selectedRange: selectedRange.value,
-          onRangeChanged: null, // Disabled while loading
+          onRangeChanged: null,
           onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
@@ -284,7 +283,7 @@ class ChartPriceLabel extends StatelessWidget {
 
 enum ChartTimeRange { m1, m3, m5, m15, m30, h1, d1 }
 
-extension on ChartTimeRange {
+extension ChartTimeRangeExtension on ChartTimeRange {
   String get label => switch (this) {
         ChartTimeRange.m1 => '1m',
         ChartTimeRange.m3 => '3m',
@@ -292,10 +291,20 @@ extension on ChartTimeRange {
         ChartTimeRange.m15 => '15m',
         ChartTimeRange.m30 => '30m',
         ChartTimeRange.h1 => '1h',
-        ChartTimeRange.d1 => '1d',
+        ChartTimeRange.d1 => '24h',
       };
 
   String get intervalString => label;
+
+  Duration get duration => switch (this) {
+        ChartTimeRange.m1 => const Duration(minutes: 1),
+        ChartTimeRange.m3 => const Duration(minutes: 3),
+        ChartTimeRange.m5 => const Duration(minutes: 5),
+        ChartTimeRange.m15 => const Duration(minutes: 15),
+        ChartTimeRange.m30 => const Duration(minutes: 30),
+        ChartTimeRange.h1 => const Duration(hours: 1),
+        ChartTimeRange.d1 => const Duration(days: 1),
+      };
 }
 
 class _RangeSelector extends StatelessWidget {
@@ -424,42 +433,4 @@ List<ChartCandle> _generateDemoCandles() {
   }
 
   return candles;
-}
-
-// Flat blue line for empty state (all candles at same price)
-List<ChartCandle> _buildFlatCandles(Decimal price) {
-  final now = DateTime.now();
-  const count = 20;
-  final value = double.tryParse(price.toString()) ?? 0;
-
-  return List<ChartCandle>.generate(count, (index) {
-    final date = now.subtract(Duration(minutes: (count - index) * 15));
-    return ChartCandle(
-      open: value,
-      high: value,
-      low: value,
-      close: value,
-      price: price,
-      date: date,
-    );
-  });
-}
-
-// Maps OHLCV candles from analytics package to ChartCandle format
-List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
-  return source
-      .map(
-        (candle) => ChartCandle(
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-          price: Decimal.parse(candle.close.toString()),
-          date: DateTime.fromMillisecondsSinceEpoch(
-            candle.timestamp ~/ 1000, // timestamp is in microseconds
-            isUtc: true,
-          ),
-        ),
-      )
-      .toList();
 }

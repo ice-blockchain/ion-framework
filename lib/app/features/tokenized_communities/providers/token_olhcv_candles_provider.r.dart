@@ -10,23 +10,46 @@ part 'token_olhcv_candles_provider.r.g.dart';
 @riverpod
 Stream<List<OhlcvCandle>> tokenOhlcvCandles(
   Ref ref,
-  String ionConnectAddress,
+  String externalAddress,
   String interval,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
   final subscription = await client.communityTokens.subscribeToOhlcvCandles(
-    ionConnectAddress: ionConnectAddress,
+    ionConnectAddress: externalAddress,
     interval: interval,
   );
 
+  ref.onDispose(subscription.close);
+
   final currentCandles = <OhlcvCandle>[];
 
-  try {
-    await for (final candle in subscription.stream) {
-      currentCandles.add(candle);
+  // Maximum candles to keep: 50 is sufficient for chart display
+  const maxCandles = 50;
+
+  await for (final batch in subscription.stream) {
+    if (batch.isEmpty) {
       yield currentCandles;
+      continue;
     }
-  } finally {
-    await subscription.close();
+
+    for (final candle in batch) {
+      final existingIndex = currentCandles.indexWhere(
+        (existing) => existing.timestamp == candle.timestamp,
+      );
+
+      if (existingIndex >= 0) {
+        currentCandles[existingIndex] = candle;
+      } else {
+        currentCandles.add(candle);
+      }
+    }
+
+    // Remove oldest candles if exceeding max
+    if (currentCandles.length > maxCandles) {
+      final amountToRemove = currentCandles.length - maxCandles;
+      currentCandles.removeRange(0, amountToRemove);
+    }
+
+    yield currentCandles;
   }
 }

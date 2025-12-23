@@ -10,16 +10,28 @@ part 'token_trading_stats_provider.r.g.dart';
 @riverpod
 Stream<Map<String, TradingStats>> tokenTradingStats(
   Ref ref,
-  String masterPubkey,
+  String externalAddress,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
   final subscription = await client.communityTokens.subscribeToTradingStats(
-    ionConnectAddress: masterPubkey,
+    ionConnectAddress: externalAddress,
   );
 
+  ref.onDispose(subscription.close);
+
+  final currentStats = <String, TradingStats>{};
+
   try {
-    yield* subscription.stream;
-  } finally {
-    await subscription.close();
+    await for (final statsMap in subscription.stream) {
+      currentStats.addAll(statsMap);
+
+      yield currentStats;
+    }
+  } catch (e) {
+    // Yield the last known state one more time before stream terminates
+    // This ensures Riverpod keeps it as AsyncData instead of transitioning to AsyncError
+    if (currentStats.isNotEmpty) {
+      yield currentStats;
+    }
   }
 }

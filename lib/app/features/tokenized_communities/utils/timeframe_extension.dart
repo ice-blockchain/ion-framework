@@ -44,3 +44,32 @@ extension TimeframeSorting on String {
     }
   }
 }
+
+extension TimeframeDuration on String {
+  /// Converts timeframe string to Duration.
+  /// - m → minutes (e.g., "5m" → Duration(minutes: 5))
+  /// - h → hours (e.g., "1h" → Duration(hours: 1))
+  /// - d → days (e.g., "24h" → Duration(days: 1))
+  /// - w → weeks (e.g., "2w" → Duration(days: 14))
+  /// Returns Duration.zero for unknown formats.
+  Duration get duration {
+    final match = RegExp(r'^([a-zA-Z]+)(\d+)$').firstMatch(this);
+    if (match == null) return Duration.zero;
+
+    final unit = match.group(1)!;
+    final number = int.tryParse(match.group(2)!) ?? 0;
+
+    switch (unit) {
+      case 'm':
+        return Duration(minutes: number);
+      case 'h':
+        return Duration(hours: number);
+      case 'd':
+        return Duration(days: number);
+      case 'w':
+        return Duration(days: number * 7);
+      default:
+        return Duration.zero;
+    }
+  }
+}

@@ -11,19 +11,22 @@ class TradingStatsFormatted {
     required this.sellsText,
     required this.netBuyText,
     required this.isNetBuyPositive,
+    required this.hasNoSells,
+    required this.hasZeroNetBuy,
   });
 
   factory TradingStatsFormatted.fromStats(TradingStats stats) {
     final volumeText = r'$' + MarketDataFormatter.formatCompactNumber(stats.volumeUSD);
-
     final buysAmount = MarketDataFormatter.formatCompactNumber(stats.buysTotalAmountUSD);
     final buysText = '${stats.numberOfBuys}/\$$buysAmount';
 
     final sellsAmount = MarketDataFormatter.formatCompactNumber(stats.sellsTotalAmountUSD);
     final sellsText = '${stats.numberOfSells}/\$$sellsAmount';
+    final hasNoSells = stats.numberOfSells == 0 && stats.sellsTotalAmountUSD == 0;
 
     final netBuyFormatted = MarketDataFormatter.formatCompactNumber(stats.netBuy.abs());
     final netBuyText = getNumericSign(stats.netBuy) + netBuyFormatted;
+    final hasZeroNetBuy = stats.netBuy == 0.0;
 
     return TradingStatsFormatted(
       volumeText: volumeText,
@@ -31,6 +34,8 @@ class TradingStatsFormatted {
       sellsText: sellsText,
       netBuyText: netBuyText,
       isNetBuyPositive: stats.netBuy >= 0,
+      hasNoSells: hasNoSells,
+      hasZeroNetBuy: hasZeroNetBuy,
     );
   }
 
@@ -39,4 +44,6 @@ class TradingStatsFormatted {
   final String sellsText;
   final String netBuyText;
   final bool isNetBuyPositive;
+  final bool hasNoSells;
+  final bool hasZeroNetBuy;
 }

@@ -81,7 +81,7 @@ class IonCommunityTokensService {
     return _tokenInfoRepository.subscribeToTokenInfo(externalAddress);
   }
 
-  Future<NetworkSubscription<OhlcvCandle>> subscribeToOhlcvCandles({
+  Future<NetworkSubscription<List<OhlcvCandle>>> subscribeToOhlcvCandles({
     required String ionConnectAddress,
     required String interval,
   }) {

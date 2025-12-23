@@ -336,6 +336,7 @@ class _TokenStats extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTimeframe = useState(0);
+
     final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(externalAddress));
 
     return tradingStatsAsync.when(
@@ -346,6 +347,10 @@ class _TokenStats extends HookConsumerWidget {
           ..sort(
             (a, b) => a.key.sortValue.compareTo(b.key.sortValue),
           );
+
+        if (timeframeEntries.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
         final selectedTimeframeStats = timeframeEntries[selectedTimeframe.value].value;
         final selectedStatsFormatted = TradingStatsFormatted.fromStats(selectedTimeframeStats);
@@ -363,16 +368,14 @@ class _TokenStats extends HookConsumerWidget {
           buysText: selectedStatsFormatted.buysText,
           sellsText: selectedStatsFormatted.sellsText,
           netBuyText: selectedStatsFormatted.netBuyText,
-          //TODO: handle this new prop
-          // isNetBuyPositive: selectedStatsFormatted.isNetBuyPositive,
-          isNetBuyPositive: true,
+          isNetBuyPositive: selectedStatsFormatted.isNetBuyPositive,
+          hasNoSells: selectedStatsFormatted.hasNoSells,
+          hasZeroNetBuy: selectedStatsFormatted.hasZeroNetBuy,
           onTimeframeTap: (index) => selectedTimeframe.value = index,
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (error, stackTrace) {
-        return const SizedBox.shrink();
-      },
+      error: (error, stackTrace) => const SizedBox.shrink(),
     );
   }
 }
