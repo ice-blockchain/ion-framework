@@ -8,7 +8,6 @@ import 'package:ion/app/features/feed/create_post/providers/create_post_notifier
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/providers/replies_data_source_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
@@ -27,8 +26,7 @@ class TokenComments extends _$TokenComments {
   final Set<EventReference> _fetchedPollRefs = {};
   final Set<EventReference> _pendingPollRefs = {};
   bool _pollsFetchScheduled = false;
-  StreamSubscription<EventMessage>? _initialSubscription;
-  bool _initialSubscriptionSetup = false;
+  StreamSubscription<EventMessage>? _subscription;
 
   @override
   EntitiesPagedDataState? build(EventReference tokenDefinitionEventReference) {
@@ -41,57 +39,53 @@ class TokenComments extends _$TokenComments {
 
     // Listen to new replies from createPostNotifierStreamProvider for immediate updates
     // when user creates a comment (optimistic update)
-    final subscription = ref
+    final optimisticSubscription = ref
         .watch(createPostNotifierStreamProvider)
         .where((IonConnectEntity entity) => _isReply(entity, tokenDefinitionEventReference))
         .distinct()
         .listen(_handleReply);
 
+    // Set up live subscription for new comments from other users
+    // Only set up if not already active
+    if (_subscription == null && dataSource != null && dataSource.isNotEmpty) {
+      _setupSubscription(dataSource, tokenDefinitionEventReference);
+    }
+
+    // Listen to state changes for poll fetching
     ref
-      ..onDispose(() {
-        subscription.cancel();
-        _closeInitialSubscription();
-      })
       ..listen<EntitiesPagedDataState?>(
         entitiesPagedDataProvider(dataSource),
-        (EntitiesPagedDataState? previous, EntitiesPagedDataState? next) {
+        (previous, next) {
           if (next?.data is PagedData) {
             final pagedData = next!.data as PagedData;
-            _queuePollFetch(pagedData.items as Set<IonConnectEntity>?);
-            // Set up initial subscription after first fetch completes
-            // Check if we transitioned from loading to data (fetch completed)
-            final wasLoading = previous?.data is PagedLoading;
-            final isData = next.data is PagedData;
-            if (!_initialSubscriptionSetup &&
-                wasLoading &&
-                isData &&
-                pagedData.items != null &&
-                dataSource != null) {
-              final pagination = pagedData.pagination as Map<ActionSource, PaginationParams>;
-              _setupInitialSubscription(dataSource, pagination);
-              _initialSubscriptionSetup = true;
-            }
+            final items = pagedData.items as Set<IonConnectEntity>?;
+            _queuePollFetch(items);
           }
         },
         fireImmediately: true,
-      );
+      )
+      ..onDispose(() {
+        optimisticSubscription.cancel();
+        _closeSubscription();
+      });
 
     return entitiesPagedData;
   }
 
-  void _setupInitialSubscription(
+  void _setupSubscription(
     List<EntitiesDataSource> dataSource,
-    Map<ActionSource, PaginationParams> pagination,
+    EventReference tokenDefinitionEventReference,
   ) {
     if (dataSource.isEmpty) return;
 
     final firstDataSource = dataSource.first;
-    final paginationParams = pagination[firstDataSource.actionSource];
-    // Use the last event time as 'since' to only get new events, not re-fetch existing ones
-    final sinceTimestamp = paginationParams?.lastEventTime?.microsecondsSinceEpoch;
 
+    // Set since to current time to only receive NEW events (created after now)
+    // Set limit to 0 to not fetch any stored events, only listen for new ones
     final requestFilter = firstDataSource.requestFilter.copyWith(
-      since: () => sinceTimestamp,
+      since: () => DateTime.now().microsecondsSinceEpoch,
+      until: () => null,
+      limit: () => 0,
     );
     final requestMessage = RequestMessage()..addFilter(requestFilter);
 
@@ -102,27 +96,32 @@ class TokenComments extends _$TokenComments {
       ),
     );
 
-    _initialSubscription = eventsStream.listen((EventMessage event) {
-      try {
-        // Parse the event to get the entity
-        final parser = ref.read(eventParserProvider);
-        final entity = parser.parse(event);
-        // Cache the entity
-        ref.read(ionConnectCacheProvider.notifier).cache(entity);
+    _subscription = eventsStream.listen(
+      (EventMessage event) {
+        try {
+          final parser = ref.read(eventParserProvider);
+          final entity = parser.parse(event);
 
-        if (_isReply(entity, tokenDefinitionEventReference)) {
-          _handleReply(entity);
+          // Cache the entity
+          ref.read(ionConnectCacheProvider.notifier).cache(entity);
+
+          if (_isReply(entity, tokenDefinitionEventReference)) {
+            _handleReply(entity);
+          }
+        } catch (e, stackTrace) {
+          Logger.error(e, stackTrace: stackTrace, message: 'Error processing token comment event');
         }
-      } catch (e, stackTrace) {
-        Logger.error(e, stackTrace: stackTrace, message: 'Error processing token comment event');
-      }
-    });
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        Logger.error(error, stackTrace: stackTrace, message: 'Subscription error');
+      },
+      cancelOnError: false,
+    );
   }
 
-  void _closeInitialSubscription() {
-    _initialSubscription?.cancel();
-    _initialSubscription = null;
-    _initialSubscriptionSetup = false;
+  void _closeSubscription() {
+    _subscription?.cancel();
+    _subscription = null;
   }
 
   bool _isReply(IonConnectEntity entity, EventReference parentEventReference) {
@@ -138,12 +137,18 @@ class TokenComments extends _$TokenComments {
 
     final dataSource =
         ref.read(repliesDataSourceProvider(eventReference: tokenDefinitionEventReference));
-    if (dataSource == null) return;
+    if (dataSource == null) {
+      return;
+    }
 
-    // The cache automatically handles entity replacements, and the UI watches entities
-    // by EventReference, so it will always show the latest version from cache.
-    // We just need to insert the entity - if it's an update, the UI will show the
-    // updated version from cache when rendering.
+    // Check if entity already exists before inserting
+    final currentState = ref.read(entitiesPagedDataProvider(dataSource));
+    if (currentState?.data.items?.contains(entity) ?? false) {
+      return;
+    }
+
+    // Comments are sorted newest first, and new comments from subscription are always the newest
+    // So we can always insert at the top (index 0)
     ref.read(entitiesPagedDataProvider(dataSource).notifier).insertEntity(entity);
   }
 
