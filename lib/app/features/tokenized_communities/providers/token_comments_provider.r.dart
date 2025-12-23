@@ -40,7 +40,7 @@ class TokenComments extends _$TokenComments {
     // Set up live subscription for new comments (from all users)
     // Only set up if not already active
     if (_subscription == null && dataSource != null && dataSource.isNotEmpty) {
-      _setupSubscription(dataSource, tokenDefinitionEventReference);
+      _setupSubscription(dataSource);
     }
 
     // Listen to state changes for poll fetching
@@ -63,7 +63,6 @@ class TokenComments extends _$TokenComments {
 
   void _setupSubscription(
     List<EntitiesDataSource> dataSource,
-    EventReference tokenDefinitionEventReference,
   ) {
     if (dataSource.isEmpty) return;
 
@@ -99,7 +98,7 @@ class TokenComments extends _$TokenComments {
           ref.read(ionConnectCacheProvider.notifier).cache(entity);
 
           if (_isReply(entity, tokenDefinitionEventReference)) {
-            _handleReply(entity, tokenDefinitionEventReference, repliesCountNotifier);
+            _handleReply(entity, repliesCountNotifier);
           }
         } catch (e, stackTrace) {
           Logger.error(e, stackTrace: stackTrace, message: 'Error processing token comment event');
@@ -124,7 +123,6 @@ class TokenComments extends _$TokenComments {
 
   void _handleReply(
     IonConnectEntity entity,
-    EventReference tokenDefinitionEventReference,
     RepliesCount repliesCountNotifier,
   ) {
     final dataSource =
