@@ -11,10 +11,13 @@ import 'package:ion/app/features/tokenized_communities/utils/external_address_ex
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_data.f.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 typedef TransactionResult = Map<String, dynamic>;
+
+class _TokenAddressNotFoundException implements Exception {}
 
 class TradeCommunityTokenService {
   TradeCommunityTokenService({
@@ -235,11 +238,23 @@ class TradeCommunityTokenService {
     if (txHash == null || txHash.isEmpty) return;
 
     final bondingCurveAddress = await repository.fetchBondingCurveAddress();
-    var tokenAddress = existingTokenAddress ?? _extractTokenAddress(tokenInfo);
-    if (tokenAddress == null && firstBuy) {
-      // First buy can create token contract, analytics may lag behind.
-      // Retry once to avoid excessive requests.
-      tokenAddress = _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
+    var tokenAddress = existingTokenAddress;
+    if (tokenAddress == null) {
+      try {
+        tokenAddress = await withRetry<String>(
+          ({Object? error}) async {
+            final freshTokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+            final address = _extractTokenAddress(freshTokenInfo);
+            if (address == null || address.isEmpty) {
+              throw _TokenAddressNotFoundException();
+            }
+            return address;
+          },
+          retryWhen: (error) => error is _TokenAddressNotFoundException,
+        );
+      } on _TokenAddressNotFoundException {
+        tokenAddress = null;
+      }
     }
     if (tokenAddress == null || tokenAddress.isEmpty) return;
 
