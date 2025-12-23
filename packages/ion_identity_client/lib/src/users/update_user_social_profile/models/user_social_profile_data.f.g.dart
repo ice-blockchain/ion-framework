@@ -14,6 +14,7 @@ _$UserSocialProfileDataImpl _$$UserSocialProfileDataImplFromJson(
       avatar: json['avatar'] as String?,
       bio: json['bio'] as String?,
       referral: json['referral'] as String?,
+      referralMasterKey: json['referralMasterKey'] as String?,
       referralCount: (json['referralCount'] as num?)?.toInt(),
     );
 
@@ -25,5 +26,7 @@ Map<String, dynamic> _$$UserSocialProfileDataImplToJson(
       if (instance.avatar case final value?) 'avatar': value,
       if (instance.bio case final value?) 'bio': value,
       if (instance.referral case final value?) 'referral': value,
+      if (instance.referralMasterKey case final value?)
+        'referralMasterKey': value,
       if (instance.referralCount case final value?) 'referralCount': value,
     };

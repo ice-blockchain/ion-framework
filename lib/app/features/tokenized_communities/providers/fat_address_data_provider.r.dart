@@ -10,7 +10,6 @@ import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resol
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
-import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -150,27 +149,7 @@ Future<String?> _resolveAffiliateAddress(
       userIdOrMasterKey: creatorMasterPubkey,
     );
 
-    final referralNickname = socialProfile.referral?.trim();
-    if (referralNickname == null || referralNickname.isEmpty) {
-      return null;
-    }
-
-    final referredUsers = await ionIdentityClient.users.searchForUsersByKeyword(
-      keyword: referralNickname,
-      searchType: SearchUsersSocialProfileType.startsWith,
-      limit: 20,
-      offset: 0,
-    );
-
-    final referralLower = referralNickname.toLowerCase();
-    final referredUser = referredUsers.firstWhere(
-      (u) => u.username.trim().toLowerCase() == referralLower,
-      orElse: () => const IdentityUserInfo(
-        masterPubKey: '',
-        ionConnectRelays: [],
-      ),
-    );
-    final referralMasterPubkey = referredUser.masterPubKey;
+    final referralMasterPubkey = socialProfile.referralMasterKey?.trim() ?? '';
     if (referralMasterPubkey.isEmpty) {
       return null;
     }

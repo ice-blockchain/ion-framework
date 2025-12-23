@@ -26,6 +26,7 @@ mixin _$UserSocialProfileData {
   String? get avatar => throw _privateConstructorUsedError;
   String? get bio => throw _privateConstructorUsedError;
   String? get referral => throw _privateConstructorUsedError;
+  String? get referralMasterKey => throw _privateConstructorUsedError;
   int? get referralCount => throw _privateConstructorUsedError;
 
   /// Serializes this UserSocialProfileData to a JSON map.
@@ -50,6 +51,7 @@ abstract class $UserSocialProfileDataCopyWith<$Res> {
       String? avatar,
       String? bio,
       String? referral,
+      String? referralMasterKey,
       int? referralCount});
 }
 
@@ -74,6 +76,7 @@ class _$UserSocialProfileDataCopyWithImpl<$Res,
     Object? avatar = freezed,
     Object? bio = freezed,
     Object? referral = freezed,
+    Object? referralMasterKey = freezed,
     Object? referralCount = freezed,
   }) {
     return _then(_value.copyWith(
@@ -96,6 +99,10 @@ class _$UserSocialProfileDataCopyWithImpl<$Res,
       referral: freezed == referral
           ? _value.referral
           : referral // ignore: cast_nullable_to_non_nullable
+              as String?,
+      referralMasterKey: freezed == referralMasterKey
+          ? _value.referralMasterKey
+          : referralMasterKey // ignore: cast_nullable_to_non_nullable
               as String?,
       referralCount: freezed == referralCount
           ? _value.referralCount
@@ -120,6 +127,7 @@ abstract class _$$UserSocialProfileDataImplCopyWith<$Res>
       String? avatar,
       String? bio,
       String? referral,
+      String? referralMasterKey,
       int? referralCount});
 }
 
@@ -142,6 +150,7 @@ class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
     Object? avatar = freezed,
     Object? bio = freezed,
     Object? referral = freezed,
+    Object? referralMasterKey = freezed,
     Object? referralCount = freezed,
   }) {
     return _then(_$UserSocialProfileDataImpl(
@@ -165,6 +174,10 @@ class __$$UserSocialProfileDataImplCopyWithImpl<$Res>
           ? _value.referral
           : referral // ignore: cast_nullable_to_non_nullable
               as String?,
+      referralMasterKey: freezed == referralMasterKey
+          ? _value.referralMasterKey
+          : referralMasterKey // ignore: cast_nullable_to_non_nullable
+              as String?,
       referralCount: freezed == referralCount
           ? _value.referralCount
           : referralCount // ignore: cast_nullable_to_non_nullable
@@ -183,6 +196,7 @@ class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
       this.avatar,
       this.bio,
       this.referral,
+      this.referralMasterKey,
       this.referralCount});
 
   factory _$UserSocialProfileDataImpl.fromJson(Map<String, dynamic> json) =>
@@ -199,11 +213,13 @@ class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
   @override
   final String? referral;
   @override
+  final String? referralMasterKey;
+  @override
   final int? referralCount;
 
   @override
   String toString() {
-    return 'UserSocialProfileData(username: $username, displayName: $displayName, avatar: $avatar, bio: $bio, referral: $referral, referralCount: $referralCount)';
+    return 'UserSocialProfileData(username: $username, displayName: $displayName, avatar: $avatar, bio: $bio, referral: $referral, referralMasterKey: $referralMasterKey, referralCount: $referralCount)';
   }
 
   @override
@@ -219,14 +235,16 @@ class _$UserSocialProfileDataImpl implements _UserSocialProfileData {
             (identical(other.bio, bio) || other.bio == bio) &&
             (identical(other.referral, referral) ||
                 other.referral == referral) &&
+            (identical(other.referralMasterKey, referralMasterKey) ||
+                other.referralMasterKey == referralMasterKey) &&
             (identical(other.referralCount, referralCount) ||
                 other.referralCount == referralCount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, username, displayName, avatar, bio, referral, referralCount);
+  int get hashCode => Object.hash(runtimeType, username, displayName, avatar,
+      bio, referral, referralMasterKey, referralCount);
 
   /// Create a copy of UserSocialProfileData
   /// with the given fields replaced by the non-null parameter values.
@@ -252,6 +270,7 @@ abstract class _UserSocialProfileData implements UserSocialProfileData {
       final String? avatar,
       final String? bio,
       final String? referral,
+      final String? referralMasterKey,
       final int? referralCount}) = _$UserSocialProfileDataImpl;
 
   factory _UserSocialProfileData.fromJson(Map<String, dynamic> json) =
@@ -267,6 +286,8 @@ abstract class _UserSocialProfileData implements UserSocialProfileData {
   String? get bio;
   @override
   String? get referral;
+  @override
+  String? get referralMasterKey;
   @override
   int? get referralCount;
 
