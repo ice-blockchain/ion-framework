@@ -17,8 +17,8 @@ class TradingStatsFormatted {
 
   factory TradingStatsFormatted.fromStats(TradingStats stats) {
     final volumeText = r'$' + MarketDataFormatter.formatCompactNumber(stats.volumeUSD);
-    final buysText =
-        '${stats.numberOfBuys}/\$${MarketDataFormatter.formatCompactNumber(stats.buysTotalAmountUSD)}';
+    final buysAmount = MarketDataFormatter.formatCompactNumber(stats.buysTotalAmountUSD);
+    final buysText = '${stats.numberOfBuys}/\$$buysAmount';
 
     final sellsAmount = MarketDataFormatter.formatCompactNumber(stats.sellsTotalAmountUSD);
     final sellsText = '${stats.numberOfSells}/\$$sellsAmount';
