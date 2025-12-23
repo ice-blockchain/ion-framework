@@ -23,24 +23,17 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
         queryParameters: {'limit': limit, 'offset': offset},
       );
 
-      if (response.isEmpty) {
-        return [];
-      }
-
-      final result = <LatestTrade>[];
-
-      for (var i = 0; i < response.length; i++) {
-        final entity = response[i];
-        if (entity is! Map<String, dynamic>) {
-          continue;
-        }
-
-        try {
-          result.add(LatestTrade.fromJson(entity));
-        } catch (_) {}
-      }
-
-      return result;
+      return response
+          .whereType<Map<String, dynamic>>()
+          .map((entity) {
+            try {
+              return LatestTrade.fromJson(entity);
+            } catch (_) {
+              return null;
+            }
+          })
+          .whereType<LatestTrade>()
+          .toList();
     } catch (e) {
       return [];
     }

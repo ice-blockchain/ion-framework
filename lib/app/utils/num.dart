@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math' as math;
+
 import 'package:intl/intl.dart';
 
 String formatDouble(
@@ -68,11 +70,18 @@ String formatBigIntCompact(BigInt value) {
     return '$sign$current';
   }
 
-  final dec = (remainder * BigInt.from(10)) ~/ thousand;
-  final withDec =
-      (dec > BigInt.zero && current < BigInt.from(100)) ? '$current.$dec' : current.toString();
+  final suffix = suffixes[tier];
 
-  return '$sign$withDec${suffixes[tier]}';
+  // Up to 2 decimals (truncated, never rounded up).
+  final dec2 = (remainder * BigInt.from(100)) ~/ thousand; // 0..99
+  if (dec2 == BigInt.zero) {
+    return '$sign$current$suffix';
+  }
+
+  final frac2 = dec2.toString().padLeft(2, '0');
+  final trimmedFrac = frac2.replaceFirst(RegExp(r'0+$'), ''); // 1 or 2 digits
+
+  return '$sign$current.$trimmedFrac$suffix';
 }
 
 String formatToCurrency(double value, [String? symbol]) {
@@ -109,7 +118,7 @@ String formatSupplySharePercent(double value, {int decimals = 2}) {
   }
 
   const maxPercent = 100.0;
-  final factor = pow10(decimals);
+  final factor = math.pow(10, decimals).toInt();
 
 // Cap at 100.00% (in case of tiny floating overshoots).
   if (value >= maxPercent) {
@@ -123,14 +132,6 @@ String formatSupplySharePercent(double value, {int decimals = 2}) {
   final safeScaled = scaled == 0 ? 1 : scaled;
 
   return formatScaledInt(safeScaled, factor, decimals);
-}
-
-int pow10(int n) {
-  var result = 1;
-  for (var i = 0; i < n; i++) {
-    result *= 10;
-  }
-  return result;
 }
 
 String formatScaledInt(int scaled, int factor, int decimals) {
