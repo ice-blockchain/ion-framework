@@ -81,8 +81,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     return controller.stream;
   }
 
-  Future<void> loadMore() async {
-    if (_disposed) return;
+  Future<int> loadMore() async {
+    if (_disposed) return 0;
 
     final client = await _clientFuture;
 
@@ -100,6 +100,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
         limit: _pageSize,
         offset: requestOffset,
       );
+      final fetchedCount = moreTrades.length;
 
       // Even if empty, we have successfully “accounted for” `shiftAtRequest` in the offset.
       await _enqueue(() {
@@ -120,8 +121,10 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
         _emit();
       });
+      return fetchedCount;
     } catch (e, st) {
       Logger.error(e, stackTrace: st, message: 'Error loading more trades');
+      return 0;
     }
   }
 

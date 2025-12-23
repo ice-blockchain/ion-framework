@@ -14,6 +14,7 @@ class LoadMoreBuilder extends HookWidget {
     this.loadingIndicatorContainerBuilder,
     this.loadMoreOffset,
     this.showIndicator = true,
+    this.disallowMaxScrollExtentZero = true,
     super.key,
   }) : builder = builder ??
             ((BuildContext context, List<Widget> slivers) => CustomScrollView(slivers: slivers));
@@ -31,6 +32,8 @@ class LoadMoreBuilder extends HookWidget {
   final bool hasMore;
 
   final bool showIndicator;
+
+  final bool disallowMaxScrollExtentZero;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +83,7 @@ class LoadMoreBuilder extends HookWidget {
     final metrics = notification.metrics;
 
     // Do not trigger loadMore if the list is not scrollable at all.
-    if (!metrics.hasPixels || metrics.maxScrollExtent == 0.0) {
+    if (!metrics.hasPixels || (metrics.maxScrollExtent == 0.0 && disallowMaxScrollExtentZero)) {
       return false;
     }
 

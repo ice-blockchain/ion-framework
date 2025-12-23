@@ -8,6 +8,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_latest_tr
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_empty.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_skeleton.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -65,12 +66,14 @@ class LatestTradesCard extends HookConsumerWidget {
                 child: _CardTitle(
                   tradesCount: tradesCount,
                   title: i18n.latest_trades_title,
+                  externalAddress: externalAddress,
                 ),
               )
             else
               _CardTitle(
                 tradesCount: tradesCount,
                 title: i18n.latest_trades_title,
+                externalAddress: externalAddress,
               ),
             SizedBox(height: 8.0.s),
             tradesAsync.when(
@@ -119,10 +122,15 @@ class LatestTradesCard extends HookConsumerWidget {
 }
 
 class _CardTitle extends StatelessWidget {
-  const _CardTitle({required this.title, required this.tradesCount});
+  const _CardTitle({
+    required this.title,
+    required this.tradesCount,
+    required this.externalAddress,
+  });
 
   final String title;
   final int tradesCount;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -143,11 +151,15 @@ class _CardTitle extends StatelessWidget {
           ),
         ),
         if (tradesCount > 0)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 4.0.s),
-            child: Text(
-              i18n.core_view_all,
-              style: texts.caption2.copyWith(color: colors.primaryAccent),
+          GestureDetector(
+            onTap: () => TradesRoute(externalAddress: externalAddress).push<void>(context),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 4.0.s),
+              child: Text(
+                i18n.core_view_all,
+                style: texts.caption2.copyWith(color: colors.primaryAccent),
+              ),
             ),
           ),
       ],
