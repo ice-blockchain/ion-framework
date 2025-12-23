@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
@@ -13,6 +14,7 @@ import 'package:ion/app/features/tokenized_communities/utils/fat_address_data.f.
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -236,20 +238,25 @@ class TradeCommunityTokenService {
     try {
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
-        throw StateError('Transaction hash is missing in the transaction result');
+        throw TransactionHashNotFoundException(externalAddress);
       }
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
-      var tokenAddress = existingTokenAddress ?? _extractTokenAddress(tokenInfo);
-      if (tokenAddress == null && firstBuy) {
-        // First buy can create token contract, analytics may lag behind.
-        // Retry once to avoid excessive requests.
-        tokenAddress = _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
-      }
 
-      if (tokenAddress == null || tokenAddress.isEmpty) {
-        throw StateError('Token address is missing for $externalAddress');
-      }
+      // First buy can create token contract, analytics may lag behind.
+      // Retry fetching token address until it's available.
+      final tokenAddress = existingTokenAddress ??
+          await withRetry<String>(
+            ({Object? error}) async {
+              final tokenAddress =
+                  _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
+              if (tokenAddress == null || tokenAddress.isEmpty) {
+                throw TokenAddressNotFoundException(externalAddress);
+              }
+              return tokenAddress;
+            },
+            retryWhen: (error) => error is TokenAddressNotFoundException,
+          );
 
       const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
 
@@ -303,7 +310,7 @@ class TradeCommunityTokenService {
     try {
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
-        throw StateError('Transaction hash is missing in the transaction result');
+        throw TransactionHashNotFoundException(externalAddress);
       }
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();

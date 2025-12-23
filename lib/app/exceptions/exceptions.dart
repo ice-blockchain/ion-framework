@@ -772,3 +772,8 @@ class CreatorWalletAddressNotFoundException extends IONException {
           'Creator wallet address is missing for pubkey $pubkey on network $networkId',
         );
 }
+
+class TransactionHashNotFoundException extends IONException {
+  TransactionHashNotFoundException(String externalAddress)
+      : super(10142, 'Transaction hash not found for external address: $externalAddress');
+}
