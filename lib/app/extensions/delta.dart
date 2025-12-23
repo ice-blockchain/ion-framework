@@ -29,7 +29,17 @@ extension DeltaExt on Delta {
   }
 
   bool get isBlank {
-    return isEmpty || operations.every((op) => op.data.toString().trim().isEmpty);
+    if (isEmpty) return true;
+
+    return operations.every((op) {
+      final attrs = op.attributes;
+      if (attrs != null &&
+          (attrs.containsKey(Attribute.link.key) ||
+              attrs.containsKey('text-editor-single-image'))) {
+        return false;
+      }
+      return op.data.toString().trim().isEmpty;
+    });
   }
 
   Delta get blank => isBlank ? this : Delta()
