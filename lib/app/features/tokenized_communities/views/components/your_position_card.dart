@@ -6,7 +6,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -33,9 +32,10 @@ class YourPositionCard extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // Use current user's avatar (the logged-in user's avatar from profile)
-    final currentUserMetadata = ref.watch(currentUserMetadataProvider).valueOrNull;
-    final avatarUrl = currentUserMetadata?.data.avatarUrl ?? token.imageUrl;
+    final avatarUrl = [
+      token.imageUrl,
+      token.creator.avatar,
+    ].firstWhere((url) => url.isNotEmpty, orElse: () => '');
 
     final avatarColors = useImageColors(avatarUrl);
 
@@ -112,8 +112,8 @@ class _ProfitDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profitColor = position.pnlPercentage >= 0
-        ? context.theme.appColors.profitGreen
-        : context.theme.appColors.lossRed;
+        ? context.theme.appColors.success
+        : context.theme.appColors.raspberry;
 
     final displayPnl = position.pnl.abs() < _minDisplayUSD && position.pnl != 0
         ? _minDisplayUSD
@@ -124,20 +124,24 @@ class _ProfitDetails extends StatelessWidget {
     final percentageSign = getNumericSign(position.pnlPercentage);
     final percentageValue = position.pnlPercentage.abs().toStringAsFixed(2);
 
-    return Row(
-      children: [
-        Assets.svg.iconCreatecoinProfit.icon(
-          size: 14.s,
-          color: profitColor,
-        ),
-        SizedBox(width: 3.s),
-        Text(
-          '$pnlSign$pnlAmount ($percentageSign$percentageValue%)',
-          style: context.theme.appTextThemes.body2.copyWith(
-            color: profitColor,
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.s, vertical: 2.s),
+      decoration: BoxDecoration(color: profitColor, borderRadius: BorderRadius.circular(6.s)),
+      child: Row(
+        children: [
+          Assets.svg.iconCreatecoinProfit.icon(
+            size: 14.s,
+            color: context.theme.appColors.onPrimaryAccent,
           ),
-        ),
-      ],
+          SizedBox(width: 3.s),
+          Text(
+            '$pnlSign$pnlAmount ($percentageSign$percentageValue%)',
+            style: context.theme.appTextThemes.body2.copyWith(
+              color: context.theme.appColors.onPrimaryAccent,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
