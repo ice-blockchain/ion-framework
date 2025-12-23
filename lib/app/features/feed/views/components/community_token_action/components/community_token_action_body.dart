@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
@@ -37,9 +38,24 @@ class CommunityTokenActionBody extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final definitionEntity = ref
-        .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
-        .valueOrNull as CommunityTokenDefinitionEntity?;
+    final definitionEntity = ref.watch(
+          ionConnectEntityProvider(
+            eventReference: entity.data.definitionReference,
+          ).select((value) {
+            final defEntity = value.valueOrNull as CommunityTokenDefinitionEntity?;
+            if (defEntity != null) {
+              ListCachedObjects.updateObject<CommunityTokenDefinitionEntity>(
+                context,
+                defEntity,
+              );
+            }
+            return defEntity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<CommunityTokenDefinitionEntity>(
+          context,
+          entity.data.definitionReference,
+        );
 
     if (definitionEntity == null) {
       return const SizedBox.shrink();
@@ -74,6 +90,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         .valueOrNull;
 
     final tokenType = ref.watch(tokenTypeForTokenDefinitionProvider(definitionEntity)).valueOrNull;
+
     final amount = useMemoized(() => entity.data.getAmountByCurrency(externalAddress), [entity]);
     final amountUsd =
         useMemoized(() => entity.data.getAmountByCurrency(TransactionAmount.usdCurrency), [entity]);
