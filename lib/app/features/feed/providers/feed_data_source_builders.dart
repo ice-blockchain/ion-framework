@@ -63,6 +63,10 @@ FeedEntitiesDataSource buildArticlesDataSource({
   final search = SearchExtensions([
     ...SearchExtensions.withCounters(currentPubkey: currentPubkey, forKind: ArticleEntity.kind)
         .extensions,
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: GenericRepostEntity.kind,
+    ).extensions,
     ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
     ...SearchExtensions.withTokens(forKind: ArticleEntity.kind).extensions,
     if (searchExtensions != null) ...searchExtensions,
@@ -106,6 +110,10 @@ FeedEntitiesDataSource buildVideosDataSource({
     ...SearchExtensions.withCounters(currentPubkey: currentPubkey, forKind: PostEntity.kind)
         .extensions,
     ...SearchExtensions.withAuthors(forKind: PostEntity.kind).extensions,
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: GenericRepostEntity.kind,
+    ).extensions,
     ReferencesSearchExtension(contain: false),
     ExpirationSearchExtension(expiration: false),
     VideosSearchExtension(contain: true),
@@ -174,6 +182,10 @@ FeedEntitiesDataSource buildPostsDataSource({
     ...SearchExtensions.withCounters(currentPubkey: currentPubkey, forKind: ArticleEntity.kind)
         .extensions,
     ...SearchExtensions.withAuthors(forKind: ArticleEntity.kind).extensions,
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: GenericRepostEntity.kind,
+    ).extensions,
     ReferencesSearchExtension(contain: false),
     ExpirationSearchExtension(expiration: false),
     TagMarkerSearchExtension(
@@ -283,6 +295,10 @@ FeedEntitiesDataSource buildCommunityTokensDataSource({
     ...SearchExtensions.withCounters(
       currentPubkey: currentPubkey,
       forKind: CommunityTokenDefinitionEntity.kind,
+    ).extensions,
+    ...SearchExtensions.withCounters(
+      currentPubkey: currentPubkey,
+      forKind: GenericRepostEntity.kind,
     ).extensions,
     ...SearchExtensions.withAuthors(forKind: CommunityTokenActionEntity.kind).extensions,
     ...SearchExtensions.withAuthors(forKind: CommunityTokenDefinitionEntity.kind).extensions,
