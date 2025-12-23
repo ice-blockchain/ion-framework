@@ -93,6 +93,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             : ref.watch(tokenTypeForExternalAddressProvider(externalAddress!)))
         .valueOrNull;
     final activeTab = useState(TokenizedCommunityTabType.chart);
+    final isCommentInputFocused = useState(false);
 
     final sectionKeys = useMemoized(
       () => List.generate(
@@ -145,10 +146,12 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingTradeIsland(
-        eventReference: eventReference,
-        externalAddress: externalAddress,
-      ),
+      floatingActionButton: isCommentInputFocused.value
+          ? const SizedBox.shrink()
+          : FloatingTradeIsland(
+              eventReference: eventReference,
+              externalAddress: externalAddress,
+            ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
         IconButton(
           padding: EdgeInsets.zero,
@@ -214,12 +217,18 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             tabs: TokenizedCommunityTabType.values,
             activeIndex: activeTab.value.index,
             onTabTapped: (int index) {
-              Scrollable.ensureVisible(
-                sectionKeys[index].currentContext!,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                alignment: 0.5,
-              );
+              activeTab.value = TokenizedCommunityTabType.values[index];
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final context = sectionKeys[index].currentContext;
+                if (context != null) {
+                  Scrollable.ensureVisible(
+                    context,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    alignment: 0.1,
+                  );
+                }
+              });
             },
           ),
         ],
@@ -259,14 +268,19 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               //do not handle with current implementation
             },
           ),
-          SimpleSeparator(height: 4.0.s),
-          CommentsSectionCompact(
-            key: sectionKeys[TokenizedCommunityTabType.comments.index],
-            commentCount: 10,
-            onTitleVisibilityChanged: (double visibility) {
-              //do not handle with current implementation
-            },
-          ),
+          if (tokenDefinition != null) ...[
+            SimpleSeparator(height: 4.0.s),
+            CommentsSectionCompact(
+              key: sectionKeys[TokenizedCommunityTabType.comments.index],
+              tokenDefinitionEventReference: tokenDefinition.toEventReference(),
+              onTitleVisibilityChanged: (double visibility) {
+                //do not handle with current implementation
+              },
+              onCommentInputFocusChanged: (bool isFocused) {
+                isCommentInputFocused.value = isFocused;
+              },
+            ),
+          ],
           SizedBox(height: 120.0.s),
         ],
       ),

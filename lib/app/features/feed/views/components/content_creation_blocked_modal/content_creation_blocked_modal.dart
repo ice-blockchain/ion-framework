@@ -26,7 +26,7 @@ class ContentCreationBlockedModal extends ConsumerWidget {
           child: Column(
             children: [
               SizedBox(height: 24.s),
-              Assets.svg.walleticonwalletemptypost.icon(size: 80.s),
+              Assets.svg.walletIconWalletEmptypost.icon(size: 80.s),
               SizedBox(height: 10.s),
               Text(
                 locale.feed_content_creation_blocked_title,

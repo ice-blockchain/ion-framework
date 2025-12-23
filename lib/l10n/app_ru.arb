@@ -906,6 +906,7 @@
   "tokenized_community_bonding_curve": "Кривая бондинга",
   "tokenized_community_chart_tab": "График",
   "tokenized_community_comments_tab": "Комментарии",
+  "tokenized_community_comments_empty": "Станьте первым, кто присоединится к разговору",
   "tokenized_community_holders_tab": "Держатели",
   "tokenized_community_not_available_description": "Создание токенов недоступно для ранее созданных публикаций.",
   "tokenized_community_not_available_title": "Ошибка токенизированного контента",

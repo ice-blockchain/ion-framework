@@ -906,6 +906,7 @@
   "tokenized_community_bonding_curve": "绑定曲线",
   "tokenized_community_chart_tab": "图表",
   "tokenized_community_comments_tab": "评论",
+  "tokenized_community_comments_empty": "成为第一个加入对话的人",
   "tokenized_community_holders_tab": "持有者",
   "tokenized_community_not_available_description": "已创建的帖子无法创建代币。",
   "tokenized_community_not_available_title": "代币化内容错误",
