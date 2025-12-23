@@ -374,6 +374,25 @@ void main() {
         expect(result.tags.first.replacement, '**bold**');
       });
 
+      test('converts bold text with hashtag - merges operations correctly', () async {
+        final delta = Delta()
+          ..insert("It's ", {'bold': true})
+          ..insert('#ION', {'bold': true, 'hashtag': '#ION'})
+          ..insert("'s time", {'bold': true})
+          ..insert('\n');
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.text, "It's #ION's time\n");
+        expect(result.tags, hasLength(1));
+        expect(result.tags.first.start, 0);
+        expect(result.tags.first.end, greaterThanOrEqualTo(15));
+        final replacement = result.tags.first.replacement;
+        expect(replacement, startsWith('**'));
+        expect(replacement, endsWith('**'));
+        expect(replacement, isNot(contains('#ION**')));
+        expect(replacement, contains("It's #ION's time"));
+      });
+
       test('converts italic text', () async {
         final delta = Delta()
           ..insert('Hello ')

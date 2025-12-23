@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/features/feed/providers/content_conversion.dart';
 import 'package:ion/app/features/ion_connect/model/pmo_tag.f.dart';
 
@@ -242,6 +245,238 @@ void main() {
         final result = trimEmptyLines('Line1\nLine2\n\n\nLine3\nLine4', allowExtraLineBreak: false);
         expect(result.trimmedText, 'Line1\nLine2\nLine3\nLine4');
       });
+    });
+  });
+
+  group('trimLineWhitespaceInDelta', () {
+    String deltaToPlainText(Delta delta) {
+      final normalizedDelta = Delta();
+      for (final op in delta.operations) {
+        normalizedDelta.push(op);
+      }
+      if (normalizedDelta.operations.isNotEmpty) {
+        final lastOp = normalizedDelta.operations.last;
+        if (lastOp.data is String) {
+          final text = lastOp.data! as String;
+          if (!text.endsWith('\n')) {
+            normalizedDelta.operations.removeLast();
+            normalizedDelta.insert('$text\n', lastOp.attributes);
+          }
+        } else {
+          normalizedDelta.insert('\n');
+        }
+      } else {
+        normalizedDelta.insert('\n');
+      }
+      final plainText = Document.fromDelta(normalizedDelta).toPlainText();
+      // Quill's plain text always includes the trailing newline for the last line.
+      // Strip exactly one trailing newline to make test expectations consistent,
+      // regardless of whether we had to add it during normalization.
+      return plainText.endsWith('\n') ? plainText.substring(0, plainText.length - 1) : plainText;
+    }
+
+    test('trims leading whitespace on lines', () {
+      final delta = Delta()..insert('test\n        test\ntest');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test\ntest\ntest');
+    });
+
+    test('trims trailing whitespace on lines', () {
+      final delta = Delta()..insert('test     \ntest     \ntest');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test\ntest\ntest');
+    });
+
+    test('trims both leading and trailing whitespace on lines', () {
+      final delta = Delta()..insert('test\n        test     \ntest');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test\ntest\ntest');
+    });
+
+    test('trims whitespace with empty lines', () {
+      final delta = Delta()..insert('test\n\n                 test\n\n        test');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test\n\ntest\n\ntest');
+    });
+
+    test('trims whitespace with multiple empty lines', () {
+      final delta = Delta()..insert('test\n\n\n                 test\n\n        test');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test\n\n\ntest\n\ntest');
+    });
+
+    test('preserves content with no whitespace', () {
+      final delta = Delta()..insert('test\ntest\ntest');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test\ntest\ntest');
+    });
+
+    test('trims whitespace on single line', () {
+      final delta = Delta()..insert('        test     ');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test');
+    });
+
+    test('handles tabs and spaces', () {
+      final delta = Delta()..insert('test\n\t\t  test  \t\n\ttest');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test\ntest\ntest');
+    });
+
+    test('does not trim internal whitespace split across multiple insert ops on the same line', () {
+      final delta = Delta()
+        ..insert('hello')
+        ..insert('   ')
+        ..insert('world');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'hello   world');
+    });
+
+    test('does not trim code-block lines (newline carries code-block attribute)', () {
+      final delta = Delta()
+        ..insert('   code   ')
+        ..insert('\n', {'code-block': true});
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), '   code   ');
+    });
+
+    test('preserves whitespace-only link placeholders at line edges (media attachments)', () {
+      final delta = Delta()
+        ..insert(' ', {'link': 'https://example.com/media'})
+        ..insert('test');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), ' test');
+      expect(result.operations.first.attributes?['link'], 'https://example.com/media');
+    });
+
+    test('preserves image-only post (space with link attribute only)', () {
+      final delta = Delta()..insert(' ', {'link': 'https://example.com/image.jpg'});
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(result.operations.length, 1);
+      expect(result.operations.first.data, ' ');
+      expect(result.operations.first.attributes?['link'], 'https://example.com/image.jpg');
+    });
+
+    test('preserves image-only post with newline', () {
+      final delta = Delta()
+        ..insert(' ', {'link': 'https://example.com/image.jpg'})
+        ..insert('\n');
+      final result = trimLineWhitespaceInDelta(delta);
+      // The space should be preserved, newline should remain
+      expect(result.operations.length, 2);
+      expect(result.operations.first.data, ' ');
+      expect(result.operations.first.attributes?['link'], 'https://example.com/image.jpg');
+      expect(result.operations.last.data, '\n');
+    });
+
+    test('preserves attributes', () {
+      final delta = Delta()
+        ..insert('test', {'bold': true})
+        ..insert('\n        ')
+        ..insert('test', {'italic': true})
+        ..insert('\ntest');
+      final result = trimLineWhitespaceInDelta(delta);
+      expect(deltaToPlainText(result), 'test\ntest\ntest');
+      // Check that attributes are preserved
+      final ops = result.operations;
+      expect(ops[0].attributes?['bold'], true);
+      expect(ops[2].attributes?['italic'], true);
+    });
+
+    test('preserves embeds', () {
+      final delta = Delta()
+        ..insert('test\n')
+        ..insert({'image': 'url'})
+        ..insert('\n        test');
+      final result = trimLineWhitespaceInDelta(delta);
+      final plainText = deltaToPlainText(result);
+      expect(plainText, contains('test'));
+      expect(plainText.length, greaterThan(8));
+      expect(result.operations.any((op) => op.data is Map), true);
+    });
+  });
+
+  group('integration: trimLineWhitespaceInDelta + trimEmptyLines', () {
+    String deltaToPlainText(Delta delta) {
+      // Ensure delta ends with newline (Quill Document requirement)
+      final normalizedDelta = Delta();
+      for (final op in delta.operations) {
+        normalizedDelta.push(op);
+      }
+      if (normalizedDelta.operations.isNotEmpty) {
+        final lastOp = normalizedDelta.operations.last;
+        if (lastOp.data is String) {
+          final text = lastOp.data! as String;
+          if (!text.endsWith('\n')) {
+            normalizedDelta.operations.removeLast();
+            normalizedDelta.insert('$text\n', lastOp.attributes);
+          }
+        } else {
+          normalizedDelta.insert('\n');
+        }
+      } else {
+        normalizedDelta.insert('\n');
+      }
+      final plainText = Document.fromDelta(normalizedDelta).toPlainText();
+      // Strip exactly one trailing newline (Quill Document requirement).
+      return plainText.endsWith('\n') ? plainText.substring(0, plainText.length - 1) : plainText;
+    }
+
+    test('trims whitespace and empty lines together', () {
+      final delta = Delta()..insert('test\n\n                 test\n\n        test');
+      final trimmedDelta = trimLineWhitespaceInDelta(delta);
+      final plain = deltaToPlainText(trimmedDelta);
+      final result = trimEmptyLines(plain);
+      expect(result.trimmedText, 'test\n\ntest\n\ntest');
+    });
+
+    test('trims whitespace and collapses multiple empty lines', () {
+      final delta = Delta()..insert('test\n\n\n                 test\n\n        test');
+      final trimmedDelta = trimLineWhitespaceInDelta(delta);
+      final plain = deltaToPlainText(trimmedDelta);
+      final result = trimEmptyLines(plain, allowExtraLineBreak: false);
+      expect(result.trimmedText, 'test\ntest\ntest');
+    });
+  });
+
+  group('Delta.isBlank extension', () {
+    test('returns true for empty delta', () {
+      final delta = Delta();
+      expect(delta.isBlank, true);
+    });
+
+    test('returns true for delta with only whitespace', () {
+      final delta = Delta()..insert('   \n  ');
+      expect(delta.isBlank, true);
+    });
+
+    test('returns false for delta with text content', () {
+      final delta = Delta()..insert('Hello world');
+      expect(delta.isBlank, false);
+    });
+
+    test('returns false for image-only post (space with link attribute)', () {
+      // Image-only post: space with link attribute should not be considered blank
+      final delta = Delta()..insert(' ', {'link': 'https://example.com/image.jpg'});
+      expect(delta.isBlank, false);
+    });
+
+    test('returns false for image-only post with newline', () {
+      final delta = Delta()
+        ..insert(' ', {'link': 'https://example.com/image.jpg'})
+        ..insert('\n');
+      expect(delta.isBlank, false);
+    });
+
+    test('returns false for delta with text-editor-single-image attribute', () {
+      final delta = Delta()
+        ..insert(' ', {'text-editor-single-image': 'https://example.com/image.jpg'});
+      expect(delta.isBlank, false);
+    });
+
+    test('returns true for delta with only whitespace even if it has other attributes', () {
+      final delta = Delta()..insert('   ', {'bold': true});
+      expect(delta.isBlank, true);
     });
   });
 }
