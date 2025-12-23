@@ -46,6 +46,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>ionapp</string>
+				<string>ionapptestnet</string>
 			</array>
 		</dict>
 		<dict>

@@ -11,6 +11,7 @@ enum EnvVariable {
   ION_ANDROID_APP_ID,
   ION_IOS_APP_ID,
   ION_ORIGIN,
+  ION_INTERNAL_DEEP_LINK_SCHEME,
   SHOW_DEBUG_INFO,
   BANUBA_TOKEN,
   STORY_EXPIRATION_HOURS,
@@ -74,6 +75,8 @@ class Env extends _$Env {
       EnvVariable.ION_ANDROID_APP_ID => const String.fromEnvironment('ION_ANDROID_APP_ID') as T,
       EnvVariable.ION_IOS_APP_ID => const String.fromEnvironment('ION_IOS_APP_ID') as T,
       EnvVariable.ION_ORIGIN => const String.fromEnvironment('ION_ORIGIN') as T,
+      EnvVariable.ION_INTERNAL_DEEP_LINK_SCHEME =>
+        const String.fromEnvironment('ION_INTERNAL_DEEP_LINK_SCHEME', defaultValue: 'ionapp') as T,
       EnvVariable.SHOW_DEBUG_INFO => const bool.fromEnvironment('SHOW_DEBUG_INFO') as T,
       EnvVariable.BANUBA_TOKEN => const String.fromEnvironment('BANUBA_TOKEN') as T,
       EnvVariable.STORY_EXPIRATION_HOURS =>

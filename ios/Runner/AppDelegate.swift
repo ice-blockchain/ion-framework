@@ -351,13 +351,13 @@ class AudioVolumeObserver: NSObject {
     // Universal Links handler
     override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         AppsFlyerLib.shared().continue(userActivity, restorationHandler: nil)
-        return true
+        return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
     // URI Scheme handler (fallback)
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
         AppsFlyerLib.shared().handleOpen(url, options: options)
-        return true
+        return super.application(app, open: url, options: options)
     }
 
     

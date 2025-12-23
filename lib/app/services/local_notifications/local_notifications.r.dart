@@ -59,20 +59,21 @@ class LocalNotificationsService {
     String? icon,
     String? attachment,
     String? groupKey,
+    bool conversationStyle = true,
   }) async {
-    final notificationDetails = await _buildNotificationDetails(
-      avatarUrl: icon,
-      attachmentUrl: attachment,
-      userName: title,
-      textMessage: body,
-      groupKey: groupKey,
-    );
-
     await _plugin.show(
       generateUuid().hashCode,
       title,
       body,
-      notificationDetails,
+      conversationStyle
+          ? await _buildNotificationDetails(
+              avatarUrl: icon,
+              attachmentUrl: attachment,
+              userName: title,
+              textMessage: body,
+              groupKey: groupKey,
+            )
+          : null,
       payload: payload,
     );
   }

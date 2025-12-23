@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -79,10 +81,17 @@ GoRouter goRouter(Ref ref) {
 
       final initialNotification = ref.read(initialNotificationProvider.notifier).consume();
       if (initialNotification != null) {
-        await ref
-            .read(notificationResponseServiceProvider)
-            .handleNotificationResponse(initialNotification, isInitialNotification: true);
-        return null;
+        // Navigate to feed first to establish proper back stack
+        // Then schedule notification handling after feed is loaded
+        unawaited(
+          Future.microtask(() async {
+            await ref
+                .read(notificationResponseServiceProvider)
+                .handleNotificationResponse(initialNotification, isInitialNotification: false);
+          }),
+        );
+
+        return FeedRoute().location;
       }
 
       return _mainRedirect(location: state.matchedLocation, ref: ref);
