@@ -112,15 +112,16 @@ class ProfileTokenStats extends ConsumerWidget {
           SizedBox(width: 8.0.s),
           GestureDetector(
             onTap: () {
+              final eventReference = ReplaceableEventReference.fromString(externalAddress).encode();
               if (hasTokenInfo) {
                 // Someone already bought, open token page
                 TokenizedCommunityRoute(
-                  eventReference: ReplaceableEventReference.fromString(externalAddress).encode(),
+                  eventReference: eventReference,
                 ).push<void>(context);
               } else {
                 // No one bought yet, open trade dialog
                 TradeCommunityTokenRoute(
-                  externalAddress: externalAddress,
+                  eventReference: eventReference,
                   initialMode: CommunityTokenTradeMode.buy,
                 ).push<void>(context);
               }
