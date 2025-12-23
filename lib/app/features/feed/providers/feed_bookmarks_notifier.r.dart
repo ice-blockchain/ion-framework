@@ -411,21 +411,27 @@ class FeedBookmarkCollectionsNotifier extends _$FeedBookmarkCollectionsNotifier 
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
     final currentBookmarkCollectionsRefs = state.valueOrNull ?? [];
     final collectionDTag = bookmarksCollectionData.type;
+
     if (currentPubkey == null ||
         collectionDTag == BookmarksSetType.homeFeedCollectionsAll.dTagName ||
         !currentBookmarkCollectionsRefs.any((ref) => ref.dTag == collectionDTag)) {
       return;
     }
 
-    final updatedCollectionData = BookmarksSetData(
-      type: collectionDTag,
-      eventReferences: bookmarksCollectionData.eventReferences,
-      title: newTitle,
-    );
-
     final rootNotifier =
         ref.read(bookmarksCollectionNotifierProvider(currentPubkey, collectionDTag).notifier);
 
+    final feedBookmarksEntity =
+        ref.read(feedBookmarksNotifierProvider(collectionDTag: collectionDTag)).valueOrNull;
+
+    final currentEventReferences =
+        feedBookmarksEntity?.data.eventReferences ?? bookmarksCollectionData.eventReferences;
+
+    final updatedCollectionData = BookmarksSetData(
+      type: collectionDTag,
+      eventReferences: currentEventReferences,
+      title: newTitle,
+    );
     final updatedEntity =
         await ref.read(ionConnectNotifierProvider.notifier).sendEntityData<BookmarksSetEntity>(
               updatedCollectionData,
@@ -436,21 +442,17 @@ class FeedBookmarkCollectionsNotifier extends _$FeedBookmarkCollectionsNotifier 
       await rootNotifier.sync(updatedEntity);
     }
 
-    ref
-      ..invalidateSelf()
-      ..invalidate(
-        bookmarksCollectionNotifierProvider(
-          currentPubkey,
-          collectionDTag,
-        ),
-      )
-      ..invalidate(
-        bookmarksCollectionNotifierProvider(
-          currentPubkey,
-          BookmarksSetType.homeFeedCollections.dTagName,
-        ),
-      )
-      ..invalidate(feedBookmarksNotifierProvider(collectionDTag: collectionDTag))
-      ..invalidate(feedBookmarksNotifierProvider);
+    if (updatedEntity != null &&
+        updatedEntity.data.eventReferences.length == currentEventReferences.length) {
+      ref
+        ..invalidateSelf()
+        ..invalidate(
+          bookmarksCollectionNotifierProvider(
+            currentPubkey,
+            BookmarksSetType.homeFeedCollections.dTagName,
+          ),
+        )
+        ..invalidate(feedBookmarksNotifierProvider(collectionDTag: collectionDTag));
+    }
   }
 }
