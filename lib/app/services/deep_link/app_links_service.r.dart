@@ -99,11 +99,7 @@ Future<void> deepLinkHandler(Ref ref) async {
 
         // If it's an internal link, handle it directly. Otherwise, let AppsFlyer resolve it.
         if (internalDeepLinkService.isInternalDeepLink(initialLink)) {
-          final uri = Uri.parse(initialLink);
-          final location = internalDeepLinkService.getRouteLocation(uri.host, uri.pathSegments);
-          if (location != null) {
-            ref.read(deeplinkPathProvider.notifier).path = location;
-          }
+          _handleDeeplink(initialLink, ref);
         } else {
           appsflyerDeepLinkService.resolveDeeplink(initialLink);
         }
@@ -122,11 +118,7 @@ Future<void> deepLinkHandler(Ref ref) async {
       if (link != handledInitialLink) {
         final internalDeepLinkService = ref.read(internalDeepLinkServiceProvider);
         if (internalDeepLinkService.isInternalDeepLink(link)) {
-          final uri = Uri.parse(link);
-          final location = internalDeepLinkService.getRouteLocation(uri.host, uri.pathSegments);
-          if (location != null) {
-            ref.read(deeplinkPathProvider.notifier).path = location;
-          }
+          _handleDeeplink(link, ref);
         } else {
           ref.read(appsflyerDeepLinkServiceProvider).resolveDeeplink(link);
         }
@@ -219,11 +211,7 @@ Future<void> deeplinkInitializer(Ref ref) async {
         final internalDeepLinkService = ref.read(internalDeepLinkServiceProvider);
         if (internalDeepLinkService.isInternalDeepLink(encodedEventReference)) {
           // For cold start (which is when this callback runs), use deeplinkPathProvider
-          final uri = Uri.parse(encodedEventReference);
-          final location = internalDeepLinkService.getRouteLocation(uri.host, uri.pathSegments);
-          if (location != null) {
-            ref.read(deeplinkPathProvider.notifier).path = location;
-          }
+          _handleDeeplink(encodedEventReference, ref);
           return;
         }
 
@@ -275,4 +263,16 @@ class DeeplinkPath extends _$DeeplinkPath {
 
   set path(String path) => state = path;
   void clear() => state = null;
+}
+
+void _handleDeeplink(
+  String link,
+  Ref ref,
+) {
+  final uri = Uri.parse(link);
+  final internalDeepLinkService = ref.read(internalDeepLinkServiceProvider);
+  final location = internalDeepLinkService.getRouteLocation(uri.host, uri.pathSegments);
+  if (location != null) {
+    ref.read(deeplinkPathProvider.notifier).path = location;
+  }
 }
