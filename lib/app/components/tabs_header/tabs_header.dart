@@ -25,14 +25,14 @@ class TabsHeader extends ConsumerWidget {
       tabAlignment: TabAlignment.start,
       isScrollable: true,
       labelPadding: EdgeInsets.symmetric(horizontal: 10.0.s),
-      labelColor: context.theme.appColors.primaryAccent,
+      labelColor: context.theme.appColors.lightBlue,
       unselectedLabelColor: context.theme.appColors.tertiaryText,
       tabs: tabs.map((tabType) {
         return TabsHeaderTab(
           tabType: tabType,
         );
       }).toList(),
-      indicatorColor: context.theme.appColors.primaryAccent,
+      indicatorColor: context.theme.appColors.lightBlue,
       dividerHeight: 0,
     );
 

@@ -65,6 +65,7 @@ class CollapsingHeaderLayout extends HookWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: ScrollToTopWrapper(
         scrollController: scrollController,
         child: Stack(
@@ -135,7 +136,7 @@ class CollapsingHeaderLayout extends HookWidget {
                 final action = entry.value;
                 if (index == 0) return action;
                 return Padding(
-                  padding: EdgeInsetsDirectional.only(start: 8.0.s, end: 16.0.s),
+                  padding: EdgeInsetsDirectional.only(end: 16.0.s),
                   child: action,
                 );
               }).toList(),
