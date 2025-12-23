@@ -15,6 +15,7 @@ import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ProfileTokenStatsInfo extends ConsumerWidget {
@@ -58,7 +59,7 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
             ),
             TokenStatItem(
               icon: Assets.svg.iconMemeMarkers,
-              text: MarketDataFormatter.formatPrice(marketData.priceUSD),
+              text: MarketDataFormatter.formatVolume(marketData.volume),
               onTap: () => showSimpleBottomSheet<void>(
                 context: context,
                 child: const InfoModal(infoType: InfoType.volume),
@@ -66,7 +67,7 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
             ),
             TokenStatItem(
               icon: Assets.svg.iconSearchGroups,
-              text: marketData.holders.toString(),
+              text: formatCount(marketData.holders),
               onTap: () => showSimpleBottomSheet<void>(
                 context: context,
                 child: const InfoModal(infoType: InfoType.holders),
@@ -145,7 +146,7 @@ class ProfileTokenStats extends ConsumerWidget {
         ),
         TokenStatItem(
           icon: Assets.svg.iconMemeMarkers,
-          text: MarketDataFormatter.formatPrice(marketData.priceUSD),
+          text: MarketDataFormatter.formatVolume(marketData.volume),
           onTap: () => showSimpleBottomSheet<void>(
             context: context,
             child: const InfoModal(infoType: InfoType.volume),
@@ -153,7 +154,7 @@ class ProfileTokenStats extends ConsumerWidget {
         ),
         TokenStatItem(
           icon: Assets.svg.iconSearchGroups,
-          text: marketData.holders.toString(),
+          text: formatCount(marketData.holders),
           onTap: () => showSimpleBottomSheet<void>(
             context: context,
             child: const InfoModal(infoType: InfoType.holders),
@@ -377,8 +378,8 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
                     ),
                     TokenStatItem(
                       icon: Assets.svg.iconMemeMarkers,
-                      text: MarketDataFormatter.formatPrice(
-                        marketData.priceUSD,
+                      text: MarketDataFormatter.formatVolume(
+                        marketData.volume,
                       ),
                       onTap: () => showSimpleBottomSheet<void>(
                         context: context,
@@ -387,7 +388,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
                     ),
                     TokenStatItem(
                       icon: Assets.svg.iconSearchGroups,
-                      text: marketData.holders.toString(),
+                      text: formatCount(marketData.holders),
                       onTap: () => showSimpleBottomSheet<void>(
                         context: context,
                         child: const InfoModal(infoType: InfoType.holders),

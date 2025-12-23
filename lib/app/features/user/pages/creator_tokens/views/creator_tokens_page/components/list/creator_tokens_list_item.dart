@@ -5,7 +5,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/avatar_with_badge.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -40,6 +42,11 @@ class CreatorTokensListItem extends ConsumerWidget {
           masterPubkey: token.externalAddress,
           tokenType: token.type,
         ),
+        onTap: () {
+          TokenizedCommunityRoute(
+            externalAddress: token.externalAddress,
+          ).push<void>(context);
+        },
       ),
     );
   }
@@ -101,13 +108,10 @@ class _CreatorStatsWidget extends StatelessWidget {
 
     final stats = [
       (icon: Assets.svg.iconMemeMarketcap, value: formatCount(marketCap.toInt())),
-      (icon: Assets.svg.iconMemeMarkers, value: formatCount(volume.toInt())),
+      (icon: Assets.svg.iconMemeMarkers, value: MarketDataFormatter.formatVolume(volume)),
       (
         icon: Assets.svg.iconSearchGroups,
-        value: formatDouble(
-          holders.toDouble(),
-          minimumFractionDigits: 0,
-        )
+        value: formatCount(holders),
       ),
     ];
 
