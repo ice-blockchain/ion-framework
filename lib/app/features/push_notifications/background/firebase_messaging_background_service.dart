@@ -114,7 +114,30 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final savedIdentityKeyName =
       await backgroundContainer.read(currentIdentityKeyNameStoreProvider.future);
 
-  if (message.notification != null) {
+  // Check if this is a generic campaign notification (has notification but not IonConnect data)
+  final hasNotification = message.notification != null;
+  final hasIonConnectData = message.data.containsKey('event');
+
+  // Handle generic notifications (campaigns, deep link notifications)
+  if (hasNotification && !hasIonConnectData) {
+    final title = message.notification?.title;
+    final body = message.notification?.body;
+
+    if (title != null && body != null) {
+      await notificationsService.showNotification(
+        title: title,
+        body: body,
+        payload: jsonEncode(message.data),
+        conversationStyle: false,
+      );
+    }
+    backgroundContainer.dispose();
+    return;
+  }
+
+  // Skip IonConnect notifications that have the notification field
+  // (these should only have data, not notification)
+  if (hasNotification && hasIonConnectData) {
     backgroundContainer.dispose();
     return;
   }
