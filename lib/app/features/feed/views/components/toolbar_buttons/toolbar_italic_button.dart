@@ -18,6 +18,8 @@ class ToolbarItalicButton extends HookWidget {
     final styleManager =
         useMemoized(() => QuillStyleManager(textEditorController), [textEditorController]);
 
+    useEffect(() => styleManager.dispose, [styleManager]);
+
     return ActionsToolbarButton(
       icon: Assets.svg.iconPostItalictextOff,
       iconSelected: Assets.svg.iconPostItalictextOn,
