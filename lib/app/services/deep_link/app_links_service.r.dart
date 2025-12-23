@@ -71,17 +71,11 @@ Future<void> deepLinkHandler(Ref ref) async {
   }
 
   // Set up the listener FIRST to catch any state changes from initial link handling
-  ref.listen<String?>(deeplinkPathProvider, (prev, next) {
+  ref.listen<String?>(deeplinkPathProvider, fireImmediately: true, (prev, next) {
     if (next != null) {
       handlePath(next);
     }
   });
-
-  // Handle a path that may have been set before this listener was registered (cold start race)
-  final pendingPath = ref.read(deeplinkPathProvider);
-  if (pendingPath != null) {
-    handlePath(pendingPath);
-  }
 
   // used only first time when app is opened from closed state (cold start)
   final appLinks = AppLinks();
