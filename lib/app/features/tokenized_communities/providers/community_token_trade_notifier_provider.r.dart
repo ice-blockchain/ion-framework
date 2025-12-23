@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:collection/collection.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
@@ -29,6 +30,7 @@ typedef CommunityTokenTradeNotifierParams = ({
 @riverpod
 class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
   static const _firstBuyMetadataSentKey = 'community_token_first_buy';
+  static const _broadcastedStatus = 'broadcasted';
 
   @override
   FutureOr<String?> build(CommunityTokenTradeNotifierParams params) => null;
@@ -99,7 +101,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         tokenMarketInfoProvider(params.externalAddress),
       );
 
-      return response['status'] as String?;
+      return _requireBroadcastedTxHash(response);
     });
   }
 
@@ -162,8 +164,34 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         tokenMarketInfoProvider(params.externalAddress),
       );
 
-      return response['status'] as String?;
+      return _requireBroadcastedTxHash(response);
     });
+  }
+
+  String _requireBroadcastedTxHash(Map<String, dynamic> transaction) {
+    final status = transaction['status']?.toString() ?? '';
+    if (status.isEmpty) {
+      throw CommunityTokenTradeTransactionException(
+        reason: 'Swap status is missing',
+      );
+    }
+
+    if (status.toLowerCase() != _broadcastedStatus) {
+      throw CommunityTokenTradeTransactionException(
+        reason: 'Swap was not broadcasted',
+        status: status,
+      );
+    }
+
+    final txHash = transaction['txHash']?.toString() ?? '';
+    if (txHash.isEmpty) {
+      throw CommunityTokenTradeTransactionException(
+        reason: 'Swap transaction hash is missing',
+        status: status,
+      );
+    }
+
+    return txHash;
   }
 
   Future<void> _sendFirstBuyMetadataIfNeeded() async {

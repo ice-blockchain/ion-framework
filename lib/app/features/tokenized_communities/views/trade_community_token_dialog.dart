@@ -6,6 +6,9 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -30,6 +33,7 @@ import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class TradeCommunityTokenDialog extends HookConsumerWidget {
   const TradeCommunityTokenDialog({
@@ -81,24 +85,29 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(resolvedExternalAddress);
     final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
     final isPaymentTokenSelectable = !resolvedExternalAddressType.isContentToken;
+    final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
 
     ref
-      ..displayErrors(
+      ..listenError<String?>(
         communityTokenTradeNotifierProvider(params),
-        excludedExceptions: excludedPasskeyExceptions,
+        (error) {
+          if (error == null || excludedPasskeyExceptions.contains(error.runtimeType)) {
+            return;
+          }
+          if (context.mounted) {
+            _showErrorMessage(messageNotificationNotifier, context);
+          }
+        },
       )
-      ..listenSuccess<String?>(communityTokenTradeNotifierProvider(params), (String? txHash) {
-        if (context.mounted) {
-          Navigator.of(context).pop();
-          final rootNavigator = Navigator.of(context, rootNavigator: true);
-          final message = state.mode == CommunityTokenTradeMode.buy
-              ? 'Buy transaction submitted${txHash != null ? ': $txHash' : ''}'
-              : 'Sell transaction submitted${txHash != null ? ': $txHash' : ''}';
-          ScaffoldMessenger.of(rootNavigator.context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
-        }
-      });
+      ..listenSuccess<String?>(
+        communityTokenTradeNotifierProvider(params),
+        (_) {
+          if (context.mounted) {
+            _showSuccessMessage(messageNotificationNotifier, context);
+            Navigator.of(context).pop();
+          }
+        },
+      );
 
     final communityAvatarWidget = pubkey != null
         ? StoryColoredProfileAvatar(
@@ -232,6 +241,53 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
           }
         },
         child: child,
+      ),
+    );
+  }
+
+  void _showSuccessMessage(
+    MessageNotificationNotifier messageNotificationNotifier,
+    BuildContext context,
+  ) {
+    final colors = context.theme.appColors;
+    _showMessage(
+      messageNotificationNotifier,
+      message: context.i18n.wallet_swapped_coins,
+      icon: Assets.svg.iconCheckSuccess.icon(
+        color: colors.success,
+        size: 24.0.s,
+      ),
+      state: MessageNotificationState.success,
+    );
+  }
+
+  void _showErrorMessage(
+    MessageNotificationNotifier messageNotificationNotifier,
+    BuildContext context,
+  ) {
+    final colors = context.theme.appColors;
+    _showMessage(
+      messageNotificationNotifier,
+      message: context.i18n.wallet_swap_failed,
+      icon: Assets.svg.iconBlockKeywarning.icon(
+        color: colors.attentionRed,
+        size: 24.0.s,
+      ),
+      state: MessageNotificationState.error,
+    );
+  }
+
+  void _showMessage(
+    MessageNotificationNotifier notifier, {
+    required String message,
+    required Widget icon,
+    MessageNotificationState state = MessageNotificationState.info,
+  }) {
+    notifier.show(
+      MessageNotification(
+        message: message,
+        icon: icon,
+        state: state,
       ),
     );
   }
