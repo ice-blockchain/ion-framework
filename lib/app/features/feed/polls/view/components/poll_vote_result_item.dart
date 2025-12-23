@@ -109,7 +109,6 @@ class PollResultItem extends HookWidget {
                         color: accentTheme
                             ? context.theme.appColors.onPrimaryAccent
                             : context.theme.appColors.primaryText,
-                        fontSize: 12.0.s,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -121,7 +120,6 @@ class PollResultItem extends HookWidget {
                       color: accentTheme
                           ? context.theme.appColors.onPrimaryAccent
                           : context.theme.appColors.primaryText,
-                      fontSize: 12.0.s,
                     ),
                   ),
                 ],
