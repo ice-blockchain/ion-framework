@@ -23,6 +23,9 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
 
   final currentCandles = <OhlcvCandle>[];
 
+  // Maximum candles to keep: 50 is sufficient for chart display
+  const maxCandles = 50;
+
   await for (final batch in subscription.stream) {
     if (batch.isEmpty) {
       yield currentCandles;
@@ -39,6 +42,12 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
       } else {
         currentCandles.add(candle);
       }
+    }
+
+    // Remove oldest candles if exceeding max
+    if (currentCandles.length > maxCandles) {
+      final amountToRemove = currentCandles.length - maxCandles;
+      currentCandles.removeRange(0, amountToRemove);
     }
 
     yield currentCandles;
