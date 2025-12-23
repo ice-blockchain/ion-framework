@@ -9,6 +9,7 @@ import 'package:ion/app/features/tokenized_communities/utils/fat_address_data.f.
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -63,6 +64,12 @@ Future<FatAddressData> _buildCreatorFatAddressData(
     );
   }
 
+  final affiliateAddress = await _resolveAffiliateAddress(
+    ref,
+    creatorMasterPubkey: pubkey,
+    bscNetworkId: bscNetworkId,
+  );
+
   final username = metadata.data.name.trim();
   final displayName = metadata.data.trimmedDisplayName.trim();
 
@@ -75,6 +82,7 @@ Future<FatAddressData> _buildCreatorFatAddressData(
     externalAddress: externalAddress,
     externalTypePrefix: externalTypePrefix,
     creatorAddress: creatorAddress,
+    affiliateAddress: affiliateAddress,
   );
 }
 
@@ -101,6 +109,12 @@ Future<FatAddressData> _buildContentFatAddressData(
     );
   }
 
+  final affiliateAddress = await _resolveAffiliateAddress(
+    ref,
+    creatorMasterPubkey: masterPubkey,
+    bscNetworkId: bscNetworkId,
+  );
+
   final creatorTokenReference = ReplaceableEventReference(
     kind: UserMetadataEntity.kind,
     masterPubkey: masterPubkey,
@@ -120,5 +134,34 @@ Future<FatAddressData> _buildContentFatAddressData(
     externalTypePrefix: externalTypePrefix,
     creatorAddress: creatorAddress,
     creatorTokenAddress: creatorTokenAddress,
+    affiliateAddress: affiliateAddress,
   );
+}
+
+Future<String?> _resolveAffiliateAddress(
+  Ref ref, {
+  required String creatorMasterPubkey,
+  required String bscNetworkId,
+}) async {
+  try {
+    final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
+    final socialProfile = await ionIdentityClient.users.getUserSocialProfile(
+      userIdOrMasterKey: creatorMasterPubkey,
+    );
+
+    final referralMasterPubkey = socialProfile.referralMasterKey?.trim() ?? '';
+    if (referralMasterPubkey.isEmpty) {
+      return null;
+    }
+
+    final referralMetadata = await ref.watch(userMetadataProvider(referralMasterPubkey).future);
+    final affiliateAddress = referralMetadata?.data.wallets?[bscNetworkId];
+    if (affiliateAddress == null || affiliateAddress.isEmpty) {
+      return null;
+    }
+
+    return affiliateAddress;
+  } catch (_) {
+    return null;
+  }
 }

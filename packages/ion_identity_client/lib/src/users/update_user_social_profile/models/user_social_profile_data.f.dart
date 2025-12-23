@@ -14,6 +14,7 @@ class UserSocialProfileData with _$UserSocialProfileData {
     String? avatar,
     String? bio,
     String? referral,
+    String? referralMasterKey,
     int? referralCount,
   }) = _UserSocialProfileData;
 
