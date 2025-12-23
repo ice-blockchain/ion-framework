@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
@@ -26,8 +27,8 @@ class IonIdentityTransactionApi {
         to: transaction.to,
         data: transaction.data.isNotEmpty ? transaction.data : null,
         value: _encodeQuantity(transaction.value),
-        maxFeePerGas: _encodeQuantity(transaction.maxFeePerGas),
-        maxPriorityFeePerGas: _encodeQuantity(transaction.maxPriorityFeePerGas),
+        maxFeePerGas: transaction.maxFeePerGas?.let(_encodeQuantity),
+        maxPriorityFeePerGas: transaction.maxPriorityFeePerGas?.let(_encodeQuantity),
       ),
     );
 
