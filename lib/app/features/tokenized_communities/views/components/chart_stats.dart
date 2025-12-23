@@ -13,8 +13,8 @@ class ChartStats extends StatelessWidget {
     required this.sellsText,
     required this.netBuyText,
     required this.isNetBuyPositive,
-    required this.isSellsZero,
-    required this.isNetBuyZero,
+    required this.hasNoSells,
+    required this.hasZeroNetBuy,
     required this.onTimeframeTap,
     super.key,
   });
@@ -26,8 +26,8 @@ class ChartStats extends StatelessWidget {
   final String sellsText;
   final String netBuyText;
   final bool isNetBuyPositive;
-  final bool isSellsZero;
-  final bool isNetBuyZero;
+  final bool hasNoSells;
+  final bool hasZeroNetBuy;
   final ValueChanged<int> onTimeframeTap;
 
   @override
@@ -80,12 +80,12 @@ class ChartStats extends StatelessWidget {
                 _KpiColumn(
                   title: i18n.chart_stats_sells,
                   value: sellsText,
-                  valueColor: isSellsZero ? colors.primaryText : colors.lossRed,
+                  valueColor: hasNoSells ? colors.primaryText : colors.lossRed,
                 ),
                 _KpiColumn(
                   title: i18n.chart_stats_net_buy,
                   value: netBuyText,
-                  valueColor: isNetBuyZero
+                  valueColor: hasZeroNetBuy
                       ? colors.primaryText
                       : (isNetBuyPositive ? colors.success : colors.lossRed),
                   crossAxisAlignment: CrossAxisAlignment.end,
