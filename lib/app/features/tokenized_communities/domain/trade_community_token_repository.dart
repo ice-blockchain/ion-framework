@@ -75,9 +75,9 @@ class TradeCommunityTokenRepository {
     required String walletId,
     required String tokenAddress,
     required BigInt amount,
-    required BigInt maxFeePerGas,
-    required BigInt maxPriorityFeePerGas,
     required UserActionSignerNew userActionSigner,
+    BigInt? maxFeePerGas,
+    BigInt? maxPriorityFeePerGas,
   }) async {
     await _ensureConfigLoaded();
     final approvalTx = await txBuilder.encodeApprove(
@@ -105,9 +105,9 @@ class TradeCommunityTokenRepository {
     required List<int> toTokenIdentifier,
     required BigInt amountIn,
     required BigInt minReturn,
-    required BigInt maxFeePerGas,
-    required BigInt maxPriorityFeePerGas,
     required UserActionSignerNew userActionSigner,
+    BigInt? maxFeePerGas,
+    BigInt? maxPriorityFeePerGas,
   }) async {
     await _ensureConfigLoaded();
     final swapTx = await txBuilder.encodeSwap(
@@ -134,8 +134,8 @@ class TradeCommunityTokenRepository {
 
   EvmTransaction _applyFees(
     EvmTransaction transaction, {
-    required BigInt maxFeePerGas,
-    required BigInt maxPriorityFeePerGas,
+    BigInt? maxFeePerGas,
+    BigInt? maxPriorityFeePerGas,
   }) {
     return EvmTransaction(
       kind: transaction.kind,

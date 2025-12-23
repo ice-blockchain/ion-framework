@@ -66,9 +66,8 @@ class TradeCommunityTokenService {
       tokenDecimals: tokenDecimals,
       mode: CommunityTokenTradeMode.buy,
       quoteDecimals: tokenDecimals,
-      maxFeePerGas: maxFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxFeePerGas,
-      maxPriorityFeePerGas:
-          maxPriorityFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxPriorityFeePerGas,
+      maxFeePerGas: maxFeePerGas,
+      maxPriorityFeePerGas: maxPriorityFeePerGas,
       userActionSigner: userActionSigner,
     );
 
@@ -130,9 +129,8 @@ class TradeCommunityTokenService {
       tokenDecimals: tokenDecimals,
       mode: CommunityTokenTradeMode.sell,
       quoteDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
-      maxFeePerGas: maxFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxFeePerGas,
-      maxPriorityFeePerGas:
-          maxPriorityFeePerGas ?? TokenizedCommunitiesConstants.defaultMaxPriorityFeePerGas,
+      maxFeePerGas: maxFeePerGas,
+      maxPriorityFeePerGas: maxPriorityFeePerGas,
       userActionSigner: userActionSigner,
     );
 
@@ -178,9 +176,9 @@ class TradeCommunityTokenService {
     required int tokenDecimals,
     required CommunityTokenTradeMode mode,
     required int quoteDecimals,
-    required BigInt maxFeePerGas,
-    required BigInt maxPriorityFeePerGas,
     required UserActionSignerNew userActionSigner,
+    BigInt? maxFeePerGas,
+    BigInt? maxPriorityFeePerGas,
   }) async {
     final fromTokenBytes = _getBytesFromAddress(fromTokenAddress);
 
@@ -356,9 +354,9 @@ class TradeCommunityTokenService {
     required BigInt requiredAmount,
     required String walletId,
     required int tokenDecimals,
-    required BigInt maxFeePerGas,
-    required BigInt maxPriorityFeePerGas,
     required UserActionSignerNew userActionSigner,
+    BigInt? maxFeePerGas,
+    BigInt? maxPriorityFeePerGas,
   }) async {
     final allowance = await repository.fetchAllowance(
       owner: owner,
