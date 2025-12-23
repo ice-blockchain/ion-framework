@@ -8,17 +8,20 @@ class CoinIconWidget extends StatelessWidget {
   const CoinIconWidget({
     required this.type,
     this.imageUrl,
+    this.showPlaceholder = false,
     super.key,
   });
 
   final String? imageUrl;
   final WalletItemIconType type;
+  final bool showPlaceholder;
 
   @override
   Widget build(BuildContext context) {
     return WalletItemIconWidget(
       imageUrl: imageUrl,
       type: type,
+      showPlaceholder: showPlaceholder,
     );
   }
 }

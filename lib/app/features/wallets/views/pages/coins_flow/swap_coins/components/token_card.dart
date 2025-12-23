@@ -16,6 +16,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/utils/num.dart';
+import 'package:ion/app/utils/string.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -193,6 +194,7 @@ class TokenCard extends HookConsumerWidget {
                     ),
                     SumPercentageAction(
                       percentage: 100,
+                      text: context.i18n.wallet_max.capitalize(),
                       onPercentageChanged: (percentage) {
                         if (onPercentageChanged != null) {
                           onPercentageChanged!.call(percentage);
@@ -226,6 +228,7 @@ class TokenCard extends HookConsumerWidget {
                           CoinIconWithNetwork.small(
                             iconUrl,
                             network: network!,
+                            showPlaceholder: true,
                           )
                         else
                           SizedBox.square(

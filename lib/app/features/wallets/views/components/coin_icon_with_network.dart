@@ -14,11 +14,13 @@ class CoinIconWithNetwork extends StatelessWidget {
     required this.networkIconType,
     required this.containerSize,
     this.iconUrl,
+    this.showPlaceholder = false,
   });
 
   factory CoinIconWithNetwork.small(
     String? iconUrl, {
     required NetworkData network,
+    bool showPlaceholder = false,
   }) =>
       CoinIconWithNetwork._(
         iconUrl: iconUrl,
@@ -26,6 +28,7 @@ class CoinIconWithNetwork extends StatelessWidget {
         networkIconType: WalletItemIconType.small(),
         containerSize: 40.0.s,
         coinIconType: WalletItemIconType.big(),
+        showPlaceholder: showPlaceholder,
       );
 
   factory CoinIconWithNetwork.medium(
@@ -45,6 +48,7 @@ class CoinIconWithNetwork extends StatelessWidget {
   final double containerSize;
   final WalletItemIconType coinIconType;
   final WalletItemIconType networkIconType;
+  final bool showPlaceholder;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +63,11 @@ class CoinIconWithNetwork extends StatelessWidget {
           PositionedDirectional(
             top: 0,
             start: 0,
-            child: CoinIconWidget(imageUrl: iconUrl, type: coinIconType),
+            child: CoinIconWidget(
+              imageUrl: iconUrl,
+              type: coinIconType,
+              showPlaceholder: showPlaceholder,
+            ),
           ),
           PositionedDirectional(
             bottom: 0,
