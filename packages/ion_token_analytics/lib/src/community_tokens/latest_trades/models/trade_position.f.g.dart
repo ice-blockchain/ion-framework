@@ -12,9 +12,9 @@ _$TradePositionImpl _$$TradePositionImplFromJson(Map<String, dynamic> json) =>
       addresses: Addresses.fromJson(json['addresses'] as Map<String, dynamic>),
       createdAt: json['createdAt'] as String,
       type: $enumDecode(_$TradeTypeEnumMap, json['type']),
-      amount: (json['amount'] as num).toDouble(),
+      amount: json['amount'] as String,
       amountUSD: (json['amountUSD'] as num).toDouble(),
-      balance: (json['balance'] as num).toDouble(),
+      balance: json['balance'] as String,
       balanceUSD: (json['balanceUSD'] as num).toDouble(),
     );
 
@@ -43,9 +43,9 @@ _$TradePositionPatchImpl _$$TradePositionPatchImplFromJson(
       : AddressesPatch.fromJson(json['addresses'] as Map<String, dynamic>),
   createdAt: json['createdAt'] as String?,
   type: $enumDecodeNullable(_$TradeTypeEnumMap, json['type']),
-  amount: (json['amount'] as num?)?.toDouble(),
+  amount: json['amount'] as String?,
   amountUSD: (json['amountUSD'] as num?)?.toDouble(),
-  balance: (json['balance'] as num?)?.toDouble(),
+  balance: json['balance'] as String?,
   balanceUSD: (json['balanceUSD'] as num?)?.toDouble(),
 );
 

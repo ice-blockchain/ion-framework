@@ -9,7 +9,6 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
-import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_bonding_curve_progress_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -23,18 +22,12 @@ class HoldersPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final limit = useState(20);
 
-    final bondingCurveProgress =
-        ref.watch(tokenBondingCurveProgressProvider(externalAddress)).valueOrNull;
-
     final topHoldersAsync = ref.watch(tokenTopHoldersProvider(externalAddress, limit: limit.value));
 
     final previousTopHolders = useRef<List<TopHolder>>([]);
 
     final topHolders =
         topHoldersAsync.isLoading ? previousTopHolders.value : topHoldersAsync.valueOrNull ?? [];
-
-    final showBondingCurve = bondingCurveProgress != null;
-    final extra = showBondingCurve ? 1 : 0;
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
@@ -56,17 +49,17 @@ class HoldersPage extends HookConsumerWidget {
                   )
                 else
                   SliverList.builder(
-                    itemCount: topHolders.length + extra,
+                    itemCount: topHolders.length,
                     itemBuilder: (context, index) {
                       final topPadding = index == 0 ? 12.s : 7.s;
                       final bottomPadding = 7.s;
 
-                      if (showBondingCurve && index == 0) {
+                      if (index == 0) {
                         return _HoldersListPadding(
                           topPadding: topPadding,
                           bottomPadding: bottomPadding,
                           child: BondingCurveHolderTile(
-                            bondingCurveProgress: bondingCurveProgress,
+                            holder: topHolders[index],
                           ),
                         );
                       }
@@ -75,7 +68,7 @@ class HoldersPage extends HookConsumerWidget {
                         topPadding: topPadding,
                         bottomPadding: bottomPadding,
                         child: TopHolderTile(
-                          holder: topHolders[index - extra],
+                          holder: topHolders[index],
                         ),
                       );
                     },

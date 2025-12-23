@@ -7,8 +7,13 @@ import 'package:ion/app/utils/url.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 extension ImagePathExtension on String {
-  bool get isSvg => toLowerCase().endsWith('.svg');
+  bool get isSvg =>
+      toLowerCase().endsWith('.svg') ||
+      // for URLs coming from BE like https://api.dicebear.com/7.x/avataaars/svg?seed=diwataleaba77b590
+      toLowerCase().contains('/svg?');
+
   bool get isGif => toLowerCase().endsWith('.gif');
+
   bool get isNetworkSvg => isNetworkUrl(toLowerCase()) && isSvg;
 }
 

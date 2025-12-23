@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math' as math;
+
 import 'package:intl/intl.dart';
 
 String formatDouble(
@@ -40,11 +42,7 @@ String formatAmountCompactFromRaw(String raw, {int decimals = 18}) {
     return '0.$shown';
   }
 
-  // Use intl compact if it safely fits
-  if (whole.bitLength < 53) {
-    return formatDoubleCompact(whole.toInt());
-  }
-
+  // Use our truncating compact formatter to avoid rounding up (e.g. 999,928 -> 999K, not 1M).
   return formatBigIntCompact(whole);
 }
 
@@ -72,11 +70,18 @@ String formatBigIntCompact(BigInt value) {
     return '$sign$current';
   }
 
-  final dec = (remainder * BigInt.from(10)) ~/ thousand;
-  final withDec =
-      (dec > BigInt.zero && current < BigInt.from(100)) ? '$current.$dec' : current.toString();
+  final suffix = suffixes[tier];
 
-  return '$sign$withDec${suffixes[tier]}';
+  // Up to 2 decimals (truncated, never rounded up).
+  final dec2 = (remainder * BigInt.from(100)) ~/ thousand; // 0..99
+  if (dec2 == BigInt.zero) {
+    return '$sign$current$suffix';
+  }
+
+  final frac2 = dec2.toString().padLeft(2, '0');
+  final trimmedFrac = frac2.replaceFirst(RegExp(r'0+$'), ''); // 1 or 2 digits
+
+  return '$sign$current.$trimmedFrac$suffix';
 }
 
 String formatToCurrency(double value, [String? symbol]) {
@@ -103,4 +108,34 @@ String getNumericSign(num value) {
   } else {
     return '-';
   }
+}
+
+String formatSupplySharePercent(double value, {int decimals = 2}) {
+// We want *truncation* (never rounding up) to avoid values like 99.9999 -> 100.00.
+// Also ensure very small positive values show at least 0.01%.
+  if (!value.isFinite || value <= 0) {
+    return '0.${'0' * decimals}';
+  }
+
+  const maxPercent = 100.0;
+  final factor = math.pow(10, decimals).toInt();
+
+// Cap at 100.00% (in case of tiny floating overshoots).
+  if (value >= maxPercent) {
+    return formatScaledInt((maxPercent * factor).round(), factor, decimals);
+  }
+
+// Truncate instead of round.
+  final scaled = (value * factor + 1e-9).floor();
+
+// Ensure a minimum display of 0.01% for any positive value that would truncate to 0.00.
+  final safeScaled = scaled == 0 ? 1 : scaled;
+
+  return formatScaledInt(safeScaled, factor, decimals);
+}
+
+String formatScaledInt(int scaled, int factor, int decimals) {
+  final whole = scaled ~/ factor;
+  final frac = scaled % factor;
+  return '$whole.${frac.toString().padLeft(decimals, '0')}';
 }

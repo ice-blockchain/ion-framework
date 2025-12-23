@@ -9,26 +9,19 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class BondingCurveHolderTile extends StatelessWidget {
   const BondingCurveHolderTile({
-    required this.bondingCurveProgress,
+    required this.holder,
     super.key,
   });
 
-  final BondingCurveProgress bondingCurveProgress;
+  final TopHolder holder;
 
   @override
   Widget build(BuildContext context) {
-    final progressRaw = BigInt.tryParse(bondingCurveProgress.raisedAmount) ?? BigInt.zero;
-    final goalRaw = BigInt.tryParse(bondingCurveProgress.goalAmount) ?? BigInt.zero;
-
-    final supplyShare = goalRaw == BigInt.zero
-        ? 0.0
-        : ((progressRaw * BigInt.from(10000)) ~/ goalRaw).toDouble() / 100.0;
-
     return HolderTile(
-      rank: 0,
-      amountText: formatAmountCompactFromRaw(bondingCurveProgress.raisedAmount),
+      rank: holder.position.rank,
+      amountText: formatAmountCompactFromRaw(holder.position.amount),
       displayName: context.i18n.tokenized_community_bonding_curve,
-      supplyShare: supplyShare,
+      supplyShare: holder.position.supplyShare,
       avatarUrl: Assets.svg.iconBondingCurveAvatar,
     );
   }
@@ -119,7 +112,7 @@ class HolderTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(12.0.s),
             ),
             child: Text(
-              '${supplyShare.toStringAsFixed(2)}%',
+              '${formatSupplySharePercent(supplyShare)}%',
               style: texts.caption2
                   .copyWith(color: colors.primaryText, height: 18 / texts.caption2.fontSize!),
             ),
@@ -138,7 +131,7 @@ class _RankBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
-    final isMedal = rank <= 3;
+    final isMedal = rank <= 4;
     return Container(
       width: 30.0.s,
       height: 30.0.s,
@@ -165,10 +158,10 @@ class _MedalIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (rank) {
-      0 => Assets.svg.iconMemeBondingcurve,
-      1 => Assets.svg.iconMeme1stplace,
-      2 => Assets.svg.iconMeme2ndtplace,
-      3 => Assets.svg.iconMeme3rdplace,
+      1 => Assets.svg.iconMemeBondingcurve,
+      2 => Assets.svg.iconMeme1stplace,
+      3 => Assets.svg.iconMeme2ndtplace,
+      4 => Assets.svg.iconMeme3rdplace,
       _ => throw UnimplementedError(),
     }
         .icon();
@@ -201,7 +194,7 @@ class _NameAndAmount extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(
+            Flexible(
               child: Text(
                 name,
                 style: texts.subtitle3.copyWith(
