@@ -8,9 +8,11 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/deep_link/app_links_service.r.dart';
+import 'package:ion/app/services/deep_link/deep_link_navigate_event.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'internal_deep_link_service.r.g.dart';
@@ -179,7 +181,9 @@ final class InternalDeepLinkService {
       };
 
       if (location != null) {
-        _ref.read(deeplinkPathProvider.notifier).path = location;
+        _ref.read(uiEventQueueNotifierProvider.notifier).emit(
+              DeeplinkNavigateEvent(location),
+            );
       }
 
       Logger.log('Internal deep link handled: $url');
