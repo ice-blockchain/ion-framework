@@ -14,16 +14,25 @@ class WalletItemIconWidget extends StatelessWidget {
     required this.type,
     this.imageUrl,
     this.color,
+    this.showPlaceholder = false,
     super.key,
   });
 
   final String? imageUrl;
   final WalletItemIconType type;
   final Color? color;
+  final bool showPlaceholder;
 
   @override
   Widget build(BuildContext context) {
     if (imageUrl.isEmpty) {
+      if (showPlaceholder) {
+        return Assets.svg.walletEmptyicon.icon(
+          size: type.size,
+          color: color,
+        );
+      }
+
       return const SizedBox.shrink();
     }
 

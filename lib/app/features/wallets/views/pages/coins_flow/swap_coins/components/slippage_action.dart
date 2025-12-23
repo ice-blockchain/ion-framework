@@ -41,7 +41,7 @@ class SlippageAction extends ConsumerWidget {
       ),
       label: Text(
         '${slippage.toStringAsFixed(1)}%',
-        style: textStyles.body2.copyWith(
+        style: textStyles.body.copyWith(
           color: colors.primaryText,
         ),
       ),
