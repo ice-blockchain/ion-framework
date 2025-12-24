@@ -180,15 +180,17 @@ final class NativeAdStoryView: UIView {
 
             // --- Overlays (Ad Tag & Choices) ---
             // Position them at the top of the fullscreen media
+            adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            adChoiceContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            adChoiceContainer.widthAnchor.constraint(equalToConstant: 18),
+            adChoiceContainer.heightAnchor.constraint(equalToConstant: 18),
+            
             adTag.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            adTag.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            adTag.leadingAnchor.constraint(equalTo: adChoiceContainer.trailingAnchor, constant: 8),
             adTag.widthAnchor.constraint(equalToConstant: 27),
             adTag.heightAnchor.constraint(equalToConstant: 18),
 
-            adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            adChoiceContainer.trailingAnchor.constraint(equalTo: adTag.leadingAnchor, constant: -8),
-            adChoiceContainer.widthAnchor.constraint(equalToConstant: 18),
-            adChoiceContainer.heightAnchor.constraint(equalToConstant: 18),
+            
         ])
     }
 }
