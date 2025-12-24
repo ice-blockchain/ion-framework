@@ -112,13 +112,13 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         communityTokenTradeNotifierProvider(params),
         (_) {
           if (context.mounted) {
-            ref.invalidate(walletViewsDataNotifierProvider);
             _showSuccessMessage(
               messageNotificationNotifier,
               context,
               state.selectedPaymentToken?.abbreviation,
               state.communityTokenCoinsGroup?.abbreviation,
             );
+            ref.invalidate(walletViewsDataNotifierProvider);
             Navigator.of(context).pop();
           }
         },
