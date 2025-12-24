@@ -24,6 +24,7 @@ import 'package:ion/app/features/tokenized_communities/views/trade_community_tok
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/continue_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/slippage_action.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_button.dart';
@@ -104,6 +105,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         (_) {
           if (context.mounted) {
             _showSuccessMessage(messageNotificationNotifier, context);
+            ref.invalidate(walletViewsDataNotifierProvider);
             Navigator.of(context).pop();
           }
         },
