@@ -63,18 +63,29 @@ class CommunityTokenDefinitionRepository {
       throw TokenCreatorIonAddressNotFoundException(externalAddress);
     }
 
-    final creatorEventReference = ReplaceableEventReference.fromString(creatorIonConnectAddress);
+    final EventReference creatorEventReference;
+    final Map<String, List<Object?>> tags;
 
-    final tags = switch (tokenInfo.addresses) {
-      Addresses(ionConnect: final String ionConnectAddress) => {
-          '#a': [ionConnectAddress],
+    if (tokenInfo.creator.addresses?.ionConnect == null) {
+      throw TokenAddressNotFoundException(externalAddress);
+    } else {
+      if (tokenInfo.source.isTwitter) {
+        creatorEventReference = ReplaceableEventReference(
+          masterPubkey: tokenInfo.creator.addresses!.ionConnect!,
+          kind: UserMetadataEntity.kind,
+        );
+        tags = {
+          '#h': [tokenInfo.creator.addresses!.twitter],
+        };
+      } else {
+        creatorEventReference =
+            ReplaceableEventReference.fromString(tokenInfo.creator.addresses!.ionConnect!);
+        tags = {
+          '#a': [tokenInfo.creator.addresses!.ionConnect],
           '!#t': [communityTokenActionTopic],
-        },
-      Addresses(twitter: final String twitterAddress) => {
-          '#h': [twitterAddress],
-        },
-      _ => throw TokenAddressNotFoundException(externalAddress),
-    };
+        };
+      }
+    }
 
     return _fetchFromIonConnect(
       externalAddress: externalAddress,
