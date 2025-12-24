@@ -85,10 +85,11 @@ class HoldersPage extends HookConsumerWidget {
               ],
               onLoadMore: () async {
                 if (topHoldersAsync.isLoading) return;
+                if (limit.value >= TokenTopHolders.maxLimit) return;
                 previousTopHolders.value = topHolders;
                 limit.value += 20;
               },
-              hasMore: topHolders.length <= limit.value,
+              hasMore: limit.value < TokenTopHolders.maxLimit,
             ),
           ),
         ],
