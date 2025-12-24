@@ -11,7 +11,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 
-class FollowListItem extends HookConsumerWidget {
+class FollowListItem extends ConsumerWidget {
   const FollowListItem({
     required this.pubkey,
     this.network = false,
