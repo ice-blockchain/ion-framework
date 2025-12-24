@@ -43,7 +43,7 @@ void useEnsureInputVisibility({
               if (renderBox != null) {
                 if (scrollable != null && scrollable.position.hasContentDimensions) {
                   final position = renderBox.localToGlobal(Offset.zero);
-                  if(!scrollable.context.mounted){
+                  if (!scrollable.context.mounted) {
                     return;
                   }
                   // ignore: use_build_context_synchronously
