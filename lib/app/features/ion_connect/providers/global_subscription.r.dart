@@ -27,6 +27,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_subscription_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
+import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user_archive/model/entities/user_archive_entity.f.dart';
 import 'package:ion/app/features/user_archive/providers/user_archive_provider.r.dart';
 import 'package:ion/app/features/user_block/model/entities/blocked_user_entity.f.dart';
@@ -73,6 +74,7 @@ class GlobalSubscription {
     ModifiablePostEntity.kind,
     GenericRepostEntity.modifiablePostRepostKind,
     ArticleEntity.kind,
+    UserDelegationEntity.kind,
   ];
   // Used when we reinstall the app to refetch all encrypted events
   int? _inMemoryEncryptedSince;
@@ -190,8 +192,10 @@ class GlobalSubscription {
         filter: RequestFilter(
           kinds: _genericEventKinds,
           tags: {
+            // Works like OR between master pubkey and device pubkey
             '#p': [
               [currentUserMasterPubkey],
+              [devicePubkey],
             ],
           },
         ),
@@ -260,8 +264,10 @@ class GlobalSubscription {
           RequestFilter(
             kinds: _genericEventKinds,
             tags: {
+              // Works like OR between master pubkey and device pubkey
               '#p': [
                 [currentUserMasterPubkey],
+                [devicePubkey],
               ],
             },
             limit: eventLimit,
@@ -410,8 +416,10 @@ class GlobalSubscription {
 
         final pubkeyTag = tags[PubkeyTag.tagName]?.firstOrNull;
         if (pubkeyTag != null) {
-          final pTagValue = PubkeyTag.fromTag(pubkeyTag).value;
-          if (pTagValue == currentUserMasterPubkey) {
+          final masterPubkeyKeyFromTag = eventMessage.kind == UserDelegationEntity.kind
+              ? eventMessage.pubkey
+              : PubkeyTag.fromTag(pubkeyTag).value;
+          if (masterPubkeyKeyFromTag == currentUserMasterPubkey) {
             if (_inMemoryPFilterSince == null) {
               _inMemoryPFilterSince = eventTimestamp;
             } else if (_inMemoryPFilterSince! < eventTimestamp) {
