@@ -3,20 +3,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_content.dart';
 import 'package:ion/app/components/icons/outlined_icon.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/bookmarks/bookmark_button.dart';
 import 'package:ion/app/features/core/views/pages/unfollow_user_page.dart';
-import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
-import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
-import 'package:ion/app/features/optimistic_ui/features/bookmark/bookmark_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
@@ -25,7 +21,6 @@ import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/block_user_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -58,9 +53,7 @@ class PostMenuBottomSheet extends ConsumerWidget {
 
     menuItemsFollowGroup
       ..add(
-        _BookmarkMenuItem(
-          eventReference: eventReference,
-        ),
+        BookmarkButton(eventReference: eventReference),
       )
       ..add(
         _FollowUserMenuItem(
@@ -119,74 +112,6 @@ class PostMenuBottomSheet extends ConsumerWidget {
 
     return BottomSheetMenuContent(
       groups: menuItemsGroups,
-    );
-  }
-}
-
-class _BookmarkMenuItem extends HookConsumerWidget {
-  const _BookmarkMenuItem({
-    required this.eventReference,
-  });
-
-  final EventReference eventReference;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.displayErrors(
-      feedBookmarksNotifierProvider(
-        collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
-      ),
-    );
-    final bookmarkState = ref.watch(
-      feedBookmarksNotifierProvider(
-        collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
-      ),
-    );
-    final isLoading = bookmarkState.isLoading;
-    final isBookmarked = ref.watch(
-      isBookmarkedInCollectionProvider(
-        eventReference,
-        collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
-      ),
-    );
-
-    useEffect(
-      () {
-        // sync to DB if bookmarked from cache only
-        if (isBookmarked) {
-          ref
-              .read(ionConnectDatabaseCacheProvider.notifier)
-              .saveEventReference(eventReference, network: false);
-        }
-        return null;
-      },
-      [isBookmarked],
-    );
-
-    final iconPath = isBookmarked ? Assets.svg.iconUnbookmarks : Assets.svg.iconBookmarks;
-    return ListItem(
-      onTap: isLoading
-          ? null
-          : () {
-              Navigator.of(context).pop();
-              ref.read(toggleBookmarkNotifierProvider.notifier).toggle(
-                    eventReference: eventReference,
-                    collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
-                  );
-              if (!isBookmarked) {
-                AddBookmarkRoute(eventReference: eventReference.encode()).push<void>(context);
-              }
-            },
-      leading: OutlinedIcon(
-        icon: iconPath.icon(
-          size: 20.0.s,
-          color: context.theme.appColors.primaryAccent,
-        ),
-      ),
-      title: Text(
-        isBookmarked ? context.i18n.button_unbookmark : context.i18n.button_bookmark,
-      ),
-      backgroundColor: Colors.transparent,
     );
   }
 }
