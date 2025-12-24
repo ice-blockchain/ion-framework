@@ -6,7 +6,6 @@ import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
-import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
@@ -27,41 +26,24 @@ class FollowListItem extends ConsumerWidget {
 
   static double get itemHeight => 35.0.s;
 
-  static final _loadedAsNullPubkeys = <String>{};
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loadState = ref.watch(
-      userPreviewDataProvider(pubkey, network: network).select(
-        (state) => (
-          isLoaded: state.hasValue,
-          value: state.valueOrNull,
-        ),
-      ),
-    );
+    final data = ref.watch(userPreviewDataProvider(pubkey, network: network));
 
-    final isLoaded = loadState.isLoaded;
-    final loadedValue = loadState.value;
-
-    if (isLoaded && loadedValue == null) {
-      _loadedAsNullPubkeys.add(pubkey);
-    } else if (loadedValue != null) {
-      _loadedAsNullPubkeys.remove(pubkey);
-      ListCachedObjects.updateObject<UserPreviewEntity>(context, loadedValue);
-    }
-
-    if (_loadedAsNullPubkeys.contains(pubkey)) {
+    final hiddenMarker = ListCachedObjects.maybeObjectOf<ValueWithKey>(context, pubkey);
+    final isHiddenElement = hiddenMarker != null;
+    if (isHiddenElement) {
       return const SizedBox.shrink();
     }
 
-    final userPreviewData =
-        loadedValue ?? ListCachedObjects.maybeObjectOf<UserPreviewEntity>(context, pubkey);
+    if (!data.isLoading && data.valueOrNull == null) {
+      ListCachedObjects.updateObject<ValueWithKey>(context, (key: pubkey, value: 'hidden'));
+      return const SizedBox.shrink();
+    }
 
+    final userPreviewData = data.valueOrNull;
     final displayName = userPreviewData?.data.trimmedDisplayName ?? '';
     final username = userPreviewData?.data.name ?? '';
-    if (isLoaded && (displayName.isEmpty || username.isEmpty)) {
-      return const SizedBox.shrink();
-    }
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
