@@ -87,8 +87,8 @@ Future<GiftUnwrapService> giftUnwrapService(Ref ref) async {
     sealService: sealService,
     giftWrapService: giftWrapService,
     privateKey: eventSigner.privateKey,
-    verifyDelegationCallback: (pubkey) async {
-      return ref.read(userDelegationProvider(pubkey).future);
+    verifyDelegationCallback: (masterPubkey) async {
+      return ref.read(userDelegationProvider(masterPubkey).future);
     },
   );
 }

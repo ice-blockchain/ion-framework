@@ -168,11 +168,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           sealService: sealService,
           giftWrapService: giftWrapService,
           privateKey: eventSigner.privateKey,
-          verifyDelegationCallback: (String pubkey) async {
-            Logger.log('☁️ Background push notification verifyDelegation for pubkey: $pubkey');
+          verifyDelegationCallback: (String masterPubkey) async {
+            Logger.log(
+              '☁️ Background push notification verifyDelegation for pubkey: $masterPubkey',
+            );
 
             final delegation = await messageContainer.read(
-              cachedUserDelegationProvider(pubkey).future,
+              cachedUserDelegationProvider(masterPubkey).future,
             );
 
             Logger.log('☁️ Background push notification verifyDelegation result: $delegation');
