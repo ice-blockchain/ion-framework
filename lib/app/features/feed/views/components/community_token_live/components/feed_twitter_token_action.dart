@@ -10,6 +10,7 @@ import 'package:ion/app/features/tokenized_communities/views/components/cards/co
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -196,13 +197,13 @@ class TwitterTokenHeader extends StatelessWidget {
               ),
               TokenStatItem(
                 icon: Assets.svg.iconMemeMarkers,
-                text: MarketDataFormatter.formatPrice(
-                  token.marketData.priceUSD,
+                text: MarketDataFormatter.formatVolume(
+                  token.marketData.volume,
                 ),
               ),
               TokenStatItem(
                 icon: Assets.svg.iconSearchGroups,
-                text: token.marketData.holders.toString(),
+                text: formatCount(token.marketData.holders),
               ),
             ],
           ),

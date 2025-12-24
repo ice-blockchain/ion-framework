@@ -28,4 +28,11 @@ class MarketDataFormatter {
     final formatter = NumberFormat.currency(symbol: symbol, decimalDigits: 2);
     return formatter.format(value);
   }
+
+  // Formats a USD volume value with $ prefix.
+  // - 2961.69 -> $2.96K
+  // - 3000000 -> $3.00M
+  static String formatVolume(double volume) {
+    return r'$' + formatCompactNumber(volume);
+  }
 }
