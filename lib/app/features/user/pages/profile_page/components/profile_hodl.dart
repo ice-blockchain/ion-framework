@@ -19,41 +19,40 @@ class ProfileHODL extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final firstBuyAction = ref
-        .watch(
-          cachedTokenFirstBuyActionProvider(
-            masterPubkey: actionEntity.masterPubkey,
-            tokenDefinitionReference: actionEntity.data.definitionReference,
-          ),
-        )
-        .valueOrNull;
+    final firstBuyCreatedAt = ref.watch(
+      cachedTokenFirstBuyActionProvider(
+        masterPubkey: actionEntity.masterPubkey,
+        tokenDefinitionReference: actionEntity.data.definitionReference,
+      ).select((value) => value.valueOrNull?.createdAt.toDateTime),
+    );
 
-    if (firstBuyAction == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: EdgeInsetsDirectional.only(top: 8.s),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            Assets.svg.iconCreatecoinHold,
-            width: 14.0.s,
-            height: 14.0.s,
-          ),
-          SizedBox(width: 4.0.s),
-          Text(
-            context.i18n.hodl_for(
-              formatCompactHodlSince(
-                firstBuyAction.createdAt.toDateTime,
+    return Opacity(
+      opacity: firstBuyCreatedAt != null ? 1.0 : 0.0,
+      child: Padding(
+        padding: EdgeInsetsDirectional.only(top: 8.s),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              Assets.svg.iconCreatecoinHold,
+              width: 14.0.s,
+              height: 14.0.s,
+            ),
+            SizedBox(width: 4.0.s),
+            Text(
+              firstBuyCreatedAt == null
+                  ? ''
+                  : context.i18n.hodl_for(
+                      formatCompactHodlSince(
+                        firstBuyCreatedAt,
+                      ),
+                    ),
+              style: context.theme.appTextThemes.caption2.copyWith(
+                color: context.theme.appColors.secondaryBackground,
               ),
             ),
-            style: context.theme.appTextThemes.caption2.copyWith(
-              color: context.theme.appColors.secondaryBackground,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

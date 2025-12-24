@@ -75,7 +75,7 @@ extension CommunityTokenExtension on CommunityToken {
   }
 
   String get externalAddress {
-    final address = addresses.ionConnect ?? addresses.twitter;
+    final address = addresses.twitter ?? addresses.ionConnect;
     if (address == null) {
       throw Exception('External address is null');
     }

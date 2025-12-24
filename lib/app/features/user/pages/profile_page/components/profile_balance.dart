@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:ion/app/components/dividers/gradient_vertical_divider.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart'
+    as market_data_formatters;
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -36,9 +36,7 @@ class ProfileBalance extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SvgPicture.asset(
-                    Assets.svg.iconMemeCoins,
-                  ),
+                  Assets.svg.iconMemeCoins.icon(size: 16.s),
                   SizedBox(
                     width: 4.0.s,
                   ),
@@ -56,14 +54,12 @@ class ProfileBalance extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SvgPicture.asset(
-                    Assets.svg.iconCreatecoinDollar,
-                  ),
+                  Assets.svg.iconCreatecoinDollar.icon(size: 16.s),
                   SizedBox(
-                    width: 4.0.s,
+                    width: 1.0.s,
                   ),
                   Text(
-                    MarketDataFormatter.formatPrice(amount, symbol: ''),
+                    market_data_formatters.formatPriceWithSubscript(amount, symbol: ''),
                     style: context.theme.appTextThemes.body2.copyWith(
                       color: context.theme.appColors.primaryBackground,
                     ),
