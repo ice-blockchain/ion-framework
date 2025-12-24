@@ -35,8 +35,11 @@ class SwapDisabledNotifier extends _$SwapDisabledNotifier {
     final sellCoin = swapNotifier.sellCoin;
     final sellNetwork = swapNotifier.sellNetwork;
 
+    final buyCoin = swapNotifier.buyCoin;
+    final buyNetwork = swapNotifier.buyNetwork;
+    final isBuyBuyCoinNull = buyCoin == null || buyNetwork == null;
     final isSellBuyCoinNull = sellCoin == null || sellNetwork == null;
-    if (isSellBuyCoinNull) {
+    if (isSellBuyCoinNull || isBuyBuyCoinNull) {
       state = const AsyncValue.data(false);
       return;
     }
@@ -44,6 +47,13 @@ class SwapDisabledNotifier extends _$SwapDisabledNotifier {
     final isIonBsc = SwapCoinIdentifier.isIonBsc(sellCoin, sellNetwork);
 
     if (!isIonBsc) {
+      state = const AsyncValue.data(false);
+      return;
+    }
+
+    final isIonIonBuy = SwapCoinIdentifier.isIonIon(buyCoin, buyNetwork);
+
+    if (isIonIonBuy) {
       state = const AsyncValue.data(false);
       return;
     }
