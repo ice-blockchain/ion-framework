@@ -28,6 +28,7 @@ import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.d
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/continue_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/slippage_action.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_button.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_coins_message_info.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/token_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -92,11 +93,18 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
       ..listenError<String?>(
         communityTokenTradeNotifierProvider(params),
         (error) {
-          if (error == null || excludedPasskeyExceptions.contains(error.runtimeType)) {
+          if (error == null ||
+              excludedPasskeyExceptions.contains(error.runtimeType) ||
+              error is StateError) {
             return;
           }
           if (context.mounted) {
-            _showErrorMessage(messageNotificationNotifier, context);
+            _showErrorMessage(
+              messageNotificationNotifier,
+              context,
+              state.selectedPaymentToken?.abbreviation,
+              state.communityTokenCoinsGroup?.abbreviation,
+            );
           }
         },
       )
@@ -104,7 +112,12 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         communityTokenTradeNotifierProvider(params),
         (_) {
           if (context.mounted) {
-            _showSuccessMessage(messageNotificationNotifier, context);
+            _showSuccessMessage(
+              messageNotificationNotifier,
+              context,
+              state.selectedPaymentToken?.abbreviation,
+              state.communityTokenCoinsGroup?.abbreviation,
+            );
             ref.invalidate(walletViewsDataNotifierProvider);
             Navigator.of(context).pop();
           }
@@ -250,6 +263,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   void _showSuccessMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
+    String? sellCoinAbbreviation,
+    String? buyCoinAbbreviation,
   ) {
     final colors = context.theme.appColors;
     _showMessage(
@@ -260,12 +275,16 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         size: 24.0.s,
       ),
       state: MessageNotificationState.success,
+      sellCoinAbbreviation: sellCoinAbbreviation,
+      buyCoinAbbreviation: buyCoinAbbreviation,
     );
   }
 
   void _showErrorMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
+    String? sellCoinAbbreviation,
+    String? buyCoinAbbreviation,
   ) {
     final colors = context.theme.appColors;
     _showMessage(
@@ -275,6 +294,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         color: colors.attentionRed,
         size: 24.0.s,
       ),
+      sellCoinAbbreviation: sellCoinAbbreviation,
+      buyCoinAbbreviation: buyCoinAbbreviation,
       state: MessageNotificationState.error,
     );
   }
@@ -283,6 +304,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     MessageNotificationNotifier notifier, {
     required String message,
     required Widget icon,
+    required String? sellCoinAbbreviation,
+    required String? buyCoinAbbreviation,
     MessageNotificationState state = MessageNotificationState.info,
   }) {
     notifier.show(
@@ -290,6 +313,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         message: message,
         icon: icon,
         state: state,
+        suffixWidget: SwapCoinsMessageInfo(
+          sellCoinAbbreviation: sellCoinAbbreviation,
+          buyCoinAbbreviation: buyCoinAbbreviation,
+        ),
       ),
     );
   }

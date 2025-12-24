@@ -11,9 +11,11 @@ import 'package:ion/app/components/message_notification/models/message_notificat
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/swap_disabled_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_coins_message_info.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -133,6 +135,7 @@ class _SwapButton extends ConsumerWidget {
     final isSwapLoading = ref.watch(swapCoinsControllerProvider).isSwapLoading;
     final isSwapDisabled = ref.watch(swapDisabledNotifierProvider).value ?? true;
     final isDisabled = isSwapLoading || isSwapDisabled;
+    final swapCoinsData = ref.watch(swapCoinsControllerProvider);
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
@@ -153,10 +156,18 @@ class _SwapButton extends ConsumerWidget {
                     await ref.read(swapCoinsWithIonBscSwapProvider.notifier).run(
                           userActionSigner: signer,
                           onSwapSuccess: () {
-                            _showSuccessMessage(messageNotificationNotifier, context);
+                            _showSuccessMessage(
+                              messageNotificationNotifier,
+                              context,
+                              swapCoinsData,
+                            );
                           },
                           onSwapError: () {
-                            _showErrorMessage(messageNotificationNotifier, context);
+                            _showErrorMessage(
+                              messageNotificationNotifier,
+                              context,
+                              swapCoinsData,
+                            );
                           },
                           onSwapStart: () {},
                         );
@@ -190,13 +201,25 @@ class _SwapButton extends ConsumerWidget {
               );
             },
             onSwapError: () {
-              _showErrorMessage(messageNotificationNotifier, context);
+              _showErrorMessage(
+                messageNotificationNotifier,
+                context,
+                swapCoinsData,
+              );
             },
             onSwapSuccess: () {
-              _showSuccessMessage(messageNotificationNotifier, context);
+              _showSuccessMessage(
+                messageNotificationNotifier,
+                context,
+                swapCoinsData,
+              );
             },
             onSwapStart: () {
-              _showStartMessage(messageNotificationNotifier, context);
+              _showStartMessage(
+                messageNotificationNotifier,
+                context,
+                swapCoinsData,
+              );
             },
           );
         },
@@ -226,11 +249,13 @@ class _SwapButton extends ConsumerWidget {
   Future<void> _showStartMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
+    SwapCoinData swapCoinsData,
   ) async {
     final colors = context.theme.appColors;
 
     unawaited(
       _showMessage(
+        swapCoinsData: swapCoinsData,
         messageNotificationNotifier,
         message: context.i18n.wallet_swapping_coins,
         icon: Assets.svg.iconSwap.icon(
@@ -244,10 +269,12 @@ class _SwapButton extends ConsumerWidget {
   Future<void> _showSuccessMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
+    SwapCoinData swapCoinsData,
   ) async {
     final colors = context.theme.appColors;
     await _showMessage(
       messageNotificationNotifier,
+      swapCoinsData: swapCoinsData,
       message: context.i18n.wallet_swapped_coins,
       icon: Assets.svg.iconCheckSuccess.icon(
         color: colors.success,
@@ -273,10 +300,12 @@ class _SwapButton extends ConsumerWidget {
   Future<void> _showErrorMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
+    SwapCoinData swapCoinsData,
   ) async {
     final colors = context.theme.appColors;
     await _showMessage(
       messageNotificationNotifier,
+      swapCoinsData: swapCoinsData,
       message: context.i18n.wallet_swap_failed,
       icon: Assets.svg.iconBlockKeywarning.icon(
         color: colors.attentionRed,
@@ -290,55 +319,22 @@ class _SwapButton extends ConsumerWidget {
     MessageNotificationNotifier notifier, {
     required String message,
     required Widget icon,
+    required SwapCoinData swapCoinsData,
     MessageNotificationState state = MessageNotificationState.info,
   }) async {
+    final sellCoin = swapCoinsData.sellCoin;
+    final buyCoin = swapCoinsData.buyCoin;
+
     notifier.show(
       MessageNotification(
         message: message,
         icon: icon,
         state: state,
-        suffixWidget: const _SwapCoinsInfoWidget(),
+        suffixWidget: SwapCoinsMessageInfo(
+          sellCoinAbbreviation: sellCoin?.abbreviation,
+          buyCoinAbbreviation: buyCoin?.abbreviation,
+        ),
       ),
-    );
-  }
-}
-
-class _SwapCoinsInfoWidget extends ConsumerWidget {
-  const _SwapCoinsInfoWidget();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final swapCoinsController = ref.watch(swapCoinsControllerProvider);
-    final sellCoin = swapCoinsController.sellCoin;
-    final buyCoin = swapCoinsController.buyCoin;
-
-    if (sellCoin == null || buyCoin == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Row(
-      spacing: 4.0.s,
-      children: [
-        Text(
-          '\$${sellCoin.abbreviation}',
-          style: context.theme.appTextThemes.body.copyWith(
-            color: context.theme.appColors.onPrimaryAccent,
-          ),
-        ),
-        RotatedBox(
-          quarterTurns: 2,
-          child: Assets.svg.iconBackArrow.icon(
-            color: context.theme.appColors.onTertiaryFill,
-            size: 16.0.s,
-          ),
-        ),
-        Text(
-          '\$${buyCoin.abbreviation}',
-          style: context.theme.appTextThemes.body.copyWith(
-            color: context.theme.appColors.onPrimaryAccent,
-          ),
-        ),
-      ],
     );
   }
 }
