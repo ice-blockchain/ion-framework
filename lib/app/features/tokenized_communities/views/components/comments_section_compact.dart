@@ -20,6 +20,7 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_comments_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/comments_section_compact/hooks/use_ensure_input_visibility.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_comment_input_field/token_comment_input_field.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -58,6 +59,13 @@ class CommentsSectionCompact extends HookConsumerWidget {
     final canReply =
         ref.watch(canReplyProvider(tokenDefinitionEventReference)).valueOrNull ?? false;
     final isLoadingMore = useRef(false);
+    final isInputFocused = useState(false);
+
+    useEnsureInputVisibility(
+      inputKey: commentInputKey.value,
+      isInputFocused: isInputFocused,
+      context: context,
+    );
 
     // Use Scrollable.of to access parent scroll controller
     useEffect(
@@ -150,22 +158,9 @@ class CommentsSectionCompact extends HookConsumerWidget {
                 key: commentInputKey.value,
                 tokenDefinitionEventReference: tokenDefinitionEventReference,
                 onFocusChanged: (bool isFocused) {
+                  isInputFocused.value = isFocused;
                   onCommentInputFocusChanged?.call(isFocused);
-                  if (isFocused) {
-                    // Scroll to input when focused and keyboard appears
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      if (!context.mounted) return;
-                      final inputContext = commentInputKey.value.currentContext;
-                      if (inputContext != null) {
-                        Scrollable.ensureVisible(
-                          inputContext,
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOut,
-                          alignment: 0.4,
-                        );
-                      }
-                    });
-                  }
+                  // Scroll logic is handled in useEffect when keyboard appears
                 },
               ),
             // Comments list
@@ -176,6 +171,7 @@ class CommentsSectionCompact extends HookConsumerWidget {
               )
             else if (entities != null && entities.isNotEmpty)
               ListView.builder(
+                padding: EdgeInsets.symmetric(vertical: 13.0.s),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: entities.length,
