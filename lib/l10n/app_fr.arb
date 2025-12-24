@@ -1120,7 +1120,7 @@
   "wallet_swap_coins_select_coin": "Sélectionner une pièce",
   "wallet_swap_coins_sell": "Vendre",
   "wallet_swap_coming_soon": "Échangez des jetons sans effort. Bientôt disponible.",
-  "wallet_swap_confirmation_automatically_share_post_about_trade": "Partager automatiquement une publication sur votre transaction",
+  "wallet_swap_confirmation_automatically_share_post_about_trade": "Partagez votre transaction comme une publication.",
   "wallet_swap_confirmation_high_price_impact_description_first": "Cette transaction a un impact élevé sur le prix",
   "wallet_swap_confirmation_high_price_impact_description_second": "donc le montant que vous recevrez sera nettement inférieur au prix du marché actuel.",
   "wallet_swap_confirmation_less": "Moins",

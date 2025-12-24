@@ -424,10 +424,16 @@ class _SharePostCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LabeledCheckbox(
-      isChecked: value,
-      label: context.i18n.wallet_swap_confirmation_automatically_share_post_about_trade,
-      onChanged: onChanged,
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: 16.0.s,
+      ),
+      child: LabeledCheckbox(
+        isChecked: value,
+        label: context.i18n.wallet_swap_confirmation_automatically_share_post_about_trade,
+        onChanged: onChanged,
+        mainAxisAlignment: MainAxisAlignment.start,
+      ),
     );
   }
 }

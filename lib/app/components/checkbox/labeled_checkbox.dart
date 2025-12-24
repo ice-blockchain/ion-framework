@@ -10,6 +10,7 @@ class LabeledCheckbox extends StatelessWidget {
     required this.onChanged,
     required this.label,
     this.textStyle,
+    this.mainAxisAlignment,
     super.key,
   });
 
@@ -17,6 +18,7 @@ class LabeledCheckbox extends StatelessWidget {
   final ValueChanged<bool> onChanged;
   final String label;
   final TextStyle? textStyle;
+  final MainAxisAlignment? mainAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class LabeledCheckbox extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () => onChanged(!isChecked),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
         children: [
           (isChecked ? Assets.svg.iconBlockCheckboxOn : Assets.svg.iconBlockCheckboxOff)
               .icon(size: 20.0.s),

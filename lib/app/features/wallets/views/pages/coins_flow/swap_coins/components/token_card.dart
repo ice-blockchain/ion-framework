@@ -252,7 +252,7 @@ class TokenCard extends HookConsumerWidget {
                             children: [
                               Row(
                                 children: [
-                                  Expanded(
+                                  Flexible(
                                     child: Text(
                                       coinsGroup!.abbreviation,
                                       overflow: TextOverflow.ellipsis,
@@ -263,10 +263,12 @@ class TokenCard extends HookConsumerWidget {
                                     ),
                                   ),
                                   if (showArrow) ...[
-                                    SizedBox(width: 4.0.s),
+                                    SizedBox(
+                                      width: 4.0.s,
+                                    ),
                                     Assets.svg.iconArrowDown.icon(
-                                      color: colors.primaryText,
-                                      size: 6.0.s,
+                                      color: colors.sharkText,
+                                      size: 12.0.s,
                                     ),
                                   ],
                                 ],
@@ -317,7 +319,7 @@ class TokenCard extends HookConsumerWidget {
                                 borderRadius: BorderRadius.circular(16.0.s),
                               ),
                               child: Text(
-                                "${network?.displayName ?? ''} ${context.i18n.wallet_network}",
+                                network?.displayName ?? '',
                                 style: textStyles.caption3.copyWith(
                                   color: colors.quaternaryText,
                                   fontSize: 11.0.s,

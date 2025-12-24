@@ -1120,7 +1120,7 @@
   "wallet_swap_coins_select_coin": "Selectează monedă",
   "wallet_swap_coins_sell": "Vinde",
   "wallet_swap_coming_soon": "Schimbă token-uri fără efort. În curând.",
-  "wallet_swap_confirmation_automatically_share_post_about_trade": "Partajează automat o postare despre tranzacția ta",
+  "wallet_swap_confirmation_automatically_share_post_about_trade": "Partajează-ți tranzacția ca o postare.",
   "wallet_swap_confirmation_high_price_impact_description_first": "Această tranzacție are un impact mare asupra prețului",
   "wallet_swap_confirmation_high_price_impact_description_second": "deci suma pe care o vei primi va fi considerabil mai mică decât prețul pieței actual.",
   "wallet_swap_confirmation_less": "Mai puțin",
