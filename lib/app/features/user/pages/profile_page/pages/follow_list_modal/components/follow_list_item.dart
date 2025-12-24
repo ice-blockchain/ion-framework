@@ -3,14 +3,15 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
-import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
+import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 
-class FollowListItem extends ConsumerWidget {
+class FollowListItem extends HookConsumerWidget {
   const FollowListItem({
     required this.pubkey,
     this.network = false,
@@ -26,37 +27,54 @@ class FollowListItem extends ConsumerWidget {
 
   static double get itemHeight => 35.0.s;
 
+  static final _loadedAsNullPubkeys = <String>{};
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final displayName = ref.watch(
-      userPreviewDataProvider(pubkey, network: network).select(userPreviewDisplayNameSelector),
+    final loadState = ref.watch(
+      userPreviewDataProvider(pubkey, network: network).select(
+        (state) => (
+          isLoaded: state.hasValue,
+          value: state.valueOrNull,
+        ),
+      ),
     );
 
-    final username = ref.watch(
-      userPreviewDataProvider(pubkey, network: network).select(userPreviewNameSelector),
-    );
+    final isLoaded = loadState.isLoaded;
+    final loadedValue = loadState.value;
 
-    final isLoading = displayName.isEmpty && username.isEmpty;
+    if (isLoaded && loadedValue == null) {
+      _loadedAsNullPubkeys.add(pubkey);
+    } else if (loadedValue != null) {
+      _loadedAsNullPubkeys.remove(pubkey);
+      ListCachedObjects.updateObject<UserPreviewEntity>(context, loadedValue);
+    }
+
+    if (_loadedAsNullPubkeys.contains(pubkey)) {
+      return const SizedBox.shrink();
+    }
+
+    final userPreviewData =
+        loadedValue ?? ListCachedObjects.maybeObjectOf<UserPreviewEntity>(context, pubkey);
+
+    final displayName = userPreviewData?.data.trimmedDisplayName ?? '';
+    final username = userPreviewData?.data.name ?? '';
+    if (isLoaded && (displayName.isEmpty || username.isEmpty)) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: BadgesUserListItem(
         key: ValueKey<String>(pubkey),
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: isLoading
-              ? Padding(
-                  padding: EdgeInsetsDirectional.only(bottom: 4.0.s),
-                  child: SkeletonBox(width: 120.0.s, height: 16.0.s),
-                )
-              : Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+        title: SizedBox(
+          height: 16.0.s,
+          child: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
         ),
         trailing: FollowUserButton(pubkey: pubkey, follower: follower),
-        subtitle: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: isLoading
-              ? SkeletonBox(width: 80.0.s, height: 14.0.s)
-              : Text(prefixUsername(username: username, context: context)),
+        subtitle: SizedBox(
+          height: 16.0.s,
+          child: Text(prefixUsername(username: username, context: context)),
         ),
         masterPubkey: pubkey,
         onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
