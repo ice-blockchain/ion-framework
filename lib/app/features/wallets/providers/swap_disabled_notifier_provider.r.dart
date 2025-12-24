@@ -53,8 +53,8 @@ class SwapDisabledNotifier extends _$SwapDisabledNotifier {
 
     final isIonIonBuy = SwapCoinIdentifier.isIonIon(buyCoin, buyNetwork);
 
-    if (!isIonIonBuy) {
-      state = const AsyncValue.data(true);
+    if (isIonIonBuy) {
+      state = const AsyncValue.data(false);
       return;
     }
 
