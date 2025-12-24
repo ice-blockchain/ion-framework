@@ -1120,7 +1120,7 @@
   "wallet_swap_coins_select_coin": "Избери монета",
   "wallet_swap_coins_sell": "Продай",
   "wallet_swap_coming_soon": "Обменете токени без усилие. Скоро.",
-  "wallet_swap_confirmation_automatically_share_post_about_trade": "Споделяй автоматично публикация за твоята сделка",
+  "wallet_swap_confirmation_automatically_share_post_about_trade": "Сподели своята сделка като публикация.",
   "wallet_swap_confirmation_high_price_impact_description_first": "Тази транзакция има високо влияние върху цената",
   "wallet_swap_confirmation_high_price_impact_description_second": "така че сумата, която ще получите, ще бъде забележимо по-ниска от текущата пазарна цена.",
   "wallet_swap_confirmation_less": "По-малко",

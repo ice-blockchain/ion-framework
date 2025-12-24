@@ -1120,7 +1120,7 @@
   "wallet_swap_coins_select_coin": "选择币种",
   "wallet_swap_coins_sell": "出售",
   "wallet_swap_coming_soon": "轻松交换代币。即将推出。",
-  "wallet_swap_confirmation_automatically_share_post_about_trade": "自动分享一条关于你交易的帖子",
+  "wallet_swap_confirmation_automatically_share_post_about_trade": "将您的交易分享为帖子。",
   "wallet_swap_confirmation_high_price_impact_description_first": "此交易对价格影响较大",
   "wallet_swap_confirmation_high_price_impact_description_second": "因此您将收到的金额将明显低于当前市场价格。",
   "wallet_swap_confirmation_less": "较少",
