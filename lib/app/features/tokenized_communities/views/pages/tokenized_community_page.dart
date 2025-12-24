@@ -244,56 +244,67 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          SimpleSeparator(height: 4.0.s),
-          if (tokenInfo != null && tokenInfo.marketData.position != null)
-            YourPositionCard(
-              token: tokenInfo,
-              trailing: SimpleSeparator(height: 4.0.s),
+      child: Listener(
+        onPointerDown: (_) {
+          // Unfocus any focused text field when tapping anywhere on the page
+          // This fires before child widgets consume the tap, so it works even
+          // when tapping on interactive elements like buttons or list items
+          final focusedNode = FocusScope.of(context).focusedChild;
+          if (focusedNode != null) {
+            focusedNode.unfocus();
+          }
+        },
+        child: Column(
+          children: [
+            SimpleSeparator(height: 4.0.s),
+            if (tokenInfo != null && tokenInfo.marketData.position != null)
+              YourPositionCard(
+                token: tokenInfo,
+                trailing: SimpleSeparator(height: 4.0.s),
+              ),
+            KeyedSubtree(
+              key: sectionKeys[TokenizedCommunityTabType.chart.index],
+              child: _TokenChart(
+                externalAddress: resolvedExternalAddress,
+                onTitleVisibilityChanged: (double visibility) {
+                  //do not handle with current implementation
+                },
+              ),
             ),
-          KeyedSubtree(
-            key: sectionKeys[TokenizedCommunityTabType.chart.index],
-            child: _TokenChart(
+            SimpleSeparator(height: 4.0.s),
+            _TokenStats(externalAddress: resolvedExternalAddress),
+            SimpleSeparator(height: 4.0.s),
+            TopHolders(
+              key: sectionKeys[TokenizedCommunityTabType.holders.index],
               externalAddress: resolvedExternalAddress,
               onTitleVisibilityChanged: (double visibility) {
                 //do not handle with current implementation
               },
             ),
-          ),
-          SimpleSeparator(height: 4.0.s),
-          _TokenStats(externalAddress: resolvedExternalAddress),
-          SimpleSeparator(height: 4.0.s),
-          TopHolders(
-            key: sectionKeys[TokenizedCommunityTabType.holders.index],
-            externalAddress: resolvedExternalAddress,
-            onTitleVisibilityChanged: (double visibility) {
-              //do not handle with current implementation
-            },
-          ),
-          SimpleSeparator(height: 4.0.s),
-          LatestTradesCard(
-            key: sectionKeys[TokenizedCommunityTabType.trades.index],
-            externalAddress: resolvedExternalAddress,
-            onTitleVisibilityChanged: (double visibility) {
-              //do not handle with current implementation
-            },
-          ),
-          if (tokenDefinition != null) ...[
             SimpleSeparator(height: 4.0.s),
-            CommentsSectionCompact(
-              key: sectionKeys[TokenizedCommunityTabType.comments.index],
-              tokenDefinitionEventReference: tokenDefinition.toEventReference(),
+            LatestTradesCard(
+              key: sectionKeys[TokenizedCommunityTabType.trades.index],
+              externalAddress: resolvedExternalAddress,
               onTitleVisibilityChanged: (double visibility) {
                 //do not handle with current implementation
               },
-              onCommentInputFocusChanged: (bool isFocused) {
-                isCommentInputFocused.value = isFocused;
-              },
             ),
+            if (tokenDefinition != null) ...[
+              SimpleSeparator(height: 4.0.s),
+              CommentsSectionCompact(
+                key: sectionKeys[TokenizedCommunityTabType.comments.index],
+                tokenDefinitionEventReference: tokenDefinition.toEventReference(),
+                onTitleVisibilityChanged: (double visibility) {
+                  //do not handle with current implementation
+                },
+                onCommentInputFocusChanged: (bool isFocused) {
+                  isCommentInputFocused.value = isFocused;
+                },
+              ),
+            ],
+            SizedBox(height: 120.0.s),
           ],
-          SizedBox(height: 120.0.s),
-        ],
+        ),
       ),
     );
   }
