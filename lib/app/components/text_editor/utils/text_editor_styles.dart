@@ -135,10 +135,10 @@ double calculateTextEditorLineHeight(BuildContext context) {
 
 // Calculates the maximum safe height for an inline widget to avoid pushing line height.
 // WidgetSpan measures the widget during layout, and even with constraints, the measured height
-// can cause line height expansion. Returns 90% of line height as an empirically safe value.
+// can cause line height expansion. Returns 95% of line height as an empirically safe value.
 double calculateMaxSafeWidgetHeight(BuildContext context) {
   final lineHeight = calculateTextEditorLineHeight(context);
-  final safeHeight = lineHeight * 0.9;
+  final safeHeight = lineHeight * 0.95;
 
   return safeHeight;
 }
