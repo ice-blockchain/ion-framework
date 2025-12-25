@@ -9,6 +9,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 typedef PathWithKey = ({String key, String filePath});
 // In rare cases we might want to store an entity along with custom key
@@ -84,9 +85,9 @@ class ListCachedObjects extends InheritedWidget {
   static void updateObject<T extends Object>(BuildContext context, T object) {
     final objects = context.dependOnInheritedWidgetOfExactType<ListCachedObjects>()?.objects;
 
-    // Logger.log(
-    //   'Updating object of type ${object.runtimeType}, amount of cached objects: ${objects?.length}',
-    // );
+    Logger.log(
+      'Updating object of type ${object.runtimeType}, amount of cached objects: ${objects?.length}',
+    );
     if (objects == null) return;
 
     final identifier = identifierSelector<T>(object);
