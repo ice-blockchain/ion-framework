@@ -405,7 +405,10 @@ class CreatePostNotifier extends _$CreatePostNotifier {
 
   EntityLabel? _buildLanguageLabel(String? language) {
     if (language != null) {
-      return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
+      return EntityLabel(
+        values: [LabelValue(value: language)],
+        namespace: EntityLabelNamespace.language,
+      );
     }
     return null;
   }
@@ -425,7 +428,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         throw UgcCounterFetchException();
       }
       return EntityLabel(
-        values: [(counter + 1).toString()],
+        values: [LabelValue(value: (counter + 1).toString())],
         namespace: EntityLabelNamespace.ugcSerial,
       );
     } on EventCountException {
@@ -578,20 +581,19 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       return null;
     }
 
-    // Build values list and additionalElements map with index-based keys
-    final values = <String>[];
-    final additionalElements = <String, List<String>>{};
-
-    for (var i = 0; i < labelEntries.length; i++) {
-      final (pubkey, instanceIndex) = labelEntries[i];
-      values.add(pubkey);
-      additionalElements[i.toString()] = [instanceIndex.toString()];
-    }
+    // Build LabelValue list with value and additional elements
+    final values = labelEntries
+        .map(
+          (entry) => LabelValue(
+            value: entry.$1, // pubkey
+            additionalElements: [entry.$2.toString()], // instance number
+          ),
+        )
+        .toList();
 
     return EntityLabel(
       values: values,
       namespace: EntityLabelNamespace.mentionMarketCap,
-      additionalElements: additionalElements.isNotEmpty ? additionalElements : null,
     );
   }
 
