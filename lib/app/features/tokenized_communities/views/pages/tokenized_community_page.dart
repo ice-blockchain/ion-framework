@@ -9,6 +9,7 @@ import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_sig
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/tabs_header/scroll_links_tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/bookmarks/bookmark_button.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
@@ -164,16 +165,11 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               externalAddress: externalAddress,
             ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
-        IconButton(
-          padding: EdgeInsets.zero,
-          onPressed: () {
-            //TODO (ice-kreios): navigate to bookmarks page
-          },
-          icon: Assets.svg.iconBookmarks.icon(
-            size: 24.s,
-            color: context.theme.appColors.onPrimaryAccent,
+        if (tokenType == CommunityContentTokenType.profile && eventReference != null)
+          BookmarkButton(
+            eventReference: eventReference!,
+            mode: BookmarkButtonMode.iconButton,
           ),
-        ),
         IconButton(
           padding: EdgeInsets.zero,
           onPressed: () {},
