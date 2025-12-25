@@ -63,13 +63,17 @@ class CommunityTokenDefinitionEntity
       throw Exception('Incorrect event kind ${eventMessage.kind}, expected $kind');
     }
 
+    final data = CommunityTokenDefinition.fromEventMessage(eventMessage);
+
     return CommunityTokenDefinitionEntity(
       id: eventMessage.id,
       pubkey: eventMessage.pubkey,
-      masterPubkey: eventMessage.masterPubkey,
+      masterPubkey: data.platform == CommunityTokenPlatform.ion
+          ? eventMessage.masterPubkey
+          : eventMessage.pubkey,
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
-      data: CommunityTokenDefinition.fromEventMessage(eventMessage),
+      data: data,
     );
   }
 

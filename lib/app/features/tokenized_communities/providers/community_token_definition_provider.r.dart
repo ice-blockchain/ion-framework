@@ -75,7 +75,7 @@ class CommunityTokenDefinitionRepository {
           kind: UserMetadataEntity.kind,
         );
         tags = {
-          '#h': [tokenInfo.creator.addresses!.twitter],
+          '#h': [tokenInfo.addresses.twitter],
         };
       } else {
         creatorEventReference =
