@@ -9,6 +9,7 @@ import 'package:ion/app/components/inputs/text_input/ion_text_field.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/text_editor/components/suggestions_container.dart';
+import 'package:ion/app/components/text_editor/hooks/use_process_mention_embeds.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -56,6 +57,9 @@ class ArticleFormModal extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final articleState = useArticleForm(ref, modifiedEvent: modifiedEvent);
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+
+    // Process mention embeds reactively (handles both upgrades and downgrades)
+    useProcessMentionEmbeds(articleState.textEditorController, ref);
 
     final scrollController = ScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createArticle);

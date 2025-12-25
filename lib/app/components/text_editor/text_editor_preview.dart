@@ -119,10 +119,10 @@ class _QuillFormattedContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Use reactive hook to downgrade mention embeds without market cap (same as edit mode).
-    // Only enabl)ed when mentions are rendered as embeds (posts/articles). For replies,
-    // mentions stay as text + attributes and are decorated via text-based providers instead.
-    useDowngradeMentionEmbedsWithoutMarketCap(
+    // Use reactive hook to process mention embeds bidirectionally (same as edit mode).
+    // Downgrades embeds without market cap to text, upgrades text mentions when market cap appears.
+    // Only enabled when mentions are rendered as embeds (posts/articles). For replies, mentions stay as text.
+    useProcessMentionEmbeds(
       controller,
       ref,
       enabled: convertMentionsToEmbeds,

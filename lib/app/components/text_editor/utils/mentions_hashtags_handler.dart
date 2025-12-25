@@ -84,21 +84,15 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
           mentionData,
         );
       } else {
-        // Insert as text + mention attribute (colored text) immediately, then upgrade when data arrives
-        final mentionText = MentionInsertionService.insertMentionAsText(
+        // Insert as text + mention attribute (colored text) immediately
+        // Don't set showMarketCapKey since market cap doesn't exist at insertion time
+        // This means it won't upgrade later.
+        MentionInsertionService.insertMentionAsText(
           controller,
           tag.start,
           tag.length,
           pubkeyUsernamePair.pubkey,
           pubkeyUsernamePair.username,
-        );
-
-        unawaited(
-          _tryUpgradeMentionToEmbed(
-            start: tag.start,
-            mentionTextLength: mentionText.length,
-            mentionData: mentionData,
-          ),
         );
       }
     } finally {
@@ -114,32 +108,6 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
   double? _getCachedMarketCap(String pubkey) {
     final asyncValue = ref.read(userTokenMarketCapProvider(pubkey));
     return asyncValue.hasValue ? asyncValue.value : null;
-  }
-
-  Future<double?> _getMarketCap(String pubkey) async {
-    return ref.read(userTokenMarketCapProvider(pubkey).future);
-  }
-
-  Future<void> _tryUpgradeMentionToEmbed({
-    required int start,
-    required int mentionTextLength,
-    required MentionEmbedData mentionData,
-  }) async {
-    final marketCap = await _getMarketCap(mentionData.pubkey);
-    if (marketCap == null) return;
-
-    controller.removeListener(editorListener);
-    try {
-      MentionInsertionService.upgradeMentionToEmbed(
-        controller,
-        start,
-        mentionTextLength,
-        mentionData,
-        marketCap,
-      );
-    } finally {
-      controller.addListener(editorListener);
-    }
   }
 
   void onSuggestionSelected(String suggestion) {

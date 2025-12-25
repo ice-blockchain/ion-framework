@@ -56,8 +56,9 @@ class MentionInsertionService {
     int tagStart,
     int tagLength,
     String pubkey,
-    String username,
-  ) {
+    String username, {
+    bool showMarketCap = false,
+  }) {
     final encodedRef = ReplaceableEventReference(
       masterPubkey: pubkey,
       kind: UserMetadataEntity.kind,
@@ -65,18 +66,25 @@ class MentionInsertionService {
 
     final mentionText = '$mentionPrefix$username';
 
-    controller
-      ..replaceText(tagStart, tagLength, mentionText, null)
-      ..formatText(
-        tagStart,
-        mentionText.length,
-        MentionAttribute.withValue(encodedRef),
-      )
-      ..replaceText(tagStart + mentionText.length, 0, ' ', null)
-      ..updateSelection(
-        TextSelection.collapsed(offset: tagStart + mentionText.length + 1),
-        ChangeSource.local,
-      );
+    // Build attributes - only set showMarketCapKey if author chose to show market cap
+    // (i.e., market cap existed at insertion time)
+    final attributes = {
+      MentionAttribute.attributeKey: encodedRef,
+      if (showMarketCap) MentionAttribute.showMarketCapKey: true,
+    };
+
+    // Use Delta to replace tag with mention text and attributes, then add space
+    final replaceDelta = Delta()
+      ..retain(tagStart)
+      ..delete(tagLength)
+      ..insert(mentionText, attributes)
+      ..insert(' ');
+
+    controller.compose(
+      replaceDelta,
+      TextSelection.collapsed(offset: tagStart + mentionText.length + 1),
+      ChangeSource.local,
+    );
 
     return mentionText;
   }
@@ -132,8 +140,10 @@ class MentionInsertionService {
     final mentionText = '$mentionPrefix${mentionData.username}';
 
     // Build attributes
+    // Preserve showMarketCap intent: if true, set flag so it can upgrade back when market cap appears
     final attributes = {
       MentionAttribute.attributeKey: encodedRef,
+      if (showMarketCap) MentionAttribute.showMarketCapKey: true,
       if (!showMarketCap) MentionAttribute.showMarketCapKey: false,
     };
 
