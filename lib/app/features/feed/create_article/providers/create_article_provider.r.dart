@@ -264,7 +264,10 @@ class CreateArticle extends _$CreateArticle {
         relatedPubkeys: mentions,
         settings: EntityDataWithSettings.build(whoCanReply: whoCanReply),
         colorLabel: imageColor != null
-            ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
+            ? EntityLabel(
+                values: [LabelValue(value: imageColor)],
+                namespace: EntityLabelNamespace.color,
+              )
             : null,
         language: _buildLanguageLabel(language),
         mentionMarketCapLabel: _buildMentionMarketCapLabel(preparedContent.content),
@@ -451,21 +454,19 @@ class CreateArticle extends _$CreateArticle {
       return null;
     }
 
-    // Build values list and additionalElements map with index-based keys
-    final values = <String>[];
-    final additionalElements = <String, List<String>>{};
-
-    for (var i = 0; i < labelEntries.length; i++) {
-      final (pubkey, instanceIndex) = labelEntries[i];
-      values.add(pubkey);
-      // Wrap instance index as List<String> for generic additionalElements format
-      additionalElements[i.toString()] = [instanceIndex.toString()];
-    }
+    // Build LabelValue list with value and additional elements
+    final values = labelEntries
+        .map(
+          (entry) => LabelValue(
+            value: entry.$1, // pubkey
+            additionalElements: [entry.$2.toString()], // instance number
+          ),
+        )
+        .toList();
 
     return EntityLabel(
       values: values,
       namespace: EntityLabelNamespace.mentionMarketCap,
-      additionalElements: additionalElements.isNotEmpty ? additionalElements : null,
     );
   }
 
@@ -569,7 +570,7 @@ class CreateArticle extends _$CreateArticle {
         throw UgcCounterFetchException();
       }
       return EntityLabel(
-        values: [(counter + 1).toString()],
+        values: [LabelValue(value: (counter + 1).toString())],
         namespace: EntityLabelNamespace.ugcSerial,
       );
     } on EventCountException {
@@ -579,7 +580,10 @@ class CreateArticle extends _$CreateArticle {
 
   EntityLabel? _buildLanguageLabel(String? language) {
     if (language != null) {
-      return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
+      return EntityLabel(
+        values: [LabelValue(value: language)],
+        namespace: EntityLabelNamespace.language,
+      );
     }
     return null;
   }

@@ -164,7 +164,10 @@ class ArticleData
       relatedPubkeys: relatedPubkeys,
       settings: settings,
       colorLabel: imageColor != null
-          ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
+          ? EntityLabel(
+              values: [LabelValue(value: imageColor)],
+              namespace: EntityLabelNamespace.color,
+            )
           : null,
       richText: richText,
       editingEndedAt: editingEndedAt,

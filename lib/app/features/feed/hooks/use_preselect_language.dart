@@ -27,7 +27,7 @@ void usePreselectLanguage(
           _ => throw UnsupportedEventReference(eventReference),
         };
         final language = languageLabel != null && languageLabel.values.isNotEmpty
-            ? languageLabel.values.first
+            ? languageLabel.values.first.value
             : null;
         WidgetsBinding.instance.addPostFrameCallback(
           (_) => ref.read(selectedEntityLanguageNotifierProvider.notifier).langLabel =
