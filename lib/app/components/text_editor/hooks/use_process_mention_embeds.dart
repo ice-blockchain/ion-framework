@@ -65,12 +65,14 @@ void processMentionEmbeds(QuillController controller, WidgetRef ref) {
 
             if (marketCapAsync.hasValue && marketCapAsync.value != null) {
               // Market cap is available - upgrade to embed
-              upgrades.add((
-                position: currentOffset,
-                pubkey: pubkey,
-                username: username,
-                marketCap: marketCapAsync.value!,
-              ));
+              upgrades.add(
+                (
+                  position: currentOffset,
+                  pubkey: pubkey,
+                  username: username,
+                  marketCap: marketCapAsync.value!,
+                ),
+              );
             }
           } catch (_) {
             // Skip invalid references
