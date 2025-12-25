@@ -6,7 +6,6 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
-import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -33,9 +32,7 @@ Future<List<ChatSearchResultItem>?> chatMessagesSearch(Ref ref, String query) as
     return [];
   }
 
-  final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
-
-  final userPreviewDataMap = await _loadUserPreviewData(ref, receiverPubkeys, expirationDuration);
+  final userPreviewDataMap = await _loadUserPreviewData(ref, receiverPubkeys);
 
   return _buildSearchResults(messages, messagePubkeyMap, userPreviewDataMap);
 }
@@ -73,17 +70,10 @@ _ReceiverPubkeysExtraction _extractReceiverPubkeys(
 Future<Map<String, UserPreviewEntity>> _loadUserPreviewData(
   Ref ref,
   Set<String> receiverMasterPubkeys,
-  Duration expirationDuration,
 ) async {
   final userPreviewDataFutures = receiverMasterPubkeys.map(
-    (pubkey) => ref
-        .read(
-          userPreviewDataProvider(
-            pubkey,
-            expirationDuration: expirationDuration,
-          ).future,
-        )
-        .then((data) => MapEntry(pubkey, data)),
+    (pubkey) =>
+        ref.read(userPreviewDataProvider(pubkey).future).then((data) => MapEntry(pubkey, data)),
   );
 
   final userPreviewDataEntries = await Future.wait(userPreviewDataFutures);

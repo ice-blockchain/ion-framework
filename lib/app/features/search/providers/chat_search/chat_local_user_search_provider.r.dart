@@ -7,7 +7,6 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
-import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -41,17 +40,10 @@ Future<List<ChatSearchResultItem>?> chatLocalUserSearch(Ref ref, String query) a
       )
       .nonNulls
       .toSet();
-  final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
 
   final userPreviews = await Future.wait(
     [
-      for (final pubkey in receiverMasterPubkeys)
-        ref.read(
-          userPreviewDataProvider(
-            pubkey,
-            expirationDuration: expirationDuration,
-          ).future,
-        ),
+      for (final pubkey in receiverMasterPubkeys) ref.watch(userPreviewDataProvider(pubkey).future),
     ],
   );
   final result = <ChatSearchResultItem>[];

@@ -1,21 +1,19 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_send_button.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
 import 'package:ion/app/hooks/use_selected_state.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
-import 'package:ion_connect_cache/ion_connect_cache.dart';
 
-class ShareViaMessageModal extends HookConsumerWidget {
+class ShareViaMessageModal extends HookWidget {
   const ShareViaMessageModal({
     required this.eventReference,
     super.key,
@@ -24,13 +22,8 @@ class ShareViaMessageModal extends HookConsumerWidget {
   final EventReference eventReference;
 
   @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  Widget build(BuildContext context) {
     final (selectedPubkeys, togglePubkeySelection) = useSelectedState<String>();
-
-    final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
 
     return SheetContent(
       body: Column(
@@ -40,8 +33,6 @@ class ShareViaMessageModal extends HookConsumerWidget {
               selectable: true,
               controlPrivacy: true,
               selectedPubkeys: selectedPubkeys,
-              expirationDuration: expirationDuration,
-              cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
               navigationBar: NavigationAppBar.modal(
                 title: Text(context.i18n.feed_share_via),
                 actions: const [NavigationCloseButton()],

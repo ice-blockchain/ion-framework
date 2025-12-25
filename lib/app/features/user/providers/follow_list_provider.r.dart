@@ -12,7 +12,9 @@ import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/follow_list_state.f.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
+import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'follow_list_provider.r.g.dart';
@@ -73,8 +75,12 @@ class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
       return;
     }
 
+    final expirationDuration = ref.read(userMetadataCacheDurationProvider);
+
     unawaited(
       ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
+            cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
+            expirationDuration: expirationDuration,
             eventReferences: pubkeys
                 .map(
                   (masterPubkey) => ReplaceableEventReference(
@@ -83,7 +89,10 @@ class UserFollowListWithMetadata extends _$UserFollowListWithMetadata {
                   ),
                 )
                 .toList(),
-            search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+            search: SearchExtensions([
+              ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
+              ...SearchExtensions.withTokens(forKind: UserMetadataEntity.kind).extensions,
+            ]).toString(),
           ),
     );
   }

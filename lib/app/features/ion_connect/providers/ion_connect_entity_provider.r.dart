@@ -7,7 +7,6 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/default_events_metadata_handler.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
@@ -148,9 +147,8 @@ Future<IonConnectEntity?> ionConnectNetworkEntity(
         actionType: actionType,
       )
       .toList();
-  final metadataEntities = entities.whereType<EventsMetadataEntity>();
   final defaultHandler = await ref.read(defaultEventsMetadataHandlerProvider.future);
-  await defaultHandler.handle(metadataEntities);
+  await defaultHandler.handle(entities);
   return entities.reversed
       .firstWhereOrNull((entity) => entity.toEventReference() == eventReference);
 }
@@ -385,7 +383,12 @@ class IonConnectEntitiesManager extends _$IonConnectEntitiesManager {
         );
       });
 
-      results.addAll(await stream.toList());
+      final events = await stream.toList();
+
+      final defaultHandler = await ref.read(defaultEventsMetadataHandlerProvider.future);
+      final mainEvents = await defaultHandler.handle(events);
+
+      results.addAll(mainEvents);
     }
 
     return results;

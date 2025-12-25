@@ -13,7 +13,6 @@ import 'package:ion/app/features/user/pages/user_picker_sheet/components/searche
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion_connect_cache/ion_connect_cache.dart';
 
 class UserPickerSheet extends HookConsumerWidget {
   const UserPickerSheet({
@@ -22,8 +21,6 @@ class UserPickerSheet extends HookConsumerWidget {
     super.key,
     this.header,
     this.footer,
-    this.cacheStrategy,
-    this.expirationDuration,
     this.selectable = false,
     this.controlPrivacy = false,
     this.selectedPubkeys = const [],
@@ -33,8 +30,6 @@ class UserPickerSheet extends HookConsumerWidget {
   final List<String> selectedPubkeys;
   final bool selectable;
   final bool controlPrivacy;
-  final Duration? expirationDuration;
-  final DatabaseCacheStrategy? cacheStrategy;
   final void Function(String masterPubkey) onUserSelected;
 
   final Widget? header;
@@ -45,13 +40,7 @@ class UserPickerSheet extends HookConsumerWidget {
     final searchQuery = ref.watch(searchUsersQueryProvider);
     final debouncedQuery = useDebounced(searchQuery, const Duration(milliseconds: 300)) ?? '';
 
-    final searchResults = ref.watch(
-      searchUsersProvider(
-        query: debouncedQuery,
-        cacheStrategy: cacheStrategy,
-        expirationDuration: expirationDuration,
-      ),
-    );
+    final searchResults = ref.watch(searchUsersProvider(query: debouncedQuery));
 
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentPubkey == null) {
