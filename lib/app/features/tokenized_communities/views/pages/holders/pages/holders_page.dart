@@ -20,14 +20,12 @@ class HoldersPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final limit = useState(20);
+    final isLoadingMore = useState(false);
+    final hasMore = useState(true);
 
-    final topHoldersAsync = ref.watch(tokenTopHoldersProvider(externalAddress, limit: limit.value));
-
-    final previousTopHolders = useRef<List<TopHolder>>([]);
-
-    final topHolders =
-        topHoldersAsync.isLoading ? previousTopHolders.value : topHoldersAsync.valueOrNull ?? [];
+    final topHoldersProvider = tokenTopHoldersProvider(externalAddress, limit: 20);
+    final topHoldersAsync = ref.watch(topHoldersProvider);
+    final topHolders = topHoldersAsync.valueOrNull ?? const <TopHolder>[];
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
@@ -40,7 +38,7 @@ class HoldersPage extends HookConsumerWidget {
             child: LoadMoreBuilder(
               showIndicator: false,
               slivers: [
-                if (topHoldersAsync.isLoading && previousTopHolders.value.isEmpty)
+                if (topHoldersAsync.isLoading)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsetsDirectional.symmetric(horizontal: 16.s, vertical: 12.s),
@@ -73,7 +71,7 @@ class HoldersPage extends HookConsumerWidget {
                       );
                     },
                   ),
-                if (topHoldersAsync.isLoading)
+                if (isLoadingMore.value)
                   SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
@@ -85,11 +83,16 @@ class HoldersPage extends HookConsumerWidget {
               ],
               onLoadMore: () async {
                 if (topHoldersAsync.isLoading) return;
-                if (limit.value >= TokenTopHolders.maxLimit) return;
-                previousTopHolders.value = topHolders;
-                limit.value += 20;
+                if (isLoadingMore.value || !hasMore.value) return;
+
+                isLoadingMore.value = true;
+                try {
+                  hasMore.value = await ref.read(topHoldersProvider.notifier).loadMore();
+                } finally {
+                  isLoadingMore.value = false;
+                }
               },
-              hasMore: limit.value < TokenTopHolders.maxLimit,
+              hasMore: hasMore.value,
             ),
           ),
         ],

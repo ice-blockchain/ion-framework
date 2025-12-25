@@ -16,7 +16,7 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 class TradesPage extends HookConsumerWidget {
   const TradesPage({required this.externalAddress, super.key});
 
-  static const int pageSize = 20;
+  static const int pageSize = 15;
 
   final String externalAddress;
 

@@ -13,71 +13,190 @@ part 'token_top_holders_provider.r.g.dart';
 class TokenTopHolders extends _$TokenTopHolders {
   static const int maxLimit = 200;
 
+  late String _masterPubkey;
+  late int _pageSize;
+  int _currentLimit = 0;
+
+  final List<TopHolder> _holders = <TopHolder>[];
+
+  bool _disposed = false;
+  bool _hasMore = true;
+  int _generation = 0;
+
+  StreamController<List<TopHolder>>? _controller;
+  NetworkSubscription<List<TopHolderBase>>? _activeSubscription;
+  late Future<IonTokenAnalyticsClient> _clientFuture;
+
+  Future<void> _mutex = Future<void>.value();
+
+  // Completed when the current subscription emits the marker/EOSE (empty batch).
+  Completer<void> _marker = Completer<void>();
+
   @override
   Stream<List<TopHolder>> build(
     String masterPubkey, {
     required int limit,
-  }) async* {
-    final effectiveLimit = limit.clamp(1, maxLimit);
-    final clientFuture = ref.watch(ionTokenAnalyticsClientProvider.future);
+  }) {
+    _masterPubkey = masterPubkey;
+    _pageSize = limit.clamp(1, maxLimit);
 
-    var disposed = false;
-    NetworkSubscription<List<TopHolderBase>>? active;
+    _currentLimit = _pageSize;
+    _holders.clear();
+
+    _disposed = false;
+    _hasMore = true;
+    _generation = 0;
+
+    _marker = Completer<void>();
+
+    _clientFuture = ref.watch(ionTokenAnalyticsClientProvider.future);
+
+    final controller = StreamController<List<TopHolder>>(sync: true);
+    _controller = controller;
 
     ref.onDispose(() {
-      disposed = true;
-      // Best-effort close.
+      _disposed = true;
+      // Unblock any pending waits.
+      if (!_marker.isCompleted) {
+        _marker.complete();
+      }
       try {
-        active?.close();
+        _activeSubscription?.close();
       } catch (_) {
         // ignore
       }
-      active = null;
+      _activeSubscription = null;
+      controller.close();
     });
 
-    final list = <TopHolder>[];
+    unawaited(_runSse());
 
-    // Keep reconnecting forever while the provider is alive.
-    while (!disposed) {
+    return controller.stream;
+  }
+
+  Future<bool> loadMore() async {
+    if (_disposed) return false;
+
+    // Wait until the current subscription finished its initial snapshot.
+    await _marker.future;
+
+    // If we already detected the end, don't keep bumping the limit.
+    if (!_hasMore) return false;
+
+    if (_currentLimit >= maxLimit) {
+      _hasMore = false;
+      return false;
+    }
+
+    // Capture current list size before increasing the limit.
+    late int prevLen;
+    await _enqueue(() {
+      prevLen = _holders.length;
+    });
+
+    await _enqueue(() {
+      _currentLimit = (_currentLimit + _pageSize).clamp(1, maxLimit);
+    });
+
+    // Restart and wait for the new subscription marker.
+    _restartSubscription();
+    await _marker.future;
+
+    // If the number of holders did not increase after raising the limit,
+    // it means the backend has no more holders to send.
+    late int newLen;
+    await _enqueue(() {
+      newLen = _holders.length;
+      if (newLen <= prevLen) {
+        _hasMore = false;
+        if (_currentLimit > newLen) {
+          _currentLimit = newLen;
+        }
+      }
+    });
+
+    return _hasMore;
+  }
+
+  void _restartSubscription() {
+    _generation += 1;
+
+    // New subscription => wait for its marker/EOSE.
+    _marker = Completer<void>();
+
+    try {
+      _activeSubscription?.close();
+    } catch (_) {
+      // ignore
+    }
+    _activeSubscription = null;
+    // _runSse loop will reconnect automatically.
+  }
+
+  Future<void> _runSse() async {
+    while (!_disposed) {
+      final gen = _generation;
       try {
-        final client = await clientFuture;
+        final client = await _clientFuture;
         final subscription = await client.communityTokens.subscribeToTopHolders(
-          ionConnectAddress: masterPubkey,
-          limit: effectiveLimit,
+          ionConnectAddress: _masterPubkey,
+          limit: _currentLimit,
         );
-        active = subscription;
+        _activeSubscription = subscription;
 
         await for (final batch in subscription.stream) {
-          if (disposed) break;
-          if (batch.isEmpty) continue; // marker / no-op
-
-          for (final item in batch) {
-            if (item is TopHolderPatch) {
-              _applyPatchEvent(list, item);
-            } else if (item is TopHolder) {
-              _applyEvent(list, item);
+          if (_disposed) break;
+          if (gen != _generation) break; // limit changed -> restart
+          if (batch.isEmpty) {
+            // Marker/EOSE: initial snapshot for this subscription is finished.
+            if (!_marker.isCompleted) {
+              _marker.complete();
             }
+            continue;
           }
 
-          // Keep the observed window bounded (top `effectiveLimit`).
-          if (list.length > effectiveLimit) {
-            list.length = effectiveLimit;
-          }
+          await _enqueue(() {
+            for (final item in batch) {
+              if (item is TopHolderPatch) {
+                _applyPatchEvent(_holders, item);
+              } else if (item is TopHolder) {
+                _applyEvent(_holders, item);
+              }
+            }
 
-          yield List<TopHolder>.unmodifiable(list);
+            if (_holders.length > _currentLimit) {
+              _holders.length = _currentLimit;
+            }
+
+            _emit();
+          });
         }
       } catch (e, st) {
-        // Don’t fail the provider; keep showing the last known holders.
+        // Unblock marker waiters so UI can try loadMore again.
+        if (!_marker.isCompleted) {
+          _marker.complete();
+        }
+
         Logger.error(e, stackTrace: st, message: 'Top holders subscription failed; reconnecting');
       } finally {
         try {
-          await active?.close();
+          await _activeSubscription?.close();
         } catch (_) {
           // ignore
         }
-        active = null;
+        _activeSubscription = null;
       }
     }
+  }
+
+  Future<void> _enqueue(FutureOr<void> Function() action) {
+    return _mutex = _mutex.catchError((_) {}).then((_) => action());
+  }
+
+  void _emit() {
+    final controller = _controller;
+    if (controller == null || controller.isClosed) return;
+    controller.add(List<TopHolder>.unmodifiable(_holders));
   }
 
   void _applyPatchEvent(List<TopHolder> list, TopHolderPatch item) {
