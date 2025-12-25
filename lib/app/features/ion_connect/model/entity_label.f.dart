@@ -21,12 +21,18 @@ enum EntityLabelNamespace {
 }
 
 @freezed
+class LabelValue with _$LabelValue {
+  const factory LabelValue({
+    required String value,
+    @Default([]) List<String> additionalElements,
+  }) = _LabelValue;
+}
+
+@freezed
 class EntityLabel with _$EntityLabel {
   const factory EntityLabel({
-    required List<String> values,
+    required List<LabelValue> values,
     required EntityLabelNamespace namespace,
-    // Map of index in values list -> additional tag elements (e.g., instance numbers)
-    Map<String, List<String>>? additionalElements,
   }) = _EntityLabel;
 
   const EntityLabel._();
@@ -35,18 +41,20 @@ class EntityLabel with _$EntityLabel {
   List<List<String>> toTags() {
     return [
       LabelNamespaceTag(namespace: namespace).toTag(),
-      for (var i = 0; i < values.length; i++)
+      for (final labelValue in values)
         LabelValueTag(
-          value: values[i],
+          value: labelValue.value,
           namespace: namespace,
-          additionalElements: additionalElements?[i.toString()],
+          additionalElements:
+              labelValue.additionalElements.isNotEmpty ? labelValue.additionalElements : null,
         ).toTag(),
     ];
   }
 
   Map<String, List<List<String>>> toFilterTags() {
     return {
-      '#${LabelValueTag.tagName}': values.map((value) => [value, namespace.value]).toList(),
+      '#${LabelValueTag.tagName}':
+          values.map((labelValue) => [labelValue.value, namespace.value]).toList(),
     };
   }
 
@@ -64,18 +72,16 @@ class EntityLabel with _$EntityLabel {
       throw IncorrectEventTagException(tag: tags);
     }
 
-    // Build additionalElements map using index-based keys
-    final additionalElementsMap = <String, List<String>>{};
-    for (var i = 0; i < valueTags.length; i++) {
-      if (valueTags[i].additionalElements != null && valueTags[i].additionalElements!.isNotEmpty) {
-        additionalElementsMap[i.toString()] = valueTags[i].additionalElements!;
-      }
-    }
-
     return EntityLabel(
-      values: valueTags.map((valueTag) => valueTag.value).toList(),
+      values: valueTags
+          .map(
+            (valueTag) => LabelValue(
+              value: valueTag.value,
+              additionalElements: valueTag.additionalElements ?? [],
+            ),
+          )
+          .toList(),
       namespace: namespace,
-      additionalElements: additionalElementsMap.isNotEmpty ? additionalElementsMap : null,
     );
   }
 }
