@@ -21,15 +21,18 @@ import 'package:ion/generated/assets.gen.dart';
 class ProfileTokenStatsInfo extends ConsumerWidget {
   const ProfileTokenStatsInfo({
     required this.externalAddress,
+    this.eventReference,
     super.key,
   });
 
   final String externalAddress;
+  final EventReference? eventReference;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final marketData = ref.watch(
-      tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.marketData),
+      tokenMarketInfoProvider(externalAddress, eventReference: eventReference)
+          .select((t) => t.valueOrNull?.marketData),
     );
     if (marketData == null) {
       return const SizedBox.shrink();
@@ -83,6 +86,7 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
 class ProfileTokenStats extends ConsumerWidget {
   const ProfileTokenStats({
     required this.externalAddress,
+    this.eventReference,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
     this.spacing,
     this.leading,
@@ -90,13 +94,16 @@ class ProfileTokenStats extends ConsumerWidget {
   });
 
   final String externalAddress;
+  final EventReference? eventReference;
   final MainAxisAlignment mainAxisAlignment;
   final Widget? leading;
   final double? spacing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
+    final tokenInfo = ref.watch(
+      tokenMarketInfoProvider(externalAddress, eventReference: eventReference),
+    );
 
     if (!tokenInfo.hasValue) {
       return const SizedBox.shrink();
@@ -306,16 +313,22 @@ class BuyButton extends StatelessWidget {
 class ProfileTokenStatsFeed extends ConsumerWidget {
   const ProfileTokenStatsFeed({
     required this.externalAddress,
+    this.eventReference,
     this.showFollowCounters = true,
     super.key,
   });
 
   final String externalAddress;
+  final EventReference? eventReference;
   final bool showFollowCounters;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenInfo = ref
+        .watch(
+          tokenMarketInfoProvider(externalAddress, eventReference: eventReference),
+        )
+        .valueOrNull;
     if (tokenInfo == null) {
       return const SizedBox.shrink();
     }

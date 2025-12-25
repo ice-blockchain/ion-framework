@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,27 +19,18 @@ Stream<double?> userTokenMarketCap(Ref ref, String pubkey) async* {
     return;
   }
 
-  // Check if entity has token before requesting analytics
   final eventReference = userMetadata.toEventReference();
-  final hasToken = await ref.watch(
-    ionConnectEntityHasTokenProvider(
-      eventReference: eventReference,
-    ).future,
-  );
-  if (!hasToken) {
-    yield null;
-    return;
-  }
-
   final eventReferenceString = eventReference.toString();
 
   final controller = StreamController<double?>();
 
-  final initialAsync = ref.read(tokenMarketInfoProvider(eventReferenceString));
+  final initialAsync = ref.read(
+    tokenMarketInfoProvider(eventReferenceString, eventReference: eventReference),
+  );
   controller.add(initialAsync.valueOrNull?.marketData.marketCap);
 
   final subscription = ref.listen(
-    tokenMarketInfoProvider(eventReferenceString),
+    tokenMarketInfoProvider(eventReferenceString, eventReference: eventReference),
     (_, next) {
       final tokenInfo = next.valueOrNull;
       final marketCap = tokenInfo?.marketData.marketCap;
