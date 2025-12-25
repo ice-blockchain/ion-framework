@@ -11,10 +11,10 @@ abstract class EventsMetadataHandler {
   FutureOr<Iterable<EventsMetadataEntity>> handle(Iterable<EventsMetadataEntity> events);
 }
 
-/// Default handler for ephemeral events.
+/// Handler for missing ephemeral events.
 ///
 /// Fetches and caches referenced events.
-/// The purpose of default ephemeral events is to indicate that
+/// The purpose of missing ephemeral events is to indicate that
 /// a relay does not possess the requested data and that the client
 /// should re-request it from the appropriate relays.
 class MissingEventsHandler implements EventsMetadataHandler {

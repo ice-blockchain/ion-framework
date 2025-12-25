@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/dependency_events_handler.r.dart';
 import 'package:ion/app/features/ion_connect/providers/missing_events_handler.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_dependency_handler.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_definition_dependency_handler.r.dart';
@@ -37,6 +38,7 @@ Future<DefaultEventsMetadataHandler> defaultEventsMetadataHandler(Ref ref) async
   final handlers = [
     await ref.read(tokenDefinitionDependencyHandlerProvider.future),
     await ref.read(tokenActionFirstBuyDependencyHandlerProvider.future),
+    ref.read(dependencyEventsHandlerProvider),
     ref.read(missingEventsHandlerProvider),
   ];
   return DefaultEventsMetadataHandler(handlers);
