@@ -39,8 +39,10 @@ class ProfileDetails extends ConsumerWidget {
     final hasBscWallet = (userMetadata.valueOrNull?.hasBscWallet).falseOrValue;
 
     final tokenInfo = profileMode == ProfileMode.dark
-        ? eventReferenceString != null && hasBscWallet
-            ? ref.watch(tokenMarketInfoProvider(eventReferenceString))
+        ? eventReferenceString != null && hasBscWallet && eventReference != null
+            ? ref.watch(
+                tokenMarketInfoProvider(eventReferenceString, eventReference: eventReference),
+              )
             : null
         : null;
     final token = tokenInfo?.valueOrNull;
