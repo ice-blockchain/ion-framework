@@ -12,7 +12,6 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_local_user_search_provider.r.dart';
-import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/search/views/pages/chat/chat_advanced_search_page/components/chat_advanced_search_all/chat_advanced_search_all.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_no_results_found.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_search_results_list_item.dart';
@@ -27,10 +26,7 @@ class ChatAdvancedSearchPeople extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive();
 
-    final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
-
-    final remoteUserSearch =
-        ref.watch(searchUsersProvider(query: query, expirationDuration: expirationDuration));
+    final remoteUserSearch = ref.watch(searchUsersProvider(query: query));
     final localUserSearch = ref.watch(chatLocalUserSearchProvider(query));
 
     final hasMore = remoteUserSearch.valueOrNull?.hasMore ?? true;
@@ -82,21 +78,13 @@ class ChatAdvancedSearchPeople extends HookConsumerWidget {
       ],
       onRefresh: () async {
         unawaited(
-          ref
-              .read(
-                searchUsersProvider(query: query, expirationDuration: expirationDuration).notifier,
-              )
-              .refresh(),
+          ref.read(searchUsersProvider(query: query).notifier).refresh(),
         );
         ref.invalidate(chatLocalUserSearchProvider(query));
       },
       builder: (context, slivers) => LoadMoreBuilder(
         slivers: slivers,
-        onLoadMore: ref
-            .read(
-              searchUsersProvider(query: query, expirationDuration: expirationDuration).notifier,
-            )
-            .loadMore,
+        onLoadMore: ref.read(searchUsersProvider(query: query).notifier).loadMore,
         hasMore: remoteUserSearch.valueOrNull?.hasMore ?? false,
       ),
     );

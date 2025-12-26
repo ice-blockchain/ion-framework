@@ -36,9 +36,9 @@ extension Partition<T> on List<T> {
   /// Returns a record with:
   /// - [match]: elements that satisfy the [test] predicate,
   /// - [rest]: elements that do not satisfy the [test] predicate.
-  ({List<T> match, List<T> rest}) partition(bool Function(T) test) {
+  ({List<T1> match, List<T2> rest}) partition<T1 extends T, T2 extends T>(bool Function(T) test) {
     return fold(
-      (match: <T>[], rest: <T>[]),
+      (match: <T1>[], rest: <T2>[]),
       (acc, element) {
         (test(element) ? acc.match : acc.rest).add(element);
         return acc;

@@ -11,7 +11,6 @@ import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_local_user_search_provider.r.dart';
-import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_search_history_provider.m.dart'
     show chatSearchHistoryProvider;
 import 'package:ion/app/features/search/views/components/search_history/search_history.dart';
@@ -37,11 +36,7 @@ class ChatQuickSearchPage extends HookConsumerWidget {
     final hideCommunity =
         ref.watch(featureFlagsProvider.notifier).get(ChatFeatureFlag.hideCommunity);
 
-    final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
-
-    final remoteUserSearch = ref.watch(
-      searchUsersProvider(query: debouncedQuery, expirationDuration: expirationDuration),
-    );
+    final remoteUserSearch = ref.watch(searchUsersProvider(query: debouncedQuery));
     final localUserSearch = ref.watch(chatLocalUserSearchProvider(debouncedQuery));
 
     final isLoading = remoteUserSearch.isLoading || localUserSearch.isLoading;

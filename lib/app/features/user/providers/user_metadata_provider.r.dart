@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
@@ -32,8 +33,8 @@ class UserMetadata extends _$UserMetadata {
     String masterPubkey, {
     bool cache = true,
     bool network = true,
-    Duration? expirationDuration,
   }) async {
+    final expirationDuration = ref.watch(userMetadataCacheDurationProvider);
     final userMetadata = await ref.watch(
       ionConnectEntityProvider(
         cache: cache,
@@ -65,8 +66,6 @@ class UserMetadata extends _$UserMetadata {
             kind: UserMetadataEntity.kind,
           ),
           cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
-          // Always include ProfileBadgesSearchExtension to avoid provider rebuilds
-          // when badge data changes from null to cached
           search: _buildSearchForDependencies(),
         ).future,
       ) as UserMetadataEntity?;
@@ -148,11 +147,8 @@ String _buildSearchForDependencies() {
 }
 
 @riverpod
-Future<UserMetadataLiteEntity?> userMetadataLite(
-  Ref ref,
-  String masterPubkey, {
-  Duration? expirationDuration,
-}) async {
+Future<UserMetadataLiteEntity?> userMetadataLite(Ref ref, String masterPubkey) async {
+  final expirationDuration = ref.watch(userMetadataCacheDurationProvider);
   final userMetadataLite = await ref.watch(
     ionConnectEntityProvider(
       network: false,
@@ -194,16 +190,10 @@ Future<UserPreviewEntity?> userPreviewData(
   String masterPubkey, {
   bool cache = true,
   bool network = true,
-  Duration? expirationDuration,
 }) async {
   if (cache) {
-    final cachedUserMetadata = await ref.watch(
-      userMetadataProvider(
-        masterPubkey,
-        network: false,
-        expirationDuration: expirationDuration,
-      ).future,
-    );
+    final cachedUserMetadata =
+        await ref.watch(userMetadataProvider(masterPubkey, network: false).future);
     if (cachedUserMetadata != null) {
       return cachedUserMetadata;
     }
@@ -211,22 +201,11 @@ Future<UserPreviewEntity?> userPreviewData(
 
   Future<UserMetadataEntity?>? networkFuture;
   if (network) {
-    networkFuture = ref.watch(
-      userMetadataProvider(
-        masterPubkey,
-        cache: cache,
-        expirationDuration: expirationDuration,
-      ).future,
-    );
+    networkFuture = ref.watch(userMetadataProvider(masterPubkey, cache: cache).future);
   }
 
   if (cache) {
-    final cachedUserMetadataLite = await ref.watch(
-      userMetadataLiteProvider(
-        masterPubkey,
-        expirationDuration: expirationDuration,
-      ).future,
-    );
+    final cachedUserMetadataLite = await ref.watch(userMetadataLiteProvider(masterPubkey).future);
 
     if (cachedUserMetadataLite != null) {
       return cachedUserMetadataLite;
@@ -237,6 +216,11 @@ Future<UserPreviewEntity?> userPreviewData(
     return networkFuture;
   }
   return null;
+}
+
+@riverpod
+Duration userMetadataCacheDuration(Ref ref) {
+  return ref.watch(envProvider.notifier).get<Duration>(EnvVariable.USER_METADATA_CACHE_DURATION);
 }
 
 String userPreviewNameSelector(AsyncValue<UserPreviewEntity?> state) =>

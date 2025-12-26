@@ -5,7 +5,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/search/model/chat_search_result_item.f.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_local_user_search_provider.r.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_messages_search_provider.r.dart';
-import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -16,14 +15,7 @@ Future<List<ChatSearchResultItem>> chatAdvancedSearchAllResults(
   Ref ref,
   String query,
 ) async {
-  final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
-
-  final remoteUserSearch = await ref.watch(
-    searchUsersProvider(
-      query: query,
-      expirationDuration: expirationDuration,
-    ).future,
-  );
+  final remoteUserSearch = await ref.watch(searchUsersProvider(query: query).future);
   final localUserSearch = await ref.watch(chatLocalUserSearchProvider(query).future);
   final localMessageSearch = await ref.watch(chatMessagesSearchProvider(query).future);
 

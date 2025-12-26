@@ -40,11 +40,7 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
   int _offset = 0;
 
   @override
-  Future<PaginatedMasterPubkeysData> build(
-    UserInfoFetcher fetcher, {
-    Duration? expirationDuration,
-    DatabaseCacheStrategy? cacheStrategy,
-  }) async {
+  Future<PaginatedMasterPubkeysData> build(UserInfoFetcher fetcher) async {
     _fetcher = fetcher;
     if (!_initialized) {
       await _init();
@@ -80,9 +76,11 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
 
       final masterPubkeys = usersInfo.map((info) => info.masterPubKey);
 
+      final expirationDuration = ref.read(userMetadataCacheDurationProvider);
+
       unawaited(
         ref.read(ionConnectEntitiesManagerProvider.notifier).fetch(
-              cacheStrategy: cacheStrategy,
+              cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
               expirationDuration: expirationDuration,
               eventReferences: masterPubkeys
                   .map(
@@ -92,7 +90,10 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
                     ),
                   )
                   .toList(),
-              search: ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind).toString(),
+              search: SearchExtensions([
+                ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
+                ...SearchExtensions.withTokens(forKind: UserMetadataEntity.kind).extensions,
+              ]).toString(),
             ),
       );
 

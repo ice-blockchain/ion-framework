@@ -8,14 +8,12 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
-import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/user/pages/user_picker_sheet/user_picker_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_connect_cache/ion_connect_cache.dart';
 
 class NewChatModal extends HookConsumerWidget {
   const NewChatModal({super.key});
@@ -35,14 +33,10 @@ class NewChatModal extends HookConsumerWidget {
     final hideCommunity =
         ref.watch(featureFlagsProvider.notifier).get(ChatFeatureFlag.hideCommunity);
 
-    final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
-
     return SheetContent(
       topPadding: 0,
       body: UserPickerSheet(
         controlPrivacy: true,
-        expirationDuration: expirationDuration,
-        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
         navigationBar: NavigationAppBar.modal(
           showBackButton: false,
           title: Text(context.i18n.new_chat_modal_title),

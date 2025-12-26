@@ -16,8 +16,7 @@ enum EnvVariable {
   BANUBA_TOKEN,
   STORY_EXPIRATION_HOURS,
   EDIT_POST_ALLOWED_MINUTES,
-  USER_METADATA_SYNC_MINUTES,
-  CHAT_PRIVACY_CACHE_MINUTES,
+  USER_METADATA_CACHE_DURATION,
   EDIT_MESSAGE_ALLOWED_MINUTES,
   COMMUNITY_CREATION_CACHE_MINUTES,
   COMMUNITY_MEMBERS_COUNT_CACHE_MINUTES,
@@ -81,10 +80,9 @@ class Env extends _$Env {
       EnvVariable.BANUBA_TOKEN => const String.fromEnvironment('BANUBA_TOKEN') as T,
       EnvVariable.STORY_EXPIRATION_HOURS =>
         const int.fromEnvironment('STORY_EXPIRATION_HOURS') as T,
-      EnvVariable.USER_METADATA_SYNC_MINUTES =>
-        const int.fromEnvironment('USER_METADATA_SYNC_MINUTES') as T,
-      EnvVariable.CHAT_PRIVACY_CACHE_MINUTES =>
-        const int.fromEnvironment('CHAT_PRIVACY_CACHE_MINUTES') as T,
+      EnvVariable.USER_METADATA_CACHE_DURATION => const Duration(
+          minutes: int.fromEnvironment('USER_METADATA_CACHE_MINUTES', defaultValue: 2),
+        ) as T,
       EnvVariable.EDIT_POST_ALLOWED_MINUTES =>
         const int.fromEnvironment('EDIT_POST_ALLOWED_MINUTES') as T,
       EnvVariable.EDIT_MESSAGE_ALLOWED_MINUTES =>

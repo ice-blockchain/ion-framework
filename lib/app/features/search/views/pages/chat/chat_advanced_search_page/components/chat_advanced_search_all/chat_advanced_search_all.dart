@@ -13,7 +13,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_advanced_search_all_results_provider.r.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_local_user_search_provider.r.dart';
 import 'package:ion/app/features/search/providers/chat_search/chat_messages_search_provider.r.dart';
-import 'package:ion/app/features/search/providers/chat_search/chat_privacy_cache_expiration_duration_provider.r.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_no_results_found.dart';
 import 'package:ion/app/features/search/views/pages/chat/components/chat_search_results_list_item.dart';
 import 'package:ion/app/features/user/providers/search_users_provider.r.dart';
@@ -31,14 +30,7 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
 
     final debouncedQuery = useDebounced(query, const Duration(milliseconds: 300)) ?? '';
 
-    final expirationDuration = ref.watch(chatPrivacyCacheExpirationDurationProvider);
-
-    final remoteUserSearch = ref.watch(
-      searchUsersProvider(
-        query: debouncedQuery,
-        expirationDuration: expirationDuration,
-      ),
-    );
+    final remoteUserSearch = ref.watch(searchUsersProvider(query: debouncedQuery));
 
     final searchResultsAsync = ref.watch(chatAdvancedSearchAllResultsProvider(debouncedQuery));
     final searchResults = searchResultsAsync.valueOrNull ?? [];
@@ -84,14 +76,7 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
       ],
       onRefresh: () async {
         unawaited(
-          ref
-              .read(
-                searchUsersProvider(
-                  query: debouncedQuery,
-                  expirationDuration: expirationDuration,
-                ).notifier,
-              )
-              .refresh(),
+          ref.read(searchUsersProvider(query: debouncedQuery).notifier).refresh(),
         );
         ref
           ..invalidate(chatAdvancedSearchAllResultsProvider(debouncedQuery))
@@ -100,12 +85,7 @@ class ChatAdvancedSearchAll extends HookConsumerWidget {
       },
       builder: (context, slivers) => LoadMoreBuilder(
         slivers: slivers,
-        onLoadMore: ref
-            .read(
-              searchUsersProvider(query: debouncedQuery, expirationDuration: expirationDuration)
-                  .notifier,
-            )
-            .loadMore,
+        onLoadMore: ref.read(searchUsersProvider(query: debouncedQuery).notifier).loadMore,
         hasMore: remoteUserSearch.valueOrNull?.hasMore ?? false,
       ),
     );
