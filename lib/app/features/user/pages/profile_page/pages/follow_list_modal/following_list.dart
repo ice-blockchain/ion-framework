@@ -7,6 +7,7 @@ import 'package:ion/app/components/nothing_is_found/nothing_is_found.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/user/model/follow_type.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_app_bar.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/components/follow_list_item.dart';
@@ -41,64 +42,62 @@ class FollowingList extends HookConsumerWidget {
 
     final searchMasterPubkeys = searchPagedData?.masterPubkeys;
 
-    return LoadMoreBuilder(
-      hasMore: searchQuery.value.isNotEmpty
-          ? searchPagedData?.hasMore ?? false
-          : followingData?.hasMore ?? false,
-      onLoadMore: () async {
-        if (searchQuery.value.isNotEmpty) {
-          await ref
-              .read(
-                searchUsersProvider(
-                  query: debouncedQuery,
-                  followedByPubkey: pubkey,
-                  includeCurrentUser: true,
-                ).notifier,
-              )
-              .loadMore();
-        } else {
-          await ref.read(userFollowListWithMetadataProvider(pubkey).notifier).fetchEntities();
-        }
-      },
-      slivers: [
-        FollowAppBar(
-          title: FollowType.following.getTitleWithCounter(context, totalPubkeysCount ?? 0),
-        ),
-        FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
-        if (searchQuery.value.isNotEmpty)
-          if (searchMasterPubkeys == null)
-            const FollowListLoading()
-          else if (searchMasterPubkeys.isEmpty)
-            const NothingIsFound()
-          else
-            SliverList.builder(
-              itemCount: searchMasterPubkeys.length,
-              itemBuilder: (context, index) => ScreenSideOffset.small(
-                child: FollowListItem(
-                  key: ValueKey<String>(searchMasterPubkeys[index]),
-                  pubkey: searchMasterPubkeys[index],
+    return ListCachedObjectsWrapper(
+      child: LoadMoreBuilder(
+        hasMore: searchQuery.value.isNotEmpty
+            ? searchPagedData?.hasMore ?? false
+            : followingData?.hasMore ?? false,
+        onLoadMore: () async {
+          if (searchQuery.value.isNotEmpty) {
+            await ref
+                .read(
+                  searchUsersProvider(
+                    query: debouncedQuery,
+                    followedByPubkey: pubkey,
+                    includeCurrentUser: true,
+                  ).notifier,
+                )
+                .loadMore();
+          } else {
+            await ref.read(userFollowListWithMetadataProvider(pubkey).notifier).fetchEntities();
+          }
+        },
+        slivers: [
+          FollowAppBar(
+            title: FollowType.following.getTitleWithCounter(context, totalPubkeysCount ?? 0),
+          ),
+          FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
+          if (searchQuery.value.isNotEmpty)
+            if (searchMasterPubkeys == null)
+              const FollowListLoading()
+            else if (searchMasterPubkeys.isEmpty)
+              const NothingIsFound()
+            else
+              SliverList.builder(
+                itemCount: searchMasterPubkeys.length,
+                itemBuilder: (context, index) => ScreenSideOffset.small(
+                  child: FollowListItem(
+                    key: ValueKey<String>(searchMasterPubkeys[index]),
+                    pubkey: searchMasterPubkeys[index],
+                  ),
                 ),
-              ),
-            )
-        else if (followeePubkeys != null)
-          SliverFixedExtentList(
-            itemExtent: FollowListItem.itemHeight + 16.0.s,
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => ScreenSideOffset.small(
+              )
+          else if (followeePubkeys != null)
+            SliverList.builder(
+              itemCount: followeePubkeys.length,
+              itemBuilder: (context, index) => ScreenSideOffset.small(
                 child: FollowListItem(
                   key: ValueKey<String>(followeePubkeys[index]),
                   pubkey: followeePubkeys[index],
                   network: true,
                 ),
               ),
-              childCount: followeePubkeys.length,
-              addAutomaticKeepAlives: false,
-            ),
-          )
-        else
-          const FollowListLoading(),
-        SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 32.0.s)),
-      ],
+            )
+          else
+            const FollowListLoading(),
+          SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 32.0.s)),
+        ],
+      ),
     );
   }
 }

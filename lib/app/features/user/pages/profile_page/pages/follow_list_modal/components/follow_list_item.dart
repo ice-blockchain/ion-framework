@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
-import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -28,35 +28,35 @@ class FollowListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final displayName = ref.watch(
-      userPreviewDataProvider(pubkey, network: network).select(userPreviewDisplayNameSelector),
-    );
+    final data = ref.watch(userPreviewDataProvider(pubkey, network: network));
 
-    final username = ref.watch(
-      userPreviewDataProvider(pubkey, network: network).select(userPreviewNameSelector),
-    );
+    final hiddenMarker = ListCachedObjects.maybeObjectOf<ValueWithKey>(context, pubkey);
+    final isHiddenElement = hiddenMarker != null;
+    if (isHiddenElement) {
+      return const SizedBox.shrink();
+    }
 
-    final isLoading = displayName.isEmpty && username.isEmpty;
+    if (!data.isLoading && data.valueOrNull == null) {
+      ListCachedObjects.updateObject<ValueWithKey>(context, (key: pubkey, value: 'hidden'));
+      return const SizedBox.shrink();
+    }
+
+    final userPreviewData = data.valueOrNull;
+    final displayName = userPreviewData?.data.trimmedDisplayName ?? '';
+    final username = userPreviewData?.data.name ?? '';
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: BadgesUserListItem(
         key: ValueKey<String>(pubkey),
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: isLoading
-              ? Padding(
-                  padding: EdgeInsetsDirectional.only(bottom: 4.0.s),
-                  child: SkeletonBox(width: 120.0.s, height: 16.0.s),
-                )
-              : Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+        title: SizedBox(
+          height: 16.0.s,
+          child: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
         ),
         trailing: FollowUserButton(pubkey: pubkey, follower: follower),
-        subtitle: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: isLoading
-              ? SkeletonBox(width: 80.0.s, height: 14.0.s)
-              : Text(prefixUsername(username: username, context: context)),
+        subtitle: SizedBox(
+          height: 16.0.s,
+          child: Text(prefixUsername(username: username, context: context)),
         ),
         masterPubkey: pubkey,
         onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
