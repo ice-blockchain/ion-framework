@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
+import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_latest_trades_provider.r.dart';
@@ -118,6 +119,15 @@ class TradesPage extends HookConsumerWidget {
                     ),
                   ),
               ],
+              builder: (context, slivers) => PullToRefreshBuilder(
+                onRefresh: () async {
+                  isLoadingMore.value = false;
+                  hasMore.value = true;
+                  ref.invalidate(tokenLatestTradesProvider(externalAddress, limit: pageSize));
+                },
+                builder: (_, slivers) => CustomScrollView(slivers: slivers),
+                slivers: slivers,
+              ),
             ),
           ),
         ],
