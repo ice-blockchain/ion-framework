@@ -5,14 +5,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_latest_trades_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trade_row.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_empty.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_skeleton.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/utils/date.dart';
-import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class LatestTradesCard extends HookConsumerWidget {
@@ -89,10 +86,9 @@ class LatestTradesCard extends HookConsumerWidget {
                   padding: EdgeInsets.zero,
                   itemBuilder: (context, index) {
                     final trade = trades[index];
-                    return _TradeRow(
+                    return LatestTradeRow(
                       trade: trade,
                       minTextWidth: minTextWidth,
-                      onTap: (_) {},
                     );
                   },
                   separatorBuilder: (context, index) => SizedBox(height: 14.0.s),
@@ -162,145 +158,6 @@ class _CardTitle extends StatelessWidget {
               ),
             ),
           ),
-      ],
-    );
-  }
-}
-
-class _TradeRow extends StatelessWidget {
-  const _TradeRow({required this.trade, required this.minTextWidth, this.onTap});
-
-  final LatestTrade trade;
-  final double minTextWidth;
-  final ValueChanged<LatestTrade>? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    final texts = context.theme.appTextThemes;
-    final i18n = context.i18n;
-
-    final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
-    final amountText = formatAmountCompactFromRaw(trade.position.amount);
-    final usdText = formatUSD(trade.position.amountUSD);
-    final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
-    final badgeText = trade.position.type == TradeType.buy ? i18n.trade_buy : i18n.trade_sell;
-
-    final holderAddress =
-        trade.position.holder.addresses?.ionConnect ?? trade.position.addresses.ionConnect;
-    final creatorAddress = trade.creator.addresses?.ionConnect;
-    final isCreator =
-        creatorAddress != null && holderAddress != null && holderAddress == creatorAddress;
-
-    final textStyle = texts.caption6.copyWith(color: colors.secondaryBackground);
-
-    final badge = Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.0.s),
-      decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12.0.s)),
-      child: SizedBox(
-        width: minTextWidth,
-        child: Text(
-          badgeText,
-          style: textStyle,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          softWrap: false,
-        ),
-      ),
-    );
-
-    return InkWell(
-      onTap: onTap == null ? null : () => onTap!(trade),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                HolderAvatar(imageUrl: trade.position.holder.avatar),
-                SizedBox(width: 8.0.s),
-                Expanded(
-                  child: _TitleAndMeta(
-                    name: trade.position.holder.display,
-                    handle: trade.position.holder.name,
-                    verified: trade.position.holder.verified,
-                    isCreator: isCreator,
-                    meta: '$amountText • \$$usdText • $timeText',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 8.0.s),
-          badge,
-        ],
-      ),
-    );
-  }
-}
-
-class _TitleAndMeta extends StatelessWidget {
-  const _TitleAndMeta({
-    required this.name,
-    required this.handle,
-    required this.meta,
-    this.verified = false,
-    this.isCreator = false,
-  });
-
-  final String name;
-  final String handle;
-  final String meta;
-  final bool verified;
-  final bool isCreator;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    final texts = context.theme.appTextThemes;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Flexible(
-              child: Text(
-                name,
-                style: texts.subtitle3.copyWith(color: colors.primaryText),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                softWrap: false,
-              ),
-            ),
-            if (handle.isNotEmpty) ...[
-              SizedBox(width: 4.0.s),
-              Flexible(
-                child: Text(
-                  handle,
-                  style: texts.caption2.copyWith(color: colors.quaternaryText),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                ),
-              ),
-            ],
-            if (verified) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-            ],
-            if (isCreator) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
-            ],
-          ],
-        ),
-        Text(
-          meta,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          softWrap: false,
-          style: texts.caption.copyWith(color: colors.quaternaryText),
-        ),
       ],
     );
   }
