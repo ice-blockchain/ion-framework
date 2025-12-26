@@ -3,23 +3,20 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_token_market_cap_provider.r.g.dart';
 
 @riverpod
-Stream<double?> userTokenMarketCap(Ref ref, String pubkey) async* {
-  final userMetadata = await ref.read(
-    userMetadataProvider(pubkey, network: false).future,
+Stream<double?> userTokenMarketCap(Ref ref, String masterPubkey) async* {
+  final eventReference = ReplaceableEventReference(
+    masterPubkey: masterPubkey,
+    kind: UserMetadataEntity.kind,
   );
-  if (userMetadata == null) {
-    yield null;
-    return;
-  }
 
-  final eventReference = userMetadata.toEventReference();
   final eventReferenceString = eventReference.toString();
 
   final controller = StreamController<double?>();
