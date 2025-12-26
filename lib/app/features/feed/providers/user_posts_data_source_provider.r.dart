@@ -75,6 +75,10 @@ List<EntitiesDataSource>? userPostsDataSource(Ref ref, String pubkey) {
       marker: RelatedEventMarker.reply.toShortString(),
       negative: true,
     ),
+    GenericIncludeSearchExtension(
+      forKind: CommunityTokenActionEntity.kind,
+      includeKind: CommunityTokenDefinitionEntity.kind,
+    ),
     ExpirationSearchExtension(expiration: false),
   ]).toString();
 

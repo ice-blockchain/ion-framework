@@ -83,9 +83,9 @@ extension CommunityTokenExtension on CommunityToken {
   }
 
   CommunityTokenSource get source {
-    if (addresses.ionConnect != null) {
-      return CommunityTokenSource.ionConnect;
+    if (addresses.twitter != null) {
+      return CommunityTokenSource.twitter;
     }
-    return CommunityTokenSource.twitter;
+    return CommunityTokenSource.ionConnect;
   }
 }
