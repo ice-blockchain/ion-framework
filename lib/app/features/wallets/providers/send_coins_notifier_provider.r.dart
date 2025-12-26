@@ -11,6 +11,8 @@ import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
@@ -322,7 +324,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       userDelegationProvider(details.participantPubkey!).future,
     );
     final currentUserDelegation = await ref.read(currentUserDelegationProvider.future);
-    final currentUserPubkey = ref.read(currentPubkeySelectorProvider) ?? '';
+    final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider) ?? '';
 
     final entityData = _buildWalletAssetData(
       details: details,
@@ -333,14 +335,36 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       receiverAddress: receiverAddress,
     );
 
-    final senderPubkeys = (
-      masterPubkey: currentUserPubkey,
-      devicePubkeys: currentUserDelegation?.data.delegates.map((e) => e.pubkey).toList() ?? [],
+    final eventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
+
+    if (eventSigner == null) {
+      throw EventSignerNotFoundException();
+    }
+
+    final currentUserActiveDelegates = currentUserDelegation?.data.delegates
+            .where((delegate) => delegate.status == DelegationStatus.active)
+            .toList() ??
+        [];
+
+    final currentUserPubkeys = currentUserActiveDelegates.map((e) => e.pubkey).toList();
+
+    if (!currentUserPubkeys.contains(eventSigner.publicKey)) {
+      throw UserDeviceRevokedException();
+    }
+
+    final receiverActiveDelegates = receiverDelegation?.data.delegates
+            .where((delegate) => delegate.status == DelegationStatus.active)
+            .toList() ??
+        [];
+
+    final receiverPubkeys = receiverActiveDelegates.map((e) => e.pubkey).toList();
+
+    final senderPubkeysMap = (
+      masterPubkey: currentUserMasterPubkey,
+      devicePubkeys: currentUserPubkeys,
     );
-    final receiverPubkeys = (
-      masterPubkey: details.participantPubkey!,
-      devicePubkeys: receiverDelegation?.data.delegates.map((e) => e.pubkey).toList() ?? [],
-    );
+    final receiverPubkeysMap =
+        (masterPubkey: details.participantPubkey!, devicePubkeys: receiverPubkeys);
 
     final sendToRelayService = await ref.read(sendTransactionToRelayServiceProvider.future);
     final event = await sendToRelayService.sendTransactionEntity(
@@ -349,11 +373,11 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
         masterPubkey: masterPubkey,
         requestEntity: requestEntity,
       ),
-      senderPubkeys: senderPubkeys,
-      receiverPubkeys: receiverPubkeys,
+      senderPubkeys: senderPubkeysMap,
+      receiverPubkeys: receiverPubkeysMap,
     );
 
-    return (event, currentUserPubkey);
+    return (event, currentUserMasterPubkey);
   }
 
   WalletAssetData _buildWalletAssetData({

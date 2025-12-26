@@ -759,6 +759,14 @@ class UgcCounterFetchException extends IONException {
         );
 }
 
+class UserDeviceRevokedException extends IONException {
+  UserDeviceRevokedException()
+      : super(
+          10140,
+          'User device has been revoked',
+        );
+}
+
 class BscNetworkNotFoundException extends IONException {
   BscNetworkNotFoundException() : super(10140, 'BSC network is missing');
 }
