@@ -17,11 +17,13 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 class HoldersPage extends HookConsumerWidget {
   const HoldersPage({required this.externalAddress, super.key});
 
+  static const int pageSize = 20;
+
   final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final limit = useState(20);
+    final limit = useState(pageSize);
 
     final topHoldersAsync = ref.watch(tokenTopHoldersProvider(externalAddress, limit: limit.value));
 
@@ -45,7 +47,7 @@ class HoldersPage extends HookConsumerWidget {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsetsDirectional.symmetric(horizontal: 16.s, vertical: 12.s),
-                      child: TopHoldersSkeleton(count: 20, seperatorHeight: 14.s),
+                      child: TopHoldersSkeleton(count: pageSize, seperatorHeight: 14.s),
                     ),
                   )
                 else
@@ -87,14 +89,14 @@ class HoldersPage extends HookConsumerWidget {
               onLoadMore: () async {
                 if (topHoldersAsync.isLoading) return;
                 previousTopHolders.value = topHolders;
-                limit.value += 20;
+                limit.value += pageSize;
               },
               hasMore: topHolders.length <= limit.value,
               builder: (context, slivers) => PullToRefreshBuilder(
                 onRefresh: () async {
                   previousTopHolders.value = [];
-                  limit.value = 20;
-                  ref.invalidate(tokenTopHoldersProvider(externalAddress, limit: 20));
+                  limit.value = pageSize;
+                  ref.invalidate(tokenTopHoldersProvider(externalAddress, limit: pageSize));
                 },
                 builder: (_, slivers) => CustomScrollView(slivers: slivers),
                 slivers: slivers,
