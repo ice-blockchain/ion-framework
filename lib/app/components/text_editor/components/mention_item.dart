@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
+import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/market_cap_badge.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
 
@@ -26,11 +28,14 @@ class MentionItem extends ConsumerWidget {
       userPreviewDataProvider(pubkey, network: false).select(userPreviewNameSelector),
     );
 
+    final marketCap = ref.watch(userTokenMarketCapProvider(pubkey)).valueOrNull;
+
     return BadgesUserListItem(
       onTap: () => onPress((pubkey: pubkey, username: username)),
       title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
       subtitle: Text(prefixUsername(username: username, context: context)),
       masterPubkey: pubkey,
+      trailing: marketCap != null ? MarketCapBadge(marketCap: marketCap) : null,
     );
   }
 }

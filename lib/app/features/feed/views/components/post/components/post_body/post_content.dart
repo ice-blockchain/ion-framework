@@ -10,9 +10,11 @@ import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
+import 'package:ion/app/features/feed/providers/mentions/mention_decoration_provider.r.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -45,20 +47,35 @@ class PostContent extends HookConsumerWidget {
 
     final isExpanded = ref.watch(expandedPostsStateProvider).contains(entity.id);
 
+    // Check if this is a reply (has parentEvent)
+    // Articles cannot be replies (they don't have parentEvent)
+    final isReply = switch (entity) {
+      final ModifiablePostEntity post => post.data.parentEvent != null,
+      final PostEntity post => post.data.parentEvent != null,
+      final ArticleEntity _ => false, // Articles are never replies
+      _ => false,
+    };
+
+    // For replies: use decorated content with market cap (text format)
+    // For posts: use embed format
+    final displayContent = isReply
+        ? ref.watch(decoratedMentionsWithMarketCapProvider(currentContent))
+        : currentContent;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final truncResult = maxLines != null && !isExpanded
             ? _truncateForMaxLines(
-                currentContent,
+                displayContent,
                 context.theme.appTextThemes.body2,
                 constraints.maxWidth,
                 maxLines!,
                 MediaQuery.textScalerOf(context),
               )
-            : _TruncationResult(delta: currentContent, hasOverflow: false);
+            : _TruncationResult(delta: displayContent, hasOverflow: false);
 
         final hasOverflow = truncResult.hasOverflow;
-        final displayDelta = hasOverflow ? truncResult.delta : currentContent;
+        final displayDelta = hasOverflow ? truncResult.delta : displayContent;
 
         return AnimatedSize(
           duration: 300.ms,
@@ -71,6 +88,7 @@ class PostContent extends HookConsumerWidget {
                 key: ValueKey(isExpanded),
                 scrollable: false,
                 content: displayDelta,
+                convertMentionsToEmbeds: !isReply,
                 customStyles: accentTheme
                     ? textEditorStyles(
                         context,

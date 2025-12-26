@@ -11,6 +11,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/text_editor/components/suggestions_container.dart';
 import 'package:ion/app/components/text_editor/hooks/use_quill_controller.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -57,7 +58,7 @@ class ReplyInputField extends HookConsumerWidget {
     await CreateReplyRoute(
       parentEvent: eventReference.encode(),
       content: jsonEncode(
-        textEditorController.document.toDelta().toJson(),
+        DeltaBridge.normalizeToAttributeFormat(textEditorController.document.toDelta()).toJson(),
       ),
       attachedMedia: attachedMedia,
     ).push<Object?>(context);

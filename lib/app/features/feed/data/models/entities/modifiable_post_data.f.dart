@@ -112,6 +112,7 @@ class ModifiablePostData
     PollData? poll,
     SourcePostReference? sourcePostReference,
     EntityLabel? language,
+    EntityLabel? mentionMarketCapLabel,
     EntityLabel? ugcSerial,
   }) = _ModifiablePostData;
   factory ModifiablePostData.fromEventMessage(EventMessage eventMessage) {
@@ -144,6 +145,10 @@ class ModifiablePostData
       poll: tags['poll']?.firstOrNull != null ? PollData.fromTag(tags['poll']!.first) : null,
       sourcePostReference: SourcePostReference.fromTags(eventMessage.tags),
       language: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.language),
+      mentionMarketCapLabel: EntityLabel.fromTags(
+        tags,
+        namespace: EntityLabelNamespace.mentionMarketCap,
+      ),
       ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
@@ -173,6 +178,7 @@ class ModifiablePostData
       if (expiration != null) expiration!.toTag(),
       if (quotedEvent != null) quotedEvent!.toTag(),
       if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
+      if (mentionMarketCapLabel != null) ...mentionMarketCapLabel!.toTags(),
       if (relatedHashtags != null) ...relatedHashtags!.map((hashtag) => hashtag.toTag()),
       if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
       if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),

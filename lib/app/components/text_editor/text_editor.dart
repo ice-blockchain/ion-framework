@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_code_block/text_editor_code_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_separator_block/text_editor_separator_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
@@ -101,6 +102,7 @@ class TextEditorState extends ConsumerState<TextEditor> {
           TextEditorSingleImageBuilder(media: widget.media, authorPubkey: widget.authorPubkey),
           TextEditorSeparatorBuilder(),
           TextEditorCodeBuilder(),
+          const TextEditorMentionEmbedBuilder(),
         ],
         unknownEmbedBuilder: TextEditorUnknownEmbedBuilder(),
         autoFocus: widget.autoFocus,

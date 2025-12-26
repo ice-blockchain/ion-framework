@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 
 QuillController useQuillController({String? content}) {
   final quillController = useMemoized(
@@ -18,7 +19,9 @@ QuillController useQuillController({String? content}) {
       if (content != null) {
         try {
           final deltaJson = jsonDecode(content) as List<dynamic>;
-          final doc = Document.fromDelta(Delta.fromJson(deltaJson));
+          final doc = Document.fromDelta(
+            DeltaBridge.normalizeToEmbedFormat(Delta.fromJson(deltaJson)),
+          );
           return QuillController(
             document: doc,
             selection: TextSelection.collapsed(offset: doc.length - 1),

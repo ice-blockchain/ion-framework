@@ -4,6 +4,8 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,12 +13,26 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'token_market_info_provider.r.g.dart';
 
 @riverpod
-Stream<CommunityToken?> tokenMarketInfo(Ref ref, String externalAddress) async* {
+Stream<CommunityToken?> tokenMarketInfo(
+  Ref ref,
+  String externalAddress, {
+  EventReference? eventReference,
+}) async* {
   // Read cache once at startup (don't watch to avoid restarting stream on cache updates)
   final cachedToken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
 
   if (cachedToken != null) {
     yield cachedToken;
+  }
+
+  if (eventReference != null) {
+    final hasToken = await ref.watch(
+      ionConnectEntityHasTokenProvider(eventReference: eventReference).future,
+    );
+    if (!hasToken) {
+      yield null;
+      return;
+    }
   }
 
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
