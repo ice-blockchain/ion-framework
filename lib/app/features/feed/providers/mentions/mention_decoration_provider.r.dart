@@ -41,8 +41,7 @@ Delta decoratedMentionsWithMarketCap(
         final showMarketCap = attrs?[MentionAttribute.showMarketCapKey] == true;
 
         if (showMarketCap) {
-          final marketCapAsync = ref.watch(userTokenMarketCapProvider(pubkey));
-          final marketCap = marketCapAsync.valueOrNull;
+          final marketCap = ref.watch(userTokenMarketCapProvider(pubkey));
 
           // Only decorate if market cap exists and text doesn't already contain market cap
           if (marketCap != null && !data.contains('(')) {

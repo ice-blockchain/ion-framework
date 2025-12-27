@@ -28,7 +28,7 @@ class MentionItem extends ConsumerWidget {
       userPreviewDataProvider(pubkey, network: false).select(userPreviewNameSelector),
     );
 
-    final marketCap = ref.watch(userTokenMarketCapProvider(pubkey)).valueOrNull;
+    final marketCap = ref.watch(userTokenMarketCapProvider(pubkey));
 
     return BadgesUserListItem(
       onTap: () => onPress((pubkey: pubkey, username: username)),

@@ -106,8 +106,7 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
 
   // Gets cached market cap value (non-blocking for optimistic behavior, returns null if not cached).
   double? _getCachedMarketCap(String pubkey) {
-    final asyncValue = ref.read(userTokenMarketCapProvider(pubkey));
-    return asyncValue.hasValue ? asyncValue.value : null;
+    return ref.read(userTokenMarketCapProvider(pubkey));
   }
 
   void onSuggestionSelected(String suggestion) {
