@@ -24,6 +24,7 @@ class UserFileStorageRelaysEntity
     required String signature,
     required int createdAt,
     required UserFileStorageRelaysData data,
+    EventMessage? eventMessage,
   }) = _UserFileStorageRelaysEntity;
 
   const UserFileStorageRelaysEntity._();
@@ -41,6 +42,7 @@ class UserFileStorageRelaysEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: UserFileStorageRelaysData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

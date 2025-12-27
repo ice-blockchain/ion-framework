@@ -27,6 +27,7 @@ class WalletAssetEntity with IonConnectEntity, ImmutableEntity, _$WalletAssetEnt
     required String masterPubkey,
     required int createdAt,
     required WalletAssetData data,
+    EventMessage? eventMessage,
   }) = _WalletAssetEntity;
 
   const WalletAssetEntity._();
@@ -42,6 +43,7 @@ class WalletAssetEntity with IonConnectEntity, ImmutableEntity, _$WalletAssetEnt
       masterPubkey: eventMessage.masterPubkey,
       createdAt: eventMessage.createdAt,
       data: WalletAssetData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
 
     return parsed;

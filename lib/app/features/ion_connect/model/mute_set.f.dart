@@ -37,6 +37,7 @@ class MuteSetEntity
     required String signature,
     required int createdAt,
     required MuteSetData data,
+    EventMessage? eventMessage,
   }) = _MuteSetEntity;
 
   const MuteSetEntity._();
@@ -54,6 +55,7 @@ class MuteSetEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: MuteSetData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

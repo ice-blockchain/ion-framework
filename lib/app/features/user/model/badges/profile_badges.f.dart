@@ -28,27 +28,29 @@ class ProfileBadgesEntity
     required String signature,
     required int createdAt,
     required ProfileBadgesData data,
+    EventMessage? eventMessage,
   }) = _ProfileBadgesEntity;
 
   const ProfileBadgesEntity._();
 
   /// NIP-58 Profile Badges (replaceable d="profile_badges")  [oai_citation:8‡GitHub](https://github.com/nostr-protocol/nips/raw/master/58.md)
-  factory ProfileBadgesEntity.fromEventMessage(EventMessage ev) {
-    if (ev.kind != kind) {
-      throw IncorrectEventKindException(ev.id, kind: kind);
+  factory ProfileBadgesEntity.fromEventMessage(EventMessage eventMessage) {
+    if (eventMessage.kind != kind) {
+      throw IncorrectEventKindException(eventMessage.id, kind: kind);
     }
     return ProfileBadgesEntity(
-      id: ev.id,
-      pubkey: ev.pubkey,
-      masterPubkey: ev.masterPubkey,
-      signature: ev.sig!,
-      createdAt: ev.createdAt,
-      data: ProfileBadgesData.fromEventMessage(ev),
+      id: eventMessage.id,
+      pubkey: eventMessage.pubkey,
+      masterPubkey: eventMessage.masterPubkey,
+      signature: eventMessage.sig!,
+      createdAt: eventMessage.createdAt,
+      data: ProfileBadgesData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 
   static const int kind = 30008;
   static const String dTag = 'profile_badges';
