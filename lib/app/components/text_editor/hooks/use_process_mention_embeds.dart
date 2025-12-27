@@ -35,16 +35,10 @@ void processMentionEmbeds(QuillController controller, WidgetRef ref) {
         );
 
         // Check market cap status for this mention
-        final marketCapAsync = ref.read(userTokenMarketCapProvider(mentionData.pubkey));
+        final marketCap = ref.read(userTokenMarketCapProvider(mentionData.pubkey));
 
-        if (!marketCapAsync.hasValue) {
-          // Still loading keep as embed
-          currentOffset += length;
-          continue;
-        }
-
-        if (marketCapAsync.value == null) {
-          // Finished loading but no market cap - downgrade to text
+        if (marketCap == null) {
+          // No market cap - downgrade to text
           downgrades.add((position: currentOffset, data: mentionData));
         }
       }
@@ -61,16 +55,16 @@ void processMentionEmbeds(QuillController controller, WidgetRef ref) {
             final username = data.substring(1); // Remove @ prefix
 
             // Check market cap status
-            final marketCapAsync = ref.read(userTokenMarketCapProvider(pubkey));
+            final marketCap = ref.read(userTokenMarketCapProvider(pubkey));
 
-            if (marketCapAsync.hasValue && marketCapAsync.value != null) {
+            if (marketCap != null) {
               // Market cap is available - upgrade to embed
               upgrades.add(
                 (
                   position: currentOffset,
                   pubkey: pubkey,
                   username: username,
-                  marketCap: marketCapAsync.value!,
+                  marketCap: marketCap,
                 ),
               );
             }
@@ -237,17 +231,14 @@ void useProcessMentionEmbeds(
       // Skip if already processing (prevents feedback loops)
       if (isProcessing.value) return null;
 
-      // Check if all providers finished loading
-      final allLoaded = marketCapStates.every((state) => state.hasValue);
-      if (allLoaded) {
-        isProcessing.value = true;
-        try {
-          // Process both downgrades and upgrades
-          processMentionEmbeds(controller, ref);
-        } finally {
-          isProcessing.value = false;
-        }
+      // Process both downgrades and upgrades
+      isProcessing.value = true;
+      try {
+        processMentionEmbeds(controller, ref);
+      } finally {
+        isProcessing.value = false;
       }
+
       return null;
     },
     [controller, marketCapStates, enabled],

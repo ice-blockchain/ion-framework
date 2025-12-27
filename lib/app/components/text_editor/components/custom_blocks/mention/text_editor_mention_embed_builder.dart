@@ -96,7 +96,7 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final marketCap = ref.watch(userTokenMarketCapProvider(pubkey)).valueOrNull;
+    final marketCap = ref.watch(userTokenMarketCapProvider(pubkey));
 
     return MentionInlineWidget(
       username: username,
