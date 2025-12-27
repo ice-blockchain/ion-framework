@@ -24,6 +24,13 @@ enum IceRouteType {
   overlay,
 }
 
+/// Configuration data that can be passed via route extra
+class RouteConfig {
+  const RouteConfig({this.barrierDismissible = true});
+
+  final bool barrierDismissible;
+}
+
 abstract class BaseRouteData extends GoRouteData {
   BaseRouteData({
     required this.child,
@@ -31,6 +38,7 @@ abstract class BaseRouteData extends GoRouteData {
     this.isFullscreenMedia = false,
     this.canPop,
     this.key,
+    this.routeConfig = const RouteConfig(),
   });
 
   final IceRouteType type;
@@ -38,6 +46,7 @@ abstract class BaseRouteData extends GoRouteData {
   final Widget child;
   final bool? canPop;
   final LocalKey? key;
+  final RouteConfig routeConfig;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
@@ -62,7 +71,11 @@ abstract class BaseRouteData extends GoRouteData {
           transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
           child: child,
         ),
-      IceRouteType.bottomSheet => FadeTransitionSheetPage(child: child, state: state),
+      IceRouteType.bottomSheet => FadeTransitionSheetPage(
+          child: child,
+          state: state,
+          extra: routeConfig,
+        ),
       IceRouteType.slideFromLeft => SlideFromLeftTransitionPage(child: child, state: state),
       IceRouteType.fade => FadeTransitionPage(child: child, state: state),
       IceRouteType.mainModalSheet =>
@@ -83,6 +96,7 @@ class FadeTransitionSheetPage extends PagedSheetPage<void> {
   FadeTransitionSheetPage({
     required super.child,
     required GoRouterState state,
+    RouteConfig? extra,
   }) : super(
           key: state.pageKey,
           physics: const ClampingSheetPhysics(),
@@ -102,8 +116,16 @@ class FadeTransitionSheetPage extends PagedSheetPage<void> {
               child: child,
             );
           },
-        );
+        ) {
+    // Store the extra config in state for shell route to access
+    if (extra != null) {
+      pageRouteConfigs[state.pageKey] = extra;
+    }
+  }
 }
+
+// Storage for page-level route configs (public so ModalShellRouteData can access)
+final pageRouteConfigs = <ValueKey<String>, RouteConfig>{};
 
 class FadeTransitionPage extends CustomTransitionPage<void> {
   FadeTransitionPage({
