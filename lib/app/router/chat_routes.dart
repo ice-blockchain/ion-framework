@@ -132,6 +132,7 @@ class NewChatModalRoute extends BaseRouteData with _$NewChatModalRoute {
       : super(
           child: const NewChatModal(),
           type: IceRouteType.bottomSheet,
+          routeConfig: const RouteConfig(barrierDismissible: false),
         );
 }
 
