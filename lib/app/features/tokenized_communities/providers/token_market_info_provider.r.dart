@@ -15,24 +15,13 @@ part 'token_market_info_provider.r.g.dart';
 @riverpod
 Stream<CommunityToken?> tokenMarketInfo(
   Ref ref,
-  String externalAddress, {
-  EventReference? eventReference,
-}) async* {
+  String externalAddress,
+) async* {
   // Read cache once at startup (don't watch to avoid restarting stream on cache updates)
   final cachedToken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
 
   if (cachedToken != null) {
     yield cachedToken;
-  }
-
-  if (eventReference != null) {
-    final hasToken = await ref.watch(
-      ionConnectEntityHasTokenProvider(eventReference: eventReference).future,
-    );
-    if (!hasToken) {
-      yield null;
-      return;
-    }
   }
 
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
@@ -77,6 +66,24 @@ Stream<CommunityToken?> tokenMarketInfo(
   } finally {
     await subscription?.close();
   }
+}
+
+// Guarded wrapper that checks if entity has a token before delegating to tokenMarketInfoProvider.
+@riverpod
+AsyncValue<CommunityToken?> tokenMarketInfoIfAvailable(
+  Ref ref,
+  EventReference eventReference,
+) {
+  final hasTokenAsync = ref.watch(
+    ionConnectEntityHasTokenProvider(eventReference: eventReference),
+  );
+  final hasToken = hasTokenAsync.valueOrNull ?? false;
+
+  if (!hasToken) {
+    return const AsyncData(null);
+  }
+
+  return ref.watch(tokenMarketInfoProvider(eventReference.toString()));
 }
 
 @riverpod

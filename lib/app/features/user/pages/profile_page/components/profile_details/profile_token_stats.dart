@@ -30,9 +30,11 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (eventReference == null) {
+      return const SizedBox.shrink();
+    }
     final marketData = ref.watch(
-      tokenMarketInfoProvider(externalAddress, eventReference: eventReference)
-          .select((t) => t.valueOrNull?.marketData),
+      tokenMarketInfoIfAvailableProvider(eventReference!).select((t) => t.valueOrNull?.marketData),
     );
     if (marketData == null) {
       return const SizedBox.shrink();
@@ -101,8 +103,11 @@ class ProfileTokenStats extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (eventReference == null) {
+      return const SizedBox.shrink();
+    }
     final tokenInfo = ref.watch(
-      tokenMarketInfoProvider(externalAddress, eventReference: eventReference),
+      tokenMarketInfoIfAvailableProvider(eventReference!),
     );
 
     if (!tokenInfo.hasValue) {
@@ -324,9 +329,12 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (eventReference == null) {
+      return const SizedBox.shrink();
+    }
     final tokenInfo = ref
         .watch(
-          tokenMarketInfoProvider(externalAddress, eventReference: eventReference),
+          tokenMarketInfoIfAvailableProvider(eventReference!),
         )
         .valueOrNull;
     if (tokenInfo == null) {
