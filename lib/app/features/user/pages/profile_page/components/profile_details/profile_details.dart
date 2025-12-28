@@ -32,16 +32,15 @@ class ProfileDetails extends ConsumerWidget {
     final userMetadata = ref.watch(userMetadataProvider(pubkey));
 
     final eventReference = userMetadata.valueOrNull?.toEventReference();
-    final eventReferenceString = eventReference?.toString();
 
     final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(pubkey));
 
     final hasBscWallet = (userMetadata.valueOrNull?.hasBscWallet).falseOrValue;
 
     final tokenInfo = profileMode == ProfileMode.dark
-        ? eventReferenceString != null && hasBscWallet && eventReference != null
+        ? eventReference != null && hasBscWallet
             ? ref.watch(
-                tokenMarketInfoProvider(eventReferenceString, eventReference: eventReference),
+                tokenMarketInfoIfAvailableProvider(eventReference),
               )
             : null
         : null;

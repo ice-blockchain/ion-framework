@@ -16,10 +16,8 @@ double? userTokenMarketCap(Ref ref, String masterPubkey) {
     kind: UserMetadataEntity.kind,
   );
 
-  final externalAddress = eventReference.toString();
-
   return ref.watch(
-    tokenMarketInfoProvider(externalAddress, eventReference: eventReference)
+    tokenMarketInfoIfAvailableProvider(eventReference)
         .select((AsyncValue<CommunityToken?> state) => state.valueOrNull?.marketData.marketCap),
   );
 }
