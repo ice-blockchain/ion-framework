@@ -176,3 +176,23 @@ final class ContentIonNotification extends IonNotification {
     };
   }
 }
+
+final class TokenLaunchIonNotification extends IonNotification {
+  TokenLaunchIonNotification({
+    required this.eventReference,
+    required super.timestamp,
+  }) : super(pubkeys: [eventReference.masterPubkey]);
+
+  final EventReference eventReference;
+
+  @override
+  String get asset => Assets.svg.iconMessageMeme;
+
+  @override
+  Color getBackgroundColor(BuildContext context) => context.theme.appColors.purple;
+
+  @override
+  String getDescription(BuildContext context, [String eventTypeLabel = '']) {
+    return context.i18n.notifications_token_launched(eventTypeLabel);
+  }
+}

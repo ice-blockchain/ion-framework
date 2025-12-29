@@ -668,6 +668,7 @@
   "notifications_repost": "[:username] a repostat {type}",
   "notifications_share": "[:username] a distribuit {type}",
   "notifications_title": "Notificări",
+  "notifications_token_launched": "[:username] [[:launched]]a lansat[[/:launched]] tokenul tău {type}",
   "notifications_type_comments": "Comentarii",
   "notifications_type_followers": "Urmăritori",
   "notifications_type_likes": "Aprecieri",

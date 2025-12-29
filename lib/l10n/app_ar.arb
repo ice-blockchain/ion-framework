@@ -678,6 +678,7 @@
   "notifications_repost": "[:username] أعاد نشر {type} الخاص بك",
   "notifications_share": "[:username] شارك {type} الخاص بك",
   "notifications_title": "الإشعارات",
+  "notifications_token_launched": "[:username] [[:launched]]أطلق[[/:launched]] رمز {type} الخاص بك",
   "notifications_type_comments": "التعليقات",
   "notifications_type_followers": "المتابعون",
   "notifications_type_likes": "الإعجابات",

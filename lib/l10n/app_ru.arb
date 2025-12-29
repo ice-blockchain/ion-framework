@@ -668,6 +668,7 @@
   "notifications_repost": "[:username] сделал перепост вашего {type}",
   "notifications_share": "[:username] поделился вашим {type}",
   "notifications_title": "Уведомления",
+  "notifications_token_launched": "[:username] [[:launched]]запустил[[/:launched]] ваш токен {type}",
   "notifications_type_comments": "Комментарии",
   "notifications_type_followers": "Подписчики",
   "notifications_type_likes": "Лайки",

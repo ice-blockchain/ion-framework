@@ -668,6 +668,7 @@
   "notifications_repost": "[:username] ha ripubblicato il tuo {type}",
   "notifications_share": "[:username] ha condiviso il tuo {type}",
   "notifications_title": "Notifiche",
+  "notifications_token_launched": "[:username] [[:launched]]ha lanciato[[/:launched]] il tuo token {type}",
   "notifications_type_comments": "Commenti",
   "notifications_type_followers": "Follower",
   "notifications_type_likes": "Mi piace",

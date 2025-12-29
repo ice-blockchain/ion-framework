@@ -668,6 +668,7 @@
   "notifications_repost": "[:username] препубликува вашия {type}",
   "notifications_share": "[:username] сподели вашия {type}",
   "notifications_title": "Известия",
+  "notifications_token_launched": "[:username] [[:launched]]пусна[[/:launched]] вашия {type} токен",
   "notifications_type_comments": "Коментари",
   "notifications_type_followers": "Последователи",
   "notifications_type_likes": "Харесвания",

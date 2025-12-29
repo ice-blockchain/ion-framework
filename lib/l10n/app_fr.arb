@@ -668,6 +668,7 @@
   "notifications_repost": "[:username] a republié votre {type}",
   "notifications_share": "[:username] a partagé votre {type}",
   "notifications_title": "Notifications",
+  "notifications_token_launched": "[:username] [[:launched]]a lancé[[/:launched]] votre jeton {type}",
   "notifications_type_comments": "Commentaires",
   "notifications_type_followers": "Abonnés",
   "notifications_type_likes": "J'aime",

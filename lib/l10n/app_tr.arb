@@ -668,6 +668,7 @@
   "notifications_repost": "[:username] {type} yeniden paylaştı",
   "notifications_share": "[:username] {type} paylaştı",
   "notifications_title": "Bildirimler",
+  "notifications_token_launched": "[:username] {type} tokenini [[:launched]]başlattı[[/:launched]]",
   "notifications_type_comments": "Yorumlar",
   "notifications_type_followers": "Takipçiler",
   "notifications_type_likes": "Beğeniler",

@@ -668,6 +668,7 @@
   "notifications_repost": "[:username] reposted your {type}",
   "notifications_share": "[:username] shared your {type}",
   "notifications_title": "Notifications",
+  "notifications_token_launched": "[:username] [[:launched]]launched[[/:launched]] your {type} token",
   "notifications_type_comments": "Comments",
   "notifications_type_followers": "Followers",
   "notifications_type_likes": "Likes",
