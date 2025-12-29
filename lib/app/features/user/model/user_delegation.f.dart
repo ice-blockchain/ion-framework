@@ -120,8 +120,11 @@ class UserDelegationData
       return currentDelegates;
     });
 
-    final activeDelegates = currentDelegates
-      ..removeWhere((_, delegate) => delegate.status != DelegationStatus.active);
+    final activeDelegates = Map<String, UserDelegate>.fromEntries(
+      currentDelegates.entries.where(
+        (entry) => entry.value.status == DelegationStatus.active,
+      ),
+    );
 
     return activeDelegates;
   }

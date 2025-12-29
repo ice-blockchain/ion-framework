@@ -759,14 +759,6 @@ class UgcCounterFetchException extends IONException {
         );
 }
 
-class UserDeviceRevokedException extends IONException {
-  UserDeviceRevokedException()
-      : super(
-          10140,
-          'User device has been revoked',
-        );
-}
-
 class BscNetworkNotFoundException extends IONException {
   BscNetworkNotFoundException() : super(10140, 'BSC network is missing');
 }
@@ -796,5 +788,13 @@ class CommunityTokenTradeTransactionException extends IONException {
           'Community token trade transaction error: $reason'
           '${status != null ? ', status: $status' : ''}'
           '${txHash != null ? ', txHash: $txHash' : ''}',
+        );
+}
+
+class UserDeviceRevokedException extends IONException {
+  UserDeviceRevokedException()
+      : super(
+          10144,
+          'User device has been revoked',
         );
 }
