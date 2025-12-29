@@ -144,12 +144,6 @@ class CommunityTokenActionBody extends HookConsumerWidget {
           top: topContainerHeight - (badgeHeight - padding) / 2,
           height: badgeHeight,
           child: Container(
-            decoration: ShapeDecoration(
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(40.0.s),
-              ),
-            ),
             padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 22.0.s),

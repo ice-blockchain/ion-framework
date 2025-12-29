@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
+import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -194,9 +195,13 @@ class ContentTokenHeader extends HookConsumerWidget {
           clipBehavior: Clip.none,
           children: [
             Container(
-              decoration: BoxDecoration(
+              decoration: ShapeDecoration(
                 color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12.5.s),
+                shape: showBuyButton
+                    ? const BottomNotchRectBorder()
+                    : const BottomNotchRectBorder(
+                        isOnTop: true,
+                      ),
               ),
               padding: EdgeInsets.symmetric(horizontal: 16.0.s),
               margin: EdgeInsetsDirectional.only(
