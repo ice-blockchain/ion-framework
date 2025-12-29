@@ -38,6 +38,7 @@ class NotificationItem extends HookConsumerWidget {
       final LikesIonNotification likes => likes.eventReference,
       final ContentIonNotification content => content.eventReference,
       final MentionIonNotification mention => mention.eventReference,
+      final TokenLaunchIonNotification tokenLaunch => tokenLaunch.eventReference,
       _ => null,
     };
 
@@ -172,6 +173,8 @@ class NotificationItem extends HookConsumerWidget {
 
     if (eventReference.isArticleReference) {
       await ArticleDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
+    } else if (eventReference.isProfileReference) {
+      await ProfileRoute(pubkey: eventReference.masterPubkey).push<void>(context);
     } else {
       await PostDetailsRoute(eventReference: eventReference.encode()).push<void>(context);
     }
