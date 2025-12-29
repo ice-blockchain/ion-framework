@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
+import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
@@ -38,8 +39,12 @@ class FeedProfileActionToken extends HookConsumerWidget {
           width: double.infinity,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.0.s),
+            child: ClipPath(
+              clipper: ShapeBorderClipper(
+                shape: BottomNotchRectBorder(
+                  isOnTop: true,
+                ),
+              ),
               child: ProfileBackground(
                 colors: useImageColors(token.imageUrl),
                 child: SizedBox(
