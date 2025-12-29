@@ -197,11 +197,9 @@ class ContentTokenHeader extends HookConsumerWidget {
             Container(
               decoration: ShapeDecoration(
                 color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
-                shape: showBuyButton
-                    ? const BottomNotchRectBorder()
-                    : const BottomNotchRectBorder(
-                        isOnTop: true,
-                      ),
+                shape: BottomNotchRectBorder(
+                  isOnTop: showBuyButton,
+                ),
               ),
               padding: EdgeInsets.symmetric(horizontal: 16.0.s),
               margin: EdgeInsetsDirectional.only(
