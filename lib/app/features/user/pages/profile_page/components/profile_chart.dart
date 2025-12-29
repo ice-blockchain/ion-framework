@@ -41,6 +41,12 @@ class ProfileChart extends StatelessWidget {
             ? ProfileChartType.falling
             : ProfileChartType.idle;
 
+    final symbol = switch (type) {
+      ProfileChartType.raising => r'+$',
+      ProfileChartType.falling => r'-$',
+      ProfileChartType.idle => r'$',
+    };
+
     return Container(
       decoration: ShapeDecoration(
         color: type.getColor(context),
@@ -63,7 +69,7 @@ class ProfileChart extends StatelessWidget {
             ),
             SizedBox(width: 4.0.s),
             Text(
-              formatToCurrency(amount, getNumericSign(amount)),
+              formatToCurrency(amount.abs(), symbol),
               style: context.theme.appTextThemes.body2.copyWith(
                 color: context.theme.appColors.primaryBackground,
               ),
