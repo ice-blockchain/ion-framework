@@ -288,9 +288,8 @@ class ModalShellRouteData extends ShellRouteData {
     GoRouterState state,
     Widget navigator,
   ) {
-    // Read barrierDismissible from the page route config stored by the child route
-    final pageConfig = pageRouteConfigs.remove(state.pageKey);
-    final isBarrierDismissible = pageConfig?.barrierDismissible ?? true;
+    final config = state.extra as RouteConfig?;
+    final isBarrierDismissible = config?.barrierDismissible ?? true;
 
     return ModalSheetPage(
       key: state.pageKey,
