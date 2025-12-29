@@ -50,8 +50,8 @@ class AuthFooter extends HookWidget {
       () => replaceString(
         context.i18n.auth_privacy,
         tagRegex('link', isSingular: false),
-        (String text, int index) {
-          final link = FooterLink.fromKey(text);
+        (match, int index) {
+          final link = FooterLink.fromKey(match.group(1)!);
           return TextSpan(
             text: link.label(context),
             style: context.theme.appTextThemes.caption3.copyWith(
