@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/date.dart';
@@ -49,6 +50,8 @@ class NotificationInfo extends HookConsumerWidget {
         notification.getDescription(context, eventTypeLabel, isAuthor),
       final ContentIonNotification notification => notification.getDescription(context),
       final MentionIonNotification notification =>
+        notification.getDescription(context, eventTypeLabel),
+      final TokenLaunchIonNotification notification =>
         notification.getDescription(context, eventTypeLabel),
       _ => notification.getDescription(context)
     };
@@ -124,6 +127,7 @@ class NotificationInfo extends HookConsumerWidget {
         ref.context.i18n.notifications_comment,
       ModifiablePostEntity() => ref.context.i18n.notifications_post,
       ArticleEntity() => ref.context.i18n.common_article,
+      UserMetadataEntity() => ref.context.i18n.common_creator,
       _ => '',
     };
   }
@@ -144,6 +148,7 @@ class NotificationInfo extends HookConsumerWidget {
       CommentIonNotification() => notification.eventReference,
       LikesIonNotification() => notification.eventReference,
       MentionIonNotification() => notification.eventReference,
+      TokenLaunchIonNotification() => notification.eventReference,
       _ => null,
     };
 

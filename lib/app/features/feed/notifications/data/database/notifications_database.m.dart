@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/followe
 import 'package:ion/app/features/feed/notifications/data/database/tables/likes_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/mentions_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/subscribed_users_content_table.d.dart';
+import 'package:ion/app/features/feed/notifications/data/database/tables/token_launch_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -45,6 +46,7 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
     FollowersTable,
     MentionsTable,
     AccountNotificationSyncStateTable,
+    TokenLaunchTable,
   ],
   queries: {
     'aggregatedLikes': '''
