@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
+import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
@@ -20,6 +21,7 @@ class HoldersPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
     final isLoadingMore = useState(false);
     final hasMore = useState(true);
 
@@ -93,6 +95,20 @@ class HoldersPage extends HookConsumerWidget {
                 }
               },
               hasMore: hasMore.value,
+              builder: (context, slivers) {
+                return PullToRefreshBuilder(
+                  slivers: slivers,
+                  onRefresh: () async {
+                    hasMore.value = true;
+                    ref.invalidate(topHoldersProvider);
+                  },
+                  builder: (context, slivers) => CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    controller: scrollController,
+                    slivers: slivers,
+                  ),
+                );
+              },
             ),
           ),
         ],
