@@ -15,6 +15,7 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_deta
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileDetails extends ConsumerWidget {
   const ProfileDetails({
@@ -52,7 +53,7 @@ class ProfileDetails extends ConsumerWidget {
             onTap: () {
               if (eventReference != null && token != null) {
                 TokenizedCommunityRoute(
-                  eventReference: eventReference.encode(),
+                  externalAddress: token.externalAddress,
                 ).push<void>(context);
               }
             },

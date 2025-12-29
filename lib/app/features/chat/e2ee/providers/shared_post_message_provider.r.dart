@@ -9,6 +9,7 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'shared_post_message_provider.r.g.dart';
@@ -27,6 +28,8 @@ class SharedPostMessage extends _$SharedPostMessage {
       PostEntity.kind => PostEntity.fromEventMessage(postEventMessage),
       ArticleEntity.kind => ArticleEntity.fromEventMessage(postEventMessage),
       ModifiablePostEntity.kind => ModifiablePostEntity.fromEventMessage(postEventMessage),
+      CommunityTokenDefinitionEntity.kind =>
+        CommunityTokenDefinitionEntity.fromEventMessage(postEventMessage),
       _ => null,
     };
 

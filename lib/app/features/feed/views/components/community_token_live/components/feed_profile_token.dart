@@ -167,7 +167,7 @@ class ProfileTokenHeader extends StatelessWidget {
           )
         else
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(27.s, 0.s, 27.s, 0.s),
+            padding: EdgeInsetsDirectional.fromSTEB(0.s, 0.s, 0.s, 0.s),
             child: ProfileTokenStatsFeed(
               externalAddress: externalAddress,
             ),

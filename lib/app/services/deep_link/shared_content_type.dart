@@ -5,6 +5,7 @@ enum SharedContentType {
   post,
   postWithVideo,
   article,
+  communityToken,
   profile;
 
   String get value {
@@ -14,6 +15,7 @@ enum SharedContentType {
       SharedContentType.postWithVideo => 'post_with_video',
       SharedContentType.article => 'article',
       SharedContentType.profile => 'profile',
+      SharedContentType.communityToken => 'community_token',
     };
   }
 
@@ -24,6 +26,7 @@ enum SharedContentType {
       'post_with_video' => SharedContentType.postWithVideo,
       'article' => SharedContentType.article,
       'profile' => SharedContentType.profile,
+      'community_token' => SharedContentType.communityToken,
       _ => throw ArgumentError('Unknown shared content type: $value'),
     };
   }

@@ -113,16 +113,15 @@ class ProfileTokenStats extends ConsumerWidget {
           SizedBox(width: 8.0.s),
           GestureDetector(
             onTap: () {
-              final eventReference = ReplaceableEventReference.fromString(externalAddress).encode();
               if (hasTokenInfo) {
                 // Someone already bought, open token page
                 TokenizedCommunityRoute(
-                  eventReference: eventReference,
+                  externalAddress: externalAddress,
                 ).push<void>(context);
               } else {
                 // No one bought yet, open trade dialog
                 TradeCommunityTokenRoute(
-                  eventReference: eventReference,
+                  eventReference: ReplaceableEventReference.fromString(externalAddress).encode(),
                   initialMode: CommunityTokenTradeMode.buy,
                 ).push<void>(context);
               }
@@ -326,81 +325,84 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
       clipBehavior: Clip.none,
       alignment: AlignmentDirectional.bottomCenter,
       children: [
-        Container(
-          decoration: ShapeDecoration(
-            color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.s),
+        IntrinsicWidth(
+          child: Container(
+            decoration: ShapeDecoration(
+              color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.s),
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (showFollowCounters) ...[
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 34.0.s,
+            constraints: BoxConstraints(minWidth: 260.s),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (showFollowCounters) ...[
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 0.0.s,
+                    ),
+                    child: FollowCounters(
+                      padding: EdgeInsetsDirectional.only(top: 6.s),
+                      enableDecoration: false,
+                      profileMode: ProfileMode.dark,
+                      height: 44.s,
+                      pubkey: ReplaceableEventReference.fromString(
+                        tokenInfo.creator.addresses!.ionConnect!,
+                      ).masterPubkey,
+                    ),
                   ),
-                  child: FollowCounters(
-                    padding: EdgeInsetsDirectional.only(top: 6.s),
-                    enableDecoration: false,
-                    profileMode: ProfileMode.dark,
-                    height: 44.s,
-                    pubkey: ReplaceableEventReference.fromString(
-                      tokenInfo.creator.addresses!.ionConnect!,
-                    ).masterPubkey,
+                  GradientHorizontalDivider(
+                    margin: EdgeInsetsDirectional.only(top: 0.s, bottom: 4.s),
+                  ),
+                ],
+                Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    top: showFollowCounters ? 10.s : 22.s,
+                    start: 20.s,
+                    end: 20.s,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 25.s,
+                    children: [
+                      TokenStatItem(
+                        icon: Assets.svg.iconMemeMarketcap,
+                        text: MarketDataFormatter.formatCompactNumber(
+                          marketData.marketCap,
+                        ),
+                        onTap: () => showSimpleBottomSheet<void>(
+                          context: context,
+                          child: const InfoModal(infoType: InfoType.marketCap),
+                        ),
+                      ),
+                      TokenStatItem(
+                        icon: Assets.svg.iconMemeMarkers,
+                        text: MarketDataFormatter.formatVolume(
+                          marketData.volume,
+                        ),
+                        onTap: () => showSimpleBottomSheet<void>(
+                          context: context,
+                          child: const InfoModal(infoType: InfoType.volume),
+                        ),
+                      ),
+                      TokenStatItem(
+                        icon: Assets.svg.iconSearchGroups,
+                        text: formatCount(marketData.holders),
+                        onTap: () => showSimpleBottomSheet<void>(
+                          context: context,
+                          child: const InfoModal(infoType: InfoType.holders),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                GradientHorizontalDivider(
-                  margin: EdgeInsetsDirectional.only(top: 0.s, bottom: 4.s),
+                SizedBox(
+                  height: 25.s,
                 ),
               ],
-              Padding(
-                padding: EdgeInsetsDirectional.only(
-                  top: showFollowCounters ? 10.s : 22.s,
-                  start: 20.0.s,
-                  end: 20.0.s,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  spacing: 25.s,
-                  children: [
-                    TokenStatItem(
-                      icon: Assets.svg.iconMemeMarketcap,
-                      text: MarketDataFormatter.formatCompactNumber(
-                        marketData.marketCap,
-                      ),
-                      onTap: () => showSimpleBottomSheet<void>(
-                        context: context,
-                        child: const InfoModal(infoType: InfoType.marketCap),
-                      ),
-                    ),
-                    TokenStatItem(
-                      icon: Assets.svg.iconMemeMarkers,
-                      text: MarketDataFormatter.formatVolume(
-                        marketData.volume,
-                      ),
-                      onTap: () => showSimpleBottomSheet<void>(
-                        context: context,
-                        child: const InfoModal(infoType: InfoType.volume),
-                      ),
-                    ),
-                    TokenStatItem(
-                      icon: Assets.svg.iconSearchGroups,
-                      text: formatCount(marketData.holders),
-                      onTap: () => showSimpleBottomSheet<void>(
-                        context: context,
-                        child: const InfoModal(infoType: InfoType.holders),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 25.s,
-              ),
-            ],
+            ),
           ),
         ),
         PositionedDirectional(
@@ -408,7 +410,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () => TokenizedCommunityRoute(
-              eventReference: ReplaceableEventReference.fromString(externalAddress).encode(),
+              externalAddress: externalAddress,
             ).push<void>(context),
             child: BuyButton(
               padding: EdgeInsetsDirectional.symmetric(horizontal: 22.s),

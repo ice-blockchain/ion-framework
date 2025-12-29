@@ -27,7 +27,8 @@ enum InternalDeepLinkHost {
   post('post'),
   article('article'),
   story('story'),
-  video('video');
+  video('video'),
+  communityToken('community_token');
 
   const InternalDeepLinkHost(this.value);
 
@@ -58,6 +59,7 @@ enum InternalDeepLinkHost {
 /// - ionapp://article/encoded_event_reference - Opens an article detail
 /// - ionapp://story/master_pubkey/encoded_event_reference - Opens a story viewer
 /// - ionapp://video/encoded_event_reference - Opens fullscreen video viewer
+/// - ionapp://community_token/external_address - Opens a community token detail
 @Riverpod(keepAlive: true)
 InternalDeepLinkService internalDeepLinkService(Ref ref) {
   return InternalDeepLinkService(ref);
@@ -121,6 +123,9 @@ final class InternalDeepLinkService {
             ? FullscreenMediaRoute(eventReference: pathSegments.first, initialMediaIndex: 0)
                 .location
             : null,
+        InternalDeepLinkHost.communityToken => pathSegments.isNotEmpty
+            ? TokenizedCommunityRoute(externalAddress: pathSegments.first).location
+            : null,
       };
     } catch (e) {
       Logger.error('Error extracting route location from host: $host, error: $e');
@@ -177,6 +182,9 @@ final class InternalDeepLinkService {
         // ionapp://video/encoded_event_reference for fullscreen video viewer
         InternalDeepLinkHost.video => pathSegments.isNotEmpty && context.mounted
             ? await _handleVideoDeepLink(pathSegments.first, context)
+            : null,
+        InternalDeepLinkHost.communityToken => pathSegments.isNotEmpty && context.mounted
+            ? TokenizedCommunityRoute(externalAddress: pathSegments.first).location
             : null,
       };
 

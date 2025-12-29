@@ -11,6 +11,7 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/deep_link/internal_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
@@ -32,6 +33,7 @@ const _contentTypeKey = 'content_type';
 /// 3. Regular posts -> post
 /// 4. Articles -> article
 /// 5. User profiles -> profile
+/// 6. Community tokens -> communityToken
 SharedContentType mapEntityToSharedContentType(IonConnectEntity entity) {
   return switch (entity) {
     ModifiablePostEntity() when entity.isStory => SharedContentType.story,
@@ -39,6 +41,7 @@ SharedContentType mapEntityToSharedContentType(IonConnectEntity entity) {
     ModifiablePostEntity() => SharedContentType.post,
     ArticleEntity() => SharedContentType.article,
     UserMetadataEntity() => SharedContentType.profile,
+    CommunityTokenDefinitionEntity() => SharedContentType.communityToken,
     _ => throw UnsupportedError('Unsupported IonConnectEntity: $entity'),
   };
 }

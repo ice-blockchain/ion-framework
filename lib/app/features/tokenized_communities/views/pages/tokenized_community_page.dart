@@ -26,6 +26,7 @@ import 'package:ion/app/features/tokenized_communities/utils/trading_stats_exten
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart_stats.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/comments_section_compact.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/community_token_context_menu.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/floating_trade_island.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/your_position_card.dart';
@@ -68,34 +69,19 @@ enum TokenizedCommunityTabType implements TabType {
 
 class TokenizedCommunityPage extends HookConsumerWidget {
   const TokenizedCommunityPage({
-    this.eventReference,
-    this.externalAddress,
+    required this.externalAddress,
     super.key,
-  }) : assert(
-          (eventReference == null) != (externalAddress == null),
-          'Either eventReference or externalAddress must be provided',
-        );
+  });
 
-  final EventReference? eventReference;
-  final String? externalAddress;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final resolvedExternalAddress = externalAddress ?? eventReference!.toString();
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
-    final tokenDefinition = (eventReference != null
-            ? ref.watch(
-                tokenDefinitionForIonConnectReferenceProvider(eventReference: eventReference!),
-              )
-            : ref.watch(
-                tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress!),
-              ))
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenDefinition = ref
+        .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
         .valueOrNull;
-
-    final tokenType = (eventReference != null
-            ? ref.watch(tokenTypeForIonConnectEntityProvider(eventReference: eventReference!))
-            : ref.watch(tokenTypeForExternalAddressProvider(externalAddress!)))
-        .valueOrNull;
+    final tokenType = ref.watch(tokenTypeForExternalAddressProvider(externalAddress)).valueOrNull;
     final activeTab = useState(TokenizedCommunityTabType.chart);
     final isCommentInputFocused = useState(false);
     final innerScrollController = useState<ScrollController?>(null);
@@ -138,8 +124,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       applySafeAreaBottomPadding: false,
       imageUrl: tokenInfo?.imageUrl,
       onRefresh: () async {
-        final externalAddress = this.externalAddress ?? eventReference!.toString();
-
         ref
           ..invalidate(tokenMarketInfoProvider(externalAddress))
           ..invalidate(tokenTradingStatsProvider(externalAddress))
@@ -189,23 +173,22 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       floatingActionButton: isCommentInputFocused.value
           ? const SizedBox.shrink()
           : FloatingTradeIsland(
-              eventReference: eventReference,
               externalAddress: externalAddress,
             ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
-        if (tokenType == CommunityContentTokenType.profile && eventReference != null)
-          BookmarkButton(
-            eventReference: eventReference!,
-            mode: BookmarkButtonMode.iconButton,
+        if (tokenType == CommunityContentTokenType.profile)
+          Padding(
+            padding: EdgeInsetsDirectional.only(end: 6.0.s),
+            child: BookmarkButton(
+              eventReference: ReplaceableEventReference.fromString(externalAddress),
+              mode: BookmarkButtonMode.iconButton,
+            ),
           ),
-        IconButton(
-          padding: EdgeInsets.zero,
-          onPressed: () {},
-          icon: Assets.svg.iconMoreStoriesshadow.icon(
-            size: 24.s,
-            color: context.theme.appColors.onPrimaryAccent,
-          ),
+        CommunityTokenContextMenu(
+          closeSignal: menuCloseSignal,
+          tokenDefinitionEntity: tokenDefinition,
         ),
+        SizedBox(width: 16.s),
       ],
       expandedHeader: Column(
         children: [
@@ -220,7 +203,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                 if (tokenType == CommunityContentTokenType.profile) {
                   return ProfileTokenHeader(
                     token: tokenInfo,
-                    externalAddress: resolvedExternalAddress,
+                    externalAddress: externalAddress,
                     minimal: true,
                   );
                 } else if (tokenType == CommunityContentTokenType.twitter) {
@@ -239,7 +222,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                     child: ContentTokenHeader(
                       type: tokenType,
                       token: tokenInfo,
-                      externalAddress: resolvedExternalAddress,
+                      externalAddress: externalAddress,
                       tokenDefinition: tokenDefinition,
                       showBuyButton: false,
                     ),
@@ -281,23 +264,23 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             KeyedSubtree(
               key: sectionKeys[TokenizedCommunityTabType.chart.index],
               child: _TokenChart(
-                externalAddress: resolvedExternalAddress,
+                externalAddress: externalAddress,
               ),
             ),
             SimpleSeparator(height: 4.0.s),
-            _TokenStats(externalAddress: resolvedExternalAddress),
+            _TokenStats(externalAddress: externalAddress),
             SimpleSeparator(height: 4.0.s),
             KeyedSubtree(
               key: sectionKeys[TokenizedCommunityTabType.holders.index],
               child: TopHolders(
-                externalAddress: resolvedExternalAddress,
+                externalAddress: externalAddress,
               ),
             ),
             SimpleSeparator(height: 4.0.s),
             KeyedSubtree(
               key: sectionKeys[TokenizedCommunityTabType.trades.index],
               child: LatestTradesCard(
-                externalAddress: resolvedExternalAddress,
+                externalAddress: externalAddress,
               ),
             ),
             if (tokenDefinition != null) ...[

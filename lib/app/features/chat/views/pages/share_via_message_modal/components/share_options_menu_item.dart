@@ -22,8 +22,8 @@ class ShareOptionsMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 70.0.s,
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: 70.0.s),
       child: TextIconButton(
         icon: icon,
         label: label,

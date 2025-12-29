@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/shared_post_message_provider.r.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
+import 'package:ion/app/features/chat/views/components/message_items/message_types/community_token_message/commuity_token_message.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/shared_post_message.dart'
     as shared_post_ui;
 import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/shared_post_wrapper.dart';
@@ -14,6 +15,7 @@ import 'package:ion/app/features/components/entities_list/list_cached_objects.da
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 
 class PostMessage extends HookConsumerWidget {
   const PostMessage({
@@ -68,6 +70,25 @@ class PostMessage extends HookConsumerWidget {
       },
       [postEntity],
     );
+
+    final isTokenizedCommunity = useMemoized<bool>(
+      () {
+        return switch (postEntity) {
+          final CommunityTokenDefinitionEntity _ => true,
+          _ => false,
+        };
+      },
+      [postEntity],
+    );
+
+    if (isTokenizedCommunity) {
+      final communityTokenDefinitionEntity = postEntity as CommunityTokenDefinitionEntity;
+      return CommunityTokenMessage(
+        margin: margin,
+        eventMessage: eventMessage,
+        definitionEntity: communityTokenDefinitionEntity,
+      );
+    }
 
     return isStory
         ? SharedStoryWrapper(

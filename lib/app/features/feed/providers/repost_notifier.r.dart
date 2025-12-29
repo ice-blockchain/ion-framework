@@ -43,7 +43,8 @@ class RepostNotifier extends _$RepostNotifier {
     state = const AsyncValue.loading();
 
     return AsyncValue.guard(() async {
-      final entity = ref.read(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+      final entity =
+          await ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
 
       if (entity == null) {
         throw EntityNotFoundException(eventReference);
