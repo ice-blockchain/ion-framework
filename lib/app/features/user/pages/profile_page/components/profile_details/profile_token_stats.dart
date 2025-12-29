@@ -206,6 +206,7 @@ class TokenStatItem extends StatelessWidget {
               textAlign: TextAlign.center,
               style: context.theme.appTextThemes.caption.copyWith(
                 color: context.theme.appColors.secondaryBackground,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
