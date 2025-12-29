@@ -3,7 +3,7 @@
 import 'package:intl/intl.dart';
 
 String formatPercent(double p) {
-  final sign = p >= 0 ? '+' : '';
+  final sign = p > 0 ? '+' : '';
   return '$sign${p.toStringAsFixed(2)}%';
 }
 
