@@ -39,6 +39,7 @@ class InfoModal extends HookWidget {
             iconAsset: infoType.iconAsset,
             title: infoType.getTitle(context),
             description: description,
+            descriptionTextAlign: TextAlign.start,
           ),
         ),
         ScreenBottomOffset(margin: 12.0.s),
