@@ -59,7 +59,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     return transaction(() async {
       String buildSwapKey(Transaction t) => '${t.txHash}_${t.walletViewId}';
 
-      final existing = await (select(transactionsTable)
+      final existingByTxHash = await (select(transactionsTable)
             ..where(
               (t) =>
                   t.txHash.isIn(transactions.map((e) => e.txHash)) &
@@ -68,13 +68,81 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
             ))
           .get();
 
+      // Check for existing transactions by externalHash to prevent duplicates
+      final transactionsWithExternalHash =
+          transactions.where((t) => t.externalHash != null).toList();
+      final existingByExternalHash = transactionsWithExternalHash.isNotEmpty
+          ? await (select(transactionsTable)
+                ..where(
+                  (t) =>
+                      t.externalHash.isIn(
+                        transactionsWithExternalHash.map((e) => e.externalHash!).nonNulls.toList(),
+                      ) &
+                      t.walletViewId.isIn(transactions.map((e) => e.walletViewId)) &
+                      t.type.isIn(transactions.map((e) => e.type)),
+                ))
+              .get()
+          : <Transaction>[];
+
+      // Check if any incoming transaction's txHash matches an existing transaction's externalHash
+      final incomingTxHashes = transactions.map((e) => e.txHash).toList();
+      final existingByIncomingTxHashAsExternal = await (select(transactionsTable)
+            ..where(
+              (t) =>
+                  t.externalHash.isIn(incomingTxHashes) &
+                  t.walletViewId.isIn(transactions.map((e) => e.walletViewId)) &
+                  t.type.isIn(transactions.map((e) => e.type)),
+            ))
+          .get();
+
+      // Combine all existing transactions and remove duplicates
+      final allExisting = <Transaction>[
+        ...existingByTxHash,
+        ...existingByExternalHash,
+        ...existingByIncomingTxHashAsExternal,
+      ]
+          .fold<Map<String, Transaction>>(
+            <String, Transaction>{},
+            (map, tx) {
+              final key = '${tx.txHash}_${tx.walletViewId}_${tx.type}';
+              if (!map.containsKey(key)) {
+                map[key] = tx;
+              }
+              return map;
+            },
+          )
+          .values
+          .toList();
+
+      // Create a map to find existing transactions by their externalHash or txHash
+      // This helps us normalize incoming transactions to use the correct txHash
+      final existingByExternalHashMap = <String, Transaction>{};
+      for (final tx in allExisting) {
+        if (tx.externalHash != null) {
+          existingByExternalHashMap[tx.externalHash!] = tx;
+        }
+        existingByExternalHashMap[tx.txHash] = tx;
+      }
+
+      // Normalize incoming transactions
+      final normalizedTransactions = transactions.map((tx) {
+        final matchedExisting = existingByExternalHashMap[tx.txHash];
+        if (matchedExisting != null && matchedExisting.txHash != tx.txHash) {
+          return tx.copyWith(
+            txHash: matchedExisting.txHash,
+            externalHash: Value(matchedExisting.externalHash ?? tx.externalHash),
+          );
+        }
+        return tx;
+      }).toList();
+
       final existingMap = {
-        for (final e in existing) '${buildSwapKey(e)}_${e.type}': e,
+        for (final e in allExisting) '${buildSwapKey(e)}_${e.type}': e,
       };
 
       // Detect on-chain swaps: same txHash + walletViewId, different types
       final txHashWalletPairs = <String, List<Transaction>>{};
-      for (final t in [...existing, ...transactions]) {
+      for (final t in [...allExisting, ...normalizedTransactions]) {
         final key = buildSwapKey(t);
         txHashWalletPairs[key] = [...(txHashWalletPairs[key] ?? []), t];
       }
@@ -86,7 +154,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
           .toSet();
 
       // Update isSwap flag for detected on-chain swaps
-      final transactionsWithSwapFlag = transactions.map((t) {
+      final transactionsWithSwapFlag = normalizedTransactions.map((t) {
         final key = buildSwapKey(t);
 
         if (swapHashes.contains(key) && !t.isSwap) {
@@ -96,7 +164,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       }).toList();
 
       // Find existing transactions that need isSwap flag updated
-      final existingToUpdate = existing
+      final existingToUpdate = allExisting
           .where((existingTx) {
             final key = buildSwapKey(existingTx);
             return swapHashes.contains(key) && !existingTx.isSwap;
