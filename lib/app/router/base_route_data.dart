@@ -48,6 +48,8 @@ abstract class BaseRouteData extends GoRouteData {
   final LocalKey? key;
   final RouteConfig routeConfig;
 
+  Object? get extra => routeConfig;
+
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     return switch (type) {
@@ -74,7 +76,6 @@ abstract class BaseRouteData extends GoRouteData {
       IceRouteType.bottomSheet => FadeTransitionSheetPage(
           child: child,
           state: state,
-          extra: routeConfig,
         ),
       IceRouteType.slideFromLeft => SlideFromLeftTransitionPage(child: child, state: state),
       IceRouteType.fade => FadeTransitionPage(child: child, state: state),
@@ -96,7 +97,6 @@ class FadeTransitionSheetPage extends PagedSheetPage<void> {
   FadeTransitionSheetPage({
     required super.child,
     required GoRouterState state,
-    RouteConfig? extra,
   }) : super(
           key: state.pageKey,
           physics: const ClampingSheetPhysics(),
@@ -116,17 +116,8 @@ class FadeTransitionSheetPage extends PagedSheetPage<void> {
               child: child,
             );
           },
-        ) {
-    // Store the extra config in state for shell route to access
-    // This will be cleaned up when ModalShellRouteData reads it
-    if (extra != null) {
-      pageRouteConfigs[state.pageKey] = extra;
-    }
-  }
+        );
 }
-
-// Storage for page-level route configs (public so ModalShellRouteData can access)
-final pageRouteConfigs = <ValueKey<String>, RouteConfig>{};
 
 class FadeTransitionPage extends CustomTransitionPage<void> {
   FadeTransitionPage({
