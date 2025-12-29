@@ -25,6 +25,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     required bool hasConsent,
     bool testMode = false,
     bool verbose = false,
+    bool nativeOnly = true,
   }) async {
     _hasConsent = hasConsent;
     Appodeal.setTesting(testMode);
@@ -50,13 +51,15 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
 
     await Appodeal.initialize(
       appKey: Platform.isAndroid ? androidAppKey : iosAppKey,
-      adTypes: [
-        AppodealAdType.RewardedVideo,
-        AppodealAdType.Interstitial,
-        AppodealAdType.Banner,
-        AppodealAdType.MREC,
-        AppodealAdType.NativeAd,
-      ],
+      adTypes: nativeOnly
+          ? [AppodealAdType.NativeAd]
+          : [
+              AppodealAdType.RewardedVideo,
+              AppodealAdType.Interstitial,
+              AppodealAdType.Banner,
+              AppodealAdType.MREC,
+              AppodealAdType.NativeAd,
+            ],
       onInitializationFinished: (errors) {
         errors?.forEach((error) => log(error.description));
         log('onInitializationFinished: errors - ${errors?.length ?? 0}');

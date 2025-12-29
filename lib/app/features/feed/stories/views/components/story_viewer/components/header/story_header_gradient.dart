@@ -13,11 +13,12 @@ class StoryHeaderGradient extends StatelessWidget {
       start: 0,
       end: 0,
       child: Container(
-        height: 80.0.s,
+        height: 120.0.s,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          gradient: RadialGradient(
+            center: Alignment.topRight,
+            radius: 1.1,
+            // end: Alignment.bottomCenter,
             colors: [
               context.theme.appColors.primaryText.withValues(alpha: 0.3),
               context.theme.appColors.primaryText.withValues(alpha: 0.15),
