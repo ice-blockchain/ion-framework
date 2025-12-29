@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -209,7 +210,7 @@ class _ValueAndChange extends StatelessWidget {
               borderRadius: BorderRadius.circular(6.0.s),
             ),
             child: Text(
-              '${changePercent >= 0 ? '+' : ''}${changePercent.toStringAsFixed(2)}%',
+              formatPercent(changePercent),
               style: texts.caption2.copyWith(color: Colors.white),
             ),
           ),

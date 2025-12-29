@@ -74,8 +74,9 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         ? ProfileChartType.raising
         : ProfileChartType.falling;
     final badgeColor = switch (type) {
+      ProfileChartType.idle => context.theme.appColors.success,
       ProfileChartType.raising => context.theme.appColors.success,
-      ProfileChartType.falling => context.theme.appColors.attentionRed,
+      ProfileChartType.falling => context.theme.appColors.raspberry,
     };
 
     final position = ref
