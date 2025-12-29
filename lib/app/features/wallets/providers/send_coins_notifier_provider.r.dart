@@ -12,7 +12,6 @@ import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dar
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
-import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
@@ -341,30 +340,25 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
       throw EventSignerNotFoundException();
     }
 
-    final currentUserActiveDelegates = currentUserDelegation?.data.delegates
-            .where((delegate) => delegate.status == DelegationStatus.active)
-            .toList() ??
-        [];
+    final currentUserActiveDevicePubkeys =
+        currentUserDelegation?.data.activeDelegates().keys.toList() ?? [];
 
-    final currentUserPubkeys = currentUserActiveDelegates.map((e) => e.pubkey).toList();
-
-    if (!currentUserPubkeys.contains(eventSigner.publicKey)) {
+    if (!currentUserActiveDevicePubkeys.contains(eventSigner.publicKey)) {
       throw UserDeviceRevokedException();
     }
 
-    final receiverActiveDelegates = receiverDelegation?.data.delegates
-            .where((delegate) => delegate.status == DelegationStatus.active)
-            .toList() ??
-        [];
-
-    final receiverPubkeys = receiverActiveDelegates.map((e) => e.pubkey).toList();
+    final receiverActiveDevicePubkeys =
+        receiverDelegation?.data.activeDelegates().keys.toList() ?? [];
 
     final senderPubkeysMap = (
       masterPubkey: currentUserMasterPubkey,
-      devicePubkeys: currentUserPubkeys,
+      devicePubkeys: currentUserActiveDevicePubkeys,
     );
-    final receiverPubkeysMap =
-        (masterPubkey: details.participantPubkey!, devicePubkeys: receiverPubkeys);
+
+    final receiverPubkeysMap = (
+      masterPubkey: details.participantPubkey!,
+      devicePubkeys: receiverActiveDevicePubkeys,
+    );
 
     final sendToRelayService = await ref.read(sendTransactionToRelayServiceProvider.future);
     final event = await sendToRelayService.sendTransactionEntity(
