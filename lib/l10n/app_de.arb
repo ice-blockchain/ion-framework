@@ -705,6 +705,7 @@
   "post_menu_report_post": "Beitrag melden",
   "post_menu_unblock_nickname": "@{nickname} Blockierung aufheben",
   "post_menu_unfollow_nickname": "@{nickname} entfolgen",
+  "post_on_feed": "Im Feed posten",
   "post_page_title": "Beitrag",
   "post_reply_hint": "Schreibe deine Antwort",
   "post_reply_sent": "Deine Antwort wurde gesendet",

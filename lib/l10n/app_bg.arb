@@ -705,6 +705,7 @@
   "post_menu_report_post": "Докладвай публикация",
   "post_menu_unblock_nickname": "Разблокирай @{nickname}",
   "post_menu_unfollow_nickname": "Спрете да следвате @{nickname}",
+  "post_on_feed": "Публикуване в емисията",
   "post_page_title": "Публикация",
   "post_reply_hint": "Напишете вашия отговор",
   "post_reply_sent": "Вашият отговор беше изпратен",

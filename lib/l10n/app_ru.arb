@@ -705,6 +705,7 @@
   "post_menu_report_post": "Пожаловаться на пост",
   "post_menu_unblock_nickname": "Разблокировать @{nickname}",
   "post_menu_unfollow_nickname": "Отписаться от @{nickname}",
+  "post_on_feed": "Опубликовать в ленте",
   "post_page_title": "Пост",
   "post_reply_hint": "Напишите свой ответ",
   "post_reply_sent": "Ваш ответ отправлен",

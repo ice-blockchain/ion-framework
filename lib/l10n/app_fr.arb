@@ -705,6 +705,7 @@
   "post_menu_report_post": "Signaler la publication",
   "post_menu_unblock_nickname": "Débloquer @{nickname}",
   "post_menu_unfollow_nickname": "Ne plus suivre @{nickname}",
+  "post_on_feed": "Publier sur le fil",
   "post_page_title": "Publication",
   "post_reply_hint": "Écrivez votre réponse",
   "post_reply_sent": "Votre réponse a été envoyée",

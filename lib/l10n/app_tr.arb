@@ -705,6 +705,7 @@
   "post_menu_report_post": "Gönderiyi bildir",
   "post_menu_unblock_nickname": "@{nickname} engelini kaldır",
   "post_menu_unfollow_nickname": "@{nickname} takibi bırak",
+  "post_on_feed": "Akışta gönder",
   "post_page_title": "Gönderi",
   "post_reply_hint": "Yanıtınızı yazın",
   "post_reply_sent": "Yanıtınız gönderildi",

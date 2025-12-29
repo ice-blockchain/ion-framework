@@ -715,6 +715,7 @@
   "post_menu_report_post": "الإبلاغ عن المنشور",
   "post_menu_unblock_nickname": "إلغاء حظر @{nickname}",
   "post_menu_unfollow_nickname": "إلغاء متابعة @{nickname}",
+  "post_on_feed": "نشر في الخلاصة",
   "post_page_title": "منشور",
   "post_reply_hint": "اكتب ردك",
   "post_reply_sent": "تم إرسال ردك",
