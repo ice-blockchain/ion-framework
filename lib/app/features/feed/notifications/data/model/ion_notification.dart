@@ -5,6 +5,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/notifications/views/notification_icon/outlined_notification_icon.dart';
+import 'package:ion/app/features/feed/notifications/views/notification_icon/token_notification_icon.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -17,16 +19,12 @@ sealed class IonNotification {
 
   final List<String> pubkeys;
 
-  String get asset;
+  Widget getIcon(BuildContext context, {required double size});
 
   String getDescription(BuildContext context);
-
-  Color getBackgroundColor(BuildContext context);
 }
 
 enum CommentIonNotificationType { reply, quote, repost }
-
-enum MentionIonNotificationType { mention }
 
 final class CommentIonNotification extends IonNotification {
   CommentIonNotification({
@@ -40,18 +38,23 @@ final class CommentIonNotification extends IonNotification {
   final EventReference eventReference;
 
   @override
-  String get asset => switch (type) {
-        CommentIonNotificationType.reply => Assets.svg.iconBlockComment,
-        CommentIonNotificationType.quote => Assets.svg.iconFeedQuote,
-        CommentIonNotificationType.repost => Assets.svg.iconFeedRepost
-      };
-
-  @override
-  Color getBackgroundColor(BuildContext context) {
+  Widget getIcon(BuildContext context, {required double size}) {
     return switch (type) {
-      CommentIonNotificationType.reply => context.theme.appColors.purple,
-      CommentIonNotificationType.quote => context.theme.appColors.medBlue,
-      CommentIonNotificationType.repost => context.theme.appColors.pink,
+      CommentIonNotificationType.reply => OutlinedNotificationIcon(
+          size: size,
+          asset: Assets.svg.iconBlockComment,
+          backgroundColor: context.theme.appColors.purple,
+        ),
+      CommentIonNotificationType.quote => OutlinedNotificationIcon(
+          size: size,
+          asset: Assets.svg.iconFeedQuote,
+          backgroundColor: context.theme.appColors.medBlue,
+        ),
+      CommentIonNotificationType.repost => OutlinedNotificationIcon(
+          size: size,
+          asset: Assets.svg.iconFeedRepost,
+          backgroundColor: context.theme.appColors.pink,
+        ),
     };
   }
 
@@ -76,10 +79,11 @@ final class MentionIonNotification extends IonNotification {
   final EventReference eventReference;
 
   @override
-  String get asset => Assets.svg.iconNotificationMention;
-
-  @override
-  Color getBackgroundColor(BuildContext context) => context.theme.appColors.lightBlue;
+  Widget getIcon(BuildContext context, {required double size}) => OutlinedNotificationIcon(
+        size: size,
+        asset: Assets.svg.iconNotificationMention,
+        backgroundColor: context.theme.appColors.lightBlue,
+      );
 
   @override
   String getDescription(BuildContext context, [String eventTypeLabel = '']) {
@@ -100,10 +104,11 @@ final class LikesIonNotification extends IonNotification {
   final int total;
 
   @override
-  String get asset => Assets.svg.iconVideoLikeOff;
-
-  @override
-  Color getBackgroundColor(BuildContext context) => context.theme.appColors.attentionRed;
+  Widget getIcon(BuildContext context, {required double size}) => OutlinedNotificationIcon(
+        size: size,
+        asset: Assets.svg.iconVideoLikeOff,
+        backgroundColor: context.theme.appColors.attentionRed,
+      );
 
   @override
   String getDescription(BuildContext context, [String eventTypeLabel = '']) {
@@ -125,10 +130,11 @@ final class FollowersIonNotification extends IonNotification {
   final int total;
 
   @override
-  String get asset => Assets.svg.iconSearchFollow;
-
-  @override
-  Color getBackgroundColor(BuildContext context) => context.theme.appColors.primaryAccent;
+  Widget getIcon(BuildContext context, {required double size}) => OutlinedNotificationIcon(
+        size: size,
+        asset: Assets.svg.iconSearchFollow,
+        backgroundColor: context.theme.appColors.primaryAccent,
+      );
 
   @override
   String getDescription(BuildContext context) {
@@ -154,22 +160,21 @@ final class ContentIonNotification extends IonNotification {
   final EventReference eventReference;
 
   @override
-  String get asset => switch (type) {
-        ContentIonNotificationType.posts => Assets.svg.iconBlockComment,
-        ContentIonNotificationType.stories => Assets.svg.iconFeedStories,
-        ContentIonNotificationType.articles => Assets.svg.iconFeedArticles,
-        ContentIonNotificationType.videos => Assets.svg.iconFeedVideos,
-      };
-
-  @override
-  Color getBackgroundColor(BuildContext context) {
-    return switch (type) {
-      ContentIonNotificationType.posts => context.theme.appColors.purple,
-      ContentIonNotificationType.stories => context.theme.appColors.orangePeel,
-      ContentIonNotificationType.articles => context.theme.appColors.success,
-      ContentIonNotificationType.videos => context.theme.appColors.lossRed,
-    };
-  }
+  Widget getIcon(BuildContext context, {required double size}) => OutlinedNotificationIcon(
+        size: size,
+        asset: switch (type) {
+          ContentIonNotificationType.posts => Assets.svg.iconBlockComment,
+          ContentIonNotificationType.stories => Assets.svg.iconFeedStories,
+          ContentIonNotificationType.articles => Assets.svg.iconFeedArticles,
+          ContentIonNotificationType.videos => Assets.svg.iconFeedVideos,
+        },
+        backgroundColor: switch (type) {
+          ContentIonNotificationType.posts => context.theme.appColors.purple,
+          ContentIonNotificationType.stories => context.theme.appColors.orangePeel,
+          ContentIonNotificationType.articles => context.theme.appColors.success,
+          ContentIonNotificationType.videos => context.theme.appColors.lossRed,
+        },
+      );
 
   @override
   String getDescription(BuildContext context) {
@@ -191,10 +196,7 @@ final class TokenLaunchIonNotification extends IonNotification {
   final EventReference eventReference;
 
   @override
-  String get asset => Assets.svg.iconMessageMeme;
-
-  @override
-  Color getBackgroundColor(BuildContext context) => context.theme.appColors.purple;
+  Widget getIcon(BuildContext context, {required double size}) => TokenNotificationIcon(size: size);
 
   @override
   String getDescription(BuildContext context, [IonConnectEntity? entity]) {
