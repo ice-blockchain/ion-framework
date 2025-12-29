@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'ion_ads'
-  s.version          = '3.10.0'
+  s.version          = '3.12.0'
   s.summary          = 'ION Appodeal flutter plugin'
   s.description      = <<-DESC
   Flutter plugin for Appodeal SDK. It supports interstitial, rewarded video and banner ads.
@@ -19,8 +19,8 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'Flutter'
-  s.dependency "Appodeal", "3.10.0"
-  s.dependency "APDIABAdapter", "3.10.0.0"
+  s.dependency "Appodeal", "3.12.0"
+  s.dependency "APDIABAdapter", "3.12.0.0"
 
   s.resources = ['Assets/**/*']
 
