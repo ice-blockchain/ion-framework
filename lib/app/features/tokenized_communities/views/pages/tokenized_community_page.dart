@@ -2,6 +2,7 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/layouts/collapsing_header_layout.dart';
@@ -97,6 +98,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         .valueOrNull;
     final activeTab = useState(TokenizedCommunityTabType.chart);
     final isCommentInputFocused = useState(false);
+    final innerScrollController = useState<ScrollController?>(null);
 
     final sectionKeys = useMemoized(
       () => List.generate(
@@ -105,6 +107,31 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       ),
       [],
     );
+
+    Future<void> scrollToSection(int index) async {
+      final targetCtx = sectionKeys[index].currentContext;
+      if (targetCtx == null) return;
+
+      final nestedState = targetCtx.findAncestorStateOfType<NestedScrollViewState>();
+      final inner = nestedState?.innerController ?? innerScrollController.value;
+      if (inner == null || !inner.hasClients) return;
+
+      final ro = targetCtx.findRenderObject();
+      if (ro == null) return;
+
+      final viewport = RenderAbstractViewport.of(ro);
+
+      // Align the section to the TOP of the inner viewport.
+      final desired = viewport.getOffsetToReveal(ro, 0).offset;
+      final pos = inner.position;
+      final target = (desired - 110.0).clamp(pos.minScrollExtent, pos.maxScrollExtent);
+
+      await inner.animateTo(
+        target,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
 
     return CollapsingHeaderLayout(
       backgroundColor: context.theme.appColors.secondaryBackground,
@@ -119,6 +146,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           ..invalidate(tokenLatestTradesProvider(externalAddress, limit: LatestTradesCard.limit))
           ..invalidate(tokenTopHoldersProvider(externalAddress, limit: holdersCountLimit));
       },
+      onInnerScrollController: (c) => innerScrollController.value = c,
       collapsedHeaderBuilder: (opacity) => SizedBox(
         height: 36.s,
         child: Row(
@@ -226,15 +254,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             onTabTapped: (int index) {
               activeTab.value = TokenizedCommunityTabType.values[index];
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                final context = sectionKeys[index].currentContext;
-                if (context != null) {
-                  Scrollable.ensureVisible(
-                    context,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    alignment: 0.1,
-                  );
-                }
+                scrollToSection(index);
               });
             },
           ),
@@ -262,40 +282,34 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               key: sectionKeys[TokenizedCommunityTabType.chart.index],
               child: _TokenChart(
                 externalAddress: resolvedExternalAddress,
-                onTitleVisibilityChanged: (double visibility) {
-                  //do not handle with current implementation
-                },
               ),
             ),
             SimpleSeparator(height: 4.0.s),
             _TokenStats(externalAddress: resolvedExternalAddress),
             SimpleSeparator(height: 4.0.s),
-            TopHolders(
+            KeyedSubtree(
               key: sectionKeys[TokenizedCommunityTabType.holders.index],
-              externalAddress: resolvedExternalAddress,
-              onTitleVisibilityChanged: (double visibility) {
-                //do not handle with current implementation
-              },
+              child: TopHolders(
+                externalAddress: resolvedExternalAddress,
+              ),
             ),
             SimpleSeparator(height: 4.0.s),
-            LatestTradesCard(
+            KeyedSubtree(
               key: sectionKeys[TokenizedCommunityTabType.trades.index],
-              externalAddress: resolvedExternalAddress,
-              onTitleVisibilityChanged: (double visibility) {
-                //do not handle with current implementation
-              },
+              child: LatestTradesCard(
+                externalAddress: resolvedExternalAddress,
+              ),
             ),
             if (tokenDefinition != null) ...[
               SimpleSeparator(height: 4.0.s),
-              CommentsSectionCompact(
+              KeyedSubtree(
                 key: sectionKeys[TokenizedCommunityTabType.comments.index],
-                tokenDefinitionEventReference: tokenDefinition.toEventReference(),
-                onTitleVisibilityChanged: (double visibility) {
-                  //do not handle with current implementation
-                },
-                onCommentInputFocusChanged: (bool isFocused) {
-                  isCommentInputFocused.value = isFocused;
-                },
+                child: CommentsSectionCompact(
+                  tokenDefinitionEventReference: tokenDefinition.toEventReference(),
+                  onCommentInputFocusChanged: (bool isFocused) {
+                    isCommentInputFocused.value = isFocused;
+                  },
+                ),
               ),
             ],
             SizedBox(height: 120.0.s),
@@ -309,11 +323,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
 class _TokenChart extends HookConsumerWidget {
   const _TokenChart({
     required this.externalAddress,
-    required this.onTitleVisibilityChanged,
   });
 
   final String externalAddress;
-  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -330,7 +342,6 @@ class _TokenChart extends HookConsumerWidget {
       externalAddress: externalAddress,
       price: price,
       label: tokenInfo.title,
-      onTitleVisibilityChanged: onTitleVisibilityChanged,
     );
   }
 }

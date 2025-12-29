@@ -9,19 +9,16 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/compo
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 const int holdersCountLimit = 5;
 
 class TopHolders extends StatelessWidget {
   const TopHolders({
     required this.externalAddress,
-    this.onTitleVisibilityChanged,
     super.key,
   });
 
   final String externalAddress;
-  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +31,7 @@ class TopHolders extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Header(
-              externalAddress: externalAddress,
-              onTitleVisibilityChanged: onTitleVisibilityChanged,
-            ),
+            _Header(externalAddress: externalAddress),
             SizedBox(height: 14.0.s),
             _TopHolderList(externalAddress: externalAddress),
           ],
@@ -50,11 +44,9 @@ class TopHolders extends StatelessWidget {
 class _Header extends StatelessWidget {
   const _Header({
     required this.externalAddress,
-    this.onTitleVisibilityChanged,
   });
 
   final String externalAddress;
-  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -66,15 +58,6 @@ class _Header extends StatelessWidget {
         _HeaderViewAllButton(externalAddress: externalAddress),
       ],
     );
-    if (onTitleVisibilityChanged != null) {
-      return VisibilityDetector(
-        key: UniqueKey(),
-        onVisibilityChanged: (info) {
-          onTitleVisibilityChanged?.call(info.visibleFraction);
-        },
-        child: titleContent,
-      );
-    }
 
     return titleContent;
   }

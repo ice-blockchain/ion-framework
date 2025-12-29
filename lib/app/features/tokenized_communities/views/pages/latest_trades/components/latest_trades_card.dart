@@ -10,15 +10,13 @@ import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_skeleton.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class LatestTradesCard extends HookConsumerWidget {
-  const LatestTradesCard({required this.externalAddress, this.onTitleVisibilityChanged, super.key});
+  const LatestTradesCard({required this.externalAddress, super.key});
 
   static const int limit = 5;
 
   final String externalAddress;
-  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,24 +52,11 @@ class LatestTradesCard extends HookConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (onTitleVisibilityChanged != null)
-              VisibilityDetector(
-                key: UniqueKey(),
-                onVisibilityChanged: (info) {
-                  onTitleVisibilityChanged?.call(info.visibleFraction);
-                },
-                child: _CardTitle(
-                  tradesCount: tradesCount,
-                  title: i18n.latest_trades_title,
-                  externalAddress: externalAddress,
-                ),
-              )
-            else
-              _CardTitle(
-                tradesCount: tradesCount,
-                title: i18n.latest_trades_title,
-                externalAddress: externalAddress,
-              ),
+            _CardTitle(
+              tradesCount: tradesCount,
+              title: i18n.latest_trades_title,
+              externalAddress: externalAddress,
+            ),
             SizedBox(height: 8.0.s),
             tradesAsync.when(
               data: (data) {
