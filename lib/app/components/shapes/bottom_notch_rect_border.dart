@@ -39,7 +39,7 @@ class BottomNotchRectBorder extends ShapeBorder {
   Path _buildPath(Rect rect) {
     final w = rect.width;
     final h = rect.height;
-    final r = cornerRadius ?? 12.0.s;
+    final r = cornerRadius ?? 16.0.s;
     final left = rect.left;
     final top = rect.top;
 

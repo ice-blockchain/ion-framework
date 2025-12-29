@@ -27,7 +27,7 @@ class ProfileBalance extends StatelessWidget {
       height: height,
       decoration: ShapeDecoration(
         color: context.theme.appColors.backgroundBlue,
-        shape: BottomNotchRectBorder(),
+        shape: const BottomNotchRectBorder(),
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8.s, vertical: 16.0.s),

@@ -87,7 +87,7 @@ class ProfileTokenHeaderLandscape extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s, vertical: 11.s),
+      padding: EdgeInsetsDirectional.all(16.0.s),
       child: Column(
         children: [
           Column(
@@ -95,8 +95,8 @@ class ProfileTokenHeaderLandscape extends StatelessWidget {
               Row(
                 children: [
                   TokenAvatar(
-                    imageSize: Size.square(54.s),
-                    containerSize: Size.square(65.s),
+                    imageSize: Size.square(52.s),
+                    containerSize: Size.square(62.s),
                     outerBorderRadius: 16.0.s,
                     innerBorderRadius: 10.0.s,
                     imageUrl: token.imageUrl,
@@ -160,7 +160,7 @@ class ProfileTokenHeaderLandscape extends StatelessWidget {
                   color: context.theme.appColors.secondaryBackground.withValues(
                     alpha: 0.1,
                   ),
-                  borderRadius: BorderRadius.circular(16.0.s),
+                  borderRadius: BorderRadius.circular(10.0.s),
                 ),
                 padding: EdgeInsetsDirectional.only(
                   top: 14.s,
