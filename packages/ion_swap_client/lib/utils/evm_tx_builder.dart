@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:ion_swap_client/utils/hex_helper.dart';
-import 'package:ion_swap_client/utils/swap_constants.dart';
 import 'package:web3dart/web3dart.dart';
 
 // TODO(ice-erebus): move to separate package
