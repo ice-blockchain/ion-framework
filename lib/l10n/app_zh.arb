@@ -810,6 +810,7 @@
   "registration_restricted_title": "注册暂时受限",
   "reply_was_sent": "回复已发送",
   "report_content_description": "这是对内容的举报",
+  "report_ticker_description": "这是对代币代码的举报",
   "report_user_description": "这是对用户的举报",
   "restore_from_cloud_description": "从 {type} 备份恢复您的身份密钥",
   "restore_from_cloud_description_type_google_drive": "Google Drive",

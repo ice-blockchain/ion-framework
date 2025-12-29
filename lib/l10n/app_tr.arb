@@ -810,6 +810,7 @@
   "registration_restricted_title": "Kayıtlar geçici olarak sınırlı",
   "reply_was_sent": "Yanıt gönderildi",
   "report_content_description": "Bu içerik için bir bildirimdir",
+  "report_ticker_description": "Bu ticker için bir bildirimdir",
   "report_user_description": "Bu kullanıcı için bir bildirimdir",
   "restore_from_cloud_description": "Kimlik anahtarınızı {type} yedekten geri yükleyin",
   "restore_from_cloud_description_type_google_drive": "Google Drive",

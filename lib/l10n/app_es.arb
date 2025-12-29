@@ -810,6 +810,7 @@
   "registration_restricted_title": "Las inscripciones están temporalmente limitadas",
   "reply_was_sent": "La respuesta fue enviada",
   "report_content_description": "Este es un reporte para el contenido",
+  "report_ticker_description": "Este es un reporte para el ticker",
   "report_user_description": "Este es un reporte para el usuario",
   "restore_from_cloud_description": "Restaura tu clave de identidad desde la copia de seguridad {type}",
   "restore_from_cloud_description_type_google_drive": "un Google Drive",

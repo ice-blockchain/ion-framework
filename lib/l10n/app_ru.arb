@@ -810,6 +810,7 @@
   "registration_restricted_title": "Регистрации временно ограничены",
   "reply_was_sent": "Ответ отправлен",
   "report_content_description": "Это обращение по поводу контента",
+  "report_ticker_description": "Это обращение по поводу тикера",
   "report_user_description": "Это обращение по поводу пользователя",
   "restore_from_cloud_description": "Восстановите свой ключ идентичности из резервной копии {type}",
   "restore_from_cloud_description_type_google_drive": "Google Drive",

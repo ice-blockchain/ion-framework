@@ -68,16 +68,23 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                 label: context.i18n.button_report,
                 icon: Assets.svg.iconReport
                     .icon(size: 20.s, color: context.theme.appColors.quaternaryText),
-                onPressed: closeMenu,
+                onPressed: () {
+                  if (tokenDefinitionEntity == null) return;
+                  ref.read(reportNotifierProvider.notifier).report(
+                        ReportReason.ticker(
+                          text: context.i18n.report_ticker_description,
+                          eventReference: tokenDefinitionEntity!.toEventReference(),
+                        ),
+                      );
+                  closeMenu();
+                },
               ),
             ],
           ),
         );
       },
       child: HeaderAction(
-        onPressed: () {
-          //TODO(ice-kreios) implement report action
-        },
+        onPressed: () {},
         disabled: true,
         opacity: 1,
         backgroundColor: Colors.transparent,

@@ -810,6 +810,7 @@
   "registration_restricted_title": "Rejestracje są tymczasowo ograniczone",
   "reply_was_sent": "Odpowiedź została wysłana",
   "report_content_description": "To jest zgłoszenie dotyczące treści",
+  "report_ticker_description": "To jest zgłoszenie dotyczące tickera",
   "report_user_description": "To jest zgłoszenie dotyczące użytkownika",
   "restore_from_cloud_description": "Przywróć swój klucz tożsamości z kopii zapasowej {type}",
   "restore_from_cloud_description_type_google_drive": "Google Drive",

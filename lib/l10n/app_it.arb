@@ -810,6 +810,7 @@
   "registration_restricted_title": "Le registrazioni sono temporaneamente limitate",
   "reply_was_sent": "La risposta è stata inviata",
   "report_content_description": "Questa è una segnalazione per il contenuto",
+  "report_ticker_description": "Questa è una segnalazione per il ticker",
   "report_user_description": "Questa è una segnalazione per l'utente",
   "restore_from_cloud_description": "Ripristina la tua chiave di identità dal backup {type}",
   "restore_from_cloud_description_type_google_drive": "un Google Drive",

@@ -21,6 +21,10 @@ sealed class ReportReason with _$ReportReason {
     required String text,
     required EventReference eventReference,
   }) = ReportReasonContent;
+  const factory ReportReason.ticker({
+    required String text,
+    required EventReference eventReference,
+  }) = ReportReasonTicker;
 }
 
 @riverpod
@@ -61,11 +65,22 @@ class ReportNotifier extends _$ReportNotifier {
             contentType: contentType,
           );
         }(),
+      ReportReasonTicker() => () async {
+          final entity =
+              ref.read(ionConnectEntityProvider(eventReference: reason.eventReference)).valueOrNull;
+          final contentType = entity != null ? mapEntityToSharedContentType(entity) : null;
+
+          return appsflyerDeepLinkService.createDeeplink(
+            path: reason.eventReference.encode(),
+            contentType: contentType,
+          );
+        }(),
     };
 
     return switch (reason) {
       ReportReasonUser() => '${reason.text} $encodedReason',
       ReportReasonContent() => '${reason.text} $encodedReason',
+      ReportReasonTicker() => '${reason.text} $encodedReason',
     };
   }
 }

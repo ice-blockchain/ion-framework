@@ -822,6 +822,7 @@
   "registration_restricted_title": "التسجيلات محدودة مؤقتًا",
   "reply_was_sent": "تم إرسال الرد",
   "report_content_description": "هذا تقرير للمحتوى",
+  "report_ticker_description": "هذا تقرير للرمز",
   "report_user_description": "هذا تقرير للمستخدم",
   "restore_from_cloud_description": "استعد مفتاح هويتك من نسخة احتياطية على {type}",
   "restore_from_cloud_description_type_google_drive": "Google Drive",

@@ -810,6 +810,7 @@
   "registration_restricted_title": "Регистрациите са временно ограничени",
   "reply_was_sent": "Отговорът беше изпратен",
   "report_content_description": "Това е доклад за съдържанието",
+  "report_ticker_description": "Това е сигнал за тикера",
   "report_user_description": "Това е доклад за потребителя",
   "restore_from_cloud_description": "Възстанови вашия ключ за идентичност от архивиране {type}",
   "restore_from_cloud_description_type_google_drive": "Google Drive",
