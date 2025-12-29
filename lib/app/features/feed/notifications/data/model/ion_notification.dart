@@ -2,7 +2,12 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 sealed class IonNotification {
@@ -192,7 +197,12 @@ final class TokenLaunchIonNotification extends IonNotification {
   Color getBackgroundColor(BuildContext context) => context.theme.appColors.purple;
 
   @override
-  String getDescription(BuildContext context, [String eventTypeLabel = '']) {
-    return context.i18n.notifications_token_launched(eventTypeLabel);
+  String getDescription(BuildContext context, [IonConnectEntity? entity]) {
+    return switch (entity) {
+      ModifiablePostEntity() || PostEntity() => context.i18n.notifications_token_launched_post,
+      ArticleEntity() => context.i18n.notifications_token_launched_article,
+      UserMetadataEntity() => context.i18n.notifications_token_launched_creator,
+      _ => ''
+    };
   }
 }
