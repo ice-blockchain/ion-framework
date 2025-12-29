@@ -28,6 +28,7 @@ class CollapsingHeaderLayout extends HookWidget {
     this.applySafeAreaBottomPadding = true,
     this.onBackButtonPressed,
     this.onRefresh,
+    this.onInnerScrollController,
     super.key,
   });
 
@@ -43,6 +44,10 @@ class CollapsingHeaderLayout extends HookWidget {
   final VoidCallback? onBackButtonPressed;
   final Widget floatingActionButton;
   final Future<void> Function()? onRefresh;
+
+  /// When `onRefresh` is provided, this layout uses a `NestedScrollView`.
+  /// This callback exposes the INNER (body) scroll controller.
+  final ValueChanged<ScrollController>? onInnerScrollController;
 
   double get paddingTop => 60.0.s;
 
@@ -72,13 +77,25 @@ class CollapsingHeaderLayout extends HookWidget {
           headerSliver,
           const SliverToBoxAdapter(child: SectionSeparator()),
         ],
-        body: PullToRefreshBuilder(
-          onRefresh: onRefresh!,
-          builder: (context, slivers) => CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: slivers,
-          ),
-          slivers: [SliverToBoxAdapter(child: child)],
+        body: Builder(
+          builder: (context) {
+            final innerController = PrimaryScrollController.maybeOf(context);
+            if (innerController != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                onInnerScrollController?.call(innerController);
+              });
+            }
+
+            return PullToRefreshBuilder(
+              onRefresh: onRefresh!,
+              builder: (context, slivers) => CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                primary: true,
+                slivers: slivers,
+              ),
+              slivers: [SliverToBoxAdapter(child: child)],
+            );
+          },
         ),
       );
     }

@@ -23,18 +23,15 @@ import 'package:ion/app/features/tokenized_communities/providers/token_comments_
 import 'package:ion/app/features/tokenized_communities/views/components/comments_section_compact/hooks/use_ensure_input_visibility.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_comment_input_field/token_comment_input_field.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class CommentsSectionCompact extends HookConsumerWidget {
   const CommentsSectionCompact({
     required this.tokenDefinitionEventReference,
-    this.onTitleVisibilityChanged,
     this.onCommentInputFocusChanged,
     super.key,
   });
 
   final EventReference tokenDefinitionEventReference;
-  final ValueChanged<double>? onTitleVisibilityChanged;
   final ValueChanged<bool>? onCommentInputFocusChanged;
 
   @override
@@ -137,21 +134,7 @@ class CommentsSectionCompact extends HookConsumerWidget {
           children: [
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (onTitleVisibilityChanged != null)
-                    VisibilityDetector(
-                      key: UniqueKey(),
-                      onVisibilityChanged: (info) {
-                        onTitleVisibilityChanged?.call(info.visibleFraction);
-                      },
-                      child: titleRow,
-                    )
-                  else
-                    titleRow,
-                ],
-              ),
+              child: titleRow,
             ),
             if (canReply)
               TokenCommentInputField(

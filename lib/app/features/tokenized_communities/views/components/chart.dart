@@ -12,21 +12,18 @@ import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_can
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class Chart extends HookConsumerWidget {
   const Chart({
     required this.externalAddress,
     required this.price,
     required this.label,
-    this.onTitleVisibilityChanged,
     super.key,
   });
 
   final String externalAddress;
   final Decimal price;
   final String label;
-  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,7 +54,6 @@ class Chart extends HookConsumerWidget {
           isLoading: false,
           selectedRange: selectedRange.value,
           onRangeChanged: (range) => selectedRange.value = range,
-          onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
       error: (error, stackTrace) {
@@ -69,7 +65,6 @@ class Chart extends HookConsumerWidget {
           isLoading: false,
           selectedRange: selectedRange.value,
           onRangeChanged: (range) => selectedRange.value = range,
-          onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
       loading: () {
@@ -81,7 +76,6 @@ class Chart extends HookConsumerWidget {
           isLoading: true,
           selectedRange: selectedRange.value,
           onRangeChanged: null,
-          onTitleVisibilityChanged: onTitleVisibilityChanged,
         );
       },
     );
@@ -97,7 +91,6 @@ class _ChartContent extends StatelessWidget {
     required this.isLoading,
     required this.selectedRange,
     required this.onRangeChanged,
-    this.onTitleVisibilityChanged,
   });
 
   final Decimal price;
@@ -107,7 +100,6 @@ class _ChartContent extends StatelessWidget {
   final bool isLoading;
   final ChartTimeRange selectedRange;
   final ValueChanged<ChartTimeRange>? onRangeChanged;
-  final ValueChanged<double>? onTitleVisibilityChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -118,9 +110,7 @@ class _ChartContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ChartHeader(
-            onVisibilityChanged: onTitleVisibilityChanged,
-          ),
+          const _ChartHeader(),
           SizedBox(height: 4.0.s),
           _ValueAndChange(
             price: price,
@@ -154,9 +144,7 @@ class _ChartContent extends StatelessWidget {
 String _formatPrice(Decimal p) => p.toStringAsFixed(4);
 
 class _ChartHeader extends StatelessWidget {
-  const _ChartHeader({this.onVisibilityChanged});
-
-  final ValueChanged<double>? onVisibilityChanged;
+  const _ChartHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -180,15 +168,7 @@ class _ChartHeader extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-      child: onVisibilityChanged != null
-          ? VisibilityDetector(
-              key: UniqueKey(),
-              onVisibilityChanged: (info) {
-                onVisibilityChanged?.call(info.visibleFraction);
-              },
-              child: titleRow,
-            )
-          : titleRow,
+      child: titleRow,
     );
   }
 }
@@ -240,6 +220,7 @@ class _ValueAndChange extends StatelessWidget {
 
 class ChartPriceLabel extends StatelessWidget {
   const ChartPriceLabel({required this.value, super.key});
+
   final double value;
 
   @override
@@ -309,6 +290,7 @@ extension ChartTimeRangeExtension on ChartTimeRange {
 
 class _RangeSelector extends StatelessWidget {
   const _RangeSelector({required this.selected, this.onChanged});
+
   final ChartTimeRange selected;
   final ValueChanged<ChartTimeRange>? onChanged;
 
