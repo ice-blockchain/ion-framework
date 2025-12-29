@@ -118,6 +118,7 @@ class FadeTransitionSheetPage extends PagedSheetPage<void> {
           },
         ) {
     // Store the extra config in state for shell route to access
+    // This will be cleaned up when ModalShellRouteData reads it
     if (extra != null) {
       pageRouteConfigs[state.pageKey] = extra;
     }
