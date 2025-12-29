@@ -47,21 +47,16 @@ class UserStories extends _$UserStories {
 
   List<int> _generateAdIndexes(List<ModifiablePostEntity> data) {
     final adIndices = <int>[];
+    final storiesCount = data.length;
 
-    final rng = Random(data.length); // Seed with length to keep it consistent-ish per load
-
-    // Start: 5 + random (0..4)
+    final rng = Random(storiesCount);
     var currentIndex = 1 + rng.nextInt(5);
 
-    while (currentIndex < data.length) {
+    while (currentIndex < storiesCount) {
       adIndices.add(currentIndex);
 
-      // Next interval: 5 +/- random.
-      // Let's say random is -2 to +2.
-      // Formula: 5 + (0..4) - 2 => 3..7
       var interval = 5 + rng.nextInt(5) - 2;
 
-      // Enforce not often than 3
       if (interval < 3) interval = 3;
 
       currentIndex += interval + 1; // +1 to account for the ad itself effectively occupying a slot
