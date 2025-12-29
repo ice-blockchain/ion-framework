@@ -193,7 +193,7 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -260,6 +260,9 @@ class NotificationsDatabase extends _$NotificationsDatabase {
         },
         from5To6: (m, schema) async {
           await m.createTable(schema.mentionsTable);
+        },
+        from6To7: (m, schema) async {
+          await m.createTable(schema.tokenLaunchTable);
         },
       ),
     );
