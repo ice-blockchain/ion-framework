@@ -21,7 +21,7 @@ abstract class TopHolderPositionBase {
 @freezed
 class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionBase {
   const factory TopHolderPosition({
-    required Creator holder,
+    required CreatorPatch holder,
     required int rank,
     required String amount,
     required double amountUSD,

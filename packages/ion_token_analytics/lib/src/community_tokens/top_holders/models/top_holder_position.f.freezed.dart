@@ -21,7 +21,7 @@ TopHolderPosition _$TopHolderPositionFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TopHolderPosition {
-  Creator get holder => throw _privateConstructorUsedError;
+  CreatorPatch get holder => throw _privateConstructorUsedError;
   int get rank => throw _privateConstructorUsedError;
   String get amount => throw _privateConstructorUsedError;
   double get amountUSD => throw _privateConstructorUsedError;
@@ -45,14 +45,12 @@ abstract class $TopHolderPositionCopyWith<$Res> {
   ) = _$TopHolderPositionCopyWithImpl<$Res, TopHolderPosition>;
   @useResult
   $Res call({
-    Creator holder,
+    CreatorPatch holder,
     int rank,
     String amount,
     double amountUSD,
     double supplyShare,
   });
-
-  $CreatorCopyWith<$Res> get holder;
 }
 
 /// @nodoc
@@ -81,7 +79,7 @@ class _$TopHolderPositionCopyWithImpl<$Res, $Val extends TopHolderPosition>
             holder: null == holder
                 ? _value.holder
                 : holder // ignore: cast_nullable_to_non_nullable
-                      as Creator,
+                      as CreatorPatch,
             rank: null == rank
                 ? _value.rank
                 : rank // ignore: cast_nullable_to_non_nullable
@@ -102,16 +100,6 @@ class _$TopHolderPositionCopyWithImpl<$Res, $Val extends TopHolderPosition>
           as $Val,
     );
   }
-
-  /// Create a copy of TopHolderPosition
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $CreatorCopyWith<$Res> get holder {
-    return $CreatorCopyWith<$Res>(_value.holder, (value) {
-      return _then(_value.copyWith(holder: value) as $Val);
-    });
-  }
 }
 
 /// @nodoc
@@ -124,15 +112,12 @@ abstract class _$$TopHolderPositionImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    Creator holder,
+    CreatorPatch holder,
     int rank,
     String amount,
     double amountUSD,
     double supplyShare,
   });
-
-  @override
-  $CreatorCopyWith<$Res> get holder;
 }
 
 /// @nodoc
@@ -160,7 +145,7 @@ class __$$TopHolderPositionImplCopyWithImpl<$Res>
         holder: null == holder
             ? _value.holder
             : holder // ignore: cast_nullable_to_non_nullable
-                  as Creator,
+                  as CreatorPatch,
         rank: null == rank
             ? _value.rank
             : rank // ignore: cast_nullable_to_non_nullable
@@ -197,7 +182,7 @@ class _$TopHolderPositionImpl implements _TopHolderPosition {
       _$$TopHolderPositionImplFromJson(json);
 
   @override
-  final Creator holder;
+  final CreatorPatch holder;
   @override
   final int rank;
   @override
@@ -250,7 +235,7 @@ class _$TopHolderPositionImpl implements _TopHolderPosition {
 
 abstract class _TopHolderPosition implements TopHolderPosition {
   const factory _TopHolderPosition({
-    required final Creator holder,
+    required final CreatorPatch holder,
     required final int rank,
     required final String amount,
     required final double amountUSD,
@@ -261,7 +246,7 @@ abstract class _TopHolderPosition implements TopHolderPosition {
       _$TopHolderPositionImpl.fromJson;
 
   @override
-  Creator get holder;
+  CreatorPatch get holder;
   @override
   int get rank;
   @override

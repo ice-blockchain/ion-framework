@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -44,10 +45,16 @@ class TopHolderTile extends StatelessWidget {
     return HolderTile(
       rank: holder.position.rank,
       amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: holder.position.holder.display,
+      displayName: holder.position.holder.display ??
+          shortenAddress(
+            holder.position.holder.addresses?.ionConnect ??
+                holder.position.holder.addresses?.twitter ??
+                holder.position.holder.addresses?.twitter ??
+                '',
+          ),
       username: holder.position.holder.name,
       supplyShare: holder.position.supplyShare,
-      verified: holder.position.holder.verified,
+      verified: holder.position.holder.verified ?? false,
       isCreator: isCreator,
       avatarUrl: holder.position.holder.avatar,
     );
@@ -91,7 +98,10 @@ class HolderTile extends StatelessWidget {
               children: [
                 _RankBadge(rank: rank),
                 SizedBox(width: 12.0.s),
-                HolderAvatar(imageUrl: avatarUrl),
+                HolderAvatar(
+                  imageUrl: avatarUrl,
+                  seed: displayName,
+                ),
                 SizedBox(width: 8.0.s),
                 Expanded(
                   child: _NameAndAmount(

@@ -247,6 +247,9 @@ class TokenTopHolders extends _$TokenTopHolders {
   }
 
   String? _occupantKey(TopHolder h) {
-    return h.position.holder.addresses?.ionConnect ?? h.position.holder.addresses?.twitter;
+    return h.position.holder.addresses?.ionConnect ??
+        h.position.holder.addresses?.twitter ??
+        h.position.holder.addresses?.blockchain ??
+        h.position.holder.name;
   }
 }
