@@ -32,16 +32,17 @@ class InfoModal extends HookWidget {
           actions: const [NavigationCloseButton()],
         ),
         SizedBox(
-          height: 16.0.s,
+          height: 12.0.s,
         ),
-        ScreenSideOffset.medium(
+        ScreenSideOffset.small(
           child: InfoCard(
             iconAsset: infoType.iconAsset,
             title: infoType.getTitle(context),
             description: description,
+            descriptionTextAlign: TextAlign.start,
           ),
         ),
-        ScreenBottomOffset(margin: 16.0.s),
+        ScreenBottomOffset(margin: 12.0.s),
       ],
     );
   }
