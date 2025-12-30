@@ -23,28 +23,19 @@ class AdStoryViewer extends HookConsumerWidget {
 
     ref.watch(storyImageLoadStatusProvider(storyId));
     final iconMoreColor = context.theme.appColors.onPrimaryAccent;
-    final primaryTextWithAlpha = context.theme.appColors.primaryText.withValues(alpha: 0.25);
-    final shadow = [
-      Shadow(
-        offset: Offset(
-          0.0.s,
-          0.3.s,
-        ),
-        blurRadius: 1,
-        color: primaryTextWithAlpha,
-      ),
-    ];
 
     return SizedBox.expand(
       child: Stack(
         children: [
-          AppodealNativeAd(
-            options: NativeAdOptions.appWallOptions(),
+          IgnorePointer(
+            child: AppodealNativeAd(
+              options: NativeAdOptions.appWallOptions(),
+            ),
           ),
           const StoryHeaderGradient(),
           PositionedDirectional(
-            top: 8.0.s,
-            end: 16.0.s,
+            top: 21.0.s,
+            end: 28.0.s,
             child: GestureDetector(
               onTap: context.pop,
               child: Assets.svg.iconSheetClose.icon(color: iconMoreColor),
