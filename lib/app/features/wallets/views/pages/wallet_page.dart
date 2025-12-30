@@ -110,14 +110,18 @@ class WalletPage extends HookConsumerWidget {
             ),
             ...switch (activeTab.value) {
               WalletTabType.coins => const [
-                  CoinsTabHeader(),
-                  CoinsTab(),
+                  CoinsTabHeader(tabType: WalletTabType.coins),
+                  CoinsTab(tabType: WalletTabType.coins),
                 ],
               WalletTabType.nfts => const [
                   SliverToBoxAdapter(
                     child: NftsTabHeader(),
                   ),
                   NftsTab(),
+                ],
+              WalletTabType.creatorTokens => const [
+                  CoinsTabHeader(tabType: WalletTabType.creatorTokens),
+                  CoinsTab(tabType: WalletTabType.creatorTokens),
                 ],
             },
           ],

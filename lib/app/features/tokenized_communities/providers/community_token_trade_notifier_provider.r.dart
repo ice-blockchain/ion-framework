@@ -12,8 +12,14 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_infrastru
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
+import 'package:ion/app/features/wallets/model/coin_data.f.dart';
+import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/update_wallet_view_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
+import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -101,7 +107,12 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         tokenMarketInfoProvider(params.externalAddress),
       );
 
-      return _requireBroadcastedTxHash(response);
+      final txHash = _requireBroadcastedTxHash(response);
+      await _importTokenIfNeeded(
+        existingTokenAddress,
+        formState.communityTokenCoinsGroup,
+      );
+      return txHash;
     });
   }
 
@@ -226,5 +237,46 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     } catch (error, stackTrace) {
       Logger.error(error, stackTrace: stackTrace, message: 'Failed to send first buy metadata');
     }
+  }
+
+  Future<void> _importTokenIfNeeded(
+    String? existingTokenAddress,
+    CoinsGroup? communityTokenCoinsGroup,
+  ) async {
+    final tokenData = communityTokenCoinsGroup?.coins.first.coin;
+    if (tokenData == null) return;
+    if (existingTokenAddress != tokenData.contractAddress) return;
+
+    final ionIdentity = await ref.read(ionIdentityClientProvider.future);
+
+    final coin = await ionIdentity.coins.getCoinData(
+      contractAddress: tokenData.contractAddress,
+      network: tokenData.network.id,
+    );
+
+    final coinData = CoinData.fromDTO(coin, tokenData.network);
+
+    final coinsRepository = ref.read(coinsRepositoryProvider);
+    final existingCoin = await coinsRepository.getCoinById(coin.id);
+    if (existingCoin != null) return;
+
+    await coinsRepository.updateCoins(
+      [
+        coinData.toDB(
+          isCreatorToken: true,
+        ),
+      ],
+    );
+
+    final currentWalletView = await ref.read(currentWalletViewDataProvider.future);
+    final walletCoins =
+        currentWalletView.coinGroups.expand((e) => e.coins).map((e) => e.coin).toList();
+
+    final updatedCoins = [...walletCoins, coinData];
+
+    await ref.read(updateWalletViewNotifierProvider.notifier).updateWalletView(
+          walletView: currentWalletView,
+          updatedCoinsList: updatedCoins,
+        );
   }
 }

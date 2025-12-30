@@ -17,14 +17,16 @@ import 'package:ion/app/router/app_routes.gr.dart';
 
 class CoinsTab extends ConsumerWidget {
   const CoinsTab({
+    required this.tabType,
     super.key,
   });
 
-  static const WalletTabType tabType = WalletTabType.coins;
+  final WalletTabType tabType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isPageLoading = ref.watch(walletPageLoaderNotifierProvider);
+    final isNeedFilterByCreatorToken = tabType == WalletTabType.creatorTokens;
 
     if (isPageLoading) {
       return _CoinsTabBody(
@@ -34,8 +36,11 @@ class CoinsTab extends ConsumerWidget {
     }
 
     final groups = ref.watch(filteredCoinsNotifierProvider.select((state) => state.valueOrNull));
+    final filteredGroups = isNeedFilterByCreatorToken
+        ? groups?.where((group) => group.coins.any((coin) => coin.coin.isCreatorToken)).toList()
+        : groups;
 
-    if (groups == null || groups.isEmpty) {
+    if (filteredGroups == null || filteredGroups.isEmpty) {
       return EmptyState(
         tabType: tabType,
         onBottomActionTap: () {
@@ -45,9 +50,9 @@ class CoinsTab extends ConsumerWidget {
     }
 
     return _CoinsTabBody(
-      itemCount: groups.length,
+      itemCount: filteredGroups.length,
       itemBuilder: (context, index) {
-        final group = groups[index];
+        final group = filteredGroups[index];
 
         final isUpdating = ref.watch(
           manageCoinsNotifierProvider.select(
