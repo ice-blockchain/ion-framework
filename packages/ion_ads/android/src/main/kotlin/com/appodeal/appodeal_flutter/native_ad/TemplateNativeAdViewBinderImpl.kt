@@ -31,9 +31,12 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
             else -> throw IllegalArgumentException("Unknown NativeAdViewType: $nativeAdViewType")
         }
 
-        if (nativeAdOptions.nativeAdViewType == NativeAdViewType.ContentStream) {
+        if (nativeAdOptions.nativeAdViewType == NativeAdViewType.ContentStream ||
+            nativeAdOptions.nativeAdViewType == NativeAdViewType.AppWall
+        ) {
             return nativeAdView
         }
+
 
         // set ad choices config
         val adChoicePosition = nativeAdOptions.adChoiceConfig.position
