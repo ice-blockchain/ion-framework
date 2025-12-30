@@ -96,21 +96,15 @@ class CommunityTokenLive extends HookConsumerWidget {
     );
 
     if (enableTokenNavigation) {
-      final route = switch (entity.data) {
-        CommunityTokenDefinitionIon(:final eventReference) =>
-          TokenizedCommunityRoute(eventReference: eventReference.encode()),
-        CommunityTokenDefinitionExternal(:final externalId) =>
-          TokenizedCommunityRoute(externalAddress: externalId),
-        _ => null,
-      };
+      final route = TokenizedCommunityRoute(
+        externalAddress: entity.data.externalAddress,
+      );
 
-      if (route != null) {
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => route.push<void>(context),
-          child: postWidget,
-        );
-      }
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => route.push<void>(context),
+        child: postWidget,
+      );
     }
 
     return postWidget;
