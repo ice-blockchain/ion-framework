@@ -2,7 +2,6 @@
 
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/token_launch_table.d.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,24 +39,6 @@ class TokenLaunchDao extends DatabaseAccessor<NotificationsDatabase> with _$Toke
     }
 
     return query.get();
-  }
-
-  Future<DateTime?> getLastCreatedAt() async {
-    final maxCreatedAt = tokenLaunchTable.createdAt.max();
-    final max = await (selectOnly(tokenLaunchTable)..addColumns([maxCreatedAt]))
-        .map((row) => row.read(maxCreatedAt))
-        .getSingleOrNull();
-    return max?.toDateTime;
-  }
-
-  Future<DateTime?> getFirstCreatedAt({DateTime? after}) async {
-    final firstCreatedAt = tokenLaunchTable.createdAt.min();
-    final query = selectOnly(tokenLaunchTable)..addColumns([firstCreatedAt]);
-    if (after != null) {
-      query.where(tokenLaunchTable.createdAt.isBiggerThanValue(after.microsecondsSinceEpoch));
-    }
-    final min = await query.map((row) => row.read(firstCreatedAt)).getSingleOrNull();
-    return min?.toDateTime;
   }
 
   Stream<int> watchUnreadCount({required DateTime? after}) {

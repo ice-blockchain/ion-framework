@@ -59,12 +59,4 @@ class FollowersRepository implements IonNotificationRepository {
         )
         .toList();
   }
-
-  Future<DateTime?> lastCreatedAt() async {
-    return _followersDao.getLastCreatedAt();
-  }
-
-  Future<DateTime?> firstCreatedAt({DateTime? after}) async {
-    return _followersDao.getFirstCreatedAt(after: after);
-  }
 }

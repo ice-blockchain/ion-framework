@@ -2,7 +2,6 @@
 
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/mentions_table.d.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -38,24 +37,6 @@ class MentionsDao extends DatabaseAccessor<NotificationsDatabase> with _$Mention
     }
 
     return query.get();
-  }
-
-  Future<DateTime?> getLastCreatedAt() async {
-    final maxCreatedAt = mentionsTable.createdAt.max();
-    final max = await (selectOnly(mentionsTable)..addColumns([maxCreatedAt]))
-        .map((row) => row.read(maxCreatedAt))
-        .getSingleOrNull();
-    return max?.toDateTime;
-  }
-
-  Future<DateTime?> getFirstCreatedAt({DateTime? after}) async {
-    final firstCreatedAt = mentionsTable.createdAt.min();
-    final query = selectOnly(mentionsTable)..addColumns([firstCreatedAt]);
-    if (after != null) {
-      query.where(mentionsTable.createdAt.isBiggerThanValue(after.microsecondsSinceEpoch));
-    }
-    final min = await query.map((row) => row.read(firstCreatedAt)).getSingleOrNull();
-    return min?.toDateTime;
   }
 
   Stream<int> watchUnreadCount({required DateTime? after}) {

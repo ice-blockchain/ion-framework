@@ -70,12 +70,4 @@ class LikesRepository implements IonNotificationRepository {
         )
         .toList();
   }
-
-  Future<DateTime?> lastCreatedAt() async {
-    return _likesDao.getLastCreatedAt();
-  }
-
-  Future<DateTime?> firstCreatedAt({DateTime? after}) async {
-    return _likesDao.getFirstCreatedAt(after: after);
-  }
 }
