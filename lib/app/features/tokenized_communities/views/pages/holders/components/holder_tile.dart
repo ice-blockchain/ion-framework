@@ -38,25 +38,24 @@ class TopHolderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final holderAddress = holder.position.holder.addresses?.ionConnect;
+    final holderAddress = holder.position.holder?.addresses?.ionConnect;
     final creatorAddress = holder.creator.addresses?.ionConnect;
     final isCreator = creatorAddress != null && holderAddress == creatorAddress;
 
     return HolderTile(
       rank: holder.position.rank,
       amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: holder.position.holder.display ??
+      displayName: holder.position.holder?.display ??
           shortenAddress(
-            holder.position.holder.addresses?.ionConnect ??
-                holder.position.holder.addresses?.twitter ??
-                holder.position.holder.addresses?.twitter ??
+            holder.position.holder?.addresses?.ionConnect ??
+                holder.position.holder?.addresses?.twitter ??
                 '',
           ),
-      username: holder.position.holder.name,
+      username: holder.position.holder?.name,
       supplyShare: holder.position.supplyShare,
-      verified: holder.position.holder.verified ?? false,
+      verified: holder.position.holder?.verified ?? false,
       isCreator: isCreator,
-      avatarUrl: holder.position.holder.avatar,
+      avatarUrl: holder.position.holder?.avatar,
     );
   }
 }
