@@ -258,8 +258,8 @@ class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   double get _pinnedOffset =>
       NavigationAppBar.screenHeaderHeight +
-          PlatformDispatcher.instance.views.first.padding.top /
-              PlatformDispatcher.instance.views.first.devicePixelRatio;
+      PlatformDispatcher.instance.views.first.padding.top /
+          PlatformDispatcher.instance.views.first.devicePixelRatio;
 
   double get _startOffset => 169.0.s;
 
@@ -279,10 +279,10 @@ class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(
-      BuildContext context,
-      double shrinkOffset,
-      bool overlapsContent,
-      ) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return ColoredBox(
       color: context.theme.appColors.forest,
       child: Padding(
