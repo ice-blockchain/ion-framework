@@ -313,6 +313,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         message: message,
         icon: icon,
         state: state,
+        bottomPadding: 108.0.s,
         suffixWidget: SwapCoinsMessageInfo(
           sellCoinAbbreviation: sellCoinAbbreviation,
           buyCoinAbbreviation: buyCoinAbbreviation,

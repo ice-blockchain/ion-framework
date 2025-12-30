@@ -13,5 +13,6 @@ class MessageNotification with _$MessageNotification {
     required Widget? icon,
     @Default(MessageNotificationState.info) MessageNotificationState state,
     Widget? suffixWidget,
+    double? bottomPadding,
   }) = _MessageNotification;
 }
