@@ -1,28 +1,33 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/utils/avatar.dart';
 import 'package:ion/app/utils/image_path.dart';
-import 'package:ion/generated/assets.gen.dart';
 
-class HolderAvatar extends StatelessWidget {
-  const HolderAvatar({super.key, this.imageUrl});
+class HolderAvatar extends HookWidget {
+  const HolderAvatar({
+    super.key,
+    this.imageUrl,
+    this.seed,
+  });
 
   final String? imageUrl;
+  final String? seed;
 
   @override
   Widget build(BuildContext context) {
-    final emptyIcon = Container(
-      width: 30.0.s,
-      height: 30.0.s,
-      padding: EdgeInsets.all(4.0.s),
-      decoration: BoxDecoration(
-        color: context.theme.appColors.onTertiaryFill,
-        borderRadius: BorderRadius.circular(10.0.s),
+    final size = 30.0.s;
+    final borderRadius = BorderRadius.circular(10.0.s);
+    final emptyIcon = useMemoized(
+      () => ClipRRect(
+        borderRadius: borderRadius,
+        child: getRandomDefaultAvatar(seed).icon(size: size),
       ),
-      child: Assets.svg.iconProfileNoimage.icon(size: 12.0.s),
+      [seed],
     );
 
     if (imageUrl == null || imageUrl!.isEmpty) {
@@ -30,9 +35,8 @@ class HolderAvatar extends StatelessWidget {
     }
 
     if (imageUrl!.isSvg) {
-      final size = 30.0.s;
       return ClipRRect(
-        borderRadius: BorderRadius.circular(10.0.s),
+        borderRadius: borderRadius,
         child: imageUrl!.isNetworkSvg
             ? SvgPicture.network(
                 imageUrl!,
@@ -45,10 +49,10 @@ class HolderAvatar extends StatelessWidget {
     }
 
     return IonNetworkImage(
-      borderRadius: BorderRadius.circular(10.0.s),
+      borderRadius: borderRadius,
       imageUrl: imageUrl!,
-      width: 30.0.s,
-      height: 30.0.s,
+      width: size,
+      height: size,
       fit: BoxFit.cover,
       errorWidget: (context, url, error) => emptyIcon,
     );

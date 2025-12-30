@@ -8,7 +8,7 @@ part of 'trade_position.f.dart';
 
 _$TradePositionImpl _$$TradePositionImplFromJson(Map<String, dynamic> json) =>
     _$TradePositionImpl(
-      holder: Creator.fromJson(json['holder'] as Map<String, dynamic>),
+      holder: CreatorPatch.fromJson(json['holder'] as Map<String, dynamic>),
       addresses: Addresses.fromJson(json['addresses'] as Map<String, dynamic>),
       createdAt: json['createdAt'] as String,
       type: $enumDecode(_$TradeTypeEnumMap, json['type']),

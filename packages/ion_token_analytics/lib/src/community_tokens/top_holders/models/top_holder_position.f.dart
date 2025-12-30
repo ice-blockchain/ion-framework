@@ -21,11 +21,11 @@ abstract class TopHolderPositionBase {
 @freezed
 class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionBase {
   const factory TopHolderPosition({
-    required Creator holder,
     required int rank,
     required String amount,
     required double amountUSD,
     required double supplyShare,
+    Creator? holder,
   }) = _TopHolderPosition;
 
   factory TopHolderPosition.fromJson(Map<String, dynamic> json) =>

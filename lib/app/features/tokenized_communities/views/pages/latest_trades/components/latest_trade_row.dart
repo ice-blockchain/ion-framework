@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -57,19 +58,30 @@ class LatestTradeRow extends StatelessWidget {
       ),
     );
 
+    final name = trade.position.holder.display ??
+        shortenAddress(
+          trade.position.addresses.ionConnect ??
+              trade.position.addresses.twitter ??
+              trade.position.addresses.blockchain ??
+              '',
+        );
+
     final content = Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
           child: Row(
             children: [
-              HolderAvatar(imageUrl: trade.position.holder.avatar),
+              HolderAvatar(
+                imageUrl: trade.position.holder.avatar,
+                seed: name,
+              ),
               SizedBox(width: 8.0.s),
               Expanded(
                 child: _TitleAndMeta(
-                  name: trade.position.holder.display,
+                  name: name,
                   handle: trade.position.holder.name.isNotEmpty ? trade.position.holder.name : null,
-                  verified: trade.position.holder.verified,
+                  verified: trade.position.holder.verified ?? false,
                   isCreator: isCreator,
                   meta: '$amountText • \$$usdText • $timeText',
                 ),

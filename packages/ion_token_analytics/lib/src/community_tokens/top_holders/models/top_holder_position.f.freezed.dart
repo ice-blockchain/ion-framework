@@ -21,11 +21,11 @@ TopHolderPosition _$TopHolderPositionFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TopHolderPosition {
-  Creator get holder => throw _privateConstructorUsedError;
   int get rank => throw _privateConstructorUsedError;
   String get amount => throw _privateConstructorUsedError;
   double get amountUSD => throw _privateConstructorUsedError;
   double get supplyShare => throw _privateConstructorUsedError;
+  Creator? get holder => throw _privateConstructorUsedError;
 
   /// Serializes this TopHolderPosition to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -45,14 +45,14 @@ abstract class $TopHolderPositionCopyWith<$Res> {
   ) = _$TopHolderPositionCopyWithImpl<$Res, TopHolderPosition>;
   @useResult
   $Res call({
-    Creator holder,
     int rank,
     String amount,
     double amountUSD,
     double supplyShare,
+    Creator? holder,
   });
 
-  $CreatorCopyWith<$Res> get holder;
+  $CreatorCopyWith<$Res>? get holder;
 }
 
 /// @nodoc
@@ -70,18 +70,14 @@ class _$TopHolderPositionCopyWithImpl<$Res, $Val extends TopHolderPosition>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? holder = null,
     Object? rank = null,
     Object? amount = null,
     Object? amountUSD = null,
     Object? supplyShare = null,
+    Object? holder = freezed,
   }) {
     return _then(
       _value.copyWith(
-            holder: null == holder
-                ? _value.holder
-                : holder // ignore: cast_nullable_to_non_nullable
-                      as Creator,
             rank: null == rank
                 ? _value.rank
                 : rank // ignore: cast_nullable_to_non_nullable
@@ -98,6 +94,10 @@ class _$TopHolderPositionCopyWithImpl<$Res, $Val extends TopHolderPosition>
                 ? _value.supplyShare
                 : supplyShare // ignore: cast_nullable_to_non_nullable
                       as double,
+            holder: freezed == holder
+                ? _value.holder
+                : holder // ignore: cast_nullable_to_non_nullable
+                      as Creator?,
           )
           as $Val,
     );
@@ -107,8 +107,12 @@ class _$TopHolderPositionCopyWithImpl<$Res, $Val extends TopHolderPosition>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $CreatorCopyWith<$Res> get holder {
-    return $CreatorCopyWith<$Res>(_value.holder, (value) {
+  $CreatorCopyWith<$Res>? get holder {
+    if (_value.holder == null) {
+      return null;
+    }
+
+    return $CreatorCopyWith<$Res>(_value.holder!, (value) {
       return _then(_value.copyWith(holder: value) as $Val);
     });
   }
@@ -124,15 +128,15 @@ abstract class _$$TopHolderPositionImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    Creator holder,
     int rank,
     String amount,
     double amountUSD,
     double supplyShare,
+    Creator? holder,
   });
 
   @override
-  $CreatorCopyWith<$Res> get holder;
+  $CreatorCopyWith<$Res>? get holder;
 }
 
 /// @nodoc
@@ -149,18 +153,14 @@ class __$$TopHolderPositionImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? holder = null,
     Object? rank = null,
     Object? amount = null,
     Object? amountUSD = null,
     Object? supplyShare = null,
+    Object? holder = freezed,
   }) {
     return _then(
       _$TopHolderPositionImpl(
-        holder: null == holder
-            ? _value.holder
-            : holder // ignore: cast_nullable_to_non_nullable
-                  as Creator,
         rank: null == rank
             ? _value.rank
             : rank // ignore: cast_nullable_to_non_nullable
@@ -177,6 +177,10 @@ class __$$TopHolderPositionImplCopyWithImpl<$Res>
             ? _value.supplyShare
             : supplyShare // ignore: cast_nullable_to_non_nullable
                   as double,
+        holder: freezed == holder
+            ? _value.holder
+            : holder // ignore: cast_nullable_to_non_nullable
+                  as Creator?,
       ),
     );
   }
@@ -186,18 +190,16 @@ class __$$TopHolderPositionImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$TopHolderPositionImpl implements _TopHolderPosition {
   const _$TopHolderPositionImpl({
-    required this.holder,
     required this.rank,
     required this.amount,
     required this.amountUSD,
     required this.supplyShare,
+    this.holder,
   });
 
   factory _$TopHolderPositionImpl.fromJson(Map<String, dynamic> json) =>
       _$$TopHolderPositionImplFromJson(json);
 
-  @override
-  final Creator holder;
   @override
   final int rank;
   @override
@@ -206,10 +208,12 @@ class _$TopHolderPositionImpl implements _TopHolderPosition {
   final double amountUSD;
   @override
   final double supplyShare;
+  @override
+  final Creator? holder;
 
   @override
   String toString() {
-    return 'TopHolderPosition(holder: $holder, rank: $rank, amount: $amount, amountUSD: $amountUSD, supplyShare: $supplyShare)';
+    return 'TopHolderPosition(rank: $rank, amount: $amount, amountUSD: $amountUSD, supplyShare: $supplyShare, holder: $holder)';
   }
 
   @override
@@ -217,19 +221,19 @@ class _$TopHolderPositionImpl implements _TopHolderPosition {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TopHolderPositionImpl &&
-            (identical(other.holder, holder) || other.holder == holder) &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.amountUSD, amountUSD) ||
                 other.amountUSD == amountUSD) &&
             (identical(other.supplyShare, supplyShare) ||
-                other.supplyShare == supplyShare));
+                other.supplyShare == supplyShare) &&
+            (identical(other.holder, holder) || other.holder == holder));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, holder, rank, amount, amountUSD, supplyShare);
+      Object.hash(runtimeType, rank, amount, amountUSD, supplyShare, holder);
 
   /// Create a copy of TopHolderPosition
   /// with the given fields replaced by the non-null parameter values.
@@ -250,18 +254,16 @@ class _$TopHolderPositionImpl implements _TopHolderPosition {
 
 abstract class _TopHolderPosition implements TopHolderPosition {
   const factory _TopHolderPosition({
-    required final Creator holder,
     required final int rank,
     required final String amount,
     required final double amountUSD,
     required final double supplyShare,
+    final Creator? holder,
   }) = _$TopHolderPositionImpl;
 
   factory _TopHolderPosition.fromJson(Map<String, dynamic> json) =
       _$TopHolderPositionImpl.fromJson;
 
-  @override
-  Creator get holder;
   @override
   int get rank;
   @override
@@ -270,6 +272,8 @@ abstract class _TopHolderPosition implements TopHolderPosition {
   double get amountUSD;
   @override
   double get supplyShare;
+  @override
+  Creator? get holder;
 
   /// Create a copy of TopHolderPosition
   /// with the given fields replaced by the non-null parameter values.
