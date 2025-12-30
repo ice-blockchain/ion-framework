@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/components/layout/measure_size.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
@@ -61,18 +62,25 @@ class CollapsingHeaderLayout extends HookWidget {
     required AvatarColors? imageColors,
     required Widget child,
     required double scrollOffset,
+    required double expandedHeaderHeight,
+    required ValueChanged<double> onExpandedHeaderHeightChanged,
   }) {
     final headerSliver = SliverToBoxAdapter(
-      child: Stack(
-        children: [
-          if (newUiMode)
-            Positioned.fill(
-              child: ProfileBackground(
-                colors: imageColors,
+      child: MeasureSize(
+        onChange: (size) {
+          onExpandedHeaderHeightChanged(size.height);
+        },
+        child: Stack(
+          children: [
+            if (newUiMode)
+              Positioned.fill(
+                child: ProfileBackground(
+                  colors: imageColors,
+                ),
               ),
-            ),
-          expandedHeader,
-        ],
+            expandedHeader,
+          ],
+        ),
       ),
     );
 
@@ -82,6 +90,7 @@ class CollapsingHeaderLayout extends HookWidget {
             delegate: _PinnedHeaderDelegate(
               child: pinnedHeader!,
               scrollOffset: scrollOffset,
+              expandedHeaderHeight: expandedHeaderHeight,
             ),
           )
         : null;
@@ -151,6 +160,7 @@ class CollapsingHeaderLayout extends HookWidget {
     final scrollController = useScrollController();
     final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
     final scrollOffset = useState<double>(0);
+    final expandedHeaderHeight = useState<double>(0);
 
     useEffect(
       () {
@@ -207,6 +217,10 @@ class CollapsingHeaderLayout extends HookWidget {
                     imageColors: imageColors,
                     child: child,
                     scrollOffset: scrollOffset.value,
+                    expandedHeaderHeight: expandedHeaderHeight.value,
+                    onExpandedHeaderHeightChanged: (height) {
+                      expandedHeaderHeight.value = height;
+                    },
                   ),
                 ),
               ),
@@ -249,10 +263,12 @@ class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
   _PinnedHeaderDelegate({
     required this.child,
     required this.scrollOffset,
+    required this.expandedHeaderHeight,
   });
 
   final Widget child;
   final double scrollOffset;
+  final double expandedHeaderHeight;
 
   double get _childHeight => _getHeight(child);
 
@@ -261,7 +277,21 @@ class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
       PlatformDispatcher.instance.views.first.padding.top /
           PlatformDispatcher.instance.views.first.devicePixelRatio;
 
-  double get _startOffset => 169.0.s;
+  double get _startOffset {
+    // Start transition when expanded header is fully scrolled away
+    // Subtract separator height to account for the separator
+    if (expandedHeaderHeight <= 0) {
+      // Fallback to a reasonable default if not measured yet
+      return 169.0.s;
+    }
+
+    final view = PlatformDispatcher.instance.views.first;
+    final statusBarHeight = view.viewPadding.top / view.devicePixelRatio;
+    return expandedHeaderHeight -
+        NavigationAppBar.screenHeaderHeight +
+        SectionSeparator.defaultHeight -
+        statusBarHeight;
+  }
 
   double get _currentOffset {
     if (scrollOffset <= _startOffset) return 0;
@@ -294,7 +324,9 @@ class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_PinnedHeaderDelegate oldDelegate) {
-    return scrollOffset != oldDelegate.scrollOffset || child != oldDelegate.child;
+    return scrollOffset != oldDelegate.scrollOffset ||
+        child != oldDelegate.child ||
+        expandedHeaderHeight != oldDelegate.expandedHeaderHeight;
   }
 
   double _getHeight(Widget widget) {
