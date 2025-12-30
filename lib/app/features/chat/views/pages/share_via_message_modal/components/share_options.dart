@@ -77,7 +77,8 @@ class ShareOptions extends HookConsumerWidget {
     };
 
     final canShareToFeed = switch (entity) {
-      CommunityTokenDefinitionEntity() => true,
+      //TODO(ice-kreios): enable it when business logic is ready
+      CommunityTokenDefinitionEntity() => false,
       _ => false,
     };
 

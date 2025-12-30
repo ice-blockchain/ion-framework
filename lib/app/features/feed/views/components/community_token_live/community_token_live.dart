@@ -17,7 +17,6 @@ import 'package:ion/app/features/feed/views/components/user_info/user_info.dart'
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -63,7 +62,8 @@ class CommunityTokenLive extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (entity.data.kind == UserMetadataEntity.kind &&
-            entity.data.relatedHashtags.any((i) => i.value == communityTokenActionTopic)) ...[
+            (entity.data as CommunityTokenDefinitionIon).type ==
+                CommunityTokenDefinitionIonType.firstBuyAction) ...[
           ScreenSideOffset.small(
             child: const _CreatorTokenIsLiveLabel(),
           ),
