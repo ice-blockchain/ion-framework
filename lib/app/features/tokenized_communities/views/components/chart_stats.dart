@@ -75,12 +75,12 @@ class ChartStats extends StatelessWidget {
                 _KpiColumn(
                   title: i18n.chart_stats_buys,
                   value: buysText,
-                  valueColor: colors.primaryText,
+                  valueColor: colors.success,
                 ),
                 _KpiColumn(
                   title: i18n.chart_stats_sells,
                   value: sellsText,
-                  valueColor: hasNoSells ? colors.primaryText : colors.lossRed,
+                  valueColor: colors.lossRed,
                 ),
                 _KpiColumn(
                   title: i18n.chart_stats_net_buy,
