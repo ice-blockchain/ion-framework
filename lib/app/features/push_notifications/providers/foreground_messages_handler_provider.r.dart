@@ -55,7 +55,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     if (await _shouldSkipOwnGiftWrap(data: data)) {
       return;
     }
-    
+
     // Handle IonConnect notifications
     try {
       final data = await IonConnectPushDataPayload.fromEncoded(
