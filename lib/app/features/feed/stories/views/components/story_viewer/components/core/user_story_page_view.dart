@@ -78,8 +78,9 @@ class UserStoryPageView extends HookConsumerWidget {
           storiesLength: stories.length,
           onSeenAll: () => handleUserExit(onNextUser),
         ),
-        child: (!currentStory.id.endsWith('_ad'))
-            ? StoryContent(
+        child: currentStory.id.endsWith('_ad')
+            ? AdStoryViewer(key: Key(currentStory.id), storyId: currentStory.id)
+            : StoryContent(
                 key: Key(currentStory.id),
                 story: currentStory,
                 viewerPubkey: pubkey,
@@ -87,8 +88,7 @@ class UserStoryPageView extends HookConsumerWidget {
                   storiesLength: stories.length,
                   onSeenAll: () => handleUserExit(onNextUser),
                 ),
-              )
-            : AdStoryViewer(key: Key(currentStory.id), storyId: currentStory.id),
+              ),
       ),
     );
   }

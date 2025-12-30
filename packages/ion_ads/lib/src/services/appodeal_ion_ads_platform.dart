@@ -63,8 +63,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
       onInitializationFinished: (errors) {
         errors?.forEach((error) => log(error.description));
         log('onInitializationFinished: errors - ${errors?.length ?? 0}');
-        _checkAdAvailability();
-
+        Appodeal.cache(AppodealAdType.NativeAd);
         _initialized = true;
       },
     );
@@ -131,7 +130,6 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
         }
 
         _isRewardedLoaded = false;
-        _checkAdAvailability();
       },
       onRewardedVideoFinished: (amount, currency) {
         log('Rewarded video finished - Reward: $amount $currency');
@@ -144,18 +142,21 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     );
 
     Appodeal.setNativeCallbacks(
-      onNativeLoaded: () {
-        _isNativeLoaded = true;
+      onNativeLoaded: () async {
+        //_isNativeLoaded = true;
         log('onNativeLoaded');
+        await _checkAdAvailability();
       },
       onNativeFailedToLoad: () {
         log('onNativeFailedToLoad');
-        _isNativeLoaded = false;
       },
       onNativeShown: () => log('onNativeShown'),
       onNativeShowFailed: () => log('onNativeShowFailed'),
       onNativeClicked: () => log('onNativeClicked'),
-      onNativeExpired: () => log('onNativeExpired'),
+      onNativeExpired: () {
+        log('onNativeExpired');
+        _isNativeLoaded = false;
+      },
       onLog: (message) => log('onLog: $message'),
     );
   }
@@ -163,11 +164,11 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
   Future<void> _checkAdAvailability() async {
     final isNativeInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
     final canShowNative = await Appodeal.canShow(AppodealAdType.NativeAd);
-    final nativeAd = await Appodeal.getNativeAd(1);
-    await Appodeal.cache(AppodealAdType.NativeAd);
-    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative, nativeAd:$nativeAd');
+    final nativeAdCount = await Appodeal.getAvailableNativeAdsCount() ?? 0;
 
-    _isNativeLoaded = (isNativeInitialized ?? false) && (canShowNative ?? false);
+    log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative, nativeAdCount:$nativeAdCount');
+
+    _isNativeLoaded = (isNativeInitialized ?? false) && (nativeAdCount > 0);
   }
 
   @override
