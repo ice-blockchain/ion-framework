@@ -60,57 +60,60 @@ class TokenCommentInputField extends HookConsumerWidget {
     );
 
     return ScreenSideOffset.small(
-      child: Column(
-        children: [
-          SuggestionsContainer(
-            scrollController: scrollController,
-            editorKey: textEditorKey,
-          ),
-          SizedBox(height: 12.0.s),
-          Row(
-            children: [
-              if (!hasFocus.value && currentPubkey != null)
-                Padding(
-                  padding: EdgeInsetsDirectional.only(end: 6.0.s),
-                  child: IonConnectAvatar(
-                    masterPubkey: currentPubkey,
-                    size: 36.0.s,
-                    borderRadius: BorderRadius.all(Radius.circular(12.0.s)),
-                  ),
-                ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: focusNode.requestFocus,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: context.theme.appColors.onSecondaryBackground,
-                      borderRadius: BorderRadius.circular(16.0.s),
+      child: TextFieldTapRegion(
+        onTapOutside: (_) {
+          focusNode.unfocus();
+        },
+        child: Column(
+          children: [
+            SuggestionsContainer(
+              scrollController: scrollController,
+              editorKey: textEditorKey,
+            ),
+            SizedBox(height: 12.0.s),
+            Row(
+              children: [
+                if (!hasFocus.value && currentPubkey != null)
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(end: 6.0.s),
+                    child: IonConnectAvatar(
+                      masterPubkey: currentPubkey,
+                      size: 36.0.s,
+                      borderRadius: BorderRadius.all(Radius.circular(12.0.s)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (attachedMediaNotifier.value.isNotEmpty) ...[
-                          SizedBox(height: 6.0.s),
-                          Row(
-                            children: [
-                              SizedBox(width: 12.0.s),
-                              Expanded(
-                                child: AttachedMediaPreview(
-                                  attachedMediaNotifier: attachedMediaNotifier,
-                                  attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                  ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: focusNode.requestFocus,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: context.theme.appColors.onSecondaryBackground,
+                        borderRadius: BorderRadius.circular(16.0.s),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (attachedMediaNotifier.value.isNotEmpty) ...[
+                            SizedBox(height: 6.0.s),
+                            Row(
+                              children: [
+                                SizedBox(width: 12.0.s),
+                                Expanded(
+                                  child: AttachedMediaPreview(
+                                    attachedMediaNotifier: attachedMediaNotifier,
+                                    attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 9.0.s),
-                          key: inputContainerKey.value,
-                          constraints: BoxConstraints(
-                            maxHeight: 68.0.s,
-                            minHeight: 36.0.s,
-                          ),
-                          child: TextFieldTapRegion(
+                              ],
+                            ),
+                          ],
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 9.0.s),
+                            key: inputContainerKey.value,
+                            constraints: BoxConstraints(
+                              maxHeight: 68.0.s,
+                              minHeight: 36.0.s,
+                            ),
                             child: TextEditor(
                               textEditorController,
                               focusNode: focusNode,
@@ -120,51 +123,51 @@ class TokenCommentInputField extends HookConsumerWidget {
                               scrollable: true,
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.0.s),
-          if (hasFocus.value)
-            ActionsToolbar(
-              actions: [
-                ToolbarMediaButton(
-                  delegate: AttachedMediaHandler(attachedMediaNotifier),
-                  maxMedia: ModifiablePostEntity.contentMediaLimit,
-                ),
-                const ToolbarPollButton(),
-                ToolbarItalicButton(textEditorController: textEditorController),
-                ToolbarBoldButton(textEditorController: textEditorController),
               ],
-              trailing: Row(
-                children: [
-                  CharacterLimitExceedIndicator(
-                    maxCharacters: ModifiablePostEntity.contentCharacterLimit,
-                    textEditorController: textEditorController,
-                  ),
-                  SizedBox(width: 8.0.s),
-                  PostSubmitButton(
-                    textEditorController: textEditorController,
-                    parentEvent: tokenDefinitionEventReference,
-                    mediaFiles: attachedMediaNotifier.value,
-                    createOption: CreatePostOption.reply,
-                    shouldShowTooltip: false,
-                    onSubmitted: () {
-                      _clear(
-                        focusNode: focusNode,
-                        attachedMediaNotifier: attachedMediaNotifier,
-                        textEditorController: textEditorController,
-                      );
-                    },
-                  ),
-                ],
-              ),
             ),
-        ],
+            SizedBox(height: 12.0.s),
+            if (hasFocus.value)
+              ActionsToolbar(
+                actions: [
+                  ToolbarMediaButton(
+                    delegate: AttachedMediaHandler(attachedMediaNotifier),
+                    maxMedia: ModifiablePostEntity.contentMediaLimit,
+                  ),
+                  const ToolbarPollButton(),
+                  ToolbarItalicButton(textEditorController: textEditorController),
+                  ToolbarBoldButton(textEditorController: textEditorController),
+                ],
+                trailing: Row(
+                  children: [
+                    CharacterLimitExceedIndicator(
+                      maxCharacters: ModifiablePostEntity.contentCharacterLimit,
+                      textEditorController: textEditorController,
+                    ),
+                    SizedBox(width: 8.0.s),
+                    PostSubmitButton(
+                      textEditorController: textEditorController,
+                      parentEvent: tokenDefinitionEventReference,
+                      mediaFiles: attachedMediaNotifier.value,
+                      createOption: CreatePostOption.reply,
+                      shouldShowTooltip: false,
+                      onSubmitted: () {
+                        _clear(
+                          focusNode: focusNode,
+                          attachedMediaNotifier: attachedMediaNotifier,
+                          textEditorController: textEditorController,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

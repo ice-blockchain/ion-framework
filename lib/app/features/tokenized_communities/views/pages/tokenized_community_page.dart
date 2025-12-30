@@ -242,61 +242,50 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           ),
         ],
       ),
-      child: Listener(
-        onPointerDown: (_) {
-          // Unfocus any focused text field when tapping anywhere on the page
-          // This fires before child widgets consume the tap, so it works even
-          // when tapping on interactive elements like buttons or list items
-          final focusedNode = FocusScope.of(context).focusedChild;
-          if (focusedNode != null) {
-            focusedNode.unfocus();
-          }
-        },
-        child: Column(
-          children: [
-            SimpleSeparator(height: 4.0.s),
-            if (tokenInfo != null && tokenInfo.marketData.position != null)
-              YourPositionCard(
-                token: tokenInfo,
-                trailing: SimpleSeparator(height: 4.0.s),
-              ),
-            KeyedSubtree(
-              key: sectionKeys[TokenizedCommunityTabType.chart.index],
-              child: _TokenChart(
-                externalAddress: externalAddress,
-              ),
+      child: Column(
+        children: [
+          SimpleSeparator(height: 4.0.s),
+          if (tokenInfo != null && tokenInfo.marketData.position != null)
+            YourPositionCard(
+              token: tokenInfo,
+              trailing: SimpleSeparator(height: 4.0.s),
             ),
-            SimpleSeparator(height: 4.0.s),
-            _TokenStats(externalAddress: externalAddress),
-            SimpleSeparator(height: 4.0.s),
-            KeyedSubtree(
-              key: sectionKeys[TokenizedCommunityTabType.holders.index],
-              child: TopHolders(
-                externalAddress: externalAddress,
-              ),
+          KeyedSubtree(
+            key: sectionKeys[TokenizedCommunityTabType.chart.index],
+            child: _TokenChart(
+              externalAddress: externalAddress,
             ),
+          ),
+          SimpleSeparator(height: 4.0.s),
+          _TokenStats(externalAddress: externalAddress),
+          SimpleSeparator(height: 4.0.s),
+          KeyedSubtree(
+            key: sectionKeys[TokenizedCommunityTabType.holders.index],
+            child: TopHolders(
+              externalAddress: externalAddress,
+            ),
+          ),
+          SimpleSeparator(height: 4.0.s),
+          KeyedSubtree(
+            key: sectionKeys[TokenizedCommunityTabType.trades.index],
+            child: LatestTradesCard(
+              externalAddress: externalAddress,
+            ),
+          ),
+          if (tokenDefinition != null) ...[
             SimpleSeparator(height: 4.0.s),
             KeyedSubtree(
-              key: sectionKeys[TokenizedCommunityTabType.trades.index],
-              child: LatestTradesCard(
-                externalAddress: externalAddress,
+              key: sectionKeys[TokenizedCommunityTabType.comments.index],
+              child: CommentsSectionCompact(
+                tokenDefinitionEventReference: tokenDefinition.toEventReference(),
+                onCommentInputFocusChanged: (bool isFocused) {
+                  isCommentInputFocused.value = isFocused;
+                },
               ),
             ),
-            if (tokenDefinition != null) ...[
-              SimpleSeparator(height: 4.0.s),
-              KeyedSubtree(
-                key: sectionKeys[TokenizedCommunityTabType.comments.index],
-                child: CommentsSectionCompact(
-                  tokenDefinitionEventReference: tokenDefinition.toEventReference(),
-                  onCommentInputFocusChanged: (bool isFocused) {
-                    isCommentInputFocused.value = isFocused;
-                  },
-                ),
-              ),
-            ],
-            SizedBox(height: 120.0.s),
           ],
-        ),
+          SizedBox(height: 120.0.s),
+        ],
       ),
     );
   }
