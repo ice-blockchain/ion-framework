@@ -35,6 +35,7 @@ class CreatorTokensList extends StatelessWidget {
         final token = items[index];
         return ScreenSideOffset.small(
           child: CreatorTokensListItem(
+            index: index,
             key: ValueKey(token.addresses.ionConnect),
             token: token,
           ),
