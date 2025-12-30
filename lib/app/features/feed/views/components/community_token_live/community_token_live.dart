@@ -18,18 +18,21 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class CommunityTokenLive extends HookConsumerWidget {
   const CommunityTokenLive({
     required this.eventReference,
     this.network = false,
+    this.enableTokenNavigation = false,
     super.key,
   });
 
   final EventReference eventReference;
 
   final bool network;
+  final bool enableTokenNavigation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,7 +61,7 @@ class CommunityTokenLive extends HookConsumerWidget {
       );
     }
 
-    return Column(
+    final postWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (entity.data.kind == UserMetadataEntity.kind &&
@@ -91,6 +94,26 @@ class CommunityTokenLive extends HookConsumerWidget {
         CounterItemsFooter(eventReference: eventReference),
       ],
     );
+
+    if (enableTokenNavigation) {
+      final route = switch (entity.data) {
+        CommunityTokenDefinitionIon(:final eventReference) =>
+          TokenizedCommunityRoute(eventReference: eventReference.encode()),
+        CommunityTokenDefinitionExternal(:final externalId) =>
+          TokenizedCommunityRoute(externalAddress: externalId),
+        _ => null,
+      };
+
+      if (route != null) {
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => route.push<void>(context),
+          child: postWidget,
+        );
+      }
+    }
+
+    return postWidget;
   }
 }
 
