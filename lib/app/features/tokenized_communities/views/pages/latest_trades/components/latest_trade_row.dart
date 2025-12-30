@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/router/utils/profile_navigation_utils.dart';
 import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
@@ -13,13 +14,11 @@ class LatestTradeRow extends StatelessWidget {
   const LatestTradeRow({
     required this.trade,
     required this.minTextWidth,
-    this.onTap,
     super.key,
   });
 
   final LatestTrade trade;
   final double minTextWidth;
-  final ValueChanged<LatestTrade>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -94,10 +93,13 @@ class LatestTradeRow extends StatelessWidget {
       ],
     );
 
-    if (onTap == null) return content;
-
     return InkWell(
-      onTap: () => onTap!(trade),
+      onTap: holderAddress != null
+          ? () => ProfileNavigationUtils.navigateToProfile(
+                context,
+                externalAddress: holderAddress,
+              )
+          : null,
       child: content,
     );
   }
