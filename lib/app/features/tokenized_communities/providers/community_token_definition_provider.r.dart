@@ -120,6 +120,13 @@ class CommunityTokenDefinitionRepository {
     );
   }
 
+  Future<void> cacheTokenDefinitionReference(EventMessage tokenDefinitionEvent) async {
+    final tokenDefinition = CommunityTokenDefinitionEntity.fromEventMessage(tokenDefinitionEvent);
+    await _ionConnectCache.cache(
+      TokenDefinitionReferenceEntity.forDefinition(tokenDefinition: tokenDefinition),
+    );
+  }
+
   Future<CommunityTokenDefinitionEntity?> _fetchFromIonConnect({
     required String externalAddress,
     required EventReference creatorEventReference,

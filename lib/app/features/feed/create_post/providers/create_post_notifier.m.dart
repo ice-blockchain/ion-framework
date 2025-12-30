@@ -51,6 +51,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/verified_user_events_metadata_provider.r.dart';
@@ -352,6 +353,10 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     if (parentEntity == null && postData.expiration == null) {
       final tokenDefinition = _buildPostTokenDefinition(postData);
       final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
+      unawaited(
+        (await ref.read(communityTokenDefinitionRepositoryProvider.future))
+            .cacheTokenDefinitionReference(tokenDefinitionEvent),
+      );
       ownEventsToPublish.add(tokenDefinitionEvent);
     }
 

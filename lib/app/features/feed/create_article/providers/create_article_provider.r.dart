@@ -35,6 +35,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -303,6 +304,8 @@ class CreateArticle extends _$CreateArticle {
     List<RelatedPubkey> mentions = const [],
   }) async {
     final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
+    final communityTokenDefinitionRepository =
+        await ref.read(communityTokenDefinitionRepositoryProvider.future);
 
     final articleEvent = await ionNotifier.sign(articleData);
     final fileEvents = await Future.wait(files.map(ionNotifier.sign));
@@ -316,6 +319,7 @@ class CreateArticle extends _$CreateArticle {
 
     await Future.wait([
       ionNotifier.sendEvents([...fileEvents, articleEvent, tokenDefinitionEvent]),
+      communityTokenDefinitionRepository.cacheTokenDefinitionReference(tokenDefinitionEvent),
       for (final pubkey in pubkeysToPublish)
         ionNotifier.sendEvent(
           articleEvent,
