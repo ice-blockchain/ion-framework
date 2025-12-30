@@ -38,7 +38,7 @@ class TokenLaunchRepository implements IonNotificationRepository<TokenLaunchIonN
 
     return _tokenLaunchDao.insert(
       TokenLaunch(
-        eventReference: data.eventReference,
+        eventReference: entity.toEventReference(),
         createdAt: entity.createdAt,
       ),
     );
