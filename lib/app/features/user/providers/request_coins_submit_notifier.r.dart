@@ -8,6 +8,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user/model/request_coins_form_data.f.dart';
 import 'package:ion/app/features/user/providers/request_coins_form_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
@@ -41,13 +42,13 @@ class RequestCoinsSubmitNotifier extends _$RequestCoinsSubmitNotifier {
       final formData = ref.read(requestCoinsFormControllerProvider);
       _validateFormData(formData);
 
-      final currentUserPubkey = ref.read(currentPubkeySelectorProvider);
-      if (currentUserPubkey == null) {
+      final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
+      if (currentUserMasterPubkey == null) {
         throw const CurrentUserNotFoundException();
       }
 
-      final request = await _buildFundsRequestData(formData, currentUserPubkey);
-      final pubkeys = await _collectPubkeys(formData.contactPubkey!, currentUserPubkey);
+      final request = await _buildFundsRequestData(formData, currentUserMasterPubkey);
+      final pubkeys = await _collectPubkeys(formData.contactPubkey!, currentUserMasterPubkey);
 
       final sendToRelayService = await ref.read(sendTransactionToRelayServiceProvider.future);
       final event = await sendToRelayService.sendTransactionEntity(
@@ -61,7 +62,7 @@ class RequestCoinsSubmitNotifier extends _$RequestCoinsSubmitNotifier {
 
       final eventReference = ImmutableEventReference(
         eventId: event.id,
-        masterPubkey: currentUserPubkey,
+        masterPubkey: currentUserMasterPubkey,
         kind: event.kind,
       );
 
@@ -148,30 +149,37 @@ class RequestCoinsSubmitNotifier extends _$RequestCoinsSubmitNotifier {
     );
   }
 
-  Future<_PubkeysCollection> _collectPubkeys(String contactPubkey, String currentUserPubkey) async {
+  Future<_PubkeysCollection> _collectPubkeys(
+    String receiverMasterPubkey,
+    String currentUserPubkey,
+  ) async {
     final currentUserDelegation = await ref.read(currentUserDelegationProvider.future);
-    final contactDelegation = await ref.read(userDelegationProvider(contactPubkey).future);
+    final contactDelegation = await ref.read(userDelegationProvider(receiverMasterPubkey).future);
 
-    final senderDevicePubkeys =
-        currentUserDelegation?.data.delegates.map((e) => e.pubkey).toList() ?? [];
-    final receiverDevicePubkeys =
-        contactDelegation?.data.delegates.map((e) => e.pubkey).toList() ?? [];
+    final eventSigner = await ref.read(currentUserIonConnectEventSignerProvider.future);
 
-    if (senderDevicePubkeys.isEmpty && receiverDevicePubkeys.isEmpty) {
-      throw FormException(
-        'No device pubkeys found for either sender or receiver',
-        formName: _formName,
-      );
+    if (eventSigner == null) {
+      throw EventSignerNotFoundException();
     }
+
+    final currentUserActiveDevicePubkeys =
+        currentUserDelegation?.data.activeDelegates().keys.toList() ?? [];
+
+    if (!currentUserActiveDevicePubkeys.contains(eventSigner.publicKey)) {
+      throw UserDeviceRevokedException();
+    }
+
+    final receiverActiveDevicePubkeys =
+        contactDelegation?.data.activeDelegates().keys.toList() ?? [];
 
     return (
       sender: (
         masterPubkey: currentUserPubkey,
-        devicePubkeys: senderDevicePubkeys,
+        devicePubkeys: currentUserActiveDevicePubkeys,
       ),
       receiver: (
-        masterPubkey: contactPubkey,
-        devicePubkeys: receiverDevicePubkeys,
+        masterPubkey: receiverMasterPubkey,
+        devicePubkeys: receiverActiveDevicePubkeys,
       ),
     );
   }

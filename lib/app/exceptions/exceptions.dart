@@ -708,3 +708,93 @@ class SolanaInsufficientBalanceException extends IONException {
 class SolanaInvalidRecipientException extends IONException {
   SolanaInvalidRecipientException() : super(10132, 'Solana invalid recipient exception');
 }
+
+class UnknownEventReferenceKind extends IONException {
+  UnknownEventReferenceKind(dynamic eventReference)
+      : super(10133, 'Unknown event reference kind: $eventReference');
+}
+
+class TokenInfoNotFoundException extends IONException {
+  TokenInfoNotFoundException(String externalAddress)
+      : super(10134, 'Token info not found for external address: $externalAddress');
+}
+
+class TokenCreatorIonAddressNotFoundException extends IONException {
+  TokenCreatorIonAddressNotFoundException(String externalAddress)
+      : super(
+          10135,
+          'Token info creator Ion address not found for external address: $externalAddress',
+        );
+}
+
+class TokenDefinitionNotFoundException extends IONException {
+  TokenDefinitionNotFoundException(String externalAddress)
+      : super(
+          10136,
+          'Token definition not found for external address: $externalAddress',
+        );
+}
+
+class TokenAddressNotFoundException extends IONException {
+  TokenAddressNotFoundException(String externalAddress)
+      : super(
+          10137,
+          'Token address not found for external address: $externalAddress',
+        );
+}
+
+class TokenPricingNotFoundException extends IONException {
+  TokenPricingNotFoundException(String externalAddress)
+      : super(
+          10138,
+          'Token pricing not found for external address: $externalAddress',
+        );
+}
+
+class UgcCounterFetchException extends IONException {
+  UgcCounterFetchException([String? message])
+      : super(
+          10139,
+          message ?? 'Failed to fetch UGC counter',
+        );
+}
+
+class BscNetworkNotFoundException extends IONException {
+  BscNetworkNotFoundException() : super(10140, 'BSC network is missing');
+}
+
+class CreatorWalletAddressNotFoundException extends IONException {
+  CreatorWalletAddressNotFoundException({
+    required String pubkey,
+    required String networkId,
+  }) : super(
+          10141,
+          'Creator wallet address is missing for pubkey $pubkey on network $networkId',
+        );
+}
+
+class TransactionHashNotFoundException extends IONException {
+  TransactionHashNotFoundException(String externalAddress)
+      : super(10142, 'Transaction hash not found for external address: $externalAddress');
+}
+
+class CommunityTokenTradeTransactionException extends IONException {
+  CommunityTokenTradeTransactionException({
+    required String reason,
+    String? status,
+    String? txHash,
+  }) : super(
+          10143,
+          'Community token trade transaction error: $reason'
+          '${status != null ? ', status: $status' : ''}'
+          '${txHash != null ? ', txHash: $txHash' : ''}',
+        );
+}
+
+class UserDeviceRevokedException extends IONException {
+  UserDeviceRevokedException()
+      : super(
+          10144,
+          'User device has been revoked',
+        );
+}
