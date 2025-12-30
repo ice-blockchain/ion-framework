@@ -19,6 +19,7 @@ class CoinsMapper {
             syncFrequency: coin.syncFrequency,
             native: coin.native ?? false,
             prioritized: coin.prioritized ?? false,
+            isCreatorToken: false,
           ),
       ];
 }

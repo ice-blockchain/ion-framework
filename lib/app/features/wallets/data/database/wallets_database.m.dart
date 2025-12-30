@@ -71,7 +71,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -267,6 +267,23 @@ class WalletsDatabase extends _$WalletsDatabase {
           // Recreate transactions table with correct primary key (tx_hash, wallet_view_id, type) with isSwap column.
           await m.deleteTable(schema.transactionsTableV2.actualTableName);
           await m.createTable(schema.transactionsTableV2);
+        },
+        from22To23: (m, schema) async {
+          final columnExists = await isColumnExists(
+            tableName: schema.coinsTable.actualTableName,
+            columnName: 'is_creator_token',
+          );
+          if (!columnExists) {
+            await m.alterTable(
+              TableMigration(
+                schema.coinsTable,
+                columnTransformer: {
+                  schema.coinsTable.isCreatorToken: const Constant(false),
+                },
+                newColumns: [schema.coinsTable.isCreatorToken],
+              ),
+            );
+          }
         },
       ),
     );

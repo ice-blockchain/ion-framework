@@ -93,6 +93,7 @@ class _TokenRow extends StatelessWidget {
         CoinIconWithNetwork.small(
           coinsGroup.iconUrl,
           network: network,
+          showPlaceholder: true,
         ),
         SizedBox(width: 12.0.s),
         Expanded(

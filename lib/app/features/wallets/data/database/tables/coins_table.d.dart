@@ -23,6 +23,7 @@ class CoinsTable extends Table {
   Column<Duration> get syncFrequency => customType(const DurationType())();
   BoolColumn get native => boolean()();
   BoolColumn get prioritized => boolean()();
+  BoolColumn get isCreatorToken => boolean()();
 
   @override
   Set<Column> get primaryKey => {id};

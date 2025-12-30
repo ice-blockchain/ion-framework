@@ -23,6 +23,7 @@ class CoinData with _$CoinData {
     required Duration syncFrequency,
     @Default(false) bool native,
     @Default(false) bool prioritized,
+    @Default(false) bool isCreatorToken,
   }) = _CoinData;
 
   factory CoinData.fromDB(db.Coin coin, NetworkData network) {
@@ -39,6 +40,7 @@ class CoinData with _$CoinData {
       syncFrequency: coin.syncFrequency,
       native: coin.native,
       prioritized: coin.prioritized,
+      isCreatorToken: coin.isCreatorToken,
     );
   }
 
@@ -61,7 +63,10 @@ class CoinData with _$CoinData {
 
   const CoinData._();
 
-  db.Coin toDB() => db.Coin(
+  db.Coin toDB({
+    bool? isCreatorToken,
+  }) =>
+      db.Coin(
         id: id,
         contractAddress: contractAddress,
         decimals: decimals,
@@ -74,6 +79,7 @@ class CoinData with _$CoinData {
         syncFrequency: syncFrequency,
         native: native,
         prioritized: prioritized,
+        isCreatorToken: isCreatorToken ?? this.isCreatorToken,
       );
 
   bool get isValid =>

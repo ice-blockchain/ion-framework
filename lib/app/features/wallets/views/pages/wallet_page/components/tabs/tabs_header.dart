@@ -71,9 +71,9 @@ class WalletTabsHeader extends ConsumerWidget {
             ),
           ],
           WalletTabsHeaderTab(
-            isActive: false,
+            isActive: activeTab == WalletTabType.creatorTokens,
             title: context.i18n.general_creator_tokens,
-            onTap: () => CreatorTokensRoute().push<void>(context),
+            onTap: () => onTabSwitch(WalletTabType.creatorTokens),
           ),
           const Spacer(),
           TextButton(

@@ -79,6 +79,8 @@ class Balance extends ConsumerWidget {
                     SelectNetworkToReceiveNftRoute().push<void>(ref.context);
                   case WalletTabType.coins:
                     ReceiveCoinRoute().push<void>(context);
+                  case WalletTabType.creatorTokens:
+                    ReceiveCoinRoute().push<void>(context);
                 }
               },
               onMore: () {
