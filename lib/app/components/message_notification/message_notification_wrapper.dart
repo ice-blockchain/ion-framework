@@ -63,6 +63,7 @@ class MessageNotificationWrapper extends HookConsumerWidget {
     );
 
     final suffixWidget = notification.value?.suffixWidget;
+    final bottomPadding = notification.value?.bottomPadding ?? 94.0.s;
 
     return Stack(
       children: [
@@ -70,7 +71,7 @@ class MessageNotificationWrapper extends HookConsumerWidget {
         PositionedDirectional(
           start: 16.0.s,
           end: 16.0.s,
-          bottom: 94.0.s,
+          bottom: bottomPadding,
           child: IgnorePointer(
             child: FadeTransition(
               opacity: animation,
