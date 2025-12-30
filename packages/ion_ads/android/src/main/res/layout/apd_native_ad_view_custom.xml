@@ -13,7 +13,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/native_custom_content"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/native_custom_icon_wrapper"
@@ -88,8 +88,8 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/native_media_wrapper"
-            android:layout_width="0dp"
-            android:layout_height="260dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
