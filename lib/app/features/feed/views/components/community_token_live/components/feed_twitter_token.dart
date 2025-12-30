@@ -152,41 +152,43 @@ class TwitterTokenHeader extends StatelessWidget {
             alignment: AlignmentDirectional.bottomCenter,
             clipBehavior: Clip.none,
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: context.theme.appColors.secondaryBackground.withValues(
-                    alpha: 0.1,
+              IntrinsicWidth(
+                child: Container(
+                  constraints: BoxConstraints(minWidth: 260.s),
+                  decoration: BoxDecoration(
+                    color: context.theme.appColors.secondaryBackground.withValues(
+                      alpha: 0.1,
+                    ),
+                    borderRadius: BorderRadius.circular(12.0.s),
                   ),
-                  borderRadius: BorderRadius.circular(12.0.s),
-                ),
-                margin: EdgeInsetsDirectional.symmetric(horizontal: 42.s),
-                padding: EdgeInsetsDirectional.only(
-                  top: 20.s,
-                  bottom: 24.s,
-                  start: 20.s,
-                  end: 20.s,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 25.s,
-                  children: [
-                    TokenStatItem(
-                      icon: Assets.svg.iconMemeMarketcap,
-                      text: MarketDataFormatter.formatCompactNumber(
-                        token.marketData.marketCap,
+                  padding: EdgeInsetsDirectional.only(
+                    top: 20.s,
+                    bottom: 24.s,
+                    start: 20.s,
+                    end: 20.s,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 25.s,
+                    children: [
+                      TokenStatItem(
+                        icon: Assets.svg.iconMemeMarketcap,
+                        text: MarketDataFormatter.formatCompactNumber(
+                          token.marketData.marketCap,
+                        ),
                       ),
-                    ),
-                    TokenStatItem(
-                      icon: Assets.svg.iconMemeMarkers,
-                      text: MarketDataFormatter.formatVolume(
-                        token.marketData.volume,
+                      TokenStatItem(
+                        icon: Assets.svg.iconMemeMarkers,
+                        text: MarketDataFormatter.formatVolume(
+                          token.marketData.volume,
+                        ),
                       ),
-                    ),
-                    TokenStatItem(
-                      icon: Assets.svg.iconSearchGroups,
-                      text: formatCount(token.marketData.holders),
-                    ),
-                  ],
+                      TokenStatItem(
+                        icon: Assets.svg.iconSearchGroups,
+                        text: formatCount(token.marketData.holders),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               PositionedDirectional(

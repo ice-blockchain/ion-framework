@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -18,8 +19,10 @@ import 'package:ion/app/features/chat/views/pages/share_via_message_modal/compon
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_profile_to_story_content.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/providers/repost_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -42,16 +45,17 @@ class ShareOptions extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isCapturing = useState(false);
 
-    final userPreviewData =
-        ref.watch(userPreviewDataProvider(eventReference.masterPubkey)).valueOrNull;
-    if (userPreviewData == null) {
+    final userPreviewData = eventReference.kind == CommunityTokenDefinitionEntity.kind
+        ? null
+        : ref.watch(userPreviewDataProvider(eventReference.masterPubkey)).valueOrNull;
+    if (userPreviewData == null && eventReference.kind != CommunityTokenDefinitionEntity.kind) {
       return const SizedBox.shrink();
     }
     final shareOptionsData = ref.watch(
       shareOptionsDataProvider(
         eventReference,
-        userPreviewData.data,
-        prefixUsername(username: userPreviewData.data.name, context: context),
+        userPreviewData?.data,
+        prefixUsername(username: userPreviewData?.data.name, context: context),
       ),
     );
 
@@ -72,6 +76,12 @@ class ShareOptions extends HookConsumerWidget {
       _ => false,
     };
 
+    final canShareToFeed = switch (entity) {
+      //TODO(ice-kreios): enable it when business logic is ready
+      CommunityTokenDefinitionEntity() => false,
+      _ => false,
+    };
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Padding(
@@ -87,6 +97,16 @@ class ShareOptions extends HookConsumerWidget {
                     : Assets.svg.iconFeedStory.icon(size: iconSize),
                 label: context.i18n.feed_add_story,
                 onPressed: isCapturing.value ? () {} : () => _onShareToStory(ref, isCapturing),
+              ),
+            if (canShareToFeed)
+              ShareOptionsMenuItem(
+                buttonType: ButtonType.dropdown,
+                icon: Assets.svg.iconProfileFeed
+                    .icon(size: iconSize, color: context.theme.appColors.primaryText),
+                label: context.i18n.post_on_feed,
+                onPressed: () {
+                  _onShareToFeed(ref, context, eventReference, isCapturing);
+                },
               ),
             ShareCopyLinkOption(
               shareUrl: shareUrl,
@@ -208,10 +228,23 @@ class ShareOptions extends HookConsumerWidget {
     }
   }
 
+  void _onShareToFeed(
+    WidgetRef ref,
+    BuildContext context,
+    EventReference eventReference,
+    ValueNotifier<bool> isCapturing,
+  ) {
+    ref.read(repostNotifierProvider.notifier).repost(eventReference: eventReference);
+    context.pop();
+  }
+
   (String title, String description) _buildDescription(
     BuildContext context,
     ShareOptionsData data,
   ) {
+    if (data.contentType == SharedContentType.communityToken) {
+      return (data.tickerName ?? '', data.tokenTitle ?? '');
+    }
     final effectiveUserDisplayName = context.i18n.share_user_on_app(
       data.shareAppName,
       data.userDisplayName,
@@ -223,6 +256,7 @@ class ShareOptions extends HookConsumerWidget {
       SharedContentType.postWithVideo => data.content.emptyOrValue,
       SharedContentType.article => data.articleTitle ?? '',
       SharedContentType.profile => data.userDisplayName,
+      _ => '',
     };
 
     return (effectiveUserDisplayName, description);

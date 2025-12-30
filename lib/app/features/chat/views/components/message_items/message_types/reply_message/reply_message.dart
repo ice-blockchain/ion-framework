@@ -133,6 +133,7 @@ class ReplyMessage extends HookConsumerWidget {
         MediaItem _ => Assets.svg.iconProfileCamera,
         AudioItem _ => Assets.svg.iconChatVoicemessage,
         ShareProfileItem _ => Assets.svg.iconProfileUsertab,
+        CommunityTokenItem _ => null,
       };
 }
 

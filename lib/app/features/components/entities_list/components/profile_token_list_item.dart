@@ -25,7 +25,7 @@ class ProfileTokenListItem extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () => TokenizedCommunityRoute(
-        eventReference: eventReference.encode(),
+        externalAddress: eventReference.toString(),
       ).push<void>(context),
       behavior: HitTestBehavior.opaque,
       child: Column(

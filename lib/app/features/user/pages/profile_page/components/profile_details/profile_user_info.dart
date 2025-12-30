@@ -79,7 +79,7 @@ class ProfileUserInfo extends ConsumerWidget {
                             onTap: () {
                               if (eventReference == null) return;
                               TokenizedCommunityRoute(
-                                eventReference: eventReference.encode(),
+                                externalAddress: eventReferenceString,
                               ).push<void>(context);
                             },
                             child: const BuyButton(),

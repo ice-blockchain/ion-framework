@@ -87,7 +87,7 @@ class _TokenDefinitionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final route = switch (entity.data) {
       CommunityTokenDefinitionIon(:final eventReference) =>
-        TokenizedCommunityRoute(eventReference: eventReference.encode()),
+        TokenizedCommunityRoute(externalAddress: eventReference.toString()),
       CommunityTokenDefinitionExternal(:final externalId) =>
         TokenizedCommunityRoute(externalAddress: externalId),
       _ => null,
@@ -118,7 +118,7 @@ class _TokenActionButton extends ConsumerWidget {
 
     final route = switch (tokenDefinition.data) {
       CommunityTokenDefinitionIon(:final eventReference) =>
-        TokenizedCommunityRoute(eventReference: eventReference.encode()),
+        TokenizedCommunityRoute(externalAddress: eventReference.toString()),
       CommunityTokenDefinitionExternal(:final externalId) =>
         TokenizedCommunityRoute(externalAddress: externalId),
       _ => null,
@@ -168,7 +168,7 @@ class _ContentEntityButton extends ConsumerWidget {
         onTap: () {
           if (hasToken) {
             TokenizedCommunityRoute(
-              eventReference: eventReference.encode(),
+              externalAddress: eventReference.toString(),
             ).push<void>(context);
           } else if (externalAddressType != null) {
             TradeCommunityTokenRoute(

@@ -61,7 +61,9 @@ class CommunityTokenLive extends HookConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (entity.data.kind == UserMetadataEntity.kind) ...[
+        if (entity.data.kind == UserMetadataEntity.kind &&
+            (entity.data as CommunityTokenDefinitionIon).type ==
+                CommunityTokenDefinitionIonType.firstBuyAction) ...[
           ScreenSideOffset.small(
             child: const _CreatorTokenIsLiveLabel(),
           ),

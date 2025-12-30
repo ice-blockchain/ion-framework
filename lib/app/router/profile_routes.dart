@@ -12,7 +12,7 @@ class ProfileRoutes {
     TypedGoRoute<EditBookmarksRoute>(path: 'bookmarks_edit'),
     TypedGoRoute<FollowListRoute>(path: 'follow-list-fullstack'),
     TypedGoRoute<TokenizedCommunityRoute>(
-      path: 'tokenized-community-fullstack',
+      path: 'tokenized-community-fullstack/:externalAddress',
     ),
     TypedGoRoute<CreatorTokensRoute>(path: 'creator-tokens-fullstack'),
     TypedGoRoute<HoldersRoute>(path: 'holders-fullstack'),
@@ -396,22 +396,14 @@ class FullscreenMediaRoute extends BaseRouteData with _$FullscreenMediaRoute {
 
 class TokenizedCommunityRoute extends BaseRouteData with _$TokenizedCommunityRoute {
   TokenizedCommunityRoute({
-    this.eventReference,
-    this.externalAddress,
-  })  : assert(
-          (eventReference == null) != (externalAddress == null),
-          'Either eventReference or externalAddress must be provided',
-        ),
-        super(
+    required this.externalAddress,
+  }) : super(
           child: TokenizedCommunityPage(
-            eventReference:
-                eventReference != null ? EventReference.fromEncoded(eventReference) : null,
             externalAddress: externalAddress,
           ),
         );
 
-  final String? eventReference;
-  final String? externalAddress;
+  final String externalAddress;
 }
 
 class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {

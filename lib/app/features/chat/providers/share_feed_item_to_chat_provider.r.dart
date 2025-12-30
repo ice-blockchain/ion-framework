@@ -24,6 +24,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'share_feed_item_to_chat_provider.r.g.dart';
@@ -60,6 +61,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
         final feedItemEventMessage = await switch (feedItemEntity) {
           final ModifiablePostEntity entity => entity.toEntityEventMessage(),
           final ArticleEntity entity => entity.toEntityEventMessage(),
+          final CommunityTokenDefinitionEntity entity => entity.toEntityEventMessage(),
           _ => throw EntityNotFoundException(eventReference),
         };
 
@@ -67,6 +69,7 @@ class ShareFeedItemToChat extends _$ShareFeedItemToChat {
           final ModifiablePostEntity entity =>
             entity.isStory ? ModifiablePostEntity.storyKind : ModifiablePostEntity.kind,
           final ArticleEntity _ => ArticleEntity.kind,
+          final CommunityTokenDefinitionEntity _ => CommunityTokenDefinitionEntity.kind,
           _ => throw EntityNotFoundException(eventReference),
         };
 

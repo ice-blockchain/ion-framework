@@ -184,13 +184,8 @@ class CollapsingHeaderLayout extends HookWidget {
                 ),
               ),
               actions: headerActionsBuilder(menuCloseSignal).asMap().entries.map((entry) {
-                final index = entry.key;
                 final action = entry.value;
-                if (index == 0) return action;
-                return Padding(
-                  padding: EdgeInsetsDirectional.only(end: 16.0.s),
-                  child: action,
-                );
+                return action;
               }).toList(),
               onBackPress: onBackButtonPressed,
             ),

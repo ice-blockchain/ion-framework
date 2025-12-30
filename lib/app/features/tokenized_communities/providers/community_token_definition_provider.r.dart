@@ -110,7 +110,7 @@ class CommunityTokenDefinitionRepository {
     }
 
     final tags = {
-      '!#t': [communityTokenActionTopic],
+      '#!t': [communityTokenActionTopic],
     }..addEntries([eventReference.toFilterEntry()]);
 
     return _fetchFromIonConnect(

@@ -11,10 +11,13 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'share_options_provider.r.g.dart';
@@ -27,6 +30,8 @@ class ShareOptionsData {
     required this.contentType,
     this.content,
     this.articleTitle,
+    this.tickerName,
+    this.tokenTitle,
   });
 
   final String? imageUrl;
@@ -35,13 +40,15 @@ class ShareOptionsData {
   final String? content;
   final SharedContentType contentType;
   final String? articleTitle;
+  final String? tickerName;
+  final String? tokenTitle;
 }
 
 @riverpod
 ShareOptionsData? shareOptionsData(
   Ref ref,
   EventReference eventReference,
-  UserPreviewData userPreviewData,
+  UserPreviewData? userPreviewData,
   String prefixUsername,
 ) {
   final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
@@ -49,17 +56,48 @@ ShareOptionsData? shareOptionsData(
   if (entity == null) {
     return null;
   }
-
   final shareAppName = ref.read(envProvider.notifier).get<String>(EnvVariable.SHARE_APP_NAME);
-  return _getShareOptionsData(entity, userPreviewData, shareAppName, prefixUsername);
+
+  if (entity is CommunityTokenDefinitionEntity) {
+    final communityTokenInfo =
+        ref.watch(tokenMarketInfoProvider(entity.data.externalAddress)).valueOrNull;
+    if (communityTokenInfo == null) {
+      return null;
+    }
+
+    return _getShareOptionsData(
+      entity,
+      userPreviewData,
+      shareAppName,
+      prefixUsername,
+      communityTokenInfo,
+    );
+  }
+
+  return _getShareOptionsData(entity, userPreviewData, shareAppName, prefixUsername, null);
 }
 
 ShareOptionsData? _getShareOptionsData(
   IonConnectEntity entity,
-  UserPreviewData userPreviewData,
+  UserPreviewData? userPreviewData,
   String shareAppName,
   String prefixUsername,
+  CommunityToken? communityTokenInfo,
 ) {
+  if (entity is CommunityTokenDefinitionEntity) {
+    return ShareOptionsData(
+      imageUrl: communityTokenInfo?.imageUrl,
+      userDisplayName: '',
+      shareAppName: shareAppName,
+      contentType: SharedContentType.communityToken,
+      tickerName: communityTokenInfo?.marketData.ticker,
+      tokenTitle: communityTokenInfo?.title,
+    );
+  }
+
+  if (userPreviewData == null) {
+    return null;
+  }
   final userDisplayName = '${userPreviewData.displayName} ($prefixUsername)';
 
   switch (entity) {

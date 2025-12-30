@@ -67,4 +67,10 @@ sealed class ChatMessageInfoItem with _$ChatMessageInfoItem {
     required EventMessage eventMessage,
     required String contentDescription,
   }) = MoneyItem;
+
+  @Implements<MessageInfo>()
+  const factory ChatMessageInfoItem.communityToken({
+    required EventMessage eventMessage,
+    required String contentDescription,
+  }) = CommunityTokenItem;
 }

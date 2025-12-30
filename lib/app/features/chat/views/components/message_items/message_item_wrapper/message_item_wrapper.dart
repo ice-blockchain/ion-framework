@@ -27,6 +27,8 @@ import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -39,6 +41,7 @@ class MessageItemWrapper extends HookConsumerWidget {
     required this.contentPadding,
     this.isLastMessageFromAuthor = true,
     this.margin,
+    this.containerMaxWidth,
     super.key,
   });
 
@@ -48,6 +51,7 @@ class MessageItemWrapper extends HookConsumerWidget {
   final EdgeInsetsDirectional? margin;
   final ChatMessageInfoItem messageItem;
   final EdgeInsetsGeometry contentPadding;
+  final double? containerMaxWidth;
 
   /// The maximum width of the message content in the chat
   static double get maxWidth => 282.0.s;
@@ -128,7 +132,7 @@ class MessageItemWrapper extends HookConsumerWidget {
                     Container(
                       padding: contentPadding,
                       constraints: BoxConstraints(
-                        maxWidth: maxWidth,
+                        maxWidth: containerMaxWidth ?? maxWidth,
                       ),
                       decoration: BoxDecoration(
                         color: isMe
@@ -246,6 +250,14 @@ ChatMessageInfoItem? getRepliedMessageListItem({
             )
             .valueOrNull
         : null;
+
+    if (postEntity is CommunityTokenDefinitionEntity) {
+      final token = ref.watch(tokenMarketInfoProvider(postEntity.data.externalAddress)).valueOrNull;
+      return CommunityTokenItem(
+        eventMessage: repliedEventMessage,
+        contentDescription: token?.title ?? '',
+      );
+    }
 
     final postData = useMemoized(
       () => switch (postEntity) {

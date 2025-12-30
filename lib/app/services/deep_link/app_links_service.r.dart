@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -130,6 +131,18 @@ Future<void> deeplinkInitializer(Ref ref) async {
     return null;
   }
 
+  Future<String?> handleCommunityTokenDeepLink(
+    EventReference eventReference,
+    String encodedEventReference,
+  ) async {
+    final entity = await ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
+    if (entity is CommunityTokenDefinitionEntity) {
+      final data = TokenizedCommunityRoute(externalAddress: entity.data.externalAddress).location;
+      return data;
+    }
+    return null;
+  }
+
   bool isFallbackUrl(String encodedEventReference) {
     if (encodedEventReference == service.fallbackUrl) {
       return true;
@@ -216,6 +229,8 @@ Future<void> deeplinkInitializer(Ref ref) async {
             ArticleEntity.kind =>
               ArticleDetailsRoute(eventReference: encodedEventReference).location,
             UserMetadataEntity.kind => ProfileRoute(pubkey: eventReference.masterPubkey).location,
+            CommunityTokenDefinitionEntity.kind =>
+              await handleCommunityTokenDeepLink(eventReference, encodedEventReference),
             _ => null,
           };
 
