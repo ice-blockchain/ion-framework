@@ -19,10 +19,6 @@ class FollowersDao extends DatabaseAccessor<NotificationsDatabase> with _$Follow
     await into(db.followersTable).insert(follower, mode: InsertMode.insertOrReplace);
   }
 
-  Future<List<AggregatedFollowersResult>> getAggregated() {
-    return db.aggregatedFollowers().get();
-  }
-
   Future<List<AggregatedFollowersAfterResult>> getAggregatedAfter({
     required int limit,
     DateTime? after,

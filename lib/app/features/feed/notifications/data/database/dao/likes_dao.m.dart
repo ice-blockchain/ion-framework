@@ -19,10 +19,6 @@ class LikesDao extends DatabaseAccessor<NotificationsDatabase> with _$LikesDaoMi
     await into(db.likesTable).insert(like, mode: InsertMode.insertOrReplace);
   }
 
-  Future<List<AggregatedLikesResult>> getAggregated() {
-    return db.aggregatedLikes().get();
-  }
-
   Future<List<AggregatedLikesAfterResult>> getAggregatedAfter({
     required int limit,
     DateTime? after,

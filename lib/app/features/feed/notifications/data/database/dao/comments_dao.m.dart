@@ -19,11 +19,6 @@ class CommentsDao extends DatabaseAccessor<NotificationsDatabase> with _$Comment
     await into(db.commentsTable).insert(comment, mode: InsertMode.insertOrReplace);
   }
 
-  Future<List<Comment>> getAll() async {
-    return (select(commentsTable)..orderBy([(t) => OrderingTerm.desc(commentsTable.createdAt)]))
-        .get();
-  }
-
   Future<List<Comment>> getCommentsAfterByType({
     required int limit,
     CommentType? type,

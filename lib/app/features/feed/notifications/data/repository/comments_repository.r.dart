@@ -44,23 +44,6 @@ class CommentsRepository implements IonNotificationRepository {
     );
   }
 
-  @override
-  Future<List<CommentIonNotification>> getNotifications() async {
-    final comments = await _commentsDao.getAll();
-    return comments.map((comment) {
-      final type = switch (comment.type) {
-        CommentType.quote => CommentIonNotificationType.quote,
-        CommentType.reply => CommentIonNotificationType.reply,
-        CommentType.repost => CommentIonNotificationType.repost,
-      };
-      return CommentIonNotification(
-        type: type,
-        eventReference: comment.eventReference,
-        timestamp: comment.createdAt.toDateTime,
-      );
-    }).toList();
-  }
-
   Future<List<CommentIonNotification>> getNotificationsAfter({
     required int limit,
     DateTime? after,

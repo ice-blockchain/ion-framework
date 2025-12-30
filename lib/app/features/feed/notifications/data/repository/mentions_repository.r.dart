@@ -33,17 +33,6 @@ class MentionsRepository implements IonNotificationRepository<MentionIonNotifica
     );
   }
 
-  @override
-  Future<List<MentionIonNotification>> getNotifications() async {
-    final mentions = await _mentionsDao.getAll();
-    return mentions.map((mention) {
-      return MentionIonNotification(
-        eventReference: mention.eventReference,
-        timestamp: mention.createdAt.toDateTime,
-      );
-    }).toList();
-  }
-
   Future<List<MentionIonNotification>> getNotificationsAfter({
     required int limit,
     DateTime? after,
