@@ -8,8 +8,11 @@ import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 
 class CoinsTabHeader extends StatelessWidget {
   const CoinsTabHeader({
+    required this.tabType,
     super.key,
   });
+
+  final WalletTabType tabType;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +24,7 @@ class CoinsTabHeader extends StatelessWidget {
             padding: EdgeInsetsDirectional.only(
               bottom: 16.0.s,
             ),
-            tabType: WalletTabType.coins,
+            tabType: tabType,
           ),
         ),
       ),

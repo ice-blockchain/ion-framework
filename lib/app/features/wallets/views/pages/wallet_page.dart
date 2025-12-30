@@ -110,7 +110,7 @@ class WalletPage extends HookConsumerWidget {
             ),
             ...switch (activeTab.value) {
               WalletTabType.coins => const [
-                  CoinsTabHeader(),
+                  CoinsTabHeader(tabType: WalletTabType.coins),
                   CoinsTab(tabType: WalletTabType.coins),
                 ],
               WalletTabType.nfts => const [
@@ -120,7 +120,7 @@ class WalletPage extends HookConsumerWidget {
                   NftsTab(),
                 ],
               WalletTabType.creatorTokens => const [
-                  CoinsTabHeader(),
+                  CoinsTabHeader(tabType: WalletTabType.creatorTokens),
                   CoinsTab(tabType: WalletTabType.creatorTokens),
                 ],
             },
