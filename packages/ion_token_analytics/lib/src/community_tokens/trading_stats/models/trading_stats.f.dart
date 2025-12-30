@@ -14,6 +14,7 @@ class TradingStats with _$TradingStats {
     required int numberOfSells,
     required double sellsTotalAmountUSD,
     required double netBuy,
+    required double priceDiff,
   }) = _TradingStats;
 
   factory TradingStats.fromJson(Map<String, dynamic> json) => _$TradingStatsFromJson(json);

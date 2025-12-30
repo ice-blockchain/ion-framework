@@ -14,6 +14,7 @@ _$TradingStatsImpl _$$TradingStatsImplFromJson(Map<String, dynamic> json) =>
       numberOfSells: (json['numberOfSells'] as num).toInt(),
       sellsTotalAmountUSD: (json['sellsTotalAmountUSD'] as num).toDouble(),
       netBuy: (json['netBuy'] as num).toDouble(),
+      priceDiff: (json['priceDiff'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$$TradingStatsImplToJson(_$TradingStatsImpl instance) =>
@@ -24,4 +25,5 @@ Map<String, dynamic> _$$TradingStatsImplToJson(_$TradingStatsImpl instance) =>
       'numberOfSells': instance.numberOfSells,
       'sellsTotalAmountUSD': instance.sellsTotalAmountUSD,
       'netBuy': instance.netBuy,
+      'priceDiff': instance.priceDiff,
     };

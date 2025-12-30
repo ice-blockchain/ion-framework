@@ -22,7 +22,6 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
-import 'package:ion/app/features/tokenized_communities/utils/trading_stats_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart_stats.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/comments_section_compact.dart';
@@ -362,7 +361,7 @@ class _TokenStats extends HookConsumerWidget {
             for (final timeframeEntry in timeframeEntries)
               TimeframeChange(
                 label: timeframeEntry.key.displayLabel,
-                percent: timeframeEntry.value.netBuyPercent,
+                percent: timeframeEntry.value.priceDiff,
               ),
           ],
           volumeText: selectedStatsFormatted.volumeText,
