@@ -56,20 +56,4 @@ class MentionsRepository implements IonNotificationRepository<MentionIonNotifica
       );
     }).toList();
   }
-
-  Future<List<Mention>> getAll() async {
-    return _mentionsDao.getAll();
-  }
-
-  Future<DateTime?> getLastCreatedAt() async {
-    return _mentionsDao.getLastCreatedAt();
-  }
-
-  Future<DateTime?> getFirstCreatedAt({DateTime? after}) async {
-    return _mentionsDao.getFirstCreatedAt(after: after);
-  }
-
-  Stream<int> watchUnreadCount({required DateTime? after}) {
-    return _mentionsDao.watchUnreadCount(after: after);
-  }
 }

@@ -67,20 +67,4 @@ class TokenLaunchRepository implements IonNotificationRepository<TokenLaunchIonN
       );
     }).toList();
   }
-
-  Future<List<TokenLaunch>> getAll() async {
-    return _tokenLaunchDao.getAll();
-  }
-
-  Future<DateTime?> getLastCreatedAt() async {
-    return _tokenLaunchDao.getLastCreatedAt();
-  }
-
-  Future<DateTime?> getFirstCreatedAt({DateTime? after}) async {
-    return _tokenLaunchDao.getFirstCreatedAt(after: after);
-  }
-
-  Stream<int> watchUnreadCount({required DateTime? after}) {
-    return _tokenLaunchDao.watchUnreadCount(after: after);
-  }
 }

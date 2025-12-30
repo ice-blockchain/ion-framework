@@ -95,8 +95,4 @@ class ContentRepository implements IonNotificationRepository {
       _ => null,
     };
   }
-
-  Future<DateTime?> lastCreatedAt() async {
-    return _subscribedUsersContentDao.getLastCreatedAt();
-  }
 }
