@@ -94,8 +94,8 @@ class MentionInlineWidget extends HookWidget {
         ),
         if (onClose != null)
           PositionedDirectional(
-            top: -10.0.s,
-            end: -10.0.s,
+            top: -7.0.s,
+            end: -7.0.s,
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: onClose,
