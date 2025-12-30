@@ -19,6 +19,7 @@ import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class NotificationItem extends HookConsumerWidget {
@@ -45,7 +46,16 @@ class NotificationItem extends HookConsumerWidget {
     IonConnectEntity? entity;
 
     if (eventReference != null) {
-      entity = ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+      final relatedEntity =
+          ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+
+      if (relatedEntity
+          case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
+        entity = ref
+            .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
+      } else {
+        entity = relatedEntity;
+      }
     }
 
     final isHidden = eventReference != null &&
