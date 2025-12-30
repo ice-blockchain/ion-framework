@@ -130,7 +130,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     }
 
     // Skip notifications from muted users or muted conversations
-    if (_shouldSkipMutedNotification(data)) {
+    if (await _shouldSkipMutedNotification(data)) {
       return;
     }
 
