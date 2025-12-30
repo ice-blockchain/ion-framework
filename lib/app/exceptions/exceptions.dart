@@ -790,3 +790,11 @@ class CommunityTokenTradeTransactionException extends IONException {
           '${txHash != null ? ', txHash: $txHash' : ''}',
         );
 }
+
+class UserDeviceRevokedException extends IONException {
+  UserDeviceRevokedException()
+      : super(
+          10144,
+          'User device has been revoked',
+        );
+}

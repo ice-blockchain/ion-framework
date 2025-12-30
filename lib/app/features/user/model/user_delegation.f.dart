@@ -97,6 +97,17 @@ class UserDelegationData
   }
 
   bool validate(EventMessage message) {
+    final delegates = activeDelegates();
+
+    final delegate = delegates[message.pubkey];
+    if (delegate != null) {
+      final kinds = delegate.kinds;
+      return kinds == null || kinds.contains(message.kind);
+    }
+    return false;
+  }
+
+  Map<String, UserDelegate> activeDelegates() {
     final currentDelegates = delegates.fold(<String, UserDelegate>{}, (currentDelegates, delegate) {
       /// `inactive` and `revoked` attestations invalidate all previous `active` attestations,
       /// and subsequent `active` attestations are considered invalid as well
@@ -104,17 +115,18 @@ class UserDelegationData
           currentDelegates[delegate.pubkey]?.status == DelegationStatus.revoked) {
         return currentDelegates;
       }
+
       currentDelegates[delegate.pubkey] = delegate;
       return currentDelegates;
     });
 
-    final delegate = currentDelegates[message.pubkey];
-    if (delegate != null) {
-      final kinds = delegate.kinds;
-      return delegate.status == DelegationStatus.active &&
-          (kinds == null || kinds.contains(message.kind));
-    }
-    return false;
+    final activeDelegates = Map<String, UserDelegate>.fromEntries(
+      currentDelegates.entries.where(
+        (entry) => entry.value.status == DelegationStatus.active,
+      ),
+    );
+
+    return activeDelegates;
   }
 
   bool hasDelegateFor({required String pubkey}) {
