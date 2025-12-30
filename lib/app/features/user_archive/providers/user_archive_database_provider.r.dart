@@ -20,7 +20,8 @@ UserArchiveDatabase userArchiveDatabase(Ref ref) {
   final database = UserArchiveDatabase(pubkey);
 
   onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
+  // TODO: Not present in the release_candidate yet
+  //onUserSwitch(ref, database.close);
 
   return database;
 }
