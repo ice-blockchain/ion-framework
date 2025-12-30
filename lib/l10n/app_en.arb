@@ -925,6 +925,8 @@
   "tokenized_community_token_twitter": "X token",
   "tokenized_community_token_content": "Content token",
   "tokenized_community_trades_tab": "Trades",
+  "tokenized_community_creator_token_live_title": "Creator token is LIVE!",
+  "tokenized_community_creator_token_live_subtitle": "Congratulations, your creator token is now live and available for everyone to trade it",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Add a link",
   "top_holders_empty": "Become the first holder",

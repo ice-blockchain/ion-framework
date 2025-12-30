@@ -917,6 +917,8 @@
   "tokenized_community_chart_tab": "Grafic",
   "tokenized_community_comments_empty": "Fii primul care se alătură conversației",
   "tokenized_community_comments_tab": "Comentarii",
+  "tokenized_community_creator_token_live_title": "Tokenul de creator este LIVE!",
+  "tokenized_community_creator_token_live_subtitle": "Felicitări, tokenul tău de creator este acum activ și disponibil pentru toată lumea să îl tranzacționeze",
   "tokenized_community_holders_tab": "Deținători",
   "token_comment_holders_only": "Comentariile sunt disponibile doar pentru deținătorii de tokenuri.",
   "tokenized_community_not_available_description": "Crearea de tokenuri nu este disponibilă pentru postările create anterior.",

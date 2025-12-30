@@ -917,6 +917,8 @@
   "tokenized_community_chart_tab": "Wykres",
   "tokenized_community_comments_empty": "Bądź pierwszym, który dołączy do rozmowy",
   "tokenized_community_comments_tab": "Komentarze",
+  "tokenized_community_creator_token_live_title": "Token twórcy jest NA ŻYWO!",
+  "tokenized_community_creator_token_live_subtitle": "Gratulacje, Twój token twórcy jest teraz aktywny i dostępny dla wszystkich do handlu",
   "tokenized_community_holders_tab": "Posiadacze",
   "token_comment_holders_only": "Komentarze są dostępne tylko dla posiadaczy tokenów.",
   "tokenized_community_not_available_description": "Tworzenie tokenów nie jest dostępne dla wcześniej utworzonych postów.",
