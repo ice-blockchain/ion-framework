@@ -55,12 +55,6 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     if (await _shouldSkipOwnGiftWrap(data: data)) {
       return;
     }
-
-    // Skip notifications for self-interactions (e.g., quoting/reposting own content)
-    final currentPubkey = ref.read(currentPubkeySelectorProvider);
-    if (currentPubkey != null && data.isSelfInteraction(currentPubkey: currentPubkey)) {
-      return;
-    }
     
     // Handle IonConnect notifications
     try {
