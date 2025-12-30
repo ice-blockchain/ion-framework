@@ -237,7 +237,17 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   ) async {
     final state = ref.read(tradeCommunityTokenControllerProvider(params));
 
-    if (state.targetWallet == null || state.selectedPaymentToken == null || state.amount <= 0) {
+    if (state.targetWallet == null || state.selectedPaymentToken == null) {
+      return;
+    }
+
+    final isBuy = mode == CommunityTokenTradeMode.buy;
+
+    if (isBuy && !_isBuyContinueButtonEnabled(state)) {
+      return;
+    }
+
+    if (!isBuy && !_isSellContinueButtonEnabled(state)) {
       return;
     }
 
