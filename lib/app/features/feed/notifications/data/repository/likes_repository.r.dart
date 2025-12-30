@@ -38,21 +38,6 @@ class LikesRepository implements IonNotificationRepository {
     return _likesDao.insert(like);
   }
 
-  @override
-  Future<List<LikesIonNotification>> getNotifications() async {
-    final aggregated = await _likesDao.getAggregated();
-    return aggregated
-        .map(
-          (result) => LikesIonNotification(
-            total: result.uniquePubkeyCount,
-            eventReference: result.eventReference,
-            timestamp: result.lastCreatedAt?.toDateTime ?? DateTime.fromMillisecondsSinceEpoch(0),
-            pubkeys: result.latestPubkeys?.split(',') ?? [],
-          ),
-        )
-        .toList();
-  }
-
   Future<List<LikesIonNotification>> getNotificationsAfter({
     required int limit,
     DateTime? after,

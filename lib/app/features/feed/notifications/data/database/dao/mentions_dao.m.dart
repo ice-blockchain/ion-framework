@@ -19,11 +19,6 @@ class MentionsDao extends DatabaseAccessor<NotificationsDatabase> with _$Mention
     await into(db.mentionsTable).insert(mention, mode: InsertMode.insertOrReplace);
   }
 
-  Future<List<Mention>> getAll() async {
-    return (select(mentionsTable)..orderBy([(t) => OrderingTerm.desc(mentionsTable.createdAt)]))
-        .get();
-  }
-
   Future<List<Mention>> getMentionsAfter({
     required int limit,
     DateTime? after,

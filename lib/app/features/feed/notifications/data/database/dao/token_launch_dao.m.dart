@@ -20,12 +20,6 @@ class TokenLaunchDao extends DatabaseAccessor<NotificationsDatabase> with _$Toke
     await into(db.tokenLaunchTable).insert(tokenLaunch, mode: InsertMode.insertOrReplace);
   }
 
-  Future<List<TokenLaunch>> getAll() async {
-    return (select(tokenLaunchTable)
-          ..orderBy([(t) => OrderingTerm.desc(tokenLaunchTable.createdAt)]))
-        .get();
-  }
-
   Future<List<TokenLaunch>> getTokenLaunchesAfter({
     required int limit,
     DateTime? after,

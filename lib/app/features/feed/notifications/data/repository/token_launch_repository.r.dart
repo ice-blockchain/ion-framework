@@ -44,17 +44,6 @@ class TokenLaunchRepository implements IonNotificationRepository<TokenLaunchIonN
     );
   }
 
-  @override
-  Future<List<TokenLaunchIonNotification>> getNotifications() async {
-    final tokenLaunches = await _tokenLaunchDao.getAll();
-    return tokenLaunches.map((tokenLaunch) {
-      return TokenLaunchIonNotification(
-        eventReference: tokenLaunch.eventReference,
-        timestamp: tokenLaunch.createdAt.toDateTime,
-      );
-    }).toList();
-  }
-
   Future<List<TokenLaunchIonNotification>> getNotificationsAfter({
     required int limit,
     DateTime? after,

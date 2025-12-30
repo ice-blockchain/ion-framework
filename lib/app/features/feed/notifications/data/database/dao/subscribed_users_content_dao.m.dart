@@ -21,11 +21,6 @@ class SubscribedUsersContentDao extends DatabaseAccessor<NotificationsDatabase>
     return into(subscribedUsersContentTable).insertOnConflictUpdate(content);
   }
 
-  Future<List<ContentNotification>> getAll() {
-    return (select(subscribedUsersContentTable)..orderBy([(c) => OrderingTerm.desc(c.createdAt)]))
-        .get();
-  }
-
   Future<List<ContentNotification>> getContentAfter({
     required int limit,
     DateTime? after,
