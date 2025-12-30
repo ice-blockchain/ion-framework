@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/date.dart';
@@ -172,10 +173,16 @@ class NotificationInfo extends HookConsumerWidget {
       return null;
     }
 
-    if (notification is LikesIonNotification ||
-        notification is MentionIonNotification ||
-        notification is TokenLaunchIonNotification) {
+    if (notification is LikesIonNotification || notification is MentionIonNotification) {
       return entity;
+    }
+
+    if (notification is TokenLaunchIonNotification && entity is CommunityTokenDefinitionEntity) {
+      final data = entity.data;
+      if (data is CommunityTokenDefinitionIon) {
+        return ref
+            .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
+      }
     }
 
     if (notification is CommentIonNotification) {
