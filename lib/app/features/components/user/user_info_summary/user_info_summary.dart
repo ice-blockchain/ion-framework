@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -85,38 +84,13 @@ class UserInfoSummary extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    if (tiles.length < 4) {
-      return SizedBox(
-        width: double.infinity,
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8.0.s,
-          runSpacing: 4.0.s,
-          children: tiles,
-        ),
-      );
-    }
     return SizedBox(
       width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8.0.s,
-            runSpacing: 4.0.s,
-            children: tiles.slice(0, 2),
-          ),
-          SizedBox(
-            height: 4.0.s,
-          ),
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8.0.s,
-            runSpacing: 4.0.s,
-            children: tiles.slice(2),
-          ),
-        ],
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8.0.s,
+        runSpacing: 4.0.s,
+        children: tiles,
       ),
     );
   }
