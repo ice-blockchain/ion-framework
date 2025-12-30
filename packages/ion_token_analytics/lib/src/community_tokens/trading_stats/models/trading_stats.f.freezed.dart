@@ -27,6 +27,7 @@ mixin _$TradingStats {
   int get numberOfSells => throw _privateConstructorUsedError;
   double get sellsTotalAmountUSD => throw _privateConstructorUsedError;
   double get netBuy => throw _privateConstructorUsedError;
+  double get priceDiff => throw _privateConstructorUsedError;
 
   /// Serializes this TradingStats to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -52,6 +53,7 @@ abstract class $TradingStatsCopyWith<$Res> {
     int numberOfSells,
     double sellsTotalAmountUSD,
     double netBuy,
+    double priceDiff,
   });
 }
 
@@ -76,6 +78,7 @@ class _$TradingStatsCopyWithImpl<$Res, $Val extends TradingStats>
     Object? numberOfSells = null,
     Object? sellsTotalAmountUSD = null,
     Object? netBuy = null,
+    Object? priceDiff = null,
   }) {
     return _then(
       _value.copyWith(
@@ -103,6 +106,10 @@ class _$TradingStatsCopyWithImpl<$Res, $Val extends TradingStats>
                 ? _value.netBuy
                 : netBuy // ignore: cast_nullable_to_non_nullable
                       as double,
+            priceDiff: null == priceDiff
+                ? _value.priceDiff
+                : priceDiff // ignore: cast_nullable_to_non_nullable
+                      as double,
           )
           as $Val,
     );
@@ -125,6 +132,7 @@ abstract class _$$TradingStatsImplCopyWith<$Res>
     int numberOfSells,
     double sellsTotalAmountUSD,
     double netBuy,
+    double priceDiff,
   });
 }
 
@@ -148,6 +156,7 @@ class __$$TradingStatsImplCopyWithImpl<$Res>
     Object? numberOfSells = null,
     Object? sellsTotalAmountUSD = null,
     Object? netBuy = null,
+    Object? priceDiff = null,
   }) {
     return _then(
       _$TradingStatsImpl(
@@ -175,6 +184,10 @@ class __$$TradingStatsImplCopyWithImpl<$Res>
             ? _value.netBuy
             : netBuy // ignore: cast_nullable_to_non_nullable
                   as double,
+        priceDiff: null == priceDiff
+            ? _value.priceDiff
+            : priceDiff // ignore: cast_nullable_to_non_nullable
+                  as double,
       ),
     );
   }
@@ -190,6 +203,7 @@ class _$TradingStatsImpl implements _TradingStats {
     required this.numberOfSells,
     required this.sellsTotalAmountUSD,
     required this.netBuy,
+    required this.priceDiff,
   });
 
   factory _$TradingStatsImpl.fromJson(Map<String, dynamic> json) =>
@@ -207,10 +221,12 @@ class _$TradingStatsImpl implements _TradingStats {
   final double sellsTotalAmountUSD;
   @override
   final double netBuy;
+  @override
+  final double priceDiff;
 
   @override
   String toString() {
-    return 'TradingStats(volumeUSD: $volumeUSD, numberOfBuys: $numberOfBuys, buysTotalAmountUSD: $buysTotalAmountUSD, numberOfSells: $numberOfSells, sellsTotalAmountUSD: $sellsTotalAmountUSD, netBuy: $netBuy)';
+    return 'TradingStats(volumeUSD: $volumeUSD, numberOfBuys: $numberOfBuys, buysTotalAmountUSD: $buysTotalAmountUSD, numberOfSells: $numberOfSells, sellsTotalAmountUSD: $sellsTotalAmountUSD, netBuy: $netBuy, priceDiff: $priceDiff)';
   }
 
   @override
@@ -228,7 +244,9 @@ class _$TradingStatsImpl implements _TradingStats {
                 other.numberOfSells == numberOfSells) &&
             (identical(other.sellsTotalAmountUSD, sellsTotalAmountUSD) ||
                 other.sellsTotalAmountUSD == sellsTotalAmountUSD) &&
-            (identical(other.netBuy, netBuy) || other.netBuy == netBuy));
+            (identical(other.netBuy, netBuy) || other.netBuy == netBuy) &&
+            (identical(other.priceDiff, priceDiff) ||
+                other.priceDiff == priceDiff));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -241,6 +259,7 @@ class _$TradingStatsImpl implements _TradingStats {
     numberOfSells,
     sellsTotalAmountUSD,
     netBuy,
+    priceDiff,
   );
 
   /// Create a copy of TradingStats
@@ -265,6 +284,7 @@ abstract class _TradingStats implements TradingStats {
     required final int numberOfSells,
     required final double sellsTotalAmountUSD,
     required final double netBuy,
+    required final double priceDiff,
   }) = _$TradingStatsImpl;
 
   factory _TradingStats.fromJson(Map<String, dynamic> json) =
@@ -282,6 +302,8 @@ abstract class _TradingStats implements TradingStats {
   double get sellsTotalAmountUSD;
   @override
   double get netBuy;
+  @override
+  double get priceDiff;
 
   /// Create a copy of TradingStats
   /// with the given fields replaced by the non-null parameter values.
