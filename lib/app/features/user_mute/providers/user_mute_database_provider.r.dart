@@ -20,7 +20,8 @@ UserMuteDatabase userMuteDatabase(Ref ref) {
   final database = UserMuteDatabase(pubkey);
 
   onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
+  // TODO: Not present in the release_candidate yet
+  //onUserSwitch(ref, database.close);
 
   return database;
 }
