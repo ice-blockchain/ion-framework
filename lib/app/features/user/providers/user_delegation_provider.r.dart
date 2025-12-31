@@ -7,7 +7,7 @@ import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -51,12 +51,17 @@ Future<UserDelegationEntity?> userDelegation(
 
 @riverpod
 Future<UserDelegationEntity?> cachedUserDelegation(Ref ref, String masterPubkey) async {
-  final userDelegation = await ref.read(ionConnectDatabaseCacheProvider.notifier).get(
-        ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserDelegationEntity.kind)
-            .toString(),
-      ) as UserDelegationEntity?;
 
-  return userDelegation;
+  final userDelegation = await ref.watch(
+    ionConnectDatabaseEntityProvider(
+      eventReference: ReplaceableEventReference(
+        masterPubkey: masterPubkey,
+        kind: UserDelegationEntity.kind,
+      ),
+    ).future,
+  );
+
+  return userDelegation as UserDelegationEntity?;
 }
 
 @riverpod
