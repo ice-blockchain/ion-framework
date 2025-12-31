@@ -124,7 +124,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         media: media,
         replaceableEventId: ReplaceableEventIdentifier.generate(),
         publishedAt: _buildEntityPublishedAt(),
-        editingEndedAt: _buildEditingEndedAt(),
+        editingEndedAt: _buildEditingEndedAt(quotedEvent),
         relatedHashtags: relatedHashtags,
         quotedEvent: quotedEvent != null ? _buildQuotedEvent(quotedEvent) : null,
         relatedEvents: parentEntity != null ? _buildRelatedEvents(parentEntity) : null,
@@ -379,7 +379,10 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     return EntityPublishedAt(value: DateTime.now().microsecondsSinceEpoch);
   }
 
-  EntityEditingEndedAt _buildEditingEndedAt() {
+  EntityEditingEndedAt? _buildEditingEndedAt(EventReference? quotedEvent) {
+    if (quotedEvent?.kind == CommunityTokenDefinitionEntity.kind) {
+      return null;
+    }
     return EntityEditingEndedAt.build(
       ref.read(envProvider.notifier).get<int>(EnvVariable.EDIT_POST_ALLOWED_MINUTES),
     );
