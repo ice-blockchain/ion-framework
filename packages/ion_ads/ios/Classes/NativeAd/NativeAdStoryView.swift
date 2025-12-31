@@ -5,6 +5,12 @@ import os.log
 import SwiftUI
 
 final class NativeAdStoryView: UIView {
+    var adChoicePosition: AdChoicePosition = .startTop {
+        didSet {
+            setupAdChoiceConstraints()
+        }
+    }
+
     private lazy var adChoiceContainer: UIImageView = {
         let imageView = UIImageView()
         let bundle = Bundle(for: NativeAdStoryView.self)
@@ -81,6 +87,19 @@ final class NativeAdStoryView: UIView {
         return label
     }()
 
+    private lazy var adTag: UILabel = {
+        let label = UILabel()
+        label.backgroundColor = UIColor.white
+        label.textColor = UIColor.App.text
+        label.textAlignment = .center
+        label.font = AppFonts.caption3
+        label.layer.cornerRadius = 6
+        label.clipsToBounds = true
+
+        label.text = "Ad"
+        return label
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         clipsToBounds = true
@@ -96,19 +115,6 @@ final class NativeAdStoryView: UIView {
     }
 
     private func layoutViews() {
-        let adTag: UILabel = {
-            let label = UILabel()
-            label.backgroundColor = UIColor.white
-            label.textColor = UIColor.App.text
-            label.textAlignment = .center
-            label.font = AppFonts.caption3
-            label.layer.cornerRadius = 6
-            label.clipsToBounds = true
-
-            label.text = "Ad"
-            return label
-        }()
-
         // 1. Add mediaContainer first so it's the background
         addSubview(mediaContainer)
         mediaContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -130,10 +136,10 @@ final class NativeAdStoryView: UIView {
         }
 
         // 4. Add overlays (AdTag, AdChoices) to the main view (on top of media)
-        [adTag, adChoiceContainer].forEach {
-            addSubview($0)
-            $0.translatesAutoresizingMaskIntoConstraints = false
-        }
+//        for item in [adTag, adChoiceContainer] {
+//            addSubview(item)
+//            item.translatesAutoresizingMaskIntoConstraints = false
+//        }
 
         NSLayoutConstraint.activate([
             // --- Media Container (Fullscreen) ---
@@ -176,22 +182,74 @@ final class NativeAdStoryView: UIView {
             callToActionView.centerYAnchor.constraint(equalTo: bottomContainerView.centerYAnchor), // Center vertically in the panel
             callToActionView.trailingAnchor.constraint(equalTo: bottomContainerView.trailingAnchor, constant: -12),
             callToActionView.widthAnchor.constraint(equalToConstant: 100),
-            callToActionView.heightAnchor.constraint(equalToConstant: 36),
+            callToActionView.heightAnchor.constraint(equalToConstant: 36)
+        ])
 
-            // --- Overlays (Ad Tag & Choices) ---
-            // Position them at the top of the fullscreen media
-            adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            adChoiceContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+        setupAdChoiceConstraints()
+    }
+
+    private func setupAdChoiceConstraints() {
+        for item in [adTag, adChoiceContainer] {
+            item.removeFromSuperview()
+            addSubview(item)
+            item.translatesAutoresizingMaskIntoConstraints = false
+        }
+        
+        // Remove from superview to clear constraints held by superview (positioning)
+//        adChoiceContainer.removeFromSuperview()
+//        adTag.removeFromSuperview()
+//
+//        // Re-add to view hierarchy
+//        addSubview(adChoiceContainer)
+//        addSubview(adTag)
+//
+//        adChoiceContainer.translatesAutoresizingMaskIntoConstraints = false
+//        adTag.translatesAutoresizingMaskIntoConstraints = false
+
+//        adChoiceContainer.removeConstraints(adChoiceContainer.constraints)
+//        adTag.removeConstraints(adTag.constraints)
+
+        var constraints: [NSLayoutConstraint] = [
             adChoiceContainer.widthAnchor.constraint(equalToConstant: 18),
             adChoiceContainer.heightAnchor.constraint(equalToConstant: 18),
-            
-            adTag.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            adTag.leadingAnchor.constraint(equalTo: adChoiceContainer.trailingAnchor, constant: 8),
             adTag.widthAnchor.constraint(equalToConstant: 27),
-            adTag.heightAnchor.constraint(equalToConstant: 18),
+            adTag.heightAnchor.constraint(equalToConstant: 18)
+        ]
 
-            
-        ])
+        let padding: CGFloat = 18.0
+        let margin: CGFloat = 8.0
+
+        switch adChoicePosition {
+        case .startTop:
+            constraints.append(contentsOf: [
+                adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+                adChoiceContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+                adTag.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+                adTag.leadingAnchor.constraint(equalTo: adChoiceContainer.trailingAnchor, constant: margin)
+            ])
+        case .startBottom:
+            constraints.append(contentsOf: [
+                adChoiceContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -padding),
+                adChoiceContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding)
+            ])
+        case .endTop:
+            constraints.append(contentsOf: [
+                // AdTag in Top Right corner
+                adTag.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+                adTag.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+
+                // Ad Choice Icon to the left of the adTag
+                adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+                adChoiceContainer.trailingAnchor.constraint(equalTo: adTag.leadingAnchor, constant: -margin)
+            ])
+        case .endBottom:
+            constraints.append(contentsOf: [
+                adChoiceContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -padding),
+                adChoiceContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding)
+            ])
+        }
+
+        NSLayoutConstraint.activate(constraints)
     }
 }
 
@@ -201,5 +259,6 @@ extension NativeAdStoryView: APDNativeAdView {
     func callToActionLabel() -> UILabel { return callToActionView }
     func descriptionLabel() -> UILabel { return descriptionTextLabel }
     func mediaContainerView() -> UIView { return mediaContainer }
-    func contentRatingLabel() -> UILabel {return starRatingView   }
+    func contentRatingLabel() -> UILabel { return starRatingView }
+    func adChoicesView() -> UIView { return adChoiceContainer }
 }

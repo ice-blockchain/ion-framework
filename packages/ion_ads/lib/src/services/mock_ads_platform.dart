@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:ion_ads/src/appodeal/appodeal_ad_type.dart';
 import 'package:ion_ads/src/models/ad_types.dart';
 import 'package:ion_ads/src/models/native_ad_asset.dart';
 import 'package:ion_ads/src/services/ads_platform.dart';
@@ -43,4 +44,7 @@ class MockIonAdsPlatform implements IonAdsPlatform {
 
   @override
   List<int> computeInsertionIndices(int contentCount, {int startOffset = 0}) => [];
+
+  @override
+  Future<bool?> canShow(AppodealAdType adType, [String placement = '']) async => true;
 }
