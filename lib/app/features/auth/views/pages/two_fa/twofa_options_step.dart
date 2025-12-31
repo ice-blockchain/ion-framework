@@ -76,7 +76,7 @@ class TwoFAOptionsStep extends HookConsumerWidget {
                       Button(
                         disabled: !isFormValid,
                         type: isFormValid ? ButtonType.primary : ButtonType.disabled,
-                        onPressed: !isFormValid ? null : onConfirm,
+                        onPressed: isFormValid ? onConfirm : null,
                         label: Text(context.i18n.button_confirm),
                         mainAxisSize: MainAxisSize.max,
                       ),
