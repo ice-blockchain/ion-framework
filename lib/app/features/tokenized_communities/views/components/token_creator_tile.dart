@@ -39,9 +39,9 @@ class TokenCreatorTile extends StatelessWidget {
               ),
               SizedBox(width: 8.0.s),
               _CreatorDetails(
-                name: creator.display,
-                handle: creator.name,
-                verified: creator.verified,
+                name: creator.display.emptyOrValue,
+                handle: creator.name.emptyOrValue,
+                verified: creator.verified.falseOrValue,
                 nameColor: nameColor,
                 handleColor: handleColor,
               ),
