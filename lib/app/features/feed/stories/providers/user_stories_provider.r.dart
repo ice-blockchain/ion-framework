@@ -8,6 +8,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/providers/feed_data_source_builders.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -33,14 +34,17 @@ class UserStories extends _$UserStories {
 
     if (data == null || data.isEmpty) return null;
 
-    final addIndexes = _generateAdIndexes(data);
-    for (final index in addIndexes) {
-      data.insert(
-        index,
-        data[index].copyWith(id: '${data[index].id}_ad'),
-      );
+    final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
+    if (ionAdClient?.isNativeLoaded ?? false) {
+      final addIndexes = _generateAdIndexes(data);
+      for (final index in addIndexes) {
+        data.insert(
+          index,
+          data[index].copyWith(id: '${data[index].id}_ad'),
+        );
+      }
+      Logger.log('addIndexes :$addIndexes, final data size: ${data.length}');
     }
-    Logger.log('addIndexes :$addIndexes, final data size: ${data.length}');
 
     return data;
   }

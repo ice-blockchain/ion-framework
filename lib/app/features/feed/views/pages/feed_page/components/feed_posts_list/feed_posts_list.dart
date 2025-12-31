@@ -51,7 +51,9 @@ class FeedPostsList extends HookConsumerWidget {
   }
 
   List<IonEntityListItem> _getFeedListItems(
-      Iterable<IonConnectEntity> entities, AppodealIonAdsPlatform? ionAdClient) {
+    Iterable<IonConnectEntity> entities,
+    AppodealIonAdsPlatform? ionAdClient,
+  ) {
     final initialListItems = entities
         .map((entity) => IonEntityListItem.event(eventReference: entity.toEventReference()))
         .toList();
