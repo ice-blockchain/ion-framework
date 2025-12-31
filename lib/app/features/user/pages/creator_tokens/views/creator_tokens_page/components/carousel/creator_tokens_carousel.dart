@@ -89,7 +89,7 @@ class _CarouselCard extends HookConsumerWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24.0.s),
             ),
-            margin: EdgeInsets.only(top: NavigationAppBar.screenHeaderHeight / 2),
+            margin: EdgeInsetsDirectional.only(top: NavigationAppBar.screenHeaderHeight / 2),
             clipBehavior: Clip.antiAlias,
             child: ProfileBackground(
               key: ValueKey(token.externalAddress),

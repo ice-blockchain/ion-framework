@@ -56,7 +56,7 @@ class _CarouselCardSkeleton extends StatelessWidget {
         borderRadius: BorderRadius.circular(24.0.s),
       ),
       clipBehavior: Clip.antiAlias,
-      margin: EdgeInsets.only(top: NavigationAppBar.screenHeaderHeight / 2),
+      margin: EdgeInsetsDirectional.only(top: NavigationAppBar.screenHeaderHeight / 2),
       child: ProfileBackground(
         child: Padding(
           padding: EdgeInsetsDirectional.only(
