@@ -181,7 +181,7 @@ extension NativeAdCardView: APDNativeAdView {
     func mediaContainerView() -> UIView { return mediaContainer }
 
     func contentRatingLabel() -> UILabel {return starRatingView   }
-
+    func adChoicesView() -> UIView { return adChoiceContainer }
 
     //    static func nib() -> UINib {
     //            //return UINib.init(nibName: "Native", bundle: Bundle.main)

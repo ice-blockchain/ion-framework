@@ -52,7 +52,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     await Appodeal.initialize(
       appKey: Platform.isAndroid ? androidAppKey : iosAppKey,
       adTypes: nativeOnly
-          ? [AppodealAdType.NativeAd]
+          ? [AppodealAdType.Banner, AppodealAdType.NativeAd]
           : [
               AppodealAdType.RewardedVideo,
               AppodealAdType.Interstitial,
@@ -60,10 +60,11 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
               AppodealAdType.MREC,
               AppodealAdType.NativeAd,
             ],
-      onInitializationFinished: (errors) {
+      onInitializationFinished: (errors) async {
         errors?.forEach((error) => log(error.description));
-        log('onInitializationFinished: errors - ${errors?.length ?? 0}');
-        Appodeal.cache(AppodealAdType.NativeAd);
+        final platformVersion = await Appodeal.getPlatformSdkVersion();
+        log('onInitializationFinished: errors - ${errors?.length ?? 0}, platformVersion:$platformVersion');
+        await Appodeal.cache(AppodealAdType.NativeAd);
         _initialized = true;
       },
     );
@@ -143,12 +144,12 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
 
     Appodeal.setNativeCallbacks(
       onNativeLoaded: () async {
-        //_isNativeLoaded = true;
         log('onNativeLoaded');
         await _checkAdAvailability();
       },
       onNativeFailedToLoad: () {
         log('onNativeFailedToLoad');
+        _isNativeLoaded = false;
       },
       onNativeShown: () => log('onNativeShown'),
       onNativeShowFailed: () => log('onNativeShowFailed'),
@@ -163,8 +164,8 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
 
   Future<void> _checkAdAvailability() async {
     final isNativeInitialized = await Appodeal.isInitialized(AppodealAdType.NativeAd);
-    final canShowNative = await Appodeal.canShow(AppodealAdType.NativeAd);
     final nativeAdCount = await Appodeal.getAvailableNativeAdsCount() ?? 0;
+    final canShowNative = await Appodeal.canShow(AppodealAdType.NativeAd);
 
     log('isNativeInitialized :$isNativeInitialized, canShowNative:$canShowNative, nativeAdCount:$nativeAdCount');
 
@@ -202,6 +203,10 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
       log('onConsentFormDismissed: No error');
     }
   }
+
+  @override
+  Future<bool?> canShow(AppodealAdType adType, [String placement = 'default']) =>
+      Appodeal.canShow(adType, placement);
 
   @override
   Future<IonNativeAdAsset?> loadNativeAd({

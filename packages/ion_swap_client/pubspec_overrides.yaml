@@ -1,2 +1,5 @@
+# melos_managed_dependency_overrides: ion_identity_client
 dependency_overrides:
   analyzer_plugin: ^0.13.1
+  ion_identity_client:
+    path: ../ion_identity_client

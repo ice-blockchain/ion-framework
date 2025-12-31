@@ -4,6 +4,12 @@ import Foundation
 import os.log
 import SwiftUI
 
+enum AdChoicePosition {
+    case startTop
+    case startBottom
+    case endTop
+    case endBottom
+}
 
 final class AppodealNativeAdView: NSObject, FlutterPlatformView {
     private let nativeAdChannel: FlutterMethodChannel
@@ -29,7 +35,7 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
         logToFlutter("Initializing with frame: \(frame.debugDescription)")
         loadAndPrepareAd()
     }
-    
+
     func logToFlutter(_ message: String) {
         nativeAdChannel.invokeMethod("onLog", arguments: message)
     }
@@ -42,39 +48,21 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
         let placement = args["placement"] as? String ?? "default"
         let options = args["options"] as? [String: Any] ?? [:]
         let nativeAdType = options["nativeAdType"] as? Int ?? -1
-        logToFlutter("Loading ad for placement: \(placement), nativeAdType: \(nativeAdType), options: \(options)")
 
         // Setup the ad queue
         nativeAdQueue = APDNativeAdQueue()
         nativeAdQueue.settings = APDNativeAdSettings.default()
         // { custom, contentStream, appWall, newsFeed, chat }
-        if(nativeAdType == 2) {
+        if nativeAdType == 2 {
             nativeAdQueue.settings.adViewClass = NativeAdStoryView.self
         } else {
             nativeAdQueue.settings.adViewClass = NativeAdCardView.self
         }
-        //nativeAdQueue.settings.autocacheMask = [.icon, .media]
         nativeAdQueue.settings.type = .auto
         nativeAdQueue.delegate = self
 
         nativeAdQueue.loadAd()
     }
-
-//    private func getOrSetupNativeAdView() -> UIView {
-//        let options = args["options"] as? [String: Any] ?? [:]
-//        let placement = args["placement"] as? String ?? "default"
-//        let nativeAdType = options["nativeAdType"] as? Int ?? -1
-//        let binderId = options["binderId"] as? String ?? "custom"
-//
-//        return NativeView()
-
-//        if let binder = nativeAdViewBinders[binderId] {
-//            return binder.bind()
-//        } else {
-//            print("Native Ad type doesn't support or missing options: \(options), placement: \(placement), nativeAdType: \(nativeAdType), nativeAdViewBinders: \(nativeAdViewBinders)")
-//            return NativeView()
-//        }
-//    }
 
     private func setupAdView() {
         guard let nativeAd = nativeArray.first else {
@@ -90,14 +78,30 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
         }
 
         do {
+            let placement = args["placement"] as? String ?? "default"
+            let options = args["options"] as? [String: Any] ?? [:]
+            let adChoiceConfig = options["adChoiceConfig"] as? [String: Any]
+            let posIndex = adChoiceConfig?["position"] as? Int ?? 2 // Default to endTop (2)
+            logToFlutter("setupAdView, posIndex: \(posIndex), placement: \(placement), nativeAd: \(nativeAd)")
+
             // Get the ad view from the SDK, configured with our NativeView class.
-            let adView = try nativeAd.getViewForPlacement("default", withRootViewController: rootViewController)
+            let adView = try nativeAd.getViewForPlacement(placement, withRootViewController: rootViewController)
+            if let storyView = adView as? NativeAdStoryView {
+                switch posIndex {
+                    case 0: storyView.adChoicePosition = .startTop
+                    case 1: storyView.adChoicePosition = .startBottom
+                    case 2: storyView.adChoicePosition = .endTop
+                    case 3: storyView.adChoicePosition = .endBottom
+                    default: storyView.adChoicePosition = .endTop
+                }
+            }
             logToFlutter("Successfully created native ad view.")
 
             adView.frame = containerView.bounds
             containerView.addSubview(adView)
+
         } catch {
-            logToFlutter("Error getting native ad view: \(error.localizedDescription)")
+            logToFlutter("Error getting native ad view: \(error)")
         }
     }
 
@@ -119,7 +123,7 @@ extension AppodealNativeAdView: APDNativeAdQueueDelegate, APDNativeAdPresentatio
             logToFlutter("Successfully retrieved 1 ad from the queue.")
             nativeArray.append(contentsOf: ads)
             // Now that the ad data is available, create and display the view on the main thread.
-            DispatchQueue.main.async {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.setupAdView()
             }
         }
