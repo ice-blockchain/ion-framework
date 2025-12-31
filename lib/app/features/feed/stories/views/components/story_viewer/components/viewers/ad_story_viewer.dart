@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/stories/providers/story_image_loading_provider.r.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/header/story_header_gradient.dart';
@@ -27,9 +28,12 @@ class AdStoryViewer extends HookConsumerWidget {
     return SizedBox.expand(
       child: Stack(
         children: [
+          const Center(
+            child: IONLoadingIndicator(),
+          ),
           IgnorePointer(
             child: AppodealNativeAd(
-              options: NativeAdOptions.appWallOptions(),
+              options: NativeAdOptions.appWallOptions(adChoicePosition: AdChoicePosition.startTop),
             ),
           ),
           const StoryHeaderGradient(),
