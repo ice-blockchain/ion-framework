@@ -51,6 +51,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
@@ -116,6 +117,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       final ugcSerialLabel = await _buildUgcSerialLabel(
         parentEntity: parentEntity,
         expiration: expiration,
+        quotedEvent: quotedEvent,
         ugcCounter: ugcCounter,
       );
 
@@ -125,7 +127,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         replaceableEventId: ReplaceableEventIdentifier.generate(),
         publishedAt: _buildEntityPublishedAt(),
         editingEndedAt: _buildEditingEndedAt(quotedEvent),
-        relatedHashtags: relatedHashtags,
+        relatedHashtags: _buildRelatedHashtags(relatedHashtags, quotedEvent),
         quotedEvent: quotedEvent != null ? _buildQuotedEvent(quotedEvent) : null,
         relatedEvents: parentEntity != null ? _buildRelatedEvents(parentEntity) : null,
         sourcePostReference: sourcePostReference != null
@@ -375,12 +377,26 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     return ModifiablePostEntity.fromEventMessage(postEvent);
   }
 
+  List<RelatedHashtag> _buildRelatedHashtags(
+    List<RelatedHashtag> relatedHashtags,
+    EventReference? quotedEvent,
+  ) {
+    if (quotedEvent?.kind == CommunityTokenDefinitionEntity.kind ||
+        quotedEvent?.kind == CommunityTokenActionEntity.kind) {
+      return relatedHashtags
+          .where((e) => ![communityTokenActionTopic, communityTokenTopic].contains(e.value))
+          .toList();
+    }
+    return relatedHashtags;
+  }
+
   EntityPublishedAt _buildEntityPublishedAt() {
     return EntityPublishedAt(value: DateTime.now().microsecondsSinceEpoch);
   }
 
   EntityEditingEndedAt? _buildEditingEndedAt(EventReference? quotedEvent) {
-    if (quotedEvent?.kind == CommunityTokenDefinitionEntity.kind) {
+    if (quotedEvent?.kind == CommunityTokenDefinitionEntity.kind ||
+        quotedEvent?.kind == CommunityTokenActionEntity.kind) {
       return null;
     }
     return EntityEditingEndedAt.build(
@@ -413,8 +429,13 @@ class CreatePostNotifier extends _$CreatePostNotifier {
   Future<EntityLabel?> _buildUgcSerialLabel({
     required IonConnectEntity? parentEntity,
     required EntityExpiration? expiration,
+    required EventReference? quotedEvent,
     int? ugcCounter,
   }) async {
+    if (quotedEvent?.kind == CommunityTokenDefinitionEntity.kind ||
+        quotedEvent?.kind == CommunityTokenActionEntity.kind) {
+      return null;
+    }
     if (parentEntity != null || expiration != null) {
       return null;
     }
