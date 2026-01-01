@@ -87,6 +87,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     Set<String> topics = const {},
     String? language,
     int? ugcCounter,
+    bool onlyOnMyFeed = false,
   }) async {
     state = const AsyncValue.loading();
 
@@ -146,6 +147,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
 
       final post = await _publishPost(
         postData,
+        onlyOnMyFeed: onlyOnMyFeed,
         files: files,
         mentions: mentions,
         quotedEvent: quotedEvent,
@@ -312,6 +314,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     List<FileMetadata> files = const [],
     List<RelatedPubkey> mentions = const [],
     List<List<String>> pmoTags = const [],
+    bool onlyOnMyFeed = false,
   }) async {
     final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
 
@@ -326,7 +329,9 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     final metadataBuilders = <EventsMetadataBuilder>[];
 
     if (quotedEvent != null) {
-      pubkeysToPublish.add(quotedEvent.masterPubkey);
+      if (!onlyOnMyFeed) {
+        pubkeysToPublish.add(quotedEvent.masterPubkey);
+      }
     } else if (parentEntity != null) {
       final rootRelatedEvent = postData.rootRelatedEvent;
       pubkeysToPublish.addAll([

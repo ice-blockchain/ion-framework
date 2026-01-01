@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -236,6 +237,8 @@ class ShareOptions extends HookConsumerWidget {
   ) {
     ref.read(createPostNotifierProvider(CreatePostOption.quote).notifier).create(
           quotedEvent: eventReference,
+          content: Delta()..insert('mock content'),
+          onlyOnMyFeed: true,
         );
     context.pop();
   }
