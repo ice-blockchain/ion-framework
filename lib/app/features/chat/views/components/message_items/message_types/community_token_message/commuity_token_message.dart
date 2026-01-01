@@ -20,6 +20,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 class CommunityTokenMessage extends HookConsumerWidget {
   const CommunityTokenMessage({
@@ -85,7 +86,15 @@ class CommunityTokenMessage extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (repliedMessageItem != null) ReplyMessage(messageItem, repliedMessageItem, onTapReply),
-          if (definitionEntity != null) _TokenCard(definitionEntity: definitionEntity!),
+          if (definitionEntity != null)
+            GestureDetector(
+              onTap: () {
+                TokenizedCommunityRoute(
+                  externalAddress: definitionEntity!.data.externalAddress,
+                ).push<void>(context);
+              },
+              child: _TokenCard(definitionEntity: definitionEntity!),
+            ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
