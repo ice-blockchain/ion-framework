@@ -14,6 +14,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'encrypted_repost_handler.r.g.dart';
@@ -35,6 +36,10 @@ class EncryptedRepostHandler extends GlobalSubscriptionEncryptedEventMessageHand
         entity.data.kinds.containsList([
           GenericRepostEntity.kind.toString(),
           ModifiablePostEntity.kind.toString(),
+        ]) ||
+        entity.data.kinds.containsList([
+          GenericRepostEntity.kind.toString(),
+          CommunityTokenDefinitionEntity.kind.toString(),
         ]);
   }
 
