@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart'
     as market_data_formatter;
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
@@ -71,6 +72,12 @@ class _CarouselCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useOnInit(() {
+      ref
+          .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
+          .cacheToken(token);
+    });
+
     final avatarUrl = token.imageUrl;
     final colors = useImageColors(avatarUrl);
 

@@ -194,8 +194,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           SizedBox(height: MediaQuery.viewPaddingOf(context).top + 16.s),
           Builder(
             builder: (context) {
-              print('TC-Info: $tokenInfo');
-              print('TC-Type: $tokenType');
               if (tokenInfo == null) {
                 return const SizedBox.shrink();
               }
