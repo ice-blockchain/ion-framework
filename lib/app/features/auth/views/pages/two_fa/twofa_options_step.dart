@@ -9,7 +9,6 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
-import 'package:ion/app/features/auth/data/models/twofa_type.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/pages/recover_user_twofa_page/components/twofa_option_selector.dart';
@@ -35,6 +34,8 @@ class TwoFAOptionsStep extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useRef(GlobalKey<FormState>());
     final optionsState = ref.watch(selectedTwoFAOptionsNotifierProvider);
+
+    final isFormValid = optionsState.selectedValues.nonNulls.isNotEmpty;
 
     return SheetContent(
       topPadding: 0,
@@ -73,19 +74,9 @@ class TwoFAOptionsStep extends HookConsumerWidget {
                       ),
                       SizedBox(height: 16.0.s),
                       Button(
-                        onPressed: () {
-                          final optionsAmount = optionsState.optionsAmount;
-                          final hasValues =
-                              optionsState.selectedValues.nonNulls.length == optionsAmount;
-                          final isValidValues =
-                              !optionsState.selectedValues.contains(TwoFaType.auth) ||
-                                  optionsState.selectedValues.nonNulls.length > 1;
-
-                          if ((hasValues && isValidValues) ||
-                              formKey.value.currentState!.validate()) {
-                            onConfirm();
-                          }
-                        },
+                        disabled: !isFormValid,
+                        type: isFormValid ? ButtonType.primary : ButtonType.disabled,
+                        onPressed: isFormValid ? onConfirm : null,
                         label: Text(context.i18n.button_confirm),
                         mainAxisSize: MainAxisSize.max,
                       ),
