@@ -97,7 +97,7 @@ class ProfileTokenHeader extends StatelessWidget {
                 color: context.theme.appColors.secondaryBackground,
               ),
             ),
-            if (token.creator.verified)
+            if (token.creator.verified.falseOrValue)
               Padding(
                 padding: EdgeInsetsDirectional.only(start: 5.0.s),
                 child: Assets.svg.iconBadgeVerify.icon(
