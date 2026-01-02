@@ -275,7 +275,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             KeyedSubtree(
               key: sectionKeys[TokenizedCommunityTabType.comments.index],
               child: CommentsSectionCompact(
-                tokenDefinitionEventReference: tokenDefinition.toEventReference(),
+                tokenDefinition: tokenDefinition,
                 onCommentInputFocusChanged: (bool isFocused) {
                   isCommentInputFocused.value = isFocused;
                 },

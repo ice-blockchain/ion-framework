@@ -918,6 +918,7 @@
   "tokenized_community_comments_empty": "成为第一个加入对话的人",
   "tokenized_community_comments_tab": "评论",
   "tokenized_community_holders_tab": "持有者",
+  "token_comment_holders_only": "评论仅对代币持有者开放。",
   "tokenized_community_not_available_description": "已创建的帖子无法创建代币。",
   "tokenized_community_not_available_title": "代币化内容错误",
   "tokenized_community_token_creator": "创作者代币",

@@ -19,6 +19,7 @@ import 'package:ion/app/features/feed/providers/counters/replies_count_provider.
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_comments_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/comments_section_compact/hooks/use_ensure_input_visibility.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_comment_input_field/token_comment_input_field.dart';
@@ -26,12 +27,12 @@ import 'package:ion/generated/assets.gen.dart';
 
 class CommentsSectionCompact extends HookConsumerWidget {
   const CommentsSectionCompact({
-    required this.tokenDefinitionEventReference,
+    required this.tokenDefinition,
     this.onCommentInputFocusChanged,
     super.key,
   });
 
-  final EventReference tokenDefinitionEventReference;
+  final CommunityTokenDefinitionEntity tokenDefinition;
   final ValueChanged<bool>? onCommentInputFocusChanged;
 
   @override
@@ -41,6 +42,7 @@ class CommentsSectionCompact extends HookConsumerWidget {
     final i18n = context.i18n;
     final commentInputKey = useRef(GlobalKey());
 
+    final tokenDefinitionEventReference = tokenDefinition.toEventReference();
     final comments = ref.watch(tokenCommentsProvider(tokenDefinitionEventReference));
     final entities = comments?.data.items;
     final isLoading = comments?.data is PagedLoading;
@@ -139,7 +141,7 @@ class CommentsSectionCompact extends HookConsumerWidget {
             if (canReply)
               TokenCommentInputField(
                 key: commentInputKey.value,
-                tokenDefinitionEventReference: tokenDefinitionEventReference,
+                tokenDefinition: tokenDefinition,
                 onFocusChanged: (bool isFocused) {
                   isInputFocused.value = isFocused;
                   onCommentInputFocusChanged?.call(isFocused);

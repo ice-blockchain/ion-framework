@@ -918,6 +918,7 @@
   "tokenized_community_comments_empty": "Bądź pierwszym, który dołączy do rozmowy",
   "tokenized_community_comments_tab": "Komentarze",
   "tokenized_community_holders_tab": "Posiadacze",
+  "token_comment_holders_only": "Komentarze są dostępne tylko dla posiadaczy tokenów.",
   "tokenized_community_not_available_description": "Tworzenie tokenów nie jest dostępne dla wcześniej utworzonych postów.",
   "tokenized_community_not_available_title": "Błąd tokenizowanej treści",
   "tokenized_community_token_creator": "Token twórcy",

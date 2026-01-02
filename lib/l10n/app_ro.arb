@@ -918,6 +918,7 @@
   "tokenized_community_comments_empty": "Fii primul care se alătură conversației",
   "tokenized_community_comments_tab": "Comentarii",
   "tokenized_community_holders_tab": "Deținători",
+  "token_comment_holders_only": "Comentariile sunt disponibile doar pentru deținătorii de tokenuri.",
   "tokenized_community_not_available_description": "Crearea de tokenuri nu este disponibilă pentru postările create anterior.",
   "tokenized_community_not_available_title": "Eroare de conținut tokenizat",
   "tokenized_community_token_creator": "Token creator",

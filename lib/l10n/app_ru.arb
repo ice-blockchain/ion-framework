@@ -918,6 +918,7 @@
   "tokenized_community_comments_empty": "Станьте первым, кто присоединится к разговору",
   "tokenized_community_comments_tab": "Комментарии",
   "tokenized_community_holders_tab": "Держатели",
+  "token_comment_holders_only": "Комментарии доступны только держателям токенов.",
   "tokenized_community_not_available_description": "Создание токенов недоступно для ранее созданных публикаций.",
   "tokenized_community_not_available_title": "Ошибка токенизированного контента",
   "tokenized_community_token_creator": "Токен создателя",

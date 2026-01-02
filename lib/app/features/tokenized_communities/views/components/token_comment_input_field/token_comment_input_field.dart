@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/components/shadow/svg_shadow.dart';
 import 'package:ion/app/components/text_editor/components/suggestions_container.dart';
 import 'package:ion/app/components/text_editor/hooks/use_quill_controller.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
@@ -24,18 +28,20 @@ import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_b
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_image_button.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_italic_button.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_poll_button.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class TokenCommentInputField extends HookConsumerWidget {
   const TokenCommentInputField({
-    required this.tokenDefinitionEventReference,
+    required this.tokenDefinition,
     this.onFocusChanged,
     super.key,
   });
 
-  final EventReference tokenDefinitionEventReference;
+  final CommunityTokenDefinitionEntity tokenDefinition;
   final ValueChanged<bool>? onFocusChanged;
 
   @override
@@ -43,6 +49,12 @@ class TokenCommentInputField extends HookConsumerWidget {
     final textEditorController = useQuillController();
     final textEditorKey = useMemoized(TextEditorKeys.replyInput);
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+
+    final externalAddress = tokenDefinition.data.externalAddress;
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final isHolder = tokenInfo?.marketData.position != null;
+    final overlayEntry = useRef<OverlayEntry?>(null);
+    final hintTimer = useRef<Timer?>(null);
 
     final inputContainerKey = useRef(GlobalKey());
     final focusNode = useFocusNode();
@@ -59,10 +71,78 @@ class TokenCommentInputField extends HookConsumerWidget {
       [hasFocus.value],
     );
 
+    void hideHintOverlay() {
+      if (overlayEntry.value == null) {
+        return;
+      }
+      hintTimer.value?.cancel();
+      hintTimer.value = null;
+      overlayEntry.value?.remove();
+      overlayEntry.value = null;
+    }
+
+    void showHintOverlay() {
+      // Cancel any existing timer
+      hintTimer.value?.cancel();
+      hintTimer.value = null;
+
+      if (overlayEntry.value != null) return;
+
+      final inputContext = inputContainerKey.value.currentContext;
+      if (inputContext == null) return;
+
+      final renderBox = inputContext.findRenderObject() as RenderBox?;
+      if (renderBox == null) return;
+
+      final targetRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
+
+      overlayEntry.value = OverlayEntry(
+        builder: (overlayContext) {
+          return Positioned.fill(
+            child: GestureDetector(
+              onTap: hideHintOverlay,
+              behavior: HitTestBehavior.opaque,
+              child: CustomSingleChildLayout(
+                delegate: _HintLayoutDelegate(targetRect),
+                child: const _DisabledCommentHint(),
+              ),
+            ),
+          );
+        },
+      );
+
+      Overlay.of(inputContext).insert(overlayEntry.value!);
+
+      // Hide hint after 3 seconds
+      hintTimer.value = Timer(const Duration(seconds: 3), hideHintOverlay);
+    }
+
+    useEffect(
+      () {
+        return () {
+          hintTimer.value?.cancel();
+          hintTimer.value = null;
+          hideHintOverlay();
+        };
+      },
+      [],
+    );
+
+    void handleInputTap() {
+      if (!isHolder) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showHintOverlay();
+        });
+      } else {
+        focusNode.requestFocus();
+      }
+    }
+
     return ScreenSideOffset.small(
       child: TextFieldTapRegion(
         onTapOutside: (_) {
           focusNode.unfocus();
+          hideHintOverlay();
         },
         child: Column(
           children: [
@@ -76,54 +156,66 @@ class TokenCommentInputField extends HookConsumerWidget {
                 if (!hasFocus.value && currentPubkey != null)
                   Padding(
                     padding: EdgeInsetsDirectional.only(end: 6.0.s),
-                    child: IonConnectAvatar(
-                      masterPubkey: currentPubkey,
-                      size: 36.0.s,
-                      borderRadius: BorderRadius.all(Radius.circular(12.0.s)),
+                    child: Opacity(
+                      opacity: isHolder ? 1.0 : 0.5,
+                      child: IonConnectAvatar(
+                        masterPubkey: currentPubkey,
+                        size: 36.0.s,
+                        borderRadius: BorderRadius.all(Radius.circular(12.0.s)),
+                      ),
                     ),
                   ),
                 Expanded(
-                  child: GestureDetector(
-                    onTap: focusNode.requestFocus,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: context.theme.appColors.onSecondaryBackground,
-                        borderRadius: BorderRadius.circular(16.0.s),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (attachedMediaNotifier.value.isNotEmpty) ...[
-                            SizedBox(height: 6.0.s),
-                            Row(
-                              children: [
-                                SizedBox(width: 12.0.s),
-                                Expanded(
-                                  child: AttachedMediaPreview(
-                                    attachedMediaNotifier: attachedMediaNotifier,
-                                    attachedMediaLinksNotifier: attachedMediaLinksNotifier,
-                                  ),
+                  child: AbsorbPointer(
+                    absorbing: overlayEntry.value != null,
+                    child: GestureDetector(
+                      onTap: handleInputTap,
+                      child: Opacity(
+                        opacity: isHolder ? 1.0 : 0.5,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: context.theme.appColors.onSecondaryBackground,
+                            borderRadius: BorderRadius.circular(16.0.s),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (attachedMediaNotifier.value.isNotEmpty) ...[
+                                SizedBox(height: 6.0.s),
+                                Row(
+                                  children: [
+                                    SizedBox(width: 12.0.s),
+                                    Expanded(
+                                      child: AttachedMediaPreview(
+                                        attachedMediaNotifier: attachedMediaNotifier,
+                                        attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
-                            ),
-                          ],
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 9.0.s),
-                            key: inputContainerKey.value,
-                            constraints: BoxConstraints(
-                              maxHeight: 68.0.s,
-                              minHeight: 36.0.s,
-                            ),
-                            child: TextEditor(
-                              textEditorController,
-                              focusNode: focusNode,
-                              autoFocus: false,
-                              placeholder: context.i18n.feed_write_comment,
-                              key: textEditorKey,
-                              scrollable: true,
-                            ),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 9.0.s),
+                                key: inputContainerKey.value,
+                                constraints: BoxConstraints(
+                                  maxHeight: 68.0.s,
+                                  minHeight: 36.0.s,
+                                ),
+                                child: AbsorbPointer(
+                                  absorbing: !isHolder,
+                                  child: TextEditor(
+                                    textEditorController,
+                                    focusNode: focusNode,
+                                    autoFocus: false,
+                                    placeholder: context.i18n.feed_write_comment,
+                                    key: textEditorKey,
+                                    scrollable: true,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -131,7 +223,7 @@ class TokenCommentInputField extends HookConsumerWidget {
               ],
             ),
             SizedBox(height: 12.0.s),
-            if (hasFocus.value)
+            if (hasFocus.value && isHolder)
               ActionsToolbar(
                 actions: [
                   ToolbarMediaButton(
@@ -151,7 +243,7 @@ class TokenCommentInputField extends HookConsumerWidget {
                     SizedBox(width: 8.0.s),
                     PostSubmitButton(
                       textEditorController: textEditorController,
-                      parentEvent: tokenDefinitionEventReference,
+                      parentEvent: tokenDefinition.toEventReference(),
                       mediaFiles: attachedMediaNotifier.value,
                       createOption: CreatePostOption.reply,
                       shouldShowTooltip: false,
@@ -189,4 +281,91 @@ class TokenCommentInputField extends HookConsumerWidget {
       ignoreFocus: true,
     );
   }
+}
+
+class _DisabledCommentHint extends StatelessWidget {
+  const _DisabledCommentHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {}, // Prevent tap from propagating
+      child: SizedBox(
+        height: 80.0.s,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned.fill(
+              child: SvgShadow(
+                color: context.theme.appColors.primaryText,
+                opacity: 0.1,
+                sigma: 4,
+                offset: Offset(0, 2.0.s),
+                child: SvgPicture.asset(
+                  Assets.svg.speechBubbleBackgroundBig,
+                  fit: BoxFit.fill,
+                  colorFilter: ColorFilter.mode(
+                    context.theme.appColors.onPrimaryAccent,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                SizedBox(
+                  width: 28.s,
+                ),
+                Padding(
+                  padding: EdgeInsetsDirectional.only(top: 8.0.s),
+                  child: Text(
+                    context.i18n.token_comment_holders_only,
+                    style: context.theme.appTextThemes.body2.copyWith(
+                      color: context.theme.appColors.secondaryText,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 16.s,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HintLayoutDelegate extends SingleChildLayoutDelegate {
+  _HintLayoutDelegate(this.targetRect);
+
+  final Rect targetRect;
+  static const double xOffset = 4;
+  static const double yOffset = -20;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) => constraints.loosen();
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    // Position hint below the input field, shifted left by 10.s
+    final targetCenter = targetRect.center;
+
+    var dx = targetCenter.dx - childSize.width / 2;
+    // Keep hint within screen bounds
+    if (dx < xOffset) {
+      dx = xOffset;
+    } else if (dx + childSize.width > size.width - xOffset) {
+      dx = size.width - childSize.width - xOffset;
+    }
+
+    // Position directly under the text field
+    final dy = targetRect.bottom + yOffset;
+
+    return Offset(dx, dy);
+  }
+
+  @override
+  bool shouldRelayout(_HintLayoutDelegate oldDelegate) => targetRect != oldDelegate.targetRect;
 }
