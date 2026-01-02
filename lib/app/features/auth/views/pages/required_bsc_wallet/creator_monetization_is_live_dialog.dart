@@ -1,24 +1,23 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/bsc_wallet_check_provider.m.dart';
-import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
-import 'package:ion/app/features/wallets/views/components/address_not_found_modal.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 
 class CreatorMonetizationIsLiveDialogEvent extends UiEvent {
   const CreatorMonetizationIsLiveDialogEvent();
@@ -52,26 +51,24 @@ class CreatorMonetizationIsLiveDialog extends HookConsumerWidget {
   }
 }
 
-class _ContentState extends HookConsumerWidget {
+class _ContentState extends ConsumerWidget {
   const _ContentState();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textStyles = context.theme.appTextThemes;
     final colors = context.theme.appColors;
-    final isProcessing = useState(false);
-    final pressed = useState(false);
-    final bscWalletCheck = ref.watch(bscWalletCheckProvider);
 
-    useOnInit(
-      () {
-        bscWalletCheck.whenData((result) {
-          if (result.hasBscWallet && ref.context.mounted && pressed.value) {
-            Navigator.of(ref.context).pop();
-          }
-        });
-      },
-      [bscWalletCheck, pressed.value],
+    ref.listen(bscWalletCheckProvider, (prev, next) {
+      next.whenData((result) {
+        if (result.hasBscWallet && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+    });
+
+    final isCreatingWallet = ref.watch(
+      walletAddressNotifierProvider.select((state) => state.isLoading),
     );
 
     return Stack(
@@ -106,45 +103,11 @@ class _ContentState extends HookConsumerWidget {
               SizedBox(height: 21.0.s),
               Button(
                 minimumSize: Size(double.infinity, 56.0.s),
-                disabled: isProcessing.value,
+                disabled: isCreatingWallet,
                 trailingIcon:
-                    isProcessing.value ? const IONLoadingIndicator() : const SizedBox.shrink(),
+                    isCreatingWallet ? const IONLoadingIndicator() : const SizedBox.shrink(),
                 label: Text(context.i18n.bsc_required_dialog_action_button),
-                onPressed: () async {
-                  isProcessing.value = true;
-                  pressed.value = true;
-                  try {
-                    final bscWalletCheck = await ref.watch(bscWalletCheckProvider.future);
-                    if (!context.mounted) return;
-                    if (!bscWalletCheck.hasBscWallet) {
-                      final bscNetwork = bscWalletCheck.bscNetwork ??
-                          (await ref.read(networksProvider.future))
-                              .firstWhereOrNull((n) => n.isBsc);
-
-                      if (!context.mounted || bscNetwork == null) return;
-
-                      await showSimpleBottomSheet<void>(
-                        context: context,
-                        isDismissible: false,
-                        child: AddressNotFoundModal(
-                          isBottomSheet: true,
-                          network: bscNetwork,
-                          onWalletCreated: (_) {
-                            // Close the AddressNotFoundModal sheet
-                            if (ref.context.mounted) {
-                              Navigator.of(ref.context).pop();
-                            }
-                            ref
-                              ..invalidate(bscWalletCheckProvider)
-                              ..invalidate(currentUserMetadataProvider);
-                          },
-                        ),
-                      );
-                    }
-                  } finally {
-                    isProcessing.value = false;
-                  }
-                },
+                onPressed: () => _onActionPressed(context, ref),
               ),
               ScreenBottomOffset(),
             ],
@@ -152,5 +115,54 @@ class _ContentState extends HookConsumerWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _onActionPressed(BuildContext context, WidgetRef ref) async {
+    final result = await ref.read(bscWalletCheckProvider.future);
+    if (!context.mounted) return;
+
+    if (result.hasBscWallet) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    final bscNetwork = result.bscNetwork;
+    if (bscNetwork == null) return;
+
+    final address = await _createBscWallet(context, ref, network: bscNetwork);
+    if (!context.mounted || address == null) return;
+
+    ref.invalidate(bscWalletCheckProvider);
+    await ref
+        .read(userMetadataInvalidatorNotifierProvider.notifier)
+        .invalidateCurrentUserMetadataProviders();
+    if (!context.mounted) return;
+
+    Navigator.of(context).pop();
+  }
+
+  Future<String?> _createBscWallet(
+    BuildContext context,
+    WidgetRef ref, {
+    required NetworkData network,
+  }) async {
+    String? address;
+    await guardPasskeyDialog(
+      context,
+      (child) {
+        return RiverpodVerifyIdentityRequestBuilder<void, Wallet>(
+          provider: walletAddressNotifierProvider,
+          requestWithVerifyIdentity: (OnVerifyIdentity<Wallet> onVerifyIdentity) async {
+            address = await ref.read(walletAddressNotifierProvider.notifier).createWallet(
+                  network: network,
+                  onVerifyIdentity: onVerifyIdentity,
+                );
+          },
+          child: child,
+        );
+      },
+    );
+
+    return address;
   }
 }
