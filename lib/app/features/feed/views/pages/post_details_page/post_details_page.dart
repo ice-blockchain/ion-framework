@@ -77,9 +77,11 @@ class PostDetailsPage extends HookConsumerWidget {
                           child: switch (entity) {
                             CommunityTokenActionEntity() => CommunityTokenAction(
                                 eventReference: eventReference,
+                                enableTokenNavigation: true,
                               ),
                             CommunityTokenDefinitionEntity() => CommunityTokenLive(
                                 eventReference: eventReference,
+                                enableTokenNavigation: true,
                               ),
                             ModifiablePostEntity() || PostEntity() => Post(
                                 eventReference: eventReference,
@@ -89,6 +91,7 @@ class PostDetailsPage extends HookConsumerWidget {
                                 bodyMaxLines: null,
                                 displayParent: true,
                                 showNotInterested: false,
+                                enableTokenNavigation: true,
                               ),
                             _ => const SizedBox.shrink(),
                           },
