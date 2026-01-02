@@ -51,6 +51,7 @@ Future<UserDelegationEntity?> userDelegation(
 
 @riverpod
 Future<UserDelegationEntity?> cachedUserDelegation(Ref ref, String masterPubkey) async {
+  keepAliveWhenAuthenticated(ref);
   final userDelegation = ref
       .watch(
         ionConnectDatabaseEntityProvider(
