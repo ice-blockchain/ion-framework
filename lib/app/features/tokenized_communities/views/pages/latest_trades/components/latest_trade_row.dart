@@ -38,6 +38,7 @@ class LatestTradeRow extends StatelessWidget {
     final creatorAddress = trade.creator.addresses?.ionConnect;
     final isCreator =
         creatorAddress != null && holderAddress != null && holderAddress == creatorAddress;
+    final isXUser = trade.position.holder.addresses?.twitter != null;
 
     final badge = Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0.s),
@@ -83,6 +84,7 @@ class LatestTradeRow extends StatelessWidget {
                   verified: trade.position.holder.verified ?? false,
                   isCreator: isCreator,
                   meta: '$amountText • \$$usdText • $timeText',
+                  isXUser: isXUser,
                 ),
               ),
             ],
@@ -112,6 +114,7 @@ class _TitleAndMeta extends StatelessWidget {
     this.verified = false,
     this.isCreator = false,
     this.handle,
+    this.isXUser = false,
   });
 
   final String name;
@@ -119,6 +122,7 @@ class _TitleAndMeta extends StatelessWidget {
   final bool verified;
   final bool isCreator;
   final String? handle;
+  final bool isXUser;
 
   @override
   Widget build(BuildContext context) {
@@ -146,6 +150,10 @@ class _TitleAndMeta extends StatelessWidget {
             if (isCreator) ...[
               SizedBox(width: 4.0.s),
               Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
+            ],
+            if (isXUser) ...[
+              SizedBox(width: 4.0.s),
+              Assets.svg.iconBadgeXlogo.icon(size: 16.0.s),
             ],
           ],
         ),
