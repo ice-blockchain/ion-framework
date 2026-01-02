@@ -27,16 +27,7 @@ class NotificationIcons extends StatelessWidget {
 
     return Row(
       children: [
-        Container(
-          width: iconSize,
-          height: iconSize,
-          padding: EdgeInsets.all(6.0.s),
-          decoration: BoxDecoration(
-            color: notification.getBackgroundColor(context),
-            borderRadius: BorderRadius.circular(10.0.s),
-          ),
-          child: notification.asset.icon(size: 18.0.s, color: Colors.white),
-        ),
+        notification.getIcon(context, size: iconSize),
         SizedBox(width: separator / 2),
         Expanded(
           child: SizedBox(

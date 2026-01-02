@@ -2,7 +2,6 @@
 
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/followers_table.d.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,10 +19,6 @@ class FollowersDao extends DatabaseAccessor<NotificationsDatabase> with _$Follow
     await into(db.followersTable).insert(follower, mode: InsertMode.insertOrReplace);
   }
 
-  Future<List<AggregatedFollowersResult>> getAggregated() {
-    return db.aggregatedFollowers().get();
-  }
-
   Future<List<AggregatedFollowersAfterResult>> getAggregatedAfter({
     required int limit,
     DateTime? after,
@@ -35,26 +30,6 @@ class FollowersDao extends DatabaseAccessor<NotificationsDatabase> with _$Follow
           limit,
         )
         .get();
-  }
-
-  Future<DateTime?> getLastCreatedAt() async {
-    final maxCreatedAt = followersTable.createdAt.max();
-    final max = await (selectOnly(followersTable)
-          ..addColumns([maxCreatedAt])
-          ..limit(1))
-        .map((row) => row.read(maxCreatedAt))
-        .getSingleOrNull();
-    return max?.toDateTime;
-  }
-
-  Future<DateTime?> getFirstCreatedAt({DateTime? after}) async {
-    final firstCreatedAt = followersTable.createdAt.min();
-    final query = selectOnly(followersTable)..addColumns([firstCreatedAt]);
-    if (after != null) {
-      query.where(followersTable.createdAt.isBiggerThanValue(after.microsecondsSinceEpoch));
-    }
-    final min = await query.map((row) => row.read(firstCreatedAt)).getSingleOrNull();
-    return min?.toDateTime;
   }
 
   Stream<int> watchUnreadCount({required DateTime? after}) {

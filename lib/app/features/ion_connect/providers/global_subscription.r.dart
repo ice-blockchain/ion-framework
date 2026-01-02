@@ -25,6 +25,7 @@ import 'package:ion/app/features/ion_connect/providers/global_subscription_lates
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_subscription_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
@@ -75,6 +76,7 @@ class GlobalSubscription {
     GenericRepostEntity.modifiablePostRepostKind,
     ArticleEntity.kind,
     UserDelegationEntity.kind,
+    CommunityTokenDefinitionEntity.kind,
   ];
   // Used when we reinstall the app to refetch all encrypted events
   int? _inMemoryEncryptedSince;

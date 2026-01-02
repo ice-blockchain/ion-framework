@@ -44,23 +44,6 @@ class CommentsRepository implements IonNotificationRepository {
     );
   }
 
-  @override
-  Future<List<CommentIonNotification>> getNotifications() async {
-    final comments = await _commentsDao.getAll();
-    return comments.map((comment) {
-      final type = switch (comment.type) {
-        CommentType.quote => CommentIonNotificationType.quote,
-        CommentType.reply => CommentIonNotificationType.reply,
-        CommentType.repost => CommentIonNotificationType.repost,
-      };
-      return CommentIonNotification(
-        type: type,
-        eventReference: comment.eventReference,
-        timestamp: comment.createdAt.toDateTime,
-      );
-    }).toList();
-  }
-
   Future<List<CommentIonNotification>> getNotificationsAfter({
     required int limit,
     DateTime? after,
@@ -81,36 +64,5 @@ class CommentsRepository implements IonNotificationRepository {
         timestamp: comment.createdAt.toDateTime,
       );
     }).toList();
-  }
-
-  Future<DateTime?> lastCreatedAt(CommentIonNotificationType type) async {
-    final commentType = switch (type) {
-      CommentIonNotificationType.quote => CommentType.quote,
-      CommentIonNotificationType.reply => CommentType.reply,
-      CommentIonNotificationType.repost => CommentType.repost,
-    };
-    return _commentsDao.getLastCreatedAt(commentType);
-  }
-
-  Future<DateTime?> firstCreatedAt(CommentIonNotificationType type, {DateTime? after}) async {
-    final commentType = switch (type) {
-      CommentIonNotificationType.quote => CommentType.quote,
-      CommentIonNotificationType.reply => CommentType.reply,
-      CommentIonNotificationType.repost => CommentType.repost,
-    };
-    return _commentsDao.getFirstCreatedAt(commentType, after: after);
-  }
-
-  Future<List<CommentIonNotification>> getCommentNotifications() async {
-    final comments = await _commentsDao.getAllByType(CommentType.reply);
-    return comments
-        .map(
-          (comment) => CommentIonNotification(
-            type: CommentIonNotificationType.reply,
-            eventReference: comment.eventReference,
-            timestamp: comment.createdAt.toDateTime,
-          ),
-        )
-        .toList();
   }
 }

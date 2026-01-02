@@ -4,17 +4,18 @@
 import 'package:flutter/widgets.dart';
 
 RegExp tagRegex(String tag, {bool isSingular = true}) {
+  final groupName = '?<$tag>';
   if (isSingular) {
-    return RegExp(r'(\[:' + tag + r'\])');
+    return RegExp('($groupName\\[:$tag\\])');
   } else {
-    return RegExp('\\[\\[:$tag\\]\\](.*?)\\[\\[\\/:$tag\\]\\]');
+    return RegExp('\\[\\[:$tag\\]\\]($groupName.*?)\\[\\[\\/:$tag\\]\\]');
   }
 }
 
 TextSpan replaceString(
   String input,
   RegExp regex,
-  InlineSpan Function(String, int) onMatch,
+  InlineSpan Function(RegExpMatch, int) onMatch,
 ) {
   final matches = regex.allMatches(input);
   final spans = <InlineSpan>[];
@@ -23,12 +24,9 @@ TextSpan replaceString(
 
   for (final match in matches) {
     final substring = input.substring(lastMatchEnd, match.start);
-    spans.add(TextSpan(text: substring));
-
-    final linkText = match.group(1)!;
-    spans.add(
-      onMatch(linkText, index),
-    );
+    spans
+      ..add(TextSpan(text: substring))
+      ..add(onMatch(match, index));
 
     lastMatchEnd = match.end;
     index++;
