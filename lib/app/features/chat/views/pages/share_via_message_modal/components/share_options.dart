@@ -237,6 +237,7 @@ class ShareOptions extends HookConsumerWidget {
   ) {
     ref.read(createPostNotifierProvider(CreatePostOption.quote).notifier).create(
           quotedEvent: eventReference,
+          //TODO: remove mock content when be handle no content case
           content: Delta()..insert('mock content'),
           onlyOnMyFeed: true,
         );
