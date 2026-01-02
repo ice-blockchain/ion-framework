@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/delta.dart';
@@ -95,17 +96,14 @@ class CreateArticle extends _$CreateArticle {
 
       final (imageUrl, updatedContent) = await (mainImageFuture, contentFuture).wait;
 
-      final markdownContent = convertDeltaToMarkdown(updatedContent);
+      final preparedContent = _normalizeContentForStorage(updatedContent);
+      final markdownContent = preparedContent.markdown;
+      final mentions = preparedContent.mentions;
 
       if (topics.isEmpty) {
         topics.add(FeedInterests.unclassified);
       }
-      final relatedHashtags = [
-        ...topics.map((topic) => RelatedHashtag(value: topic)),
-        ...extractTags(updatedContent).map((tag) => RelatedHashtag(value: tag)),
-      ];
-
-      final mentions = _buildMentions(updatedContent);
+      final relatedHashtags = _buildRelatedHashtags(topics, preparedContent.content);
 
       final articleData = ArticleData.fromData(
         title: title,
@@ -121,6 +119,7 @@ class CreateArticle extends _$CreateArticle {
         imageColor: imageColor,
         textContent: markdownContent,
         language: _buildLanguageLabel(language),
+        mentionMarketCapLabel: _buildMentionMarketCapLabel(preparedContent.content),
         ugcSerial: ugcSerialLabel,
       );
 
@@ -162,6 +161,7 @@ class CreateArticle extends _$CreateArticle {
         settings: null,
         editingEndedAt: null,
         language: null,
+        mentionMarketCapLabel: null,
         ugcSerial: null,
       );
 
@@ -219,48 +219,33 @@ class CreateArticle extends _$CreateArticle {
         mediaAttachments: updatedMediaAttachments,
       );
 
-      final markdownContent = convertDeltaToMarkdown(updatedContent);
+      final preparedContent = _normalizeContentForStorage(updatedContent);
+      final markdownContent = preparedContent.markdown;
+      final mentions = preparedContent.mentions;
 
       if (topics.contains(FeedInterests.unclassified) && topics.length > 1) {
         topics.remove(FeedInterests.unclassified);
       } else if (topics.isEmpty) {
         topics.add(FeedInterests.unclassified);
       }
-      final relatedHashtags = [
-        ...topics.map((topic) => RelatedHashtag(value: topic)),
-        ...extractTags(updatedContent).map((tag) => RelatedHashtag(value: tag)),
-      ];
+      final relatedHashtags = _buildRelatedHashtags(topics, preparedContent.content);
 
       final modifiedMedia = Map<String, MediaAttachment>.from(mediaAttachments);
       for (final attachment in updatedMediaAttachments) {
         modifiedMedia[attachment.url] = attachment;
       }
 
-      final unusedMediaFileHashes = <String>[];
+      final cleanedMedia = _cleanMediaAttachments(
+        existingMedia: modifiedEntity.data.media,
+        modifiedMedia: modifiedMedia,
+        content: preparedContent.content,
+        originalImageUrl: originalImageUrl,
+      );
 
-      // Start with existing media from the article
-      final cleanedMedia = Map<String, MediaAttachment>.from(modifiedEntity.data.media);
-
-      // Add/update with media from the editing session
-      for (final entry in modifiedMedia.entries) {
-        cleanedMedia[entry.key] = entry.value;
-      }
-
-      // Only remove media that is not referenced in content AND not in the modified media
-      final contentJson = jsonEncode(updatedContent.toJson());
-      modifiedEntity.data.media.forEach((url, attachment) {
-        final urlInContent = contentJson.contains(url);
-        final urlToCheck = url.replaceAll('url ', '');
-        final isInModifiedMedia = modifiedMedia.containsKey(url);
-        final isOriginalImage = originalImageUrl != null && urlToCheck == originalImageUrl;
-
-        if (!urlInContent && !isInModifiedMedia && !isOriginalImage) {
-          cleanedMedia.remove(url);
-          unusedMediaFileHashes.add(attachment.originalFileHash);
-        }
-      });
-
-      final mentions = _buildMentions(updatedContent);
+      final unusedMediaFileHashes = _getUnusedMediaHashes(
+        existingMedia: modifiedEntity.data.media,
+        cleanedMedia: cleanedMedia,
+      );
 
       final originalContentDelta = parseAndConvertDelta(
         modifiedEntity.data.richText?.content,
@@ -279,9 +264,13 @@ class CreateArticle extends _$CreateArticle {
         relatedPubkeys: mentions,
         settings: EntityDataWithSettings.build(whoCanReply: whoCanReply),
         colorLabel: imageColor != null
-            ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
+            ? EntityLabel(
+                values: [LabelValue(value: imageColor)],
+                namespace: EntityLabelNamespace.color,
+              )
             : null,
         language: _buildLanguageLabel(language),
+        mentionMarketCapLabel: _buildMentionMarketCapLabel(preparedContent.content),
       );
 
       if (unusedMediaFileHashes.isNotEmpty) {
@@ -440,7 +429,105 @@ class CreateArticle extends _$CreateArticle {
   }
 
   List<RelatedPubkey> _buildMentions(Delta content) {
-    return content.extractPubkeys().map((pubkey) => RelatedPubkey(value: pubkey)).toList();
+    return content
+        .extractMentionsWithFlags()
+        .map((mention) => RelatedPubkey(value: mention.pubkey))
+        .toSet()
+        .toList();
+  }
+
+  EntityLabel? _buildMentionMarketCapLabel(Delta content) {
+    final counters = <String, int>{};
+    final labelEntries = <(String pubkey, int instance)>[];
+
+    // Iterate using shared logic (guarantees symmetry with load flow)
+    content.forEachMention((pubkey, {required bool showMarketCap}) {
+      final currentInstance = counters[pubkey] ?? 0;
+      counters[pubkey] = currentInstance + 1;
+
+      if (showMarketCap) {
+        labelEntries.add((pubkey, currentInstance));
+      }
+    });
+
+    if (labelEntries.isEmpty) {
+      return null;
+    }
+
+    // Build LabelValue list with value and additional elements
+    final values = labelEntries
+        .map(
+          (entry) => LabelValue(
+            value: entry.$1, // pubkey
+            additionalElements: [entry.$2.toString()], // instance number
+          ),
+        )
+        .toList();
+
+    return EntityLabel(
+      values: values,
+      namespace: EntityLabelNamespace.mentionMarketCap,
+    );
+  }
+
+  // Builds relatedHashtags by combining:
+  // 1. User-selected topics (categories like "Technology", "Sports")
+  // 2. Hashtags/cashtags extracted from content text (#flutter, $BTC)
+  List<RelatedHashtag> _buildRelatedHashtags(Set<String> topics, Delta content) {
+    return [
+      ...topics.map((topic) => RelatedHashtag(value: topic)),
+      ...extractTags(content).map((tag) => RelatedHashtag(value: tag)),
+    ];
+  }
+
+  ({
+    Delta content,
+    String markdown,
+    List<RelatedPubkey> mentions,
+  }) _normalizeContentForStorage(Delta rawContent) {
+    final contentWithAttributes = DeltaBridge.normalizeToAttributeFormat(rawContent);
+    final markdown = convertDeltaToMarkdown(contentWithAttributes);
+    final mentions = _buildMentions(contentWithAttributes);
+    return (
+      content: contentWithAttributes,
+      markdown: markdown,
+      mentions: mentions,
+    );
+  }
+
+  Map<String, MediaAttachment> _cleanMediaAttachments({
+    required Map<String, MediaAttachment> existingMedia,
+    required Map<String, MediaAttachment> modifiedMedia,
+    required Delta content,
+    String? originalImageUrl,
+  }) {
+    final cleanedMedia = Map<String, MediaAttachment>.from(existingMedia);
+    for (final entry in modifiedMedia.entries) {
+      cleanedMedia[entry.key] = entry.value;
+    }
+
+    final contentJson = jsonEncode(content.toJson());
+    existingMedia.forEach((url, attachment) {
+      final urlInContent = contentJson.contains(url);
+      final urlToCheck = url.replaceAll('url ', '');
+      final isInModifiedMedia = modifiedMedia.containsKey(url);
+      final isOriginalImage = originalImageUrl != null && urlToCheck == originalImageUrl;
+
+      if (!urlInContent && !isInModifiedMedia && !isOriginalImage) {
+        cleanedMedia.remove(url);
+      }
+    });
+
+    return cleanedMedia;
+  }
+
+  List<String> _getUnusedMediaHashes({
+    required Map<String, MediaAttachment> existingMedia,
+    required Map<String, MediaAttachment> cleanedMedia,
+  }) {
+    final existingHashes = existingMedia.values.map((e) => e.originalFileHash).toSet();
+    final cleanedHashes = cleanedMedia.values.map((e) => e.originalFileHash).toSet();
+    return existingHashes.difference(cleanedHashes).toList();
   }
 
   Delta _replaceImagePathsWithUrls(
@@ -483,7 +570,7 @@ class CreateArticle extends _$CreateArticle {
         throw UgcCounterFetchException();
       }
       return EntityLabel(
-        values: [(counter + 1).toString()],
+        values: [LabelValue(value: (counter + 1).toString())],
         namespace: EntityLabelNamespace.ugcSerial,
       );
     } on EventCountException {
@@ -493,7 +580,10 @@ class CreateArticle extends _$CreateArticle {
 
   EntityLabel? _buildLanguageLabel(String? language) {
     if (language != null) {
-      return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
+      return EntityLabel(
+        values: [LabelValue(value: language)],
+        namespace: EntityLabelNamespace.language,
+      );
     }
     return null;
   }

@@ -139,6 +139,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         communityId: communityId,
         poll: poll,
         language: _buildLanguageLabel(language),
+        mentionMarketCapLabel: _buildMentionMarketCapLabel(postContent),
         ugcSerial: ugcSerialLabel,
       );
 
@@ -228,6 +229,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ),
         poll: poll,
         language: _buildLanguageLabel(language),
+        mentionMarketCapLabel: _buildMentionMarketCapLabel(postContent),
       );
 
       final originalContentDelta = parseAndConvertDelta(
@@ -279,6 +281,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         expiration: null,
         poll: null,
         language: null,
+        mentionMarketCapLabel: null,
         ugcSerial: null,
       );
 
@@ -402,7 +405,10 @@ class CreatePostNotifier extends _$CreatePostNotifier {
 
   EntityLabel? _buildLanguageLabel(String? language) {
     if (language != null) {
-      return EntityLabel(values: [language], namespace: EntityLabelNamespace.language);
+      return EntityLabel(
+        values: [LabelValue(value: language)],
+        namespace: EntityLabelNamespace.language,
+      );
     }
     return null;
   }
@@ -422,7 +428,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         throw UgcCounterFetchException();
       }
       return EntityLabel(
-        values: [(counter + 1).toString()],
+        values: [LabelValue(value: (counter + 1).toString())],
         namespace: EntityLabelNamespace.ugcSerial,
       );
     } on EventCountException {
@@ -550,7 +556,45 @@ class CreatePostNotifier extends _$CreatePostNotifier {
   }
 
   List<RelatedPubkey> _buildMentions(Delta content) {
-    return content.extractPubkeys().map((pubkey) => RelatedPubkey(value: pubkey)).toList();
+    return content
+        .extractMentionsWithFlags()
+        .map((mention) => RelatedPubkey(value: mention.pubkey))
+        .toList();
+  }
+
+  // Builds NIP-32 label storing which mention instances should display with market cap
+  EntityLabel? _buildMentionMarketCapLabel(Delta content) {
+    final counters = <String, int>{};
+    final labelEntries = <(String pubkey, int instance)>[];
+
+    // Iterate using shared logic (guarantees symmetry with load flow)
+    content.forEachMention((pubkey, {required bool showMarketCap}) {
+      final currentInstance = counters[pubkey] ?? 0;
+      counters[pubkey] = currentInstance + 1;
+
+      if (showMarketCap) {
+        labelEntries.add((pubkey, currentInstance));
+      }
+    });
+
+    if (labelEntries.isEmpty) {
+      return null;
+    }
+
+    // Build LabelValue list with value and additional elements
+    final values = labelEntries
+        .map(
+          (entry) => LabelValue(
+            value: entry.$1, // pubkey
+            additionalElements: [entry.$2.toString()], // instance number
+          ),
+        )
+        .toList();
+
+    return EntityLabel(
+      values: values,
+      namespace: EntityLabelNamespace.mentionMarketCap,
+    );
   }
 
   Set<RelatedPubkey> _buildRelatedPubkeys({
@@ -559,6 +603,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     EventReference? quotedEvent,
   }) {
     final allPubkeys = <RelatedPubkey>{...mentions};
+
     if (quotedEvent != null) {
       allPubkeys.add(RelatedPubkey(value: quotedEvent.masterPubkey));
     }

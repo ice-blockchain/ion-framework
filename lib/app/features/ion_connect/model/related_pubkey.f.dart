@@ -21,7 +21,10 @@ class RelatedPubkey with _$RelatedPubkey {
     if (tag.length < 2) {
       throw IncorrectEventTagException(tag: tag.toString());
     }
-    return RelatedPubkey(value: tag[1]);
+
+    return RelatedPubkey(
+      value: tag[1],
+    );
   }
 
   List<String> toTag() {

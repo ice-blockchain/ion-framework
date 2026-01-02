@@ -94,6 +94,7 @@ class ArticleData
     EntityLabel? colorLabel,
     EntityEditingEndedAt? editingEndedAt,
     EntityLabel? language,
+    EntityLabel? mentionMarketCapLabel,
     EntityLabel? ugcSerial,
   }) = _ArticleData;
 
@@ -126,6 +127,10 @@ class ArticleData
           ? EntityEditingEndedAt.fromTag(tags[EntityEditingEndedAt.tagName]!.first)
           : null,
       language: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.language),
+      mentionMarketCapLabel: EntityLabel.fromTags(
+        tags,
+        namespace: EntityLabelNamespace.mentionMarketCap,
+      ),
       ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
@@ -143,6 +148,7 @@ class ArticleData
     RichText? richText,
     EntityEditingEndedAt? editingEndedAt,
     EntityLabel? language,
+    EntityLabel? mentionMarketCapLabel,
     EntityLabel? ugcSerial,
     String textContent = '',
   }) {
@@ -158,11 +164,15 @@ class ArticleData
       relatedPubkeys: relatedPubkeys,
       settings: settings,
       colorLabel: imageColor != null
-          ? EntityLabel(values: [imageColor], namespace: EntityLabelNamespace.color)
+          ? EntityLabel(
+              values: [LabelValue(value: imageColor)],
+              namespace: EntityLabelNamespace.color,
+            )
           : null,
       richText: richText,
       editingEndedAt: editingEndedAt,
       language: language,
+      mentionMarketCapLabel: mentionMarketCapLabel,
       ugcSerial: ugcSerial,
     );
   }
@@ -193,6 +203,7 @@ class ArticleData
         if (settings != null) ...settings!.map((setting) => setting.toTag()),
         if (relatedHashtags != null) ...relatedHashtags!.map((hashtag) => hashtag.toTag()),
         if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
+        if (mentionMarketCapLabel != null) ...mentionMarketCapLabel!.toTags(),
         // Articles don't use rich_text tag - content is 100% markdown
         if (editingEndedAt != null) editingEndedAt!.toTag(),
         if (language != null) ...language!.toTags(),

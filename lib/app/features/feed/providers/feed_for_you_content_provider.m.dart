@@ -840,7 +840,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   Future<Map<String, List<List<String>>>> _buildLangFilterTags() async {
     final contentLanguages = await _getContentLanguages();
-    final label = EntityLabel(values: contentLanguages, namespace: EntityLabelNamespace.language);
+    final label = EntityLabel(
+      values: contentLanguages.map((lang) => LabelValue(value: lang)).toList(),
+      namespace: EntityLabelNamespace.language,
+    );
     return label.toFilterTags();
   }
 

@@ -14,6 +14,7 @@ import 'package:ion/app/features/ion_connect/model/entity_data_with_media_conten
 import 'package:ion/app/features/ion_connect/model/entity_data_with_related_pubkeys.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/services/markdown/mention_label_utils.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -57,11 +58,22 @@ Future<Delta> mentionsOverlay(
 
   final usernameToPubkey = <String, String>{};
 
+  // Extract label from data and convert to restore format
+  final mentionMarketCapLabel = switch (data) {
+    final PostData d => d.mentionMarketCapLabel,
+    final ModifiablePostData d => d.mentionMarketCapLabel,
+    final ArticleData d => d.mentionMarketCapLabel,
+    _ => null,
+  };
+
+  final pubkeyInstanceShowMarketCap = buildInstanceMapFromLabel(mentionMarketCapLabel);
+
   await Future.wait(
     relatedPubkeys.map((relatedPubkey) async {
       final pubkey = relatedPubkey.value;
+
       try {
-        final userMetadata = await ref.read(userMetadataProvider(pubkey, network: false).future);
+        final userMetadata = await ref.read(userMetadataProvider(pubkey).future);
         if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
           usernameToPubkey[userMetadata.data.name] = pubkey;
         }
@@ -75,7 +87,11 @@ Future<Delta> mentionsOverlay(
     return baseParsedMedia.content;
   }
 
-  final restoredDelta = restoreMentions(baseParsedMedia.content, usernameToPubkey);
+  final restoredDelta = restoreMentions(
+    baseParsedMedia.content,
+    usernameToPubkey,
+    pubkeyInstanceShowMarketCap: pubkeyInstanceShowMarketCap,
+  );
   return processDeltaMatches(restoredDelta);
 }
 

@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
 import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 
 class MentionsHashtagsHandler extends TextEditorTypingListener {
@@ -19,6 +24,8 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
 
   // Track last processed text to avoid heavy reformat on selection-only changes
   String? _lastProcessedText;
+
+  static const int _invalidTagStart = -1;
 
   @override
   void onTextChanged(
@@ -53,57 +60,60 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
   Future<void> onMentionSuggestionSelected(
     ({String pubkey, String username}) pubkeyUsernamePair,
   ) async {
-    final userMetadata = await ref.read(userMetadataProvider(pubkeyUsernamePair.pubkey).future);
-    if (userMetadata == null) return;
-    final userMetadataEncoded = userMetadata.toEventReference().encode();
-
     final fullText = controller.document.toPlainText();
     final cursorIndex = controller.selection.baseOffset;
-    final tags = _extractTags(fullText);
-    final tag = tags.lastWhere(
-      (t) => t.start < cursorIndex && t.start + t.length >= cursorIndex - 1,
-      orElse: () => _TagInfo(start: -1, length: 0, text: '', tagChar: ''),
+    final tag = _findTagAtCursor(fullText, cursorIndex);
+    if (tag.start == _invalidTagStart) return;
+
+    final mentionData = MentionEmbedData(
+      pubkey: pubkeyUsernamePair.pubkey,
+      username: pubkeyUsernamePair.username,
     );
-    if (tag.start == -1) return;
 
-    final suggestionWithTagChar = pubkeyUsernamePair.username.startsWith(tag.tagChar)
-        ? pubkeyUsernamePair.username
-        : '${tag.tagChar}${pubkeyUsernamePair.username}';
+    // Check cache first (non-blocking) - if available, insert as embed immediately
+    final cachedMarketCap = _getCachedMarketCap(pubkeyUsernamePair.pubkey);
 
-    controller
-      ..removeListener(editorListener)
-      // remove the current '@...' placeholder
-      ..replaceText(tag.start, tag.length, suggestionWithTagChar, null)
-      // apply MentionAttribute using the encoded reference as its value
-      ..formatText(
-        tag.start,
-        suggestionWithTagChar.length,
-        MentionAttribute.withValue(userMetadataEncoded),
-      )
-      // add a trailing space and move cursor after it
-      ..replaceText(tag.start + suggestionWithTagChar.length, 0, ' ', null)
-      ..updateSelection(
-        TextSelection.collapsed(offset: tag.start + suggestionWithTagChar.length + 1),
-        ChangeSource.local,
-      )
-      ..addListener(editorListener);
+    controller.removeListener(editorListener);
+    try {
+      if (cachedMarketCap != null) {
+        // Insert as embed (widget) immediately - even if marketCap is 0
+        MentionInsertionService.insertMention(
+          controller,
+          tag.start,
+          tag.length,
+          mentionData,
+        );
+      } else {
+        // Insert as text + mention attribute (colored text) immediately
+        // Don't set showMarketCapKey since market cap doesn't exist at insertion time
+        // This means it won't upgrade later.
+        MentionInsertionService.insertMentionAsText(
+          controller,
+          tag.start,
+          tag.length,
+          pubkeyUsernamePair.pubkey,
+          pubkeyUsernamePair.username,
+        );
+      }
+    } finally {
+      controller.addListener(editorListener);
+    }
 
     // reapply attributes for other tags and reset suggestions
     _reapplyAllTags(controller.document.toPlainText());
     ref.invalidate(suggestionsNotifierProvider);
   }
 
+  // Gets cached market cap value (non-blocking for optimistic behavior, returns null if not cached).
+  double? _getCachedMarketCap(String pubkey) {
+    return ref.read(userTokenMarketCapProvider(pubkey));
+  }
+
   void onSuggestionSelected(String suggestion) {
     final fullText = controller.document.toPlainText();
     final cursorIndex = controller.selection.baseOffset;
-
-    final tags = _extractTags(fullText);
-    final tag = tags.lastWhere(
-      (t) => t.start < cursorIndex && t.start + t.length >= cursorIndex - 1,
-      orElse: () => _TagInfo(start: -1, length: 0, text: '', tagChar: ''),
-    );
-
-    if (tag.start == -1) return;
+    final tag = _findTagAtCursor(fullText, cursorIndex);
+    if (tag.start == _invalidTagStart) return;
 
     final attribute = _getAttribute(tag.tagChar);
 
@@ -185,10 +195,18 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     }
   }
 
+  _TagInfo _findTagAtCursor(String fullText, int cursorIndex) {
+    final tags = _extractTags(fullText);
+    return tags.lastWhere(
+      (t) => t.start < cursorIndex && t.start + t.length >= cursorIndex - 1,
+      orElse: () => _TagInfo(start: _invalidTagStart, length: 0, text: '', tagChar: ''),
+    );
+  }
+
   _TagInfo? _findActiveTagNearCursor(String text, int cursorIndex) {
     //if there is only @ in text return it as a Tag
-    if (text == '@\n') {
-      return _TagInfo(start: 1, length: 1, text: '', tagChar: '@');
+    if (text == '$mentionPrefix\n') {
+      return _TagInfo(start: 1, length: 1, text: '', tagChar: mentionPrefix);
     }
     final tags = _extractTags(text);
     for (final tag in tags) {
