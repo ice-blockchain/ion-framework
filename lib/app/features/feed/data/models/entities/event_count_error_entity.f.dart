@@ -20,6 +20,7 @@ class EventCountErrorEntity with _$EventCountErrorEntity, IonConnectEntity, Immu
     required String masterPubkey,
     required int createdAt,
     required EventCountErrorData data,
+    EventMessage? eventMessage,
   }) = _EventCountErrorEntity;
 
   const EventCountErrorEntity._();
@@ -40,6 +41,7 @@ class EventCountErrorEntity with _$EventCountErrorEntity, IonConnectEntity, Immu
       masterPubkey: eventMessage.masterPubkey,
       createdAt: eventMessage.createdAt,
       data: data,
+      eventMessage: eventMessage,
     );
   }
 
