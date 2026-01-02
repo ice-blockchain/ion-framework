@@ -15,11 +15,8 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart'
 import 'package:ion/app/features/tokenized_communities/views/components/community_tokens_button.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/friends_section_providers.r.dart';
-import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
-import 'package:ion/app/features/wallets/views/pages/manage_coins/providers/manage_coins_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/coins_tab.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/coins_tab_header.dart';
@@ -131,15 +128,7 @@ class WalletPage extends HookConsumerWidget {
               ref.read(ionConnectCacheProvider.notifier).remove(currentUserFollowList.cacheKey);
             }
 
-            await ref
-                .read(syncTransactionsServiceProvider.future)
-                .then((service) => service.syncAll());
-
-            ref
-              ..invalidate(walletViewsDataNotifierProvider)
-              ..invalidate(manageCoinsNotifierProvider);
-
-            await ref.read(syncedCoinsBySymbolGroupNotifierProvider.notifier).refresh();
+            await ref.read(walletDataSyncCoordinatorProvider).syncWalletData();
           },
           builder: (context, slivers) => CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
