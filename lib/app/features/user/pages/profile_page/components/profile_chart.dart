@@ -9,6 +9,20 @@ import 'package:ion/generated/assets.gen.dart';
 enum ProfileChartType {
   raising,
   falling,
+  idle,
+}
+
+extension ProfileChartTypeColor on ProfileChartType {
+  Color getColor(BuildContext context) {
+    switch (this) {
+      case ProfileChartType.raising:
+        return context.theme.appColors.success;
+      case ProfileChartType.falling:
+        return context.theme.appColors.raspberry;
+      case ProfileChartType.idle:
+        return context.theme.appColors.success;
+    }
+  }
 }
 
 class ProfileChart extends StatelessWidget {
@@ -21,20 +35,21 @@ class ProfileChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final type = amount > 0 ? ProfileChartType.raising : ProfileChartType.falling;
-    final color = switch (type) {
-      ProfileChartType.raising => context.theme.appColors.profitGreen,
-      ProfileChartType.falling => context.theme.appColors.lossRed,
-    };
+    final type = amount > 0
+        ? ProfileChartType.raising
+        : amount < 0
+            ? ProfileChartType.falling
+            : ProfileChartType.idle;
 
     final symbol = switch (type) {
       ProfileChartType.raising => r'+$',
       ProfileChartType.falling => r'-$',
+      ProfileChartType.idle => r'$',
     };
 
     return Container(
       decoration: ShapeDecoration(
-        color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
+        color: type.getColor(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6.0.s),
         ),
@@ -48,15 +63,15 @@ class ProfileChart extends StatelessWidget {
               width: 14.0.s,
               height: 14.0.s,
               colorFilter: ColorFilter.mode(
-                color,
+                context.theme.appColors.primaryBackground,
                 BlendMode.srcIn,
               ),
             ),
             SizedBox(width: 4.0.s),
             Text(
-              formatToCurrency(amount, symbol),
+              formatToCurrency(amount.abs(), symbol),
               style: context.theme.appTextThemes.body2.copyWith(
-                color: color,
+                color: context.theme.appColors.primaryBackground,
               ),
             ),
           ],
