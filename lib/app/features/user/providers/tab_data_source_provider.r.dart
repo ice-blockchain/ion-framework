@@ -2,6 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/providers/user_articles_data_source_provider.r.dart';
+import 'package:ion/app/features/feed/providers/user_holdings_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_data_source_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_replies_data_source_provider.r.dart';
@@ -21,6 +22,8 @@ List<EntitiesDataSource>? tabDataSource(
 }) {
   switch (type) {
     case TabEntityType.posts:
+    case TabEntityType.holdings:
+      // Holdings uses the same data source as posts (filtering happens at provider level)
       return ref.watch(userPostsDataSourceProvider(pubkey));
     case TabEntityType.articles:
       return ref.watch(userArticlesDataSourceProvider(pubkey));
@@ -40,6 +43,8 @@ List<EntitiesDataSource>? tabDataSource(
   switch (type) {
     case TabEntityType.posts:
       return ref.watch(userPostsProvider(pubkey));
+    case TabEntityType.holdings:
+      return ref.watch(userHoldingsProvider(pubkey));
     case TabEntityType.articles:
     case TabEntityType.replies:
     case TabEntityType.videos:

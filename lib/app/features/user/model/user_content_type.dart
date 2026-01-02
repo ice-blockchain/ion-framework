@@ -8,6 +8,7 @@ import 'package:ion/generated/assets.gen.dart';
 enum UserContentType implements TabType {
   posts,
   replies,
+  holdings,
   videos,
   articles;
 
@@ -16,6 +17,7 @@ enum UserContentType implements TabType {
     return switch (this) {
       UserContentType.posts => Assets.svg.iconProfileFeed,
       UserContentType.replies => Assets.svg.iconFeedReplies,
+      UserContentType.holdings => Assets.svg.iconTabsCoins,
       UserContentType.videos => Assets.svg.iconFeedVideos,
       UserContentType.articles => Assets.svg.iconFeedArticles,
     };
@@ -28,6 +30,8 @@ enum UserContentType implements TabType {
         return context.i18n.profile_posts;
       case UserContentType.replies:
         return context.i18n.profile_replies;
+      case UserContentType.holdings:
+        return context.i18n.profile_holdings;
       case UserContentType.videos:
         return context.i18n.profile_videos;
       case UserContentType.articles:

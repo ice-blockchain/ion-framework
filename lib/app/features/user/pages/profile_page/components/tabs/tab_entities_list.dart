@@ -11,6 +11,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
+import 'package:ion/app/features/feed/providers/user_holdings_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
@@ -83,6 +84,8 @@ class TabEntitiesList extends HookConsumerWidget {
       onLoadMore: () async {
         if (type == TabEntityType.posts) {
           await ref.read(userPostsProvider(pubkey).notifier).fetchEntities();
+        } else if (type == TabEntityType.holdings) {
+          await ref.read(userHoldingsProvider(pubkey).notifier).fetchEntities();
         } else {
           final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
           if (dataSource != null) {
@@ -144,6 +147,8 @@ class TabEntitiesList extends HookConsumerWidget {
         onRefresh: () async {
           if (type == TabEntityType.posts) {
             ref.invalidate(userPostsProvider(pubkey));
+          } else if (type == TabEntityType.holdings) {
+            ref.invalidate(userHoldingsProvider(pubkey));
           } else {
             final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
             if (dataSource != null) {

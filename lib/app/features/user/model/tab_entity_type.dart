@@ -7,6 +7,7 @@ import 'package:ion/generated/assets.gen.dart';
 enum TabEntityType {
   posts,
   replies,
+  holdings,
   videos,
   articles;
 
@@ -15,6 +16,7 @@ enum TabEntityType {
     return switch (this) {
       TabEntityType.posts => locale.profile_posts_empty_list_current_user,
       TabEntityType.replies => locale.profile_replies_empty_list_current_user,
+      TabEntityType.holdings => locale.profile_holdings_empty_list_current_user,
       TabEntityType.videos => locale.profile_videos_empty_list_current_user,
       TabEntityType.articles => locale.profile_articles_empty_list_current_user,
     };
@@ -25,6 +27,7 @@ enum TabEntityType {
     return switch (this) {
       TabEntityType.posts => locale.profile_posts_empty_list(username),
       TabEntityType.replies => locale.profile_replies_empty_list(username),
+      TabEntityType.holdings => locale.profile_holdings_empty_list(username),
       TabEntityType.videos => locale.profile_videos_empty_list(username),
       TabEntityType.articles => locale.profile_articles_empty_list(username),
     };
@@ -33,6 +36,7 @@ enum TabEntityType {
   String get emptyStateIconAsset => switch (this) {
         TabEntityType.posts => Assets.svg.walletIconProfileEmptyposts,
         TabEntityType.replies => Assets.svg.walletIconProfileEmptyreplies,
+        TabEntityType.holdings => Assets.svg.walletIconProfileEmptyholdings,
         TabEntityType.videos => Assets.svg.walletIconProfileEmptyvideo,
         TabEntityType.articles => Assets.svg.walletIconProfileEmptyarticles,
       };
