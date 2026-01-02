@@ -75,6 +75,7 @@ class ProfileShareMessage extends HookConsumerWidget {
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
       repliedEventMessage: repliedEventMessage,
+      context: context,
     );
 
     if (userMetadata == null) {

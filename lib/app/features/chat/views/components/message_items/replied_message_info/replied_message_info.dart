@@ -8,6 +8,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/selected_reply_mess
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/visual_media_message/visual_media_custom_grid.dart';
 import 'package:ion/app/features/components/ion_connect_network_image/ion_connect_network_image.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class RepliedMessageInfo extends HookConsumerWidget {
@@ -20,6 +21,8 @@ class RepliedMessageInfo extends HookConsumerWidget {
     if (repliedMessage == null) {
       return const SizedBox();
     }
+
+    final tokenItem = repliedMessage is CommunityTokenItem ? repliedMessage : null;
 
     return Container(
       padding: EdgeInsetsDirectional.fromSTEB(12.0.s, 5.0.s, 20.0.s, 5.0.s),
@@ -54,6 +57,22 @@ class RepliedMessageInfo extends HookConsumerWidget {
                     imageUrl: repliedMessage.medias.first.thumb ?? repliedMessage.medias.first.url,
                     borderRadius: BorderRadius.circular(8.0.s),
                     fit: BoxFit.fitWidth,
+                  ),
+                ),
+              ),
+            if (tokenItem != null && tokenItem.imageUrl != null)
+              Padding(
+                padding: EdgeInsetsDirectional.only(end: 6.0.s),
+                child: SizedBox(
+                  width: 30.0.s,
+                  height: 30.0.s,
+                  child: TokenAvatar(
+                    imageUrl: tokenItem.imageUrl,
+                    containerSize: Size.square(30.0.s),
+                    imageSize: Size.square(30.s),
+                    outerBorderRadius: 8.s,
+                    innerBorderRadius: 8.s,
+                    borderWidth: 0,
                   ),
                 ),
               ),

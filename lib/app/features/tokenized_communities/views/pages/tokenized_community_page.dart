@@ -77,6 +77,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+
     final tokenDefinition = ref
         .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
         .valueOrNull;

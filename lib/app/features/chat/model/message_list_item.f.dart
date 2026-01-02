@@ -72,5 +72,7 @@ sealed class ChatMessageInfoItem with _$ChatMessageInfoItem {
   const factory ChatMessageInfoItem.communityToken({
     required EventMessage eventMessage,
     required String contentDescription,
+    required String icon,
+    String? imageUrl,
   }) = CommunityTokenItem;
 }

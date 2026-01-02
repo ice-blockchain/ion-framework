@@ -21,6 +21,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class CommunityTokenMessage extends HookConsumerWidget {
   const CommunityTokenMessage({
@@ -45,15 +46,33 @@ class CommunityTokenMessage extends HookConsumerWidget {
       [eventMessage],
     );
 
-    final token = definitionEntity != null
-        ? ref.watch(tokenMarketInfoProvider(definitionEntity!.data.externalAddress)).valueOrNull
+    final tokenType = definitionEntity != null
+        ? ref.watch(tokenTypeForTokenDefinitionProvider(definitionEntity!)).valueOrNull
         : null;
 
     final hasReactions = useHasReaction(entity.toEventReference(), ref);
 
+    final token = definitionEntity != null
+        ? ref.watch(tokenMarketInfoProvider(definitionEntity!.data.externalAddress)).valueOrNull
+        : null;
+
     final messageItem = CommunityTokenItem(
       eventMessage: eventMessage,
-      contentDescription: token?.title ?? '',
+      contentDescription: tokenType != null
+          ? tokenType == CommunityContentTokenType.profile
+              ? context.i18n.tokenized_community_token_creator
+              : tokenType == CommunityContentTokenType.twitter
+                  ? context.i18n.tokenized_community_token_twitter
+                  : context.i18n.tokenized_community_token_content
+          : '',
+      icon: tokenType != null
+          ? tokenType == CommunityContentTokenType.profile
+              ? Assets.svg.iconProfileTokenpage
+              : tokenType == CommunityContentTokenType.twitter
+                  ? Assets.svg.iconBadgeXlogo
+                  : Assets.svg.iconProfileFeed
+          : '',
+      imageUrl: token?.imageUrl,
     );
 
     final repliedEventMessage = ref.watch(
@@ -74,6 +93,7 @@ class CommunityTokenMessage extends HookConsumerWidget {
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
       repliedEventMessage: repliedEventMessage,
+      context: context,
     );
 
     return MessageItemWrapper(

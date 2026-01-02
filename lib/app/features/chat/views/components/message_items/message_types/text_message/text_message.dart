@@ -106,6 +106,7 @@ class TextMessage extends HookConsumerWidget {
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
       repliedEventMessage: repliedEventMessage.valueOrNull,
+      context: context,
     );
 
     return MessageItemWrapper(

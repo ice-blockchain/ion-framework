@@ -29,6 +29,7 @@ import 'package:ion/app/features/ion_connect/model/entity_data_with_media_conten
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -205,6 +206,7 @@ class MessageItemWrapper extends HookConsumerWidget {
 ChatMessageInfoItem? getRepliedMessageListItem({
   required WidgetRef ref,
   required EventMessage? repliedEventMessage,
+  required BuildContext context,
 }) {
   if (repliedEventMessage == null) {
     return null;
@@ -253,10 +255,29 @@ ChatMessageInfoItem? getRepliedMessageListItem({
 
     if (postEntity is CommunityTokenDefinitionEntity) {
       final token = ref.watch(tokenMarketInfoProvider(postEntity.data.externalAddress)).valueOrNull;
-      return CommunityTokenItem(
+
+      final tokenType = ref.watch(tokenTypeForTokenDefinitionProvider(postEntity)).valueOrNull;
+
+      final messageItem = CommunityTokenItem(
         eventMessage: repliedEventMessage,
-        contentDescription: token?.title ?? '',
+        contentDescription: tokenType != null
+            ? tokenType == CommunityContentTokenType.profile
+                ? context.i18n.tokenized_community_token_creator
+                : tokenType == CommunityContentTokenType.twitter
+                    ? context.i18n.tokenized_community_token_twitter
+                    : context.i18n.tokenized_community_token_content
+            : '',
+        icon: tokenType != null
+            ? tokenType == CommunityContentTokenType.profile
+                ? Assets.svg.iconProfileTokenpage
+                : tokenType == CommunityContentTokenType.twitter
+                    ? Assets.svg.iconBadgeXlogo
+                    : Assets.svg.iconProfileFeed
+            : '',
+        imageUrl: token?.imageUrl,
       );
+
+      return messageItem;
     }
 
     final postData = useMemoized(
