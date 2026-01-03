@@ -5,7 +5,7 @@ class PriceLabelParts {
 
   final String? fullText; // when not using compact format
   final String? prefix; // e.g. "-0.0"
-  final String? subscript; // count of zeros when >= 2
+  final String? subscript; // count of zeros when > 2
   final String? trailing; // next 2 significant digits after zeros
 }
 
@@ -43,9 +43,17 @@ class PriceLabelFormatter {
     final trailing = digits.isEmpty ? '0' : (digits.length >= 2 ? digits.substring(0, 2) : digits);
 
     final sign = value < 0 ? '-' : '';
+
+    if (zeros <= 2) {
+      return PriceLabelParts(
+        prefix: '$sign' '0.' '${'0' * zeros}',
+        trailing: trailing,
+      );
+    }
+
     return PriceLabelParts(
       prefix: '${sign}0.0',
-      subscript: zeros > 2 ? zeros.toString() : null,
+      subscript: zeros.toString(),
       trailing: trailing,
     );
   }
