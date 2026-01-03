@@ -2,6 +2,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:ion/app/components/dividers/gradient_vertical_divider.dart';
+import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart'
     as market_data_formatters;
@@ -24,9 +25,9 @@ class ProfileBalance extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: height,
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: context.theme.appColors.backgroundBlue,
-        borderRadius: BorderRadius.circular(16.0.s),
+        shape: const BottomNotchRectBorder(),
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8.s, vertical: 16.0.s),
