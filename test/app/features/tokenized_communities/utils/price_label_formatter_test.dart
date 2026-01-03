@@ -18,16 +18,18 @@ void main() {
     // small positive numbers: prefix '0.0', subscript only when zeros > 2
     // 0.03 -> exponent -2 => zeros = 1 -> no subscript
     (value: 0.03, fullText: null, prefix: '0.0', sub: null, trail: '30'),
-    // 0.003 -> exponent -3 => zeros = 2 -> no subscript (changed rule)
-    (value: 0.003, fullText: null, prefix: '0.0', sub: null, trail: '30'),
+    // 0.003 -> exponent -3 => zeros = 2 -> no subscript
+    (value: 0.003, fullText: null, prefix: '0.00', sub: null, trail: '30'),
     // 0.0003 -> exponent -4 => zeros = 3 -> subscript '3'
     (value: 0.0003, fullText: null, prefix: '0.0', sub: '3', trail: '30'),
     // 0.000033 -> exponent -5 => zeros = 4 -> subscript '4'
     (value: 0.000033, fullText: null, prefix: '0.0', sub: '4', trail: '33'),
 
+    (value: 0.0029, fullText: null, prefix: '0.00', sub: null, trail: '29'),
+
     // small negative numbers: sign kept in prefix
     (value: -0.03, fullText: null, prefix: '-0.0', sub: null, trail: '30'),
-    (value: -0.003, fullText: null, prefix: '-0.0', sub: null, trail: '30'),
+    (value: -0.003, fullText: null, prefix: '-0.00', sub: null, trail: '30'),
     (value: -0.0003, fullText: null, prefix: '-0.0', sub: '3', trail: '30'),
   ], (t) {
     test('format(${t.value})', () {
