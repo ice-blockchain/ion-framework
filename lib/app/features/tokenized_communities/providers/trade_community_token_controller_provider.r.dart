@@ -476,7 +476,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         eventReference: params.eventReference,
       ).future,
     );
-    return fatAddressData.toFatAddressHex();
+    return fatAddressData.toHex();
   }
 
   CoinsGroup _buildInterimCommunityTokenGroup({
