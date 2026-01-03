@@ -64,12 +64,12 @@ ChartCalculationData? chartCalculationData(
       .toList();
 
   // Build bottom labels from candle times (max 8 evenly spaced)
-  final desiredBottom = math.min(8, candles.length);
+  final bottomLabelsCount = math.min(8, candles.length);
   final indexToLabel = <int, String>{};
   double xAxisStep = 1;
-  if (desiredBottom > 0 && candles.length > 1) {
-    xAxisStep = (candles.length - 1) / (desiredBottom - 1);
-    for (var i = 0; i < desiredBottom; i++) {
+  if (bottomLabelsCount > 0 && candles.length > 1) {
+    xAxisStep = (candles.length - 1) / (bottomLabelsCount - 1);
+    for (var i = 0; i < bottomLabelsCount; i++) {
       final idx = (i * xAxisStep).round().clamp(0, candles.length - 1);
       indexToLabel[idx] = formatChartTime(candles[idx].date);
     }
