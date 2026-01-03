@@ -17,9 +17,7 @@ import 'package:ion/app/features/feed/views/components/user_info/user_info.dart'
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/generated/assets.gen.dart';
 
 class CommunityTokenLive extends HookConsumerWidget {
   const CommunityTokenLive({
@@ -64,14 +62,6 @@ class CommunityTokenLive extends HookConsumerWidget {
     final postWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (entity.data.kind == UserMetadataEntity.kind &&
-            (entity.data as CommunityTokenDefinitionIon).type ==
-                CommunityTokenDefinitionIonType.firstBuyAction) ...[
-          ScreenSideOffset.small(
-            child: const _CreatorTokenIsLiveLabel(),
-          ),
-          SizedBox(height: 8.0.s),
-        ],
         UserInfo(
           pubkey: eventReference.masterPubkey,
           network: network,
@@ -108,24 +98,5 @@ class CommunityTokenLive extends HookConsumerWidget {
     }
 
     return postWidget;
-  }
-}
-
-class _CreatorTokenIsLiveLabel extends StatelessWidget {
-  const _CreatorTokenIsLiveLabel();
-
-  @override
-  Widget build(BuildContext context) {
-    final color = context.theme.appColors.onTertiaryBackground;
-    return Row(
-      children: [
-        Assets.svg.iconCreatecoinNewcoin.icon(size: 16.0.s, color: color),
-        SizedBox(width: 4.0.s),
-        Text(
-          context.i18n.creator_token_is_live,
-          style: context.theme.appTextThemes.body2.copyWith(color: color),
-        ),
-      ],
-    );
   }
 }
