@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
@@ -155,11 +156,13 @@ class TwitterTokenHeader extends StatelessWidget {
               IntrinsicWidth(
                 child: Container(
                   constraints: BoxConstraints(minWidth: 260.s),
-                  decoration: BoxDecoration(
+                  decoration: ShapeDecoration(
                     color: context.theme.appColors.secondaryBackground.withValues(
                       alpha: 0.1,
                     ),
-                    borderRadius: BorderRadius.circular(12.0.s),
+                    shape: BottomNotchRectBorder(
+                      isOnTop: showBuyButton,
+                    ),
                   ),
                   padding: EdgeInsetsDirectional.only(
                     top: 20.s,
