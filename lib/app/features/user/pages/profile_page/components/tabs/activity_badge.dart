@@ -10,7 +10,7 @@ class ActivityBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(left: 16.s, top: 8.s),
+      padding: EdgeInsetsDirectional.only(start: 16.s, top: 8.s),
       child: Row(
         children: [
           Assets.svg.iconoirCoinsSwap.icon(size: 16.0.s),
