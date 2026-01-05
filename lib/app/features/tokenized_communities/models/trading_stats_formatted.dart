@@ -16,15 +16,16 @@ class TradingStatsFormatted {
   });
 
   factory TradingStatsFormatted.fromStats(TradingStats stats) {
-    final volumeText = MarketDataFormatter.formatVolume(stats.volumeUSD);
-    final buysAmount = MarketDataFormatter.formatCompactNumber(stats.buysTotalAmountUSD);
-    final buysText = '${stats.numberOfBuys}/\$$buysAmount';
+    final volumeText = MarketDataFormatter.formatCompactOrSubscript(stats.volumeUSD);
 
-    final sellsAmount = MarketDataFormatter.formatCompactNumber(stats.sellsTotalAmountUSD);
-    final sellsText = '${stats.numberOfSells}/\$$sellsAmount';
+    final buysAmount = MarketDataFormatter.formatCompactOrSubscript(stats.buysTotalAmountUSD);
+    final buysText = '${stats.numberOfBuys}/$buysAmount';
+
+    final sellsAmount = MarketDataFormatter.formatCompactOrSubscript(stats.sellsTotalAmountUSD);
+    final sellsText = '${stats.numberOfSells}/$sellsAmount';
     final hasNoSells = stats.numberOfSells == 0 && stats.sellsTotalAmountUSD == 0;
 
-    final netBuyFormatted = MarketDataFormatter.formatCompactNumber(stats.netBuy.abs());
+    final netBuyFormatted = MarketDataFormatter.formatCompactOrSubscript(stats.netBuy.abs());
     final netBuyText = getNumericSign(stats.netBuy) + netBuyFormatted;
     final hasZeroNetBuy = stats.netBuy == 0.0;
 
