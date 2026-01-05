@@ -51,18 +51,16 @@ Future<UserDelegationEntity?> userDelegation(
 
 @riverpod
 Future<UserDelegationEntity?> cachedUserDelegation(Ref ref, String masterPubkey) async {
-  final userDelegation = ref
-      .watch(
-        ionConnectDatabaseEntityProvider(
-          eventReference: ReplaceableEventReference(
-            masterPubkey: masterPubkey,
-            kind: UserDelegationEntity.kind,
-          ),
-        ),
-      )
-      .valueOrNull as UserDelegationEntity?;
+  final userDelegationAsync = await ref.watch(
+    ionConnectDatabaseEntityProvider(
+      eventReference: ReplaceableEventReference(
+        masterPubkey: masterPubkey,
+        kind: UserDelegationEntity.kind,
+      ),
+    ).future,
+  );
 
-  return userDelegation;
+  return userDelegationAsync as UserDelegationEntity?;
 }
 
 @riverpod
