@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -17,6 +19,7 @@ import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/update_wallet_view_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
@@ -112,6 +115,10 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         existingTokenAddress,
         formState.communityTokenCoinsGroup,
       );
+
+      unawaited(
+        ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
+      );
       return txHash;
     });
   }
@@ -175,7 +182,12 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         tokenMarketInfoProvider(params.externalAddress),
       );
 
-      return _requireBroadcastedTxHash(response);
+      final txHash = _requireBroadcastedTxHash(response);
+
+      unawaited(
+        ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
+      );
+      return txHash;
     });
   }
 
