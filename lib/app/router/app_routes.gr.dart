@@ -288,10 +288,14 @@ class ModalShellRouteData extends ShellRouteData {
     GoRouterState state,
     Widget navigator,
   ) {
+    final config = state.extra as RouteConfig?;
+    final isBarrierDismissible = config?.barrierDismissible ?? true;
+
     return ModalSheetPage(
       key: state.pageKey,
       child: ModalWrapper(child: navigator),
       barrierColor: context.theme.appColors.backgroundSheet,
+      barrierDismissible: isBarrierDismissible,
       transitionCurve: Easing.standardDecelerate,
       swipeDismissible: true,
       swipeDismissSensitivity: SwipeDismissSensitivity(
