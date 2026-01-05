@@ -18,6 +18,7 @@ import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provi
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/your_position_card.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/tabs/activity_badge.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/empty_state.dart';
 import 'package:ion/app/features/user/providers/tab_data_source_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -107,6 +108,8 @@ class TabEntitiesList extends HookConsumerWidget {
               ],
             ),
           ),
+        if (type == TabEntityType.holdings && entities.isNotEmpty)
+          const SliverToBoxAdapter(child: ActivityBadge()),
         if (entities.isEmpty && tabData.hasMore)
           const EntitiesListSkeleton()
         else if (entities.isEmpty || isBlockedOrBlockedBy)
