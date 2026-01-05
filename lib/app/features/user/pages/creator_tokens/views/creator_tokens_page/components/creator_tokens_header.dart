@@ -44,7 +44,7 @@ class CreatorTokensHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SliverAppBar(
       pinned: true,
-      expandedHeight: expandedHeight.s,
+      expandedHeight: expandedHeight,
       toolbarHeight: NavigationAppBar.screenHeaderHeight,
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
@@ -68,6 +68,7 @@ class CreatorTokensHeader extends ConsumerWidget {
                 child: featuredTokensAsync.when(
                   data: (tokens) {
                     if (tokens.isEmpty) return const SizedBox.shrink();
+
                     return CreatorTokensCarousel(
                       tokens: tokens,
                       onItemChanged: (token) {
@@ -84,7 +85,7 @@ class CreatorTokensHeader extends ConsumerWidget {
         },
       ),
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(tabBarHeight.s),
+        preferredSize: Size.fromHeight(tabBarHeight),
         child: Align(
           alignment: AlignmentDirectional.bottomStart,
           child: TabsHeader(

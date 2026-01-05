@@ -18,6 +18,7 @@ class TokenAvatar extends HookWidget {
     required this.outerBorderRadius,
     required this.innerBorderRadius,
     required this.borderWidth,
+    this.borderColor,
     super.key,
   });
 
@@ -28,6 +29,8 @@ class TokenAvatar extends HookWidget {
   final double outerBorderRadius;
   final double innerBorderRadius;
   final double borderWidth;
+
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -58,17 +61,19 @@ class TokenAvatar extends HookWidget {
               borderRadius: BorderRadius.circular(outerBorderRadius),
               // GradientBoxBorder not accepting AlignmentDirectional
               border: borderWidth > 0
-                  ? GradientBoxBorder(
-                      gradient: LinearGradient(
-                        // ignore: prefer_alignment_directional
-                        begin: Alignment.topLeft,
-                        // ignore: prefer_alignment_directional
-                        end: Alignment.bottomRight,
-                        colors: gradient.colors,
-                        stops: gradient.stops,
-                      ),
-                      width: borderWidth,
-                    )
+                  ? borderColor != null
+                      ? Border.all(color: borderColor!, width: borderWidth)
+                      : GradientBoxBorder(
+                          gradient: LinearGradient(
+                            // ignore: prefer_alignment_directional
+                            begin: Alignment.topLeft,
+                            // ignore: prefer_alignment_directional
+                            end: Alignment.bottomRight,
+                            colors: gradient.colors,
+                            stops: gradient.stops,
+                          ),
+                          width: borderWidth,
+                        )
                   : null,
             ),
           ),

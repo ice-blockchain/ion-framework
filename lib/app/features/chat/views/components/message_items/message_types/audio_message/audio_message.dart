@@ -216,6 +216,7 @@ class AudioMessage extends HookConsumerWidget {
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
       repliedEventMessage: repliedEventMessage,
+      context: context,
     );
 
     return MessageItemWrapper(

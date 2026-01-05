@@ -6,7 +6,7 @@ import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
-import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 
 class CreatorTokensCarouselSkeleton extends StatelessWidget {
   const CreatorTokensCarouselSkeleton({
@@ -50,60 +50,64 @@ class _CarouselCardSkeleton extends StatelessWidget {
     final secondary = colors.primaryBackground.withValues(alpha: 0.3);
 
     return Container(
+      height: 251.s,
+      width: 205.s,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24.0.s),
       ),
       clipBehavior: Clip.antiAlias,
+      margin: EdgeInsetsDirectional.only(top: NavigationAppBar.screenHeaderHeight / 2),
       child: ProfileBackground(
-        colors: useAvatarFallbackColors,
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 32.0.s,
-            vertical: 37.0.s,
+          padding: EdgeInsetsDirectional.only(
+            top: 26.s,
           ),
           child: Skeleton(
             baseColor: secondary.withValues(alpha: 0.35),
             highlightColor: primary.withValues(alpha: 0.65),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 98.0.s,
-                  height: 98.0.s,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.0.s),
-                    color: secondary,
+            child: Align(
+              alignment: AlignmentDirectional.topCenter,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 90.0.s,
+                    height: 90.0.s,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20.0.s),
+                      color: secondary,
+                    ),
                   ),
-                ),
-                SizedBox(height: 25.0.s),
-                Container(
-                  width: 180.0.s,
-                  height: 20.0.s,
-                  decoration: BoxDecoration(
-                    color: primary,
-                    borderRadius: BorderRadius.circular(10.0.s),
+                  SizedBox(height: 10.0.s),
+                  Container(
+                    width: 180.0.s,
+                    height: 20.0.s,
+                    decoration: BoxDecoration(
+                      color: primary,
+                      borderRadius: BorderRadius.circular(10.0.s),
+                    ),
                   ),
-                ),
-                SizedBox(height: 7.0.s),
-                Container(
-                  width: 140.0.s,
-                  height: 16.0.s,
-                  decoration: BoxDecoration(
-                    color: primary,
-                    borderRadius: BorderRadius.circular(8.0.s),
+                  SizedBox(height: 7.0.s),
+                  Container(
+                    width: 140.0.s,
+                    height: 16.0.s,
+                    decoration: BoxDecoration(
+                      color: primary,
+                      borderRadius: BorderRadius.circular(8.0.s),
+                    ),
                   ),
-                ),
-                SizedBox(height: 20.0.s),
-                Container(
-                  width: 200.0.s,
-                  height: 40.0.s,
-                  decoration: BoxDecoration(
-                    color: primary,
-                    borderRadius: BorderRadius.circular(12.0.s),
+                  SizedBox(height: 20.0.s),
+                  Container(
+                    width: 156.0.s,
+                    height: 40.0.s,
+                    decoration: BoxDecoration(
+                      color: primary,
+                      borderRadius: BorderRadius.circular(12.0.s),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

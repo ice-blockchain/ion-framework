@@ -17,9 +17,10 @@ import 'package:ion/app/features/chat/views/pages/share_via_message_modal/compon
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_post_to_story_content.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_profile_to_story_content.dart';
+import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
+import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/providers/repost_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
@@ -77,8 +78,7 @@ class ShareOptions extends HookConsumerWidget {
     };
 
     final canShareToFeed = switch (entity) {
-      //TODO(ice-kreios): enable it when business logic is ready
-      CommunityTokenDefinitionEntity() => false,
+      CommunityTokenDefinitionEntity() => true,
       _ => false,
     };
 
@@ -234,7 +234,10 @@ class ShareOptions extends HookConsumerWidget {
     EventReference eventReference,
     ValueNotifier<bool> isCapturing,
   ) {
-    ref.read(repostNotifierProvider.notifier).repost(eventReference: eventReference);
+    ref.read(createPostNotifierProvider(CreatePostOption.quote).notifier).create(
+          quotedEvent: eventReference,
+          onlyOnMyFeed: true,
+        );
     context.pop();
   }
 

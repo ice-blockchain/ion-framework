@@ -116,9 +116,11 @@ class CommunityTokenActionBody extends HookConsumerWidget {
               if (tokenType == CommunityContentTokenType.twitter)
                 FeedTwitterToken(
                   externalAddress: externalAddress,
+                  sidePadding: sidePadding,
                 )
               else if (tokenType == CommunityContentTokenType.profile)
                 FeedProfileActionToken(
+                  sidePadding: sidePadding,
                   externalAddress: externalAddress,
                   pnl: ProfileChart(amount: position?.pnl ?? 0),
                   hodl: entity.data.type == CommunityTokenActionType.sell
@@ -129,6 +131,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                 )
               else
                 FeedContentToken(
+                  sidePadding: sidePadding,
                   tokenDefinition: definitionEntity,
                   type: tokenType,
                   showBuyButton: false,

@@ -10,7 +10,9 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'token_type_provider.r.g.dart';
@@ -28,14 +30,42 @@ Future<CommunityContentTokenType?> tokenTypeForExternalAddress(
   Ref ref,
   String externalAddress,
 ) async {
-  final communityTokenDefinition = await ref
-      .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress).future);
+  keepAliveWhenAuthenticated(ref);
+  final communityTokenDefinition =
+      ref.watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress));
 
-  if (communityTokenDefinition == null) {
-    return null;
+  CommunityContentTokenType? type;
+  if (communityTokenDefinition.valueOrNull == null) {
+    type = null;
+  } else {
+    type =
+        ref.watch(tokenTypeForTokenDefinitionProvider(communityTokenDefinition.value!)).valueOrNull;
   }
 
-  return ref.watch(tokenTypeForTokenDefinitionProvider(communityTokenDefinition).future);
+  if (type == null) {
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress));
+    if (tokenInfo.valueOrNull == null) {
+      return null;
+    }
+
+    if (tokenInfo.value!.source.isTwitter) {
+      type = CommunityContentTokenType.twitter;
+    } else {
+      final address = tokenInfo.value!.addresses.ionConnect;
+
+      if (address != null) {
+        if (address.startsWith(UserMetadataEntity.kind.toString())) {
+          type = CommunityContentTokenType.profile;
+        } else if (address.startsWith(ArticleEntity.kind.toString())) {
+          type = CommunityContentTokenType.article;
+        } else {
+          type = CommunityContentTokenType.postText;
+        }
+      }
+    }
+  }
+
+  return type;
 }
 
 /// Provides [CommunityContentTokenType] for given ion connect [EventReference].
