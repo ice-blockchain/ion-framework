@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ion/app/components/layout/measure_size.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
@@ -32,7 +29,6 @@ class CollapsingHeaderLayout extends HookWidget {
     this.onBackButtonPressed,
     this.onRefresh,
     this.onInnerScrollController,
-    this.pinnedHeader,
     super.key,
   });
 
@@ -48,7 +44,6 @@ class CollapsingHeaderLayout extends HookWidget {
   final VoidCallback? onBackButtonPressed;
   final Widget floatingActionButton;
   final Future<void> Function()? onRefresh;
-  final Widget? pinnedHeader;
 
   /// When `onRefresh` is provided, this layout uses a `NestedScrollView`.
   /// This callback exposes the INNER (body) scroll controller.
@@ -56,62 +51,32 @@ class CollapsingHeaderLayout extends HookWidget {
 
   double get paddingTop => 60.0.s;
 
-  Widget _buildScrollView(
-    BuildContext context, {
+  Widget _buildScrollView({
     required ScrollController scrollController,
     required AvatarColors? imageColors,
     required Widget child,
-    required double scrollOffset,
-    required double expandedHeaderHeight,
-    required ValueChanged<double> onExpandedHeaderHeightChanged,
   }) {
     final headerSliver = SliverToBoxAdapter(
-      child: MeasureSize(
-        onChange: (size) {
-          onExpandedHeaderHeightChanged(size.height);
-        },
-        child: Stack(
-          children: [
-            if (newUiMode)
-              Positioned.fill(
-                child: ProfileBackground(
-                  colors: imageColors,
-                ),
+      child: Stack(
+        children: [
+          if (newUiMode)
+            Positioned.fill(
+              child: ProfileBackground(
+                colors: imageColors,
               ),
-            expandedHeader,
-          ],
-        ),
+            ),
+          expandedHeader,
+        ],
       ),
     );
-
-    final pinnedHeaderSliver = pinnedHeader != null
-        ? SliverPersistentHeader(
-            pinned: true,
-            delegate: _PinnedHeaderDelegate(
-              child: pinnedHeader!,
-              scrollOffset: scrollOffset,
-              expandedHeaderHeight: expandedHeaderHeight,
-            ),
-          )
-        : null;
 
     if (onRefresh != null) {
       return NestedScrollView(
         controller: scrollController,
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          final slivers = <Widget>[
-            headerSliver,
-            SliverToBoxAdapter(
-              child: SectionSeparator(
-                color: context.theme.appColors.forest,
-              ),
-            ),
-          ];
-          if (pinnedHeaderSliver != null) {
-            slivers.add(pinnedHeaderSliver);
-          }
-          return slivers;
-        },
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          headerSliver,
+          const SliverToBoxAdapter(child: SectionSeparator()),
+        ],
         body: Builder(
           builder: (context) {
             final innerController = PrimaryScrollController.maybeOf(context);
@@ -135,23 +100,14 @@ class CollapsingHeaderLayout extends HookWidget {
       );
     }
 
-    final slivers = <Widget>[
-      headerSliver,
-      SliverToBoxAdapter(
-        child: SectionSeparator(
-          color: context.theme.appColors.forest,
-        ),
-      ),
-    ];
-    if (pinnedHeaderSliver != null) {
-      slivers.add(pinnedHeaderSliver);
-    }
-    slivers.add(SliverToBoxAdapter(child: child));
-
     return CustomScrollView(
       physics: const ClampingScrollPhysics(),
       controller: scrollController,
-      slivers: slivers,
+      slivers: [
+        headerSliver,
+        const SliverToBoxAdapter(child: SectionSeparator()),
+        SliverToBoxAdapter(child: child),
+      ],
     );
   }
 
@@ -159,20 +115,6 @@ class CollapsingHeaderLayout extends HookWidget {
   Widget build(BuildContext context) {
     final scrollController = useScrollController();
     final (:opacity) = useAnimatedOpacityOnScroll(scrollController, topOffset: paddingTop);
-    final scrollOffset = useState<double>(0);
-    final expandedHeaderHeight = useState<double>(0);
-
-    useEffect(
-      () {
-        void onScroll() {
-          scrollOffset.value = scrollController.offset;
-        }
-
-        scrollController.addListener(onScroll);
-        return () => scrollController.removeListener(onScroll);
-      },
-      [scrollController],
-    );
 
     final imageColors = useImageColors(imageUrl);
     final backgroundColor = this.backgroundColor ?? context.theme.appColors.secondaryBackground;
@@ -212,15 +154,9 @@ class CollapsingHeaderLayout extends HookWidget {
                 child: ColoredBox(
                   color: backgroundColor,
                   child: _buildScrollView(
-                    context,
                     scrollController: scrollController,
                     imageColors: imageColors,
                     child: child,
-                    scrollOffset: scrollOffset.value,
-                    expandedHeaderHeight: expandedHeaderHeight.value,
-                    onExpandedHeaderHeightChanged: (height) {
-                      expandedHeaderHeight.value = height;
-                    },
                   ),
                 ),
               ),
@@ -237,6 +173,7 @@ class CollapsingHeaderLayout extends HookWidget {
               backgroundBuilder: newUiMode && showAppBarBackground
                   ? () => ProfileBackground(
                         colors: imageColors,
+                        disableDarkGradient: true,
                       )
                   : null,
               title: IgnorePointer(
@@ -256,83 +193,5 @@ class CollapsingHeaderLayout extends HookWidget {
         ),
       ),
     );
-  }
-}
-
-class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _PinnedHeaderDelegate({
-    required this.child,
-    required this.scrollOffset,
-    required this.expandedHeaderHeight,
-  });
-
-  final Widget child;
-  final double scrollOffset;
-  final double expandedHeaderHeight;
-
-  double get _childHeight => _getHeight(child);
-
-  double get _pinnedOffset =>
-      NavigationAppBar.screenHeaderHeight +
-      PlatformDispatcher.instance.views.first.padding.top /
-          PlatformDispatcher.instance.views.first.devicePixelRatio;
-
-  double get _startOffset {
-    // Start transition when expanded header is fully scrolled away
-    // Subtract separator height to account for the separator
-    if (expandedHeaderHeight <= 0) {
-      // Fallback to a reasonable default if not measured yet
-      return 169.0.s;
-    }
-
-    final view = PlatformDispatcher.instance.views.first;
-    final statusBarHeight = view.viewPadding.top / view.devicePixelRatio;
-    return expandedHeaderHeight -
-        NavigationAppBar.screenHeaderHeight +
-        SectionSeparator.defaultHeight -
-        statusBarHeight;
-  }
-
-  double get _currentOffset {
-    if (scrollOffset <= _startOffset) return 0;
-
-    final progress = ((scrollOffset - _startOffset) / _pinnedOffset).clamp(0.0, 1.0);
-
-    return _pinnedOffset * progress;
-  }
-
-  @override
-  double get minExtent => _childHeight + _currentOffset;
-
-  @override
-  double get maxExtent => _childHeight + _currentOffset;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return ColoredBox(
-      color: context.theme.appColors.forest,
-      child: Padding(
-        padding: EdgeInsetsDirectional.only(top: _currentOffset),
-        child: child,
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(_PinnedHeaderDelegate oldDelegate) {
-    return scrollOffset != oldDelegate.scrollOffset ||
-        child != oldDelegate.child ||
-        expandedHeaderHeight != oldDelegate.expandedHeaderHeight;
-  }
-
-  double _getHeight(Widget widget) {
-    if (widget is SizedBox && widget.height != null) {
-      return widget.height!;
-    }
-    return 40.0.s;
   }
 }

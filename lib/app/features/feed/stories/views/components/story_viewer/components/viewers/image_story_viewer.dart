@@ -35,6 +35,8 @@ class ImageStoryViewer extends HookConsumerWidget {
 
     final hasQuotedPost = quotedEvent != null || sourcePostReference != null;
     final isProfileScreenshot = sourcePostReference?.eventReference.isProfileReference ?? false;
+    final isCommunityTokenScreenshot =
+        sourcePostReference?.eventReference.isCommunityTokenReference ?? false;
 
     // Keep the provider alive as long as the image is being displayed
     ref.watch(storyImageLoadStatusProvider(storyId));
@@ -53,8 +55,9 @@ class ImageStoryViewer extends HookConsumerWidget {
         });
 
         // For profile screenshots, use cover to fill width; for quoted posts, use contain
-        final fit =
-            isProfileScreenshot ? BoxFit.cover : (hasQuotedPost ? BoxFit.contain : BoxFit.cover);
+        final fit = isProfileScreenshot || isCommunityTokenScreenshot
+            ? BoxFit.cover
+            : (hasQuotedPost ? BoxFit.contain : BoxFit.cover);
 
         return SizedBox.expand(
           child: Image(
@@ -75,8 +78,9 @@ class ImageStoryViewer extends HookConsumerWidget {
                 : context.i18n.story_see_post;
 
         // For profile screenshots, don't add padding to allow full width
-        final padding =
-            isProfileScreenshot ? EdgeInsets.zero : EdgeInsets.symmetric(horizontal: 20.0.s);
+        final padding = isProfileScreenshot || isCommunityTokenScreenshot
+            ? EdgeInsets.zero
+            : EdgeInsets.symmetric(horizontal: 20.0.s);
 
         return ColoredBox(
           color: context.theme.appColors.primaryText,

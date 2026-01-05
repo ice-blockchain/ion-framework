@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/bech32/bech32_service.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_protocol_identifier_type.dart';
@@ -246,4 +247,8 @@ extension EventReferenceX on EventReference {
   bool get isProfileReference =>
       this is ReplaceableEventReference &&
       (this as ReplaceableEventReference).kind == UserMetadataEntity.kind;
+
+  bool get isCommunityTokenReference =>
+      this is ReplaceableEventReference &&
+      (this as ReplaceableEventReference).kind == CommunityTokenDefinitionEntity.kind;
 }

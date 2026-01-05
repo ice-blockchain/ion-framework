@@ -77,6 +77,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+
     final tokenDefinition = ref
         .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
         .valueOrNull;
@@ -122,19 +123,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       backgroundColor: context.theme.appColors.secondaryBackground,
       applySafeAreaBottomPadding: false,
       imageUrl: tokenInfo?.imageUrl,
-      pinnedHeader: SizedBox(
-        height: 40.0.s,
-        child: ScrollLinksTabsHeader(
-          tabs: TokenizedCommunityTabType.values,
-          activeIndex: activeTab.value.index,
-          onTabTapped: (int index) {
-            activeTab.value = TokenizedCommunityTabType.values[index];
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              scrollToSection(index);
-            });
-          },
-        ),
-      ),
       onRefresh: () async {
         ref
           ..invalidate(tokenMarketInfoProvider(externalAddress))
@@ -205,43 +193,53 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       expandedHeader: Column(
         children: [
           SizedBox(height: MediaQuery.viewPaddingOf(context).top + 16.s),
-          if (tokenType != null)
-            Builder(
-              builder: (context) {
-                if (tokenInfo == null) {
+          Builder(
+            builder: (context) {
+              if (tokenInfo == null) {
+                return const SizedBox.shrink();
+              }
+
+              if (tokenType == CommunityContentTokenType.profile) {
+                return ProfileTokenHeader(
+                  token: tokenInfo,
+                  externalAddress: externalAddress,
+                  minimal: true,
+                );
+              } else if (tokenType == CommunityContentTokenType.twitter) {
+                return TwitterTokenHeader(
+                  token: tokenInfo,
+                  showBuyButton: false,
+                );
+              } else {
+                if (tokenDefinition == null) {
                   return const SizedBox.shrink();
                 }
-
-                if (tokenType == CommunityContentTokenType.profile) {
-                  return ProfileTokenHeader(
+                return Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    top: tokenType == CommunityContentTokenType.postText ? 36.s : 0,
+                  ),
+                  child: ContentTokenHeader(
+                    type: tokenType ?? CommunityContentTokenType.postText,
                     token: tokenInfo,
                     externalAddress: externalAddress,
-                    minimal: true,
-                  );
-                } else if (tokenType == CommunityContentTokenType.twitter) {
-                  return TwitterTokenHeader(
-                    token: tokenInfo,
+                    tokenDefinition: tokenDefinition,
                     showBuyButton: false,
-                  );
-                } else {
-                  if (tokenDefinition == null) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      top: tokenType == CommunityContentTokenType.postText ? 36.s : 0,
-                    ),
-                    child: ContentTokenHeader(
-                      type: tokenType,
-                      token: tokenInfo,
-                      externalAddress: externalAddress,
-                      tokenDefinition: tokenDefinition,
-                      showBuyButton: false,
-                    ),
-                  );
-                }
-              },
-            ),
+                  ),
+                );
+              }
+            },
+          ),
+          SizedBox(height: 16.0.s),
+          ScrollLinksTabsHeader(
+            tabs: TokenizedCommunityTabType.values,
+            activeIndex: activeTab.value.index,
+            onTabTapped: (int index) {
+              activeTab.value = TokenizedCommunityTabType.values[index];
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                scrollToSection(index);
+              });
+            },
+          ),
         ],
       ),
       child: Column(

@@ -24,13 +24,6 @@ enum IceRouteType {
   overlay,
 }
 
-/// Configuration data that can be passed via route extra
-class RouteConfig {
-  const RouteConfig({this.barrierDismissible = true});
-
-  final bool barrierDismissible;
-}
-
 abstract class BaseRouteData extends GoRouteData {
   BaseRouteData({
     required this.child,
@@ -38,7 +31,6 @@ abstract class BaseRouteData extends GoRouteData {
     this.isFullscreenMedia = false,
     this.canPop,
     this.key,
-    this.routeConfig = const RouteConfig(),
   });
 
   final IceRouteType type;
@@ -46,9 +38,6 @@ abstract class BaseRouteData extends GoRouteData {
   final Widget child;
   final bool? canPop;
   final LocalKey? key;
-  final RouteConfig routeConfig;
-
-  Object? get extra => routeConfig;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
@@ -73,10 +62,7 @@ abstract class BaseRouteData extends GoRouteData {
           transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
           child: child,
         ),
-      IceRouteType.bottomSheet => FadeTransitionSheetPage(
-          child: child,
-          state: state,
-        ),
+      IceRouteType.bottomSheet => FadeTransitionSheetPage(child: child, state: state),
       IceRouteType.slideFromLeft => SlideFromLeftTransitionPage(child: child, state: state),
       IceRouteType.fade => FadeTransitionPage(child: child, state: state),
       IceRouteType.mainModalSheet =>

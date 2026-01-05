@@ -21,12 +21,13 @@ class PostScreenshotPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final isProfileReference = eventReference?.isProfileReference ?? false;
+    final isCommunityTokenReference = eventReference?.isCommunityTokenReference ?? false;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0.s),
       child: AspectRatio(
         aspectRatio: MediaAspectRatio.portrait,
-        child: isProfileReference
+        child: isProfileReference || isCommunityTokenReference
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(16.0.s),
                 child: Image.file(
