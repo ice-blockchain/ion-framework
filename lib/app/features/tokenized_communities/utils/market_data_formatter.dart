@@ -17,6 +17,8 @@ class MarketDataFormatter {
       return '${(value / 1e6).toStringAsFixed(2)}M';
     } else if (value >= 1e3) {
       return '${(value / 1e3).toStringAsFixed(2)}K';
+    } else if (value < 1) {
+      return value.toStringAsFixed(2);
     }
 
     return value.toStringAsFixed(0);
