@@ -16,8 +16,7 @@ class ActivityBadge extends StatelessWidget {
           Assets.svg.iconoirCoinsSwap.icon(size: 16.0.s),
           SizedBox(width: 6.0.s),
           Text(
-            // TODO(Slava): add translation
-            'Activity',
+            context.i18n.profile_activity,
             textAlign: TextAlign.center,
             style: context.theme.appTextThemes.subtitle3.copyWith(
               color: context.theme.appColors.onTertiaryBackground,
