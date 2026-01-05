@@ -5,11 +5,14 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_code_block/text_editor_code_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_separator_block/text_editor_separator_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/unknown/text_editor_unknown_embed_builder.dart';
 import 'package:ion/app/components/text_editor/custom_recognizer_builder.dart';
+import 'package:ion/app/components/text_editor/hooks/use_process_mention_embeds.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -27,6 +30,7 @@ class TextEditorPreview extends HookWidget {
     this.authorPubkey,
     this.eventReference,
     this.ignoreInlineBoldItalic = false,
+    this.convertMentionsToEmbeds = true,
     super.key,
   });
 
@@ -40,25 +44,40 @@ class TextEditorPreview extends HookWidget {
   final String? authorPubkey;
   final String? eventReference;
   final bool ignoreInlineBoldItalic;
+  final bool convertMentionsToEmbeds;
 
   @override
   Widget build(BuildContext context) {
+    // Convert mention attributes to embeds for display in view mode (only for posts/articles, not replies)
+    final contentWithEmbeds = useMemoized(
+      () {
+        if (convertMentionsToEmbeds) {
+          return DeltaBridge.normalizeToEmbedFormat(content);
+        }
+
+        // For replies: keep as text (will be decorated with market cap if available)
+        return content;
+      },
+      [content, convertMentionsToEmbeds],
+    );
+
     final controller = useMemoized(
       () => QuillController(
-        document: Document.fromDelta(content),
+        document: Document.fromDelta(contentWithEmbeds),
         selection: const TextSelection.collapsed(offset: 0),
         readOnly: true,
       ),
-      [content],
+      [contentWithEmbeds],
     );
 
-    if (content.isBlank) {
+    if (contentWithEmbeds.isBlank) {
       return const SizedBox.shrink();
     }
 
     return _QuillFormattedContent(
       tagsColor: tagsColor,
       controller: controller,
+      convertMentionsToEmbeds: convertMentionsToEmbeds,
       customStyles: customStyles,
       media: media,
       maxHeight: maxHeight,
@@ -75,6 +94,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
   const _QuillFormattedContent({
     required this.controller,
     required this.enableInteractiveSelection,
+    required this.convertMentionsToEmbeds,
     this.customStyles,
     this.media,
     this.maxHeight,
@@ -87,6 +107,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
 
   final QuillController controller;
   final bool enableInteractiveSelection;
+  final bool convertMentionsToEmbeds;
   final DefaultStyles? customStyles;
   final Map<String, MediaAttachment>? media;
   final double? maxHeight;
@@ -98,6 +119,15 @@ class _QuillFormattedContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Use reactive hook to process mention embeds bidirectionally (same as edit mode).
+    // Downgrades embeds without market cap to text, upgrades text mentions when market cap appears.
+    // Only enabled when mentions are rendered as embeds (posts/articles). For replies, mentions stay as text.
+    useProcessMentionEmbeds(
+      controller,
+      ref,
+      enabled: convertMentionsToEmbeds,
+    );
+
     final effectiveStyles = useMemoized(
       () {
         if (ignoreInlineBoldItalic) {
@@ -128,6 +158,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
           ),
           TextEditorSeparatorBuilder(readOnly: true),
           TextEditorCodeBuilder(readOnly: true),
+          if (convertMentionsToEmbeds) const TextEditorMentionEmbedBuilder(showClose: false),
         ],
         unknownEmbedBuilder: TextEditorUnknownEmbedBuilder(),
         disableClipboard: true,

@@ -33,4 +33,5 @@ class MentionAttribute extends Attribute<String?> {
   const MentionAttribute.unset() : this(null);
 
   static const String attributeKey = 'mention';
+  static const String showMarketCapKey = 'showMarketCap';
 }

@@ -5,8 +5,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/hooks/use_quill_controller.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/providers/mentions/article_mentions_restored_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -115,23 +117,30 @@ ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) 
             }
           }
 
-          final delta = parseAndConvertDelta(
+          final parsedDelta = parseAndConvertDelta(
             modifiableEntity.data.richText?.content,
             modifiableEntity.data.content,
           );
 
-          textEditorController.document = Document.fromDelta(delta);
-          final descriptionText = textEditorController.document.toPlainText();
-          isTextValid.value = descriptionText.trim().isNotEmpty;
+          // Restore mentions and convert to embeds
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            final restoredDelta = await ref.read(
+              articleMentionsRestoredProvider(
+                delta: parsedDelta,
+                relatedPubkeys: modifiableEntity.data.relatedPubkeys,
+                mentionMarketCapLabel: modifiableEntity.data.mentionMarketCapLabel,
+              ).future,
+            );
 
-          if (descriptionText.length > descriptionMaxLength) {
-            descriptionOverflowCount.value = descriptionText.length - descriptionMaxLength;
-            isDescriptionLengthValid.value = false;
-          }
+            // Convert attributes to embeds for editor
+            final deltaWithEmbeds = DeltaBridge.normalizeToEmbedFormat(restoredDelta);
+            textEditorController.document = Document.fromDelta(deltaWithEmbeds);
+          });
 
           if (modifiableEntity.data.image != null) {
             selectedImageUrl.value = modifiableEntity.data.image;
-            selectedImageUrlColor.value = modifiableEntity.data.colorLabel?.values.firstOrNull;
+            selectedImageUrlColor.value =
+                modifiableEntity.data.colorLabel?.values.firstOrNull?.value;
           }
 
           media.value = modifiableEntity.data.media;

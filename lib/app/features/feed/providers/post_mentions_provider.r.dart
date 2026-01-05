@@ -33,5 +33,5 @@ Set<String> postMentionsPubkeys(
   }
 
   final richTextDecoded = Delta.fromJson(jsonDecode(richText.content) as List<dynamic>);
-  return richTextDecoded.extractPubkeys().toSet();
+  return richTextDecoded.extractMentionPubkeys().toSet();
 }

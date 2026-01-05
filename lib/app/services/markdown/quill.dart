@@ -339,15 +339,21 @@ Delta processDeltaMatches(Delta delta) {
 /// Parameters:
 /// - [delta]: The Delta to process
 /// - [usernameToPubkey]: Map of username (without @) to pubkey
+/// - [pubkeyShowMarketCap]: Map of pubkey to showMarketCap flag (optional)
 ///
 /// Returns: Delta with MentionAttribute restored for matching mentions
-Delta restoreMentions(Delta delta, Map<String, String> usernameToPubkey) {
+Delta restoreMentions(
+  Delta delta,
+  Map<String, String> usernameToPubkey, {
+  Map<String, Set<int>>? pubkeyInstanceShowMarketCap,
+}) {
   if (usernameToPubkey.isEmpty) {
     return delta;
   }
 
   final textParser = TextParser.tagsMatchers();
   final newDelta = Delta();
+  final mentionInstanceTracker = <String, int>{}; // Track mention instance index per pubkey
 
   for (final op in delta.operations) {
     if (op.data is Map) {
@@ -376,16 +382,28 @@ Delta restoreMentions(Delta delta, Map<String, String> usernameToPubkey) {
         final pubkey = usernameToPubkey[username];
 
         if (pubkey != null) {
+          // Get current instance index for this pubkey
+          final currentInstance = mentionInstanceTracker[pubkey] ?? 0;
+          mentionInstanceTracker[pubkey] =
+              currentInstance + 1; // Increment per-pubkey (matches save logic for symmetry)
+
           // Create MentionAttribute with encoded reference
           final userMetadataRef = ReplaceableEventReference(
             masterPubkey: pubkey,
             kind: UserMetadataEntity.kind,
           );
           final encodedRef = userMetadataRef.encode();
+
+          // Check if THIS specific instance should show market cap (per-instance control)
+          final instanceNumbers = pubkeyInstanceShowMarketCap?[pubkey];
+          final showMarketCap = instanceNumbers?.contains(currentInstance) ?? false;
+
           final mentionAttrs = {
             ...?op.attributes,
             MentionAttribute.attributeKey: encodedRef,
+            if (showMarketCap) MentionAttribute.showMarketCapKey: true,
           };
+
           newDelta.insert(mentionText, mentionAttrs);
         } else {
           // No matching pubkey found, insert as plain text

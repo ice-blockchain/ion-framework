@@ -11,6 +11,8 @@ DefaultStyles textEditorStyles(BuildContext context, {Color? color}) {
     paragraph: DefaultTextBlockStyle(
       context.theme.appTextThemes.body2.copyWith(
         color: textColor,
+        leadingDistribution: TextLeadingDistribution.even,
+        height: 1.2,
       ),
       HorizontalSpacing.zero,
       VerticalSpacing.zero,
@@ -105,4 +107,38 @@ TextStyle customTextStyleBuilder(
   }
 
   return const TextStyle();
+}
+
+// Calculates the exact line height in pixels for the text editor.
+// Uses TextPainter to measure the actual rendered line height,
+// accounting for font size, line height multiplier, and TextScaler.
+double calculateTextEditorLineHeight(BuildContext context) {
+  final textStyle = context.theme.appTextThemes.body2.copyWith(
+    leadingDistribution: TextLeadingDistribution.even,
+    height: 1.2, // Editor's line height multiplier
+  );
+
+  final textScaler = MediaQuery.textScalerOf(context);
+
+  final textPainter = TextPainter(
+    text: TextSpan(text: 'A', style: textStyle), // Single character to measure
+    textDirection: TextDirection.ltr,
+    textScaler: textScaler,
+  )..layout();
+
+  final lineMetrics = textPainter.computeLineMetrics();
+  final lineHeight = lineMetrics.isNotEmpty ? lineMetrics.first.height : textPainter.height;
+  textPainter.dispose();
+
+  return lineHeight;
+}
+
+// Calculates the maximum safe height for an inline widget to avoid pushing line height.
+// WidgetSpan measures the widget during layout, and even with constraints, the measured height
+// can cause line height expansion. Returns 95% of line height as an empirically safe value.
+double calculateMaxSafeWidgetHeight(BuildContext context) {
+  final lineHeight = calculateTextEditorLineHeight(context);
+  final safeHeight = lineHeight * 0.95;
+
+  return safeHeight;
 }
