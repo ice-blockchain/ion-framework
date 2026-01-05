@@ -290,45 +290,48 @@ class _DisabledCommentHint extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {}, // Prevent tap from propagating
-      child: SizedBox(
-        height: 80.0.s,
+      child: IntrinsicWidth(
         child: Stack(
-          alignment: Alignment.center,
           children: [
             Positioned.fill(
               child: SvgShadow(
-                color: context.theme.appColors.primaryText,
                 opacity: 0.1,
-                sigma: 4,
-                offset: Offset(0, 2.0.s),
-                child: SvgPicture.asset(
-                  Assets.svg.speechBubbleBackgroundBig,
-                  fit: BoxFit.fill,
-                  colorFilter: ColorFilter.mode(
-                    context.theme.appColors.onPrimaryAccent,
-                    BlendMode.srcIn,
-                  ),
+                sigma: 8,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SvgPicture.asset(
+                      Assets.svg.speechBubbleBackgroundBig,
+                      fit: BoxFit.fill,
+                      width: constraints.maxWidth.isFinite ? constraints.maxWidth : null,
+                      height: constraints.maxHeight.isFinite ? constraints.maxHeight : null,
+                    );
+                  },
                 ),
               ),
             ),
-            Row(
-              children: [
-                SizedBox(
-                  width: 28.s,
-                ),
-                Padding(
-                  padding: EdgeInsetsDirectional.only(top: 8.0.s),
-                  child: Text(
-                    context.i18n.token_comment_holders_only,
-                    style: context.theme.appTextThemes.body2.copyWith(
-                      color: context.theme.appColors.secondaryText,
+            Container(
+              margin: EdgeInsetsDirectional.symmetric(
+                vertical: 26.s,
+                horizontal: 10.s,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(width: 16.s),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsetsDirectional.only(top: 8.0.s),
+                      child: Text(
+                        context.i18n.token_comment_holders_only,
+                        style: context.theme.appTextThemes.body2.copyWith(
+                          color: context.theme.appColors.secondaryText,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: 16.s,
-                ),
-              ],
+                  SizedBox(width: 16.s),
+                ],
+              ),
             ),
           ],
         ),
@@ -341,24 +344,29 @@ class _HintLayoutDelegate extends SingleChildLayoutDelegate {
   _HintLayoutDelegate(this.targetRect);
 
   final Rect targetRect;
-  static const double xOffset = 4;
+  static const double xOffset = -65;
   static const double yOffset = -20;
 
   @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) => constraints.loosen();
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    // Constrain the width so the hint doesn't go off the right edge
+    // while keeping the left edge fixed at targetRect.left
+    final screenWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : double.infinity;
+    final availableWidth = screenWidth;
+
+    // Return constraints with maxWidth to prevent overflow
+    return BoxConstraints(
+      maxWidth:
+          availableWidth > 0 && availableWidth.isFinite ? availableWidth : constraints.maxWidth,
+      maxHeight: constraints.maxHeight,
+    );
+  }
 
   @override
   Offset getPositionForChild(Size size, Size childSize) {
-    // Position hint below the input field, shifted left by 10.s
-    final targetCenter = targetRect.center;
-
-    var dx = targetCenter.dx - childSize.width / 2;
-    // Keep hint within screen bounds
-    if (dx < xOffset) {
-      dx = xOffset;
-    } else if (dx + childSize.width > size.width - xOffset) {
-      dx = size.width - childSize.width - xOffset;
-    }
+    // Position hint below the input field, aligned to the left edge of the input
+    // Keep the left edge fixed at targetRect.left (only adjust if it would go off the left edge)
+    final dx = targetRect.left + xOffset;
 
     // Position directly under the text field
     final dy = targetRect.bottom + yOffset;
