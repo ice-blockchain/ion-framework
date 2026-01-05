@@ -46,7 +46,7 @@ class UserInfo extends HookConsumerWidget {
       userPreviewDataProvider(pubkey, network: network).select(userPreviewNameSelector),
     );
 
-    void openProfile() => ProfileNavigationUtils.navigateToProfile(context, pubkey);
+    void openProfile() => ProfileNavigationUtils.navigateToProfile(context, pubkey: pubkey);
 
     final tStyle = accentTheme
         ? (textStyle ??

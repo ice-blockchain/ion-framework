@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/router/utils/profile_navigation_utils.dart';
 import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -56,6 +57,7 @@ class TopHolderTile extends StatelessWidget {
       verified: holder.position.holder?.verified ?? false,
       isCreator: isCreator,
       avatarUrl: holder.position.holder?.avatar,
+      holderAddress: holderAddress,
     );
   }
 }
@@ -70,6 +72,7 @@ class HolderTile extends StatelessWidget {
     this.isCreator = false,
     this.username,
     this.avatarUrl,
+    this.holderAddress,
     super.key,
   });
 
@@ -81,6 +84,7 @@ class HolderTile extends StatelessWidget {
   final bool verified;
   final String? username;
   final String? avatarUrl;
+  final String? holderAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +92,12 @@ class HolderTile extends StatelessWidget {
     final texts = context.theme.appTextThemes;
 
     return GestureDetector(
-      onTap: () {},
+      onTap: holderAddress != null
+          ? () => ProfileNavigationUtils.navigateToProfile(
+                context,
+                externalAddress: holderAddress,
+              )
+          : null,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
