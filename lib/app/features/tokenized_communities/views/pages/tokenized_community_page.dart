@@ -77,7 +77,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
-
     final tokenDefinition = ref
         .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
         .valueOrNull;
@@ -123,6 +122,19 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       backgroundColor: context.theme.appColors.secondaryBackground,
       applySafeAreaBottomPadding: false,
       imageUrl: tokenInfo?.imageUrl,
+      pinnedHeader: SizedBox(
+        height: 40.0.s,
+        child: ScrollLinksTabsHeader(
+          tabs: TokenizedCommunityTabType.values,
+          activeIndex: activeTab.value.index,
+          onTabTapped: (int index) {
+            activeTab.value = TokenizedCommunityTabType.values[index];
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              scrollToSection(index);
+            });
+          },
+        ),
+      ),
       onRefresh: () async {
         ref
           ..invalidate(tokenMarketInfoProvider(externalAddress))
@@ -227,17 +239,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                   ),
                 );
               }
-            },
-          ),
-          SizedBox(height: 16.0.s),
-          ScrollLinksTabsHeader(
-            tabs: TokenizedCommunityTabType.values,
-            activeIndex: activeTab.value.index,
-            onTabTapped: (int index) {
-              activeTab.value = TokenizedCommunityTabType.values[index];
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                scrollToSection(index);
-              });
             },
           ),
         ],
