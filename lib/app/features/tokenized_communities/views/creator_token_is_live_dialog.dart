@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -12,6 +13,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
@@ -19,10 +21,12 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_back
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokenIsLiveDialogEvent extends UiEvent {
   const CreatorTokenIsLiveDialogEvent();
@@ -64,7 +68,6 @@ class _ContentState extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = useState(false);
-
     final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider) ?? '';
     final userMetadata = ref.watch(currentUserMetadataProvider).valueOrNull;
     final avatarUrl = userMetadata?.data.avatarUrl ?? '';
@@ -140,8 +143,25 @@ class _ContentState extends HookConsumerWidget {
                 trailingIcon:
                     isLoading.value ? const IONLoadingIndicator() : const SizedBox.shrink(),
                 onPressed: () async {
+                  if (token == null) return;
                   isLoading.value = true;
-                  try {} finally {
+                  try {
+                    final tokenDefinitionEntity = await ref.watch(
+                      tokenDefinitionForExternalAddressProvider(
+                        externalAddress: token.externalAddress,
+                      ).future,
+                    );
+
+                    final tokenDefinitionEventReference = tokenDefinitionEntity?.toEventReference();
+
+                    if (tokenDefinitionEventReference != null && context.mounted) {
+                      context.pop();
+
+                      await ShareViaMessageModalRoute(
+                        eventReference: tokenDefinitionEventReference.encode(),
+                      ).push<void>(context);
+                    }
+                  } finally {
                     isLoading.value = false;
                   }
                 },
