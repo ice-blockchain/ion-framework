@@ -104,12 +104,12 @@ class _ChartContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
-    return Container(
+    return ColoredBox(
       color: colors.secondaryBackground,
-      padding: EdgeInsets.symmetric(vertical: 16.0.s),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 16.0.s),
           const _ChartHeader(),
           SizedBox(height: 4.0.s),
           _ValueAndChange(
@@ -127,7 +127,7 @@ class _ChartContent extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: 4.0.s),
+          SizedBox(height: 12.0.s),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0.s),
             child: _RangeSelector(
@@ -135,6 +135,7 @@ class _ChartContent extends StatelessWidget {
               onChanged: onRangeChanged,
             ),
           ),
+          SizedBox(height: 12.0.s),
         ],
       ),
     );

@@ -314,7 +314,7 @@ class _TokenChart extends HookConsumerWidget {
     return Chart(
       externalAddress: externalAddress,
       price: price,
-      label: tokenInfo.title,
+      label: tokenInfo.marketData.ticker?.toUpperCase() ?? '',
     );
   }
 }
