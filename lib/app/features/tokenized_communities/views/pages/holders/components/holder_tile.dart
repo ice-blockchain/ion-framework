@@ -40,7 +40,7 @@ class TopHolderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isXuser = holder.position.holder?.addresses?.twitter != null;
+    final isXuser = holder.position.holder?.isXUser ?? false;
     final holderAddress = holder.position.holder?.addresses?.ionConnect;
     final creatorAddress = holder.creator.addresses?.ionConnect;
     final isCreator = creatorAddress != null && holderAddress == creatorAddress;
@@ -97,17 +97,14 @@ class HolderTile extends StatelessWidget {
     final texts = context.theme.appTextThemes;
 
     return GestureDetector(
-      onTap: holderAddress != null
-          ? () => ProfileNavigationUtils.navigateToProfile(
-                context,
-                externalAddress: holderAddress,
-              )
-          : null,
-      onTap: () {
-        if (isXUser) {
-          openUrlInAppBrowser('https://x.com/$username');
-        }
-      },
+      onTap: isXUser
+          ? () => openUrlInAppBrowser('https://x.com/$username')
+          : holderAddress != null
+              ? () => ProfileNavigationUtils.navigateToProfile(
+                    context,
+                    externalAddress: holderAddress,
+                  )
+              : null,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -238,6 +235,10 @@ class _NameAndAmount extends StatelessWidget {
             if (verified) ...[
               SizedBox(width: 4.0.s),
               Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
+            ],
+            if (isCreator) ...[
+              SizedBox(width: 4.0.s),
+              Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
             ],
             if (isXUser) ...[
               SizedBox(width: 4.0.s),

@@ -38,7 +38,7 @@ class LatestTradeRow extends StatelessWidget {
     final creatorAddress = trade.creator.addresses?.ionConnect;
     final isCreator =
         creatorAddress != null && holderAddress != null && holderAddress == creatorAddress;
-    final isXUser = trade.position.holder.addresses?.twitter != null;
+    final isXUser = trade.position.holder.isXUser;
 
     final badge = Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0.s),
