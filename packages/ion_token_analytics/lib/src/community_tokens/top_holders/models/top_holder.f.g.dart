@@ -24,7 +24,7 @@ _$TopHolderPatchImpl _$$TopHolderPatchImplFromJson(Map<String, dynamic> json) =>
     _$TopHolderPatchImpl(
       creator: json['creator'] == null
           ? null
-          : CreatorPatch.fromJson(json['creator'] as Map<String, dynamic>),
+          : Creator.fromJson(json['creator'] as Map<String, dynamic>),
       position: json['position'] == null
           ? null
           : TopHolderPositionPatch.fromJson(

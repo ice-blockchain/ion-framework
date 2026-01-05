@@ -388,7 +388,7 @@ mixin _$CommunityTokenPatch {
   String? get description => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
   AddressesPatch? get addresses => throw _privateConstructorUsedError;
-  CreatorPatch? get creator => throw _privateConstructorUsedError;
+  Creator? get creator => throw _privateConstructorUsedError;
   MarketDataPatch? get marketData => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
 
@@ -424,7 +424,7 @@ class _$CommunityTokenPatchImpl implements _CommunityTokenPatch {
   @override
   final AddressesPatch? addresses;
   @override
-  final CreatorPatch? creator;
+  final Creator? creator;
   @override
   final MarketDataPatch? marketData;
   @override
@@ -482,7 +482,7 @@ abstract class _CommunityTokenPatch implements CommunityTokenPatch {
     final String? description,
     final String? imageUrl,
     final AddressesPatch? addresses,
-    final CreatorPatch? creator,
+    final Creator? creator,
     final MarketDataPatch? marketData,
     final String? createdAt,
   }) = _$CommunityTokenPatchImpl;
@@ -501,7 +501,7 @@ abstract class _CommunityTokenPatch implements CommunityTokenPatch {
   @override
   AddressesPatch? get addresses;
   @override
-  CreatorPatch? get creator;
+  Creator? get creator;
   @override
   MarketDataPatch? get marketData;
   @override

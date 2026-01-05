@@ -35,7 +35,7 @@ class TopHolderPosition with _$TopHolderPosition implements TopHolderPositionBas
 @Freezed(copyWith: false)
 class TopHolderPositionPatch with _$TopHolderPositionPatch implements TopHolderPositionBase {
   const factory TopHolderPositionPatch({
-    CreatorPatch? holder,
+    Creator? holder,
     int? rank,
     String? amount,
     double? amountUSD,

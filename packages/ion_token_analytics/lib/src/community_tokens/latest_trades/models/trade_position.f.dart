@@ -30,7 +30,7 @@ abstract class TradePositionBase {
 @freezed
 class TradePosition with _$TradePosition implements TradePositionBase {
   const factory TradePosition({
-    required CreatorPatch holder,
+    required Creator holder,
     required Addresses addresses,
     required String createdAt,
     required TradeType type,
@@ -46,7 +46,7 @@ class TradePosition with _$TradePosition implements TradePositionBase {
 @Freezed(copyWith: false)
 class TradePositionPatch with _$TradePositionPatch implements TradePositionBase {
   const factory TradePositionPatch({
-    CreatorPatch? holder,
+    Creator? holder,
     AddressesPatch? addresses,
     String? createdAt,
     TradeType? type,

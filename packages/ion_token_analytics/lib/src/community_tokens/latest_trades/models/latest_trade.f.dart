@@ -23,7 +23,7 @@ class LatestTrade with _$LatestTrade implements LatestTradeBase {
 
 @Freezed(copyWith: false)
 class LatestTradePatch with _$LatestTradePatch implements LatestTradeBase {
-  const factory LatestTradePatch({CreatorPatch? creator, TradePositionPatch? position}) =
+  const factory LatestTradePatch({Creator? creator, TradePositionPatch? position}) =
       _LatestTradePatch;
 
   factory LatestTradePatch.fromJson(Map<String, dynamic> json) => _$LatestTradePatchFromJson(json);

@@ -33,7 +33,7 @@ _$TopHolderPositionPatchImpl _$$TopHolderPositionPatchImplFromJson(
 ) => _$TopHolderPositionPatchImpl(
   holder: json['holder'] == null
       ? null
-      : CreatorPatch.fromJson(json['holder'] as Map<String, dynamic>),
+      : Creator.fromJson(json['holder'] as Map<String, dynamic>),
   rank: (json['rank'] as num?)?.toInt(),
   amount: json['amount'] as String?,
   amountUSD: (json['amountUSD'] as num?)?.toDouble(),

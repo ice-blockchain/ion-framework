@@ -26,16 +26,3 @@ abstract class CreatorBase {
   String? get avatar;
   AddressesBase? get addresses;
 }
-
-@Freezed(copyWith: false)
-class CreatorPatch with _$CreatorPatch implements CreatorBase {
-  const factory CreatorPatch({
-    String? name,
-    String? display,
-    bool? verified,
-    String? avatar,
-    AddressesPatch? addresses,
-  }) = _CreatorPatch;
-
-  factory CreatorPatch.fromJson(Map<String, dynamic> json) => _$CreatorPatchFromJson(json);
-}

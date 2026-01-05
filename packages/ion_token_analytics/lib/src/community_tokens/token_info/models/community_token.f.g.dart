@@ -52,7 +52,7 @@ _$CommunityTokenPatchImpl _$$CommunityTokenPatchImplFromJson(
       : AddressesPatch.fromJson(json['addresses'] as Map<String, dynamic>),
   creator: json['creator'] == null
       ? null
-      : CreatorPatch.fromJson(json['creator'] as Map<String, dynamic>),
+      : Creator.fromJson(json['creator'] as Map<String, dynamic>),
   marketData: json['marketData'] == null
       ? null
       : MarketDataPatch.fromJson(json['marketData'] as Map<String, dynamic>),

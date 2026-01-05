@@ -218,7 +218,7 @@ LatestTradePatch _$LatestTradePatchFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$LatestTradePatch {
-  CreatorPatch? get creator => throw _privateConstructorUsedError;
+  Creator? get creator => throw _privateConstructorUsedError;
   TradePositionPatch? get position => throw _privateConstructorUsedError;
 
   /// Serializes this LatestTradePatch to a JSON map.
@@ -234,7 +234,7 @@ class _$LatestTradePatchImpl implements _LatestTradePatch {
       _$$LatestTradePatchImplFromJson(json);
 
   @override
-  final CreatorPatch? creator;
+  final Creator? creator;
   @override
   final TradePositionPatch? position;
 
@@ -265,7 +265,7 @@ class _$LatestTradePatchImpl implements _LatestTradePatch {
 
 abstract class _LatestTradePatch implements LatestTradePatch {
   const factory _LatestTradePatch({
-    final CreatorPatch? creator,
+    final Creator? creator,
     final TradePositionPatch? position,
   }) = _$LatestTradePatchImpl;
 
@@ -273,7 +273,7 @@ abstract class _LatestTradePatch implements LatestTradePatch {
       _$LatestTradePatchImpl.fromJson;
 
   @override
-  CreatorPatch? get creator;
+  Creator? get creator;
   @override
   TradePositionPatch? get position;
 }

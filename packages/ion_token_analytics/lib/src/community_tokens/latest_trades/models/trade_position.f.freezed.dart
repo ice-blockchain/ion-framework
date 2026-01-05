@@ -21,7 +21,7 @@ TradePosition _$TradePositionFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TradePosition {
-  CreatorPatch get holder => throw _privateConstructorUsedError;
+  Creator get holder => throw _privateConstructorUsedError;
   Addresses get addresses => throw _privateConstructorUsedError;
   String get createdAt => throw _privateConstructorUsedError;
   TradeType get type => throw _privateConstructorUsedError;
@@ -48,7 +48,7 @@ abstract class $TradePositionCopyWith<$Res> {
   ) = _$TradePositionCopyWithImpl<$Res, TradePosition>;
   @useResult
   $Res call({
-    CreatorPatch holder,
+    Creator holder,
     Addresses addresses,
     String createdAt,
     TradeType type,
@@ -58,6 +58,7 @@ abstract class $TradePositionCopyWith<$Res> {
     double balanceUSD,
   });
 
+  $CreatorCopyWith<$Res> get holder;
   $AddressesCopyWith<$Res> get addresses;
 }
 
@@ -90,7 +91,7 @@ class _$TradePositionCopyWithImpl<$Res, $Val extends TradePosition>
             holder: null == holder
                 ? _value.holder
                 : holder // ignore: cast_nullable_to_non_nullable
-                      as CreatorPatch,
+                      as Creator,
             addresses: null == addresses
                 ? _value.addresses
                 : addresses // ignore: cast_nullable_to_non_nullable
@@ -128,6 +129,16 @@ class _$TradePositionCopyWithImpl<$Res, $Val extends TradePosition>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
+  $CreatorCopyWith<$Res> get holder {
+    return $CreatorCopyWith<$Res>(_value.holder, (value) {
+      return _then(_value.copyWith(holder: value) as $Val);
+    });
+  }
+
+  /// Create a copy of TradePosition
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
   $AddressesCopyWith<$Res> get addresses {
     return $AddressesCopyWith<$Res>(_value.addresses, (value) {
       return _then(_value.copyWith(addresses: value) as $Val);
@@ -145,7 +156,7 @@ abstract class _$$TradePositionImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    CreatorPatch holder,
+    Creator holder,
     Addresses addresses,
     String createdAt,
     TradeType type,
@@ -155,6 +166,8 @@ abstract class _$$TradePositionImplCopyWith<$Res>
     double balanceUSD,
   });
 
+  @override
+  $CreatorCopyWith<$Res> get holder;
   @override
   $AddressesCopyWith<$Res> get addresses;
 }
@@ -187,7 +200,7 @@ class __$$TradePositionImplCopyWithImpl<$Res>
         holder: null == holder
             ? _value.holder
             : holder // ignore: cast_nullable_to_non_nullable
-                  as CreatorPatch,
+                  as Creator,
         addresses: null == addresses
             ? _value.addresses
             : addresses // ignore: cast_nullable_to_non_nullable
@@ -239,7 +252,7 @@ class _$TradePositionImpl implements _TradePosition {
       _$$TradePositionImplFromJson(json);
 
   @override
-  final CreatorPatch holder;
+  final Creator holder;
   @override
   final Addresses addresses;
   @override
@@ -309,7 +322,7 @@ class _$TradePositionImpl implements _TradePosition {
 
 abstract class _TradePosition implements TradePosition {
   const factory _TradePosition({
-    required final CreatorPatch holder,
+    required final Creator holder,
     required final Addresses addresses,
     required final String createdAt,
     required final TradeType type,
@@ -323,7 +336,7 @@ abstract class _TradePosition implements TradePosition {
       _$TradePositionImpl.fromJson;
 
   @override
-  CreatorPatch get holder;
+  Creator get holder;
   @override
   Addresses get addresses;
   @override
@@ -353,7 +366,7 @@ TradePositionPatch _$TradePositionPatchFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TradePositionPatch {
-  CreatorPatch? get holder => throw _privateConstructorUsedError;
+  Creator? get holder => throw _privateConstructorUsedError;
   AddressesPatch? get addresses => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
   TradeType? get type => throw _privateConstructorUsedError;
@@ -384,7 +397,7 @@ class _$TradePositionPatchImpl implements _TradePositionPatch {
       _$$TradePositionPatchImplFromJson(json);
 
   @override
-  final CreatorPatch? holder;
+  final Creator? holder;
   @override
   final AddressesPatch? addresses;
   @override
@@ -446,7 +459,7 @@ class _$TradePositionPatchImpl implements _TradePositionPatch {
 
 abstract class _TradePositionPatch implements TradePositionPatch {
   const factory _TradePositionPatch({
-    final CreatorPatch? holder,
+    final Creator? holder,
     final AddressesPatch? addresses,
     final String? createdAt,
     final TradeType? type,
@@ -460,7 +473,7 @@ abstract class _TradePositionPatch implements TradePositionPatch {
       _$TradePositionPatchImpl.fromJson;
 
   @override
-  CreatorPatch? get holder;
+  Creator? get holder;
   @override
   AddressesPatch? get addresses;
   @override

@@ -23,7 +23,7 @@ class TopHolder with _$TopHolder implements TopHolderBase {
 
 @Freezed(copyWith: false)
 class TopHolderPatch with _$TopHolderPatch implements TopHolderBase {
-  const factory TopHolderPatch({CreatorPatch? creator, TopHolderPositionPatch? position}) =
+  const factory TopHolderPatch({Creator? creator, TopHolderPositionPatch? position}) =
       _TopHolderPatch;
 
   factory TopHolderPatch.fromJson(Map<String, dynamic> json) => _$TopHolderPatchFromJson(json);
