@@ -26,8 +26,9 @@ class TradingStatsFormatted {
     final hasNoSells = stats.numberOfSells == 0 && stats.sellsTotalAmountUSD == 0;
 
     final netBuyFormatted = MarketDataFormatter.formatCompactOrSubscript(stats.netBuy.abs());
-    final netBuyText = getNumericSign(stats.netBuy) + netBuyFormatted;
     final hasZeroNetBuy = stats.netBuy == 0.0;
+    final netBuyText =
+        hasZeroNetBuy ? netBuyFormatted : getNumericSign(stats.netBuy) + netBuyFormatted;
 
     return TradingStatsFormatted(
       volumeText: volumeText,
