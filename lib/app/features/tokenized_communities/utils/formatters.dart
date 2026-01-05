@@ -56,10 +56,22 @@ String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
   if (absPrice == 0) return '${symbol}0.00';
 
   // For very small values, use subscript notation
-  final expStr = absPrice.toStringAsExponential(12);
+  final subscriptResult = formatSubscriptNotation(price, symbol);
+  if (subscriptResult.isEmpty) {
+    // Fallback if subscript formatting fails
+    return NumberFormat.currency(symbol: symbol, decimalDigits: 4).format(price);
+  }
+  return subscriptResult;
+}
+
+// Formats a value using subscript notation for very small numbers.
+// Returns a string like "$0.0₂25" for very small values.
+String formatSubscriptNotation(double value, String symbol) {
+  final absValue = value.abs();
+  final expStr = absValue.toStringAsExponential(12);
   final match = RegExp(r'^(\d(?:\.\d+)?)e([+-]\d+)$').firstMatch(expStr);
   if (match == null) {
-    return NumberFormat.currency(symbol: symbol, decimalDigits: 4).format(price);
+    return '';
   }
 
   final mantissaStr = match.group(1)!;
@@ -73,11 +85,11 @@ String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
   trailing = trailing.replaceAll(RegExp(r'0+$'), '');
   if (trailing.isEmpty) trailing = '0';
 
-  final sign = price < 0 ? '-' : '';
-  return '$sign$symbol' '0.0' '${_toSubscript(zeroCount)}' '$trailing';
+  final sign = value < 0 ? '-' : '';
+  return '$sign$symbol' '0.0' '${toSubscript(zeroCount)}' '$trailing';
 }
 
-String _toSubscript(int number) {
+String toSubscript(int number) {
   final digits = number.toString();
   const subscriptMap = {
     '0': '₀',
