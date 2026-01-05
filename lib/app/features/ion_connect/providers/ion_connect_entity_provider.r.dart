@@ -92,7 +92,7 @@ IonConnectEntity? ionConnectInMemoryEntity(
     );
 
 // This provider emits null first before emitting the actual entity from the database
-// so be careful when using it with .watch, use await + .future to wait for the 
+// so be careful when using it with .watch, use await + .future to wait for the
 // actual entity instead
 @riverpod
 Stream<IonConnectEntity?> ionConnectDatabaseEntity(
