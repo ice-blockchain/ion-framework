@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: ice License 1.0
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'selected_crypto_wallet_data.f.freezed.dart';
+
+@freezed
+class SelectedCryptoWalletData with _$SelectedCryptoWalletData {
+  const factory SelectedCryptoWalletData({
+    required String selectedWallet,
+    required List<String> wallets,
+  }) = _SelectedCryptoWalletData;
+}
