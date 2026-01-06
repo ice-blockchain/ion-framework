@@ -53,6 +53,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_operation_restrictions.dart';
 import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/verified_user_events_metadata_provider.r.dart';
@@ -361,13 +362,17 @@ class CreatePostNotifier extends _$CreatePostNotifier {
 
     // We don't create a token definition for replies and stories
     if (parentEntity == null && postData.expiration == null) {
-      final tokenDefinition = _buildPostTokenDefinition(postData);
-      final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
-      unawaited(
-        (await ref.read(communityTokenDefinitionRepositoryProvider.future))
-            .cacheTokenDefinitionReference(tokenDefinitionEvent),
-      );
-      ownEventsToPublish.add(tokenDefinitionEvent);
+      final currentPubkey = ref.read(currentPubkeySelectorProvider);
+      // Prevent token definition creation for restricted accounts
+      if (currentPubkey != null && !TokenOperationRestrictions.isRestrictedAccount(currentPubkey)) {
+        final tokenDefinition = _buildPostTokenDefinition(postData);
+        final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
+        unawaited(
+          (await ref.read(communityTokenDefinitionRepositoryProvider.future))
+              .cacheTokenDefinitionReference(tokenDefinitionEvent),
+        );
+        ownEventsToPublish.add(tokenDefinitionEvent);
+      }
     }
 
     pubkeysToPublish.remove(postEvent.masterPubkey);

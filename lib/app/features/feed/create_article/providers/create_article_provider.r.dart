@@ -25,6 +25,7 @@ import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
 import 'package:ion/app/features/ion_connect/model/entity_label.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/file_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -37,6 +38,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_operation_restrictions.dart';
 import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -303,12 +305,19 @@ class CreateArticle extends _$CreateArticle {
 
     final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
 
-    final tokenDefinition = _buildArticleTokenDefinition(articleData);
-    final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+    final eventsToSend = <EventMessage>[...fileEvents, articleEvent];
+    EventMessage? tokenDefinitionEvent;
 
-    await Future.wait([
-      ionNotifier.sendEvents([...fileEvents, articleEvent, tokenDefinitionEvent]),
-      communityTokenDefinitionRepository.cacheTokenDefinitionReference(tokenDefinitionEvent),
+    // Prevent token definition creation for restricted accounts
+    if (currentPubkey != null && !TokenOperationRestrictions.isRestrictedAccount(currentPubkey)) {
+      final tokenDefinition = _buildArticleTokenDefinition(articleData);
+      tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
+      eventsToSend.add(tokenDefinitionEvent);
+    }
+
+    final futures = [
+      ionNotifier.sendEvents(eventsToSend),
       for (final pubkey in pubkeysToPublish)
         ionNotifier.sendEvent(
           articleEvent,
@@ -316,7 +325,15 @@ class CreateArticle extends _$CreateArticle {
           metadataBuilders: [userEventsMetadataBuilder],
           cache: false,
         ),
-    ]);
+    ];
+
+    if (tokenDefinitionEvent != null) {
+      futures.add(
+        communityTokenDefinitionRepository.cacheTokenDefinitionReference(tokenDefinitionEvent),
+      );
+    }
+
+    await Future.wait(futures);
 
     return ArticleEntity.fromEventMessage(articleEvent);
   }
