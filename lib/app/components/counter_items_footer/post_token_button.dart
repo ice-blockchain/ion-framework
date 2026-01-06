@@ -49,9 +49,14 @@ class PostTokenButton extends ConsumerWidget {
 }
 
 class _TokenAvailability extends StatelessWidget {
-  const _TokenAvailability({required this.available, required this.child});
+  const _TokenAvailability({
+    required this.available,
+    required this.child,
+    this.isRestrictedUser = false,
+  });
 
   final bool available;
+  final bool isRestrictedUser;
 
   final Widget child;
 
@@ -59,14 +64,16 @@ class _TokenAvailability extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: available ? HitTestBehavior.deferToChild : HitTestBehavior.translucent,
-      onTap: available
-          ? null
-          : () {
-              showSimpleBottomSheet<void>(
-                context: context,
-                child: const TokenCreationNotAvailableModal(),
-              );
-            },
+      onTap: isRestrictedUser
+          ? () {}
+          : available
+              ? null
+              : () {
+                  showSimpleBottomSheet<void>(
+                    context: context,
+                    child: const TokenCreationNotAvailableModal(),
+                  );
+                },
       child: IgnorePointer(
         ignoring: !available,
         child: Opacity(
@@ -144,9 +151,6 @@ class _ContentEntityButton extends ConsumerWidget {
     final eventReference = entity.toEventReference();
     // Check if token operations are restricted for this account
     final isRestricted = TokenOperationRestrictions.isRestrictedAccountEvent(eventReference);
-    if (isRestricted) {
-      return const SizedBox.shrink();
-    }
 
     final ownerHasBscWallet = ref
         .watch(
@@ -168,7 +172,8 @@ class _ContentEntityButton extends ConsumerWidget {
     final externalAddressType = entity.externalAddressType;
 
     return _TokenAvailability(
-      available: isTokenCreationAvailable,
+      available: isTokenCreationAvailable && !isRestricted,
+      isRestrictedUser: isRestricted,
       child: _TokenButton(
         padding: padding,
         child:
