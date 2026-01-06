@@ -161,6 +161,5 @@ class _TooltipLayoutDelegate extends SingleChildLayoutDelegate {
 
   @override
   bool shouldRelayout(_TooltipLayoutDelegate oldDelegate) =>
-      targetRect != oldDelegate.targetRect ||
-      position != oldDelegate.position;
+      targetRect != oldDelegate.targetRect || position != oldDelegate.position;
 }
