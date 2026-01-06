@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -23,6 +24,7 @@ import 'package:ion/app/features/tokenized_communities/utils/external_address_ex
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
+import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/continue_button.dart';
@@ -181,11 +183,19 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   }
 
   bool _isBuyContinueButtonEnabled(TradeCommunityTokenState state) {
+    final selectedPaymentTokenAmount = state.paymentCoinsGroup?.coins
+            .firstWhereOrNull(
+              (CoinInWalletData c) => c.coin.network.id == state.selectedPaymentToken?.network.id,
+            )
+            ?.amount ??
+        0;
+
     return state.amount > 0 &&
         state.targetWallet != null &&
         !state.isQuoting &&
         state.quotePricing != null &&
-        state.selectedPaymentToken != null;
+        state.selectedPaymentToken != null &&
+        selectedPaymentTokenAmount >= state.amount;
   }
 
   bool _isSellContinueButtonEnabled(TradeCommunityTokenState state) {
