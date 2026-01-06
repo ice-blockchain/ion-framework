@@ -213,11 +213,20 @@ class _CreatorStatsWidget extends StatelessWidget {
 
     final stats = [
       (
-        icon: Assets.svg.iconMemeMarketcap,
-        value: MarketDataFormatter.formatCompactNumber(marketCap)
+        icon: Assets.svg.iconMemeMarketcap
+            .icon(size: 12.0.s, color: context.theme.appColors.onPrimaryAccent),
+        value: MarketDataFormatter.formatCompactNumber(marketCap),
       ),
-      (icon: Assets.svg.iconMemeMarkers, value: MarketDataFormatter.formatVolume(volume)),
-      (icon: Assets.svg.iconSearchGroups, value: formatCount(holders)),
+      (
+        icon: Assets.svg.iconMemeMarkers
+            .icon(size: 12.0.s, color: context.theme.appColors.onPrimaryAccent),
+        value: MarketDataFormatter.formatVolume(volume)
+      ),
+      (
+        icon: Assets.svg.iconSearchGroups
+            .icon(size: 12.0.s, color: context.theme.appColors.onPrimaryAccent),
+        value: formatCount(holders)
+      ),
     ];
 
     return Container(
