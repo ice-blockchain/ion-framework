@@ -24,18 +24,21 @@ import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_b
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_image_button.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_italic_button.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_poll_button.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tooltip/hooks/use_show_tooltip_overlay.dart';
+import 'package:ion/app/features/tooltip/views/tooltip.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
 class TokenCommentInputField extends HookConsumerWidget {
   const TokenCommentInputField({
-    required this.tokenDefinitionEventReference,
+    required this.tokenDefinition,
     this.onFocusChanged,
     super.key,
   });
 
-  final EventReference tokenDefinitionEventReference;
+  final CommunityTokenDefinitionEntity tokenDefinition;
   final ValueChanged<bool>? onFocusChanged;
 
   @override
@@ -44,12 +47,24 @@ class TokenCommentInputField extends HookConsumerWidget {
     final textEditorKey = useMemoized(TextEditorKeys.replyInput);
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
+    final externalAddress = tokenDefinition.data.externalAddress;
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final isHolder = tokenInfo?.marketData.position != null;
+
     final inputContainerKey = useRef(GlobalKey());
     final focusNode = useFocusNode();
     final hasFocus = useNodeFocused(focusNode);
     final attachedMediaNotifier = useState(<MediaFile>[]);
     final attachedMediaLinksNotifier = useState<Map<String, MediaAttachment>>({});
     final scrollController = useScrollController();
+
+    final showTooltipOverlay = useShowTooltipOverlay(
+      targetKey: inputContainerKey.value,
+      text: context.i18n.token_comment_holders_only,
+      pointerPosition: TooltipPointerPosition.topLeft,
+      position: TooltipPosition.bottom,
+      horizontalPadding: 16,
+    );
 
     useEffect(
       () {
@@ -58,6 +73,16 @@ class TokenCommentInputField extends HookConsumerWidget {
       },
       [hasFocus.value],
     );
+
+    void handleInputTap() {
+      if (!isHolder) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showTooltipOverlay();
+        });
+      } else {
+        focusNode.requestFocus();
+      }
+    }
 
     return ScreenSideOffset.small(
       child: TextFieldTapRegion(
@@ -75,55 +100,64 @@ class TokenCommentInputField extends HookConsumerWidget {
               children: [
                 if (!hasFocus.value && currentPubkey != null)
                   Padding(
+                    key: inputContainerKey.value,
                     padding: EdgeInsetsDirectional.only(end: 6.0.s),
-                    child: IonConnectAvatar(
-                      masterPubkey: currentPubkey,
-                      size: 36.0.s,
-                      borderRadius: BorderRadius.all(Radius.circular(12.0.s)),
+                    child: Opacity(
+                      opacity: isHolder ? 1.0 : 0.5,
+                      child: IonConnectAvatar(
+                        masterPubkey: currentPubkey,
+                        size: 36.0.s,
+                        borderRadius: BorderRadius.all(Radius.circular(12.0.s)),
+                      ),
                     ),
                   ),
                 Expanded(
                   child: GestureDetector(
-                    onTap: focusNode.requestFocus,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: context.theme.appColors.onSecondaryBackground,
-                        borderRadius: BorderRadius.circular(16.0.s),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (attachedMediaNotifier.value.isNotEmpty) ...[
-                            SizedBox(height: 6.0.s),
-                            Row(
-                              children: [
-                                SizedBox(width: 12.0.s),
-                                Expanded(
-                                  child: AttachedMediaPreview(
-                                    attachedMediaNotifier: attachedMediaNotifier,
-                                    attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                    onTap: handleInputTap,
+                    child: Opacity(
+                      opacity: isHolder ? 1.0 : 0.5,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: context.theme.appColors.onSecondaryBackground,
+                          borderRadius: BorderRadius.circular(16.0.s),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (attachedMediaNotifier.value.isNotEmpty) ...[
+                              SizedBox(height: 6.0.s),
+                              Row(
+                                children: [
+                                  SizedBox(width: 12.0.s),
+                                  Expanded(
+                                    child: AttachedMediaPreview(
+                                      attachedMediaNotifier: attachedMediaNotifier,
+                                      attachedMediaLinksNotifier: attachedMediaLinksNotifier,
+                                    ),
                                   ),
+                                ],
+                              ),
+                            ],
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 9.0.s),
+                              constraints: BoxConstraints(
+                                maxHeight: 68.0.s,
+                                minHeight: 36.0.s,
+                              ),
+                              child: AbsorbPointer(
+                                absorbing: !isHolder,
+                                child: TextEditor(
+                                  textEditorController,
+                                  focusNode: focusNode,
+                                  autoFocus: false,
+                                  placeholder: context.i18n.feed_write_comment,
+                                  key: textEditorKey,
+                                  scrollable: true,
                                 ),
-                              ],
+                              ),
                             ),
                           ],
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 9.0.s),
-                            key: inputContainerKey.value,
-                            constraints: BoxConstraints(
-                              maxHeight: 68.0.s,
-                              minHeight: 36.0.s,
-                            ),
-                            child: TextEditor(
-                              textEditorController,
-                              focusNode: focusNode,
-                              autoFocus: false,
-                              placeholder: context.i18n.feed_write_comment,
-                              key: textEditorKey,
-                              scrollable: true,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -131,7 +165,7 @@ class TokenCommentInputField extends HookConsumerWidget {
               ],
             ),
             SizedBox(height: 12.0.s),
-            if (hasFocus.value)
+            if (hasFocus.value && isHolder)
               ActionsToolbar(
                 actions: [
                   ToolbarMediaButton(
@@ -151,7 +185,7 @@ class TokenCommentInputField extends HookConsumerWidget {
                     SizedBox(width: 8.0.s),
                     PostSubmitButton(
                       textEditorController: textEditorController,
-                      parentEvent: tokenDefinitionEventReference,
+                      parentEvent: tokenDefinition.toEventReference(),
                       mediaFiles: attachedMediaNotifier.value,
                       createOption: CreatePostOption.reply,
                       shouldShowTooltip: false,

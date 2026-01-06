@@ -918,6 +918,7 @@
   "tokenized_community_comments_empty": "Бъдете първият, който се присъединява към разговора",
   "tokenized_community_comments_tab": "Коментари",
   "tokenized_community_holders_tab": "Притежатели",
+  "token_comment_holders_only": "Коментарите са достъпни само за притежатели на токени.",
   "tokenized_community_not_available_description": "Създаването на токени не е налично за вече създадени публикации.",
   "tokenized_community_not_available_title": "Грешка при токенизирано съдържание",
   "tokenized_community_token_creator": "Токен на създателя",
