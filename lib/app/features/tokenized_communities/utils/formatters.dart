@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:intl/intl.dart';
-import 'package:ion/app/utils/num.dart' show formatDouble;
+import 'package:ion/app/utils/num.dart';
 
 String formatPercent(double p) {
   final sign = p > 0 ? '+' : '';
