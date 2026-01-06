@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/date.dart';
@@ -35,6 +36,7 @@ class NotificationInfo extends HookConsumerWidget {
       return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     }).toList();
 
+    final relatedEntity = _getRelatedEntity(ref, notification: notification);
     final eventTypeLabel = _getEventTypeLabel(ref, notification: notification);
     final isAuthor = _getIsAuthor(ref, notification: notification);
 
@@ -50,31 +52,43 @@ class NotificationInfo extends HookConsumerWidget {
       final ContentIonNotification notification => notification.getDescription(context),
       final MentionIonNotification notification =>
         notification.getDescription(context, eventTypeLabel),
+      final TokenLaunchIonNotification notification =>
+        notification.getDescription(context, relatedEntity),
       _ => notification.getDescription(context)
     };
 
     final newTapRecognizers = <TapGestureRecognizer>[];
     final textSpan = replaceString(
       description,
-      tagRegex('username'),
-      (String text, int index) {
-        final pubkey = notification.pubkeys[index];
-        final userData = userDatas[index];
-        if (userData == null) {
-          return const TextSpan(text: '');
+      RegExp(
+        '${tagRegex('username').pattern}|${tagRegex('purple', isSingular: false).pattern}',
+      ),
+      (match, index) {
+        if (match.namedGroup('username') != null) {
+          final pubkey = notification.pubkeys.elementAtOrNull(index);
+          final userData = userDatas.elementAtOrNull(index);
+          if (pubkey == null || userData == null) {
+            return const TextSpan(text: '');
+          }
+          final recognizer = TapGestureRecognizer()
+            ..onTap = () => ProfileRoute(pubkey: pubkey).push<void>(context);
+          newTapRecognizers.add(recognizer);
+          return TextSpan(
+            text: userData.data.trimmedDisplayName.isEmpty
+                ? userData.data.name
+                : userData.data.trimmedDisplayName,
+            style: context.theme.appTextThemes.body.copyWith(
+              color: context.theme.appColors.primaryText,
+            ),
+            recognizer: recognizer,
+          );
+        } else if (match.namedGroup('purple') != null) {
+          return TextSpan(
+            text: match.namedGroup('purple'),
+            style: context.theme.appTextThemes.body.copyWith(color: context.theme.appColors.purple),
+          );
         }
-        final recognizer = TapGestureRecognizer()
-          ..onTap = () => ProfileRoute(pubkey: pubkey).push<void>(context);
-        newTapRecognizers.add(recognizer);
-        return TextSpan(
-          text: userData.data.trimmedDisplayName.isEmpty
-              ? userData.data.name
-              : userData.data.trimmedDisplayName,
-          style: context.theme.appTextThemes.body.copyWith(
-            color: context.theme.appColors.primaryText,
-          ),
-          recognizer: recognizer,
-        );
+        return const TextSpan(text: '');
       },
     );
 
@@ -144,6 +158,7 @@ class NotificationInfo extends HookConsumerWidget {
       CommentIonNotification() => notification.eventReference,
       LikesIonNotification() => notification.eventReference,
       MentionIonNotification() => notification.eventReference,
+      TokenLaunchIonNotification() => notification.eventReference,
       _ => null,
     };
 
@@ -158,12 +173,16 @@ class NotificationInfo extends HookConsumerWidget {
       return null;
     }
 
-    if (notification is LikesIonNotification) {
+    if (notification is LikesIonNotification || notification is MentionIonNotification) {
       return entity;
     }
 
-    if (notification is MentionIonNotification) {
-      return entity;
+    if (notification is TokenLaunchIonNotification && entity is CommunityTokenDefinitionEntity) {
+      final data = entity.data;
+      if (data is CommunityTokenDefinitionIon) {
+        return ref
+            .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
+      }
     }
 
     if (notification is CommentIonNotification) {

@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/followe
 import 'package:ion/app/features/feed/notifications/data/database/tables/likes_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/mentions_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/subscribed_users_content_table.d.dart';
+import 'package:ion/app/features/feed/notifications/data/database/tables/token_launch_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -45,72 +46,9 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
     FollowersTable,
     MentionsTable,
     AccountNotificationSyncStateTable,
+    TokenLaunchTable,
   ],
   queries: {
-    'aggregatedLikes': '''
-      WITH DailyLikes AS (
-          SELECT
-              DATE(datetime(
-                CASE 
-                  WHEN LENGTH(created_at) > 13 THEN created_at / 1000000
-                  ELSE created_at
-                END, 'unixepoch', 'localtime')) AS event_date,
-              event_reference,
-              pubkey,
-              created_at,
-              ROW_NUMBER() OVER (PARTITION BY DATE(datetime(
-                CASE 
-                  WHEN LENGTH(created_at) > 13 THEN created_at / 1000000
-                  ELSE created_at
-                END, 'unixepoch', 'localtime')), event_reference 
-                  ORDER BY created_at DESC) AS rn
-          FROM
-              likes_table
-      )
-      SELECT
-          event_date,
-          event_reference,
-          MAX(created_at) AS last_created_at,
-          GROUP_CONCAT(CASE WHEN rn <= 20 THEN pubkey END, ',') AS latest_pubkeys,
-          COUNT(DISTINCT pubkey) AS unique_pubkey_count
-      FROM
-          DailyLikes
-      GROUP BY
-          event_date, event_reference
-      ORDER BY
-          last_created_at DESC, event_reference DESC;
-    ''',
-    'aggregatedFollowers': '''
-      WITH DailyFollowers AS (
-          SELECT
-              DATE(datetime(
-                CASE 
-                  WHEN LENGTH(created_at) > 13 THEN created_at / 1000000
-                  ELSE created_at
-                END, 'unixepoch', 'localtime')) AS event_date,
-              pubkey,
-              created_at,
-              ROW_NUMBER() OVER (PARTITION BY DATE(datetime(
-                CASE 
-                  WHEN LENGTH(created_at) > 13 THEN created_at / 1000000
-                  ELSE created_at
-                END, 'unixepoch', 'localtime')) 
-                  ORDER BY created_at DESC) AS rn
-          FROM
-              followers_table
-      )
-      SELECT
-          event_date,
-          MAX(created_at) AS last_created_at,
-          GROUP_CONCAT(CASE WHEN rn <= 20 THEN pubkey END, ',') AS latest_pubkeys,
-          COUNT(DISTINCT pubkey) AS unique_pubkey_count
-      FROM
-          DailyFollowers
-      GROUP BY
-          event_date
-      ORDER BY
-          last_created_at DESC;
-    ''',
     'aggregatedFollowersAfter': '''
       WITH DailyFollowers AS (
           SELECT
@@ -191,7 +129,7 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -258,6 +196,9 @@ class NotificationsDatabase extends _$NotificationsDatabase {
         },
         from5To6: (m, schema) async {
           await m.createTable(schema.mentionsTable);
+        },
+        from6To7: (m, schema) async {
+          await m.createTable(schema.tokenLaunchTable);
         },
       ),
     );

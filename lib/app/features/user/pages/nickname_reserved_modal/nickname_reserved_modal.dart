@@ -52,7 +52,7 @@ class _NicknameReservedDescription extends HookConsumerWidget {
       () => replaceString(
         context.i18n.error_nickname_reserved_description,
         tagRegex('email'),
-        (String text, int index) {
+        (match, index) {
           return TextSpan(
             text: Emails.support,
             style: context.theme.appTextThemes.body2.copyWith(

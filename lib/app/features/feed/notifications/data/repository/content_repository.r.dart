@@ -42,24 +42,6 @@ class ContentRepository implements IonNotificationRepository {
     );
   }
 
-  @override
-  Future<List<ContentIonNotification>> getNotifications() async {
-    final contentNotifications = await _subscribedUsersContentDao.getAll();
-    return contentNotifications.map((content) {
-      final notificationType = switch (content.type) {
-        ContentType.posts => ContentIonNotificationType.posts,
-        ContentType.stories => ContentIonNotificationType.stories,
-        ContentType.articles => ContentIonNotificationType.articles,
-        ContentType.videos => ContentIonNotificationType.videos,
-      };
-      return ContentIonNotification(
-        type: notificationType,
-        eventReference: content.eventReference,
-        timestamp: content.createdAt.toDateTime,
-      );
-    }).toList();
-  }
-
   Future<List<ContentIonNotification>> getNotificationsAfter({
     required int limit,
     DateTime? after,
@@ -94,9 +76,5 @@ class ContentRepository implements IonNotificationRepository {
       ArticleEntity() => ContentType.articles,
       _ => null,
     };
-  }
-
-  Future<DateTime?> lastCreatedAt() async {
-    return _subscribedUsersContentDao.getLastCreatedAt();
   }
 }
