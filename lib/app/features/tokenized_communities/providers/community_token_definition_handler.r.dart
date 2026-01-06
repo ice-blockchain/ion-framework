@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/model/global_subscription_event_han
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/tokenized_communities/views/creator_token_is_live_dialog.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
@@ -43,7 +44,7 @@ class CommunityTokenDefinitionHandler extends GlobalSubscriptionEventHandler {
   Future<void> handle(EventMessage eventMessage) async {
     final isFirstBuyEvent = currentUserMasterPubkey != null &&
         eventMessage.tags
-            .any((tag) => tag.equals([RelatedHashtag.tagName, 'community_token_action'])) &&
+            .any((tag) => tag.equals([RelatedHashtag.tagName, communityTokenActionTopic])) &&
         eventMessage.tags.any((tag) => tag.equals([PubkeyTag.tagName, currentUserMasterPubkey!]));
 
     final isShown = localStorage.getBool(localStorageKey) ?? false;

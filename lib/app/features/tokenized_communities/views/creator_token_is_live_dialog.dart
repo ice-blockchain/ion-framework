@@ -24,6 +24,7 @@ import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -142,29 +143,33 @@ class _ContentState extends HookConsumerWidget {
                 minimumSize: Size(double.infinity, 56.0.s),
                 trailingIcon:
                     isLoading.value ? const IONLoadingIndicator() : const SizedBox.shrink(),
-                onPressed: () async {
-                  if (token == null) return;
-                  isLoading.value = true;
-                  try {
-                    final tokenDefinitionEntity = await ref.watch(
-                      tokenDefinitionForExternalAddressProvider(
-                        externalAddress: token.externalAddress,
-                      ).future,
-                    );
+                onPressed: token != null
+                    ? () async {
+                        isLoading.value = true;
+                        try {
+                          final tokenDefinitionEntity = await ref.watch(
+                            tokenDefinitionForExternalAddressProvider(
+                              externalAddress: token.externalAddress,
+                            ).future,
+                          );
 
-                    final tokenDefinitionEventReference = tokenDefinitionEntity?.toEventReference();
+                          final tokenDefinitionEventReference =
+                              tokenDefinitionEntity?.toEventReference();
 
-                    if (tokenDefinitionEventReference != null && context.mounted) {
-                      context.pop();
+                          if (tokenDefinitionEventReference != null && context.mounted) {
+                            context.pop();
 
-                      await ShareViaMessageModalRoute(
-                        eventReference: tokenDefinitionEventReference.encode(),
-                      ).push<void>(context);
-                    }
-                  } finally {
-                    isLoading.value = false;
-                  }
-                },
+                            await ShareViaMessageModalRoute(
+                              eventReference: tokenDefinitionEventReference.encode(),
+                            ).push<void>(context);
+                          }
+                        } catch (e, st) {
+                          Logger.error(e, stackTrace: st);
+                        } finally {
+                          isLoading.value = false;
+                        }
+                      }
+                    : null,
               ),
               ScreenBottomOffset(),
             ],
