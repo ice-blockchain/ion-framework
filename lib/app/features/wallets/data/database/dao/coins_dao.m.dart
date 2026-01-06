@@ -135,7 +135,13 @@ class CoinsDao extends DatabaseAccessor<WalletsDatabase> with _$CoinsDaoMixin {
     }
 
     if (contractAddresses?.isNotEmpty ?? false) {
-      query.where(coinsTable.contractAddress.isIn(contractAddresses!));
+      final loweredAddresses = contractAddresses!
+          .map((e) => e.trim().toLowerCase())
+          .where((e) => e.isNotEmpty)
+          .map((e) => e.toLowerCase())
+          .toList();
+
+      query.where(coinsTable.contractAddress.lower().isIn(loweredAddresses));
     }
 
     if (isNative != null) {

@@ -10,10 +10,13 @@ import 'package:ion/app/features/tokenized_communities/data/token_info_cache.dar
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_payment_token_groups_service.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
+import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -105,14 +108,36 @@ Future<List<CoinData>> supportedSwapTokens(Ref ref) async {
   final supportedTokensConfig = await api.fetchSupportedSwapTokens();
   final coinsRepository = ref.watch(coinsRepositoryProvider);
 
-  final supportedAddresses =
-      supportedTokensConfig.map((e) => e['address'] as String).map((e) => e.toLowerCase()).toSet();
+  final supportedAddresses = supportedTokensConfig
+      .map((e) => e['address'] as String)
+      .map((e) => e.trim().toLowerCase())
+      .where((e) => e.isNotEmpty)
+      .toSet();
 
   final supportedCoins = await coinsRepository.getCoinsByFilters(
     contractAddresses: supportedAddresses,
   );
 
   return supportedCoins;
+}
+
+@riverpod
+TradePaymentTokenGroupsService tradePaymentTokenGroupsService(Ref ref) {
+  return const TradePaymentTokenGroupsService();
+}
+
+@riverpod
+Future<List<CoinsGroup>> supportedSwapTokenGroups(Ref ref) async {
+  final (tokens, walletView) = await (
+    ref.watch(supportedSwapTokensProvider.future),
+    ref.watch(currentWalletViewDataProvider.future),
+  ).wait;
+
+  final service = ref.watch(tradePaymentTokenGroupsServiceProvider);
+  return service.build(
+    supportedTokens: tokens,
+    walletView: walletView,
+  );
 }
 
 @riverpod
