@@ -95,17 +95,13 @@ class ReplyMessage extends HookConsumerWidget {
             if (tokenItem != null && tokenItem.imageUrl != null)
               Padding(
                 padding: EdgeInsetsDirectional.only(end: 6.0.s),
-                child: SizedBox(
-                  width: 30.0.s,
-                  height: 30.0.s,
-                  child: TokenAvatar(
-                    imageUrl: tokenItem.imageUrl,
-                    containerSize: Size.square(30.0.s),
-                    imageSize: Size.square(30.s),
-                    outerBorderRadius: 8.s,
-                    innerBorderRadius: 8.s,
-                    borderWidth: 0,
-                  ),
+                child: TokenAvatar(
+                  imageUrl: tokenItem.imageUrl,
+                  containerSize: Size.square(30.0.s),
+                  imageSize: Size.square(30.s),
+                  outerBorderRadius: 8.s,
+                  innerBorderRadius: 8.s,
+                  borderWidth: 0,
                 ),
               ),
             Flexible(
