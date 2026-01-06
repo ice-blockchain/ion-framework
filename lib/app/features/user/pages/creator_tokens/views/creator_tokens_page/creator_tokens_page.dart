@@ -59,7 +59,7 @@ class CreatorTokensPage extends HookConsumerWidget {
     final maxScroll = _expandedHeaderHeight -
         NavigationAppBar.screenHeaderHeight -
         _tabBarHeight -
-        MediaQuery.of(context).padding.top;
+        MediaQuery.paddingOf(context).top;
 
     final isGlobalSearchVisible = useState<bool>(false);
     final lastSearchQuery = useRef<String?>(null);
@@ -184,7 +184,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
                       CreatorTokensHeader(
-                        expandedHeight: _expandedHeaderHeight - MediaQuery.of(context).padding.top,
+                        expandedHeight: _expandedHeaderHeight - MediaQuery.paddingOf(context).top,
                         tabBarHeight: _tabBarHeight,
                         opacity: opacity,
                         featuredTokensAsync: featuredTokensAsync,
