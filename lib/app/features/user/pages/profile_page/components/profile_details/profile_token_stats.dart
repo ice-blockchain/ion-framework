@@ -50,11 +50,11 @@ class ProfileTokenStats extends ConsumerWidget {
 
     final marketData = tokenInfo.valueOrNull?.marketData;
     final hasTokenInfo = tokenInfo.valueOrNull != null;
-    final isRestricted = TokenOperationRestrictions.isRestrictedAccountEvent(eventReference!);
+    final isProtected = TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference!);
 
     if (marketData == null) {
-      // Hide buy button if token operations are restricted
-      if (isRestricted) {
+      // Hide buy button if this account is protected from token operations
+      if (isProtected) {
         return const SizedBox.shrink();
       }
       return Row(

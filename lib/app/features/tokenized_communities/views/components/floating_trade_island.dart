@@ -26,11 +26,11 @@ class FloatingTradeIsland extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Check if token operations are restricted for this account
-    final isRestricted = eventReference != null
-        ? TokenOperationRestrictions.isRestrictedAccountEvent(eventReference!)
-        : TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(externalAddress!);
-    if (isRestricted) {
+    // Check if this account is protected from token operations
+    final isProtected = eventReference != null
+        ? TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference!)
+        : TokenOperationProtectedAccounts.isProtectedAccountFromExternalAddress(externalAddress!);
+    if (isProtected) {
       return const SizedBox.shrink();
     }
 

@@ -46,9 +46,9 @@ class TradeCommunityTokenService {
     FatAddressV2Data? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
-    // Check if token operations are restricted for this account
-    if (TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(externalAddress)) {
-      throw const TokenOperationRestrictedException();
+    // Check if this account is protected from token operations
+    if (TokenOperationProtectedAccounts.isProtectedAccountFromExternalAddress(externalAddress)) {
+      throw const TokenOperationProtectedException();
     }
 
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
@@ -115,9 +115,9 @@ class TradeCommunityTokenService {
     required bool shouldSendEvents,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
-    // Check if token operations are restricted for this account
-    if (TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(externalAddress)) {
-      throw const TokenOperationRestrictedException();
+    // Check if this account is protected from token operations
+    if (TokenOperationProtectedAccounts.isProtectedAccountFromExternalAddress(externalAddress)) {
+      throw const TokenOperationProtectedException();
     }
 
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);

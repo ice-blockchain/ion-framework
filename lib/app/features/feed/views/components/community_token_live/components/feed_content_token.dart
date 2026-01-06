@@ -307,8 +307,8 @@ class _BuyButton extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // Hide buy button if token operations are restricted for this account
-    if (TokenOperationRestrictions.isRestrictedAccountEvent(eventReference)) {
+    // Hide buy button if this account is protected from token operations
+    if (TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference)) {
       return const SizedBox.shrink();
     }
 

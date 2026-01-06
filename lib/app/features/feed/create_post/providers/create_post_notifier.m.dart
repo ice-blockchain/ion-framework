@@ -363,8 +363,9 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     // We don't create a token definition for replies and stories
     if (parentEntity == null && postData.expiration == null) {
       final currentPubkey = ref.read(currentPubkeySelectorProvider);
-      // Prevent token definition creation for restricted accounts
-      if (currentPubkey != null && !TokenOperationRestrictions.isRestrictedAccount(currentPubkey)) {
+      // Prevent token definition creation for accounts protected from token operations
+      if (currentPubkey != null &&
+          !TokenOperationProtectedAccounts.isProtectedAccount(currentPubkey)) {
         final tokenDefinition = _buildPostTokenDefinition(postData);
         final tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
         unawaited(

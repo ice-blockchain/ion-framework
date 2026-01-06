@@ -51,14 +51,14 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      // Check if token operations are restricted for this account
-      final isRestricted = params.eventReference != null
-          ? TokenOperationRestrictions.isRestrictedAccountEvent(params.eventReference!)
-          : TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(
+      // Check if this account is protected from token operations
+      final isProtected = params.eventReference != null
+          ? TokenOperationProtectedAccounts.isProtectedAccountEvent(params.eventReference!)
+          : TokenOperationProtectedAccounts.isProtectedAccountFromExternalAddress(
               params.externalAddress,
             );
-      if (isRestricted) {
-        throw const TokenOperationRestrictedException();
+      if (isProtected) {
+        throw const TokenOperationProtectedException();
       }
 
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
@@ -150,14 +150,14 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      // Check if token operations are restricted for this account
-      final isRestricted = params.eventReference != null
-          ? TokenOperationRestrictions.isRestrictedAccountEvent(params.eventReference!)
-          : TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(
+      // Check if this account is protected from token operations
+      final isProtected = params.eventReference != null
+          ? TokenOperationProtectedAccounts.isProtectedAccountEvent(params.eventReference!)
+          : TokenOperationProtectedAccounts.isProtectedAccountFromExternalAddress(
               params.externalAddress,
             );
-      if (isRestricted) {
-        throw const TokenOperationRestrictedException();
+      if (isProtected) {
+        throw const TokenOperationProtectedException();
       }
 
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));

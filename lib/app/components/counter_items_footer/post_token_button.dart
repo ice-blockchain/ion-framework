@@ -52,11 +52,11 @@ class _TokenAvailability extends StatelessWidget {
   const _TokenAvailability({
     required this.available,
     required this.child,
-    this.isRestrictedUser = false,
+    required this.isProtectedUser,
   });
 
   final bool available;
-  final bool isRestrictedUser;
+  final bool isProtectedUser;
 
   final Widget child;
 
@@ -64,7 +64,7 @@ class _TokenAvailability extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: available ? HitTestBehavior.deferToChild : HitTestBehavior.translucent,
-      onTap: isRestrictedUser
+      onTap: isProtectedUser
           ? () {}
           : available
               ? null
@@ -149,8 +149,8 @@ class _ContentEntityButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventReference = entity.toEventReference();
-    // Check if token operations are restricted for this account
-    final isRestricted = TokenOperationRestrictions.isRestrictedAccountEvent(eventReference);
+    // Check if this account is protected from token operations
+    final isProtected = TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference);
 
     final ownerHasBscWallet = ref
         .watch(
@@ -172,8 +172,8 @@ class _ContentEntityButton extends ConsumerWidget {
     final externalAddressType = entity.externalAddressType;
 
     return _TokenAvailability(
-      available: isTokenCreationAvailable && !isRestricted,
-      isRestrictedUser: isRestricted,
+      available: isTokenCreationAvailable && !isProtected,
+      isProtectedUser: isProtected,
       child: _TokenButton(
         padding: padding,
         child:

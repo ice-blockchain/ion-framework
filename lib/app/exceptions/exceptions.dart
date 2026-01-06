@@ -799,11 +799,11 @@ class UserDeviceRevokedException extends IONException {
         );
 }
 
-class TokenOperationRestrictedException extends IONException {
-  const TokenOperationRestrictedException()
+class TokenOperationProtectedException extends IONException {
+  const TokenOperationProtectedException()
       : super(
           10145,
-          'Token operations are restricted for this account',
+          'Token operations are not allowed for this protected account',
         );
 }
 

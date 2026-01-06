@@ -33,8 +33,8 @@ class ProfileUserInfo extends ConsumerWidget {
     final eventReference = ref.watch(userMetadataProvider(pubkey)).valueOrNull?.toEventReference();
     final eventReferenceString = eventReference?.toString();
 
-    final isRestrictedAccount = eventReference != null &&
-        TokenOperationRestrictions.isRestrictedAccountEvent(eventReference);
+    final isProtectedAccount = eventReference != null &&
+        TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference);
 
     final info = Column(
       children: [
@@ -68,7 +68,7 @@ class ProfileUserInfo extends ConsumerWidget {
         child: Column(
           children: [
             info,
-            if (hasBscWallet && eventReferenceString != null && !isRestrictedAccount)
+            if (hasBscWallet && eventReferenceString != null && !isProtectedAccount)
               Column(
                 children: [
                   GradientHorizontalDivider(

@@ -309,8 +309,9 @@ class CreateArticle extends _$CreateArticle {
     final eventsToSend = <EventMessage>[...fileEvents, articleEvent];
     EventMessage? tokenDefinitionEvent;
 
-    // Prevent token definition creation for restricted accounts
-    if (currentPubkey != null && !TokenOperationRestrictions.isRestrictedAccount(currentPubkey)) {
+    // Prevent token definition creation for accounts protected from token operations
+    if (currentPubkey != null &&
+        !TokenOperationProtectedAccounts.isProtectedAccount(currentPubkey)) {
       final tokenDefinition = _buildArticleTokenDefinition(articleData);
       tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
       eventsToSend.add(tokenDefinitionEvent);
