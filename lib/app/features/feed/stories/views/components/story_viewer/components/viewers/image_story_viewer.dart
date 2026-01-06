@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
@@ -11,6 +13,8 @@ import 'package:ion/app/features/feed/stories/views/components/story_viewer/comp
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/source_post_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class ImageStoryViewer extends HookConsumerWidget {
@@ -35,6 +39,8 @@ class ImageStoryViewer extends HookConsumerWidget {
 
     final hasQuotedPost = quotedEvent != null || sourcePostReference != null;
     final isProfileScreenshot = sourcePostReference?.eventReference.isProfileReference ?? false;
+    final isCommunityTokenScreenshot =
+        sourcePostReference?.eventReference.isCommunityTokenReference ?? false;
 
     // Keep the provider alive as long as the image is being displayed
     ref.watch(storyImageLoadStatusProvider(storyId));
@@ -53,8 +59,9 @@ class ImageStoryViewer extends HookConsumerWidget {
         });
 
         // For profile screenshots, use cover to fill width; for quoted posts, use contain
-        final fit =
-            isProfileScreenshot ? BoxFit.cover : (hasQuotedPost ? BoxFit.contain : BoxFit.cover);
+        final fit = isProfileScreenshot || isCommunityTokenScreenshot
+            ? BoxFit.cover
+            : (hasQuotedPost ? BoxFit.contain : BoxFit.cover);
 
         return SizedBox.expand(
           child: Image(
@@ -72,30 +79,49 @@ class ImageStoryViewer extends HookConsumerWidget {
             ? context.i18n.story_see_article
             : eventReference.isProfileReference
                 ? context.i18n.story_see_profile
-                : context.i18n.story_see_post;
+                : eventReference.isCommunityTokenReference
+                    ? context.i18n.story_see_token
+                    : context.i18n.story_see_post;
 
         // For profile screenshots, don't add padding to allow full width
-        final padding =
-            isProfileScreenshot ? EdgeInsets.zero : EdgeInsets.symmetric(horizontal: 20.0.s);
+        final padding = isProfileScreenshot || isCommunityTokenScreenshot
+            ? EdgeInsets.zero
+            : EdgeInsets.symmetric(horizontal: 20.0.s);
 
         return ColoredBox(
           color: context.theme.appColors.primaryText,
           child: Padding(
             padding: padding,
             child: TapToSeeHint(
-              onTap: () {
+              onTap: () async {
                 if (eventReference.isArticleReference) {
-                  ArticleDetailsRoute(
-                    eventReference: eventReference.encode(),
-                  ).push<void>(context);
+                  unawaited(
+                    ArticleDetailsRoute(
+                      eventReference: eventReference.encode(),
+                    ).push<void>(context),
+                  );
                 } else if (eventReference.isProfileReference) {
-                  ProfileRoute(
-                    pubkey: eventReference.masterPubkey,
-                  ).push<void>(context);
+                  unawaited(
+                    ProfileRoute(
+                      pubkey: eventReference.masterPubkey,
+                    ).push<void>(context),
+                  );
+                } else if (eventReference.isCommunityTokenReference) {
+                  final entity = await ref
+                      .read(ionConnectEntityProvider(eventReference: eventReference).future);
+                  if (entity is CommunityTokenDefinitionEntity && context.mounted) {
+                    unawaited(
+                      TokenizedCommunityRoute(
+                        externalAddress: entity.data.externalAddress,
+                      ).push<void>(context),
+                    );
+                  }
                 } else {
-                  PostDetailsRoute(
-                    eventReference: eventReference.encode(),
-                  ).push<void>(context);
+                  unawaited(
+                    PostDetailsRoute(
+                      eventReference: eventReference.encode(),
+                    ).push<void>(context),
+                  );
                 }
               },
               text: text,

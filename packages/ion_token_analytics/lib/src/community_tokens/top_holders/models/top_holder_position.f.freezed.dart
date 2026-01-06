@@ -291,7 +291,7 @@ TopHolderPositionPatch _$TopHolderPositionPatchFromJson(
 
 /// @nodoc
 mixin _$TopHolderPositionPatch {
-  CreatorPatch? get holder => throw _privateConstructorUsedError;
+  Creator? get holder => throw _privateConstructorUsedError;
   int? get rank => throw _privateConstructorUsedError;
   String? get amount => throw _privateConstructorUsedError;
   double? get amountUSD => throw _privateConstructorUsedError;
@@ -316,7 +316,7 @@ class _$TopHolderPositionPatchImpl implements _TopHolderPositionPatch {
       _$$TopHolderPositionPatchImplFromJson(json);
 
   @override
-  final CreatorPatch? holder;
+  final Creator? holder;
   @override
   final int? rank;
   @override
@@ -358,7 +358,7 @@ class _$TopHolderPositionPatchImpl implements _TopHolderPositionPatch {
 
 abstract class _TopHolderPositionPatch implements TopHolderPositionPatch {
   const factory _TopHolderPositionPatch({
-    final CreatorPatch? holder,
+    final Creator? holder,
     final int? rank,
     final String? amount,
     final double? amountUSD,
@@ -369,7 +369,7 @@ abstract class _TopHolderPositionPatch implements TopHolderPositionPatch {
       _$TopHolderPositionPatchImpl.fromJson;
 
   @override
-  CreatorPatch? get holder;
+  Creator? get holder;
   @override
   int? get rank;
   @override

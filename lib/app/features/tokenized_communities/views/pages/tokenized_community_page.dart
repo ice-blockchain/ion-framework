@@ -205,43 +205,39 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       expandedHeader: Column(
         children: [
           SizedBox(height: MediaQuery.viewPaddingOf(context).top + 16.s),
-          if (tokenType != null)
-            Builder(
-              builder: (context) {
-                if (tokenInfo == null) {
-                  return const SizedBox.shrink();
-                }
+          Builder(
+            builder: (context) {
+              if (tokenInfo == null) {
+                return const SizedBox.shrink();
+              }
 
-                if (tokenType == CommunityContentTokenType.profile) {
-                  return ProfileTokenHeader(
+              return switch (tokenType) {
+                CommunityContentTokenType.profile => ProfileTokenHeader(
                     token: tokenInfo,
                     externalAddress: externalAddress,
                     minimal: true,
-                  );
-                } else if (tokenType == CommunityContentTokenType.twitter) {
-                  return TwitterTokenHeader(
+                  ),
+                CommunityContentTokenType.twitter => TwitterTokenHeader(
                     token: tokenInfo,
                     showBuyButton: false,
-                  );
-                } else {
-                  if (tokenDefinition == null) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      top: tokenType == CommunityContentTokenType.postText ? 36.s : 0,
-                    ),
-                    child: ContentTokenHeader(
-                      type: tokenType,
-                      token: tokenInfo,
-                      externalAddress: externalAddress,
-                      tokenDefinition: tokenDefinition,
-                      showBuyButton: false,
-                    ),
-                  );
-                }
-              },
-            ),
+                  ),
+                _ => tokenDefinition == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          top: tokenType == CommunityContentTokenType.postText ? 36.s : 0,
+                        ),
+                        child: ContentTokenHeader(
+                          type: tokenType ?? CommunityContentTokenType.postText,
+                          token: tokenInfo,
+                          externalAddress: externalAddress,
+                          tokenDefinition: tokenDefinition,
+                          showBuyButton: false,
+                        ),
+                      ),
+              };
+            },
+          ),
         ],
       ),
       child: Column(

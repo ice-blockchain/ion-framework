@@ -25,7 +25,7 @@ _$LatestTradePatchImpl _$$LatestTradePatchImplFromJson(
 ) => _$LatestTradePatchImpl(
   creator: json['creator'] == null
       ? null
-      : CreatorPatch.fromJson(json['creator'] as Map<String, dynamic>),
+      : Creator.fromJson(json['creator'] as Map<String, dynamic>),
   position: json['position'] == null
       ? null
       : TradePositionPatch.fromJson(json['position'] as Map<String, dynamic>),

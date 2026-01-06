@@ -21,9 +21,9 @@ Creator _$CreatorFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Creator {
-  String get name => throw _privateConstructorUsedError;
-  String get display => throw _privateConstructorUsedError;
-  bool get verified => throw _privateConstructorUsedError;
+  String? get display => throw _privateConstructorUsedError;
+  bool? get verified => throw _privateConstructorUsedError;
+  String? get name => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
   Addresses? get addresses => throw _privateConstructorUsedError;
 
@@ -42,9 +42,9 @@ abstract class $CreatorCopyWith<$Res> {
       _$CreatorCopyWithImpl<$Res, Creator>;
   @useResult
   $Res call({
-    String name,
-    String display,
-    bool verified,
+    String? display,
+    bool? verified,
+    String? name,
     String? avatar,
     Addresses? addresses,
   });
@@ -67,26 +67,26 @@ class _$CreatorCopyWithImpl<$Res, $Val extends Creator>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? name = null,
-    Object? display = null,
-    Object? verified = null,
+    Object? display = freezed,
+    Object? verified = freezed,
+    Object? name = freezed,
     Object? avatar = freezed,
     Object? addresses = freezed,
   }) {
     return _then(
       _value.copyWith(
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            display: null == display
+            display: freezed == display
                 ? _value.display
                 : display // ignore: cast_nullable_to_non_nullable
-                      as String,
-            verified: null == verified
+                      as String?,
+            verified: freezed == verified
                 ? _value.verified
                 : verified // ignore: cast_nullable_to_non_nullable
-                      as bool,
+                      as bool?,
+            name: freezed == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String?,
             avatar: freezed == avatar
                 ? _value.avatar
                 : avatar // ignore: cast_nullable_to_non_nullable
@@ -124,9 +124,9 @@ abstract class _$$CreatorImplCopyWith<$Res> implements $CreatorCopyWith<$Res> {
   @override
   @useResult
   $Res call({
-    String name,
-    String display,
-    bool verified,
+    String? display,
+    bool? verified,
+    String? name,
     String? avatar,
     Addresses? addresses,
   });
@@ -149,26 +149,26 @@ class __$$CreatorImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? name = null,
-    Object? display = null,
-    Object? verified = null,
+    Object? display = freezed,
+    Object? verified = freezed,
+    Object? name = freezed,
     Object? avatar = freezed,
     Object? addresses = freezed,
   }) {
     return _then(
       _$CreatorImpl(
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        display: null == display
+        display: freezed == display
             ? _value.display
             : display // ignore: cast_nullable_to_non_nullable
-                  as String,
-        verified: null == verified
+                  as String?,
+        verified: freezed == verified
             ? _value.verified
             : verified // ignore: cast_nullable_to_non_nullable
-                  as bool,
+                  as bool?,
+        name: freezed == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String?,
         avatar: freezed == avatar
             ? _value.avatar
             : avatar // ignore: cast_nullable_to_non_nullable
@@ -186,9 +186,9 @@ class __$$CreatorImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CreatorImpl implements _Creator {
   const _$CreatorImpl({
-    required this.name,
-    required this.display,
-    required this.verified,
+    this.display,
+    this.verified,
+    this.name,
     this.avatar,
     this.addresses,
   });
@@ -197,11 +197,11 @@ class _$CreatorImpl implements _Creator {
       _$$CreatorImplFromJson(json);
 
   @override
-  final String name;
+  final String? display;
   @override
-  final String display;
+  final bool? verified;
   @override
-  final bool verified;
+  final String? name;
   @override
   final String? avatar;
   @override
@@ -209,7 +209,7 @@ class _$CreatorImpl implements _Creator {
 
   @override
   String toString() {
-    return 'Creator(name: $name, display: $display, verified: $verified, avatar: $avatar, addresses: $addresses)';
+    return 'Creator(display: $display, verified: $verified, name: $name, avatar: $avatar, addresses: $addresses)';
   }
 
   @override
@@ -217,10 +217,10 @@ class _$CreatorImpl implements _Creator {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreatorImpl &&
-            (identical(other.name, name) || other.name == name) &&
             (identical(other.display, display) || other.display == display) &&
             (identical(other.verified, verified) ||
                 other.verified == verified) &&
+            (identical(other.name, name) || other.name == name) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
             (identical(other.addresses, addresses) ||
                 other.addresses == addresses));
@@ -229,7 +229,7 @@ class _$CreatorImpl implements _Creator {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, name, display, verified, avatar, addresses);
+      Object.hash(runtimeType, display, verified, name, avatar, addresses);
 
   /// Create a copy of Creator
   /// with the given fields replaced by the non-null parameter values.
@@ -247,9 +247,9 @@ class _$CreatorImpl implements _Creator {
 
 abstract class _Creator implements Creator {
   const factory _Creator({
-    required final String name,
-    required final String display,
-    required final bool verified,
+    final String? display,
+    final bool? verified,
+    final String? name,
     final String? avatar,
     final Addresses? addresses,
   }) = _$CreatorImpl;
@@ -257,11 +257,11 @@ abstract class _Creator implements Creator {
   factory _Creator.fromJson(Map<String, dynamic> json) = _$CreatorImpl.fromJson;
 
   @override
-  String get name;
+  String? get display;
   @override
-  String get display;
+  bool? get verified;
   @override
-  bool get verified;
+  String? get name;
   @override
   String? get avatar;
   @override
@@ -273,99 +273,4 @@ abstract class _Creator implements Creator {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CreatorImplCopyWith<_$CreatorImpl> get copyWith =>
       throw _privateConstructorUsedError;
-}
-
-CreatorPatch _$CreatorPatchFromJson(Map<String, dynamic> json) {
-  return _CreatorPatch.fromJson(json);
-}
-
-/// @nodoc
-mixin _$CreatorPatch {
-  String? get name => throw _privateConstructorUsedError;
-  String? get display => throw _privateConstructorUsedError;
-  bool? get verified => throw _privateConstructorUsedError;
-  String? get avatar => throw _privateConstructorUsedError;
-  AddressesPatch? get addresses => throw _privateConstructorUsedError;
-
-  /// Serializes this CreatorPatch to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$CreatorPatchImpl implements _CreatorPatch {
-  const _$CreatorPatchImpl({
-    this.name,
-    this.display,
-    this.verified,
-    this.avatar,
-    this.addresses,
-  });
-
-  factory _$CreatorPatchImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CreatorPatchImplFromJson(json);
-
-  @override
-  final String? name;
-  @override
-  final String? display;
-  @override
-  final bool? verified;
-  @override
-  final String? avatar;
-  @override
-  final AddressesPatch? addresses;
-
-  @override
-  String toString() {
-    return 'CreatorPatch(name: $name, display: $display, verified: $verified, avatar: $avatar, addresses: $addresses)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CreatorPatchImpl &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.display, display) || other.display == display) &&
-            (identical(other.verified, verified) ||
-                other.verified == verified) &&
-            (identical(other.avatar, avatar) || other.avatar == avatar) &&
-            (identical(other.addresses, addresses) ||
-                other.addresses == addresses));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, name, display, verified, avatar, addresses);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CreatorPatchImplToJson(this);
-  }
-}
-
-abstract class _CreatorPatch implements CreatorPatch {
-  const factory _CreatorPatch({
-    final String? name,
-    final String? display,
-    final bool? verified,
-    final String? avatar,
-    final AddressesPatch? addresses,
-  }) = _$CreatorPatchImpl;
-
-  factory _CreatorPatch.fromJson(Map<String, dynamic> json) =
-      _$CreatorPatchImpl.fromJson;
-
-  @override
-  String? get name;
-  @override
-  String? get display;
-  @override
-  bool? get verified;
-  @override
-  String? get avatar;
-  @override
-  AddressesPatch? get addresses;
 }

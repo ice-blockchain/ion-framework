@@ -32,6 +32,7 @@ class CommunityTokenAction extends HookConsumerWidget {
   final EventReference eventReference;
 
   final bool network;
+
   final bool enableTokenNavigation;
 
   @override

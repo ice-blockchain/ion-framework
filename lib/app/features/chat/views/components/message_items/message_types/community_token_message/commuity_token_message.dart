@@ -20,6 +20,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 class CommunityTokenMessage extends HookConsumerWidget {
   const CommunityTokenMessage({
@@ -44,15 +45,21 @@ class CommunityTokenMessage extends HookConsumerWidget {
       [eventMessage],
     );
 
-    final token = definitionEntity != null
-        ? ref.watch(tokenMarketInfoProvider(definitionEntity!.data.externalAddress)).valueOrNull
+    final tokenType = definitionEntity != null
+        ? ref.watch(tokenTypeForTokenDefinitionProvider(definitionEntity!)).valueOrNull
         : null;
 
     final hasReactions = useHasReaction(entity.toEventReference(), ref);
 
+    final token = definitionEntity != null
+        ? ref.watch(tokenMarketInfoProvider(definitionEntity!.data.externalAddress)).valueOrNull
+        : null;
+
     final messageItem = CommunityTokenItem(
       eventMessage: eventMessage,
-      contentDescription: token?.title ?? '',
+      contentDescription: tokenType != null ? tokenType.title(context) : '',
+      icon: tokenType != null ? tokenType.icon(context) : '',
+      imageUrl: token?.imageUrl,
     );
 
     final repliedEventMessage = ref.watch(
@@ -73,6 +80,7 @@ class CommunityTokenMessage extends HookConsumerWidget {
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
       repliedEventMessage: repliedEventMessage,
+      context: context,
     );
 
     return MessageItemWrapper(
@@ -85,7 +93,15 @@ class CommunityTokenMessage extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (repliedMessageItem != null) ReplyMessage(messageItem, repliedMessageItem, onTapReply),
-          if (definitionEntity != null) _TokenCard(definitionEntity: definitionEntity!),
+          if (definitionEntity case final definitionEntity?)
+            GestureDetector(
+              onTap: () {
+                TokenizedCommunityRoute(
+                  externalAddress: definitionEntity.data.externalAddress,
+                ).push<void>(context);
+              },
+              child: _TokenCard(definitionEntity: definitionEntity),
+            ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,

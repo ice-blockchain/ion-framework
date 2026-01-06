@@ -43,7 +43,7 @@ class CommunityTokenPatch with _$CommunityTokenPatch implements CommunityTokenBa
     String? description,
     String? imageUrl,
     AddressesPatch? addresses,
-    CreatorPatch? creator,
+    Creator? creator,
     MarketDataPatch? marketData,
     String? createdAt,
   }) = _CommunityTokenPatch;

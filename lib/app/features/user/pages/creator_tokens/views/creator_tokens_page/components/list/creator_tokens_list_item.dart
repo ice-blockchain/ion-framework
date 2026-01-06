@@ -4,16 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/token_type_gradients.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class CreatorTokensListItem extends ConsumerWidget {
+class CreatorTokensListItem extends HookConsumerWidget {
   const CreatorTokensListItem({
     required this.token,
     required this.index,
@@ -27,6 +29,11 @@ class CreatorTokensListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useOnInit(() {
+      ref
+          .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
+          .cacheToken(token);
+    });
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {

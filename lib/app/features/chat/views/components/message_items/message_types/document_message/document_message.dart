@@ -117,6 +117,7 @@ class DocumentMessage extends HookConsumerWidget {
     final repliedMessageItem = getRepliedMessageListItem(
       ref: ref,
       repliedEventMessage: repliedEventMessage,
+      context: context,
     );
 
     if (messageMedia == null) {

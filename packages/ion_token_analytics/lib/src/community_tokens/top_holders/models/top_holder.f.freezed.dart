@@ -216,7 +216,7 @@ TopHolderPatch _$TopHolderPatchFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TopHolderPatch {
-  CreatorPatch? get creator => throw _privateConstructorUsedError;
+  Creator? get creator => throw _privateConstructorUsedError;
   TopHolderPositionPatch? get position => throw _privateConstructorUsedError;
 
   /// Serializes this TopHolderPatch to a JSON map.
@@ -232,7 +232,7 @@ class _$TopHolderPatchImpl implements _TopHolderPatch {
       _$$TopHolderPatchImplFromJson(json);
 
   @override
-  final CreatorPatch? creator;
+  final Creator? creator;
   @override
   final TopHolderPositionPatch? position;
 
@@ -263,7 +263,7 @@ class _$TopHolderPatchImpl implements _TopHolderPatch {
 
 abstract class _TopHolderPatch implements TopHolderPatch {
   const factory _TopHolderPatch({
-    final CreatorPatch? creator,
+    final Creator? creator,
     final TopHolderPositionPatch? position,
   }) = _$TopHolderPatchImpl;
 
@@ -271,7 +271,7 @@ abstract class _TopHolderPatch implements TopHolderPatch {
       _$TopHolderPatchImpl.fromJson;
 
   @override
-  CreatorPatch? get creator;
+  Creator? get creator;
   @override
   TopHolderPositionPatch? get position;
 }

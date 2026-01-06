@@ -19,6 +19,7 @@ class FeedProfileActionToken extends HookConsumerWidget {
     required this.externalAddress,
     this.pnl,
     this.hodl,
+    this.sidePadding,
     super.key,
   });
 
@@ -27,6 +28,8 @@ class FeedProfileActionToken extends HookConsumerWidget {
   final Widget? pnl;
 
   final Widget? hodl;
+
+  final double? sidePadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +40,7 @@ class FeedProfileActionToken extends HookConsumerWidget {
         return SizedBox(
           width: double.infinity,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+            padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.0.s),
               child: ProfileBackground(
@@ -109,7 +112,7 @@ class ProfileTokenHeaderLandscape extends StatelessWidget {
                               color: context.theme.appColors.secondaryBackground,
                             ),
                           ),
-                          if (token.creator.verified)
+                          if (token.creator.verified.falseOrValue)
                             Padding(
                               padding: EdgeInsetsDirectional.only(start: 5.0.s),
                               child: Assets.svg.iconBadgeVerify.icon(

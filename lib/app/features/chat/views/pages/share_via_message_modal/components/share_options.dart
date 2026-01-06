@@ -13,16 +13,19 @@ import 'package:ion/app/components/separated/separated_row.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/event_share_url_provider.r.dart';
 import 'package:ion/app/features/chat/providers/share_options_provider.r.dart';
+import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_community_token_to_story_content.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_copy_link_option.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_options_menu_item.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_post_to_story_content.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/components/share_profile_to_story_content.dart';
+import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
+import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/providers/repost_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -73,12 +76,12 @@ class ShareOptions extends HookConsumerWidget {
       ModifiablePostEntity() when !entity.isStory => true,
       ArticleEntity() => true,
       UserMetadataEntity() => true,
+      CommunityTokenDefinitionEntity() => true,
       _ => false,
     };
 
     final canShareToFeed = switch (entity) {
-      //TODO(ice-kreios): enable it when business logic is ready
-      CommunityTokenDefinitionEntity() => false,
+      CommunityTokenDefinitionEntity() => true,
       _ => false,
     };
 
@@ -184,39 +187,66 @@ class ShareOptions extends HookConsumerWidget {
     final parentContainer = ProviderScope.containerOf(context);
     final childContainer = ProviderContainer(parent: parentContainer);
 
+    final EventReference eventReferenceTmp;
+
     try {
+      if (eventReference.isCommunityTokenReference) {
+        final tokenDefinition =
+            (await ref.watch(ionConnectEntityProvider(eventReference: eventReference).future))!
+                as CommunityTokenDefinitionEntity;
+
+        final tokenType = await ref.watch(
+          tokenTypeForExternalAddressProvider(tokenDefinition.data.externalAddress).future,
+        );
+
+        if (tokenType == CommunityContentTokenType.profile) {
+          eventReferenceTmp =
+              ReplaceableEventReference.fromString(tokenDefinition.data.externalAddress);
+        } else {
+          eventReferenceTmp = eventReference;
+        }
+      } else {
+        eventReferenceTmp = eventReference;
+      }
+
       final contentWidget = UncontrolledProviderScope(
         container: childContainer,
-        child: eventReference.isProfileReference
-            ? ShareProfileToStoryContent(eventReference: eventReference)
-            : SharePostToStoryContent(eventReference: eventReference),
+        child: eventReferenceTmp.isProfileReference
+            ? ShareProfileToStoryContent(eventReference: eventReferenceTmp)
+            : eventReferenceTmp.isCommunityTokenReference
+                ? ShareCommunityTokenToStoryContent(eventReference: eventReferenceTmp)
+                : SharePostToStoryContent(eventReference: eventReferenceTmp),
       );
 
       File? tempFile;
-      if (eventReference.isProfileReference) {
+      if (eventReferenceTmp.isProfileReference || eventReferenceTmp.isCommunityTokenReference) {
         // For profile references, use story dimensions
         const storyConfig = ImageProcessingConstants.story;
         final targetWidth = storyConfig.targetWidth.toDouble();
         final targetHeight = storyConfig.targetHeight.toDouble();
 
-        tempFile = await captureWidgetScreenshot(
-          context: context,
-          widget: contentWidget,
-          width: targetWidth,
-          height: targetHeight,
-        );
+        if (context.mounted) {
+          tempFile = await captureWidgetScreenshot(
+            context: context,
+            widget: contentWidget,
+            width: targetWidth,
+            height: targetHeight,
+          );
+        }
       } else {
-        tempFile = await captureWidgetScreenshot(
-          context: context,
-          widget: contentWidget,
-        );
+        if (context.mounted) {
+          tempFile = await captureWidgetScreenshot(
+            context: context,
+            widget: contentWidget,
+          );
+        }
       }
       if (tempFile != null && context.mounted) {
         context.pop();
         await StoryPreviewRoute(
           path: tempFile.path,
           mimeType: lookupMimeType(tempFile.path),
-          eventReference: eventReference.encode(),
+          eventReference: eventReferenceTmp.encode(),
           isPostScreenshot: true,
         ).push<void>(context);
       }
@@ -234,7 +264,10 @@ class ShareOptions extends HookConsumerWidget {
     EventReference eventReference,
     ValueNotifier<bool> isCapturing,
   ) {
-    ref.read(repostNotifierProvider.notifier).repost(eventReference: eventReference);
+    ref.read(createPostNotifierProvider(CreatePostOption.quote).notifier).create(
+          quotedEvent: eventReference,
+          onlyOnMyFeed: true,
+        );
     context.pop();
   }
 
