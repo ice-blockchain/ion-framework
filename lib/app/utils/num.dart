@@ -103,11 +103,12 @@ String formatCount(int number) {
 }
 
 String getNumericSign(num value) {
-  if (value >= 0) {
+  if (value > 0) {
     return '+';
-  } else {
+  } else if (value < 0) {
     return '-';
   }
+  return '';
 }
 
 String formatSupplySharePercent(double value, {int decimals = 2}) {

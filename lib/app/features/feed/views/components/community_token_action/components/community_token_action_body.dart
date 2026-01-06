@@ -73,10 +73,6 @@ class CommunityTokenActionBody extends HookConsumerWidget {
     final type = entity.data.type == CommunityTokenActionType.buy
         ? ProfileChartType.raising
         : ProfileChartType.falling;
-    final badgeColor = switch (type) {
-      ProfileChartType.raising => context.theme.appColors.success,
-      ProfileChartType.falling => context.theme.appColors.attentionRed,
-    };
 
     final position = ref
         .watch(
@@ -155,7 +151,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 22.0.s),
               decoration: ShapeDecoration(
-                color: badgeColor,
+                color: type.getColor(context),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(9.0.s),
                 ),
