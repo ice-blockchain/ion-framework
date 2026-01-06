@@ -11,13 +11,14 @@ import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/read_more_text/read_more_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tooltip/hooks/use_show_tooltip_overlay.dart';
+import 'package:ion/app/features/tooltip/views/tooltip.dart';
 import 'package:ion/app/features/wallets/model/nft_identifier.f.dart';
 import 'package:ion/app/features/wallets/providers/send_nft_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_nft_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/nft_name.dart';
 import 'package:ion/app/features/wallets/views/components/nft_picture.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/components/nft_details_loading.dart';
-import 'package:ion/app/features/wallets/views/pages/nft_details/hooks/use_show_tooltip_overlay.dart';
 import 'package:ion/app/features/wallets/views/pages/nft_details/providers/nft_details_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -53,6 +54,7 @@ class NftDetails extends HookConsumerWidget {
     final buttonKey = useRef(GlobalKey());
     final showTooltipOverlay = useShowTooltipOverlay(
       targetKey: buttonKey.value,
+      pointerPosition: TooltipPointerPosition.bottomCenter,
       text: context.i18n.send_nft_sending_nft_will_be_available_later,
     );
 

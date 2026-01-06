@@ -1,16 +1,23 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ion/app/features/wallets/views/pages/nft_details/components/unavailable_tooltip.dart';
+import 'package:ion/app/features/tooltip/views/tooltip.dart';
+import 'package:ion/app/hooks/use_route_presence.dart';
 
 VoidCallback useShowTooltipOverlay({
   required GlobalKey targetKey,
   required String text,
   Duration animationDuration = const Duration(milliseconds: 150),
   Duration autoDismissDuration = const Duration(milliseconds: 1500),
+  TooltipPointerPosition pointerPosition = TooltipPointerPosition.topCenter,
+  TooltipPosition position = TooltipPosition.top,
+  double horizontalPadding = 32.0,
 }) {
   final overlayEntry = useRef<OverlayEntry?>(null);
+  final dismissTimer = useRef<Timer?>(null);
   final animationController = useAnimationController(duration: animationDuration);
 
   final opacityAnimation = useMemoized(
@@ -25,6 +32,32 @@ VoidCallback useShowTooltipOverlay({
       CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn),
     ),
     [animationController],
+  );
+
+  // Cleanup function to hide and remove overlay
+  void hideOverlay() {
+    dismissTimer.value?.cancel();
+    dismissTimer.value = null;
+
+    if (overlayEntry.value != null) {
+      animationController.reverse().then((_) {
+        overlayEntry.value?.remove();
+        overlayEntry.value = null;
+      });
+    }
+  }
+
+  // Cleanup on widget disposal
+  useEffect(
+    () {
+      return hideOverlay;
+    },
+    [],
+  );
+
+  // Hide overlay when route becomes inactive (navigation occurs)
+  useRoutePresence(
+    onBecameInactive: hideOverlay,
   );
 
   return useCallback(
@@ -43,12 +76,18 @@ VoidCallback useShowTooltipOverlay({
         builder: (context) {
           return Positioned.fill(
             child: CustomSingleChildLayout(
-              delegate: _TooltipLayoutDelegate(targetRect),
-              child: UnavailableTooltipOverlay(
+              delegate: _TooltipLayoutDelegate(
+                targetRect,
+                position: position,
+              ),
+              child: TooltipOverlay(
                 text: text,
                 opacityAnimation: opacityAnimation,
                 scaleAnimation: scaleAnimation,
                 targetRect: targetRect,
+                pointerPosition: pointerPosition,
+                position: position,
+                horizontalPadding: horizontalPadding,
               ),
             ),
           );
@@ -58,25 +97,46 @@ VoidCallback useShowTooltipOverlay({
       Overlay.of(context).insert(overlayEntry.value!);
       animationController.forward();
 
-      Future.delayed(autoDismissDuration, () async {
+      dismissTimer.value = Timer(autoDismissDuration, () async {
         await animationController.reverse();
         overlayEntry.value?.remove();
         overlayEntry.value = null;
+        dismissTimer.value = null;
       });
     },
-    [targetKey, opacityAnimation, scaleAnimation, animationController],
+    [
+      targetKey,
+      opacityAnimation,
+      scaleAnimation,
+      animationController,
+      pointerPosition,
+      position,
+      horizontalPadding,
+    ],
   );
 }
 
 class _TooltipLayoutDelegate extends SingleChildLayoutDelegate {
-  _TooltipLayoutDelegate(this.targetRect);
+  _TooltipLayoutDelegate(
+    this.targetRect, {
+    required this.position,
+  });
 
   final Rect targetRect;
+  final TooltipPosition position;
   static const double _screenPadding = 8;
   static const double _tooltipGap = 8;
 
   @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) => constraints.loosen();
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    // Calculate the maximum available width considering screen padding
+    final availableWidth = constraints.maxWidth - (_screenPadding * 2);
+
+    return BoxConstraints(
+      maxWidth: availableWidth,
+      maxHeight: constraints.maxHeight,
+    );
+  }
 
   @override
   Offset getPositionForChild(Size size, Size childSize) {
@@ -89,11 +149,18 @@ class _TooltipLayoutDelegate extends SingleChildLayoutDelegate {
       dx = size.width - childSize.width - _screenPadding;
     }
 
-    final dy = targetRect.top - childSize.height - _tooltipGap;
+    double dy;
+    if (position == TooltipPosition.top) {
+      dy = targetRect.top - childSize.height - _tooltipGap;
+    } else {
+      dy = targetRect.bottom + _tooltipGap;
+    }
 
     return Offset(dx, dy);
   }
 
   @override
-  bool shouldRelayout(_TooltipLayoutDelegate oldDelegate) => targetRect != oldDelegate.targetRect;
+  bool shouldRelayout(_TooltipLayoutDelegate oldDelegate) =>
+      targetRect != oldDelegate.targetRect ||
+      position != oldDelegate.position;
 }
