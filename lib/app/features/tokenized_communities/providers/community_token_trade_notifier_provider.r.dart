@@ -13,7 +13,7 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_community
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
-import 'package:ion/app/features/tokenized_communities/utils/token_operation_restrictions.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_operation_protected_accounts.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
