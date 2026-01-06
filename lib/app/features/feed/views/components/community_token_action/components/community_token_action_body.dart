@@ -144,25 +144,23 @@ class CommunityTokenActionBody extends HookConsumerWidget {
           top: topContainerHeight - (badgeHeight - padding) / 2,
           height: badgeHeight,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 22.0.s),
-              decoration: ShapeDecoration(
-                color: type.getColor(context),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(9.0.s),
-                ),
+            padding: EdgeInsets.symmetric(horizontal: 22.0.s),
+            margin: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
+            decoration: ShapeDecoration(
+              color: type.getColor(context),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9.0.s),
               ),
-              alignment: Alignment.center,
-              child: Text(
-                tokenMarketInfo?.marketData.priceUSD != null
-                    ? market_data_formatters
-                        .formatPriceWithSubscript(tokenMarketInfo!.marketData.priceUSD)
-                    : '',
-                style: context.theme.appTextThemes.caption2.copyWith(
-                  color: context.theme.appColors.primaryBackground,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              tokenMarketInfo?.marketData.priceUSD != null
+                  ? market_data_formatters
+                      .formatPriceWithSubscript(tokenMarketInfo!.marketData.priceUSD)
+                  : '',
+              style: context.theme.appTextThemes.caption2.copyWith(
+                color: context.theme.appColors.primaryBackground,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
