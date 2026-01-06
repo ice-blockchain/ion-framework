@@ -13,6 +13,7 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_community
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_operation_restrictions.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
@@ -50,6 +51,16 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
+      // Check if token operations are restricted for this account
+      final isRestricted = params.eventReference != null
+          ? TokenOperationRestrictions.isRestrictedAccountEvent(params.eventReference!)
+          : TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(
+              params.externalAddress,
+            );
+      if (isRestricted) {
+        throw const TokenOperationRestrictedException();
+      }
+
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
 
       final token = formState.selectedPaymentToken;
@@ -139,6 +150,16 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
+      // Check if token operations are restricted for this account
+      final isRestricted = params.eventReference != null
+          ? TokenOperationRestrictions.isRestrictedAccountEvent(params.eventReference!)
+          : TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(
+              params.externalAddress,
+            );
+      if (isRestricted) {
+        throw const TokenOperationRestrictedException();
+      }
+
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
 
       final token = formState.selectedPaymentToken;

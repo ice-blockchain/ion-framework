@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 
 // Utility class for checking if token operations should be restricted for accounts.
 // Token operations include: creating token definitions, buying tokens, and selling tokens.
@@ -22,5 +23,14 @@ class TokenOperationRestrictions {
   // Checks if the account associated with the given event reference is restricted.
   static bool isRestrictedAccountEvent(EventReference eventReference) {
     return isRestrictedAccount(eventReference.masterPubkey);
+  }
+
+  // Checks if the account associated with the given external address is restricted.
+  static bool isRestrictedAccountFromExternalAddress(String externalAddress) {
+    final masterPubkey = MasterPubkeyResolver.resolve(
+      externalAddress,
+      eventReference: null,
+    );
+    return isRestrictedAccount(masterPubkey);
   }
 }

@@ -11,6 +11,7 @@ import 'package:ion/app/features/tokenized_communities/providers/community_token
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_operation_restrictions.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
@@ -45,6 +46,11 @@ class TradeCommunityTokenService {
     FatAddressV2Data? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
+    // Check if token operations are restricted for this account
+    if (TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(externalAddress)) {
+      throw const TokenOperationRestrictedException();
+    }
+
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
     final firstBuy = _isFirstBuy(existingTokenAddress);
@@ -109,6 +115,11 @@ class TradeCommunityTokenService {
     required bool shouldSendEvents,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
+    // Check if token operations are restricted for this account
+    if (TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(externalAddress)) {
+      throw const TokenOperationRestrictedException();
+    }
+
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final toTokenBytes = _getBytesFromAddress(paymentTokenAddress);
 

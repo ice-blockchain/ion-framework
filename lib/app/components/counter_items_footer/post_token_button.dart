@@ -15,6 +15,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_action_fi
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_operation_restrictions.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -141,6 +142,12 @@ class _ContentEntityButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventReference = entity.toEventReference();
+    // Check if token operations are restricted for this account
+    final isRestricted = TokenOperationRestrictions.isRestrictedAccountEvent(eventReference);
+    if (isRestricted) {
+      return const SizedBox.shrink();
+    }
+
     final ownerHasBscWallet = ref
         .watch(
           userMetadataProvider(eventReference.masterPubkey)

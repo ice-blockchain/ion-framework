@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_operation_restrictions.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -25,6 +26,14 @@ class FloatingTradeIsland extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Check if token operations are restricted for this account
+    final isRestricted = eventReference != null
+        ? TokenOperationRestrictions.isRestrictedAccountEvent(eventReference!)
+        : TokenOperationRestrictions.isRestrictedAccountFromExternalAddress(externalAddress!);
+    if (isRestricted) {
+      return const SizedBox.shrink();
+    }
+
     final colors = context.theme.appColors;
     final i18n = context.i18n;
 
