@@ -3,6 +3,7 @@
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/coins/ion_identity_coins.dart';
 import 'package:ion_identity_client/src/core/service_locator/ion_identity_clients/user_action_signer_service_locator.dart';
+import 'package:ion_identity_client/src/deeplinks/ion_identity_deeplinks.dart';
 import 'package:ion_identity_client/src/keys/ion_identity_keys.dart';
 import 'package:ion_identity_client/src/networks/ion_identity_networks.dart';
 import 'package:ion_identity_client/src/signer/identity_signer.dart';
@@ -28,6 +29,7 @@ final class IONIdentityClient {
     required this.networks,
     required this.statistics,
     required this.keys,
+    required this.deeplinks,
   });
 
   final String username;
@@ -56,6 +58,9 @@ final class IONIdentityClient {
 
   /// Provides access to keys-related operations, such as create new key, delete and others.
   final IONIdentityKeys keys;
+
+  /// Provides access to deeplinks-related operations, such as sending deeplinks to backend.
+  final IONIdentityDeeplinks deeplinks;
 
   /// Provides access to the UserActionSigner for advanced signing operations
   UserActionSigner get userActionSigner {

@@ -3,6 +3,7 @@
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/core/service_locator/ion_identity_clients/auth_client_service_locator.dart';
 import 'package:ion_identity_client/src/core/service_locator/ion_identity_clients/coin_client_service_locator.dart';
+import 'package:ion_identity_client/src/core/service_locator/ion_identity_clients/deeplinks_client_service_locator.dart';
 import 'package:ion_identity_client/src/core/service_locator/ion_identity_clients/keys_client_service_locator.dart';
 import 'package:ion_identity_client/src/core/service_locator/ion_identity_clients/networks_client_service_locator.dart';
 import 'package:ion_identity_client/src/core/service_locator/ion_identity_clients/statistics_client_service_locator.dart';
@@ -62,6 +63,10 @@ class ClientsServiceLocator {
           username: username,
           config: config,
           identitySigner: identitySigner,
+        ),
+        deeplinks: DeeplinksClientServiceLocator().deeplinks(
+          username: username,
+          config: config,
         ),
       );
       _clients[username] = client;

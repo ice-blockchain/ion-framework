@@ -3,9 +3,13 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/chat/providers/event_share_url_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
@@ -14,6 +18,10 @@ import 'package:ion/app/features/tokenized_communities/models/entities/token_def
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
+import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
+import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'community_token_ion_connect_notifier_provider.r.g.dart';
@@ -25,11 +33,19 @@ class CommunityTokenIonConnectService {
     required CommunityTokenDefinitionRepository communityTokenDefinitionRepository,
     required UserEventsMetadataBuilder userEventsMetadataBuilder,
     required bool Function(String masterPubkey) isCurrentUserSelector,
+    required AppsFlyerDeepLinkService appsflyerDeepLinkService,
+    required IONIdentityClient ionIdentityClient,
+    required Future<IonConnectEntity?> Function(EventReference eventReference) getIonConnectEntity,
+    required Future<String?> Function(EventReference eventReference) getEventShareUrl,
   })  : _ionConnectNotifier = ionConnectNotifier,
         _ionConnectCache = ionConnectCache,
         _communityTokenDefinitionRepository = communityTokenDefinitionRepository,
         _userEventsMetadataBuilder = userEventsMetadataBuilder,
-        _isCurrentUserSelector = isCurrentUserSelector;
+        _isCurrentUserSelector = isCurrentUserSelector,
+        _appsflyerDeepLinkService = appsflyerDeepLinkService,
+        _getIonConnectEntity = getIonConnectEntity,
+        _ionIdentityClient = ionIdentityClient,
+        _getEventShareUrl = getEventShareUrl;
 
   final IonConnectNotifier _ionConnectNotifier;
 
@@ -40,6 +56,14 @@ class CommunityTokenIonConnectService {
   final UserEventsMetadataBuilder _userEventsMetadataBuilder;
 
   final bool Function(String masterPubkey) _isCurrentUserSelector;
+
+  final AppsFlyerDeepLinkService _appsflyerDeepLinkService;
+
+  final IONIdentityClient _ionIdentityClient;
+
+  final Future<IonConnectEntity?> Function(EventReference eventReference) _getIonConnectEntity;
+
+  final Future<String?> Function(EventReference eventReference) _getEventShareUrl;
 
   Future<void> sendFirstBuyEvents({
     required String externalAddress,
@@ -81,6 +105,11 @@ class CommunityTokenIonConnectService {
 
     await _cacheTokenDefinitionFirstBuyReference(
       tokenDefinitionFirstBuyEvent: tokenDefinitionFirstBuyEvent,
+    );
+
+    await _createAndSendDeeplink(
+      externalAddress: externalAddress,
+      eventReference: communityTokenDefinitionData.eventReference,
     );
   }
 
@@ -218,6 +247,41 @@ class CommunityTokenIonConnectService {
     );
   }
 
+  Future<void> _createAndSendDeeplink({
+    required String externalAddress,
+    required EventReference eventReference,
+  }) async {
+    try {
+      final entity = await _getIonConnectEntity(eventReference);
+
+      if (entity == null) {
+        Logger.warning('Entity not found for eventReference: $eventReference');
+        return;
+      }
+
+      final shareUrl = await _getEventShareUrl(eventReference);
+
+      if (shareUrl == null) {
+        Logger.warning('Share URL not found for eventReference: $eventReference');
+        return;
+      }
+
+      final deeplink = await _appsflyerDeepLinkService.createDeeplink(
+        path: shareUrl,
+      );
+
+      await _ionIdentityClient.deeplinks.sendDeeplink(
+        eventAddress: externalAddress,
+        deeplink: deeplink,
+      );
+    } catch (error, stackTrace) {
+      Logger.error(
+        'Failed to create and send deeplink for $externalAddress: $error',
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   /// Caches TokenDefinitionReferenceEntity to indicate that an event has
   /// a token (it is created on the first buy from any user).
   Future<void> _cacheTokenDefinitionFirstBuyReference({
@@ -238,8 +302,19 @@ Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref)
   final communityTokenDefinitionRepository =
       await ref.watch(communityTokenDefinitionRepositoryProvider.future);
   final userEventsMetadataBuilder = await ref.watch(userEventsMetadataBuilderProvider.future);
+  final appsflyerDeepLinkService = ref.watch(appsflyerDeepLinkServiceProvider);
+  final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
+
   bool isCurrentUserSelector(String masterPubkey) {
     return ref.read(isCurrentUserSelectorProvider(masterPubkey));
+  }
+
+  Future<IonConnectEntity?> getIonConnectEntity(EventReference eventReference) async {
+    return ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
+  }
+
+  Future<String?> getEventShareUrl(EventReference eventReference) async {
+    return ref.read(eventShareUrlProvider(eventReference).future);
   }
 
   return CommunityTokenIonConnectService(
@@ -248,5 +323,9 @@ Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref)
     communityTokenDefinitionRepository: communityTokenDefinitionRepository,
     userEventsMetadataBuilder: userEventsMetadataBuilder,
     isCurrentUserSelector: isCurrentUserSelector,
+    appsflyerDeepLinkService: appsflyerDeepLinkService,
+    getIonConnectEntity: getIonConnectEntity,
+    ionIdentityClient: ionIdentityClient,
+    getEventShareUrl: getEventShareUrl,
   );
 }
