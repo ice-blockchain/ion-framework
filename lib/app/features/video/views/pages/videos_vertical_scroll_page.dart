@@ -1,20 +1,26 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
+import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/quick_page_swiper/quick_page_swiper.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -23,11 +29,13 @@ import 'package:ion/app/features/video/views/components/video_not_found.dart';
 import 'package:ion/app/features/video/views/components/video_post_info.dart';
 import 'package:ion/app/features/video/views/hooks/use_status_bar_color.dart';
 import 'package:ion/app/features/video/views/hooks/use_wake_lock.dart';
+import 'package:ion/app/features/video/views/pages/ad_video_page.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class _FlattenedVideo {
@@ -57,6 +65,8 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
 
   bool get hasMore => onLoadMore != null;
 
+  static const int showAdAfter = 10;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useStatusBarColor();
@@ -66,6 +76,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final primaryTextColor = appColors.primaryText;
     final onPrimaryAccentColor = appColors.onPrimaryAccent;
     final secondaryBackgroundColor = appColors.secondaryBackground;
+    final rightPadding = 6.0.s;
     final animationDuration = 100.ms;
 
     final ionConnectEntity =
@@ -126,15 +137,19 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final userPageController = usePageController(initialPage: initialPage);
     final currentEventReference = useState<EventReference>(eventReference);
 
-    final currentEntity = ref
-        .watch(
-          ionConnectEntityWithCountersProvider(eventReference: currentEventReference.value),
-        )
-        .valueOrNull;
+    final isOwnedByCurrentUser =
+        ref.watch(isCurrentUserSelectorProvider(currentEventReference.value.masterPubkey));
+
+    final menuCloseSignal = useMemoized(OverlayMenuCloseSignal.new);
+    useEffect(() => menuCloseSignal.dispose, [menuCloseSignal]);
 
     useEffect(
       () {
         void listener() {
+          if (userPageController.offset != 0) {
+            menuCloseSignal.trigger();
+          }
+
           if (userPageController.offset < -150 ||
               (userPageController.offset > userPageController.position.maxScrollExtent + 150)) {
             if (context.canPop() && !hasMore && context.mounted) {
@@ -158,6 +173,17 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
       },
       [onVideoSeen, initialPage, flattenedVideos],
     );
+
+    final canShowNativeAds = ref.watch(ionAdClientProvider).valueOrNull?.isNativeLoaded ?? false;
+    final nextAdIndex = useMemoized(
+      () {
+        final rng = Random(flattenedVideos.length);
+        return showAdAfter + rng.nextInt(showAdAfter) - showAdAfter / 2;
+      },
+      [flattenedVideos],
+    );
+
+    final isAdVisible = useState(false);
 
     final nextVideoParams = useMemoized(
       () {
@@ -203,18 +229,33 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
             ),
           ),
           onBackPress: () => context.pop(),
-          actions: [
-            ContentBottomSheetMenu.forAppBar(
-              eventReference: currentEventReference.value,
-              entity: currentEntity,
-              iconColor: secondaryBackgroundColor,
-              onDelete: () {
-                if (context.canPop() && context.mounted) {
-                  context.pop();
-                }
-              },
-            ),
-          ],
+          actions: isAdVisible.value
+              ? null
+              : [
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(end: rightPadding),
+                    child: isOwnedByCurrentUser
+                        ? BottomSheetMenuButton(
+                            showShadow: true,
+                            iconColor: secondaryBackgroundColor,
+                            menuBuilder: (context) => OwnPostMenuBottomSheet(
+                              eventReference: currentEventReference.value,
+                              onDelete: () {
+                                if (context.canPop() && context.mounted) {
+                                  context.pop();
+                                }
+                              },
+                            ),
+                          )
+                        : BottomSheetMenuButton(
+                            showShadow: true,
+                            iconColor: secondaryBackgroundColor,
+                            menuBuilder: (context) => PostMenuBottomSheet(
+                              eventReference: currentEventReference.value,
+                            ),
+                          ),
+                  ),
+                ],
         ),
         body: QuickPageSwiper(
           pageController: userPageController,
@@ -230,25 +271,34 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
               currentEventReference.value = flattenedVideos[index].entity.toEventReference();
             },
             itemBuilder: (_, index) {
-              final flattenedVideo = flattenedVideos[index];
-              final perPageEventReference = flattenedVideo.entity.toEventReference();
-              final media = flattenedVideo.media;
+              if (index % nextAdIndex == 0 && index != 0 && canShowNativeAds) {
+                print('AdVideoViewer index:$index, nextAdIndex:$nextAdIndex');
+                isAdVisible.value = true;
+                return AdVideoViewer(flattenedVideos[index].entity.id);
+              } else {
+                final mainIndex = index - (index ~/ showAdAfter);
+                isAdVisible.value = false;
 
-              return VideoPage(
-                videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
-                bottomOverlay: VideoActions(
-                  eventReference: perPageEventReference,
-                  onReplyTap: () => PostDetailsRoute(
-                    eventReference: perPageEventReference.encode(),
-                  ).push<void>(context),
-                ),
-                videoUrl: media.url,
-                authorPubkey: perPageEventReference.masterPubkey,
-                thumbnailUrl: media.thumb,
-                blurhash: media.blurhash,
-                aspectRatio: media.aspectRatio,
-                framedEventReference: index == initialPage ? framedEventReference : null,
-              );
+                final flattenedVideo = flattenedVideos[mainIndex];
+                final perPageEventReference = flattenedVideo.entity.toEventReference();
+                final media = flattenedVideo.media;
+
+                return VideoPage(
+                  videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
+                  bottomOverlay: VideoActions(
+                    eventReference: perPageEventReference,
+                    onReplyTap: () => PostDetailsRoute(
+                      eventReference: perPageEventReference.encode(),
+                    ).push<void>(context),
+                  ),
+                  videoUrl: media.url,
+                  authorPubkey: perPageEventReference.masterPubkey,
+                  thumbnailUrl: media.thumb,
+                  blurhash: media.blurhash,
+                  aspectRatio: media.aspectRatio,
+                  framedEventReference: index == initialPage ? framedEventReference : null,
+                );
+              }
             },
           ),
         ),
