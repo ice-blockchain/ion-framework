@@ -3,16 +3,13 @@
 import 'package:ion/app/features/optimistic_ui/core/optimistic_intent.dart';
 import 'package:ion/app/features/settings/model/content_lang_set.f.dart';
 
-class ChangeLanguageIntent implements OptimisticIntent<ContentLangSet> {
-  ChangeLanguageIntent(this.iso);
-  final String iso;
+class UpdateLanguagesIntent implements OptimisticIntent<ContentLangSet> {
+  UpdateLanguagesIntent(this.languageCodes);
+  final List<String> languageCodes;
 
   @override
   ContentLangSet optimistic(ContentLangSet current) {
-    final updated = {...current.hashtags};
-    updated.contains(iso) ? updated.remove(iso) : updated.add(iso);
-
-    return current.copyWith(hashtags: updated.toList()).sorted;
+    return current.copyWith(hashtags: languageCodes).sorted;
   }
 
   @override

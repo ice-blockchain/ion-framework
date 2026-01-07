@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/model/language.dart';
 import 'package:ion/app/features/core/providers/language_lists_provider.r.dart';
@@ -10,7 +11,7 @@ import 'package:ion/app/features/core/views/pages/language_selector_page/languag
 ///
 /// This widget shows all available languages, not just those supported by the app's
 /// localization system. Use this for selecting content languages, post languages, etc.
-class ContentLanguageSelectorPage extends ConsumerWidget {
+class ContentLanguageSelectorPage extends HookConsumerWidget {
   const ContentLanguageSelectorPage({
     required this.title,
     required this.description,
@@ -38,14 +39,45 @@ class ContentLanguageSelectorPage extends ConsumerWidget {
       contentLanguagesListProvider(preferredLanguages: preferredLanguages),
     );
 
+    // Sort languages so selected ones appear at the top
+    final languagesWithSelectedFirst = useMemoized(
+      () => _sortWithSelectedFirst(sortedLanguages, selectedLanguages),
+      [],
+    );
+
     return LanguageSelectorPage(
       title: title,
       description: description,
       selectedLanguages: selectedLanguages,
       toggleLanguageSelection: toggleLanguageSelection,
-      languages: sortedLanguages,
+      languages: languagesWithSelectedFirst,
       appBar: appBar,
       continueButton: continueButton,
     );
+  }
+
+  /// Sorts languages so selected languages appear first.
+  List<Language> _sortWithSelectedFirst(
+    List<Language> languages,
+    List<String> selectedLanguageCodes,
+  ) {
+    if (selectedLanguageCodes.isEmpty) return languages;
+
+    final selectedLanguagesMap = {
+      for (final code in selectedLanguageCodes) code.toLowerCase(): true,
+    };
+
+    final selected = <Language>[];
+    final unselected = <Language>[];
+
+    for (final language in languages) {
+      if (selectedLanguagesMap[language.isoCode.toLowerCase()] ?? false) {
+        selected.add(language);
+      } else {
+        unselected.add(language);
+      }
+    }
+
+    return [...selected, ...unselected];
   }
 }

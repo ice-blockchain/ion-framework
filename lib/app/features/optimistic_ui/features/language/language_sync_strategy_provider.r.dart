@@ -10,8 +10,8 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
-import 'package:ion/app/features/optimistic_ui/features/language/change_language_intent.dart';
 import 'package:ion/app/features/optimistic_ui/features/language/language_sync_strategy.dart';
+import 'package:ion/app/features/optimistic_ui/features/language/update_languages_intent.dart';
 import 'package:ion/app/features/settings/model/content_lang_set.f.dart';
 import 'package:ion/app/features/user/model/interest_set.f.dart';
 import 'package:ion/app/features/user/providers/user_interests_set_provider.r.dart';
@@ -86,11 +86,11 @@ Stream<ContentLangSet?> contentLanguageWatch(Ref ref) async* {
 }
 
 @riverpod
-class ToggleLanguageNotifier extends _$ToggleLanguageNotifier {
+class UpdateContentLanguagesNotifier extends _$UpdateContentLanguagesNotifier {
   @override
   void build() {}
 
-  Future<void> toggle(String iso) async {
+  Future<void> update(List<String> languageCodes) async {
     final pubkey = ref.read(currentPubkeySelectorProvider);
     if (pubkey == null) return;
 
@@ -99,7 +99,7 @@ class ToggleLanguageNotifier extends _$ToggleLanguageNotifier {
     if (current == null) return;
 
     final service = ref.read(contentLanguageServiceProvider);
-    await service.dispatch(ChangeLanguageIntent(iso), current);
+    await service.dispatch(UpdateLanguagesIntent(languageCodes), current);
   }
 }
 
