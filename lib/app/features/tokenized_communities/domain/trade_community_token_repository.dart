@@ -71,13 +71,9 @@ class TradeCommunityTokenRepository {
     );
   }
 
-  Future<TransactionResult> approve({
-    required String walletId,
+  Future<EvmUserOperation> buildApproveUserOperation({
     required String tokenAddress,
     required BigInt amount,
-    required UserActionSignerNew userActionSigner,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   }) async {
     await _ensureConfigLoaded();
     final approvalTx = await txBuilder.encodeApprove(
@@ -86,28 +82,14 @@ class TradeCommunityTokenRepository {
       amount: amount,
     );
 
-    final tx = _applyFees(
-      approvalTx,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
-    );
-
-    return ionIdentity.signAndBroadcast(
-      walletId: walletId,
-      transaction: tx,
-      userActionSigner: userActionSigner,
-    );
+    return _toUserOperation(approvalTx);
   }
 
-  Future<TransactionResult> swapCommunityToken({
-    required String walletId,
+  Future<EvmUserOperation> buildSwapUserOperation({
     required List<int> fromTokenIdentifier,
     required List<int> toTokenIdentifier,
     required BigInt amountIn,
     required BigInt minReturn,
-    required UserActionSignerNew userActionSigner,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   }) async {
     await _ensureConfigLoaded();
     final swapTx = await txBuilder.encodeSwap(
@@ -119,31 +101,35 @@ class TradeCommunityTokenRepository {
       bondingCurveAddress: _cachedAddress!,
     );
 
-    final tx = _applyFees(
-      swapTx,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
-    );
+    return _toUserOperation(swapTx);
+  }
 
-    return ionIdentity.signAndBroadcast(
+  Future<TransactionResult> signAndBroadcastUserOperations({
+    required String walletId,
+    required List<EvmUserOperation> userOperations,
+    required String feeSponsorId,
+    required UserActionSignerNew userActionSigner,
+    String? externalId,
+  }) {
+    return ionIdentity.signAndBroadcastUserOperations(
       walletId: walletId,
-      transaction: tx,
+      userOperations: userOperations,
+      feeSponsorId: feeSponsorId,
       userActionSigner: userActionSigner,
+      externalId: externalId,
     );
   }
 
-  EvmTransaction _applyFees(
-    EvmTransaction transaction, {
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
-  }) {
-    return EvmTransaction(
-      kind: transaction.kind,
+  EvmUserOperation _toUserOperation(EvmTransaction transaction) {
+    return EvmUserOperation(
       to: transaction.to,
-      data: transaction.data,
-      value: transaction.value,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
+      data: transaction.data.isNotEmpty ? transaction.data : null,
+      value: _encodeQuantity(transaction.value),
     );
+  }
+
+  String? _encodeQuantity(BigInt value) {
+    if (value == BigInt.zero) return null;
+    return '0x${value.toRadixString(16)}';
   }
 }

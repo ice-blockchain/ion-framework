@@ -44,8 +44,6 @@ class TradeCommunityTokenService {
     required bool shouldSendEvents,
     FatAddressData? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   }) async {
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
@@ -68,10 +66,6 @@ class TradeCommunityTokenService {
       walletAddress: walletAddress,
       allowanceTokenAddress: baseTokenAddress,
       tokenDecimals: tokenDecimals,
-      mode: CommunityTokenTradeMode.buy,
-      quoteDecimals: tokenDecimals,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
       userActionSigner: userActionSigner,
     );
 
@@ -114,8 +108,6 @@ class TradeCommunityTokenService {
     required PricingResponse expectedPricing,
     required bool shouldSendEvents,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   }) async {
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final toTokenBytes = _getBytesFromAddress(paymentTokenAddress);
@@ -131,10 +123,6 @@ class TradeCommunityTokenService {
       walletAddress: walletAddress,
       allowanceTokenAddress: communityTokenAddress,
       tokenDecimals: tokenDecimals,
-      mode: CommunityTokenTradeMode.sell,
-      quoteDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
       userActionSigner: userActionSigner,
     );
 
@@ -178,11 +166,7 @@ class TradeCommunityTokenService {
     required String walletAddress,
     required String allowanceTokenAddress,
     required int tokenDecimals,
-    required CommunityTokenTradeMode mode,
-    required int quoteDecimals,
     required UserActionSignerNew userActionSigner,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   }) async {
     final fromTokenBytes = _getBytesFromAddress(fromTokenAddress);
 
@@ -193,28 +177,31 @@ class TradeCommunityTokenService {
       slippagePercent: slippagePercent,
     );
 
-    await _ensureAllowance(
+    final approvalOperation = await _buildAllowanceApprovalOperationIfNeeded(
       owner: walletAddress,
       tokenAddress: allowanceTokenAddress,
       requiredAmount: amountIn,
-      walletId: walletId,
       tokenDecimals: tokenDecimals,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
-      userActionSigner: userActionSigner,
     );
 
-    final transaction = await repository.swapCommunityToken(
-      walletId: walletId,
+    final swapOperation = await repository.buildSwapUserOperation(
       fromTokenIdentifier: fromTokenBytes,
       toTokenIdentifier: toTokenBytes,
       amountIn: amountIn,
       minReturn: minReturn,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
+    );
+
+    final userOperations = <EvmUserOperation>[
+      if (approvalOperation != null) approvalOperation,
+      swapOperation,
+    ];
+
+    return repository.signAndBroadcastUserOperations(
+      walletId: walletId,
+      userOperations: userOperations,
+      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
       userActionSigner: userActionSigner,
     );
-    return transaction;
   }
 
   Future<void> _sendFirstBuyEvents({
@@ -374,34 +361,26 @@ class TradeCommunityTokenService {
     return fatAddressData.toFatAddressBytes();
   }
 
-  Future<void> _ensureAllowance({
+  Future<EvmUserOperation?> _buildAllowanceApprovalOperationIfNeeded({
     required String owner,
     required String tokenAddress,
     required BigInt requiredAmount,
-    required String walletId,
     required int tokenDecimals,
-    required UserActionSignerNew userActionSigner,
-    BigInt? maxFeePerGas,
-    BigInt? maxPriorityFeePerGas,
   }) async {
     final allowance = await repository.fetchAllowance(
       owner: owner,
       tokenAddress: tokenAddress,
     );
 
-    if (allowance >= requiredAmount) return;
+    if (allowance >= requiredAmount) return null;
 
     final approvalAmount = BigInt.from(10).pow(
       TokenizedCommunitiesConstants.approvalTrillionMultiplier + tokenDecimals,
     );
 
-    await repository.approve(
-      walletId: walletId,
+    return repository.buildApproveUserOperation(
       tokenAddress: tokenAddress,
       amount: approvalAmount,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
-      userActionSigner: userActionSigner,
     );
   }
 

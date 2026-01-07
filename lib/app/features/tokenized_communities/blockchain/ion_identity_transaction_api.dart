@@ -41,6 +41,31 @@ class IonIdentityTransactionApi {
     return response;
   }
 
+  Future<Map<String, dynamic>> signAndBroadcastUserOperations({
+    required String walletId,
+    required List<EvmUserOperation> userOperations,
+    required String feeSponsorId,
+    required UserActionSignerNew userActionSigner,
+    String? externalId,
+  }) async {
+    final client = await _clientResolver();
+    final wallet = await _resolveWallet(client, walletId);
+
+    final broadcastRequest = EvmBroadcastRequest.userOperations(
+      userOperations: userOperations,
+      feeSponsorId: feeSponsorId,
+      externalId: externalId,
+    );
+
+    final response = await client.wallets.signAndBroadcast(
+      wallet,
+      broadcastRequest,
+      userActionSigner,
+    );
+
+    return response;
+  }
+
   Future<Wallet> _resolveWallet(IONIdentityClient client, String walletId) async {
     final wallets = await client.wallets.getWallets();
     final wallet = wallets.firstWhere(
