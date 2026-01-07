@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -14,21 +17,47 @@ class ContentLanguageModal extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedLanguages = ref.watch(
+    final currentSelectedLanguages = ref.watch(
       contentLanguageWatchProvider.select(
         (async) => async.valueOrNull?.hashtags ?? const <String>[],
       ),
     );
 
+    // Track selected languages locally (only update when modal closes)
+    final selectedLanguages = useState<List<String>>(currentSelectedLanguages);
+
+    Future<void> applyChanges() async {
+      final updateNotifier = ref.read(updateContentLanguagesNotifierProvider.notifier);
+      await updateNotifier.update(selectedLanguages.value);
+    }
+
     return ContentLanguageSelectorPage(
       title: context.i18n.content_language_title,
       description: context.i18n.content_language_description,
-      toggleLanguageSelection: (iso) =>
-          ref.read(toggleLanguageNotifierProvider.notifier).toggle(iso),
-      selectedLanguages: selectedLanguages,
+      toggleLanguageSelection: (iso) {
+        // Update local state only
+        final current = selectedLanguages.value.toSet();
+        if (current.contains(iso)) {
+          current.remove(iso);
+        } else {
+          current.add(iso);
+        }
+        selectedLanguages.value = current.toList();
+      },
+      selectedLanguages: selectedLanguages.value,
       appBar: NavigationAppBar.modal(
-        onBackPress: () => context.pop(true),
-        actions: const [NavigationCloseButton()],
+        onBackPress: () {
+          unawaited(applyChanges());
+          context.pop(true);
+        },
+        actions: [
+          NavigationCloseButton(
+            onPressed: () {
+              unawaited(applyChanges());
+              context.pop();
+            },
+          ),
+        ],
       ),
     );
   }
