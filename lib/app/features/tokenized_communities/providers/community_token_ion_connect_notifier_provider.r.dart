@@ -277,6 +277,7 @@ class CommunityTokenIonConnectService {
         'Failed to create and send deeplink for $externalAddress: $error',
         stackTrace: stackTrace,
       );
+      // No need to rethrow, deeplink failure shouldn't block the main flow
     }
   }
 
