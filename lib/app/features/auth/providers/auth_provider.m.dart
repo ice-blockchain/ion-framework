@@ -178,13 +178,7 @@ class CurrentPubkeySelector extends _$CurrentPubkeySelector {
     }
   }
 
-  void _updateSentryUserScope(String? prev, String? next) {
-    if (next != null) {
-      SentryService.setUserScope(next);
-    } else {
-      SentryService.clearUserScope();
-    }
-  }
+  void _updateSentryUserScope(String? prev, String? next) => SentryService.setUserScope(next);
 
   static const persistenceKey = 'current_master_pubkey';
 }
