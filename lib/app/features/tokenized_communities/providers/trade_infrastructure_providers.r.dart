@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:http/http.dart';
+import 'dart:async';
+
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
-import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
@@ -13,6 +13,7 @@ import 'package:ion/app/features/tokenized_communities/domain/trade_community_to
 import 'package:ion/app/features/tokenized_communities/domain/trade_payment_token_groups_service.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/web3client_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -22,7 +23,6 @@ import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:web3dart/web3dart.dart';
 
 part 'trade_infrastructure_providers.r.g.dart';
 
@@ -41,15 +41,6 @@ Future<TradeCommunityTokenApi> tradeCommunityTokenApi(
 @riverpod
 EvmContractProviders evmContractProviders(Ref ref) {
   return EvmContractProviders();
-}
-
-@riverpod
-Web3Client web3Client(Ref ref) {
-  // Using the BNB Testnet RPC as requested
-  final rpcUrl =
-      ref.watch(envProvider.notifier).get<String>(EnvVariable.CRYPTOCURRENCIES_BSC_RPC_URL);
-  final httpClient = Client();
-  return Web3Client(rpcUrl, httpClient);
 }
 
 @riverpod
