@@ -82,7 +82,8 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
             let options = args["options"] as? [String: Any] ?? [:]
             let adChoiceConfig = options["adChoiceConfig"] as? [String: Any]
             let posIndex = adChoiceConfig?["position"] as? Int ?? 2 // Default to endTop (2)
-            logToFlutter("setupAdView, posIndex: \(posIndex), placement: \(placement), nativeAd: \(nativeAd)")
+            let margin = adChoiceConfig?["margin"] as? Double ?? 0.0
+            logToFlutter("setupAdView, posIndex: \(posIndex), margin: \(margin), placement: \(placement), nativeAd: \(nativeAd)")
 
             // Get the ad view from the SDK, configured with our NativeView class.
             let adView = try nativeAd.getViewForPlacement(placement, withRootViewController: rootViewController)
@@ -94,6 +95,7 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
                     case 3: storyView.adChoicePosition = .endBottom
                     default: storyView.adChoicePosition = .endTop
                 }
+                storyView.adChoiceMargin = margin
             }
             logToFlutter("Successfully created native ad view.")
 
