@@ -798,3 +798,7 @@ class UserDeviceRevokedException extends IONException {
           'User device has been revoked',
         );
 }
+
+class ShareUrlNotFoundException extends IONException {
+  ShareUrlNotFoundException(dynamic entityInfo) : super(10145, 'Share URL not found $entityInfo');
+}

@@ -255,15 +255,13 @@ class CommunityTokenIonConnectService {
       final entity = await _getIonConnectEntity(eventReference);
 
       if (entity == null) {
-        Logger.warning('Entity not found for eventReference: $eventReference');
-        return;
+        throw EntityNotFoundException(eventReference);
       }
 
       final shareUrl = await _getEventShareUrl(eventReference);
 
       if (shareUrl == null) {
-        Logger.warning('Share URL not found for eventReference: $eventReference');
-        return;
+        throw ShareUrlNotFoundException(eventReference);
       }
 
       final deeplink = await _appsflyerDeepLinkService.createDeeplink(
