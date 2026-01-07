@@ -7,9 +7,10 @@ class TokenizedCommunitiesConstants {
   static const String bscNetworkId = 'Bsc';
   static const String bscTestnetNetworkId = 'BscTestnet';
 
+  /// Identity fee sponsor wallet id used for sponsored user-operations broadcasts.
+  static const String tradeFeeSponsorWalletId = 'fs-01jea-99pmi-e7f8j0ofu8q15k9f';
+
   static const double defaultSlippagePercent = 1;
-  static final BigInt defaultMaxFeePerGas = BigInt.from(20000000000); // 20 gwei
-  static final BigInt defaultMaxPriorityFeePerGas = BigInt.from(1000000000); // 1 gwei
 
   static const int approvalTrillionMultiplier = 12; // 10^12
   static const int maxSlippagePercent = 100;
