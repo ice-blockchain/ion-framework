@@ -10,6 +10,7 @@ import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user/providers/biometrics_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -157,6 +158,7 @@ class CurrentPubkeySelector extends _$CurrentPubkeySelector {
   @override
   String? build() {
     listenSelf(_saveState);
+    listenSelf(_updateSentryUserScope);
     final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
     if (currentIdentityKeyName == null) {
       return null;
@@ -175,6 +177,8 @@ class CurrentPubkeySelector extends _$CurrentPubkeySelector {
       await sharedPreferencesFoundation.setString(persistenceKey, next);
     }
   }
+
+  void _updateSentryUserScope(String? prev, String? next) => SentryService.setUserScope(next);
 
   static const persistenceKey = 'current_master_pubkey';
 }
