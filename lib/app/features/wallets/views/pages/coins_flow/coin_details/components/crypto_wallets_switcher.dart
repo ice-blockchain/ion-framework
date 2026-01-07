@@ -12,7 +12,7 @@ class CryptoWalletSwitcher extends StatelessWidget {
   });
 
   final List<String> wallets;
-  final String selectedWallet;
+  final String? selectedWallet;
   final ValueChanged<String> onWalletChanged;
 
   @override

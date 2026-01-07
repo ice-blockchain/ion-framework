@@ -73,8 +73,10 @@ class CoinDetailsPage extends HookConsumerWidget {
       [coinsGroup],
     );
 
-    final wallets = ref.watch(selectedCryptoWalletNotifierProvider);
-    final shouldShowWallets = wallets.wallets.length > 1;
+    final cryptoWalletData = ref.watch(
+      selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
+    );
+    final shouldShowWallets = cryptoWalletData.wallets.length > 1;
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
@@ -104,11 +106,15 @@ class CoinDetailsPage extends HookConsumerWidget {
                   Padding(
                     padding: EdgeInsetsDirectional.only(top: 20.s),
                     child: CryptoWalletSwitcher(
-                      wallets: wallets.wallets,
-                      selectedWallet: wallets.selectedWallet,
+                      wallets: cryptoWalletData.wallets,
+                      selectedWallet: cryptoWalletData.selectedWallet,
                       onWalletChanged: (wallet) {
-                        ref.read(selectedCryptoWalletNotifierProvider.notifier).selectedWallet =
-                            wallet;
+                        ref
+                            .read(
+                              selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup)
+                                  .notifier,
+                            )
+                            .selectedWallet = wallet;
                       },
                     ),
                   ),
