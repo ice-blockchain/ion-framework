@@ -40,7 +40,7 @@ class TopHolderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isXuser = holder.position.holder?.isXUser ?? false;
+    final isXUser = holder.position.holder?.isXUser ?? false;
     final holderAddress = holder.position.holder?.addresses?.ionConnect;
     final creatorAddress = holder.creator.addresses?.ionConnect;
     final isCreator = creatorAddress != null && holderAddress == creatorAddress;
@@ -60,7 +60,7 @@ class TopHolderTile extends StatelessWidget {
       isCreator: isCreator,
       avatarUrl: holder.position.holder?.avatar,
       holderAddress: holderAddress,
-      isXUser: isXuser,
+      isXUser: isXUser,
     );
   }
 }
