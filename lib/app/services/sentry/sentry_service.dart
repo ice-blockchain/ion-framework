@@ -63,6 +63,21 @@ mixin SentryService {
     );
   }
 
+  /// Sets the user scope with the masterkey for all Sentry events
+  ///
+  /// [masterkey] - The user's master public key (null to clear)
+  static void setUserScope(String? masterkey) {
+    Sentry.configureScope((scope) {
+      scope.setUser(
+        masterkey != null
+            ? SentryUser(
+                id: masterkey,
+              )
+            : null,
+      );
+    });
+  }
+
   /// Callback for filtering events before sending to Sentry
   ///
   /// Returns the event if it should be sent, or null to drop it
