@@ -54,7 +54,7 @@ class UserStories extends _$UserStories {
     final storiesCount = data.length;
 
     final rng = Random(storiesCount);
-    var currentIndex = 1 + rng.nextInt(5);
+    var currentIndex = rng.nextInt(5);
 
     while (currentIndex < storiesCount) {
       adIndices.add(currentIndex);

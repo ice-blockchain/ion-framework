@@ -17,7 +17,6 @@ Future<AppodealIonAdsPlatform> ionAdClient(Ref ref) async {
     iosAppKey: const String.fromEnvironment('AD_APP_KEY_IOS'),
     hasConsent: true,
     verbose: true,
-    testMode: true,
   );
 
   // final env = ref.watch(envProvider.notifier);

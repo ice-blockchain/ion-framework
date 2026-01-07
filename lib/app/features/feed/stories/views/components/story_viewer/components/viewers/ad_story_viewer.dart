@@ -33,7 +33,9 @@ class AdStoryViewer extends HookConsumerWidget {
           ),
           IgnorePointer(
             child: AppodealNativeAd(
-              options: NativeAdOptions.appWallOptions(adChoicePosition: AdChoicePosition.startTop),
+              options: NativeAdOptions.appWallOptions(
+                adChoiceConfig: AdChoiceConfig(position: AdChoicePosition.startTop),
+              ),
             ),
           ),
           const StoryHeaderGradient(),

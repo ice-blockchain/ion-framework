@@ -10,6 +10,12 @@ final class NativeAdStoryView: UIView {
             setupAdChoiceConstraints()
         }
     }
+    
+    var adChoiceMargin: Double = 0 {
+        didSet {
+            setupAdChoiceConstraints()
+        }
+    }
 
     private lazy var adChoiceContainer: UIImageView = {
         let imageView = UIImageView()
@@ -222,9 +228,9 @@ final class NativeAdStoryView: UIView {
         switch adChoicePosition {
         case .startTop:
             constraints.append(contentsOf: [
-                adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+                adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding + adChoiceMargin),
                 adChoiceContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
-                adTag.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+                adTag.topAnchor.constraint(equalTo: topAnchor, constant: padding + adChoiceMargin),
                 adTag.leadingAnchor.constraint(equalTo: adChoiceContainer.trailingAnchor, constant: margin)
             ])
         case .startBottom:
@@ -235,11 +241,11 @@ final class NativeAdStoryView: UIView {
         case .endTop:
             constraints.append(contentsOf: [
                 // AdTag in Top Right corner
-                adTag.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+                adTag.topAnchor.constraint(equalTo: topAnchor, constant: padding + adChoiceMargin),
                 adTag.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
 
                 // Ad Choice Icon to the left of the adTag
-                adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+                adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding + adChoiceMargin),
                 adChoiceContainer.trailingAnchor.constraint(equalTo: adTag.leadingAnchor, constant: -margin)
             ])
         case .endBottom:

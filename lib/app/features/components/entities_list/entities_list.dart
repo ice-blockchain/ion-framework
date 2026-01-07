@@ -208,7 +208,6 @@ class _CustomNativeAd extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: AppodealNativeAd(
           options: NativeAdOptions.contentStreamOptions(
-            adChoicePosition: AdChoicePosition.endTop,
             adAttributionBackgroundColor: Colors.white,
             adAttributionTextColor: Colors.black,
             adActionButtonTextSize: 13,

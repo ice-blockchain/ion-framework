@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -27,11 +29,13 @@ import 'package:ion/app/features/video/views/components/video_not_found.dart';
 import 'package:ion/app/features/video/views/components/video_post_info.dart';
 import 'package:ion/app/features/video/views/hooks/use_status_bar_color.dart';
 import 'package:ion/app/features/video/views/hooks/use_wake_lock.dart';
+import 'package:ion/app/features/video/views/pages/ad_video_page.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class _FlattenedVideo {
@@ -60,6 +64,8 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
   final EventReference? framedEventReference;
 
   bool get hasMore => onLoadMore != null;
+
+  static const int showAdAfter = 10;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -168,6 +174,17 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
       [onVideoSeen, initialPage, flattenedVideos],
     );
 
+    final canShowNativeAds = ref.watch(ionAdClientProvider).valueOrNull?.isNativeLoaded ?? false;
+    final nextAdIndex = useMemoized(
+      () {
+        final rng = Random(flattenedVideos.length);
+        return showAdAfter + rng.nextInt(showAdAfter) - showAdAfter / 2;
+      },
+      [flattenedVideos],
+    );
+
+    final isAdVisible = useState(false);
+
     final nextVideoParams = useMemoized(
       () {
         final currentIndex = flattenedVideos.indexWhere(
@@ -212,31 +229,33 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
             ),
           ),
           onBackPress: () => context.pop(),
-          actions: [
-            Padding(
-              padding: EdgeInsetsDirectional.only(end: rightPadding),
-              child: isOwnedByCurrentUser
-                  ? BottomSheetMenuButton(
-                      showShadow: true,
-                      iconColor: secondaryBackgroundColor,
-                      menuBuilder: (context) => OwnPostMenuBottomSheet(
-                        eventReference: currentEventReference.value,
-                        onDelete: () {
-                          if (context.canPop() && context.mounted) {
-                            context.pop();
-                          }
-                        },
-                      ),
-                    )
-                  : BottomSheetMenuButton(
-                      showShadow: true,
-                      iconColor: secondaryBackgroundColor,
-                      menuBuilder: (context) => PostMenuBottomSheet(
-                        eventReference: currentEventReference.value,
-                      ),
-                    ),
-            ),
-          ],
+          actions: isAdVisible.value
+              ? null
+              : [
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(end: rightPadding),
+                    child: isOwnedByCurrentUser
+                        ? BottomSheetMenuButton(
+                            showShadow: true,
+                            iconColor: secondaryBackgroundColor,
+                            menuBuilder: (context) => OwnPostMenuBottomSheet(
+                              eventReference: currentEventReference.value,
+                              onDelete: () {
+                                if (context.canPop() && context.mounted) {
+                                  context.pop();
+                                }
+                              },
+                            ),
+                          )
+                        : BottomSheetMenuButton(
+                            showShadow: true,
+                            iconColor: secondaryBackgroundColor,
+                            menuBuilder: (context) => PostMenuBottomSheet(
+                              eventReference: currentEventReference.value,
+                            ),
+                          ),
+                  ),
+                ],
         ),
         body: QuickPageSwiper(
           pageController: userPageController,
@@ -252,25 +271,34 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
               currentEventReference.value = flattenedVideos[index].entity.toEventReference();
             },
             itemBuilder: (_, index) {
-              final flattenedVideo = flattenedVideos[index];
-              final perPageEventReference = flattenedVideo.entity.toEventReference();
-              final media = flattenedVideo.media;
+              if (index % nextAdIndex == 0 && index != 0 && canShowNativeAds) {
+                print('AdVideoViewer index:$index, nextAdIndex:$nextAdIndex');
+                isAdVisible.value = true;
+                return AdVideoViewer(flattenedVideos[index].entity.id);
+              } else {
+                final mainIndex = index - (index ~/ showAdAfter);
+                isAdVisible.value = false;
 
-              return VideoPage(
-                videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
-                bottomOverlay: VideoActions(
-                  eventReference: perPageEventReference,
-                  onReplyTap: () => PostDetailsRoute(
-                    eventReference: perPageEventReference.encode(),
-                  ).push<void>(context),
-                ),
-                videoUrl: media.url,
-                authorPubkey: perPageEventReference.masterPubkey,
-                thumbnailUrl: media.thumb,
-                blurhash: media.blurhash,
-                aspectRatio: media.aspectRatio,
-                framedEventReference: index == initialPage ? framedEventReference : null,
-              );
+                final flattenedVideo = flattenedVideos[mainIndex];
+                final perPageEventReference = flattenedVideo.entity.toEventReference();
+                final media = flattenedVideo.media;
+
+                return VideoPage(
+                  videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
+                  bottomOverlay: VideoActions(
+                    eventReference: perPageEventReference,
+                    onReplyTap: () => PostDetailsRoute(
+                      eventReference: perPageEventReference.encode(),
+                    ).push<void>(context),
+                  ),
+                  videoUrl: media.url,
+                  authorPubkey: perPageEventReference.masterPubkey,
+                  thumbnailUrl: media.thumb,
+                  blurhash: media.blurhash,
+                  aspectRatio: media.aspectRatio,
+                  framedEventReference: index == initialPage ? framedEventReference : null,
+                );
+              }
             },
           ),
         ),
