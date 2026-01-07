@@ -52,7 +52,7 @@ class NativeAdOptions with AppodealPlatformArguments {
     int? adDescriptionFontSize,
     Color? adAttributionTextColor,
     Color? adAttributionBackgroundColor,
-    AdChoicePosition? adChoicePosition,
+    AdChoiceConfig? adChoiceConfig,
     bool? adIconVisible,
     bool? adMediaVisible,
   }) : this._(
@@ -62,7 +62,7 @@ class NativeAdOptions with AppodealPlatformArguments {
             textColor: adAttributionTextColor ?? Colors.black,
             backgroundColor: adAttributionBackgroundColor ?? Colors.transparent,
           ),
-          adChoiceConfig: AdChoiceConfig(position: adChoicePosition ?? AdChoicePosition.endTop),
+          adChoiceConfig: adChoiceConfig ?? AdChoiceConfig(),
           adIconConfig: AdIconConfig(visible: adIconVisible ?? true, size: adIconSize ?? 50),
           adDescriptionConfig: AdDescriptionConfig(fontSize: adDescriptionFontSize ?? 14),
           adActionButtonConfig: AdActionButtonConfig(
@@ -89,7 +89,7 @@ class NativeAdOptions with AppodealPlatformArguments {
     int? adDescriptionFontSize,
     Color? adAttributionTextColor,
     Color? adAttributionBackgroundColor,
-    AdChoicePosition? adChoicePosition,
+    AdChoiceConfig? adChoiceConfig,
   }) {
     return NativeAdOptions._templateOptions(
       nativeAdType: NativeAdType.contentStream,
@@ -99,7 +99,7 @@ class NativeAdOptions with AppodealPlatformArguments {
       adDescriptionFontSize: adDescriptionFontSize,
       adAttributionTextColor: adAttributionTextColor,
       adAttributionBackgroundColor: adAttributionBackgroundColor,
-      adChoicePosition: adChoicePosition,
+      adChoiceConfig: adChoiceConfig,
       adIconVisible: false,
       adMediaVisible: true,
     );
@@ -112,7 +112,7 @@ class NativeAdOptions with AppodealPlatformArguments {
     int? adDescriptionFontSize,
     Color? adAttributionTextColor,
     Color? adAttributionBackgroundColor,
-    AdChoicePosition? adChoicePosition,
+    AdChoiceConfig? adChoiceConfig,
   }) {
     return NativeAdOptions._templateOptions(
       nativeAdType: NativeAdType.appWall,
@@ -122,7 +122,7 @@ class NativeAdOptions with AppodealPlatformArguments {
       adDescriptionFontSize: adDescriptionFontSize,
       adAttributionTextColor: adAttributionTextColor,
       adAttributionBackgroundColor: adAttributionBackgroundColor,
-      adChoicePosition: adChoicePosition,
+      adChoiceConfig: adChoiceConfig,
       adIconVisible: true,
       adMediaVisible: true,
     );
@@ -135,7 +135,7 @@ class NativeAdOptions with AppodealPlatformArguments {
     int? adDescriptionFontSize,
     Color? adAttributionTextColor,
     Color? adAttributionBackgroundColor,
-    AdChoicePosition? adChoicePosition,
+    AdChoiceConfig? adChoiceConfig,
   }) {
     return NativeAdOptions._templateOptions(
       nativeAdType: NativeAdType.newsFeed,
@@ -145,7 +145,7 @@ class NativeAdOptions with AppodealPlatformArguments {
       adDescriptionFontSize: adDescriptionFontSize,
       adAttributionTextColor: adAttributionTextColor,
       adAttributionBackgroundColor: adAttributionBackgroundColor,
-      adChoicePosition: adChoicePosition,
+      adChoiceConfig: adChoiceConfig,
       adIconVisible: false,
       adMediaVisible: false,
     );
