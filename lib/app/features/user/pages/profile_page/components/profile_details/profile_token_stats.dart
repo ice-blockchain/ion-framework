@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
+import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -217,6 +218,7 @@ class TokenStatItem extends StatelessWidget {
               textAlign: TextAlign.center,
               style: context.theme.appTextThemes.caption.copyWith(
                 color: context.theme.appColors.secondaryBackground,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -350,9 +352,7 @@ class ProfileTokenStatsFeed extends ConsumerWidget {
           child: Container(
             decoration: ShapeDecoration(
               color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.s),
-              ),
+              shape: const BottomNotchRectBorder(),
             ),
             constraints: BoxConstraints(minWidth: 260.s),
             child: Column(

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
@@ -41,8 +42,12 @@ class FeedProfileActionToken extends HookConsumerWidget {
           width: double.infinity,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.0.s),
+            child: ClipPath(
+              clipper: const ShapeBorderClipper(
+                shape: BottomNotchRectBorder(
+                  isOnTop: true,
+                ),
+              ),
               child: ProfileBackground(
                 colors: useImageColors(token.imageUrl),
                 child: SizedBox(
@@ -82,7 +87,7 @@ class ProfileTokenHeaderLandscape extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s, vertical: 11.s),
+      padding: EdgeInsetsDirectional.all(16.0.s),
       child: Column(
         children: [
           Column(
@@ -90,8 +95,8 @@ class ProfileTokenHeaderLandscape extends StatelessWidget {
               Row(
                 children: [
                   TokenAvatar(
-                    imageSize: Size.square(54.s),
-                    containerSize: Size.square(65.s),
+                    imageSize: Size.square(52.s),
+                    containerSize: Size.square(62.s),
                     outerBorderRadius: 16.0.s,
                     innerBorderRadius: 10.0.s,
                     imageUrl: token.imageUrl,
@@ -155,7 +160,7 @@ class ProfileTokenHeaderLandscape extends StatelessWidget {
                   color: context.theme.appColors.secondaryBackground.withValues(
                     alpha: 0.1,
                   ),
-                  borderRadius: BorderRadius.circular(16.0.s),
+                  borderRadius: BorderRadius.circular(10.0.s),
                 ),
                 padding: EdgeInsetsDirectional.only(
                   top: 14.s,
