@@ -16,6 +16,7 @@ import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_prov
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -33,8 +34,12 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
 
   List<CoinTransactionData> _history = [];
   NetworkData? _network;
+  String? _selectedWalletAddress;
   var _offset = 0;
   DateTime? _lastLoadTime;
+
+  List<String> get _filteredWalletAddresses =>
+      _selectedWalletAddress != null ? [_selectedWalletAddress!] : _coinWalletAddresses;
 
   StreamSubscription<List<TransactionData>>? _newTransactionsWatcher;
   StreamSubscription<List<TransactionData>>? _inProgressTransactionsWatcher;
@@ -81,6 +86,12 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
       ),
     );
 
+    final selectedWallet = ref.watch(
+      selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup)
+          .select((state) => state.selectedWallet),
+    );
+    _selectedWalletAddress = _network != null ? selectedWallet : null;
+
     _reset();
   }
 
@@ -113,7 +124,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     Logger.info(
       '$_tag Loading initial transactions with params: '
       'offset: $_offset, network: ${_network?.id}, walletViewId: $_walletViewId, '
-      'coinIds: $coinIds, walletAddresses: $_coinWalletAddresses',
+      'coinIds: $coinIds, walletAddresses: $_filteredWalletAddresses',
     );
 
     final transactions = await repository.getTransactions(
@@ -121,7 +132,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
       network: _network,
       walletViewIds: [_walletViewId],
       coinIds: coinIds,
-      walletAddresses: _coinWalletAddresses,
+      walletAddresses: _filteredWalletAddresses,
     );
 
     _lastLoadTime = DateTime.now();
@@ -146,7 +157,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
           coinIds: coinIds,
           network: _network,
           walletViewIds: [_walletViewId],
-          walletAddresses: _coinWalletAddresses,
+          walletAddresses: _filteredWalletAddresses,
           statuses: [
             ...TransactionStatus.inProgressStatuses,
             TransactionStatus.confirmed,
@@ -162,7 +173,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
           coinIds: coinIds,
           network: _network,
           walletViewIds: [_walletViewId],
-          walletAddresses: _coinWalletAddresses,
+          walletAddresses: _filteredWalletAddresses,
           statuses: [
             ...TransactionStatus.inProgressStatuses,
             TransactionStatus.failed,
@@ -242,7 +253,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
         network: _network,
         walletViewIds: [_walletViewId],
         coinIds: coinIds,
-        walletAddresses: _coinWalletAddresses,
+        walletAddresses: _filteredWalletAddresses,
       );
 
       _processTransactions(transactions);
@@ -262,7 +273,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
   }
 
   bool _canLoadTransactions() {
-    if (_coinWalletAddresses.isEmpty) {
+    if (_filteredWalletAddresses.isEmpty) {
       Logger.warning('$_tag Wallet addresses list is empty');
       return false;
     }

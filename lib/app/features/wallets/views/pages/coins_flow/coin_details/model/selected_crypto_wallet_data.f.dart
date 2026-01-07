@@ -7,7 +7,7 @@ part 'selected_crypto_wallet_data.f.freezed.dart';
 @freezed
 class SelectedCryptoWalletData with _$SelectedCryptoWalletData {
   const factory SelectedCryptoWalletData({
-    required String selectedWallet,
     required List<String> wallets,
+    String? selectedWallet,
   }) = _SelectedCryptoWalletData;
 }

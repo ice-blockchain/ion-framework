@@ -25,7 +25,9 @@ class Balance extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cryptoWalletData = ref.watch(selectedCryptoWalletNotifierProvider);
+    final cryptoWalletData = ref.watch(
+      selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+    );
     final shouldShowWallets = cryptoWalletData.wallets.length > 1;
 
     return ScreenSideOffset.small(
