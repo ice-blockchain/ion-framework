@@ -8,7 +8,7 @@ import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
-import 'package:ion/app/services/storage/local_storage.r.dart';
+import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'coins_repository.r.g.dart';
@@ -16,27 +16,30 @@ part 'coins_repository.r.g.dart';
 typedef SyncCoinAfter = ({String coinId, DateTime syncAfter});
 
 @Riverpod(keepAlive: true)
-CoinsRepository coinsRepository(Ref ref) => CoinsRepository(
-      coinsDao: ref.watch(coinsDaoProvider),
-      syncCoinsDao: ref.watch(syncCoinsDaoProvider),
-      localStorage: ref.watch(localStorageProvider),
-    );
+CoinsRepository coinsRepository(Ref ref) {
+  final userPreferencesService = ref.watch(currentUserPreferencesServiceProvider);
+  return CoinsRepository(
+    coinsDao: ref.watch(coinsDaoProvider),
+    syncCoinsDao: ref.watch(syncCoinsDaoProvider),
+    userPreferencesService: userPreferencesService,
+  );
+}
 
 class CoinsRepository {
   CoinsRepository({
     required CoinsDao coinsDao,
     required SyncCoinsDao syncCoinsDao,
-    required LocalStorage localStorage,
+    UserPreferencesService? userPreferencesService,
   })  : _coinsDao = coinsDao,
         _syncCoinsDao = syncCoinsDao,
-        _localStorage = localStorage;
+        _userPreferencesService = userPreferencesService;
 
   static const _lastSyncTimeKey = 'coins_last_sync_time';
   static const _coinsVersionKey = 'coins_version';
 
   final CoinsDao _coinsDao;
   final SyncCoinsDao _syncCoinsDao;
-  final LocalStorage _localStorage;
+  final UserPreferencesService? _userPreferencesService;
 
   Future<bool> hasSavedCoins() => _coinsDao.hasAny();
 
@@ -119,13 +122,15 @@ class CoinsRepository {
         contractAddresses: contractAddresses,
       );
 
-  int? getLastSyncTime() => _localStorage.getInt(_lastSyncTimeKey);
+  int? getLastSyncTime() => _userPreferencesService?.getValue<int>(_lastSyncTimeKey);
 
-  int? getCoinsVersion() => _localStorage.getInt(_coinsVersionKey);
+  int? getCoinsVersion() => _userPreferencesService?.getValue<int>(_coinsVersionKey);
 
-  Future<void> setLastSyncTime(int time) => _localStorage.setInt(_lastSyncTimeKey, time);
+  Future<void> setLastSyncTime(int time) async =>
+      await _userPreferencesService?.setValue(_lastSyncTimeKey, time);
 
-  Future<void> setCoinsVersion(int version) => _localStorage.setInt(_coinsVersionKey, version);
+  Future<void> setCoinsVersion(int version) async =>
+      await _userPreferencesService?.setValue(_coinsVersionKey, version);
 
   Future<Iterable<CoinsGroup>> getCoinGroups({
     int? limit,
