@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/utils/avatar.dart';
@@ -13,10 +14,12 @@ class HolderAvatar extends HookWidget {
     super.key,
     this.imageUrl,
     this.seed,
+    this.isXUser = false,
   });
 
   final String? imageUrl;
   final String? seed;
+  final bool isXUser;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,7 @@ class HolderAvatar extends HookWidget {
     final emptyIcon = useMemoized(
       () => ClipRRect(
         borderRadius: borderRadius,
-        child: getRandomDefaultAvatar(seed).icon(size: size),
+        child: isXUser ? getRandomDefaultAvatar(seed).icon(size: size) : DefaultAvatar(size: size),
       ),
       [seed],
     );

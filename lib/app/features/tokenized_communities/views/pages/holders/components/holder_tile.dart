@@ -116,6 +116,7 @@ class HolderTile extends StatelessWidget {
                 HolderAvatar(
                   imageUrl: avatarUrl,
                   seed: displayName,
+                  isXUser: isXUser,
                 ),
                 SizedBox(width: 8.0.s),
                 Expanded(
