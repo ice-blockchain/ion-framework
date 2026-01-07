@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/layouts/collapsing_header_layout.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/separated/separator.dart';
+import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/components/tabs_header/scroll_links_tabs_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/bookmarks/bookmark_button.dart';
@@ -208,7 +209,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           Builder(
             builder: (context) {
               if (tokenInfo == null) {
-                return const SizedBox.shrink();
+                return const _TokenHeaderSkeleton();
               }
 
               return switch (tokenType) {
@@ -283,6 +284,67 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             ),
           ],
           SizedBox(height: 120.0.s),
+        ],
+      ),
+    );
+  }
+}
+
+class _TokenHeaderSkeleton extends StatelessWidget {
+  const _TokenHeaderSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+
+    return Skeleton(
+      baseColor: context.theme.appColors.onTertiaryFill.withValues(alpha: 0.5),
+      // highlightColor: colors.profitGreen,
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 5.s,
+          ),
+          // Avatar skeleton
+          Container(
+            width: 82.s,
+            height: 82.s,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20.s),
+              color: colors.primaryBackground,
+            ),
+          ),
+          SizedBox(height: 16.0.s),
+          // Title skeleton
+          Container(
+            width: 136.s,
+            height: 20.s,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.s),
+              color: colors.primaryBackground,
+            ),
+          ),
+          SizedBox(height: 5.0.s),
+          // Username/price skeleton
+          Container(
+            width: 96.s,
+            height: 16.s,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.s),
+              color: colors.primaryBackground,
+            ),
+          ),
+          SizedBox(height: 16.0.s),
+          // Token stats skeleton
+          Container(
+            width: 256.s,
+            height: 44.s,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16.s),
+              color: colors.primaryBackground,
+            ),
+          ),
         ],
       ),
     );
