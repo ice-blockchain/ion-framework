@@ -326,7 +326,7 @@ String _normalizeChartTitle(CommunityToken token) {
       return result;
     }
     if (tickerLower.isNotEmpty) {
-      final result = '@$tickerLower';
+      final result = tickerLower;
       return result;
     }
     return '';
