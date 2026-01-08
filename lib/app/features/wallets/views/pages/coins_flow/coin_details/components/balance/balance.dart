@@ -7,6 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/coin_usd_amount.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
@@ -54,8 +55,29 @@ class Balance extends ConsumerWidget {
                 SwapCoinsRoute().push<void>(context);
               },
               onReceive: () {
-                ref.read(receiveCoinsFormControllerProvider.notifier).setCoin(coinsGroup);
-                NetworkSelectReceiveRoute().push<void>(context);
+                final network = ref
+                    .read(
+                      networkSelectorNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+                    )
+                    ?.selected
+                    .mapOrNull(network: (network) => network.network);
+                final walletAddress = ref
+                    .read(
+                      selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+                    )
+                    .selectedWallet;
+
+                final formNotifier = ref.read(receiveCoinsFormControllerProvider.notifier)
+                  ..setCoin(coinsGroup);
+
+                if (network != null && walletAddress != null) {
+                  formNotifier
+                    ..setNetwork(network)
+                    ..setWalletAddress(walletAddress);
+                  ShareAddressToGetCoinsRoute().push<void>(context);
+                } else {
+                  NetworkSelectReceiveRoute().push<void>(context);
+                }
               },
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
               onMore: () {
