@@ -40,7 +40,6 @@ class Balance extends ConsumerWidget {
             ),
             child: CoinUsdAmount(
               coinsGroup: coinsGroup,
-              currentNetwork: currentNetwork,
             ),
           ),
           Padding(
