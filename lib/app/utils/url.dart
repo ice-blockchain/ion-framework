@@ -89,3 +89,37 @@ String fileUriToPath(String path) {
 /// Returns `false` If [address] is not a numeric IPv4 (dotted-decimal
 /// notation) or IPv6 (hexadecimal representation) address
 bool isIP(String address) => InternetAddress.tryParse(address) != null;
+
+/// Parses a comma-separated list of URLs into a list of [Uri]s.
+///
+/// - Splits [urlsRaw] by commas.
+/// - Trims whitespace around each entry.
+/// - Skips empty and invalid URL entries.
+/// - De-duplicates while preserving the original order.
+///
+/// Returns an empty list if no valid URLs are found.
+///
+/// Example:
+/// ```dart
+/// parseUrlsString('https://a.com, https://b.com , https://a.com')
+/// // => [Uri.parse('https://a.com'), Uri.parse('https://b.com')]
+/// ```
+List<Uri> parseUrlsString(String urlsRaw) {
+  final urls = urlsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+  final uris = <Uri>[];
+  for (final url in urls) {
+    try {
+      uris.add(Uri.parse(url));
+    } catch (_) {
+      // Skip invalid URL entries.
+    }
+  }
+
+  // De-dup while preserving order.
+  final seen = <String>{};
+  return [
+    for (final uri in uris)
+      if (seen.add(uri.toString())) uri,
+  ];
+}

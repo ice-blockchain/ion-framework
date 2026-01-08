@@ -2,7 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/web3client_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
