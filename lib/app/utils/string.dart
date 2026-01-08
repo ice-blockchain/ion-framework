@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/material.dart';
+
 extension StringExtensions on String {
   static final RegExp emojiOnlyRegExp = RegExp(
     r'^(?:\p{Emoji}|\p{Emoji_Presentation}|\p{Extended_Pictographic})(?!\d)$',
@@ -49,4 +51,15 @@ String replacePlaceholders(String input, Map<String, String> placeholders) {
 
 bool hasPlaceholders(String input) {
   return placeholderRegExp.hasMatch(input);
+}
+
+double calculateTextWidth(String text, TextStyle style) {
+  final textPainter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    textDirection: TextDirection.ltr,
+    maxLines: 1,
+  )..layout();
+  final textWidth = textPainter.width;
+  textPainter.dispose();
+  return textWidth;
 }

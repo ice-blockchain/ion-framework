@@ -13,6 +13,7 @@ import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_empty.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_skeleton.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/utils/string.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TradesPage extends HookConsumerWidget {
@@ -38,11 +39,11 @@ class TradesPage extends HookConsumerWidget {
     final badgeTextStyle = texts.caption6.copyWith(color: colors.secondaryBackground);
 
     final buyTextWidth = useMemoized(
-      () => _calculateTextWidth(i18n.trade_buy, badgeTextStyle),
+      () => calculateTextWidth(i18n.trade_buy, badgeTextStyle),
       [i18n.trade_buy, badgeTextStyle],
     );
     final sellTextWidth = useMemoized(
-      () => _calculateTextWidth(i18n.trade_sell, badgeTextStyle),
+      () => calculateTextWidth(i18n.trade_sell, badgeTextStyle),
       [i18n.trade_sell, badgeTextStyle],
     );
     final baseTextWidth = buyTextWidth > sellTextWidth ? buyTextWidth : sellTextWidth;
@@ -139,16 +140,5 @@ class TradesPage extends HookConsumerWidget {
         ],
       ),
     );
-  }
-
-  double _calculateTextWidth(String text, TextStyle style) {
-    final textPainter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: TextDirection.ltr,
-      maxLines: 1,
-    )..layout();
-    final w = textPainter.width;
-    textPainter.dispose();
-    return w;
   }
 }
