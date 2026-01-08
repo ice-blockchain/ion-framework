@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:http/http.dart' as http;
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/services/bsc_rpc_failover_http_client.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
@@ -69,7 +70,8 @@ List<Uri> bscRpcUris(Ref ref) {
 
 @riverpod
 Web3Client web3Client(Ref ref) {
-  final rpcUris = ref.watch(bscRpcUrisProvider);
+  keepAliveWhenAuthenticated(ref);
+  final rpcUris = ref.read(bscRpcUrisProvider);
   if (rpcUris.isEmpty) {
     throw StateError(
       'No BSC RPC URLs configured. Provide CRYPTOCURRENCIES_BSC_RPC_URLS (comma-separated).',
