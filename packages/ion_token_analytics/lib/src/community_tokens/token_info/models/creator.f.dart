@@ -16,7 +16,12 @@ class Creator with _$Creator implements CreatorBase {
     Addresses? addresses,
   }) = _Creator;
 
+  const Creator._();
+
   factory Creator.fromJson(Map<String, dynamic> json) => _$CreatorFromJson(json);
+
+  @override
+  bool get isXUser => addresses?.twitter != null;
 }
 
 abstract class CreatorBase {
@@ -25,4 +30,6 @@ abstract class CreatorBase {
   bool? get verified;
   String? get avatar;
   AddressesBase? get addresses;
+
+  bool get isXUser;
 }

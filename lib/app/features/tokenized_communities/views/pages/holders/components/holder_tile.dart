@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
+import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -39,6 +40,7 @@ class TopHolderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isXUser = holder.position.holder?.isXUser ?? false;
     final holderAddress = holder.position.holder?.addresses?.ionConnect;
     final creatorAddress = holder.creator.addresses?.ionConnect;
     final isCreator = creatorAddress != null && holderAddress == creatorAddress;
@@ -58,6 +60,7 @@ class TopHolderTile extends StatelessWidget {
       isCreator: isCreator,
       avatarUrl: holder.position.holder?.avatar,
       holderAddress: holderAddress,
+      isXUser: isXUser,
     );
   }
 }
@@ -73,6 +76,7 @@ class HolderTile extends StatelessWidget {
     this.username,
     this.avatarUrl,
     this.holderAddress,
+    this.isXUser = false,
     super.key,
   });
 
@@ -85,6 +89,7 @@ class HolderTile extends StatelessWidget {
   final String? username;
   final String? avatarUrl;
   final String? holderAddress;
+  final bool isXUser;
 
   @override
   Widget build(BuildContext context) {
@@ -92,12 +97,14 @@ class HolderTile extends StatelessWidget {
     final texts = context.theme.appTextThemes;
 
     return GestureDetector(
-      onTap: holderAddress != null
-          ? () => ProfileNavigationUtils.navigateToProfile(
-                context,
-                externalAddress: holderAddress,
-              )
-          : null,
+      onTap: isXUser
+          ? () => openUrlInAppBrowser('https://x.com/$username')
+          : holderAddress != null
+              ? () => ProfileNavigationUtils.navigateToProfile(
+                    context,
+                    externalAddress: holderAddress,
+                  )
+              : null,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -109,6 +116,7 @@ class HolderTile extends StatelessWidget {
                 HolderAvatar(
                   imageUrl: avatarUrl,
                   seed: displayName,
+                  isXUser: isXUser,
                 ),
                 SizedBox(width: 8.0.s),
                 Expanded(
@@ -118,6 +126,7 @@ class HolderTile extends StatelessWidget {
                     isCreator: isCreator,
                     verified: verified,
                     amountText: amountText,
+                    isXUser: isXUser,
                   ),
                 ),
               ],
@@ -193,6 +202,7 @@ class _NameAndAmount extends StatelessWidget {
     required this.amountText,
     required this.verified,
     required this.isCreator,
+    this.isXUser = true,
   });
 
   final String name;
@@ -200,6 +210,7 @@ class _NameAndAmount extends StatelessWidget {
   final String amountText;
   final bool verified;
   final bool isCreator;
+  final bool isXUser;
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +240,10 @@ class _NameAndAmount extends StatelessWidget {
             if (isCreator) ...[
               SizedBox(width: 4.0.s),
               Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
+            ],
+            if (isXUser) ...[
+              SizedBox(width: 4.0.s),
+              Assets.svg.iconBadgeXlogo.icon(size: 16.0.s),
             ],
             SizedBox(width: 8.0.s),
           ],

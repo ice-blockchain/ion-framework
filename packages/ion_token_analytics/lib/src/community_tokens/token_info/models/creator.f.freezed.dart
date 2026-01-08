@@ -184,14 +184,14 @@ class __$$CreatorImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$CreatorImpl implements _Creator {
+class _$CreatorImpl extends _Creator {
   const _$CreatorImpl({
     this.display,
     this.verified,
     this.name,
     this.avatar,
     this.addresses,
-  });
+  }) : super._();
 
   factory _$CreatorImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreatorImplFromJson(json);
@@ -245,7 +245,7 @@ class _$CreatorImpl implements _Creator {
   }
 }
 
-abstract class _Creator implements Creator {
+abstract class _Creator extends Creator {
   const factory _Creator({
     final String? display,
     final bool? verified,
@@ -253,6 +253,7 @@ abstract class _Creator implements Creator {
     final String? avatar,
     final Addresses? addresses,
   }) = _$CreatorImpl;
+  const _Creator._() : super._();
 
   factory _Creator.fromJson(Map<String, dynamic> json) = _$CreatorImpl.fromJson;
 
