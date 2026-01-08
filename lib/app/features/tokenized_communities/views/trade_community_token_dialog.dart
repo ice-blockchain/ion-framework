@@ -361,7 +361,6 @@ class _AppBar extends StatelessWidget {
           SlippageAction(
             slippage: state.slippage,
             defaultSlippage: TokenizedCommunitiesConstants.defaultSlippagePercent,
-            isVisible: true,
             onSlippageChanged: controller.setSlippage,
           ),
         ],

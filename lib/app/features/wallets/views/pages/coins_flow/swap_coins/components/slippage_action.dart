@@ -11,21 +11,15 @@ class SlippageAction extends StatelessWidget {
     required this.slippage,
     required this.defaultSlippage,
     required this.onSlippageChanged,
-    required this.isVisible,
     super.key,
   });
 
   final double slippage;
   final double defaultSlippage;
   final ValueChanged<double> onSlippageChanged;
-  final bool isVisible;
 
   @override
   Widget build(BuildContext context) {
-    if (!isVisible) {
-      return const SizedBox.shrink();
-    }
-
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
 

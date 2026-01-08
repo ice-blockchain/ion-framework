@@ -95,16 +95,16 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                 child: NavigationAppBar.screen(
                   title: Text(context.i18n.wallet_swap_coins),
                   actions: [
-                    SlippageAction(
-                      slippage: state.slippage,
-                      defaultSlippage: SwapCoinData.defaultSlippage,
-                      isVisible: state.sellCoin != null &&
-                          !SwapCoinIdentifier.isInternalCoin(
-                            state.sellCoin,
-                            state.sellNetwork,
-                          ),
-                      onSlippageChanged: controller.setSlippage,
-                    ),
+                    if (state.sellCoin != null &&
+                        !SwapCoinIdentifier.isInternalCoin(
+                          state.sellCoin,
+                          state.sellNetwork,
+                        ))
+                      SlippageAction(
+                        slippage: state.slippage,
+                        defaultSlippage: SwapCoinData.defaultSlippage,
+                        onSlippageChanged: controller.setSlippage,
+                      ),
                     SizedBox(
                       width: 8.0.s,
                     ),
