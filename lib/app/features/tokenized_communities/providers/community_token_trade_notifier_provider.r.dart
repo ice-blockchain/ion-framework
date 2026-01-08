@@ -91,20 +91,20 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
             );
 
       final response = await service.buyCommunityToken(
-          externalAddress: params.externalAddress,
-          externalAddressType: params.externalAddressType,
-          amountIn: amountIn,
-          walletId: wallet.id,
-          walletAddress: wallet.address!,
-          walletNetwork: wallet.network,
-          baseTokenAddress: token.contractAddress,
-          baseTokenTicker: token.abbreviation,
-          tokenDecimals: token.decimals,
-          expectedPricing: expectedPricing,
-          fatAddressData: fatAddressData,
-          userActionSigner: signer,
-          shouldSendEvents: formState.shouldSendEvents,
-          slippagePercent: formState.slippage,
+        externalAddress: params.externalAddress,
+        externalAddressType: params.externalAddressType,
+        amountIn: amountIn,
+        walletId: wallet.id,
+        walletAddress: wallet.address!,
+        walletNetwork: wallet.network,
+        baseTokenAddress: token.contractAddress,
+        baseTokenTicker: token.abbreviation,
+        tokenDecimals: token.decimals,
+        expectedPricing: expectedPricing,
+        fatAddressData: fatAddressData,
+        userActionSigner: signer,
+        shouldSendEvents: formState.shouldSendEvents,
+        slippagePercent: formState.slippage,
       );
       // Invalidate token market info to refresh balance
       ref.invalidate(
