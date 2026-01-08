@@ -59,4 +59,15 @@ extension ExternalAddressExtension on IonConnectEntity {
       _ => null,
     };
   }
+
+  /// Returns the published timestamp for posts, comments, and articles.
+  /// Returns null for entities that don't have a published timestamp.
+  int? get publishedTimestamp {
+    return switch (this) {
+      ModifiablePostEntity(:final data) => data.publishedAt.value,
+      PostEntity() => createdAt,
+      ArticleEntity(:final data) => data.publishedAt.value,
+      _ => null,
+    };
+  }
 }
