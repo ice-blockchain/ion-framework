@@ -2,12 +2,14 @@
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
+import 'package:ion/app/utils/string.dart';
 
-class TokenAreaLineChart extends ConsumerWidget {
+class TokenAreaLineChart extends HookConsumerWidget {
   const TokenAreaLineChart({
     required this.candles,
     this.isLoading = false,
@@ -16,6 +18,11 @@ class TokenAreaLineChart extends ConsumerWidget {
 
   final List<ChartCandle> candles;
   final bool isLoading;
+
+  double _calculateReservedSize(double maxY, TextStyle style) {
+    const chartAnnotationPadding = 10.0;
+    return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding.s;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,6 +36,12 @@ class TokenAreaLineChart extends ConsumerWidget {
     if (calcData == null) {
       return const SizedBox.shrink();
     }
+
+    final yAxisLabelTextStyle = styles.caption5.copyWith(color: colors.tertiaryText);
+    final reservedSize = useMemoized(
+      () => _calculateReservedSize(calcData.chartMaxY, yAxisLabelTextStyle),
+      [calcData.chartMaxY, yAxisLabelTextStyle],
+    );
 
     // UI logic stays here
     final lineColor = isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
@@ -52,8 +65,11 @@ class TokenAreaLineChart extends ConsumerWidget {
               minIncluded: false,
               maxIncluded: false,
               showTitles: true,
-              reservedSize: 45.0.s,
-              getTitlesWidget: (value, meta) => ChartPriceLabel(value: value),
+              reservedSize: reservedSize,
+              getTitlesWidget: (value, meta) => Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: ChartPriceLabel(value: value),
+              ),
             ),
           ),
           topTitles: const AxisTitles(),
