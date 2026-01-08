@@ -57,7 +57,7 @@ class FeedContentToken extends StatelessWidget {
 
     return TokenCardBuilder(
       externalAddress: externalAddress,
-      skeleton: _Skeleton(type: type),
+      skeleton: _Skeleton(type: type, showBuyButton: showBuyButton),
       builder: (token, colors) {
         return SizedBox(
           width: double.infinity,
@@ -128,10 +128,6 @@ class ContentTokenHeader extends HookConsumerWidget {
     final owner = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
 
     final isVerified = ref.watch(isUserVerifiedProvider(eventReference.masterPubkey));
-
-    if (entity == null || owner == null) {
-      return const SizedBox.shrink();
-    }
 
     final (mediaAttachment, content) =
         useMemoized<(MediaAttachment? mediaAttachment, String? content)>(
@@ -220,9 +216,9 @@ class ContentTokenHeader extends HookConsumerWidget {
                       Expanded(
                         child: TokenCreatorTile(
                           creator: Creator(
-                            avatar: owner.data.avatarUrl,
-                            display: owner.data.displayName,
-                            name: owner.data.name,
+                            avatar: owner?.data.avatarUrl,
+                            display: owner?.data.displayName,
+                            name: owner?.data.name,
                             verified: isVerified,
                           ),
                           nameColor: context.theme.appColors.onPrimaryAccent,
@@ -321,9 +317,11 @@ class _BuyButton extends ConsumerWidget {
 class _Skeleton extends StatelessWidget {
   const _Skeleton({
     required this.type,
+    this.showBuyButton = true,
   });
 
   final CommunityContentTokenType type;
+  final bool showBuyButton;
 
   @override
   Widget build(BuildContext context) {
@@ -550,7 +548,7 @@ class _Skeleton extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 27.5.s),
+          SizedBox(height: showBuyButton ? 34.0.s : 12.0.s),
         ],
       ),
     );
