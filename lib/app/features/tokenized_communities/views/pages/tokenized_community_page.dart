@@ -34,6 +34,7 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/provi
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_card.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 enum TokenizedCommunityTabType implements TabType {
   chart,
@@ -306,6 +307,34 @@ class TokenizedCommunityPage extends HookConsumerWidget {
   }
 }
 
+// For creator tokens: Returns "@nickname (ticker)" where ticker is lowercase.
+// For content tokens: Returns ticker as is from BE
+String _normalizeChartTitle(CommunityToken token) {
+  final ticker = token.marketData.ticker ?? '';
+
+  if (token.type == CommunityTokenType.profile) {
+    // Creator token: @nickname (ticker) in lowercase
+    final nicknameLower = token.creator.name?.toLowerCase() ?? '';
+    final tickerLower = ticker.toLowerCase();
+
+    if (nicknameLower.isNotEmpty && tickerLower.isNotEmpty) {
+      final result = '@$nicknameLower ($tickerLower)';
+      return result;
+    }
+    if (nicknameLower.isNotEmpty) {
+      final result = '@$nicknameLower';
+      return result;
+    }
+    if (tickerLower.isNotEmpty) {
+      final result = '@$tickerLower';
+      return result;
+    }
+    return '';
+  }
+
+  return ticker;
+}
+
 class _TokenHeaderSkeleton extends StatelessWidget {
   const _TokenHeaderSkeleton();
 
@@ -384,11 +413,12 @@ class _TokenChart extends HookConsumerWidget {
     }
 
     final price = Decimal.parse(tokenInfo.marketData.priceUSD.toStringAsFixed(4));
+    final chartLabel = _normalizeChartTitle(tokenInfo);
 
     return Chart(
       externalAddress: externalAddress,
       price: price,
-      label: tokenInfo.marketData.ticker?.toUpperCase() ?? '',
+      label: chartLabel,
     );
   }
 }
