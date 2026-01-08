@@ -67,7 +67,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
               showTitles: true,
               reservedSize: reservedSize,
               getTitlesWidget: (value, meta) => Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: ChartPriceLabel(value: value),
               ),
             ),
