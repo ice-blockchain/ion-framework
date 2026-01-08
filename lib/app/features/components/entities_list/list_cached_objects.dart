@@ -9,6 +9,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 typedef PathWithKey = ({String key, String filePath});
 // In rare cases we might want to store an entity along with custom key
@@ -55,6 +56,7 @@ class ListCachedObjects extends InheritedWidget {
       final UserPreviewEntity userPreviewEntity => userPreviewEntity.masterPubkey,
       final IonConnectEntity entity => entity.toEventReference(),
       final BlockedUser blocked => blocked.masterPubkey,
+      final CommunityToken token => token.externalAddress,
       _ => throw ArgumentError('Unknown type for identifierSelector: ${object.runtimeType}'),
     };
   }
