@@ -57,7 +57,7 @@ class FeedContentToken extends StatelessWidget {
 
     return TokenCardBuilder(
       externalAddress: externalAddress,
-      skeleton: _Skeleton(type: type),
+      skeleton: _Skeleton(type: type, showBuyButton: showBuyButton),
       builder: (token, colors) {
         return SizedBox(
           width: double.infinity,
@@ -321,9 +321,11 @@ class _BuyButton extends ConsumerWidget {
 class _Skeleton extends StatelessWidget {
   const _Skeleton({
     required this.type,
+    this.showBuyButton = true,
   });
 
   final CommunityContentTokenType type;
+  final bool showBuyButton;
 
   @override
   Widget build(BuildContext context) {
@@ -550,7 +552,7 @@ class _Skeleton extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 27.5.s),
+          SizedBox(height: showBuyButton ? 34.0.s : 12.0.s),
         ],
       ),
     );
