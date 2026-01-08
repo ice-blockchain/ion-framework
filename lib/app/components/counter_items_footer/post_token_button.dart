@@ -123,6 +123,7 @@ class _TokenActionButton extends ConsumerWidget {
         TokenizedCommunityRoute(externalAddress: externalId),
       _ => null,
     };
+
     return _TokenButton(
       padding: padding,
       onTap: route == null ? null : () => route.push<void>(context),
@@ -172,7 +173,7 @@ class _ContentEntityButton extends ConsumerWidget {
             ).push<void>(context);
           } else if (externalAddressType != null) {
             TradeCommunityTokenRoute(
-              eventReference: eventReference.encode(),
+              eventReference: eventReference.toString(),
             ).push<void>(context);
           }
         },

@@ -28,7 +28,6 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
@@ -186,7 +185,7 @@ class Post extends ConsumerWidget {
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () =>
-            TokenizedCommunityRoute(externalAddress: entity.externalAddress!).push<void>(context),
+            TokenizedCommunityRoute(externalAddress: eventReference.toString()).push<void>(context),
         child: postWidget,
       );
     }
