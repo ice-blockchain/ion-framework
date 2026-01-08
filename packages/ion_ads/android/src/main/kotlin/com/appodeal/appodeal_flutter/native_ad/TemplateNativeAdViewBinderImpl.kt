@@ -12,6 +12,7 @@ import com.appodeal.appodeal_flutter.R
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import com.appodeal.ads.nativead.Position
+import com.appodeal.appodeal_flutter.apdLog
 
 internal val templateNativeAdViewBinder by lazy { TemplateNativeAdViewBinderImpl() }
 
@@ -39,15 +40,24 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         }
 
         // set ad choices config
-        val adChoiceConfig = nativeAdOptions.adChoiceConfig // Assuming you have access to this
-        val marginPx = adChoiceConfig.margin
+        val adChoiceConfig = nativeAdOptions.adChoiceConfig
         val adChoicePosition = adChoiceConfig.position
 
         //nativeAdView.setAdChoicesPosition(adChoicePosition)
-        val constraintLayout = nativeAdView.findViewById<ConstraintLayout>(R.id.native_custom_content)
+        val nativeCustomContentId = R.id.native_custom_content
         val attributionViewId = R.id.native_custom_ad_attribution
         val adChoicesViewId = R.id.native_custom_ad_choices
-        val mediaWrapperId = R.id.native_media_wrapper
+        val constraintLayout = nativeAdView.findViewById<ConstraintLayout>(nativeCustomContentId)
+
+        val cardPadding = activity.resources.getDimensionPixelSize(R.dimen.apd_native_custom_card_padding)
+        val horizontalSpacing = activity.resources.getDimensionPixelSize(R.dimen.apd_native_custom_content_margin_v)
+        val density = activity.resources.displayMetrics.density
+
+        val marginPx = (adChoiceConfig.margin * density).toInt()
+        apdLog(
+            "AppodealNativeAdView nativeAdViewType: ${nativeAdOptions.nativeAdViewType}, " +
+                    "density: $density, cardPadding:$cardPadding, horizontalSpacing:$horizontalSpacing, marginPx:$marginPx"
+        )
 
         val constraintSet = ConstraintSet()
         constraintSet.clone(constraintLayout)
@@ -59,37 +69,23 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         constraintSet.clear(adChoicesViewId, ConstraintSet.END)
 
         // Always top anchored to media wrapper
-        constraintSet.connect(attributionViewId, ConstraintSet.TOP, mediaWrapperId, ConstraintSet.TOP, marginPx)
-        constraintSet.connect(adChoicesViewId, ConstraintSet.TOP, mediaWrapperId, ConstraintSet.TOP, marginPx)
+        constraintSet.connect(attributionViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
+        constraintSet.connect(adChoicesViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
 
         when (adChoicePosition) {
             Position.START_TOP -> {
-                // Attribution: Left (Start)
-                constraintSet.connect(attributionViewId, ConstraintSet.START, mediaWrapperId, ConstraintSet.START, marginPx)
-
-                // Ad Choices: Right (End) - Opposite side usually, or if you want them stacked, logic changes.
-                // Assuming standard behavior: Attribution always on one side, AdChoices on the other?
-                // OR based on your prompt: "customAdChoices and customAd depends on... position"
-
-                // If the config dictates AdChoices location:
-                constraintSet.connect(adChoicesViewId, ConstraintSet.START, mediaWrapperId, ConstraintSet.START, marginPx)
-
-                // Move Attribution to the other side (End) to avoid overlap?
-                constraintSet.connect(attributionViewId, ConstraintSet.END, mediaWrapperId, ConstraintSet.END, marginPx)
+                constraintSet.connect(adChoicesViewId, ConstraintSet.START, nativeCustomContentId, ConstraintSet.START, cardPadding)
+                constraintSet.connect(attributionViewId, ConstraintSet.START, adChoicesViewId, ConstraintSet.END, horizontalSpacing)
             }
 
             Position.END_TOP -> {
-                // Ad Choices: Right (End)
-                constraintSet.connect(adChoicesViewId, ConstraintSet.END, mediaWrapperId, ConstraintSet.END, marginPx)
-
-                // Attribution: Left (Start)
-                constraintSet.connect(attributionViewId, ConstraintSet.START, mediaWrapperId, ConstraintSet.START, marginPx)
+                constraintSet.connect(attributionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, cardPadding)
+                constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
             }
 
             else -> {
-                // Default fallbacks (usually END_TOP)
-                constraintSet.connect(adChoicesViewId, ConstraintSet.END, mediaWrapperId, ConstraintSet.END, marginPx)
-                constraintSet.connect(attributionViewId, ConstraintSet.START, mediaWrapperId, ConstraintSet.START, marginPx)
+                constraintSet.connect(attributionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, cardPadding)
+                constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
             }
         }
         constraintSet.applyTo(constraintLayout)
