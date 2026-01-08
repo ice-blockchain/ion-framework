@@ -30,6 +30,7 @@ class CommunityTokenLive extends HookConsumerWidget {
     required this.eventReference,
     this.network = false,
     this.enableTokenNavigation = false,
+    this.headerOffset,
     super.key,
   });
 
@@ -38,6 +39,8 @@ class CommunityTokenLive extends HookConsumerWidget {
   final bool network;
 
   final bool enableTokenNavigation;
+
+  final double? headerOffset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,7 +81,8 @@ class CommunityTokenLive extends HookConsumerWidget {
             child: const _CreatorTokenIsLiveLabel(),
           ),
           SizedBox(height: 8.0.s),
-        ],
+        ] else
+          SizedBox(height: headerOffset ?? 0),
         if (isTwitterToken)
           _TwitterTokenUserInfo(entity: entity)
         else

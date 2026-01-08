@@ -111,11 +111,13 @@ class RepostListItem extends ConsumerWidget {
               CommunityTokenLive(
                 eventReference: repostEntity.data.eventReference,
                 network: true,
+                headerOffset: 10.0.s,
               ),
             GenericRepostEntity() when repostEntity.data.kind == CommunityTokenActionEntity.kind =>
               CommunityTokenAction(
                 eventReference: repostEntity.data.eventReference,
                 network: true,
+                headerOffset: 10.0.s,
               ),
             _ => const SizedBox.shrink(),
           },

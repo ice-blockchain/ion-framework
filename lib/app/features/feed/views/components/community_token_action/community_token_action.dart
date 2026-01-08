@@ -26,6 +26,7 @@ class CommunityTokenAction extends HookConsumerWidget {
     required this.eventReference,
     this.network = false,
     this.enableTokenNavigation = false,
+    this.headerOffset,
     super.key,
   });
 
@@ -34,6 +35,8 @@ class CommunityTokenAction extends HookConsumerWidget {
   final bool network;
 
   final bool enableTokenNavigation;
+
+  final double? headerOffset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,6 +74,7 @@ class CommunityTokenAction extends HookConsumerWidget {
     final postWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height: headerOffset ?? 0),
         UserInfo(
           pubkey: eventReference.masterPubkey,
           network: network,
