@@ -5,7 +5,7 @@ import com.appodeal.ads.nativead.Position as NativeAdChoicePosition
 
 class AdChoiceConfig(
     val position: NativeAdChoicePosition = NativeAdChoicePosition.END_TOP,
-    val margin: Int = 0,
+    val margin: Double = 0.0,
 ) {
     companion object {
         fun toAdChoiceConfig(map: Map<String, Any>): AdChoiceConfig {
@@ -14,7 +14,7 @@ class AdChoiceConfig(
             
             return AdChoiceConfig(
                 position = NativeAdChoicePosition.entries[idxPosition],
-                margin = map["margin"] as? Int ?: 0,
+                margin = map["margin"] as? Double ?: 0.0,
             )
         }
     }
