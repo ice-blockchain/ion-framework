@@ -119,12 +119,15 @@ class _ChartContent extends StatelessWidget {
             changePercent: changePercent,
           ),
           SizedBox(height: 10.0.s),
-          Center(
-            child: AspectRatio(
-              aspectRatio: 1.7,
-              child: TokenAreaLineChart(
-                candles: candles,
-                isLoading: isLoading,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1.7,
+                child: TokenAreaLineChart(
+                  candles: candles,
+                  isLoading: isLoading,
+                ),
               ),
             ),
           ),
@@ -156,7 +159,7 @@ class _ChartHeader extends StatelessWidget {
 
     final titleRow = Row(
       children: [
-        Assets.svg.iconCreatecoinNewcoin.icon(
+        Assets.svg.iconChartLine.icon(
           size: 18.0.s,
           color: colors.onTertiaryBackground,
         ),
@@ -274,10 +277,18 @@ extension ChartTimeRangeExtension on ChartTimeRange {
         ChartTimeRange.m15 => '15m',
         ChartTimeRange.m30 => '30m',
         ChartTimeRange.h1 => '1h',
-        ChartTimeRange.d1 => '24h',
+        ChartTimeRange.d1 => '1d',
       };
 
-  String get intervalString => label;
+  String get intervalString => switch (this) {
+        ChartTimeRange.m1 => '1m',
+        ChartTimeRange.m3 => '3m',
+        ChartTimeRange.m5 => '5m',
+        ChartTimeRange.m15 => '15m',
+        ChartTimeRange.m30 => '30m',
+        ChartTimeRange.h1 => '1h',
+        ChartTimeRange.d1 => '24h',
+      };
 
   Duration get duration => switch (this) {
         ChartTimeRange.m1 => const Duration(minutes: 1),
