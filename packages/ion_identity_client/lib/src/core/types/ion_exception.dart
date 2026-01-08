@@ -10,6 +10,12 @@ abstract class IONIdentityException implements Exception {
   const IONIdentityException([this.message]);
 
   final String? message;
+
+  @override
+  String toString() {
+    final className = runtimeType.toString();
+    return message != null ? '$className: $message' : className;
+  }
 }
 
 class UnauthenticatedException extends IONIdentityException {
@@ -29,7 +35,7 @@ class PasskeyNotAvailableException extends IONIdentityException {
 }
 
 class PasskeyValidationException extends IONIdentityException {
-  const PasskeyValidationException() : super('Passkey validation failed');
+  PasskeyValidationException([String? message]) : super(message ?? 'Passkey validation failed');
 }
 
 class BiometricsValidationException extends IONIdentityException {
