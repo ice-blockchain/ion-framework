@@ -46,6 +46,9 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
 
   @override
   Future<CoinTransactionHistoryState> build({required String symbolGroup}) async {
+    // ignore: avoid_print
+    print('Denis[${DateTime.now()}] CoinTransactionHistoryNotifier.build() called');
+
     await _cancelWatchers();
 
     ref.onDispose(() async {
@@ -74,6 +77,9 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
   }
 
   Future<void> _initializeData(String symbolGroup) async {
+    // ignore: avoid_print
+    print('Denis[${DateTime.now()}] CoinTransactionHistoryNotifier._initializeData() called');
+
     _walletViewId = await ref.watch(currentWalletViewIdProvider.future);
     _coins = await ref.watch(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
     _coinWalletAddresses = await ref
@@ -86,11 +92,16 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
       ),
     );
 
-    final selectedWallet = ref.watch(
+    _selectedWalletAddress = ref.watch(
       selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup)
           .select((state) => state.selectedWallet),
     );
-    _selectedWalletAddress = _network != null ? selectedWallet : null;
+
+    // ignore: avoid_print
+    print(
+      'Denis[${DateTime.now()}] CoinTransactionHistoryNotifier._initializeData: '
+      'network=${_network?.id}, selectedWallet=$_selectedWalletAddress',
+    );
 
     _reset();
   }
