@@ -5,23 +5,26 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
-import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class SlippageSettingsPage extends HookConsumerWidget {
-  const SlippageSettingsPage({super.key});
+class SlippageSettingsPage extends HookWidget {
+  const SlippageSettingsPage({
+    required this.slippage,
+    required this.defaultSlippage,
+    super.key,
+  });
+
+  final double slippage;
+  final double defaultSlippage;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
-    final controller = ref.watch(swapCoinsControllerProvider.notifier);
-    final currentSlippage = ref.watch(swapCoinsControllerProvider).slippage;
 
-    final slippageValue = useRef(currentSlippage);
+    final slippageValue = useState(slippage);
 
     return SheetContent(
       body: Padding(
@@ -51,7 +54,8 @@ class SlippageSettingsPage extends HookConsumerWidget {
                   ),
                   SizedBox(height: 16.0.s),
                   _SlippageControls(
-                    initialValue: currentSlippage,
+                    initialValue: slippage,
+                    defaultSlippage: defaultSlippage,
                     onValueChanged: (value) {
                       slippageValue.value = value;
                     },
@@ -59,8 +63,7 @@ class SlippageSettingsPage extends HookConsumerWidget {
                   SizedBox(height: 24.0.s),
                   Button(
                     onPressed: () {
-                      controller.setSlippage(slippageValue.value);
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(slippageValue.value);
                     },
                     label: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -84,10 +87,12 @@ class SlippageSettingsPage extends HookConsumerWidget {
 class _SlippageControls extends HookConsumerWidget {
   const _SlippageControls({
     required this.initialValue,
+    required this.defaultSlippage,
     required this.onValueChanged,
   });
 
   final double initialValue;
+  final double defaultSlippage;
   final void Function(double value) onValueChanged;
 
   @override
@@ -95,14 +100,14 @@ class _SlippageControls extends HookConsumerWidget {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
 
-    final isAuto = useState(initialValue == SwapCoinData.defaultSlippage);
+    final isAuto = useState(initialValue == defaultSlippage);
     final value = useState(initialValue);
     final textController = useTextEditingController(text: initialValue.toStringAsFixed(1));
 
     void setAuto({required bool isEnabled}) {
       isAuto.value = isEnabled;
       if (isEnabled) {
-        value.value = SwapCoinData.defaultSlippage;
+        value.value = defaultSlippage;
         textController.text = value.value.toStringAsFixed(1);
         onValueChanged(value.value);
       }

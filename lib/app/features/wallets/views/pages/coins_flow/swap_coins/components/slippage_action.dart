@@ -1,36 +1,44 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
-import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class SlippageAction extends ConsumerWidget {
-  const SlippageAction({super.key});
+class SlippageAction extends StatelessWidget {
+  const SlippageAction({
+    required this.slippage,
+    required this.defaultSlippage,
+    required this.onSlippageChanged,
+    required this.isVisible,
+    super.key,
+  });
+
+  final double slippage;
+  final double defaultSlippage;
+  final ValueChanged<double> onSlippageChanged;
+  final bool isVisible;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.theme.appColors;
-    final textStyles = context.theme.appTextThemes;
-    final swapCoinsController = ref.watch(swapCoinsControllerProvider);
-
-    if (swapCoinsController.sellCoin == null ||
-        SwapCoinIdentifier.isInternalCoin(
-          swapCoinsController.sellCoin,
-          swapCoinsController.sellNetwork,
-        )) {
+  Widget build(BuildContext context) {
+    if (!isVisible) {
       return const SizedBox.shrink();
     }
 
-    final slippage = swapCoinsController.slippage;
+    final colors = context.theme.appColors;
+    final textStyles = context.theme.appTextThemes;
 
     return Button(
-      onPressed: () {
-        SwapSlippageSettingsRoute().push<void>(context);
+      onPressed: () async {
+        final result = await SwapSlippageSettingsRoute(
+          slippage: slippage,
+          defaultSlippage: defaultSlippage,
+        ).push<double>(context);
+
+        if (result != null) {
+          onSlippageChanged(result);
+        }
       },
       type: ButtonType.outlined,
       tintColor: colors.onTertiaryFill,

@@ -2,6 +2,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -25,6 +26,7 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
     // Sell-specific fields
     @Default(0) double communityTokenBalance,
     CoinsGroup? communityTokenCoinsGroup,
+    @Default(TokenizedCommunitiesConstants.defaultSlippagePercent) double slippage,
   }) = _TradeCommunityTokenState;
 
   const TradeCommunityTokenState._();

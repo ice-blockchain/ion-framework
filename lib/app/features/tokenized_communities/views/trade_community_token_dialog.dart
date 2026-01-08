@@ -142,7 +142,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _AppBar(),
+            _AppBar(
+              state: state,
+              controller: controller,
+            ),
             if (communityGroup != null)
               _TokenCards(
                 state: state,
@@ -344,7 +347,9 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 }
 
 class _AppBar extends StatelessWidget {
-  const _AppBar();
+  const _AppBar({required this.state, required this.controller});
+  final TradeCommunityTokenState state;
+  final TradeCommunityTokenController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -352,8 +357,13 @@ class _AppBar extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: NavigationAppBar.screen(
         title: Text(context.i18n.wallet_swap),
-        actions: const [
-          SlippageAction(),
+        actions: [
+          SlippageAction(
+            slippage: state.slippage,
+            defaultSlippage: TokenizedCommunitiesConstants.defaultSlippagePercent,
+            isVisible: true,
+            onSlippageChanged: controller.setSlippage,
+          ),
         ],
       ),
     );

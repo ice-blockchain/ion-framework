@@ -262,7 +262,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       return null;
     }
 
-    return SwapCoinParameters(
+    final parameters = SwapCoinParameters(
       slippage: slippage,
       buyCoin: SwapCoin(
         contractAddress: buyCoin.coin.contractAddress,
@@ -292,6 +292,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       userBuyAddress: buyAddress,
       userSellAddress: sellAddress,
     );
+
+    return parameters;
   }
 
   Future<CoinInWalletData?> _getCoinWalletDataAndSyncIfNeeded(
