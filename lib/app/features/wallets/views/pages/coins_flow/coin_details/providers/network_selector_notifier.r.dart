@@ -10,9 +10,6 @@ part 'network_selector_notifier.r.g.dart';
 class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
   @override
   NetworkSelectorData? build({required String symbolGroup}) {
-    // ignore: avoid_print
-    print('Denis[${DateTime.now()}] NetworkSelectorNotifier.build() called');
-
     final networksValue = ref
         .watch(
           syncedCoinsBySymbolGroupProvider(symbolGroup),
@@ -20,8 +17,6 @@ class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
         .valueOrNull;
 
     if (networksValue == null) {
-      // ignore: avoid_print
-      print('Denis[${DateTime.now()}] NetworkSelectorNotifier returning null (no networks)');
       return null;
     }
 
@@ -32,9 +27,6 @@ class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
       ...wrappedNetworks,
     ];
 
-    // ignore: avoid_print
-    print('Denis[${DateTime.now()}] NetworkSelectorNotifier returning: selected=${items.first}');
-
     return NetworkSelectorData(
       items: items,
       selected: items.first,
@@ -42,16 +34,10 @@ class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
   }
 
   set selected(SelectedNetworkItem item) {
-    // ignore: avoid_print
-    print('Denis[${DateTime.now()}] NetworkSelectorNotifier.selected setter called with: $item');
-
     final canUpdate = item.map(
       network: (item) => state?.items.contains(item) ?? false,
       all: (_) => true,
     );
-
-    // ignore: avoid_print
-    print('Denis[${DateTime.now()}]: NetworkSelectorNotifier.selected canUpdate=$canUpdate');
 
     if (canUpdate) {
       state = state!.copyWith(selected: item);

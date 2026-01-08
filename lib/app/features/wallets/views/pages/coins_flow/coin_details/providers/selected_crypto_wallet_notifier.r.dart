@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/model/selected_crypto_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
@@ -12,40 +13,32 @@ part 'selected_crypto_wallet_notifier.r.g.dart';
 class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
   @override
   SelectedCryptoWalletData build({required String symbolGroup}) {
-    // ignore: avoid_print
-    print('Denis[${DateTime.now()}] SelectedCryptoWalletNotifier.build() called');
-
     final network = ref.watch(
       networkSelectorNotifierProvider(symbolGroup: symbolGroup).select(
         (state) => state?.selected.whenOrNull(network: (network) => network),
       ),
     );
 
-    // ignore: avoid_print
-    print('Denis[${DateTime.now()}] SelectedCryptoWalletNotifier: network=$network');
-
     if (network == null) {
-      // ignore: avoid_print
-      print('Denis[${DateTime.now()}] SelectedCryptoWalletNotifier returning empty (no network)');
       return SelectedCryptoWalletData.empty();
     }
 
-    final walletView = ref.watch(
-      currentWalletViewDataProvider.select((asyncValue) => asyncValue.valueOrNull),
-    );
+    final walletView = ref.watch(currentWalletViewDataProvider).valueOrNull;
 
     if (walletView == null) {
-      // ignore: avoid_print
-      print(
-          'Denis[${DateTime.now()}] SelectedCryptoWalletNotifier returning empty (no walletView)');
       return SelectedCryptoWalletData.empty();
     }
 
-    final connectedAddresses = walletView.coins
-        .where((coin) => coin.coin.network == network)
-        .map((coin) => coin.walletAddress)
-        .nonNulls
+    final connected = ref
+        .watch(walletViewCryptoWalletsProvider(walletViewId: walletView.id))
+        .valueOrNull
+        ?.where((wallet) => wallet.address != null && wallet.network == network.id)
+        .map((w) => w.address!)
         .toSet();
+
+    if (connected == null) {
+      return SelectedCryptoWalletData.empty();
+    }
 
     final relatedAddresses = ref.watch(
       walletsNotifierProvider.select(
@@ -61,19 +54,14 @@ class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
       ),
     );
 
-    final wallets = {...connectedAddresses, ...relatedAddresses}.toList();
+    final wallets = [
+      ...connected,
+      ...relatedAddresses.difference(connected),
+    ];
 
     if (wallets.isEmpty) {
-      // ignore: avoid_print
-      print('Denis[${DateTime.now()}] SelectedCryptoWalletNotifier returning empty (no wallets)');
       return SelectedCryptoWalletData.empty();
     }
-
-    // ignore: avoid_print
-    print(
-      'Denis[${DateTime.now()}] SelectedCryptoWalletNotifier returning: '
-      'wallets=${wallets.length}, selected=${wallets.first}',
-    );
 
     return SelectedCryptoWalletData(
       wallets: wallets,
@@ -82,8 +70,6 @@ class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
   }
 
   set selectedWallet(String wallet) {
-    // ignore: avoid_print
-    print('Denis[${DateTime.now()}] SelectedCryptoWalletNotifier.selectedWallet setter: $wallet');
     if (state.wallets.contains(wallet)) {
       state = state.copyWith(selectedWallet: wallet);
     }
