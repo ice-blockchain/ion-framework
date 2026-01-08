@@ -173,7 +173,7 @@ class _ContentEntityButton extends ConsumerWidget {
             ).push<void>(context);
           } else if (externalAddressType != null) {
             TradeCommunityTokenRoute(
-              eventReference: eventReference.toString(),
+              eventReference: eventReference.encode(),
             ).push<void>(context);
           }
         },
