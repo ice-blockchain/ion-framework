@@ -10,4 +10,8 @@ class SelectedCryptoWalletData with _$SelectedCryptoWalletData {
     required List<String> wallets,
     String? selectedWallet,
   }) = _SelectedCryptoWalletData;
+
+  factory SelectedCryptoWalletData.empty() => const SelectedCryptoWalletData(
+        wallets: [],
+      );
 }

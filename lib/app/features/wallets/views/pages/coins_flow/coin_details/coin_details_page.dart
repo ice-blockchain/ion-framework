@@ -76,7 +76,6 @@ class CoinDetailsPage extends HookConsumerWidget {
     final cryptoWalletData = ref.watch(
       selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
     );
-    final shouldShowWallets = cryptoWalletData.wallets.length > 1;
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
@@ -102,7 +101,7 @@ class CoinDetailsPage extends HookConsumerWidget {
             child: Column(
               children: [
                 const SectionSeparator(),
-                if (shouldShowWallets)
+                if (cryptoWalletData.wallets.length > 1)
                   Padding(
                     padding: EdgeInsetsDirectional.only(top: 20.s),
                     child: CryptoWalletSwitcher(
