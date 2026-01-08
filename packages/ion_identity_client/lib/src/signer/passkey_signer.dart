@@ -68,8 +68,8 @@ class PasskeysSigner {
           );
         },
       );
-    } on TimeoutException {
-      throw const PasskeyValidationException();
+    } on TimeoutException catch (e) {
+      throw PasskeyValidationException(e.message ?? 'Passkey signer timed out');
     }
   }
 
@@ -230,9 +230,13 @@ class PasskeysSigner {
       if (PasskeyCancelledException.isMatch(e)) {
         throw const PasskeyCancelledException();
       }
-      throw const PasskeyValidationException();
+      throw PasskeyValidationException(
+        'Unhandled authenticator exception: ${e.message ?? e.toString()}',
+      );
     } catch (e) {
-      throw const PasskeyValidationException();
+      throw PasskeyValidationException(
+        'Unexpected error during passkey validation: ${e.runtimeType}: $e',
+      );
     }
   }
 
