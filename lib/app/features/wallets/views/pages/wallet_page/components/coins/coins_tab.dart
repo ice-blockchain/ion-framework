@@ -26,7 +26,6 @@ class CoinsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isPageLoading = ref.watch(walletPageLoaderNotifierProvider);
-    final isNeedFilterByCreatorToken = tabType == WalletTabType.creatorTokens;
 
     if (isPageLoading) {
       return _CoinsTabBody(
@@ -36,9 +35,10 @@ class CoinsTab extends ConsumerWidget {
     }
 
     final groups = ref.watch(filteredCoinsNotifierProvider.select((state) => state.valueOrNull));
-    final filteredGroups = isNeedFilterByCreatorToken
-        ? groups?.where((group) => group.coins.any((coin) => coin.coin.isCreatorToken)).toList()
-        : groups;
+    final isCreatorTokensTab = tabType == WalletTabType.creatorTokens;
+    final filteredGroups = groups?.where((group) {
+      return group.coins.any((coin) => coin.coin.isCreatorToken == isCreatorTokensTab);
+    }).toList();
 
     if (filteredGroups == null || filteredGroups.isEmpty) {
       return EmptyState(
