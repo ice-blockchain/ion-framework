@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
@@ -20,7 +19,7 @@ import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class FeedProfileToken extends HookConsumerWidget {
+class FeedProfileToken extends StatelessWidget {
   const FeedProfileToken({
     required this.externalAddress,
     this.sidePadding,
@@ -32,7 +31,7 @@ class FeedProfileToken extends HookConsumerWidget {
   final double? sidePadding;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return TokenCardBuilder(
       externalAddress: externalAddress,
       skeleton: _Skeleton(),
@@ -44,7 +43,7 @@ class FeedProfileToken extends HookConsumerWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.0.s),
               child: ProfileBackground(
-                colors: useImageColors(token.imageUrl),
+                colors: colors,
                 child: SizedBox(
                   width: double.infinity,
                   child: Column(
@@ -188,10 +187,7 @@ class ProfileTokenHeader extends StatelessWidget {
             ),
           )
         else
-          ProfileTokenStatsFeed(
-            externalAddress: externalAddress,
-            eventReference: ReplaceableEventReference.fromString(externalAddress),
-          ),
+          ProfileTokenStatsFeed(tokenInfo: token),
       ],
     );
   }

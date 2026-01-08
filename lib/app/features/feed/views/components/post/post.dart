@@ -152,6 +152,7 @@ class Post extends ConsumerWidget {
             eventReference: parentEventReference,
             header: isAccentTheme && header != null ? header : null,
           ),
+          SizedBox(height: 12.0.s),
         ],
         header ??
             UserInfo(
@@ -346,7 +347,7 @@ final class _FramedEvent extends HookConsumerWidget {
           case CommunityTokenDefinitionEntity():
             return CommunityTokenLiveBody(
               entity: entity,
-              sidePadding: 0,
+              sidePadding: isParent ? null : 0,
             );
           case CommunityTokenActionEntity():
             return CommunityTokenActionBody(

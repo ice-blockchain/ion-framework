@@ -18,73 +18,7 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
-
-class ProfileTokenStatsInfo extends ConsumerWidget {
-  const ProfileTokenStatsInfo({
-    required this.externalAddress,
-    this.eventReference,
-    super.key,
-  });
-
-  final String externalAddress;
-  final EventReference? eventReference;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (eventReference == null) {
-      return const SizedBox.shrink();
-    }
-    final marketData = ref.watch(
-      tokenMarketInfoIfAvailableProvider(eventReference!).select((t) => t.valueOrNull?.marketData),
-    );
-    if (marketData == null) {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      decoration: ShapeDecoration(
-        color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.53.s),
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 34.0.s,
-          vertical: 16.0.s,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TokenStatItem(
-              icon: Assets.svg.iconMemeMarketcap,
-              text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
-              onTap: () => showSimpleBottomSheet<void>(
-                context: context,
-                child: const InfoModal(infoType: InfoType.marketCap),
-              ),
-            ),
-            TokenStatItem(
-              icon: Assets.svg.iconMemeMarkers,
-              text: MarketDataFormatter.formatVolume(marketData.volume),
-              onTap: () => showSimpleBottomSheet<void>(
-                context: context,
-                child: const InfoModal(infoType: InfoType.volume),
-              ),
-            ),
-            TokenStatItem(
-              icon: Assets.svg.iconSearchGroups,
-              text: formatCount(marketData.holders),
-              onTap: () => showSimpleBottomSheet<void>(
-                context: context,
-                child: const InfoModal(infoType: InfoType.holders),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileTokenStats extends ConsumerWidget {
   const ProfileTokenStats({
@@ -315,33 +249,20 @@ class BuyButton extends StatelessWidget {
   }
 }
 
-class ProfileTokenStatsFeed extends ConsumerWidget {
+class ProfileTokenStatsFeed extends StatelessWidget {
   const ProfileTokenStatsFeed({
-    required this.externalAddress,
-    this.eventReference,
+    required this.tokenInfo,
     this.showFollowCounters = true,
     super.key,
   });
 
-  final String externalAddress;
-  final EventReference? eventReference;
   final bool showFollowCounters;
+  final CommunityToken tokenInfo;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (eventReference == null) {
-      return const SizedBox.shrink();
-    }
-    final tokenInfo = ref
-        .watch(
-          tokenMarketInfoIfAvailableProvider(eventReference!),
-        )
-        .valueOrNull;
-    if (tokenInfo == null) {
-      return const SizedBox.shrink();
-    }
+  Widget build(BuildContext context) {
     final marketData = tokenInfo.marketData;
-
+    final externalAddress = tokenInfo.externalAddress;
     return Stack(
       clipBehavior: Clip.none,
       alignment: AlignmentDirectional.bottomCenter,
