@@ -22,7 +22,6 @@ class ProfileTokenListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('___ ProfileTokenListItem eventReference: ${eventReference}');
     return GestureDetector(
       onTap: () => TokenizedCommunityRoute(
         externalAddress: eventReference.toString(),

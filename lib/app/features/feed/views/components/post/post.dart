@@ -13,6 +13,7 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
 import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
 import 'package:ion/app/features/feed/views/components/community_token_action/components/community_token_action_body.dart';
@@ -23,6 +24,7 @@ import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/quoted_entity_frame/quoted_entity_frame.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
+import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
@@ -131,11 +133,14 @@ class Post extends ConsumerWidget {
           plainInlineStyles: plainInlineStyles,
         ),
         if (displayQuote && quotedEventReference != null)
-          ScreenSideOffset.small(
-            child: _QuotedEvent(
-              accentTheme: isAccentTheme,
-              eventReference: quotedEventReference,
-              footer: quotedEventFooter,
+          Padding(
+            padding: EdgeInsetsDirectional.only(top: _isPostBodyEmpty(ref, entity) ? 0 : 12.0.s),
+            child: ScreenSideOffset.small(
+              child: _QuotedEvent(
+                accentTheme: isAccentTheme,
+                eventReference: quotedEventReference,
+                footer: quotedEventFooter,
+              ),
             ),
           ),
         footer ?? CounterItemsFooter(eventReference: eventReference),
@@ -209,6 +214,34 @@ class Post extends ConsumerWidget {
       _ => null,
     };
   }
+
+  bool _isPostBodyEmpty(WidgetRef ref, IonConnectEntity entity) {
+    final postData = switch (entity) {
+      final ModifiablePostEntity post => post.data,
+      final PostEntity post => post.data,
+      _ => null,
+    };
+
+    // PostBody returns empty if entity is not a post type
+    if (postData == null) {
+      return true;
+    }
+
+    // PostBody returns empty if postData is not EntityDataWithMediaContent
+    if (postData is! EntityDataWithMediaContent) {
+      return true;
+    }
+
+    // Check if there's content or media
+    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
+    final hasContent = content.isNotEmpty &&
+        content.length > 0 &&
+        content.operations.first.data is String &&
+        content.operations.first.data != '\n';
+
+    // PostBody returns empty if no content and no media
+    return !hasContent && media.isEmpty;
+  }
 }
 
 class _QuotedEvent extends StatelessWidget {
@@ -224,19 +257,16 @@ class _QuotedEvent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsetsDirectional.only(top: 12.0.s),
-      child: _FramedEvent(
+    return _FramedEvent(
+      eventReference: eventReference,
+      postWidget: _QuotedPost(
+        accentTheme: accentTheme,
         eventReference: eventReference,
-        postWidget: _QuotedPost(
-          accentTheme: accentTheme,
-          eventReference: eventReference,
-        ),
-        articleWidget: _QuotedArticle(
-          accentTheme: accentTheme,
-          eventReference: eventReference,
-          footer: footer,
-        ),
+      ),
+      articleWidget: _QuotedArticle(
+        accentTheme: accentTheme,
+        eventReference: eventReference,
+        footer: footer,
       ),
     );
   }
