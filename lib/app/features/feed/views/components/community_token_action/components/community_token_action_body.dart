@@ -92,12 +92,14 @@ class CommunityTokenActionBody extends HookConsumerWidget {
     final amountUsd =
         useMemoized(() => entity.data.getAmountByCurrency(TransactionAmount.usdCurrency), [entity]);
 
+    final showProfileBalance = amount != null && amountUsd != null;
+
     return Stack(
       alignment: Alignment.center,
       children: [
         Column(
           children: [
-            if (amount != null && amountUsd != null) ...[
+            if (showProfileBalance) ...[
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
                 child: ProfileBalance(
@@ -111,11 +113,13 @@ class CommunityTokenActionBody extends HookConsumerWidget {
             if (tokenType != null)
               if (tokenType == CommunityContentTokenType.twitter)
                 FeedTwitterToken(
+                  hasNotch: showProfileBalance,
                   externalAddress: externalAddress,
                   sidePadding: sidePadding,
                 )
               else if (tokenType == CommunityContentTokenType.profile)
                 FeedProfileActionToken(
+                  hasNotch: showProfileBalance,
                   sidePadding: sidePadding,
                   externalAddress: externalAddress,
                   pnl: ProfileChart(amount: position?.pnl ?? 0),
@@ -127,6 +131,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                 )
               else
                 FeedContentToken(
+                  hasNotch: showProfileBalance,
                   sidePadding: sidePadding,
                   tokenDefinition: definitionEntity,
                   type: tokenType,

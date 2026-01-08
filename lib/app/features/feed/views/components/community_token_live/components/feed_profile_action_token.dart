@@ -18,6 +18,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 class FeedProfileActionToken extends HookConsumerWidget {
   const FeedProfileActionToken({
     required this.externalAddress,
+    this.hasNotch = false,
     this.pnl,
     this.hodl,
     this.sidePadding,
@@ -32,6 +33,8 @@ class FeedProfileActionToken extends HookConsumerWidget {
 
   final double? sidePadding;
 
+  final bool hasNotch;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TokenCardBuilder(
@@ -43,9 +46,9 @@ class FeedProfileActionToken extends HookConsumerWidget {
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
             child: ClipPath(
-              clipper: const ShapeBorderClipper(
+              clipper: ShapeBorderClipper(
                 shape: BottomNotchRectBorder(
-                  isOnTop: true,
+                  notchPosition: hasNotch ? NotchPosition.top : NotchPosition.none,
                 ),
               ),
               child: ProfileBackground(
