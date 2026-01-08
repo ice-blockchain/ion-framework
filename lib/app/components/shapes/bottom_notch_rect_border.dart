@@ -25,13 +25,13 @@ class BottomNotchRectBorder extends ShapeBorder {
     this.cornerRadius,
     this.notchWidth,
     this.notchDepth,
-    this.isOnTop = false,
+    this.notchPosition = NotchPosition.bottom,
   });
 
   final double? cornerRadius;
   final double? notchWidth;
   final double? notchDepth;
-  final bool isOnTop;
+  final NotchPosition notchPosition;
 
   @override
   EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
@@ -42,6 +42,16 @@ class BottomNotchRectBorder extends ShapeBorder {
     final r = cornerRadius ?? 16.0.s;
     final left = rect.left;
     final top = rect.top;
+
+    if (notchPosition == NotchPosition.none) {
+      return Path()
+        ..addRRect(
+          RRect.fromRectAndRadius(
+            rect,
+            Radius.circular(r),
+          ),
+        );
+    }
 
     final effectiveNotchWidth = notchWidth ?? 108.s;
     final effectiveNotchDepth = notchDepth ?? 8.s;
@@ -59,7 +69,7 @@ class BottomNotchRectBorder extends ShapeBorder {
       left + r,
       left + w - r,
       top,
-      isOnTop,
+      notchPosition == NotchPosition.top,
       true,
       notchCenterX,
       flatMiddleHalf,
@@ -77,7 +87,7 @@ class BottomNotchRectBorder extends ShapeBorder {
       left + w - r,
       left + r,
       bottom,
-      !isOnTop,
+      notchPosition == NotchPosition.bottom,
       false,
       notchCenterX,
       flatMiddleHalf,
@@ -152,7 +162,13 @@ class BottomNotchRectBorder extends ShapeBorder {
       cornerRadius: (cornerRadius ?? 12.0.s) * t,
       notchWidth: (notchWidth ?? 108.s) * t,
       notchDepth: (notchDepth ?? 8.s) * t,
-      isOnTop: isOnTop,
+      notchPosition: notchPosition,
     );
   }
+}
+
+enum NotchPosition {
+  none,
+  top,
+  bottom,
 }

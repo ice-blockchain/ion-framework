@@ -20,6 +20,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 class FeedTwitterToken extends HookConsumerWidget {
   const FeedTwitterToken({
     required this.externalAddress,
+    this.hasNotch = false,
     this.pnl,
     this.hodl,
     this.sidePadding,
@@ -30,6 +31,7 @@ class FeedTwitterToken extends HookConsumerWidget {
   final Widget? pnl;
   final Widget? hodl;
   final double? sidePadding;
+  final bool hasNotch;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,8 +43,12 @@ class FeedTwitterToken extends HookConsumerWidget {
           width: double.infinity,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.0.s),
+            child: ClipPath(
+              clipper: ShapeBorderClipper(
+                shape: BottomNotchRectBorder(
+                  notchPosition: hasNotch ? NotchPosition.bottom : NotchPosition.none,
+                ),
+              ),
               child: ProfileBackground(
                 colors: useImageColors(token.imageUrl),
                 child: SizedBox(
@@ -156,13 +162,9 @@ class TwitterTokenHeader extends StatelessWidget {
               IntrinsicWidth(
                 child: Container(
                   constraints: BoxConstraints(minWidth: 260.s),
-                  decoration: ShapeDecoration(
-                    color: context.theme.appColors.secondaryBackground.withValues(
-                      alpha: 0.1,
-                    ),
-                    shape: BottomNotchRectBorder(
-                      isOnTop: showBuyButton,
-                    ),
+                  decoration: BoxDecoration(
+                    color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16.0.s),
                   ),
                   padding: EdgeInsetsDirectional.only(
                     top: 20.s,

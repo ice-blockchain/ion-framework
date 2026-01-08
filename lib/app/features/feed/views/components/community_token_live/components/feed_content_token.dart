@@ -39,6 +39,7 @@ class FeedContentToken extends StatelessWidget {
     this.pnl,
     this.showBuyButton = true,
     this.sidePadding,
+    this.hasNotch = false,
     super.key,
   });
 
@@ -48,6 +49,7 @@ class FeedContentToken extends StatelessWidget {
   final Widget? pnl;
   final double? sidePadding;
   final bool showBuyButton;
+  final bool hasNotch;
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +63,12 @@ class FeedContentToken extends StatelessWidget {
           width: double.infinity,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: sidePadding ?? 16.0.s),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.0.s),
+            child: ClipPath(
+              clipper: ShapeBorderClipper(
+                shape: BottomNotchRectBorder(
+                  notchPosition: hasNotch ? NotchPosition.top : NotchPosition.none,
+                ),
+              ),
               child: ProfileBackground(
                 colors: useImageColors(token.imageUrl),
                 child: Padding(
@@ -195,11 +201,9 @@ class ContentTokenHeader extends HookConsumerWidget {
           clipBehavior: Clip.none,
           children: [
             Container(
-              decoration: ShapeDecoration(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.0.s),
                 color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
-                shape: BottomNotchRectBorder(
-                  isOnTop: showBuyButton,
-                ),
               ),
               padding: EdgeInsets.symmetric(horizontal: 16.0.s),
               margin: EdgeInsetsDirectional.only(
