@@ -2,7 +2,7 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/providers/user_articles_data_source_provider.r.dart';
-import 'package:ion/app/features/feed/providers/user_holdings_provider.r.dart';
+import 'package:ion/app/features/feed/providers/user_holdings_tab_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_data_source_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_replies_data_source_provider.r.dart';
@@ -45,7 +45,7 @@ List<EntitiesDataSource>? tabDataSource(
     case TabEntityType.posts:
       return ref.watch(userPostsProvider(pubkey));
     case TabEntityType.holdings:
-      return ref.watch(userHoldingsProvider(pubkey));
+      return ref.watch(userHoldingsTabProvider(pubkey));
     case TabEntityType.articles:
     case TabEntityType.replies:
     case TabEntityType.videos:

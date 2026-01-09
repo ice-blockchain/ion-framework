@@ -11,15 +11,15 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/entities_list/entities_list.dart';
 import 'package:ion/app/features/components/entities_list/entities_list_skeleton.dart';
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
-import 'package:ion/app/features/feed/providers/user_holdings_provider.r.dart';
+import 'package:ion/app/features/feed/providers/user_holdings_tab_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/your_position_card.dart';
 import 'package:ion/app/features/user/model/tab_entity_type.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/tabs/activity_badge.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/empty_state.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/tabs/holdings_list.dart';
 import 'package:ion/app/features/user/providers/tab_data_source_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
@@ -86,7 +86,7 @@ class TabEntitiesList extends HookConsumerWidget {
         if (type == TabEntityType.posts) {
           await ref.read(userPostsProvider(pubkey).notifier).fetchEntities();
         } else if (type == TabEntityType.holdings) {
-          await ref.read(userHoldingsProvider(pubkey).notifier).fetchEntities();
+          await ref.read(userHoldingsTabProvider(pubkey).notifier).fetchEntities();
         } else {
           final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
           if (dataSource != null) {
@@ -101,15 +101,12 @@ class TabEntitiesList extends HookConsumerWidget {
             child: Column(
               children: [
                 SectionSeparator(height: 4.s),
-                YourPositionCard(
-                  token: token,
-                ),
+                YourPositionCard(token: token),
                 SectionSeparator(height: 8.s),
               ],
             ),
           ),
-        if (type == TabEntityType.holdings && entities.isNotEmpty)
-          const SliverToBoxAdapter(child: ActivityBadge()),
+        if (type == TabEntityType.holdings) SliverToBoxAdapter(child: HoldingsList(pubkey: pubkey)),
         if (entities.isEmpty && tabData.hasMore)
           const EntitiesListSkeleton()
         else if (entities.isEmpty || isBlockedOrBlockedBy)
@@ -151,7 +148,7 @@ class TabEntitiesList extends HookConsumerWidget {
           if (type == TabEntityType.posts) {
             ref.invalidate(userPostsProvider(pubkey));
           } else if (type == TabEntityType.holdings) {
-            ref.invalidate(userHoldingsProvider(pubkey));
+            ref.invalidate(userHoldingsTabProvider(pubkey));
           } else {
             final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
             if (dataSource != null) {

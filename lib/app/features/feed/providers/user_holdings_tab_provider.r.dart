@@ -5,10 +5,10 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'user_holdings_provider.r.g.dart';
+part 'user_holdings_tab_provider.r.g.dart';
 
 @riverpod
-class UserHoldings extends _$UserHoldings with DelegatedPagedNotifier {
+class UserHoldingsTab extends _$UserHoldingsTab with DelegatedPagedNotifier {
   @override
   ({Iterable<IonConnectEntity>? items, bool hasMore}) build(String pubkey) {
     final dataSources = ref.watch(userTokenizedCommunityDataSourceProvider(pubkey));
