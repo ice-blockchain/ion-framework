@@ -370,13 +370,22 @@ class ChatMainModalRoute extends BaseRouteData with _$ChatMainModalRoute {
 }
 
 class WalletMainModalRoute extends BaseRouteData with _$WalletMainModalRoute {
-  WalletMainModalRoute({this.symbolGroup})
-      : super(
-          child: WalletMainModalPage(symbolGroup: symbolGroup),
+  WalletMainModalRoute({
+    this.symbolGroup,
+    this.networkId,
+    this.walletId,
+  }) : super(
+          child: WalletMainModalPage(
+            symbolGroup: symbolGroup,
+            networkId: networkId,
+            walletId: walletId,
+          ),
           type: IceRouteType.mainModalSheet,
         );
 
   final String? symbolGroup;
+  final String? networkId;
+  final String? walletId;
 }
 
 @TypedGoRoute<AvatarOverlayRoute>(path: '/avatar-overlay/:pubkey')
