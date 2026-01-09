@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/wallets/model/coin_balance_state.f.dart';
@@ -67,7 +66,6 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     if (isDisconnectedWalletSelected) {
       unawaited(
         _loadDisconnectedWalletBalance(
-          network: currentNetwork,
           symbolGroup: symbolGroup,
           wallet: selectedWallet!,
         ),
@@ -131,7 +129,6 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
   Future<void> _loadDisconnectedWalletBalance({
     required ion.Wallet wallet,
     required String symbolGroup,
-    required NetworkData network,
   }) async {
     try {
       final client = await ref.read(ionIdentityClientProvider.future);
@@ -164,10 +161,8 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     // We were unable to find the coin asset, return empty state with 0 balance.
     if (asset == null) return const CoinBalanceState();
 
-    final parsedBalance = double.tryParse(asset.balance) ?? 0;
-    final amount = parsedBalance / pow(10, asset.decimals);
-    final balanceUSD = amount * coin.priceUSD;
+    final balance = calculateBalanceFromAsset(asset, coin);
 
-    return CoinBalanceState(amount: amount, balanceUSD: balanceUSD);
+    return CoinBalanceState(amount: balance.amount, balanceUSD: balance.balanceUSD);
   }
 }
