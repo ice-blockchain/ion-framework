@@ -125,15 +125,18 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       imageUrl: tokenInfo?.imageUrl,
       pinnedHeader: SizedBox(
         height: 40.0.s,
-        child: ScrollLinksTabsHeader(
-          tabs: TokenizedCommunityTabType.values,
-          activeIndex: activeTab.value.index,
-          onTabTapped: (int index) {
-            activeTab.value = TokenizedCommunityTabType.values[index];
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              scrollToSection(index);
-            });
-          },
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: ScrollLinksTabsHeader(
+            tabs: TokenizedCommunityTabType.values,
+            activeIndex: activeTab.value.index,
+            onTabTapped: (int index) {
+              activeTab.value = TokenizedCommunityTabType.values[index];
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                scrollToSection(index);
+              });
+            },
+          ),
         ),
       ),
       onRefresh: () async {

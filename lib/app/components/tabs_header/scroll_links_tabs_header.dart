@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/tabs_header/tabs_header_tab.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 
 // A tab bar that scrolls to sections instead of switching tab content.
 // Works like HTML anchor links - tapping a tab scrolls to the corresponding section.
-class ScrollLinksTabsHeader extends StatelessWidget {
+class ScrollLinksTabsHeader extends HookConsumerWidget {
   const ScrollLinksTabsHeader({
     required this.tabs,
     required this.activeIndex,
@@ -20,57 +22,57 @@ class ScrollLinksTabsHeader extends StatelessWidget {
   final ValueChanged<int>? onTabTapped;
 
   @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.symmetric(horizontal: 6.0.s),
-      child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isActive = index == activeIndex;
-          return _ScrollLinkTab(
-            tabType: tabs[index],
-            isActive: isActive,
-            onTap: () => onTabTapped?.call(index),
-          );
-        }),
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tabController = useTabController(
+      initialLength: tabs.length,
+      initialIndex: activeIndex,
     );
-  }
-}
 
-class _ScrollLinkTab extends StatelessWidget {
-  const _ScrollLinkTab({
-    required this.tabType,
-    required this.isActive,
-    required this.onTap,
-  });
+    // Sync controller with activeIndex changes from parent
+    useEffect(
+      () {
+        if (tabController.index != activeIndex) {
+          tabController.animateTo(activeIndex);
+        }
+        return null;
+      },
+      [activeIndex, tabController],
+    );
 
-  final TabType tabType;
-  final bool isActive;
-  final VoidCallback onTap;
+    // Handle tab change listener - notify parent when user taps a tab
+    useEffect(
+      () {
+        void handleTabChange() {
+          if (!tabController.indexIsChanging && tabController.index != activeIndex) {
+            onTabTapped?.call(tabController.index);
+          }
+        }
 
-  @override
-  Widget build(BuildContext context) {
-    final activeColor = context.theme.appColors.lightBlue;
-    final inactiveColor = context.theme.appColors.tertiaryText;
+        tabController.addListener(handleTabChange);
+        return () {
+          tabController.removeListener(handleTabChange);
+        };
+      },
+      [tabController, activeIndex, onTabTapped],
+    );
 
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10.0.s),
-        decoration: BoxDecoration(
-          border: BorderDirectional(
-            bottom: BorderSide(
-              color: isActive ? activeColor : Colors.transparent,
-              width: 2.s,
-            ),
-          ),
-        ),
-        child: IconTheme(
-          data: IconThemeData(color: isActive ? activeColor : inactiveColor),
-          child: TabsHeaderTab(tabType: tabType),
-        ),
+    return TabBar(
+      controller: tabController,
+      padding: EdgeInsets.symmetric(
+        horizontal: 6.0.s,
       ),
+      tabAlignment: TabAlignment.start,
+      isScrollable: true,
+      labelPadding: EdgeInsets.symmetric(horizontal: 10.0.s),
+      labelColor: context.theme.appColors.lightBlue,
+      unselectedLabelColor: context.theme.appColors.tertiaryText,
+      tabs: tabs.map((tabType) {
+        return TabsHeaderTab(
+          tabType: tabType,
+        );
+      }).toList(),
+      indicatorColor: context.theme.appColors.lightBlue,
+      dividerHeight: 0,
     );
   }
 }
