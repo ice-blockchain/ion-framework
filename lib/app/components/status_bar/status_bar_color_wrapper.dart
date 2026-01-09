@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ion/app/extensions/extensions.dart';
 
 class StatusBarColorWrapper extends StatelessWidget {
   const StatusBarColorWrapper.light({required this.child, super.key}) : light = true;
@@ -13,7 +12,7 @@ class StatusBarColorWrapper extends StatelessWidget {
   final bool light;
 
   SystemUiOverlayStyle _style(BuildContext context) => SystemUiOverlayStyle(
-        statusBarColor: light ? context.theme.appColors.primaryText : Colors.transparent,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: light ? Brightness.light : Brightness.dark,
         statusBarBrightness: light ? Brightness.dark : Brightness.light,
       );
