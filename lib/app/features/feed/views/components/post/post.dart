@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
+import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
@@ -234,10 +235,7 @@ class Post extends ConsumerWidget {
 
     // Check if there's content or media
     final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
-    final hasContent = content.isNotEmpty &&
-        content.length > 0 &&
-        content.operations.first.data is String &&
-        content.operations.first.data != '\n';
+    final hasContent = !content.isBlank;
 
     // PostBody returns empty if no content and no media
     return !hasContent && media.isEmpty;
