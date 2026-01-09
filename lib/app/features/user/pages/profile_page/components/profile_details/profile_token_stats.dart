@@ -89,7 +89,6 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
 class ProfileTokenStats extends ConsumerWidget {
   const ProfileTokenStats({
     required this.externalAddress,
-    this.eventReference,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
     this.spacing,
     this.leading,
@@ -97,18 +96,14 @@ class ProfileTokenStats extends ConsumerWidget {
   });
 
   final String externalAddress;
-  final EventReference? eventReference;
   final MainAxisAlignment mainAxisAlignment;
   final Widget? leading;
   final double? spacing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (eventReference == null) {
-      return const SizedBox.shrink();
-    }
     final tokenInfo = ref.watch(
-      tokenMarketInfoIfAvailableProvider(eventReference!),
+      tokenMarketInfoProvider(externalAddress),
     );
 
     if (!tokenInfo.hasValue) {
