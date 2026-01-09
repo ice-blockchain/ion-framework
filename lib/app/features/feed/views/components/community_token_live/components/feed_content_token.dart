@@ -249,8 +249,9 @@ class ContentTokenHeader extends HookConsumerWidget {
                     ),
                   ),
                   ProfileTokenStats(
-                    externalAddress: token.externalAddress,
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    eventReference:
+                        (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference,
                   ),
                   SizedBox(height: showBuyButton ? 24.0.s : 16.s),
                 ],
