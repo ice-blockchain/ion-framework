@@ -17,8 +17,12 @@ import 'package:ion/app/features/feed/views/components/user_info/user_info.dart'
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trade_row.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class CommunityTokenLive extends HookConsumerWidget {
@@ -62,6 +66,8 @@ class CommunityTokenLive extends HookConsumerWidget {
       );
     }
 
+    final isTwitterToken = entity.data.platform == CommunityTokenPlatform.x;
+
     final postWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -73,23 +79,26 @@ class CommunityTokenLive extends HookConsumerWidget {
           ),
           SizedBox(height: 8.0.s),
         ],
-        UserInfo(
-          pubkey: eventReference.masterPubkey,
-          network: network,
-          createdAt: entity.createdAt,
-          trailing: isOwnedByCurrentUser
-              ? null
-              : BottomSheetMenuButton(
-                  menuBuilder: (context) => PostMenuBottomSheet(eventReference: eventReference),
-                  padding: EdgeInsetsGeometry.symmetric(
-                    horizontal: ScreenSideOffset.defaultSmallMargin,
-                    vertical: 5.0.s,
+        if (isTwitterToken)
+          _TwitterTokenUserInfo(entity: entity)
+        else
+          UserInfo(
+            pubkey: eventReference.masterPubkey,
+            network: network,
+            createdAt: entity.createdAt,
+            trailing: isOwnedByCurrentUser
+                ? null
+                : BottomSheetMenuButton(
+                    menuBuilder: (context) => PostMenuBottomSheet(eventReference: eventReference),
+                    padding: EdgeInsetsGeometry.symmetric(
+                      horizontal: ScreenSideOffset.defaultSmallMargin,
+                      vertical: 5.0.s,
+                    ),
                   ),
-                ),
-          padding: EdgeInsetsDirectional.only(
-            start: ScreenSideOffset.defaultSmallMargin,
+            padding: EdgeInsetsDirectional.only(
+              start: ScreenSideOffset.defaultSmallMargin,
+            ),
           ),
-        ),
         SizedBox(height: 10.0.s),
         CommunityTokenLiveBody(entity: entity),
         CounterItemsFooter(eventReference: eventReference),
@@ -127,6 +136,67 @@ class _CreatorTokenIsLiveLabel extends StatelessWidget {
           style: context.theme.appTextThemes.body2.copyWith(color: color),
         ),
       ],
+    );
+  }
+}
+
+class _TwitterTokenUserInfo extends ConsumerWidget {
+  const _TwitterTokenUserInfo({
+    required this.entity,
+  });
+
+  final CommunityTokenDefinitionEntity entity;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(entity.data.externalAddress)).valueOrNull;
+
+    if (tokenInfo == null) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: EdgeInsetsDirectional.only(start: 16.s),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                HolderAvatar(
+                  imageUrl: tokenInfo.creator.avatar,
+                  seed: tokenInfo.creator.name,
+                  isXUser: true,
+                ),
+                SizedBox(width: 8.0.s),
+                Expanded(
+                  child: TitleAndMeta(
+                    name: tokenInfo.creator.display ?? '',
+                    handle: tokenInfo.marketData.ticker,
+                    verified: tokenInfo.creator.verified ?? false,
+                    isCreator: true,
+                    meta: formatShortTimestamp(entity.createdAt.toDateTime),
+                    isXUser: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 8.0.s),
+          BottomSheetMenuButton(
+            menuBuilder: (context) => PostMenuBottomSheet(
+              eventReference: entity.toEventReference(),
+              showFollow: false,
+              showBlock: false,
+              showReport: false,
+              showNotInterested: false,
+            ),
+            padding: EdgeInsetsGeometry.symmetric(
+              horizontal: ScreenSideOffset.defaultSmallMargin,
+              vertical: 5.0.s,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

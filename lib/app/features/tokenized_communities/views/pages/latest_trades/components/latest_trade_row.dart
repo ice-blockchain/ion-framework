@@ -79,7 +79,7 @@ class LatestTradeRow extends StatelessWidget {
               ),
               SizedBox(width: 8.0.s),
               Expanded(
-                child: _TitleAndMeta(
+                child: TitleAndMeta(
                   name: name,
                   handle: trade.position.holder.name.isNotEmpty
                       ? '@${trade.position.holder.name}'
@@ -110,14 +110,15 @@ class LatestTradeRow extends StatelessWidget {
   }
 }
 
-class _TitleAndMeta extends StatelessWidget {
-  const _TitleAndMeta({
+class TitleAndMeta extends StatelessWidget {
+  const TitleAndMeta({
     required this.name,
     required this.meta,
     this.verified = false,
     this.isCreator = false,
     this.handle,
     this.isXUser = false,
+    super.key,
   });
 
   final String name;

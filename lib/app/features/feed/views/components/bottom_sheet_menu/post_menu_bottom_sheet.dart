@@ -29,12 +29,20 @@ class PostMenuBottomSheet extends ConsumerWidget {
     required this.eventReference,
     this.reportTitle,
     this.showNotInterested = true,
+    this.showBookmark = true,
+    this.showFollow = true,
+    this.showBlock = true,
+    this.showReport = true,
     super.key,
   });
 
   final EventReference eventReference;
   final String? reportTitle;
   final bool showNotInterested;
+  final bool showBookmark;
+  final bool showFollow;
+  final bool showBlock;
+  final bool showReport;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,16 +59,20 @@ class PostMenuBottomSheet extends ConsumerWidget {
     final menuItemsFollowGroup = <Widget>[];
     final menuItemsComplainGroup = <Widget>[];
 
-    menuItemsFollowGroup
-      ..add(
+    if (showBookmark) {
+      menuItemsFollowGroup.add(
         BookmarkButton(eventReference: eventReference),
-      )
-      ..add(
+      );
+    }
+
+    if (showFollow) {
+      menuItemsFollowGroup.add(
         _FollowUserMenuItem(
           pubkey: eventReference.masterPubkey,
           username: username,
         ),
       );
+    }
 
     menuItemsGroups.add(menuItemsFollowGroup);
 
@@ -71,15 +83,18 @@ class PostMenuBottomSheet extends ConsumerWidget {
       );
     }
     // Block/Unblock menu item
-    menuItemsComplainGroup
-      ..add(
+    if (showBlock) {
+      menuItemsComplainGroup.add(
         _BlockUserMenuItem(
           pubkey: eventReference.masterPubkey,
           username: username,
           onBlocked: context.canPop() ? context.pop : null,
         ),
-      )
-      ..add(
+      );
+    }
+    // Report menu item
+    if (showReport) {
+      menuItemsComplainGroup.add(
         ListItem(
           onTap: () {
             Navigator.of(context).pop();
@@ -107,6 +122,7 @@ class PostMenuBottomSheet extends ConsumerWidget {
           backgroundColor: Colors.transparent,
         ),
       );
+    }
 
     menuItemsGroups.add(menuItemsComplainGroup);
 

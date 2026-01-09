@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
@@ -189,6 +190,7 @@ class ProfileTokenHeader extends StatelessWidget {
         else
           ProfileTokenStatsFeed(
             externalAddress: externalAddress,
+            eventReference: ReplaceableEventReference.fromString(externalAddress),
           ),
       ],
     );
