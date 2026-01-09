@@ -60,7 +60,7 @@ class Balance extends ConsumerWidget {
                     )
                     ?.selected
                     .mapOrNull(network: (network) => network.network);
-                final walletAddress = ref
+                final wallet = ref
                     .read(
                       selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
                     )
@@ -69,10 +69,10 @@ class Balance extends ConsumerWidget {
                 final formNotifier = ref.read(receiveCoinsFormControllerProvider.notifier)
                   ..setCoin(coinsGroup);
 
-                if (network != null && walletAddress != null) {
+                if (network != null && wallet?.address != null) {
                   formNotifier
                     ..setNetwork(network)
-                    ..setWalletAddress(walletAddress);
+                    ..setWalletAddress(wallet!.address!);
                   ShareAddressToGetCoinsRoute().push<void>(context);
                 } else {
                   NetworkSelectReceiveRoute().push<void>(context);

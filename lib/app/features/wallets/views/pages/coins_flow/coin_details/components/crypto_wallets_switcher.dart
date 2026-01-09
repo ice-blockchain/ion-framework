@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/utils/address.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 
-class CryptoWalletSwitcher extends StatelessWidget {
+class CryptoWalletSwitcher extends HookWidget {
   const CryptoWalletSwitcher({
     required this.wallets,
     required this.selectedWallet,
@@ -11,9 +13,9 @@ class CryptoWalletSwitcher extends StatelessWidget {
     super.key,
   });
 
-  final List<String> wallets;
-  final String? selectedWallet;
-  final ValueChanged<String> onWalletChanged;
+  final List<Wallet> wallets;
+  final Wallet? selectedWallet;
+  final ValueChanged<Wallet> onWalletChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +55,7 @@ class CryptoWalletSwitcher extends StatelessWidget {
                   vertical: 4.s,
                 ),
                 child: Text(
-                  shortenAddress(wallet),
+                  shortenAddress(wallet.address!),
                   style: context.theme.appTextThemes.body2
                       .copyWith(color: _getTextColor(context, wallet == selectedWallet)),
                 ),

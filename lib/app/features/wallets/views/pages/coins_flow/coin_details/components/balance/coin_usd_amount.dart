@@ -29,7 +29,7 @@ class CoinUsdAmount extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final displayOrder = ref.watch(balanceDisplayOrderProvider);
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
-    final balance = ref.watch(coinBalanceProvider(symbolGroup: coinsGroup.symbolGroup));
+    final balance = ref.watch(coinBalanceNotifierProvider(symbolGroup: coinsGroup.symbolGroup));
 
     final coinText = isBalanceVisible
         ? '${formatCrypto(balance.amount)} ${coinsGroup.abbreviation}'

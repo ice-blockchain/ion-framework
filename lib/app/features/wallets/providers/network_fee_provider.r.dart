@@ -10,6 +10,7 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_fee_information.f.dart';
 import 'package:ion/app/features/wallets/model/network_fee_option.f.dart';
 import 'package:ion/app/features/wallets/model/network_fee_type.dart';
+import 'package:ion/app/features/wallets/utils/wallet_asset_utils.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart' as ion;
@@ -42,7 +43,7 @@ Future<NetworkFeeInformation?> networkFee(
       await client.wallets.getWalletAssets(walletId).then((result) => result.assets);
 
   final networkNativeToken = walletAssets.firstWhereOrNull((asset) => asset.isNative);
-  final sendableAsset = _getSendableAsset(walletAssets, transferredCoin);
+  final sendableAsset = getAssociatedWalletAsset(walletAssets, transferredCoin);
 
   if (sendableAsset == null || networkNativeToken == null) {
     Logger.error(
@@ -75,45 +76,6 @@ Future<NetworkFeeInformation?> networkFee(
     sendableAsset: sendableAsset,
     networkFeeOptions: networkFeeOptions,
   );
-}
-
-ion.WalletAsset? _getSendableAsset(List<ion.WalletAsset> assets, CoinData? transferredCoin) {
-  ion.WalletAsset? nativeAsset() => assets.firstWhereOrNull((asset) => asset.isNative);
-
-  if (transferredCoin == null || transferredCoin.native) {
-    return nativeAsset();
-  }
-
-  final contractAddress = transferredCoin.contractAddress;
-
-  if (contractAddress.isNotEmpty) {
-    final result = assets.firstWhereOrNull((asset) {
-      final assetIdentifier = asset.maybeMap(
-        erc20: (a) => a.contract,
-        trc20: (a) => a.contract,
-        trc10: (a) => a.tokenId,
-        asa: (a) => a.assetId,
-        spl: (a) => a.mint,
-        spl2022: (a) => a.mint,
-        sep41: (a) => a.issuer,
-        tep74: (a) => a.master,
-        aip21: (a) => a.metadata,
-        unknown: (a) => a.contract,
-        orElse: () => null,
-      );
-      return assetIdentifier != null && assetIdentifier == contractAddress;
-    });
-
-    if (result != null) {
-      return result;
-    }
-  }
-
-  final result = assets.firstWhereOrNull(
-    (asset) => asset.symbol?.toLowerCase() == transferredCoin.abbreviation.toLowerCase(),
-  );
-  // Can be native token of the testnet, if result is null
-  return result ?? nativeAsset();
 }
 
 @visibleForTesting
