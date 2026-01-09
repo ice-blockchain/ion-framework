@@ -112,10 +112,19 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       );
 
       final txHash = _requireBroadcastedTxHash(response);
-      await _importTokenIfNeeded(
-        existingTokenAddress,
-        formState.communityTokenCoinsGroup,
-      );
+
+      try {
+        await _importTokenIfNeeded(
+          existingTokenAddress,
+          formState.communityTokenCoinsGroup,
+        );
+      } catch (error, stackTrace) {
+        Logger.error(
+          error,
+          stackTrace: stackTrace,
+          message: 'Failed to import token',
+        );
+      }
 
       unawaited(
         ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
@@ -256,7 +265,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     String? existingTokenAddress,
     CoinsGroup? communityTokenCoinsGroup,
   ) async {
-    final tokenData = communityTokenCoinsGroup?.coins.first.coin;
+    final tokenData = communityTokenCoinsGroup?.coins.firstOrNull?.coin;
     if (tokenData == null) return;
     if (existingTokenAddress != tokenData.contractAddress) return;
 
