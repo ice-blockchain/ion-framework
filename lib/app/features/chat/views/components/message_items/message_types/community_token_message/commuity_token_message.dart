@@ -11,10 +11,10 @@ import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/replied_message_list_item_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
+import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/chat_profile_token.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
-import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
@@ -140,10 +140,7 @@ class _TokenCard extends ConsumerWidget {
     final sidePadding = 0.0.s;
 
     if (type == CommunityContentTokenType.profile) {
-      return FeedProfileToken(
-        externalAddress: definitionEntity.data.externalAddress,
-        sidePadding: sidePadding,
-      );
+      return ChatCreatorTokenMessage(externalAddress: definitionEntity.data.externalAddress);
     } else if (type == CommunityContentTokenType.twitter) {
       return FeedTwitterToken(
         externalAddress: definitionEntity.data.externalAddress,
