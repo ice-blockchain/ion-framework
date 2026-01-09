@@ -80,7 +80,24 @@ class Balance extends ConsumerWidget {
               },
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
               onMore: () {
-                WalletMainModalRoute(symbolGroup: coinsGroup.symbolGroup).push<void>(context);
+                final network = ref
+                    .read(
+                      networkSelectorNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+                    )
+                    ?.selected
+                    .mapOrNull(network: (n) => n.network);
+
+                final wallet = ref
+                    .read(
+                      selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+                    )
+                    .selectedWallet;
+
+                WalletMainModalRoute(
+                  symbolGroup: coinsGroup.symbolGroup,
+                  networkId: network?.id,
+                  walletId: wallet?.id,
+                ).push<void>(context);
               },
             ),
           ),

@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
+import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
@@ -16,7 +18,10 @@ import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/utils/wallet_asset_utils.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
+import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion_identity_client/ion_identity.dart' as ion;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'send_asset_form_provider.r.g.dart';
@@ -144,6 +149,98 @@ class SendAssetFormController extends _$SendAssetFormController {
         _updateCoinAssetWithMaxAmount(updatedCoin);
       }
     }
+  }
+
+  Future<void> setNetworkWithWallet(NetworkData network, ion.Wallet wallet) async {
+    state = state.copyWith(
+      network: network,
+      senderWallet: wallet,
+      networkFeeOptions: [],
+      selectedNetworkFeeOption: null,
+    );
+
+    unawaited(_initReceiverAddressFromContact());
+
+    if (state.assetData case final CoinAssetToSendData coin) {
+      // First, get the coin data (metadata like symbol, price, decimals)
+      final existingOption = coin.coinsGroup.coins.firstWhereOrNull(
+        (e) => e.coin.network == network,
+      );
+
+      final coinData = existingOption?.coin ??
+          await _getCoinDataForNetwork(
+            network: network,
+            symbolGroup: coin.coinsGroup.symbolGroup,
+            abbreviation: coin.coinsGroup.abbreviation,
+          );
+
+      if (coinData == null) return;
+
+      // Fetch actual balance from wallet API
+      final client = await ref.read(ionIdentityClientProvider.future);
+      final walletAssets = await client.wallets.getWalletAssets(wallet.id);
+      final asset = getAssociatedWalletAsset(walletAssets.assets, coinData);
+
+      var amount = 0.0;
+      var balanceUSD = 0.0;
+      var rawAmount = '0';
+
+      if (asset != null) {
+        final parsedBalance = double.tryParse(asset.balance) ?? 0;
+        amount = parsedBalance / pow(10, asset.decimals);
+        balanceUSD = amount * coinData.priceUSD;
+        rawAmount = asset.balance;
+      }
+
+      // Create CoinInWalletData with actual balance
+      final selectedOption = CoinInWalletData(
+        coin: coinData,
+        amount: amount,
+        balanceUSD: balanceUSD,
+        rawAmount: rawAmount,
+        walletId: wallet.id,
+      );
+
+      state = state.copyWith(
+        assetData: coin.copyWith(selectedOption: selectedOption),
+      );
+
+      final networkFeeInfo = await ref.read(
+        networkFeeProvider(
+          walletId: wallet.id,
+          network: network,
+          transferredCoin: coinData,
+        ).future,
+      );
+
+      if (networkFeeInfo != null) {
+        final updatedCoin = coin.copyWith(
+          associatedAssetWithSelectedOption: networkFeeInfo.sendableAsset,
+          selectedOption: selectedOption,
+        );
+
+        state = state.copyWith(
+          networkFeeOptions: networkFeeInfo.networkFeeOptions,
+          selectedNetworkFeeOption: networkFeeInfo.networkFeeOptions.firstOrNull,
+          networkNativeToken: networkFeeInfo.networkNativeToken,
+        );
+
+        _updateCoinAssetWithMaxAmount(updatedCoin);
+      }
+    }
+  }
+
+  Future<CoinData?> _getCoinDataForNetwork({
+    required NetworkData network,
+    required String symbolGroup,
+    required String abbreviation,
+  }) async {
+    final coins = await (await ref.watch(coinsServiceProvider.future)).getCoinsByFilters(
+      network: network,
+      symbolGroup: symbolGroup,
+    );
+
+    return coins.firstWhereOrNull((e) => e.abbreviation == abbreviation) ?? coins.firstOrNull;
   }
 
   void _checkIfUserCanCoverFee(CoinAssetToSendData coin) {

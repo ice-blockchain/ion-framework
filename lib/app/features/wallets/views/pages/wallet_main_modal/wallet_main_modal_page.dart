@@ -10,6 +10,7 @@ import 'package:ion/app/extensions/extensions.dart';
 //TODO: Commented out for RC/production release - Buy, Sell functionality not ready yet
 // import 'package:ion/app/features/core/model/feature_flags.dart';
 // import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
@@ -25,9 +26,13 @@ class WalletMainModalPage extends HookConsumerWidget {
   const WalletMainModalPage({
     super.key,
     this.symbolGroup,
+    this.networkId,
+    this.walletId,
   });
 
   final String? symbolGroup;
+  final String? networkId;
+  final String? walletId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,16 +84,35 @@ class WalletMainModalPage extends HookConsumerWidget {
     ref.invalidate(sendAssetFormControllerProvider);
 
     final symbolGroup = this.symbolGroup;
+    final networkId = this.networkId;
+    final walletId = this.walletId;
+
     if (symbolGroup != null) {
       final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
       final coinsGroup =
           walletView?.coinGroups.firstWhereOrNull((e) => e.symbolGroup == symbolGroup);
       if (coinsGroup != null) {
         ref.read(sendAssetFormControllerProvider.notifier).setCoin(coinsGroup, walletView);
+
+        if (networkId != null && walletId != null) {
+          final network = coinsGroup.coins
+              .map((c) => c.coin.network)
+              .firstWhereOrNull((n) => n.id == networkId);
+          final allWallets = ref.read(walletsNotifierProvider).valueOrNull ?? [];
+          final wallet = allWallets.firstWhereOrNull((w) => w.id == walletId);
+
+          if (network != null && wallet != null) {
+            ref.read(sendAssetFormControllerProvider.notifier).setNetworkWithWallet(
+                  network,
+                  wallet,
+                );
+          }
+        }
       }
     }
 
     final skipSelectCoinRoute = symbolGroup != null;
+    final skipNetworkRoute = networkId != null && walletId != null;
 
     if (type == WalletMainModalListItem.swap) {
       // Initialize swap state and open swap flow
@@ -101,15 +125,25 @@ class WalletMainModalPage extends HookConsumerWidget {
     }
 
     context.pushReplacement(
-      _getSubRouteLocation(type, skipSelectCoinRoute: skipSelectCoinRoute),
+      _getSubRouteLocation(
+        type,
+        skipSelectCoinRoute: skipSelectCoinRoute,
+        skipNetworkRoute: skipNetworkRoute,
+      ),
     );
   }
 
-  String _getSubRouteLocation(WalletMainModalListItem type, {bool skipSelectCoinRoute = false}) {
+  String _getSubRouteLocation(
+    WalletMainModalListItem type, {
+    bool skipSelectCoinRoute = false,
+    bool skipNetworkRoute = false,
+  }) {
     return switch (type) {
-      WalletMainModalListItem.send => skipSelectCoinRoute
-          ? SelectNetworkWalletRoute().location
-          : SelectCoinWalletRoute().location,
+      WalletMainModalListItem.send => skipNetworkRoute
+          ? SendCoinsFormWalletRoute().location
+          : skipSelectCoinRoute
+              ? SelectNetworkWalletRoute().location
+              : SelectCoinWalletRoute().location,
       WalletMainModalListItem.receive => ReceiveCoinRoute().location,
       WalletMainModalListItem.swap => SwapCoinsRoute().location,
     };
