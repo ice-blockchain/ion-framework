@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -96,15 +95,11 @@ class SendAssetFormController extends _$SendAssetFormController {
       );
 
       if (selectedOption == null) {
-        final coins = await (await ref.watch(coinsServiceProvider.future)).getCoinsByFilters(
+        final coinData = await _getCoinDataForNetwork(
           network: network,
           symbolGroup: coin.coinsGroup.symbolGroup,
+          abbreviation: coin.coinsGroup.abbreviation,
         );
-
-        final coinData = coins.firstWhereOrNull(
-              (e) => e.abbreviation == coin.coinsGroup.abbreviation,
-            ) ??
-            coins.firstOrNull;
 
         if (coinData != null) {
           selectedOption = CoinInWalletData(coin: coinData);
@@ -179,22 +174,15 @@ class SendAssetFormController extends _$SendAssetFormController {
       final walletAssets = await client.wallets.getWalletAssets(wallet.id);
       final asset = getAssociatedWalletAsset(walletAssets.assets, coinData);
 
-      var amount = 0.0;
-      var balanceUSD = 0.0;
-      var rawAmount = '0';
-
-      if (asset != null) {
-        final parsedBalance = double.tryParse(asset.balance) ?? 0;
-        amount = parsedBalance / pow(10, asset.decimals);
-        balanceUSD = amount * coinData.priceUSD;
-        rawAmount = asset.balance;
-      }
+      final balance = asset != null
+          ? calculateBalanceFromAsset(asset, coinData)
+          : (amount: 0.0, balanceUSD: 0.0, rawAmount: '0');
 
       final selectedOption = CoinInWalletData(
         coin: coinData,
-        amount: amount,
-        balanceUSD: balanceUSD,
-        rawAmount: rawAmount,
+        amount: balance.amount,
+        balanceUSD: balance.balanceUSD,
+        rawAmount: balance.rawAmount,
         walletId: wallet.id,
       );
 
@@ -236,7 +224,6 @@ class SendAssetFormController extends _$SendAssetFormController {
       network: network,
       symbolGroup: symbolGroup,
     );
-
     return coins.firstWhereOrNull((e) => e.abbreviation == abbreviation) ?? coins.firstOrNull;
   }
 

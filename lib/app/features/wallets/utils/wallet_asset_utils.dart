@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion_identity_client/ion_identity.dart' as ion;
@@ -40,4 +42,14 @@ ion.WalletAsset? getAssociatedWalletAsset(List<ion.WalletAsset> assets, CoinData
     (asset) => asset.symbol?.toLowerCase() == transferredCoin.abbreviation.toLowerCase(),
   );
   return result ?? nativeAsset();
+}
+
+({double amount, double balanceUSD, String rawAmount}) calculateBalanceFromAsset(
+  ion.WalletAsset asset,
+  CoinData coin,
+) {
+  final parsedBalance = double.tryParse(asset.balance) ?? 0;
+  final amount = parsedBalance / pow(10, asset.decimals);
+  final balanceUSD = amount * coin.priceUSD;
+  return (amount: amount, balanceUSD: balanceUSD, rawAmount: asset.balance);
 }
