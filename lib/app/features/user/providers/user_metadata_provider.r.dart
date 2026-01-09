@@ -124,10 +124,13 @@ class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier 
     if (masterPubkey == null) {
       return;
     }
+    final expirationDuration = ref.watch(userMetadataCacheDurationProvider);
 
+    //should match the call in UserMetadata provider
     final _ = await ref.refresh(
       ionConnectEntityProvider(
         cache: false,
+        expirationDuration: expirationDuration,
         eventReference: ReplaceableEventReference(
           masterPubkey: masterPubkey,
           kind: UserMetadataEntity.kind,
