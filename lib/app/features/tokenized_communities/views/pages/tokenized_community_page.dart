@@ -208,7 +208,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       ],
       expandedHeader: Column(
         children: [
-          SizedBox(height: MediaQuery.viewPaddingOf(context).top + 16.s),
+          SizedBox(height: MediaQuery.viewPaddingOf(context).top + 20.s),
           Builder(
             builder: (context) {
               if (tokenInfo == null) {
@@ -242,6 +242,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               };
             },
           ),
+          SizedBox(height: 16.0.s),
         ],
       ),
       child: Column(
