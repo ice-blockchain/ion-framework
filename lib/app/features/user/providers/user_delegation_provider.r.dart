@@ -51,7 +51,6 @@ Future<UserDelegationEntity?> userDelegation(
 
 @riverpod
 Future<UserDelegationEntity?> cachedUserDelegation(Ref ref, String masterPubkey) async {
-
   final userDelegation = await ref.watch(
     ionConnectDatabaseEntityProvider(
       eventReference: ReplaceableEventReference(
