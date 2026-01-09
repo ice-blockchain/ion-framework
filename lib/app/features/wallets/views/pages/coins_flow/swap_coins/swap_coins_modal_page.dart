@@ -13,6 +13,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/token_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -78,7 +79,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     );
 
     useResetSwapStateOnClose(controller);
-
+    final state = ref.watch(swapCoinsControllerProvider);
     return SheetContent(
       body: SingleChildScrollView(
         child: GestureDetector(
@@ -94,7 +95,16 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                 child: NavigationAppBar.screen(
                   title: Text(context.i18n.wallet_swap_coins),
                   actions: [
-                    const SlippageAction(),
+                    if (state.sellCoin != null &&
+                        !SwapCoinIdentifier.isInternalCoin(
+                          state.sellCoin,
+                          state.sellNetwork,
+                        ))
+                      SlippageAction(
+                        slippage: state.slippage,
+                        defaultSlippage: SwapCoinData.defaultSlippage,
+                        onSlippageChanged: controller.setSlippage,
+                      ),
                     SizedBox(
                       width: 8.0.s,
                     ),

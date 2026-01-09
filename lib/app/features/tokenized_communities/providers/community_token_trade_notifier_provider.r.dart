@@ -104,6 +104,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         fatAddressData: fatAddressData,
         userActionSigner: signer,
         shouldSendEvents: formState.shouldSendEvents,
+        slippagePercent: formState.slippage,
       );
       // Invalidate token market info to refresh balance
       ref.invalidate(

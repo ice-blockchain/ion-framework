@@ -609,9 +609,16 @@ class SwapCoinsConfirmationRoute extends BaseRouteData with _$SwapCoinsConfirmat
 }
 
 class SwapSlippageSettingsRoute extends BaseRouteData with _$SwapSlippageSettingsRoute {
-  SwapSlippageSettingsRoute()
-      : super(
-          child: const SlippageSettingsPage(),
+  SwapSlippageSettingsRoute({
+    required this.slippage,
+    required this.defaultSlippage,
+  }) : super(
+          child: SlippageSettingsPage(
+            slippage: slippage,
+            defaultSlippage: defaultSlippage,
+          ),
           type: IceRouteType.bottomSheet,
         );
+  final double slippage;
+  final double defaultSlippage;
 }

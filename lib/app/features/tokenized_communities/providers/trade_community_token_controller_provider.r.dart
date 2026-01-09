@@ -253,6 +253,10 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     _scheduleQuoteUpdates();
   }
 
+  void setSlippage(double slippage) {
+    state = state.copyWith(slippage: slippage);
+  }
+
   void setShouldSendEvents({required bool send}) {
     state = state.copyWith(shouldSendEvents: send);
   }
