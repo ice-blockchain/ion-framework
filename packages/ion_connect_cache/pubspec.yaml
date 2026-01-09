@@ -12,9 +12,7 @@ dependencies:
   drift: ^2.28.1
   meta: ^1.15.0
   nostr_dart:
-    git:
-      url: https://github.com/ice-blockchain/nostr-dart
-      ref: 0.0.41
+    path: /Users/user/Development/code/flutter/nostr-dart
 
 dev_dependencies:
   build_runner: ^2.4.15

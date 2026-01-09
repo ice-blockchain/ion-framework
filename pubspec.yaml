@@ -145,9 +145,7 @@ dependencies:
       url: https://github.com/ice-blockchain/dart-nip44.git
       ref: 1.1.0
   nostr_dart:
-    git:
-      url: https://github.com/ice-blockchain/nostr-dart
-      ref: 0.0.41
+    path: /Users/user/Development/code/flutter/nostr-dart
   ogp_data_extract: ^0.1.4
   open_filex: ^4.4.0
   package_info_plus: ^8.3.0
