@@ -91,6 +91,12 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
           .select((state) => state.selectedWallet?.address),
     );
 
+    // Include selected wallet address if not already in the list (for disconnected wallets)
+    if (_selectedWalletAddress != null &&
+        !_coinWalletAddresses.contains(_selectedWalletAddress)) {
+      _coinWalletAddresses = [..._coinWalletAddresses, _selectedWalletAddress!];
+    }
+
     _reset();
   }
 
