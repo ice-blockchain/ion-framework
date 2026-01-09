@@ -152,6 +152,7 @@ class TokenTopHolders extends _$TokenTopHolders {
             if (!_marker.isCompleted) {
               _marker.complete();
             }
+            _emit();
             continue;
           }
 
