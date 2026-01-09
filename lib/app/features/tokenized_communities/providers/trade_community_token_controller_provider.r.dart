@@ -8,6 +8,7 @@ import 'package:ion/app/features/tokenized_communities/providers/content_creator
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/services/trade_community_token_quote_controller.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
@@ -36,6 +37,7 @@ typedef TradeCommunityTokenControllerParams = ({
 @riverpod
 class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   TradeCommunityTokenQuoteController? _quoteController;
+  CommunityTokenPricingIdentifierResolver? _pricingIdentifierResolver;
 
   @override
   TradeCommunityTokenState build(TradeCommunityTokenControllerParams params) {
@@ -51,6 +53,26 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     final pubkey = params.eventReference?.masterPubkey ??
         CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
+
+    _pricingIdentifierResolver ??= CommunityTokenPricingIdentifierResolver(
+      externalAddress: externalAddress,
+      externalAddressType: params.externalAddressType,
+      tokenExistsResolver: () async {
+        final tokenInfo = await ref.read(tokenMarketInfoProvider(externalAddress).future);
+        final tokenAddress = tokenInfo?.addresses.blockchain?.trim() ?? '';
+        return tokenAddress.isNotEmpty;
+      },
+      fatAddressHexResolver: () async {
+        final fatAddressData = await ref.read(
+          fatAddressDataProvider(
+            externalAddress: externalAddress,
+            externalAddressType: params.externalAddressType,
+            eventReference: params.eventReference,
+          ).future,
+        );
+        return fatAddressData.toHex();
+      },
+    );
 
     ref
       ..listen(currentWalletViewDataProvider, (_, __) => _updateDerivedState())
@@ -456,27 +478,11 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   Future<String> _resolvePricingIdentifier(CommunityTokenTradeMode mode) async {
-    final externalAddress = params.externalAddress;
-
-    if (mode == CommunityTokenTradeMode.sell) {
-      return externalAddress;
+    final resolver = _pricingIdentifierResolver;
+    if (resolver == null) {
+      throw StateError('CommunityTokenPricingIdentifierResolver is not initialized');
     }
-
-    final tokenInfo = await ref.read(tokenMarketInfoProvider(externalAddress).future);
-    final tokenAddress = tokenInfo?.addresses.blockchain;
-    final tokenExists = tokenAddress != null && tokenAddress.isNotEmpty;
-    if (tokenExists) {
-      return externalAddress;
-    }
-
-    final fatAddressData = await ref.read(
-      fatAddressDataProvider(
-        externalAddress: externalAddress,
-        externalAddressType: params.externalAddressType,
-        eventReference: params.eventReference,
-      ).future,
-    );
-    return fatAddressData.toHex();
+    return resolver.resolve(mode);
   }
 
   CoinsGroup _buildInterimCommunityTokenGroup({
