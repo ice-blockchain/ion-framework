@@ -11,7 +11,7 @@ import 'package:ion/app/features/chat/model/message_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/replied_message_list_item_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
-import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/chat_profile_token.dart';
+import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/chat_creator_token_message.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/reply_message/reply_message.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
@@ -22,6 +22,10 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
+/// A message widget that displays a community token card in chat.
+///
+/// This widget handles different types of community tokens (profile, twitter, content)
+/// and displays them with appropriate formatting and interaction handlers.
 class CommunityTokenMessage extends HookConsumerWidget {
   const CommunityTokenMessage({
     required this.eventMessage,
@@ -137,21 +141,19 @@ class _TokenCard extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final sidePadding = 0.0.s;
-
-    if (type == CommunityContentTokenType.profile) {
-      return ChatCreatorTokenMessage(externalAddress: definitionEntity.data.externalAddress);
-    } else if (type == CommunityContentTokenType.twitter) {
-      return FeedTwitterToken(
-        externalAddress: definitionEntity.data.externalAddress,
-        sidePadding: sidePadding,
-      );
-    } else {
-      return FeedContentToken(
-        type: type,
-        tokenDefinition: definitionEntity,
-        sidePadding: sidePadding,
-      );
-    }
+    return switch (type) {
+      CommunityContentTokenType.profile => ChatCreatorTokenMessage(
+          externalAddress: definitionEntity.data.externalAddress,
+        ),
+      CommunityContentTokenType.twitter => FeedTwitterToken(
+          externalAddress: definitionEntity.data.externalAddress,
+          sidePadding: 0.0.s,
+        ),
+      _ => FeedContentToken(
+          type: type,
+          tokenDefinition: definitionEntity,
+          sidePadding: 0.0.s,
+        ),
+    };
   }
 }

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
+import 'package:ion/app/components/dividers/gradient_vertical_divider.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
@@ -27,7 +28,7 @@ class ChatCreatorTokenMessage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TokenCardBuilder(
-      skeleton: _LoadingSkeleton(),
+      skeleton: const _LoadingSkeleton(),
       externalAddress: externalAddress,
       builder: (token, colors) {
         return SizedBox(
@@ -149,210 +150,191 @@ class _FollowCounters extends ConsumerWidget {
     final followersNumber = followersCountAsync.valueOrNull;
     final bothAvailable = followingNumber != null && followersNumber != null;
 
+    final color = context.theme.appColors.primaryBackground;
+
     final isLoading = followListAsync.isLoading || followersCountAsync.isLoading;
     if (!isLoading && !bothAvailable) {
       return const SizedBox.shrink();
     }
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      spacing: 2.0.s,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FollowType.following.iconAsset.icon(
-                  size: 16.0.s,
-                  color: context.theme.appColors.primaryBackground,
-                ),
-                SizedBox(width: 2.0.s),
-                Text(
-                  formatCount(followingNumber ?? 0),
-                  style: context.theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: context.theme.appColors.primaryBackground,
-                  ),
-                ),
-                SizedBox(width: 2.0.s),
-                Text(
-                  FollowType.following.getTitle(context),
-                  style: context.theme.textTheme.bodySmall?.copyWith(
-                    color: context.theme.appColors.primaryBackground,
-                  ),
-                ),
-              ],
-            ),
-          ],
+        FollowType.following.iconAsset.icon(
+          size: 16.0.s,
+          color: color,
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FollowType.followers.iconAsset.icon(
-              size: 16.0.s,
-              color: context.theme.appColors.primaryBackground,
-            ),
-            SizedBox(width: 2.0.s),
-            Text(
-              formatCount(followersNumber ?? 0),
-              style: context.theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.theme.appColors.primaryBackground,
-              ),
-            ),
-            SizedBox(width: 2.0.s),
-            Text(
-              FollowType.followers.getTitle(context),
-              style: context.theme.textTheme.bodySmall?.copyWith(
-                color: context.theme.appColors.primaryBackground,
-              ),
-            ),
-          ],
+        SizedBox(width: 1.0.s),
+        Text(
+          formatCount(followingNumber ?? 0),
+          style: context.theme.textTheme.bodySmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(width: 1.0.s),
+        Text(
+          FollowType.following.getTitle(context),
+          style: context.theme.textTheme.bodySmall?.copyWith(color: color),
+        ),
+        SizedBox(width: 2.0.s),
+        const GradientVerticalDivider(),
+        SizedBox(width: 2.0.s),
+        FollowType.followers.iconAsset.icon(
+          size: 16.0.s,
+          color: context.theme.appColors.primaryBackground,
+        ),
+        SizedBox(width: 1.0.s),
+        Text(
+          formatCount(followersNumber ?? 0),
+          style: context.theme.textTheme.bodySmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(width: 1.0.s),
+        Text(
+          FollowType.followers.getTitle(context),
+          style: context.theme.textTheme.bodySmall?.copyWith(color: color),
         ),
       ],
     );
   }
 }
 
+/// A more accurate skeleton loading state matching ChatCreatorTokenMessage dimensions.
 class _LoadingSkeleton extends StatelessWidget {
+  const _LoadingSkeleton();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsetsDirectional.only(top: 24.0.s),
-      margin: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s),
+    return SizedBox(
       width: double.infinity,
-      decoration: BoxDecoration(
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(12.0.s),
-        color: context.theme.appColors.tertiaryBackground,
-      ),
-      child: Column(
-        children: [
-          Skeleton(
-            baseColor: context.theme.appColors.attentionBlock,
-            child: Column(
-              children: [
-                Container(
-                  height: 96.s,
-                  width: 96.s,
-                  decoration: BoxDecoration(
-                    color: context.theme.appColors.attentionBlock,
-                    borderRadius: BorderRadius.circular(24.0.s),
-                  ),
-                ),
-                SizedBox(height: 8.s),
-                Container(
-                  height: 20.s,
-                  width: 123.s,
-                  decoration: BoxDecoration(
-                    color: context.theme.appColors.attentionBlock,
-                    borderRadius: BorderRadius.circular(16.0.s),
-                  ),
-                ),
-                SizedBox(height: 4.s),
-                Container(
-                  height: 18.s,
-                  width: 92.s,
-                  decoration: BoxDecoration(
-                    color: context.theme.appColors.attentionBlock,
-                    borderRadius: BorderRadius.circular(16.0.s),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 16.s),
-          Stack(
-            alignment: Alignment.bottomCenter,
-            clipBehavior: Clip.none,
+        child: ColoredBox(
+          color: context.theme.appColors.tertiaryBackground,
+          child: Column(
             children: [
+              SizedBox(height: 24.0.s),
+              // Avatar skeleton - matches 88.s container
+              Skeleton(
+                baseColor: context.theme.appColors.attentionBlock,
+                child: Container(
+                  height: 88.s,
+                  width: 88.s,
+                  decoration: BoxDecoration(
+                    color: context.theme.appColors.attentionBlock,
+                    borderRadius: BorderRadius.circular(21.0.s),
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.0.s),
+              // Title skeleton
+              Skeleton(
+                baseColor: context.theme.appColors.attentionBlock,
+                child: Container(
+                  height: 20.s,
+                  width: 140.s,
+                  decoration: BoxDecoration(
+                    color: context.theme.appColors.attentionBlock,
+                    borderRadius: BorderRadius.circular(10.0.s),
+                  ),
+                ),
+              ),
+              SizedBox(height: 4.0.s),
+              // Username and price skeleton
+              Skeleton(
+                baseColor: context.theme.appColors.attentionBlock,
+                child: Container(
+                  height: 16.s,
+                  width: 110.s,
+                  decoration: BoxDecoration(
+                    color: context.theme.appColors.attentionBlock,
+                    borderRadius: BorderRadius.circular(8.0.s),
+                  ),
+                ),
+              ),
+              SizedBox(height: 14.0.s),
+              // Stats container skeleton - matches the Container with margin 30.s
               Container(
-                width: 288.s,
-                height: 98.s,
+                margin: EdgeInsets.symmetric(horizontal: 30.0.s),
+                padding: EdgeInsets.symmetric(vertical: 15.s),
                 decoration: BoxDecoration(
-                  color: context.theme.appColors.onPrimaryAccent,
-                  borderRadius: BorderRadius.circular(16.0.s),
+                  borderRadius: BorderRadius.circular(11.0.s),
+                  color: context.theme.appColors.onPrimaryAccent.withValues(alpha: 0.3),
                 ),
-                child: Skeleton(
-                  child: Column(
-                    children: [
-                      SizedBox(height: 16.s),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 15.s,
-                            width: 97.s,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.attentionBlock,
-                              borderRadius: BorderRadius.circular(12.0.s),
-                            ),
-                          ),
-                          SizedBox(width: 13.s),
-                          Container(
-                            height: 15.s,
-                            width: 97.s,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.attentionBlock,
-                              borderRadius: BorderRadius.circular(12.0.s),
-                            ),
-                          ),
-                        ],
+                child: Column(
+                  children: [
+                    // Follow counters skeleton
+                    Skeleton(
+                      baseColor: context.theme.appColors.attentionBlock,
+                      child: Container(
+                        height: 14.s,
+                        width: 180.s,
+                        decoration: BoxDecoration(
+                          color: context.theme.appColors.attentionBlock,
+                          borderRadius: BorderRadius.circular(7.0.s),
+                        ),
                       ),
-                      SizedBox(height: 24.s),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 15.s,
-                            width: 64.s,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12.0.s),
-                              color: context.theme.appColors.primaryBackground,
-                            ),
-                          ),
-                          SizedBox(width: 13.s),
-                          Container(
-                            height: 15.s,
-                            width: 64.s,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12.0.s),
-                              color: context.theme.appColors.primaryBackground,
-                            ),
-                          ),
-                          SizedBox(width: 13.s),
-                          Container(
-                            height: 15.s,
-                            width: 64.s,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12.0.s),
-                              color: context.theme.appColors.primaryBackground,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              PositionedDirectional(
-                bottom: -11.5.s,
-                child: Skeleton(
-                  baseColor: context.theme.appColors.attentionBlock,
-                  child: Container(
-                    width: 72.s,
-                    height: 23.s,
-                    decoration: BoxDecoration(
-                      color: context.theme.appColors.attentionBlock,
-                      borderRadius: BorderRadius.circular(16.0.s),
                     ),
-                  ),
+                    SizedBox(height: 12.0.s),
+                    // Divider
+                    Container(
+                      height: 1.s,
+                      margin: EdgeInsets.symmetric(horizontal: 20.0.s),
+                      color: context.theme.appColors.attentionBlock.withValues(alpha: 0.2),
+                    ),
+                    SizedBox(height: 12.0.s),
+                    // Stats row skeleton
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _StatItemSkeleton(),
+                        _StatItemSkeleton(),
+                        _StatItemSkeleton(),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+              SizedBox(height: 18.s),
             ],
           ),
-          SizedBox(height: 34.0.s),
+        ),
+      ),
+    );
+  }
+}
+
+/// Skeleton for individual stat items
+class _StatItemSkeleton extends StatelessWidget {
+  const _StatItemSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Skeleton(
+      baseColor: context.theme.appColors.attentionBlock,
+      child: Column(
+        children: [
+          Container(
+            height: 16.s,
+            width: 16.s,
+            decoration: BoxDecoration(
+              color: context.theme.appColors.attentionBlock,
+              borderRadius: BorderRadius.circular(4.0.s),
+            ),
+          ),
+          SizedBox(height: 4.s),
+          Container(
+            height: 12.s,
+            width: 45.s,
+            decoration: BoxDecoration(
+              color: context.theme.appColors.attentionBlock,
+              borderRadius: BorderRadius.circular(6.0.s),
+            ),
+          ),
         ],
       ),
     );

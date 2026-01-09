@@ -33,6 +33,7 @@ class TokenCardBuilder extends HookConsumerWidget {
         ListCachedObjects.maybeObjectOf<CommunityToken>(context, externalAddress);
 
     final colors = useImageColors(token?.imageUrl);
+
     if (token == null || colors == null) return skeleton;
 
     return builder(token, colors);
