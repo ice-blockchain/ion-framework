@@ -69,7 +69,7 @@ class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
     return SelectedCryptoWalletData(
       wallets: wallets,
       selectedWallet: wallets.first,
-      disconnectedWallets: disconnectedWallets.toList(),
+      disconnectedWalletsToDisplay: disconnectedWallets.toList(),
     );
   }
 

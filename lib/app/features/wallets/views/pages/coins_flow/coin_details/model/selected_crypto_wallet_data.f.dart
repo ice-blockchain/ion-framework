@@ -9,12 +9,12 @@ part 'selected_crypto_wallet_data.f.freezed.dart';
 class SelectedCryptoWalletData with _$SelectedCryptoWalletData {
   const factory SelectedCryptoWalletData({
     required List<Wallet> wallets, // all wallets with disconnected
-    required List<Wallet> disconnectedWallets,
+    required List<Wallet> disconnectedWalletsToDisplay,
     Wallet? selectedWallet,
   }) = _SelectedCryptoWalletData;
 
   factory SelectedCryptoWalletData.empty() => const SelectedCryptoWalletData(
         wallets: [],
-        disconnectedWallets: [],
+        disconnectedWalletsToDisplay: [],
       );
 }
