@@ -88,7 +88,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
 
     _selectedWalletAddress = ref.watch(
       selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup)
-          .select((state) => state.selectedWallet),
+          .select((state) => state.selectedWallet?.address),
     );
 
     _reset();
