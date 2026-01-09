@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -70,6 +71,25 @@ class RelayAuth extends _$RelayAuth {
     });
     ref.onDispose(authMessageSubscription.cancel);
 
+    final connectionSubscription = relay.socket.connection.listen((state) {
+      // When the underlying websocket reconnects, any in-flight AUTH attempt is no longer valid.
+      // If we keep the old completer, authenticateRelay() will "short circuit" and we will never
+      // send a new AUTH for the new connection.
+      if (state is Disconnected ||
+          state is Disconnecting ||
+          state is Reconnecting ||
+          state is Reconnected) {
+        final c = service.completer;
+        if (c != null && !c.isCompleted) {
+          c.completeError(
+            const SocketException('Relay connection changed during authentication'),
+          );
+        }
+        service.completer = null;
+      }
+    });
+    ref.onDispose(connectionSubscription.cancel);
+
     return service;
   }
 }
@@ -130,7 +150,7 @@ class RelayAuthService {
     }
   }
 
-  Future<void> authenticateRelay({bool isRetry = false}) async {
+  Future<void> authenticateRelay() async {
     if (challenge == null || challenge!.isEmpty) throw AuthChallengeIsEmptyException();
 
     // Cases when we need to re-authenticate the relay:
@@ -141,34 +161,44 @@ class RelayAuthService {
     } else {
       return completer!.future;
     }
-    try {
-      final signedAuthEvent = await createAuthEvent(
-        challenge: challenge!,
-        relayUrl: Uri.parse(relay.url).toString(),
-      );
 
-      final authMessage = AuthMessage(
-        challenge: jsonEncode(signedAuthEvent.toJson().last),
-      );
+    var didRetry = false;
+    while (true) {
+      try {
+        final signedAuthEvent = await createAuthEvent(
+          challenge: challenge!,
+          relayUrl: Uri.parse(relay.url).toString(),
+        );
 
-      relay.sendMessage(authMessage);
+        final authMessage = AuthMessage(
+          challenge: jsonEncode(signedAuthEvent.toJson().last),
+        );
 
-      final okMessages = await relay.messages
-          .where((message) => message is OkMessage)
-          .cast<OkMessage>()
-          .firstWhere((message) => signedAuthEvent.id == message.eventId);
+        relay.sendMessage(authMessage);
 
-      if (!okMessages.accepted) {
-        throw SendEventException(okMessages.message);
+        final okMessage = await relay.messages
+            .where((message) => message is OkMessage)
+            .cast<OkMessage>()
+            .firstWhere((message) => signedAuthEvent.id == message.eventId);
+
+        if (!okMessage.accepted) {
+          throw SendEventException(okMessage.message);
+        }
+
+        completer?.complete();
+        return;
+      } catch (error, st) {
+        final shouldRetry = await onError(error);
+        if (shouldRetry && !didRetry) {
+          didRetry = true;
+          continue;
+        }
+
+        // Make sure waiters get the failure and propagate it to the current caller.
+        completer?.completeError(error, st);
+
+        Error.throwWithStackTrace(error, st);
       }
-
-      completer?.complete();
-    } catch (error) {
-      final shouldRetry = await onError(error);
-      if (shouldRetry && !isRetry) {
-        return authenticateRelay(isRetry: true);
-      }
-      completer?.completeError(error);
     }
   }
 

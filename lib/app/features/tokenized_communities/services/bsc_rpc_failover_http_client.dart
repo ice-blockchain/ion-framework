@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
-import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion/app/utils/logging.dart';
 import 'package:web3dart/json_rpc.dart';
 
 /// Persists the currently working RPC URL.
@@ -51,25 +51,6 @@ class BscRpcFailoverHttpClient extends http.BaseClient {
 
   // Serializes preference updates to avoid races with concurrent requests.
   Future<void> _serial = Future<void>.value();
-
-  void _reportFailover(Object error, StackTrace stackTrace, {required String tag}) {
-    // Sample to avoid flooding Sentry: ~1% of events.
-    if (DateTime.now().microsecondsSinceEpoch % 100 != 0) return;
-
-    // Networking must not depend on Sentry availability.
-    unawaited(() async {
-      try {
-        final exception = error is Exception ? error : Exception(error.toString());
-        await SentryService.logException(
-          exception,
-          stackTrace: stackTrace,
-          tag: tag,
-        );
-      } catch (_) {
-        // Ignore logging failures.
-      }
-    }());
-  }
 
   @override
   void close() {
@@ -169,7 +150,7 @@ class BscRpcFailoverHttpClient extends http.BaseClient {
         final response = await _inner.send(req);
 
         if (_shouldFailoverStatus(response.statusCode)) {
-          _reportFailover(
+          reportFailover(
             Exception(
               'BSC RPC failover: HTTP ${response.statusCode} from $endpoint',
             ),
@@ -199,7 +180,7 @@ class BscRpcFailoverHttpClient extends http.BaseClient {
         lastError = e;
         lastStackTrace = st;
 
-        _reportFailover(
+        reportFailover(
           Exception('BSC RPC failover: transport error from $endpoint: ${e.runtimeType}: $e'),
           st,
           tag: 'bsc_rpc_failover_transport_error',
