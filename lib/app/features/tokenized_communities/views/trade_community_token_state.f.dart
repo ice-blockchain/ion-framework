@@ -18,6 +18,7 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
     @Default(0) double amount,
     PricingResponse? quotePricing,
     @Default(false) bool isQuoting,
+    @Default(false) bool isPaymentTokenSelectable,
     CoinData? selectedPaymentToken,
     CoinsGroup? paymentCoinsGroup,
     Wallet? targetWallet,
