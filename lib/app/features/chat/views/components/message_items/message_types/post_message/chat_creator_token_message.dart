@@ -110,7 +110,8 @@ class ChatCreatorTokenMessage extends HookConsumerWidget {
                               TokenStatItem(
                                 icon: Assets.svg.iconMemeMarketcap,
                                 text: MarketDataFormatter.formatCompactNumber(
-                                    token.marketData.marketCap),
+                                  token.marketData.marketCap,
+                                ),
                               ),
                               TokenStatItem(
                                 icon: Assets.svg.iconMemeMarkers,
