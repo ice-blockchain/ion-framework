@@ -162,7 +162,6 @@ class SendAssetFormController extends _$SendAssetFormController {
     unawaited(_initReceiverAddressFromContact());
 
     if (state.assetData case final CoinAssetToSendData coin) {
-      // First, get the coin data (metadata like symbol, price, decimals)
       final existingOption = coin.coinsGroup.coins.firstWhereOrNull(
         (e) => e.coin.network == network,
       );
@@ -176,7 +175,6 @@ class SendAssetFormController extends _$SendAssetFormController {
 
       if (coinData == null) return;
 
-      // Fetch actual balance from wallet API
       final client = await ref.read(ionIdentityClientProvider.future);
       final walletAssets = await client.wallets.getWalletAssets(wallet.id);
       final asset = getAssociatedWalletAsset(walletAssets.assets, coinData);
@@ -192,7 +190,6 @@ class SendAssetFormController extends _$SendAssetFormController {
         rawAmount = asset.balance;
       }
 
-      // Create CoinInWalletData with actual balance
       final selectedOption = CoinInWalletData(
         coin: coinData,
         amount: amount,
