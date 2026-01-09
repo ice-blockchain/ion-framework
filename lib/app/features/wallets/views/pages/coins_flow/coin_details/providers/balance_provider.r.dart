@@ -34,7 +34,7 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     );
 
     final isAllNetworks = currentNetwork == null;
-    final hasDisconnectedWallets = cryptoWalletData.disconnectedWallets.isNotEmpty;
+    final hasDisconnectedWallets = cryptoWalletData.disconnectedWalletsToDisplay.isNotEmpty;
 
     final connectedBalance = _calculateConnectedBalance(symbolGroup, currentNetwork);
 
@@ -45,14 +45,14 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
       unawaited(
         _loadDisconnectedWalletBalances(
           symbolGroup: symbolGroup,
-          disconnectedWallets: cryptoWalletData.disconnectedWallets,
+          disconnectedWallets: cryptoWalletData.disconnectedWalletsToDisplay,
         ),
       );
       return connectedBalance;
     }
 
     final isDisconnectedWalletSelected = currentNetwork != null &&
-        cryptoWalletData.disconnectedWallets.contains(cryptoWalletData.selectedWallet);
+        cryptoWalletData.disconnectedWalletsToDisplay.contains(cryptoWalletData.selectedWallet);
     // Scenario 2: Specific network + disconnected wallet selected
     if (isDisconnectedWalletSelected) {
       unawaited(
