@@ -206,7 +206,7 @@ class _CreatorStatsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = context.theme.appColors.secondaryBackground;
-    final textStyle = context.theme.appTextThemes.caption3.copyWith(
+    final textStyle = context.theme.appTextThemes.caption5.copyWith(
       color: color,
       fontWeight: FontWeight.w600,
     );
@@ -235,8 +235,7 @@ class _CreatorStatsWidget extends StatelessWidget {
         color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12.0.s),
       ),
-      height: 40.s,
-      padding: EdgeInsets.symmetric(horizontal: 12.0.s),
+      padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 7.0.s),
       child: Row(
         children: [
           for (final item in stats) ...[
