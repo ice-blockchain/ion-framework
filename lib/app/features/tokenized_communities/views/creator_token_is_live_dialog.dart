@@ -100,7 +100,7 @@ class _ContentState extends HookConsumerWidget {
               SizedBox(height: 30.0.s),
               CustomPaint(
                 painter: GradientBorderPainter(
-                  strokeWidth: 4.0.s,
+                  strokeWidth: 2.0.s,
                   cornerRadius: 26.0.s,
                   gradient: storyBorderGradients[3],
                   backgroundColor: context.theme.appColors.forest.withAlpha(125),
@@ -111,7 +111,7 @@ class _ContentState extends HookConsumerWidget {
                     size: 64.0.s,
                     fit: BoxFit.cover,
                     imageUrl: avatarUrl,
-                    borderRadius: BorderRadius.all(Radius.circular(21.0.s)),
+                    borderRadius: BorderRadius.all(Radius.circular(16.0.s)),
                   ),
                 ),
               ),
@@ -136,7 +136,7 @@ class _ContentState extends HookConsumerWidget {
                 style: context.theme.appTextThemes.body2
                     .copyWith(color: context.theme.appColors.secondaryBackground),
               ),
-              SizedBox(height: 21.0.s),
+              SizedBox(height: 24.0.s),
               Button(
                 disabled: isLoading.value,
                 label: Text(context.i18n.button_share),
