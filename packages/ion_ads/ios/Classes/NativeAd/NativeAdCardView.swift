@@ -5,6 +5,12 @@ import os.log
 import SwiftUI
 
 final class NativeAdCardView: UIView {
+    var callToActionPosition: CallToActionPosition = .top {
+        didSet {
+            setupCallToActionConstraints()
+        }
+    }
+    
     private lazy var adChoiceContainer: UIImageView = {
         let imageView = UIImageView()
         let bundle = Bundle(for: NativeAdCardView.self)
@@ -125,12 +131,12 @@ final class NativeAdCardView: UIView {
 
         NSLayoutConstraint.activate([
             // --- (Icon, Title, Description, CTA constraints are mostly unchanged) ---
-            iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 0),
             iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             iconImageView.widthAnchor.constraint(equalToConstant: 32),
             iconImageView.heightAnchor.constraint(equalToConstant: 32),
 
-            titleTextLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            titleTextLabel.topAnchor.constraint(equalTo: topAnchor, constant: -4),
             titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
 
             descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -2),
@@ -142,18 +148,18 @@ final class NativeAdCardView: UIView {
             starRatingView.leadingAnchor.constraint(equalTo: descriptionTextLabel.leadingAnchor),
             starRatingView.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
 
-            callToActionView.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
-            callToActionView.leadingAnchor.constraint(equalTo: titleTextLabel.trailingAnchor, constant: 10),
-            callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            callToActionView.heightAnchor.constraint(equalToConstant: 32),
-            callToActionView.widthAnchor.constraint(equalToConstant: 100),
+//            callToActionView.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
+//            callToActionView.leadingAnchor.constraint(equalTo: titleTextLabel.trailingAnchor, constant: 10),
+//            callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+//            callToActionView.heightAnchor.constraint(equalToConstant: 32),
+//            callToActionView.widthAnchor.constraint(equalToConstant: 100),
 
             // --- (Media, AdTag, AdChoice constraints are unchanged) ---
-            cardBackgroundView.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 12),
+            cardBackgroundView.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 8),
             cardBackgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             cardBackgroundView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: 0),
-            cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 10.0/16.0),
+            //cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: 0),
+            //cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 10.0/16.0),
 
             mediaContainer.topAnchor.constraint(equalTo: cardBackgroundView.topAnchor),
             mediaContainer.bottomAnchor.constraint(equalTo: cardBackgroundView.bottomAnchor),
@@ -170,6 +176,46 @@ final class NativeAdCardView: UIView {
             adTag.widthAnchor.constraint(equalToConstant: 27),
             adTag.heightAnchor.constraint(equalToConstant: 18)
         ])
+        
+        setupCallToActionConstraints()
+    }
+    
+    private func setupCallToActionConstraints() {
+        for item in [callToActionView] {
+            item.removeFromSuperview()
+            addSubview(item)
+            item.translatesAutoresizingMaskIntoConstraints = false
+        }
+    
+        var constraints: [NSLayoutConstraint] = [
+            callToActionView.heightAnchor.constraint(equalToConstant: 32),
+            callToActionView.widthAnchor.constraint(equalToConstant: 100)
+        ]
+
+        let padding: CGFloat = 8.0
+
+        switch callToActionPosition {
+        case .top:
+            constraints.append(contentsOf: [
+                callToActionView.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
+                callToActionView.leadingAnchor.constraint(equalTo: titleTextLabel.trailingAnchor, constant: padding),
+                callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+                
+                cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: 0),
+                cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 10.0/16.0),
+            ])
+        case .bottom:
+            constraints.append(contentsOf: [
+                callToActionView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0),
+                callToActionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+                callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+                
+                cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: callToActionView.topAnchor, constant: -padding),
+                cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 16.0/9.0),
+            ])
+        }
+
+        NSLayoutConstraint.activate(constraints)
     }
 }
 

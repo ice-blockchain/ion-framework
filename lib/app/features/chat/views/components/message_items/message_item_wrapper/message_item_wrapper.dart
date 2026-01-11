@@ -342,6 +342,7 @@ ChatMessageInfoItem? getRepliedMessageListItem({
     MessageType.profile => null,
     MessageType.sharedPost => null,
     MessageType.visualMedia => null,
+    MessageType.ad => null,
     MessageType.requestFunds => MoneyItem(
         eventMessage: repliedEventMessage,
         contentDescription: getRequestFundsTitle(ref, repliedEventMessage) ?? '',

@@ -200,21 +200,7 @@ final class NativeAdStoryView: UIView {
             addSubview(item)
             item.translatesAutoresizingMaskIntoConstraints = false
         }
-        
-        // Remove from superview to clear constraints held by superview (positioning)
-//        adChoiceContainer.removeFromSuperview()
-//        adTag.removeFromSuperview()
-//
-//        // Re-add to view hierarchy
-//        addSubview(adChoiceContainer)
-//        addSubview(adTag)
-//
-//        adChoiceContainer.translatesAutoresizingMaskIntoConstraints = false
-//        adTag.translatesAutoresizingMaskIntoConstraints = false
-
-//        adChoiceContainer.removeConstraints(adChoiceContainer.constraints)
-//        adTag.removeConstraints(adTag.constraints)
-
+    
         var constraints: [NSLayoutConstraint] = [
             adChoiceContainer.widthAnchor.constraint(equalToConstant: 18),
             adChoiceContainer.heightAnchor.constraint(equalToConstant: 18),

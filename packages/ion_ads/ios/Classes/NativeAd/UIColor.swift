@@ -27,6 +27,7 @@ extension UIColor {
         static let accent = UIColor(hex: "#0166FF")!
         static let secondaryAccent = UIColor.white //  UIColor(named: "StackSecondaryColor")
         static let text = UIColor.darkText // UIColor(named: "StackTextColor")
+        static let cardBackground = UIColor(hex: "#F5F7FF")!
         
         static var tableBackground: UIColor {
             if #available(iOS 13, *) {
