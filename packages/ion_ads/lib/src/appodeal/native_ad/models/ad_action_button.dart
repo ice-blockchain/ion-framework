@@ -11,6 +11,7 @@ class AdActionButtonConfig with AppodealPlatformArguments {
     this.backgroundColor = Colors.transparent,
     this.margin = 0,
     this.radius = 8,
+    this.position = AdActionPosition.top,
   });
 
   final Color textColor;
@@ -18,6 +19,7 @@ class AdActionButtonConfig with AppodealPlatformArguments {
   final int fontSize;
   final int margin;
   final int radius;
+  final AdActionPosition position;
 
   @override
   Map<String, dynamic> get toMap => <String, dynamic>{
@@ -26,5 +28,8 @@ class AdActionButtonConfig with AppodealPlatformArguments {
         'backgroundColor': backgroundColor.toHex(),
         'margin': margin,
         'radius': radius,
+        'position': position.index,
       };
 }
+
+enum AdActionPosition { top, bottom }
