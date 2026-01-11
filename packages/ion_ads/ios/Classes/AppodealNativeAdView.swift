@@ -11,6 +11,11 @@ enum AdChoicePosition {
     case endBottom
 }
 
+enum CallToActionPosition {
+    case top
+    case bottom
+}
+
 final class AppodealNativeAdView: NSObject, FlutterPlatformView {
     private let nativeAdChannel: FlutterMethodChannel
     private let frame: CGRect
@@ -55,6 +60,8 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
         // { custom, contentStream, appWall, newsFeed, chat }
         if nativeAdType == 2 {
             nativeAdQueue.settings.adViewClass = NativeAdStoryView.self
+        }  else if nativeAdType == 4 {
+            nativeAdQueue.settings.adViewClass = NativeAdChatListView.self
         } else {
             nativeAdQueue.settings.adViewClass = NativeAdCardView.self
         }
@@ -83,7 +90,10 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
             let adChoiceConfig = options["adChoiceConfig"] as? [String: Any]
             let posIndex = adChoiceConfig?["position"] as? Int ?? 2 // Default to endTop (2)
             let margin = adChoiceConfig?["margin"] as? Double ?? 0.0
-            logToFlutter("setupAdView, posIndex: \(posIndex), margin: \(margin), placement: \(placement), nativeAd: \(nativeAd)")
+            
+            let adActionButtonConfig = options["adActionButtonConfig"] as? [String: Any]
+            let adActionPosIndex = adActionButtonConfig?["position"] as? Int ?? 0 // Default to top (0)
+            logToFlutter("setupAdView, posIndex: \(posIndex), margin: \(margin), placement: \(placement), nativeAd: \(nativeAd), adActionPosIndex: \(adActionPosIndex)")
 
             // Get the ad view from the SDK, configured with our NativeView class.
             let adView = try nativeAd.getViewForPlacement(placement, withRootViewController: rootViewController)
@@ -96,6 +106,13 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
                     default: storyView.adChoicePosition = .endTop
                 }
                 storyView.adChoiceMargin = margin
+            }
+            if let cardView = adView as? NativeAdCardView {
+                switch adActionPosIndex {
+                    case 0: cardView.callToActionPosition = .top
+                    case 1: cardView.callToActionPosition = .bottom
+                    default: cardView.callToActionPosition = .top
+                }
             }
             logToFlutter("Successfully created native ad view.")
 

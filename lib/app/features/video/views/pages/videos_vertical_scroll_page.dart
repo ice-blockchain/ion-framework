@@ -272,7 +272,6 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
             },
             itemBuilder: (_, index) {
               if (index % nextAdIndex == 0 && index != 0 && canShowNativeAds) {
-                print('AdVideoViewer index:$index, nextAdIndex:$nextAdIndex');
                 isAdVisible.value = true;
                 return AdVideoViewer(flattenedVideos[index].entity.id);
               } else {

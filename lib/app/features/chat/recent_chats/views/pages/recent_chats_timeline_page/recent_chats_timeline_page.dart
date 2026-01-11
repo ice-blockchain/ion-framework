@@ -35,6 +35,7 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_ads/ion_ads.dart';
 
 class RecentChatsTimelinePage extends HookConsumerWidget {
   const RecentChatsTimelinePage({
@@ -247,7 +248,9 @@ class ConversationList extends ConsumerWidget {
                       conversation: conversation,
                       isRequestsTab: isRequestsTab,
                       key: ValueKey(conversation.conversationId),
-                    ),
+                    )
+                  else if (conversation.type == ConversationType.ad)
+                    const AdChatTile(),
                   if (index < conversations.length - 1)
                     const Align(
                       alignment: Alignment.bottomCenter,
@@ -441,6 +444,23 @@ class EncryptedGroupRecentChatTile extends HookConsumerWidget {
       onTap: () {
         ConversationRoute(conversationId: conversation.conversationId).push<void>(context);
       },
+    );
+  }
+}
+
+class AdChatTile extends HookConsumerWidget {
+  const AdChatTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      height: 54,
+      width: double.infinity,
+      child: AppodealNativeAd(
+        options: NativeAdOptions.customOptions(
+          nativeAdType: NativeAdType.chat,
+        ),
+      ),
     );
   }
 }
