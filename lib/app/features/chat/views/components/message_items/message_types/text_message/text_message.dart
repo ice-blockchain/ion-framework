@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/text_span_builder/hooks/use_text_span_builder.dart';
 import 'package:ion/app/components/text_span_builder/text_span_builder.dart';
 import 'package:ion/app/components/url_preview/providers/url_metadata_provider.r.dart';
@@ -18,6 +19,7 @@ import 'package:ion/app/features/chat/views/components/message_items/message_typ
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 import 'package:ion/app/services/text_parser/text_parser.dart';
+import 'package:ion_ads/ion_ads.dart';
 
 class TextMessage extends HookConsumerWidget {
   const TextMessage({
@@ -114,38 +116,40 @@ class TextMessage extends HookConsumerWidget {
       messageItem: messageItem,
       contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 12.0.s),
       child: IntrinsicWidth(
-        child: Column(
-          crossAxisAlignment:
-              repliedMessageItem != null ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            if (repliedMessageItem != null)
-              ReplyMessage(messageItem, repliedMessageItem, onTapReply),
-            _TextMessageContent(
-              textStyle: textStyle,
-              eventMessage: eventMessage,
-              hasReactionsOrMetadata: hasReactionsOrMetadata,
-              hasRepliedMessage: repliedMessageItem != null,
-              hasUrlInText: hasUrlInText,
-              metadataWidth: metadataWidth.value,
-              metadataRef: metadataRef,
-            ),
-            if (metadata != null) UrlPreviewBlock(url: firstUrl, isMe: isMe),
-            if (hasReactionsOrMetadata)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: isMe
+            ? Column(
+                crossAxisAlignment:
+                    repliedMessageItem != null ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: MessageReactions(isMe: isMe, eventMessage: eventMessage)),
-                  MessageMetadata(
+                  if (repliedMessageItem != null)
+                    ReplyMessage(messageItem, repliedMessageItem, onTapReply),
+                  _TextMessageContent(
+                    textStyle: textStyle,
                     eventMessage: eventMessage,
-                    startPadding: 0.0.s,
-                    key: metadataRef,
+                    hasReactionsOrMetadata: hasReactionsOrMetadata,
+                    hasRepliedMessage: repliedMessageItem != null,
+                    hasUrlInText: hasUrlInText,
+                    metadataWidth: metadataWidth.value,
+                    metadataRef: metadataRef,
                   ),
+                  if (metadata != null) UrlPreviewBlock(url: firstUrl, isMe: isMe),
+                  if (hasReactionsOrMetadata)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(child: MessageReactions(isMe: isMe, eventMessage: eventMessage)),
+                        MessageMetadata(
+                          eventMessage: eventMessage,
+                          startPadding: 0.0.s,
+                          key: metadataRef,
+                        ),
+                      ],
+                    ),
                 ],
-              ),
-          ],
-        ),
+              )
+            : _AdItem(message: eventMessage),
       ),
     );
   }
@@ -294,5 +298,31 @@ class _TextRichContent extends HookConsumerWidget {
     );
 
     return Text.rich(textSpan);
+  }
+}
+
+class _AdItem extends StatelessWidget {
+  const _AdItem({required this.message});
+
+  final EventMessage message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const Positioned.fill(child: Center(child: IONLoadingIndicatorThemed())),
+        SizedBox(
+          height: 236,
+          width: 246,
+          child: AppodealNativeAd(
+            options: NativeAdOptions.customOptions(
+              adActionButtonConfig: AdActionButtonConfig(
+                position: AdActionPosition.bottom,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

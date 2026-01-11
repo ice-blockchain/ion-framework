@@ -325,6 +325,7 @@ class ChatPreview extends HookConsumerWidget {
     final content = switch (messageType) {
       MessageType.text => lastMessageContent,
       MessageType.emoji => lastMessageContent,
+      MessageType.ad => lastMessageContent,
       MessageType.sharedPost =>
         lastMessageContent.isNotEmpty ? lastMessageContent : context.i18n.post_page_title,
       MessageType.audio => context.i18n.common_voice_message,
@@ -392,6 +393,7 @@ class RecentChatMessageIcon extends StatelessWidget {
   String? _getMessageIcon() => switch (messageType) {
         MessageType.text => null,
         MessageType.emoji => null,
+        MessageType.ad => null,
         MessageType.sharedPost => Assets.svg.iconProfileFeed,
         MessageType.audio => Assets.svg.iconChatVoicemessage,
         MessageType.profile => Assets.svg.iconProfileUsertab,

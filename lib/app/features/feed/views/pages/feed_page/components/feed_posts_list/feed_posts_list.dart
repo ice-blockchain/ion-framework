@@ -110,7 +110,7 @@ class _CustomNativeAd extends StatelessWidget {
     return Container(
       key: key,
       height: 298,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: AppodealNativeAd(
         options: NativeAdOptions.contentStreamOptions(),
       ),

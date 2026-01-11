@@ -32,8 +32,9 @@ class NativeAdOptions with AppodealPlatformArguments {
     AdDescriptionConfig? adDescriptionConfig,
     AdActionButtonConfig? adActionButtonConfig,
     AdMediaConfig? adMediaConfig,
+    NativeAdType? nativeAdType,
   }) : this._(
-          nativeAdType: NativeAdType.custom,
+          nativeAdType: nativeAdType ?? NativeAdType.custom,
           adTitleConfig: adTitleConfig ?? AdTitleConfig(),
           adAttributionConfig: adAttributionConfig ?? AdAttributionConfig(),
           adChoiceConfig: adChoiceConfig ?? AdChoiceConfig(),

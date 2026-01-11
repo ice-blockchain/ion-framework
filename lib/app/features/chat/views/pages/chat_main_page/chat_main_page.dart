@@ -7,7 +7,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
+import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chats_empty_page/recent_chats_empty_page.dart';
 import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chats_timeline_page/recent_chats_timeline_page.dart';
@@ -37,6 +39,13 @@ class ChatMainPage extends HookConsumerWidget {
               if (data.isEmpty) {
                 return const RecentChatsEmptyPage();
               }
+              data.add(
+                const ConversationListItem(
+                  conversationId: '-1',
+                  type: ConversationType.ad,
+                  joinedAt: 0,
+                ),
+              );
               return RecentChatsTimelinePage(
                 conversations: data,
                 scrollController: scrollController,
