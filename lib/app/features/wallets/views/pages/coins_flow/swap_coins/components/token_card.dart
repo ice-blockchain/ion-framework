@@ -143,7 +143,9 @@ class TokenCard extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                type == CoinSwapType.sell ? context.i18n.wallet_swap_coins_sell : context.i18n.wallet_swap_coins_buy,
+                type == CoinSwapType.sell
+                    ? context.i18n.wallet_swap_coins_sell
+                    : context.i18n.wallet_swap_coins_buy,
                 style: textStyles.subtitle3.copyWith(
                   color: colors.onTertiaryBackground,
                 ),
@@ -239,7 +241,8 @@ class TokenCard extends HookConsumerWidget {
                                 width: 40.0.s,
                                 height: 40.0.s,
                                 fit: BoxFit.cover,
-                                errorBuilder: avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
+                                errorBuilder:
+                                    avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
                               ),
                             ),
                           ),
@@ -448,7 +451,9 @@ class TokenCard extends HookConsumerWidget {
                                 ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup!.abbreviation}'
                                 : '0.00',
                             style: textStyles.caption2.copyWith(
-                              color: isInsufficientFundsError ? colors.attentionRed : colors.tertiaryText,
+                              color: isInsufficientFundsError
+                                  ? colors.attentionRed
+                                  : colors.tertiaryText,
                             ),
                             overflow: TextOverflow.ellipsis,
                           );
