@@ -70,24 +70,77 @@ class SendAssetFormController extends _$SendAssetFormController {
     }
   }
 
+  void _resetNetworkState({
+    required NetworkData network,
+    required ion.Wallet? senderWallet,
+  }) {
+    state = state.copyWith(
+      network: network,
+      senderWallet: senderWallet,
+      networkFeeOptions: [],
+      selectedNetworkFeeOption: null,
+    );
+
+    unawaited(_initReceiverAddressFromContact());
+  }
+
+  Future<CoinData?> _findCoinDataForNetwork({
+    required NetworkData network,
+    required CoinAssetToSendData coin,
+  }) async {
+    final existingOption = coin.coinsGroup.coins.firstWhereOrNull(
+      (e) => e.coin.network == network,
+    );
+
+    return existingOption?.coin ??
+        await _getCoinDataForNetwork(
+          network: network,
+          symbolGroup: coin.coinsGroup.symbolGroup,
+          abbreviation: coin.coinsGroup.abbreviation,
+        );
+  }
+
+  Future<void> _updateNetworkFeeState({
+    required CoinAssetToSendData coin,
+    required CoinInWalletData selectedOption,
+    required String? walletId,
+    required NetworkData network,
+    required CoinData coinData,
+  }) async {
+    final networkFeeInfo = await ref.read(
+      networkFeeProvider(
+        walletId: walletId,
+        network: network,
+        transferredCoin: coinData,
+      ).future,
+    );
+
+    if (networkFeeInfo != null) {
+      final updatedCoin = coin.copyWith(
+        associatedAssetWithSelectedOption: networkFeeInfo.sendableAsset,
+        selectedOption: selectedOption,
+      );
+
+      state = state.copyWith(
+        networkFeeOptions: networkFeeInfo.networkFeeOptions,
+        selectedNetworkFeeOption: networkFeeInfo.networkFeeOptions.firstOrNull,
+        networkNativeToken: networkFeeInfo.networkNativeToken,
+      );
+
+      _updateCoinAssetWithMaxAmount(updatedCoin);
+    }
+  }
+
   Future<void> setNetwork(NetworkData network) async {
     final wallets = await ref.read(
       walletViewCryptoWalletsProvider(walletViewId: state.walletView?.id).future,
     );
 
-    // Reset current information about network
-    state = state.copyWith(
-      network: network,
-      senderWallet: wallets.firstWhereOrNull(
-        (wallet) => wallet.network == network.id,
-      ),
-      networkFeeOptions: [],
-      selectedNetworkFeeOption: null,
+    final initialWallet = wallets.firstWhereOrNull(
+      (wallet) => wallet.network == network.id,
     );
 
-    unawaited(
-      _initReceiverAddressFromContact(),
-    );
+    _resetNetworkState(network: network, senderWallet: initialWallet);
 
     if (state.assetData case final CoinAssetToSendData coin) {
       var selectedOption = coin.coinsGroup.coins.firstWhereOrNull(
@@ -95,11 +148,7 @@ class SendAssetFormController extends _$SendAssetFormController {
       );
 
       if (selectedOption == null) {
-        final coinData = await _getCoinDataForNetwork(
-          network: network,
-          symbolGroup: coin.coinsGroup.symbolGroup,
-          abbreviation: coin.coinsGroup.abbreviation,
-        );
+        final coinData = await _findCoinDataForNetwork(network: network, coin: coin);
 
         if (coinData != null) {
           selectedOption = CoinInWalletData(coin: coinData);
@@ -113,60 +162,29 @@ class SendAssetFormController extends _$SendAssetFormController {
           selectedOption?.walletId != null && selectedOption?.walletId == state.senderWallet?.id;
 
       state = state.copyWith(
-        assetData: coin.copyWith(
-          selectedOption: selectedOption,
-        ),
+        assetData: coin.copyWith(selectedOption: selectedOption),
         senderWallet: isCryptoWalletCorrect || selectedOption == null
             ? state.senderWallet
             : wallets.firstWhereOrNull((w) => w.id == selectedOption!.walletId),
       );
 
-      final networkFeeInfo = await ref.read(
-        networkFeeProvider(
-          walletId: state.senderWallet?.id,
-          network: state.network!,
-          transferredCoin: selectedOption?.coin,
-        ).future,
-      );
-
-      if (networkFeeInfo != null) {
-        final updatedCoin = coin.copyWith(
-          associatedAssetWithSelectedOption: networkFeeInfo.sendableAsset,
+      if (selectedOption != null) {
+        await _updateNetworkFeeState(
+          coin: coin,
           selectedOption: selectedOption,
+          walletId: state.senderWallet?.id,
+          network: network,
+          coinData: selectedOption.coin,
         );
-
-        state = state.copyWith(
-          networkFeeOptions: networkFeeInfo.networkFeeOptions,
-          selectedNetworkFeeOption: networkFeeInfo.networkFeeOptions.firstOrNull,
-          networkNativeToken: networkFeeInfo.networkNativeToken,
-        );
-
-        _updateCoinAssetWithMaxAmount(updatedCoin);
       }
     }
   }
 
   Future<void> setNetworkWithWallet(NetworkData network, ion.Wallet wallet) async {
-    state = state.copyWith(
-      network: network,
-      senderWallet: wallet,
-      networkFeeOptions: [],
-      selectedNetworkFeeOption: null,
-    );
-
-    unawaited(_initReceiverAddressFromContact());
+    _resetNetworkState(network: network, senderWallet: wallet);
 
     if (state.assetData case final CoinAssetToSendData coin) {
-      final existingOption = coin.coinsGroup.coins.firstWhereOrNull(
-        (e) => e.coin.network == network,
-      );
-
-      final coinData = existingOption?.coin ??
-          await _getCoinDataForNetwork(
-            network: network,
-            symbolGroup: coin.coinsGroup.symbolGroup,
-            abbreviation: coin.coinsGroup.abbreviation,
-          );
+      final coinData = await _findCoinDataForNetwork(network: network, coin: coin);
 
       if (coinData == null) return;
 
@@ -190,28 +208,13 @@ class SendAssetFormController extends _$SendAssetFormController {
         assetData: coin.copyWith(selectedOption: selectedOption),
       );
 
-      final networkFeeInfo = await ref.read(
-        networkFeeProvider(
-          walletId: wallet.id,
-          network: network,
-          transferredCoin: coinData,
-        ).future,
+      await _updateNetworkFeeState(
+        coin: coin,
+        selectedOption: selectedOption,
+        walletId: wallet.id,
+        network: network,
+        coinData: coinData,
       );
-
-      if (networkFeeInfo != null) {
-        final updatedCoin = coin.copyWith(
-          associatedAssetWithSelectedOption: networkFeeInfo.sendableAsset,
-          selectedOption: selectedOption,
-        );
-
-        state = state.copyWith(
-          networkFeeOptions: networkFeeInfo.networkFeeOptions,
-          selectedNetworkFeeOption: networkFeeInfo.networkFeeOptions.firstOrNull,
-          networkNativeToken: networkFeeInfo.networkNativeToken,
-        );
-
-        _updateCoinAssetWithMaxAmount(updatedCoin);
-      }
     }
   }
 
@@ -220,7 +223,7 @@ class SendAssetFormController extends _$SendAssetFormController {
     required String symbolGroup,
     required String abbreviation,
   }) async {
-    final coins = await (await ref.watch(coinsServiceProvider.future)).getCoinsByFilters(
+    final coins = await (await ref.read(coinsServiceProvider.future)).getCoinsByFilters(
       network: network,
       symbolGroup: symbolGroup,
     );
