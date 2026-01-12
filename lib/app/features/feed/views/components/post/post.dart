@@ -23,6 +23,7 @@ import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/quoted_entity_frame/quoted_entity_frame.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
+import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
@@ -131,11 +132,14 @@ class Post extends ConsumerWidget {
           plainInlineStyles: plainInlineStyles,
         ),
         if (displayQuote && quotedEventReference != null)
-          ScreenSideOffset.small(
-            child: _QuotedEvent(
-              accentTheme: isAccentTheme,
-              eventReference: quotedEventReference,
-              footer: quotedEventFooter,
+          Padding(
+            padding: EdgeInsetsDirectional.only(top: _isPostBodyEmpty(entity) ? 0 : 12.0.s),
+            child: ScreenSideOffset.small(
+              child: _QuotedEvent(
+                accentTheme: isAccentTheme,
+                eventReference: quotedEventReference,
+                footer: quotedEventFooter,
+              ),
             ),
           ),
         footer ?? CounterItemsFooter(eventReference: eventReference),
@@ -152,6 +156,7 @@ class Post extends ConsumerWidget {
             eventReference: parentEventReference,
             header: isAccentTheme && header != null ? header : null,
           ),
+          SizedBox(height: 12.0.s),
         ],
         header ??
             UserInfo(
@@ -208,6 +213,30 @@ class Post extends ConsumerWidget {
       _ => null,
     };
   }
+
+  bool _isPostBodyEmpty(IonConnectEntity entity) {
+    final postData = switch (entity) {
+      final ModifiablePostEntity post => post.data,
+      final PostEntity post => post.data,
+      _ => null,
+    };
+
+    // PostBody returns empty if entity is not a post type
+    if (postData == null) {
+      return true;
+    }
+
+    // PostBody returns empty if postData is not EntityDataWithMediaContent
+    if (postData is! EntityDataWithMediaContent) {
+      return true;
+    }
+
+    final hasContent = postData.content.isNotEmpty;
+    final hasMedia = postData.visualMedias.isNotEmpty;
+
+    // PostBody returns empty if no content and no media
+    return !hasContent && !hasMedia;
+  }
 }
 
 class _QuotedEvent extends StatelessWidget {
@@ -223,19 +252,16 @@ class _QuotedEvent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsetsDirectional.only(top: 12.0.s),
-      child: _FramedEvent(
+    return _FramedEvent(
+      eventReference: eventReference,
+      postWidget: _QuotedPost(
+        accentTheme: accentTheme,
         eventReference: eventReference,
-        postWidget: _QuotedPost(
-          accentTheme: accentTheme,
-          eventReference: eventReference,
-        ),
-        articleWidget: _QuotedArticle(
-          accentTheme: accentTheme,
-          eventReference: eventReference,
-          footer: footer,
-        ),
+      ),
+      articleWidget: _QuotedArticle(
+        accentTheme: accentTheme,
+        eventReference: eventReference,
+        footer: footer,
       ),
     );
   }
@@ -346,7 +372,7 @@ final class _FramedEvent extends HookConsumerWidget {
           case CommunityTokenDefinitionEntity():
             return CommunityTokenLiveBody(
               entity: entity,
-              sidePadding: 0,
+              sidePadding: isParent ? null : 0,
             );
           case CommunityTokenActionEntity():
             return CommunityTokenActionBody(

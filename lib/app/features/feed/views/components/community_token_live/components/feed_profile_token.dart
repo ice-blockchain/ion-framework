@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
@@ -14,13 +12,12 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_back
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_price.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
-import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class FeedProfileToken extends HookConsumerWidget {
+class FeedProfileToken extends StatelessWidget {
   const FeedProfileToken({
     required this.externalAddress,
     this.sidePadding,
@@ -32,7 +29,7 @@ class FeedProfileToken extends HookConsumerWidget {
   final double? sidePadding;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return TokenCardBuilder(
       externalAddress: externalAddress,
       skeleton: _Skeleton(),
@@ -44,7 +41,7 @@ class FeedProfileToken extends HookConsumerWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.0.s),
               child: ProfileBackground(
-                colors: useImageColors(token.imageUrl),
+                colors: colors,
                 child: SizedBox(
                   width: double.infinity,
                   child: Column(
@@ -188,10 +185,7 @@ class ProfileTokenHeader extends StatelessWidget {
             ),
           )
         else
-          ProfileTokenStatsFeed(
-            externalAddress: externalAddress,
-            eventReference: ReplaceableEventReference.fromString(externalAddress),
-          ),
+          ProfileTokenStatsFeed(tokenInfo: token),
       ],
     );
   }

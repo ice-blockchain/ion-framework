@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -11,7 +10,7 @@ import 'package:ion/app/features/feed/views/components/user_info/user_info.dart'
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
-class ProfileTokenListItem extends HookConsumerWidget {
+class ProfileTokenListItem extends StatelessWidget {
   const ProfileTokenListItem({
     required this.eventReference,
     this.network = false,
@@ -22,7 +21,7 @@ class ProfileTokenListItem extends HookConsumerWidget {
   final bool network;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => TokenizedCommunityRoute(
         externalAddress: eventReference.toString(),
