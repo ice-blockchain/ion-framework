@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
@@ -28,7 +29,14 @@ class Chart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedRange = useState(ChartTimeRange.m15);
+    final createdAtOfToken =
+        ref.watch(tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.createdAt));
+
+    if (createdAtOfToken == null) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedRange = useState(ChartTimeRangeExtension.getRangeForCreatedAt(createdAtOfToken));
 
     final candlesAsync = ref.watch(
       tokenOhlcvCandlesProvider(
@@ -299,6 +307,18 @@ extension ChartTimeRangeExtension on ChartTimeRange {
         ChartTimeRange.h1 => const Duration(hours: 1),
         ChartTimeRange.d1 => const Duration(days: 1),
       };
+
+  static ChartTimeRange getRangeForCreatedAt(String createdAt) {
+    final now = DateTime.now();
+    final diff = now.difference(DateTime.parse(createdAt));
+    if (diff.inHours > 8) {
+      if (diff.inDays > 8) {
+        return ChartTimeRange.d1;
+      }
+      return ChartTimeRange.h1;
+    }
+    return ChartTimeRange.m15;
+  }
 }
 
 class _RangeSelector extends StatelessWidget {
