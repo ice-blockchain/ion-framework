@@ -14,16 +14,18 @@ class ShareAddressToGetCoinsView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final form = ref.watch(receiveCoinsFormControllerProvider);
 
-    useCheckWalletAddressAvailable(
-      ref,
-      network: form.selectedNetwork,
-      coinsGroup: form.selectedCoin,
-      onAddressFound: (address) {
-        ref.read(receiveCoinsFormControllerProvider.notifier).setWalletAddress(address);
-      },
-      onAddressMissing: () => AddressNotFoundReceiveCoinsRoute().replace(ref.context),
-      keys: [form.selectedNetwork, form.selectedCoin],
-    );
+    if (form.address == null) {
+      useCheckWalletAddressAvailable(
+        ref,
+        network: form.selectedNetwork,
+        coinsGroup: form.selectedCoin,
+        onAddressFound: (address) {
+          ref.read(receiveCoinsFormControllerProvider.notifier).setWalletAddress(address);
+        },
+        onAddressMissing: () => AddressNotFoundReceiveCoinsRoute().replace(ref.context),
+        keys: [form.selectedNetwork, form.selectedCoin],
+      );
+    }
 
     return ShareAddressSheetContent(
       coin: form.selectedCoin,

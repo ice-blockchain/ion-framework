@@ -10,6 +10,7 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_fee_information.f.dart';
 import 'package:ion/app/features/wallets/model/network_fee_option.f.dart';
 import 'package:ion/app/features/wallets/model/network_fee_type.dart';
+import 'package:ion/app/features/wallets/utils/wallet_asset_utils.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart' as ion;
@@ -42,7 +43,7 @@ Future<NetworkFeeInformation?> networkFee(
       await client.wallets.getWalletAssets(walletId).then((result) => result.assets);
 
   final networkNativeToken = walletAssets.firstWhereOrNull((asset) => asset.isNative);
-  final sendableAsset = _getSendableAsset(walletAssets, transferredCoin);
+  final sendableAsset = getAssociatedWalletAsset(walletAssets, transferredCoin);
 
   if (sendableAsset == null || networkNativeToken == null) {
     Logger.error(
@@ -77,6 +78,7 @@ Future<NetworkFeeInformation?> networkFee(
   );
 }
 
+<<<<<<< HEAD
 ion.WalletAsset? _getSendableAsset(List<ion.WalletAsset> assets, CoinData? transferredCoin) {
   ion.WalletAsset? nativeAsset() => assets.firstWhereOrNull((asset) => asset.isNative);
 
@@ -116,6 +118,8 @@ ion.WalletAsset? _getSendableAsset(List<ion.WalletAsset> assets, CoinData? trans
   return result ?? nativeAsset();
 }
 
+=======
+>>>>>>> 1c8cb63ae (fix: display multiple wallets in one network on CoinDetailsPage (#3057))
 @visibleForTesting
 List<NetworkFeeOption> buildNetworkFeeOptions({
   required ion.EstimateFee estimateFees,
