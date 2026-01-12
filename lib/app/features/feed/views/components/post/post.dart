@@ -133,7 +133,7 @@ class Post extends ConsumerWidget {
         ),
         if (displayQuote && quotedEventReference != null)
           Padding(
-            padding: EdgeInsetsDirectional.only(top: _isPostBodyEmpty(ref, entity) ? 0 : 12.0.s),
+            padding: EdgeInsetsDirectional.only(top: _isPostBodyEmpty(entity) ? 0 : 12.0.s),
             child: ScreenSideOffset.small(
               child: _QuotedEvent(
                 accentTheme: isAccentTheme,
@@ -214,7 +214,7 @@ class Post extends ConsumerWidget {
     };
   }
 
-  bool _isPostBodyEmpty(WidgetRef ref, IonConnectEntity entity) {
+  bool _isPostBodyEmpty(IonConnectEntity entity) {
     final postData = switch (entity) {
       final ModifiablePostEntity post => post.data,
       final PostEntity post => post.data,
