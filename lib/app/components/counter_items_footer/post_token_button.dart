@@ -123,6 +123,7 @@ class _TokenActionButton extends ConsumerWidget {
         TokenizedCommunityRoute(externalAddress: externalId),
       _ => null,
     };
+
     return _TokenButton(
       padding: padding,
       onTap: route == null ? null : () => route.push<void>(context),
