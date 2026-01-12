@@ -14,6 +14,7 @@ import 'package:ion/app/features/wallets/views/components/coin_icon_with_network
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/sum_percentage_action.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_constants.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/string.dart';
@@ -104,7 +105,8 @@ class TokenCard extends HookConsumerWidget {
               final parsed = parseAmount(currentText);
               if (parsed == null || parsed <= 0) return;
 
-              final formatted = formatDouble(parsed);
+              final decimals = coinForNetwork?.coin.decimals ?? SwapConstants.defaultDecimals;
+              final formatted = parsed.formatWithDecimals(decimals);
               if (controller!.text == formatted) return;
 
               controller!.text = formatted;
@@ -115,7 +117,7 @@ class TokenCard extends HookConsumerWidget {
         focusNode.addListener(formatAmount);
         return () => focusNode.removeListener(formatAmount);
       },
-      [focusNode, controller, isReadOnly, skipAmountFormatting],
+      [focusNode, controller, isReadOnly, skipAmountFormatting, coinForNetwork],
     );
 
     return Container(
@@ -374,7 +376,7 @@ class TokenCard extends HookConsumerWidget {
                       enabled: enabled,
                       inputFormatters: [
                         CoinInputFormatter(
-                          maxDecimals: 2,
+                          maxDecimals: coinForNetwork?.coin.decimals ?? 2,
                         ),
                       ],
                       textAlign: TextAlign.end,
@@ -443,10 +445,12 @@ class TokenCard extends HookConsumerWidget {
                       child: Builder(
                         builder: (context) {
                           final maxValue = coinForNetwork?.amount;
+                          final decimals =
+                              coinForNetwork?.coin.decimals ?? SwapConstants.defaultDecimals;
 
                           return Text(
                             maxValue != null
-                                ? '${maxValue.toStringAsFixed(2)} ${coinsGroup!.abbreviation}'
+                                ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup!.abbreviation}'
                                 : '0.00',
                             style: textStyles.caption2.copyWith(
                               color: isInsufficientFundsError
