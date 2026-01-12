@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
-import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
@@ -14,7 +13,6 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
-import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/article/article.dart';
 import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
 import 'package:ion/app/features/feed/views/components/community_token_action/components/community_token_action_body.dart';
@@ -233,12 +231,11 @@ class Post extends ConsumerWidget {
       return true;
     }
 
-    // Check if there's content or media
-    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
-    final hasContent = !content.isBlank;
+    final hasContent = postData.content.isNotEmpty;
+    final hasMedia = postData.visualMedias.isNotEmpty;
 
     // PostBody returns empty if no content and no media
-    return !hasContent && media.isEmpty;
+    return !hasContent && !hasMedia;
   }
 }
 
