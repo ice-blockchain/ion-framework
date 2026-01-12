@@ -174,19 +174,19 @@ jobs:
           ./scripts/generate_code.sh
       - name: Analyze code
         id: analyze-code
-        if: inputs.run_checks
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_checks }}
         run: |
           cd main-repo
           melos run analyze
       - name: Run tests
         id: run-tests
-        if: inputs.run_checks
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_checks }}
         run: |
           cd main-repo
           melos exec -- "flutter test --concurrency=4"
       - name: Check license
         id: check-license
-        if: inputs.run_checks
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_checks }}
         run: |
           cd main-repo
           ./scripts/license_check.sh
