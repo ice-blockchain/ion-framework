@@ -12,25 +12,25 @@ abstract class IonConnectCacheService {
   Future<DatabaseCacheEntry?> get(String cacheKey);
   Future<List<DatabaseCacheEntry>> getAllFiltered({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
-    List<String> masterPubkeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
+    List<String>? masterPubkeys,
   });
 
   Stream<DatabaseCacheEntry?> watch(String cacheKey);
   Stream<List<DatabaseCacheEntry>> watchAll({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
-    List<String> masterPubkeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
+    List<String>? masterPubkeys,
   });
 
   Future<int> remove(String cacheKey);
   Future<int> removeAll({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
-    List<String> masterPubkeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
+    List<String>? masterPubkeys,
   });
 
   Future<int> clearDatabase();
