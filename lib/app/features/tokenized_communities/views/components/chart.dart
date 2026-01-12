@@ -36,7 +36,7 @@ class Chart extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final selectedRange = useState(ChartTimeRangeExtension.getRangeForCreatedAt(createdAtOfToken));
+    final selectedRange = useState(calculateDefaultRange(createdAtOfToken));
 
     final candlesAsync = ref.watch(
       tokenOhlcvCandlesProvider(
@@ -88,6 +88,21 @@ class Chart extends HookConsumerWidget {
         );
       },
     );
+  }
+
+  ChartTimeRange calculateDefaultRange(String dateStr) {
+    final now = DateTime.now();
+    final diff = now.difference(DateTime.parse(dateStr));
+
+    if (diff > const Duration(days: 8)) {
+      return ChartTimeRange.d1;
+    }
+
+    if (diff > const Duration(hours: 8)) {
+      return ChartTimeRange.h1;
+    }
+
+    return ChartTimeRange.m15;
   }
 }
 
@@ -307,18 +322,6 @@ extension ChartTimeRangeExtension on ChartTimeRange {
         ChartTimeRange.h1 => const Duration(hours: 1),
         ChartTimeRange.d1 => const Duration(days: 1),
       };
-
-  static ChartTimeRange getRangeForCreatedAt(String createdAt) {
-    final now = DateTime.now();
-    final diff = now.difference(DateTime.parse(createdAt));
-    if (diff.inHours > 8) {
-      if (diff.inDays > 8) {
-        return ChartTimeRange.d1;
-      }
-      return ChartTimeRange.h1;
-    }
-    return ChartTimeRange.m15;
-  }
 }
 
 class _RangeSelector extends StatelessWidget {
