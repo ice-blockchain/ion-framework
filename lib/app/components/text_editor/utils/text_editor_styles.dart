@@ -12,7 +12,6 @@ DefaultStyles textEditorStyles(BuildContext context, {Color? color}) {
       context.theme.appTextThemes.body2.copyWith(
         color: textColor,
         leadingDistribution: TextLeadingDistribution.even,
-        height: 1.2,
       ),
       HorizontalSpacing.zero,
       VerticalSpacing.zero,
@@ -115,7 +114,6 @@ TextStyle customTextStyleBuilder(
 double calculateTextEditorLineHeight(BuildContext context) {
   final textStyle = context.theme.appTextThemes.body2.copyWith(
     leadingDistribution: TextLeadingDistribution.even,
-    height: 1.2, // Editor's line height multiplier
   );
 
   final textScaler = MediaQuery.textScalerOf(context);
