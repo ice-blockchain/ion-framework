@@ -14,6 +14,7 @@ abstract class IonConnectCacheService {
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
+    List<String> masterPubkeys = const [],
   });
 
   Stream<DatabaseCacheEntry?> watch(String cacheKey);
@@ -21,6 +22,7 @@ abstract class IonConnectCacheService {
     String? keyword,
     List<int> kinds = const [],
     List<String> cacheKeys = const [],
+    List<String> masterPubkeys = const [],
   });
 
   Future<int> remove(String cacheKey);
