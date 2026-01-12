@@ -6,6 +6,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_constants.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -87,7 +88,7 @@ class _TokenRow extends StatelessWidget {
     final amountDouble = double.tryParse(amount.replaceAll(',', '')) ?? 0.0;
     final usdEquivalent = coinInWallet != null ? amountDouble * coinInWallet.coin.priceUSD : 0.0;
     final usdEquivalentFormatted = formatToCurrency(usdEquivalent);
-    final decimals = coinInWallet?.coin.decimals ?? 2;
+    final decimals = coinInWallet?.coin.decimals ?? SwapConstants.defaultDecimals;
 
     return Row(
       children: [

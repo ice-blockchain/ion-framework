@@ -17,6 +17,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_constants.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -205,13 +206,13 @@ class SwapCoinsModalPage extends HookConsumerWidget {
   }
 
   int _getCoinDecimals(CoinsGroup? coins, NetworkData? network) {
-    if (coins == null || network == null) return 2;
+    if (coins == null || network == null) return SwapConstants.defaultDecimals;
 
     final coin = coins.coins.firstWhereOrNull(
       (coin) => coin.coin.network.id == network.id,
     );
 
-    return coin?.coin.decimals ?? 2;
+    return coin?.coin.decimals ?? SwapConstants.defaultDecimals;
   }
 
   void useAmountListener(
