@@ -1134,7 +1134,7 @@
   "wallet_swap_coins_select_coin": "Seleccionar moneda",
   "wallet_swap_coins_sell": "Vender",
   "wallet_swap_coming_soon": "Intercambia tokens sin esfuerzo. Próximamente.",
-  "wallet_swap_confirmation_automatically_share_post_about_trade": "Comparte tu operación como una publicación.",
+  "wallet_swap_confirmation_automatically_share_post_about_trade": "Comparte tu operación como una publicación",
   "wallet_swap_confirmation_high_price_impact_description_first": "Esta transacción tiene un alto impacto en el precio",
   "wallet_swap_confirmation_high_price_impact_description_second": "por lo que el monto que recibirás será notablemente menor que el precio actual del mercado.",
   "wallet_swap_confirmation_less": "Menos",
