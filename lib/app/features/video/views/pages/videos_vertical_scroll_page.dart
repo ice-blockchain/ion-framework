@@ -65,7 +65,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
 
   bool get hasMore => onLoadMore != null;
 
-  static const int showAdAfter = 10;
+  static const int showAdAfter = 7;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -275,7 +275,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
                 isAdVisible.value = true;
                 return AdVideoViewer(flattenedVideos[index].entity.id);
               } else {
-                final mainIndex = index - (index ~/ showAdAfter);
+                final mainIndex = index - (index ~/ nextAdIndex);
                 isAdVisible.value = false;
 
                 final flattenedVideo = flattenedVideos[mainIndex];

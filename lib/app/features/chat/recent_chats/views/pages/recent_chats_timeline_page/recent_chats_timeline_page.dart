@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
@@ -74,6 +76,22 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
       },
       const [],
     );
+
+    useOnInit(() {
+      if (conversations.isEmpty) return;
+
+      final rng = Random(conversations.length);
+      final adIndex = rng.nextInt(conversations.length);
+
+      conversations.insert(
+        adIndex,
+        const ConversationListItem(
+          conversationId: '-1',
+          type: ConversationType.ad,
+          joinedAt: 0,
+        ),
+      );
+    });
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
