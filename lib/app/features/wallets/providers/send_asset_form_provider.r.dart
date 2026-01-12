@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
@@ -27,6 +28,8 @@ part 'send_asset_form_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 class SendAssetFormController extends _$SendAssetFormController {
+  CancelableOperation<void>? _receiverAddressOperation;
+
   @override
   SendAssetFormData build() {
     return SendAssetFormData(
@@ -74,6 +77,8 @@ class SendAssetFormController extends _$SendAssetFormController {
     required NetworkData network,
     required ion.Wallet? senderWallet,
   }) {
+    _receiverAddressOperation?.cancel();
+
     state = state.copyWith(
       network: network,
       senderWallet: senderWallet,
@@ -81,7 +86,9 @@ class SendAssetFormController extends _$SendAssetFormController {
       selectedNetworkFeeOption: null,
     );
 
-    unawaited(_initReceiverAddressFromContact());
+    _receiverAddressOperation = CancelableOperation.fromFuture(
+      _initReceiverAddressFromContact(),
+    );
   }
 
   Future<CoinData?> _findCoinDataForNetwork({
