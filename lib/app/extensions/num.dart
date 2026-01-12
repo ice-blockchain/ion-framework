@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 extension NumExtension on num? {
@@ -33,6 +34,13 @@ extension DoubleNullableExtension on double? {
   String? get formatMax6 {
     final s = this?.toStringAsFixed(6);
     return s?.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
+
+  String formatWithDecimals(int decimals) {
+    final noNullVal = zeroOrValue;
+    final decimal = Decimal.parse(noNullVal.toString());
+    final formatted = decimal.toStringAsFixed(decimals);
+    return formatted.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 }
 
