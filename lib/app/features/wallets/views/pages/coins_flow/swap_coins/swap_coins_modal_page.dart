@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/continue_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/conversion_info_row.dart';
@@ -66,16 +69,21 @@ class SwapCoinsModalPage extends HookConsumerWidget {
       [amount, sellCoins, sellNetwork],
     );
 
+    final sellCoinDecimals = _getCoinDecimals(sellCoins, sellNetwork);
+    final buyCoinDecimals = _getCoinDecimals(buyCoins, buyNetwork);
+
     useAmountListener(
       amountController,
       controller,
       amount,
+      sellCoinDecimals,
     );
 
     useQuoteDisplay(
       quoteController,
       quoteAmount,
       amount,
+      buyCoinDecimals,
     );
 
     useResetSwapStateOnClose(controller);
@@ -196,10 +204,21 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     );
   }
 
+  int _getCoinDecimals(CoinsGroup? coins, NetworkData? network) {
+    if (coins == null || network == null) return 2;
+
+    final coin = coins.coins.firstWhereOrNull(
+      (coin) => coin.coin.network.id == network.id,
+    );
+
+    return coin?.coin.decimals ?? 2;
+  }
+
   void useAmountListener(
     TextEditingController amountController,
     SwapCoinsController controller,
     double currentAmount,
+    int decimals,
   ) {
     final isUpdatingFromState = useRef(false);
 
@@ -223,7 +242,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
         final currentText = parseAmount(amountController.text) ?? 0;
         if ((currentText - currentAmount).abs() > 0.0001) {
           isUpdatingFromState.value = true;
-          amountController.text = currentAmount.toStringAsFixed(2);
+          amountController.text = currentAmount.toStringAsFixed(decimals);
           isUpdatingFromState.value = false;
         }
         return null;
@@ -236,11 +255,13 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     TextEditingController quoteController,
     SwapQuoteInfo? quoteAmount,
     double amount,
+    int decimals,
   ) {
     useEffect(
       () {
         if (quoteAmount != null) {
-          final quoteValue = (quoteAmount.priceForSellTokenInBuyToken * amount).toStringAsFixed(2);
+          final quoteValue =
+              (quoteAmount.priceForSellTokenInBuyToken * amount).toStringAsFixed(decimals);
           if (quoteController.text != quoteValue) {
             quoteController.text = quoteValue;
           }

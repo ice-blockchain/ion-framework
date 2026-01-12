@@ -34,6 +34,12 @@ extension DoubleNullableExtension on double? {
     final s = this?.toStringAsFixed(6);
     return s?.replaceFirst(RegExp(r'\.?0+$'), '');
   }
+
+  String formatWithDecimals(int decimals) {
+    final num noNullVal = zeroOrValue;
+    final formatted = noNullVal.toStringAsFixed(decimals);
+    return formatted.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
 }
 
 extension SizeExtension on num {
