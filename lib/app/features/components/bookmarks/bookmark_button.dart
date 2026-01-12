@@ -23,7 +23,7 @@ enum BookmarkButtonMode {
 
 class BookmarkButton extends HookConsumerWidget {
   const BookmarkButton({
-    required this.eventReference,
+    this.eventReference,
     this.mode = BookmarkButtonMode.menuItem,
     this.collectionDTag,
     this.iconSize,
@@ -31,7 +31,7 @@ class BookmarkButton extends HookConsumerWidget {
     super.key,
   });
 
-  final EventReference eventReference;
+  final EventReference? eventReference;
   final BookmarkButtonMode mode;
   final String? collectionDTag;
   final double? iconSize;
@@ -49,20 +49,21 @@ class BookmarkButton extends HookConsumerWidget {
       feedBookmarksNotifierProvider(collectionDTag: effectiveCollectionDTag),
     );
     final isLoading = bookmarkState.isLoading;
-    final isBookmarked = ref.watch(
-      isBookmarkedInCollectionProvider(
-        eventReference,
-        collectionDTag: effectiveCollectionDTag,
-      ),
-    );
+    final isBookmarked = eventReference != null &&
+        ref.watch(
+          isBookmarkedInCollectionProvider(
+            eventReference!,
+            collectionDTag: effectiveCollectionDTag,
+          ),
+        );
 
     useEffect(
       () {
         // sync to DB if bookmarked from cache only
-        if (isBookmarked) {
+        if (isBookmarked && eventReference != null) {
           ref
               .read(ionConnectDatabaseCacheProvider.notifier)
-              .saveEventReference(eventReference, network: false);
+              .saveEventReference(eventReference!, network: false);
         }
         return null;
       },
@@ -123,15 +124,16 @@ class BookmarkButton extends HookConsumerWidget {
     bool isBookmarked,
     String effectiveCollectionDTag,
   ) {
+    if (eventReference == null) return;
     if (mode == BookmarkButtonMode.menuItem || mode == BookmarkButtonMode.menuContent) {
       Navigator.of(ref.context).pop();
     }
     ref.read(toggleBookmarkNotifierProvider.notifier).toggle(
-          eventReference: eventReference,
+          eventReference: eventReference!,
           collectionDTag: effectiveCollectionDTag,
         );
     if (!isBookmarked && mode != BookmarkButtonMode.menuContent) {
-      AddBookmarkRoute(eventReference: eventReference.encode()).push<void>(ref.context);
+      AddBookmarkRoute(eventReference: eventReference!.encode()).push<void>(ref.context);
     }
   }
 }

@@ -15,7 +15,6 @@ import 'package:ion/app/features/components/bookmarks/bookmark_button.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_latest_trades_provider.r.dart';
@@ -192,14 +191,13 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               externalAddress: externalAddress,
             ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
-        if (tokenType == CommunityContentTokenType.profile)
-          Padding(
-            padding: EdgeInsetsDirectional.only(end: 6.0.s),
-            child: BookmarkButton(
-              eventReference: ReplaceableEventReference.fromString(externalAddress),
-              mode: BookmarkButtonMode.iconButton,
-            ),
+        Padding(
+          padding: EdgeInsetsDirectional.only(end: 6.0.s),
+          child: BookmarkButton(
+            eventReference: tokenDefinition?.toEventReference(),
+            mode: BookmarkButtonMode.iconButton,
           ),
+        ),
         CommunityTokenContextMenu(
           closeSignal: menuCloseSignal,
           tokenDefinitionEntity: tokenDefinition,
