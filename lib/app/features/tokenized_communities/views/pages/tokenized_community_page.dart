@@ -82,8 +82,15 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         .valueOrNull;
     final tokenType = ref.watch(tokenTypeForExternalAddressProvider(externalAddress)).valueOrNull;
     final activeTab = useState(TokenizedCommunityTabType.chart);
-    final isCommentInputFocused = useState(false);
+    final isCommentInputFocused = useMemoized(() => ValueNotifier<bool>(false), []);
     final innerScrollController = useState<ScrollController?>(null);
+
+    useEffect(
+      () {
+        return isCommentInputFocused.dispose;
+      },
+      [isCommentInputFocused],
+    );
 
     final sectionKeys = useMemoized(
       () => List.generate(
@@ -185,11 +192,16 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: isCommentInputFocused.value
-          ? const SizedBox.shrink()
-          : FloatingTradeIsland(
-              externalAddress: externalAddress,
-            ),
+      floatingActionButton: ValueListenableBuilder<bool>(
+        valueListenable: isCommentInputFocused,
+        builder: (context, isFocused, _) {
+          return isFocused
+              ? const SizedBox.shrink()
+              : FloatingTradeIsland(
+                  externalAddress: externalAddress,
+                );
+        },
+      ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
         Padding(
           padding: EdgeInsetsDirectional.only(end: 6.0.s),
@@ -280,7 +292,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               child: CommentsSectionCompact(
                 tokenDefinition: tokenDefinition,
                 onCommentInputFocusChanged: (bool isFocused) {
-                  isCommentInputFocused.value = isFocused;
+                  if (isCommentInputFocused.value != isFocused) {
+                    isCommentInputFocused.value = isFocused;
+                  }
                 },
               ),
             ),
