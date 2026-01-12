@@ -42,41 +42,39 @@ class YourPositionCard extends HookConsumerWidget {
     return Column(
       children: [
         Container(
-          margin: EdgeInsetsDirectional.fromSTEB(16.s, 10.s, 16.s, 10.s),
-          child: SizedBox(
-            height: 72.s,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.s),
-              child: ProfileBackground(
-                colors: avatarColors,
-                disableDarkGradient: true,
-                child: Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(12.s, 12.s, 14.s, 12.s),
-                  child: IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        CommunityTokenImage(
-                          imageUrl: avatarUrl,
-                          width: 49.6.s,
-                          height: 49.6.s,
-                          outerBorderRadius: 12.8.s,
-                          innerBorderRadius: 9.6.s,
-                          innerPadding: 1.29.s,
-                        ),
-                        SizedBox(width: 10.s),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const _YourPositionCardTitle(),
-                            _ProfitDetails(position: position),
-                          ],
-                        ),
-                        const Spacer(),
-                        _AmountDetails(position: position),
-                      ],
-                    ),
+          margin: EdgeInsetsDirectional.fromSTEB(16.s, 12.s, 16.s, 12.s),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16.s),
+            child: ProfileBackground(
+              colors: avatarColors,
+              disableDarkGradient: true,
+              child: Padding(
+                padding: EdgeInsetsDirectional.all(12.s),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CommunityTokenImage(
+                        imageUrl: avatarUrl,
+                        width: 52.s,
+                        height: 52.s,
+                        outerBorderRadius: 12.8.s,
+                        innerBorderRadius: 9.6.s,
+                        innerPadding: 2.s,
+                      ),
+                      SizedBox(width: 10.s),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const _YourPositionCardTitle(),
+                          SizedBox(height: 8.s),
+                          _ProfitDetails(position: position),
+                        ],
+                      ),
+                      const Spacer(),
+                      _AmountDetails(position: position),
+                    ],
                   ),
                 ),
               ),
@@ -125,11 +123,11 @@ class _ProfitDetails extends StatelessWidget {
     final percentageValue = position.pnlPercentage.abs().toStringAsFixed(2);
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.s, vertical: 2.s),
+      padding: EdgeInsets.symmetric(horizontal: 6.s, vertical: 1.5.s),
       decoration: BoxDecoration(color: profitColor, borderRadius: BorderRadius.circular(6.s)),
       child: Row(
         children: [
-          Assets.svg.iconCreatecoinProfit.icon(
+          Assets.svg.iconChartLine.icon(
             size: 14.s,
             color: context.theme.appColors.onPrimaryAccent,
           ),
@@ -161,7 +159,7 @@ class _AmountDetails extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Row(
           children: [
@@ -177,6 +175,7 @@ class _AmountDetails extends StatelessWidget {
             ),
           ],
         ),
+        SizedBox(height: 8.s),
         Row(
           children: [
             Assets.svg.iconCreatecoinDollar.icon(
