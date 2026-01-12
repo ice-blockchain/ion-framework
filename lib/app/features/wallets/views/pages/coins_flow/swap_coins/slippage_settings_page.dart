@@ -50,7 +50,7 @@ class SlippageSettingsPage extends HookWidget {
                   SizedBox(height: 8.0.s),
                   Text(
                     context.i18n.wallet_swap_slippage_settings_description,
-                    style: textStyles.body.copyWith(color: colors.tertiaryText),
+                    style: textStyles.body2.copyWith(color: colors.onTertiaryBackground),
                   ),
                   SizedBox(height: 16.0.s),
                   _SlippageControls(
@@ -70,7 +70,7 @@ class SlippageSettingsPage extends HookWidget {
                       children: [
                         Text(context.i18n.button_save),
                         SizedBox(width: 6.0.s),
-                        const Icon(Icons.check_circle_outline, size: 16),
+                        Assets.svg.iconProfileSave.icon(size: 24.s),
                       ],
                     ),
                   ),
