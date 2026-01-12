@@ -88,7 +88,6 @@ class ProfileTokenStatsInfo extends ConsumerWidget {
 
 class ProfileTokenStats extends ConsumerWidget {
   const ProfileTokenStats({
-    required this.externalAddress,
     this.eventReference,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
     this.spacing,
@@ -96,7 +95,6 @@ class ProfileTokenStats extends ConsumerWidget {
     super.key,
   });
 
-  final String externalAddress;
   final EventReference? eventReference;
   final MainAxisAlignment mainAxisAlignment;
   final Widget? leading;
@@ -129,12 +127,12 @@ class ProfileTokenStats extends ConsumerWidget {
               if (hasTokenInfo) {
                 // Someone already bought, open token page
                 TokenizedCommunityRoute(
-                  externalAddress: externalAddress,
+                  externalAddress: eventReference!.toString(),
                 ).push<void>(context);
               } else {
                 // No one bought yet, open trade dialog
                 TradeCommunityTokenRoute(
-                  eventReference: ReplaceableEventReference.fromString(externalAddress).encode(),
+                  eventReference: eventReference!.encode(),
                   initialMode: CommunityTokenTradeMode.buy,
                 ).push<void>(context);
               }

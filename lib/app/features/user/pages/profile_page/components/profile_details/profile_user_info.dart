@@ -74,7 +74,6 @@ class ProfileUserInfo extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: ProfileTokenStats(
-                          externalAddress: eventReferenceString,
                           eventReference: eventReference,
                           leading: GestureDetector(
                             onTap: () {
