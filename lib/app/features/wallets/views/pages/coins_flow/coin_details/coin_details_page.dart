@@ -19,12 +19,14 @@ import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/info_block_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/balance.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/crypto_wallets_switcher.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/empty_state/empty_state.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_header.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_item.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_section_header.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/coin_transaction_history_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/utils/date.dart';
@@ -71,6 +73,10 @@ class CoinDetailsPage extends HookConsumerWidget {
       [coinsGroup],
     );
 
+    final cryptoWalletData = ref.watch(
+      selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
+    );
+
     return Scaffold(
       appBar: NavigationAppBar.screen(
         title: Row(
@@ -95,6 +101,22 @@ class CoinDetailsPage extends HookConsumerWidget {
             child: Column(
               children: [
                 const SectionSeparator(),
+                if (cryptoWalletData.wallets.length > 1)
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(top: 20.s),
+                    child: CryptoWalletSwitcher(
+                      wallets: cryptoWalletData.wallets,
+                      selectedWallet: cryptoWalletData.selectedWallet,
+                      onWalletChanged: (wallet) {
+                        ref
+                            .read(
+                              selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup)
+                                  .notifier,
+                            )
+                            .selectedWallet = wallet;
+                      },
+                    ),
+                  ),
                 Balance(
                   coinsGroup: coinsGroup,
                   currentNetwork: networkSelectorData?.selected.map(

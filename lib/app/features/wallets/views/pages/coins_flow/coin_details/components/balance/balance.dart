@@ -3,10 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
-import 'package:ion/app/extensions/num.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/coin_usd_amount.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_actions.dart';
@@ -24,14 +26,20 @@ class Balance extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cryptoWalletData = ref.watch(
+      selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+    );
+    final shouldShowWallets = cryptoWalletData.wallets.length > 1;
+
     return ScreenSideOffset.small(
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsetsDirectional.only(top: 16.0.s),
+            padding: EdgeInsetsDirectional.only(
+              top: shouldShowWallets ? 16.s : 12.s,
+            ),
             child: CoinUsdAmount(
               coinsGroup: coinsGroup,
-              currentNetwork: currentNetwork,
             ),
           ),
           Padding(
@@ -46,12 +54,50 @@ class Balance extends ConsumerWidget {
                 SwapCoinsRoute().push<void>(context);
               },
               onReceive: () {
-                ref.read(receiveCoinsFormControllerProvider.notifier).setCoin(coinsGroup);
-                NetworkSelectReceiveRoute().push<void>(context);
+                final network = ref
+                    .read(
+                      networkSelectorNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+                    )
+                    ?.selected
+                    .mapOrNull(network: (network) => network.network);
+                final wallet = ref
+                    .read(
+                      selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+                    )
+                    .selectedWallet;
+
+                final formNotifier = ref.read(receiveCoinsFormControllerProvider.notifier)
+                  ..setCoin(coinsGroup);
+
+                if (network != null && wallet?.address != null) {
+                  formNotifier
+                    ..setNetwork(network)
+                    ..setWalletAddress(wallet!.address!);
+                  ShareAddressToGetCoinsRoute().push<void>(context);
+                } else {
+                  NetworkSelectReceiveRoute().push<void>(context);
+                }
               },
               onNeedToEnable2FA: () => SecureAccountModalRoute().push<void>(context),
               onMore: () {
-                WalletMainModalRoute(symbolGroup: coinsGroup.symbolGroup).push<void>(context);
+                final network = ref
+                    .read(
+                      networkSelectorNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+                    )
+                    ?.selected
+                    .mapOrNull(network: (n) => n.network);
+
+                final wallet = ref
+                    .read(
+                      selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+                    )
+                    .selectedWallet;
+
+                WalletMainModalRoute(
+                  symbolGroup: coinsGroup.symbolGroup,
+                  networkId: network?.id,
+                  walletId: wallet?.id,
+                ).push<void>(context);
               },
             ),
           ),
