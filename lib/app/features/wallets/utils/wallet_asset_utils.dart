@@ -6,6 +6,8 @@ import 'package:collection/collection.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion_identity_client/ion_identity.dart' as ion;
 
+typedef WalletAssetBalance = ({double amount, double balanceUSD, String rawAmount});
+
 ion.WalletAsset? getAssociatedWalletAsset(List<ion.WalletAsset> assets, CoinData? transferredCoin) {
   ion.WalletAsset? nativeAsset() => assets.firstWhereOrNull((asset) => asset.isNative);
 
@@ -44,7 +46,7 @@ ion.WalletAsset? getAssociatedWalletAsset(List<ion.WalletAsset> assets, CoinData
   return result ?? nativeAsset();
 }
 
-({double amount, double balanceUSD, String rawAmount}) calculateBalanceFromAsset(
+WalletAssetBalance calculateBalanceFromAsset(
   ion.WalletAsset asset,
   CoinData coin,
 ) {
