@@ -13,19 +13,14 @@ import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chats_empt
 import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chats_timeline_page/recent_chats_timeline_page.dart';
 import 'package:ion/app/features/chat/views/pages/chat_main_page/components/chat_main_appbar/chat_main_appbar.dart';
 import 'package:ion/app/features/ion_connect/providers/device_keypair_dialog_notifier_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/views/creator_token_is_live_dialog.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 
 class ChatMainPage extends HookConsumerWidget {
   const ChatMainPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useOnInit(() {
-      ref.read(uiEventQueueNotifierProvider.notifier).emit(const CreatorTokenIsLiveDialogEvent());
-    });
     _useCheckDeviceKeypairDialog(ref);
 
     final scrollController = useScrollController();
