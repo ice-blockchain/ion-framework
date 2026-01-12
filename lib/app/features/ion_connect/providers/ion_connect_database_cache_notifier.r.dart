@@ -132,8 +132,8 @@ class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
 
   Future<List<IonConnectEntity>> getAllFiltered({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
     Duration? expirationDuration,
     DatabaseCacheStrategy cacheStrategy = DatabaseCacheStrategy.alwaysReturn,
   }) async {
