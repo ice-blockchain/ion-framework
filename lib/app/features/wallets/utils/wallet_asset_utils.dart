@@ -41,7 +41,7 @@ ion.WalletAsset? getAssociatedWalletAsset(List<ion.WalletAsset> assets, CoinData
   }
 
   final result = assets.firstWhereOrNull(
-    (asset) => asset.symbol?.toLowerCase() == transferredCoin.abbreviation.toLowerCase(),
+    (asset) => asset.symbol.toLowerCase() == transferredCoin.abbreviation.toLowerCase(),
   );
   return result ?? nativeAsset();
 }
