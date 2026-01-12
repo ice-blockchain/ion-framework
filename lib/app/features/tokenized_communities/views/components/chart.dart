@@ -256,7 +256,7 @@ class ChartPriceLabel extends StatelessWidget {
                 offset: Offset(0, 2.0.s),
                 child: Text(
                   parts.subscript!,
-                  style: texts.caption5.copyWith(fontSize: 6.5.s),
+                  style: texts.caption5.copyWith(fontSize: 6.5.s, color: colors.tertiaryText),
                 ),
               ),
             ),
