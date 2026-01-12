@@ -87,6 +87,7 @@ class _TokenRow extends StatelessWidget {
     final amountDouble = double.tryParse(amount.replaceAll(',', '')) ?? 0.0;
     final usdEquivalent = coinInWallet != null ? amountDouble * coinInWallet.coin.priceUSD : 0.0;
     final usdEquivalentFormatted = formatToCurrency(usdEquivalent);
+    final decimals = coinInWallet?.coin.decimals ?? 2;
 
     return Row(
       children: [
@@ -101,7 +102,7 @@ class _TokenRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${formatDouble(amountDouble)} ${coinsGroup.abbreviation}',
+                '${amountDouble.formatWithDecimals(decimals)} ${coinsGroup.abbreviation}',
                 style: textStyles.title.copyWith(
                   color: colors.primaryText,
                 ),
