@@ -62,7 +62,7 @@ class Relay extends _$Relay
 
             reportFailover(
               Exception(
-                '[RELAY] Relay auth failover for logical URL: $url and connect URL: $connectUrl; reason: $e',
+                '[RELAY] Relay auth failover for logical URL: $connectUrl and connect URL: $connectUrl; reason: $e',
               ),
               st,
               tag: 'relay_failover_auth',

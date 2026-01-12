@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:convert/convert.dart' as convert;
 import 'package:cryptography/dart.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_proxy_domain_preference_provider.r.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,10 +15,9 @@ part 'relay_proxy_domains_provider.r.g.dart';
 /// unavailable or unreliable.
 @riverpod
 List<String> relaysProxyDomains(Ref ref) {
-  return const <String>[
-    'relays1.ion-connect.identity.io',
-    'relays2.ion-connect.identity.io',
-  ];
+  final env = ref.watch(envProvider.notifier);
+  final domainsRaw = env.get<String>(EnvVariable.RELAY_PROXY_DOMAINS);
+  return domainsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 }
 
 /// Returns a list of candidate relay connection URIs for a logical relay URL.
@@ -28,7 +28,7 @@ List<String> relaysProxyDomains(Ref ref) {
 /// Candidates are returned in the following order:
 /// 1) Preferred proxy URI (if saved for this logical relay)
 /// 2) The original logical relay URI (direct IP)
-/// 3) Remaining proxy URIs built as `wss://<sha256(ip)[0:16]>.<proxyDomain>`
+/// 3) Remaining proxy URIs built as `wss://<sha256(ip)[0:16]>.443`
 @riverpod
 List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
   final logicalUri = Uri.parse(logicalRelayUrl);
@@ -49,7 +49,7 @@ List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
   Uri proxyUriForDomain(String domain) => Uri(
         scheme: logicalUri.scheme.isNotEmpty ? logicalUri.scheme : 'wss',
         host: '$normalizedIp.$domain',
-        port: logicalUri.hasPort ? logicalUri.port : null,
+        port: 443,
       );
 
   final candidates = <Uri>[];
