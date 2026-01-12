@@ -33,7 +33,9 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/compo
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_card.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
+import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion/l10n/i10n.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 enum TokenizedCommunityTabType implements TabType {
@@ -309,29 +311,31 @@ class TokenizedCommunityPage extends HookConsumerWidget {
 
 // For creator tokens: Returns "@nickname (ticker)" where ticker is lowercase.
 // For content tokens: Returns ticker as is from BE
-String _normalizeChartTitle(CommunityToken token) {
+String? _normalizeChartTitle({
+  required CommunityToken token,
+  required BuildContext context,
+}) {
   final ticker = token.marketData.ticker ?? '';
 
   if (token.type == CommunityTokenType.profile) {
     // Creator token: @nickname (ticker) in lowercase
-    final nicknameLower = token.creator.name?.toLowerCase() ?? '';
-    final tickerLower = ticker.toLowerCase();
+    final nickname = token.creator.name;
+    if (nickname == null || nickname.isEmpty) {
+      return null;
+    }
 
-    if (nicknameLower.isNotEmpty && tickerLower.isNotEmpty) {
-      final result = '@$nicknameLower ($tickerLower)';
-      return result;
-    }
-    if (nicknameLower.isNotEmpty) {
-      final result = '@$nicknameLower';
-      return result;
-    }
+    final tickerLower = ticker.toLowerCase();
+    final usernamePart = prefixUsername(username: nickname.toLowerCase(), context: context);
+    final rtl = isRTL(context);
+
     if (tickerLower.isNotEmpty) {
-      final result = tickerLower;
-      return result;
+      return rtl ? '($tickerLower) $usernamePart' : '$usernamePart ($tickerLower)';
     }
-    return '';
+
+    return usernamePart;
   }
 
+  // Content token: ticker as is from BE
   return ticker;
 }
 
@@ -413,12 +417,15 @@ class _TokenChart extends HookConsumerWidget {
     }
 
     final price = Decimal.parse(tokenInfo.marketData.priceUSD.toStringAsFixed(4));
-    final chartLabel = _normalizeChartTitle(tokenInfo);
+    final chartLabel = _normalizeChartTitle(
+      token: tokenInfo,
+      context: context,
+    );
 
     return Chart(
       externalAddress: externalAddress,
       price: price,
-      label: chartLabel,
+      label: chartLabel ?? '',
     );
   }
 }
