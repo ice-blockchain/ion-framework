@@ -54,4 +54,4 @@ class NativeAdOptions(
 //D/AppodealFlutterPlugin(31648): toAdDescriptionConfig: {backgroundColor=#00000000, margin=0, fontSize=12, textColor=#FF000000}
 //D/AppodealFlutterPlugin(31648): toAdIconConfig: {margin=0, visible=false, size=50, position=0}
 
-enum class NativeAdViewType { Custom, ContentStream, AppWall, NewsFeed }
+enum class NativeAdViewType { Custom, ContentStream, AppWall, NewsFeed, Chat }
