@@ -31,6 +31,10 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
                 R.layout.apd_native_ad_view_full,
                 null
             ) as NativeAdView // NativeAdViewAppWall(context)
+            NativeAdViewType.Chat -> layoutInflater.inflate(
+                R.layout.apd_native_ad_view_chat_list,
+                null
+            ) as NativeAdView
             NativeAdViewType.NewsFeed -> NativeAdViewNewsFeed(context)
             else -> throw IllegalArgumentException("Unknown NativeAdViewType: $nativeAdViewType")
         }
@@ -42,6 +46,9 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         // set ad choices config
         val adChoiceConfig = nativeAdOptions.adChoiceConfig
         val adChoicePosition = adChoiceConfig.position
+
+        val adActionButtonConfig = nativeAdOptions.adActionButtonConfig
+        val adActionPosIndex = adActionButtonConfig.position
 
         //nativeAdView.setAdChoicesPosition(adChoicePosition)
         val nativeCustomContentId = R.id.native_custom_content
@@ -56,7 +63,8 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         val marginPx = (adChoiceConfig.margin * density).toInt()
         apdLog(
             "AppodealNativeAdView nativeAdViewType: ${nativeAdOptions.nativeAdViewType}, " +
-                    "density: $density, cardPadding:$cardPadding, horizontalSpacing:$horizontalSpacing, marginPx:$marginPx"
+                    "density: $density, cardPadding:$cardPadding, horizontalSpacing:$horizontalSpacing, " +
+                    "marginPx:$marginPx, adActionPosIndex:$adActionPosIndex"
         )
 
         val constraintSet = ConstraintSet()
@@ -88,9 +96,43 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
                 constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
             }
         }
+        //constraintSet.applyTo(constraintLayout)
+
+        // set adActionButtonConfig config
+        val callToActionViewId = R.id.native_custom_cta
+        val nativeMediaViewId = R.id.native_media_wrapper
+
+        // Clear existing horizontal constraints to avoid conflicts
+        constraintSet.clear(callToActionViewId, ConstraintSet.START)
+        constraintSet.clear(callToActionViewId, ConstraintSet.END)
+        constraintSet.clear(callToActionViewId, ConstraintSet.TOP)
+        constraintSet.clear(callToActionViewId, ConstraintSet.BOTTOM)
+
+        constraintSet.clear(nativeMediaViewId, ConstraintSet.BOTTOM)
+
+        // Always top anchored to media wrapper
+        constraintSet.connect(callToActionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, 0)
+
+        when (adChoicePosition) {
+            Position.START_TOP -> {
+                constraintSet.connect(callToActionViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, 0)
+                constraintSet.connect(nativeMediaViewId, ConstraintSet.BOTTOM, nativeCustomContentId, ConstraintSet.BOTTOM, 0)
+                constraintSet.setDimensionRatio(nativeMediaViewId, "H,10:16")
+            }
+
+            Position.START_BOTTOM -> {
+                constraintSet.connect(callToActionViewId, ConstraintSet.BOTTOM, nativeCustomContentId, ConstraintSet.TOP, 0)
+                constraintSet.connect(callToActionViewId, ConstraintSet.START, nativeCustomContentId, ConstraintSet.START, 0)
+                constraintSet.connect(nativeMediaViewId, ConstraintSet.BOTTOM, callToActionViewId, ConstraintSet.TOP, horizontalSpacing)
+                constraintSet.setDimensionRatio(nativeMediaViewId, "H,9:16")
+            }
+
+            else -> {
+                constraintSet.connect(callToActionViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, 0)
+            }
+        }
         constraintSet.applyTo(constraintLayout)
 
-        // set ad attribution config
 //        val adAttributionBackgroundColor = nativeAdOptions.adAttributionConfig.backgroundColor
 //        nativeAdView.setAdAttributionBackground(adAttributionBackgroundColor)
 //        val adAttributionTextColor = nativeAdOptions.adAttributionConfig.textColor
