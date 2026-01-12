@@ -54,7 +54,7 @@ class TopHolderTile extends StatelessWidget {
                 holder.position.holder?.addresses?.twitter ??
                 '',
           ),
-      username: holder.position.holder?.name,
+      username: '@${holder.position.holder?.name}',
       supplyShare: holder.position.supplyShare,
       verified: holder.position.holder?.verified ?? false,
       isCreator: isCreator,

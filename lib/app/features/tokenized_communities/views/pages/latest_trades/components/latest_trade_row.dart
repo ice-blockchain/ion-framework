@@ -81,7 +81,7 @@ class LatestTradeRow extends StatelessWidget {
               Expanded(
                 child: _TitleAndMeta(
                   name: name,
-                  handle: trade.position.holder.name.isNotEmpty ? trade.position.holder.name : null,
+                  handle:  trade.position.holder.name.isNotEmpty ? '@${trade.position.holder.name}' : null,
                   verified: trade.position.holder.verified ?? false,
                   isCreator: isCreator,
                   meta: '$amountText • \$$usdText • $timeText',
