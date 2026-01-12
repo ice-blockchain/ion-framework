@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
@@ -11,7 +12,7 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/navigation_app_bar/navigation_text_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class ChatMainAppBar extends ConsumerWidget implements PreferredSizeWidget {
+class ChatMainAppBar extends HookConsumerWidget implements PreferredSizeWidget {
   const ChatMainAppBar({required this.scrollController, super.key});
 
   final ScrollController scrollController;
@@ -26,6 +27,7 @@ class ChatMainAppBar extends ConsumerWidget implements PreferredSizeWidget {
             .toList()
             .isNotEmpty ??
         false;
+    final isNavigating = useState(false);
 
     return NavigationAppBar.screen(
       scrollController: scrollController,
@@ -56,11 +58,20 @@ class ChatMainAppBar extends ConsumerWidget implements PreferredSizeWidget {
             icon: Assets.svg.iconEditLink.icon(
               size: NavigationAppBar.actionButtonSide,
             ),
-            onPressed: () {
-              if (!editMode) {
-                NewChatModalRoute().push<void>(context);
-              }
-            },
+            onPressed: (editMode || isNavigating.value)
+                ? null
+                : () async {
+                    isNavigating.value = true;
+                    try {
+                      await NewChatModalRoute().push<void>(context);
+                      // Add delay to let navigator settle after dialog closes
+                      await Future<void>.delayed(const Duration(milliseconds: 300));
+                    } finally {
+                      if (context.mounted) {
+                        isNavigating.value = false;
+                      }
+                    }
+                  },
           ),
         ),
       ],
