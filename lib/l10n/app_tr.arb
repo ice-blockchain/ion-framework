@@ -1134,7 +1134,7 @@
   "wallet_swap_coins_select_coin": "Coin seç",
   "wallet_swap_coins_sell": "Sat",
   "wallet_swap_coming_soon": "Token'ları zahmetsizce değiştirin. Yakında.",
-  "wallet_swap_confirmation_automatically_share_post_about_trade": "Ticaretinizi bir gönderi olarak paylaşın.",
+  "wallet_swap_confirmation_automatically_share_post_about_trade": "Ticaretinizi bir gönderi olarak paylaşın",
   "wallet_swap_confirmation_high_price_impact_description_first": "Bu işlemin yüksek bir fiyat etkisi var",
   "wallet_swap_confirmation_high_price_impact_description_second": "bu yüzden alacağınız tutar mevcut piyasa fiyatından belirgin şekilde düşük olacaktır.",
   "wallet_swap_confirmation_less": "Daha az",
