@@ -7,15 +7,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-<<<<<<< HEAD
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
-=======
-//TODO: Commented out for RC/production release - Buy, Sell functionality not ready yet
-// import 'package:ion/app/features/core/model/feature_flags.dart';
-// import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
->>>>>>> 1c8cb63ae (fix: display multiple wallets in one network on CoinDetailsPage (#3057))
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
