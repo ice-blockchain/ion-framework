@@ -5,6 +5,8 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/model
 import 'package:ion_token_analytics/src/community_tokens/user_holdings/models/models.dart';
 import 'package:ion_token_analytics/src/community_tokens/user_holdings/user_holdings_repository.dart';
 
+//TODO(ice-neoptolemus): remove when api is implemented
+
 class UserHoldingsRepositoryMock implements UserHoldingsRepository {
   static final List<CommunityToken> _mockHoldings = [
     const CommunityToken(

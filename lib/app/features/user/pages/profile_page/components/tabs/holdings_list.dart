@@ -88,7 +88,7 @@ class _Header extends StatelessWidget {
         ),
         SizedBox(width: 6.0.s),
         Text(
-          'Holdings ($holdingsCount)',
+          context.i18n.profile_holdings_with_count(holdingsCount),
           style: texts.subtitle3.copyWith(
             color: colors.onTertiaryBackground,
           ),
