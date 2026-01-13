@@ -363,6 +363,9 @@ class _AppBar extends StatelessWidget {
             defaultSlippage: TokenizedCommunitiesConstants.defaultSlippagePercent,
             onSlippageChanged: controller.setSlippage,
           ),
+          SizedBox(
+            width: 8.s,
+          ),
         ],
       ),
     );
