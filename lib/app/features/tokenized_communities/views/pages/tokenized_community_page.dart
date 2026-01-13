@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -114,11 +116,33 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       final targetCtx = sectionKeys[index].currentContext;
       if (targetCtx == null) return;
 
+      double outerOffsetDy = 0;
+
       final nestedState = targetCtx.findAncestorStateOfType<NestedScrollViewState>();
       final inner = nestedState?.innerController ?? innerScrollController.value;
       if (inner == null || !inner.hasClients) return;
 
-      final ro = targetCtx.findRenderObject();
+      final outer = nestedState?.outerController;
+      if (outer != null && outer.hasClients) {
+        outerOffsetDy = outer.position.pixels;
+        final outerTarget = outer.position.maxScrollExtent - (index == 0 ? 40 : 0);
+
+        unawaited(
+          outer.animateTo(
+            outerTarget,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          ),
+        );
+        if (index == 0) {
+          return;
+        }
+      }
+
+      final updatedCtx = sectionKeys[index].currentContext;
+      if (updatedCtx == null) return;
+
+      final ro = updatedCtx.findRenderObject();
       if (ro == null) return;
 
       final viewport = RenderAbstractViewport.of(ro);
@@ -126,7 +150,8 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       // Align the section to the TOP of the inner viewport.
       final desired = viewport.getOffsetToReveal(ro, 0).offset;
       final pos = inner.position;
-      final target = (desired - 110.0).clamp(pos.minScrollExtent, pos.maxScrollExtent);
+      final target = (desired - (outerOffsetDy == 0 ? 40 : 160))
+          .clamp(pos.minScrollExtent, pos.maxScrollExtent);
 
       await inner.animateTo(
         target,
