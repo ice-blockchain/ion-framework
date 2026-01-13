@@ -18,16 +18,10 @@ class UserHoldingsRepositoryImpl implements UserHoldingsRepository {
   }) async {
     final response = await _client.get<List<dynamic>>(
       '/v1/community-tokens/',
-      queryParameters: {
-        'holder': holder,
-        'limit': limit,
-        'offset': offset,
-      },
+      queryParameters: {'holder': holder, 'limit': limit, 'offset': offset},
     );
 
-    final items = response
-        .map((e) => CommunityToken.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final items = response.map((e) => CommunityToken.fromJson(e as Map<String, dynamic>)).toList();
 
     final hasMore = items.length == limit;
     final nextOffset = offset + items.length;

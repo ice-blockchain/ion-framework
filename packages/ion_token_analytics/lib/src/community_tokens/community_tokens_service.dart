@@ -230,10 +230,6 @@ class IonCommunityTokensService {
     int limit = 20,
     int offset = 0,
   }) {
-    return _userHoldingsRepository.getUserHoldings(
-      holder: holder,
-      limit: limit,
-      offset: offset,
-    );
+    return _userHoldingsRepository.getUserHoldings(holder: holder, limit: limit, offset: offset);
   }
 }
