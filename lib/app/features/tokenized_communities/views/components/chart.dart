@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
@@ -28,7 +29,14 @@ class Chart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedRange = useState(ChartTimeRange.m15);
+    final createdAtOfToken =
+        ref.watch(tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.createdAt));
+
+    if (createdAtOfToken == null) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedRange = useState(calculateDefaultRange(createdAtOfToken));
 
     final candlesAsync = ref.watch(
       tokenOhlcvCandlesProvider(
@@ -80,6 +88,21 @@ class Chart extends HookConsumerWidget {
         );
       },
     );
+  }
+
+  ChartTimeRange calculateDefaultRange(String dateStr) {
+    final now = DateTime.now();
+    final diff = now.difference(DateTime.parse(dateStr));
+
+    if (diff > const Duration(days: 8)) {
+      return ChartTimeRange.d1;
+    }
+
+    if (diff > const Duration(hours: 8)) {
+      return ChartTimeRange.h1;
+    }
+
+    return ChartTimeRange.m15;
   }
 }
 
