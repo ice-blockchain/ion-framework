@@ -5,7 +5,7 @@ import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'token_olhcv_candles_provider.r.g.dart';
+part 'token_olhcv_candles_provider_backup.r.g.dart';
 
 @riverpod
 Stream<List<OhlcvCandle>> tokenOhlcvCandles(
@@ -14,15 +14,6 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
   String interval,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
-
-  final initialCandles = await client.communityTokens.loadOhlcvCandles(
-    externalAddress: externalAddress,
-    interval: interval,
-  );
-
-  yield initialCandles;
-
-  // Subscribe to realtime updates
   final subscription = await client.communityTokens.subscribeToOhlcvCandles(
     ionConnectAddress: externalAddress,
     interval: interval,
@@ -30,7 +21,9 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
 
   ref.onDispose(subscription.close);
 
-  final currentCandles = List<OhlcvCandle>.from(initialCandles);
+  final currentCandles = <OhlcvCandle>[];
+
+  // Maximum candles to keep: 50 is sufficient for chart display
   const maxCandles = 50;
 
   await for (final batch in subscription.stream) {

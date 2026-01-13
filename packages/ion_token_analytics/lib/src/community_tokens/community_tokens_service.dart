@@ -13,8 +13,8 @@ import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_to
 import 'package:ion_token_analytics/src/community_tokens/latest_tokens/latest_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/latest_trades/latest_trades_repository_impl.dart';
+import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_mock_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/ohlcv_candles/ohlcv_candles_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository.dart';
@@ -60,7 +60,7 @@ class IonCommunityTokensService {
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
     final service = IonCommunityTokensService._(
       tokenInfoRepository: TokenInfoRepositoryImpl(networkClient),
-      ohlcvCandlesRepository: OhlcvCandlesRepositoryImpl(networkClient),
+      ohlcvCandlesRepository: OhlcvCandlesMockRepository(),
       tradingStatsRepository: TradingStatsRepositoryImpl(networkClient),
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
       latestTradesRepository: LatestTradesRepositoryImpl(networkClient),
