@@ -82,31 +82,16 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   @override
   Future<List<DatabaseCacheEntry>> getAllFiltered({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
+    List<String>? masterPubkeys,
   }) async {
-    final conditions = <Expression<bool>>[];
-
-    final q = keyword != null ? '%${keyword.toLowerCase()}%' : null;
-
-    if (kinds.isNotEmpty) {
-      conditions.add(eventMessagesTable.kind.isIn(kinds));
-    }
-    if (cacheKeys.isNotEmpty) {
-      conditions.add(eventMessagesTable.cacheKey.isIn(cacheKeys));
-    }
-    if (keyword != null) {
-      conditions.add(
-        eventMessagesTable.content.lower().like(q!) |
-            eventMessagesTable.tags.jsonExtract(r'$[*][*]').equals(keyword),
-      );
-    }
-
-    final query = select(eventMessagesTable);
-    if (conditions.isNotEmpty) {
-      query.where((tbl) => conditions.reduce((previous, next) => previous & next));
-    }
-
+    final query = _buildFilteredQuery(
+      keyword: keyword,
+      kinds: kinds,
+      cacheKeys: cacheKeys,
+      masterPubkeys: masterPubkeys,
+    );
     final rows = await query.get();
     return rows
         .map(
@@ -138,9 +123,9 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   @override
   Stream<List<DatabaseCacheEntry>> watchAll({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
-    List<String> masterPubkeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
+    List<String>? masterPubkeys,
   }) {
     final query = _buildFilteredQuery(
       kinds: kinds,
@@ -173,9 +158,9 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   @override
   Future<int> removeAll({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
-    List<String> masterPubkeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
+    List<String>? masterPubkeys,
   }) async {
     final conditions = _buildConditions(
       keyword: keyword,
@@ -193,20 +178,20 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   // Shared conditions builder for filtering queries
   List<Expression<bool>> _buildConditions({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
-    List<String> masterPubkeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
+    List<String>? masterPubkeys,
   }) {
     final conditions = <Expression<bool>>[];
     final q = keyword != null ? '%${keyword.toLowerCase()}%' : null;
 
-    if (kinds.isNotEmpty) {
+    if (kinds != null) {
       conditions.add(eventMessagesTable.kind.isIn(kinds));
     }
-    if (cacheKeys.isNotEmpty) {
+    if (cacheKeys != null) {
       conditions.add(eventMessagesTable.cacheKey.isIn(cacheKeys));
     }
-    if (masterPubkeys.isNotEmpty) {
+    if (masterPubkeys != null) {
       conditions.add(eventMessagesTable.masterPubkey.isIn(masterPubkeys));
     }
     if (keyword != null) {
@@ -221,9 +206,9 @@ class IonConnectCacheServiceDriftImpl extends DatabaseAccessor<IONConnectCacheDa
   // Shared query builder for getAllFiltered and watchAll
   SimpleSelectStatement<$EventMessagesTableTable, EventMessageCacheDbModel> _buildFilteredQuery({
     String? keyword,
-    List<int> kinds = const [],
-    List<String> cacheKeys = const [],
-    List<String> masterPubkeys = const [],
+    List<int>? kinds,
+    List<String>? cacheKeys,
+    List<String>? masterPubkeys,
   }) {
     final conditions = _buildConditions(
       keyword: keyword,
