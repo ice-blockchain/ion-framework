@@ -10,6 +10,21 @@ class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
   final NetworkClient _client;
 
   @override
+  Future<List<OhlcvCandle>> loadOhlcvCandles({
+    required String externalAddress,
+    required String interval,
+    int limit = 60,
+    int offset = 0,
+  }) async {
+    final response = await _client.get<List<dynamic>>(
+      '/v1/community-tokens/$externalAddress/ohlcv',
+      queryParameters: {'interval': interval, 'limit': limit, 'offset': offset},
+    );
+
+    return response.map((json) => OhlcvCandle.fromJson(json as Map<String, dynamic>)).toList();
+  }
+
+  @override
   Future<NetworkSubscription<List<OhlcvCandle>>> subscribeToOhlcvCandles({
     required String ionConnectAddress,
     required String interval,
