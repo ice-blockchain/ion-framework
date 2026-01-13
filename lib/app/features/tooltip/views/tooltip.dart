@@ -52,21 +52,16 @@ class TooltipOverlay extends StatelessWidget {
               color: Colors.transparent,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final tooltipRenderBox = context.findRenderObject() as RenderBox?;
-                  if (tooltipRenderBox == null) return const SizedBox.shrink();
-
-                  final tooltipWidth = tooltipRenderBox.size.width;
-                  final tooltipDx = tooltipRenderBox.localToGlobal(Offset.zero).dx;
-                  final targetCenterDx = targetRect.center.dx;
-
                   const pointerWidth = 12;
                   final sideOffset = 25.s;
+                  final tooltipWidth = constraints.maxWidth;
+                  final targetCenterDx = targetRect.center.dx;
 
                   double calculatedPointerPosition;
                   switch (pointerPosition) {
                     case TooltipPointerPosition.topCenter:
                     case TooltipPointerPosition.bottomCenter:
-                      calculatedPointerPosition = targetCenterDx - tooltipDx;
+                      calculatedPointerPosition = targetCenterDx;
                     case TooltipPointerPosition.topLeft:
                     case TooltipPointerPosition.bottomLeft:
                       calculatedPointerPosition = sideOffset;
@@ -119,22 +114,40 @@ class TooltipOverlay extends StatelessWidget {
                       if (isArrowAtTop)
                         PositionedDirectional(
                           top: 0,
-                          start: clampedPointerPosition - (pointerWidth / 2),
-                          child: Transform.rotate(
-                            angle: 3.14159, // 180 degrees
-                            child: _TrianglePointer(
-                              color: context.theme.appColors.onPrimaryAccent,
-                              height: 10.s,
-                            ),
+                          start: (pointerPosition == TooltipPointerPosition.topCenter)
+                              ? 0
+                              : clampedPointerPosition - (pointerWidth / 2),
+                          end: (pointerPosition == TooltipPointerPosition.topCenter) ? 0 : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Transform.rotate(
+                                angle: 3.14159, // 180 degrees
+                                child: _TrianglePointer(
+                                  color: context.theme.appColors.onPrimaryAccent,
+                                  height: 10.s,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       if (isArrowAtBottom)
                         PositionedDirectional(
                           bottom: 0,
-                          start: clampedPointerPosition - (pointerWidth / 2),
-                          child: _TrianglePointer(
-                            color: context.theme.appColors.onPrimaryAccent,
-                            height: 10.s,
+                          start: (pointerPosition == TooltipPointerPosition.bottomCenter)
+                              ? 0
+                              : clampedPointerPosition - (pointerWidth / 2),
+                          end: (pointerPosition == TooltipPointerPosition.bottomCenter) ? 0 : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _TrianglePointer(
+                                color: context.theme.appColors.onPrimaryAccent,
+                                height: 10.s,
+                              ),
+                            ],
                           ),
                         ),
                     ],
@@ -157,11 +170,14 @@ class _TrianglePointer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(12.s, height),
-      painter: ShapePainter(
-        const TriangleShapeBuilder(),
-        color: color,
+    return SizedBox(
+      width: 12.s,
+      child: CustomPaint(
+        size: Size(12.s, height),
+        painter: ShapePainter(
+          const TriangleShapeBuilder(),
+          color: color,
+        ),
       ),
     );
   }
