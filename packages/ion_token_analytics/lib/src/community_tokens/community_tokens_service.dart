@@ -21,6 +21,8 @@ import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders
 import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository_impl.dart';
+import 'package:ion_token_analytics/src/community_tokens/user_holdings/user_holdings_repository.dart';
+import 'package:ion_token_analytics/src/community_tokens/user_holdings/user_holdings_repository_mock.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class IonCommunityTokensService {
@@ -35,6 +37,7 @@ class IonCommunityTokensService {
     required CategoryTokensRepository categoryTokensRepository,
     required GlobalSearchTokensRepository globalSearchTokensRepository,
     required BondingCurveProgressRepository bondingCurveProgressRepository,
+    required UserHoldingsRepository userHoldingsRepository,
   }) : _tokenInfoRepository = tokenInfoRepository,
        _ohlcvCandlesRepository = ohlcvCandlesRepository,
        _tradingStatsRepository = tradingStatsRepository,
@@ -44,7 +47,8 @@ class IonCommunityTokensService {
        _latestTokensRepository = latestTokensRepository,
        _categoryTokensRepository = categoryTokensRepository,
        _globalSearchTokensRepository = globalSearchTokensRepository,
-       _bondingCurveProgressRepository = bondingCurveProgressRepository;
+       _bondingCurveProgressRepository = bondingCurveProgressRepository,
+       _userHoldingsRepository = userHoldingsRepository;
 
   final TokenInfoRepository _tokenInfoRepository;
   final OhlcvCandlesRepository _ohlcvCandlesRepository;
@@ -56,6 +60,7 @@ class IonCommunityTokensService {
   final CategoryTokensRepository _categoryTokensRepository;
   final GlobalSearchTokensRepository _globalSearchTokensRepository;
   final BondingCurveProgressRepository _bondingCurveProgressRepository;
+  final UserHoldingsRepository _userHoldingsRepository;
 
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
     final service = IonCommunityTokensService._(
@@ -69,6 +74,8 @@ class IonCommunityTokensService {
       categoryTokensRepository: CategoryTokensRepositoryImpl(networkClient),
       globalSearchTokensRepository: GlobalSearchTokensRepositoryRemote(networkClient),
       bondingCurveProgressRepository: BondingCurveProgressRepositoryImpl(networkClient),
+      // TODO: Switch to UserHoldingsRepositoryImpl when backend is ready
+      userHoldingsRepository: UserHoldingsRepositoryMock(),
     );
     return service;
   }
@@ -216,5 +223,17 @@ class IonCommunityTokensService {
 
   Future<PricingResponse?> getPricing(String externalAddress, String type, String amount) {
     return _tokenInfoRepository.getPricing(externalAddress, type, amount);
+  }
+
+  Future<UserHoldingsData> getUserHoldings({
+    required String holder,
+    int limit = 20,
+    int offset = 0,
+  }) {
+    return _userHoldingsRepository.getUserHoldings(
+      holder: holder,
+      limit: limit,
+      offset: offset,
+    );
   }
 }

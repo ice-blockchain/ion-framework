@@ -3,9 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/tabs/holdings_list_item.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/tabs/user_holdings_list_item.dart';
+import 'package:ion/app/features/user/providers/user_holdings_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -20,62 +19,58 @@ class HoldingsList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
-    final externalAddress = userMetadata?.toEventReference().toString();
+    final holderAddress = userMetadata?.toEventReference().toString();
 
-    if (externalAddress == null) {
+    if (holderAddress == null) {
       return const SizedBox.shrink();
     }
 
-    // Get token market info to get total holders count
-    final token = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
-    final totalHoldersCount = token?.marketData.holders ?? 0;
+    final holdingsAsync = ref.watch(userHoldingsProvider(holderAddress));
 
-    // Get top 5 holders for display
-    final holdersAsync = ref.watch(tokenTopHoldersProvider(externalAddress, limit: 5));
-    final allHolders = holdersAsync.valueOrNull ?? [];
+    return holdingsAsync.when(
+      data: (holdingsData) {
+        final holdings = holdingsData.items;
+        final totalHoldingsCount = holdingsData.totalHoldings;
 
-    // Filter out bonding curve (it has holder == null) - only show real holders
-    final holders = allHolders.where((holder) => holder.position.holder != null).toList();
+        if (totalHoldingsCount == 0 || holdings.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
-    // Only show if there are real holders
-    if (totalHoldersCount == 0 || holders.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      color: context.theme.appColors.secondaryBackground,
-      padding: EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _Header(holdersCount: totalHoldersCount),
-          SizedBox(height: 14.0.s),
-          ...holders.asMap().entries.map(
-            (entry) {
-              final index = entry.key;
-              final holder = entry.value;
-              final isLast = index == holders.length - 1;
-              return Padding(
-                padding: EdgeInsets.only(bottom: isLast ? 0.0 : 14.0.s),
-                child: HoldingsListItem(
-                  holder: holder,
-                  tokenExternalAddress: externalAddress,
-                ),
-              );
-            },
+        return Container(
+          color: context.theme.appColors.secondaryBackground,
+          padding: EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Header(holdingsCount: totalHoldingsCount),
+              SizedBox(height: 14.0.s),
+              ...holdings.asMap().entries.map(
+                (entry) {
+                  final index = entry.key;
+                  final token = entry.value;
+                  final isLast = index == holdings.length - 1;
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: isLast ? 0.0 : 14.0.s),
+                    child: UserHoldingsListItem(token: token),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }
 
 class _Header extends StatelessWidget {
   const _Header({
-    required this.holdersCount,
+    required this.holdingsCount,
   });
 
-  final int holdersCount;
+  final int holdingsCount;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +87,7 @@ class _Header extends StatelessWidget {
           ),
           SizedBox(width: 6.0.s),
           Text(
-            'Holdings ($holdersCount)',
+            'Holdings ($holdingsCount)',
             style: texts.subtitle3.copyWith(
               color: colors.onTertiaryBackground,
             ),
