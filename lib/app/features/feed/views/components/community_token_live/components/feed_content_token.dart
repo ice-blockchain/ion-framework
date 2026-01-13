@@ -19,8 +19,8 @@ import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/token_operation_protected_accounts.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
@@ -308,7 +308,9 @@ class _BuyButton extends ConsumerWidget {
     }
 
     // Hide buy button if this account is protected from token operations
-    if (TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference)) {
+    if (ref
+        .read(tokenOperationProtectedAccountsServiceProvider)
+        .isProtectedAccountEvent(eventReference)) {
       return const SizedBox.shrink();
     }
 

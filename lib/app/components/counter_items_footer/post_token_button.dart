@@ -13,9 +13,9 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
-import 'package:ion/app/features/tokenized_communities/utils/token_operation_protected_accounts.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -150,7 +150,9 @@ class _ContentEntityButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final eventReference = entity.toEventReference();
     // Check if this account is protected from token operations
-    final isProtected = TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference);
+    final isProtected = ref
+        .read(tokenOperationProtectedAccountsServiceProvider)
+        .isProtectedAccountEvent(eventReference);
 
     final ownerHasBscWallet = ref
         .watch(

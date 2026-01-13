@@ -9,11 +9,11 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
-import 'package:ion/app/features/tokenized_communities/utils/token_operation_protected_accounts.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
@@ -52,9 +52,10 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
     state = await AsyncValue.guard(() async {
       // Check if this account is protected from token operations
+      final protectedAccountsService = ref.read(tokenOperationProtectedAccountsServiceProvider);
       final isProtected = params.eventReference != null
-          ? TokenOperationProtectedAccounts.isProtectedAccountEvent(params.eventReference!)
-          : TokenOperationProtectedAccounts.isProtectedAccountFromExternalAddress(
+          ? protectedAccountsService.isProtectedAccountEvent(params.eventReference!)
+          : protectedAccountsService.isProtectedAccountFromExternalAddress(
               params.externalAddress,
             );
       if (isProtected) {
@@ -151,9 +152,10 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
     state = await AsyncValue.guard(() async {
       // Check if this account is protected from token operations
+      final protectedAccountsService = ref.read(tokenOperationProtectedAccountsServiceProvider);
       final isProtected = params.eventReference != null
-          ? TokenOperationProtectedAccounts.isProtectedAccountEvent(params.eventReference!)
-          : TokenOperationProtectedAccounts.isProtectedAccountFromExternalAddress(
+          ? protectedAccountsService.isProtectedAccountEvent(params.eventReference!)
+          : protectedAccountsService.isProtectedAccountFromExternalAddress(
               params.externalAddress,
             );
       if (isProtected) {

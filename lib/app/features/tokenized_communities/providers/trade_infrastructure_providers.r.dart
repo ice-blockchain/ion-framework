@@ -13,6 +13,7 @@ import 'package:ion/app/features/tokenized_communities/domain/trade_community_to
 import 'package:ion/app/features/tokenized_communities/domain/trade_payment_token_groups_service.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/web3client_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
@@ -86,10 +87,12 @@ Future<TradeCommunityTokenService> tradeCommunityTokenService(
 ) async {
   final repository = await ref.watch(tradeCommunityTokenRepositoryProvider.future);
   final ionConnectService = await ref.watch(communityTokenIonConnectServiceProvider.future);
+  final protectedAccountsService = ref.watch(tokenOperationProtectedAccountsServiceProvider);
 
   return TradeCommunityTokenService(
     repository: repository,
     ionConnectService: ionConnectService,
+    protectedAccountsService: protectedAccountsService,
   );
 }
 

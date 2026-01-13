@@ -9,8 +9,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
-import 'package:ion/app/features/tokenized_communities/utils/token_operation_protected_accounts.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
@@ -50,7 +50,9 @@ class ProfileTokenStats extends ConsumerWidget {
 
     final marketData = tokenInfo.valueOrNull?.marketData;
     final hasTokenInfo = tokenInfo.valueOrNull != null;
-    final isProtected = TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference!);
+    final isProtected = ref
+        .read(tokenOperationProtectedAccountsServiceProvider)
+        .isProtectedAccountEvent(eventReference!);
 
     if (marketData == null) {
       // Hide buy button if this account is protected from token operations

@@ -38,7 +38,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/token_operation_protected_accounts.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -311,7 +311,9 @@ class CreateArticle extends _$CreateArticle {
 
     // Prevent token definition creation for accounts protected from token operations
     if (currentPubkey != null &&
-        !TokenOperationProtectedAccounts.isProtectedAccount(currentPubkey)) {
+        !ref
+            .read(tokenOperationProtectedAccountsServiceProvider)
+            .isProtectedAccount(currentPubkey)) {
       final tokenDefinition = _buildArticleTokenDefinition(articleData);
       tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
       eventsToSend.add(tokenDefinitionEvent);

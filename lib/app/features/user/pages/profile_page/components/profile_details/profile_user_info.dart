@@ -7,7 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/user/user_about/user_about.dart';
 import 'package:ion/app/features/components/user/user_info_summary/user_info_summary.dart';
-import 'package:ion/app/features/tokenized_communities/utils/token_operation_protected_accounts.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/relevant_followers/relevant_followers.dart';
@@ -34,7 +34,9 @@ class ProfileUserInfo extends ConsumerWidget {
     final eventReferenceString = eventReference?.toString();
 
     final isProtectedAccount = eventReference != null &&
-        TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference);
+        ref
+            .read(tokenOperationProtectedAccountsServiceProvider)
+            .isProtectedAccountEvent(eventReference);
 
     final info = Column(
       children: [

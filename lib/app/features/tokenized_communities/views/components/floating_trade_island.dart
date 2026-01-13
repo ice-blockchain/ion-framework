@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
-import 'package:ion/app/features/tokenized_communities/utils/token_operation_protected_accounts.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -27,9 +27,10 @@ class FloatingTradeIsland extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Check if this account is protected from token operations
+    final protectedAccountsService = ref.read(tokenOperationProtectedAccountsServiceProvider);
     final isProtected = eventReference != null
-        ? TokenOperationProtectedAccounts.isProtectedAccountEvent(eventReference!)
-        : TokenOperationProtectedAccounts.isProtectedAccountFromExternalAddress(externalAddress!);
+        ? protectedAccountsService.isProtectedAccountEvent(eventReference!)
+        : protectedAccountsService.isProtectedAccountFromExternalAddress(externalAddress!);
     if (isProtected) {
       return const SizedBox.shrink();
     }
