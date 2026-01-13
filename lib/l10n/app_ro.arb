@@ -1061,6 +1061,7 @@
   "wallet_coin_address": "Adresă {coin}",
   "wallet_coin_amount": "Sumă {coin}",
   "wallet_coin_amount_insufficient_funds": "Fonduri insuficiente",
+  "wallet_coin_amount_insufficient": "Insuficient",
   "wallet_coin_amount_must_be_positive": "Suma trebuie să fie pozitivă",
   "wallet_coin_amount_too_low_for_sending": "Suma introdusă este prea mică pentru trimitere",
   "wallet_coins_search_hint": "Caută după numele tokenului",

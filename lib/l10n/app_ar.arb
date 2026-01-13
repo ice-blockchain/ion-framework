@@ -1075,6 +1075,7 @@
   "wallet_coin_address": "عنوان {coin}",
   "wallet_coin_amount": "كمية {coin}",
   "wallet_coin_amount_insufficient_funds": "رصيد غير كافٍ",
+  "wallet_coin_amount_insufficient": "غير كافٍ",
   "wallet_coin_amount_must_be_positive": "يجب أن يكون المبلغ موجبًا",
   "wallet_coin_amount_too_low_for_sending": "المبلغ المُدخل منخفض جدًا للإرسال",
   "wallet_coins_search_hint": "البحث باسم الرمز المميز",

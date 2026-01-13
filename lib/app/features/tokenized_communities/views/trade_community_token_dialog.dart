@@ -80,6 +80,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
       return const SheetContent(body: SizedBox.shrink());
     }
 
+    final buttonError = useState<String?>(null);
+
     final params = (
       externalAddress: resolvedExternalAddress,
       externalAddressType: resolvedExternalAddressType,
@@ -165,6 +167,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             ),
             if (communityGroup != null)
               _TokenCards(
+                isError: buttonError.value != null,
+                onValidationError: (error) {
+                  buttonError.value = error;
+                },
                 state: state,
                 controller: controller,
                 communityTokenGroup: communityGroup,
@@ -185,6 +191,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             ),
             SizedBox(height: 16.0.s),
             ContinueButton(
+              error: buttonError.value,
               isEnabled: state.mode == CommunityTokenTradeMode.buy
                   ? _isBuyContinueButtonEnabled(state)
                   : _isSellContinueButtonEnabled(state),
@@ -397,6 +404,8 @@ class _TokenCards extends HookConsumerWidget {
     required this.communityAvatarWidget,
     required this.isPaymentTokenSelectable,
     required this.onTokenTap,
+    required this.onValidationError,
+    required this.isError,
   });
 
   final TradeCommunityTokenState state;
@@ -405,6 +414,8 @@ class _TokenCards extends HookConsumerWidget {
   final Widget? communityAvatarWidget;
   final bool isPaymentTokenSelectable;
   final VoidCallback onTokenTap;
+  final ValueChanged<String?>? onValidationError;
+  final bool isError;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -438,6 +449,8 @@ class _TokenCards extends HookConsumerWidget {
                     showSelectButton: isPaymentTokenSelectable,
                     onPercentageChanged: controller.setAmountByPercentage,
                     skipAmountFormatting: true,
+                    onValidationError: onValidationError,
+                    isError: isError,
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(
@@ -463,7 +476,9 @@ class _TokenCards extends HookConsumerWidget {
                     showSelectButton: false,
                     onPercentageChanged: controller.setAmountByPercentage,
                     skipAmountFormatting: true,
+                    onValidationError: onValidationError,
                     onTap: () {},
+                    isError: isError,
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(

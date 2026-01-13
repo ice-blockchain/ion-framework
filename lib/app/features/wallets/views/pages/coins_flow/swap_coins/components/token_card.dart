@@ -25,6 +25,7 @@ class TokenCard extends HookConsumerWidget {
   const TokenCard({
     required this.type,
     required this.onTap,
+    this.onValidationError,
     this.coinsGroup,
     this.network,
     this.controller,
@@ -34,9 +35,9 @@ class TokenCard extends HookConsumerWidget {
     this.showSelectButton = true,
     this.showArrow = true,
     this.skipValidation = false,
-    this.isInsufficientFundsError = false,
     this.enabled = true,
     this.skipAmountFormatting = false,
+    this.isError = false,
     super.key,
   });
 
@@ -51,9 +52,10 @@ class TokenCard extends HookConsumerWidget {
   final bool showSelectButton;
   final bool showArrow;
   final bool skipValidation;
-  final bool isInsufficientFundsError;
+  final bool isError;
   final bool enabled;
   final bool skipAmountFormatting;
+  final ValueChanged<String?>? onValidationError;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
     final coin = coinsGroup?.coins.firstWhereOrNull(
@@ -64,6 +66,39 @@ class TokenCard extends HookConsumerWidget {
 
     final newAmount = amount * (percentage / 100);
     ref.read(swapCoinsControllerProvider.notifier).setAmount(newAmount);
+  }
+
+  String? _validateAmount(
+    String? value,
+    BuildContext context,
+    CoinInWalletData? coinForNetwork,
+  ) {
+    if (skipValidation) return null;
+
+    final trimmedValue = value?.trim() ?? '';
+    if (trimmedValue.isEmpty) return null;
+
+    final parsed = parseAmount(trimmedValue);
+    if (parsed == null) return '';
+
+    final maxValue = coinForNetwork?.amount;
+    if (maxValue != null && (parsed > maxValue || parsed < 0)) {
+      final abbreviation = coinsGroup?.abbreviation ?? '';
+      return '${context.i18n.wallet_coin_amount_insufficient} $abbreviation';
+    } else if (parsed < 0) {
+      return context.i18n.wallet_coin_amount_must_be_positive;
+    }
+
+    // If we know decimals for the selected network, enforce min amount check
+    final decimals = coinForNetwork?.coin.decimals;
+    if (decimals != null) {
+      final amount = toBlockchainUnits(parsed, decimals);
+      if (amount == BigInt.zero && parsed > 0) {
+        return context.i18n.wallet_coin_amount_too_low_for_sending;
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -118,6 +153,43 @@ class TokenCard extends HookConsumerWidget {
         return () => focusNode.removeListener(formatAmount);
       },
       [focusNode, controller, isReadOnly, skipAmountFormatting, coinForNetwork],
+    );
+
+    useEffect(
+      () {
+        void validateAndNotify() {
+          if (onValidationError == null) return;
+
+          final error = _validateAmount(
+            controller?.text,
+            context,
+            coinForNetwork,
+          );
+          onValidationError!(error);
+        }
+
+        void onTextChanged() {
+          validateAndNotify();
+        }
+
+        void onFocusChanged() {
+          validateAndNotify();
+        }
+
+        controller?.addListener(onTextChanged);
+        focusNode.addListener(onFocusChanged);
+
+        // Validate initially
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          validateAndNotify();
+        });
+
+        return () {
+          controller?.removeListener(onTextChanged);
+          focusNode.removeListener(onFocusChanged);
+        };
+      },
+      [controller, focusNode, coinForNetwork, onValidationError, context, skipValidation],
     );
 
     return Container(
@@ -366,9 +438,8 @@ class TokenCard extends HookConsumerWidget {
                       focusNode: focusNode,
                       readOnly: isReadOnly ?? coinsGroup == null,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      autovalidateMode: AutovalidateMode.always,
                       style: textStyles.headline2.copyWith(
-                        color: isInsufficientFundsError ? colors.attentionRed : colors.primaryText,
+                        color: isError ? colors.attentionRed : colors.primaryText,
                       ),
                       cursorHeight: 24.0.s,
                       cursorWidth: 3.0.s,
@@ -391,34 +462,6 @@ class TokenCard extends HookConsumerWidget {
                           color: colors.attentionRed,
                         ),
                       ),
-                      validator: (value) {
-                        if (skipValidation) return null;
-
-                        final trimmedValue = value?.trim() ?? '';
-                        if (trimmedValue.isEmpty) return null;
-
-                        final parsed = parseAmount(trimmedValue);
-                        if (parsed == null) return '';
-
-                        final maxValue = coinForNetwork?.amount;
-                        if (maxValue != null && (parsed > maxValue || parsed < 0)) {
-                          return context.i18n.wallet_coin_amount_insufficient_funds;
-                        } else if (parsed < 0) {
-                          return context.i18n.wallet_coin_amount_must_be_positive;
-                        }
-
-                        // If we know decimals for the selected network, enforce min amount check
-
-                        final decimals = coinForNetwork?.coin.decimals;
-                        if (decimals != null) {
-                          final amount = toBlockchainUnits(parsed, decimals);
-                          if (amount == BigInt.zero && parsed > 0) {
-                            return context.i18n.wallet_coin_amount_too_low_for_sending;
-                          }
-                        }
-
-                        return null;
-                      },
                     ),
                   ),
                 ),
@@ -435,7 +478,7 @@ class TokenCard extends HookConsumerWidget {
                 child: Row(
                   children: [
                     Assets.svg.iconWallet.icon(
-                      color: isInsufficientFundsError ? colors.attentionRed : colors.tertiaryText,
+                      color: isError ? colors.attentionRed : colors.tertiaryText,
                       size: 12.0.s,
                     ),
                     SizedBox(
@@ -453,9 +496,7 @@ class TokenCard extends HookConsumerWidget {
                                 ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup!.abbreviation}'
                                 : '0.00',
                             style: textStyles.caption2.copyWith(
-                              color: isInsufficientFundsError
-                                  ? colors.attentionRed
-                                  : colors.tertiaryText,
+                              color: isError ? colors.attentionRed : colors.tertiaryText,
                             ),
                             overflow: TextOverflow.ellipsis,
                           );

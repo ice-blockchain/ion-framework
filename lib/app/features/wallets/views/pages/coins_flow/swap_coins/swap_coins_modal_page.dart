@@ -49,29 +49,10 @@ class SwapCoinsModalPage extends HookConsumerWidget {
 
     final amountController = useTextEditingController();
     final quoteController = useTextEditingController();
-    final isInsufficientFundsErrorState = useState(false);
-    useEffect(
-      () {
-        var isCancelled = false;
-
-        () async {
-          final result =
-              await ref.read(swapCoinsControllerProvider.notifier).isInsufficientFundsError();
-
-          if (!isCancelled) {
-            isInsufficientFundsErrorState.value = result;
-          }
-        }();
-
-        return () {
-          isCancelled = true;
-        };
-      },
-      [amount, sellCoins, sellNetwork],
-    );
-
     final sellCoinDecimals = _getCoinDecimals(sellCoins, sellNetwork);
     final buyCoinDecimals = _getCoinDecimals(buyCoins, buyNetwork);
+
+    final buttonError = useState<String?>(null);
 
     useAmountListener(
       amountController,
@@ -126,8 +107,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                     children: [
                       TokenCard(
                         skipAmountFormatting: true,
-                        isInsufficientFundsError: isInsufficientFundsErrorState.value,
-                        skipValidation: true,
+                        isError: buttonError.value != null,
                         controller: amountController,
                         type: CoinSwapType.sell,
                         coinsGroup: sellNetwork != null ? sellCoins : null,
@@ -136,6 +116,9 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                           SwapSelectCoinRoute(
                             coinType: CoinSwapType.sell,
                           ).push<void>(context);
+                        },
+                        onValidationError: (error) {
+                          buttonError.value = error;
                         },
                       ),
                       SizedBox(
@@ -180,6 +163,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                   height: 32.0.s,
                 ),
               ContinueButton(
+                error: buttonError.value,
                 isEnabled: isContinueButtonEnabled,
                 onPressed: () async {
                   if (isContinueButtonEnabled) {
