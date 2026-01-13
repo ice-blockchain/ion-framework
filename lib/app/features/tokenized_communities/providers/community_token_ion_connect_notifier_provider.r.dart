@@ -7,9 +7,7 @@ import 'package:ion/app/features/chat/providers/event_share_url_provider.r.dart'
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
@@ -35,7 +33,6 @@ class CommunityTokenIonConnectService {
     required bool Function(String masterPubkey) isCurrentUserSelector,
     required AppsFlyerDeepLinkService appsflyerDeepLinkService,
     required IONIdentityClient ionIdentityClient,
-    required Future<IonConnectEntity?> Function(EventReference eventReference) getIonConnectEntity,
     required Future<String?> Function(EventReference eventReference) getEventShareUrl,
   })  : _ionConnectNotifier = ionConnectNotifier,
         _ionConnectCache = ionConnectCache,
@@ -43,7 +40,6 @@ class CommunityTokenIonConnectService {
         _userEventsMetadataBuilder = userEventsMetadataBuilder,
         _isCurrentUserSelector = isCurrentUserSelector,
         _appsflyerDeepLinkService = appsflyerDeepLinkService,
-        _getIonConnectEntity = getIonConnectEntity,
         _ionIdentityClient = ionIdentityClient,
         _getEventShareUrl = getEventShareUrl;
 
@@ -60,8 +56,6 @@ class CommunityTokenIonConnectService {
   final AppsFlyerDeepLinkService _appsflyerDeepLinkService;
 
   final IONIdentityClient _ionIdentityClient;
-
-  final Future<IonConnectEntity?> Function(EventReference eventReference) _getIonConnectEntity;
 
   final Future<String?> Function(EventReference eventReference) _getEventShareUrl;
 
@@ -252,12 +246,6 @@ class CommunityTokenIonConnectService {
     required EventReference eventReference,
   }) async {
     try {
-      final entity = await _getIonConnectEntity(eventReference);
-
-      if (entity == null) {
-        throw EntityNotFoundException(eventReference);
-      }
-
       final shareUrl = await _getEventShareUrl(eventReference);
 
       if (shareUrl == null) {
@@ -308,10 +296,6 @@ Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref)
     return ref.read(isCurrentUserSelectorProvider(masterPubkey));
   }
 
-  Future<IonConnectEntity?> getIonConnectEntity(EventReference eventReference) async {
-    return ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
-  }
-
   Future<String?> getEventShareUrl(EventReference eventReference) async {
     return ref.read(eventShareUrlProvider(eventReference).future);
   }
@@ -323,7 +307,6 @@ Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref)
     userEventsMetadataBuilder: userEventsMetadataBuilder,
     isCurrentUserSelector: isCurrentUserSelector,
     appsflyerDeepLinkService: appsflyerDeepLinkService,
-    getIonConnectEntity: getIonConnectEntity,
     ionIdentityClient: ionIdentityClient,
     getEventShareUrl: getEventShareUrl,
   );
