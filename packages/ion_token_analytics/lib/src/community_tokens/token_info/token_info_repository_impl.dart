@@ -3,6 +3,8 @@
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/community_token.f.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/position.f.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/pricing_response.f.dart';
+import 'package:ion_token_analytics/src/community_tokens/token_info/models/suggest_creation_details_request.f.dart';
+import 'package:ion_token_analytics/src/community_tokens/token_info/models/suggest_creation_details_response.f.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/token_info_repository.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
@@ -88,6 +90,22 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
       );
 
       return PricingResponse.fromJson(pricingRawData);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<SuggestCreationDetailsResponse?> suggestCreationDetails(
+    SuggestCreationDetailsRequest request,
+  ) async {
+    try {
+      final responseData = await client.post<Map<String, dynamic>>(
+        '/v1/community-tokens/suggest-creation-details',
+        data: request.toJson(),
+      );
+
+      return SuggestCreationDetailsResponse.fromJson(responseData);
     } catch (e) {
       return null;
     }

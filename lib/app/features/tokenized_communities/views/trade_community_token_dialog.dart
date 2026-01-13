@@ -12,6 +12,7 @@ import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
 import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
 import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
+import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -433,6 +434,7 @@ class _TokenCards extends HookConsumerWidget {
           ? state.selectedPaymentToken?.decimals ?? creatorTokenDecimals
           : creatorTokenDecimals,
     );
+
     return Stack(
       children: [
         Column(
@@ -453,33 +455,46 @@ class _TokenCards extends HookConsumerWidget {
                     isError: isError,
                   ),
                   SizedBox(height: 10.0.s),
-                  TokenCard(
-                    type: CoinSwapType.buy,
-                    coinsGroup: communityTokenGroup,
-                    controller: quoteController,
-                    network: state.targetNetwork,
-                    avatarWidget: communityAvatarWidget,
-                    showSelectButton: false,
-                    skipValidation: true,
-                    enabled: false,
-                    onTap: () {},
-                  ),
+                  if (state.suggestedDetailsState?.isLoading ?? false)
+                    _CommunityTokenCardSkeleton(
+                      hasAvatar: communityAvatarWidget != null,
+                      hasNetwork: state.targetNetwork != null,
+                    )
+                  else
+                    TokenCard(
+                      type: CoinSwapType.buy,
+                      coinsGroup: communityTokenGroup,
+                      controller: quoteController,
+                      network: state.targetNetwork,
+                      avatarWidget: communityAvatarWidget,
+                      showSelectButton: false,
+                      skipValidation: true,
+                      enabled: false,
+                      onValidationError: onValidationError,
+                      onTap: () {},
+                      isError: isError,
+                    ),
                 ]
               : [
                   // Sell mode: community token on top, payment token on bottom
-                  TokenCard(
-                    type: CoinSwapType.sell,
-                    controller: amountController,
-                    coinsGroup: state.communityTokenCoinsGroup,
-                    network: state.targetNetwork,
-                    avatarWidget: communityAvatarWidget,
-                    showSelectButton: false,
-                    onPercentageChanged: controller.setAmountByPercentage,
-                    skipAmountFormatting: true,
-                    onValidationError: onValidationError,
-                    onTap: () {},
-                    isError: isError,
-                  ),
+                  if (state.suggestedDetailsState?.isLoading ?? false)
+                    _CommunityTokenCardSkeleton(
+                      hasAvatar: communityAvatarWidget != null,
+                      hasNetwork: state.targetNetwork != null,
+                      isSellType: true,
+                    )
+                  else
+                    TokenCard(
+                      type: CoinSwapType.sell,
+                      controller: amountController,
+                      coinsGroup: state.communityTokenCoinsGroup,
+                      network: state.targetNetwork,
+                      avatarWidget: communityAvatarWidget,
+                      showSelectButton: false,
+                      onPercentageChanged: controller.setAmountByPercentage,
+                      skipAmountFormatting: true,
+                      onTap: () {},
+                    ),
                   SizedBox(height: 10.0.s),
                   TokenCard(
                     type: CoinSwapType.buy,
@@ -504,6 +519,105 @@ class _TokenCards extends HookConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CommunityTokenCardSkeleton extends StatelessWidget {
+  const _CommunityTokenCardSkeleton({
+    this.hasAvatar = false,
+    this.hasNetwork = false,
+    this.isSellType = false,
+  });
+
+  final bool hasAvatar;
+  final bool hasNetwork;
+  final bool isSellType;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.0.s),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12.0.s,
+        vertical: 16.0.s,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.0.s),
+        color: isSellType ? Colors.transparent : colors.tertiaryBackground,
+        border: isSellType
+            ? Border.all(
+                color: colors.onTertiaryFill,
+              )
+            : null,
+      ),
+      child: Skeleton(
+        baseColor: colors.attentionBlock,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row skeleton (label and percentage buttons for sell type)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SkeletonBox(
+                  width: 32.0.s,
+                  height: 18.0.s,
+                ),
+                if (isSellType)
+                  Row(
+                    spacing: 5.0.s,
+                    children: List.generate(
+                      4,
+                      (index) => SkeletonBox(
+                        width: 32.0.s,
+                        height: 20.0.s,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+
+            SizedBox(height: 16.0.s),
+            // Avatar and name row skeleton
+            Row(
+              children: [
+                // Avatar skeleton
+                if (hasAvatar)
+                  SkeletonBox(
+                    width: 40.0.s,
+                    height: 40.0.s,
+                  ),
+                if (hasAvatar) SizedBox(width: 10.0.s),
+                // Name and network skeleton
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 2.0.s,
+                  children: [
+                    SkeletonBox(
+                      width: 120.0.s,
+                      height: 16.0.s,
+                    ),
+                    if (hasNetwork)
+                      SkeletonBox(
+                        width: 60.0.s,
+                        height: 18.0.s,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 12.0.s),
+            // Input field skeleton
+            SkeletonBox(
+              width: double.infinity,
+              height: 18.0.s,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -101,6 +101,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
                 externalAddress: params.externalAddress,
                 externalAddressType: params.externalAddressType,
                 eventReference: params.eventReference,
+                suggestedDetails: formState.suggestedDetailsState?.valueOrNull,
               ).future,
             );
 

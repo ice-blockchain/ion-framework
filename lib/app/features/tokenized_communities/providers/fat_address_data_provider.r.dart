@@ -10,6 +10,7 @@ import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resol
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -21,6 +22,9 @@ Future<FatAddressV2Data> fatAddressData(
   required String externalAddress,
   required ExternalAddressType externalAddressType,
   EventReference? eventReference,
+
+  /// Suggested token details for creation of the contentToken from token info API
+  SuggestCreationDetailsResponse? suggestedDetails,
 }) async {
   final externalTypePrefix = externalAddressType.prefix;
 
@@ -39,6 +43,7 @@ Future<FatAddressV2Data> fatAddressData(
     externalAddress: externalAddress,
     externalTypePrefix: externalTypePrefix,
     eventReference: eventReference,
+    suggestedDetails: suggestedDetails,
   );
 }
 
@@ -95,6 +100,7 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
   required String externalAddress,
   required String externalTypePrefix,
   required EventReference? eventReference,
+  required SuggestCreationDetailsResponse? suggestedDetails,
 }) async {
   final masterPubkey =
       MasterPubkeyResolver.resolve(externalAddress, eventReference: eventReference);
@@ -148,8 +154,8 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
 
   tokens.add(
     FatAddressV2TokenRecord(
-      name: masterPubkey,
-      symbol: externalAddress,
+      name: suggestedDetails?.name ?? masterPubkey,
+      symbol: suggestedDetails?.ticker ?? externalAddress,
       externalAddress: externalAddress,
       externalType: _externalTypeByte(externalTypePrefix),
     ),

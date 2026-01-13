@@ -26,6 +26,11 @@ class FatAddressV2TokenRecord {
   final BigInt? bondingBegin;
   final BigInt? bondingEnd;
   final BigInt? bondingSupply;
+
+  @override
+  String toString() {
+    return 'FatAddressV2TokenRecord(name: $name, symbol: $symbol, externalAddress: $externalAddress, externalType: $externalType, bondingAddress: $bondingAddress, bondingBegin: $bondingBegin, bondingEnd: $bondingEnd, bondingSupply: $bondingSupply)';
+  }
 }
 
 class FatAddressV2Data {
@@ -48,6 +53,11 @@ class FatAddressV2Data {
   }
 
   String toHex() => bytesToHex(toBytes());
+
+  @override
+  String toString() {
+    return 'FatAddressV2Data(tokens: ${tokens.map((token) => token.toString()).join(', ')}, creatorAddress: $creatorAddress, affiliateAddress: $affiliateAddress)';
+  }
 }
 
 class FatAddressV2Codec {

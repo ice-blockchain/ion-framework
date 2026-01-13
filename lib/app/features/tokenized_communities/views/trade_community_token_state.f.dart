@@ -8,6 +8,7 @@ import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:riverpod/riverpod.dart';
 
 part 'trade_community_token_state.f.freezed.dart';
 
@@ -28,6 +29,7 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
     @Default(0) double communityTokenBalance,
     CoinsGroup? communityTokenCoinsGroup,
     @Default(TokenizedCommunitiesConstants.defaultSlippagePercent) double slippage,
+    AsyncValue<SuggestCreationDetailsResponse?>? suggestedDetailsState,
   }) = _TradeCommunityTokenState;
 
   const TradeCommunityTokenState._();
