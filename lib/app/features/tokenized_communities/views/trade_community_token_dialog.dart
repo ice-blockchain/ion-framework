@@ -88,7 +88,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     final pubkey = eventReference?.masterPubkey ??
         CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(resolvedExternalAddress);
     final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
-    final isPaymentTokenSelectable = !resolvedExternalAddressType.isContentToken;
+    final isPaymentTokenSelectable = state.isPaymentTokenSelectable;
     final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
 
     ref

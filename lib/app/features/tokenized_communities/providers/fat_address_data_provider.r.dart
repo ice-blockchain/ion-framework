@@ -5,7 +5,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
-import 'package:ion/app/features/tokenized_communities/utils/fat_address_data.f.dart';
+import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -16,7 +16,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'fat_address_data_provider.r.g.dart';
 
 @riverpod
-Future<FatAddressData> fatAddressData(
+Future<FatAddressV2Data> fatAddressData(
   Ref ref, {
   required String externalAddress,
   required ExternalAddressType externalAddressType,
@@ -42,7 +42,7 @@ Future<FatAddressData> fatAddressData(
   );
 }
 
-Future<FatAddressData> _buildCreatorFatAddressData(
+Future<FatAddressV2Data> _buildCreatorFatAddressData(
   Ref ref, {
   required String externalAddress,
   required String externalTypePrefix,
@@ -76,17 +76,21 @@ Future<FatAddressData> _buildCreatorFatAddressData(
   final symbol = username.isNotEmpty ? username : pubkey;
   final name = displayName.isNotEmpty ? displayName : symbol;
 
-  return FatAddressData.creator(
-    symbol: symbol,
-    name: name,
-    externalAddress: externalAddress,
-    externalTypePrefix: externalTypePrefix,
+  return FatAddressV2Data(
+    tokens: [
+      FatAddressV2TokenRecord(
+        name: name,
+        symbol: symbol,
+        externalAddress: externalAddress,
+        externalType: _externalTypeByte(externalTypePrefix),
+      ),
+    ],
     creatorAddress: creatorAddress,
     affiliateAddress: affiliateAddress,
   );
 }
 
-Future<FatAddressData> _buildContentFatAddressData(
+Future<FatAddressV2Data> _buildContentFatAddressData(
   Ref ref, {
   required String externalAddress,
   required String externalTypePrefix,
@@ -115,25 +119,45 @@ Future<FatAddressData> _buildContentFatAddressData(
     bscNetworkId: bscNetworkId,
   );
 
-  final creatorTokenReference = ReplaceableEventReference(
+  final creatorTokenExternalAddress = ReplaceableEventReference(
     kind: UserMetadataEntity.kind,
     masterPubkey: masterPubkey,
-  );
-  final creatorTokenExternalAddress = creatorTokenReference.toString();
+  ).toString();
+
   final creatorTokenInfo =
       await ref.watch(tokenMarketInfoProvider(creatorTokenExternalAddress).future);
-  final creatorTokenAddress = creatorTokenInfo?.addresses.blockchain;
-  if (creatorTokenAddress == null || creatorTokenAddress.isEmpty) {
-    throw TokenAddressNotFoundException(creatorTokenExternalAddress);
+  final creatorTokenExists = (creatorTokenInfo?.addresses.blockchain?.trim() ?? '').isNotEmpty;
+
+  final tokens = <FatAddressV2TokenRecord>[];
+  if (!creatorTokenExists) {
+    final username = metadata.data.name.trim();
+    final displayName = metadata.data.trimmedDisplayName.trim();
+
+    final creatorSymbol = username.isNotEmpty ? username : masterPubkey;
+    final creatorName = displayName.isNotEmpty ? displayName : creatorSymbol;
+
+    tokens.add(
+      FatAddressV2TokenRecord(
+        name: creatorName,
+        symbol: creatorSymbol,
+        externalAddress: creatorTokenExternalAddress,
+        externalType: _externalTypeByte(const ExternalAddressType.ionConnectUser().prefix),
+      ),
+    );
   }
 
-  return FatAddressData.content(
-    symbol: externalAddress,
-    name: masterPubkey,
-    externalAddress: externalAddress,
-    externalTypePrefix: externalTypePrefix,
+  tokens.add(
+    FatAddressV2TokenRecord(
+      name: masterPubkey,
+      symbol: externalAddress,
+      externalAddress: externalAddress,
+      externalType: _externalTypeByte(externalTypePrefix),
+    ),
+  );
+
+  return FatAddressV2Data(
+    tokens: tokens,
     creatorAddress: creatorAddress,
-    creatorTokenAddress: creatorTokenAddress,
     affiliateAddress: affiliateAddress,
   );
 }
@@ -164,4 +188,15 @@ Future<String?> _resolveAffiliateAddress(
   } catch (_) {
     return null;
   }
+}
+
+int _externalTypeByte(String externalTypePrefix) {
+  final trimmed = externalTypePrefix.trim();
+  if (trimmed.isEmpty) {
+    throw const FormatException('externalTypePrefix must not be empty');
+  }
+  if (trimmed.length != 1) {
+    throw FormatException('externalTypePrefix must be 1 character: $externalTypePrefix');
+  }
+  return trimmed.codeUnitAt(0);
 }

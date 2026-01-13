@@ -10,7 +10,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/transacti
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
-import 'package:ion/app/features/tokenized_communities/utils/fat_address_data.f.dart';
+import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
@@ -42,7 +42,7 @@ class TradeCommunityTokenService {
     required UserActionSignerNew userActionSigner,
     required PricingResponse expectedPricing,
     required bool shouldSendEvents,
-    FatAddressData? fatAddressData,
+    FatAddressV2Data? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
@@ -350,7 +350,7 @@ class TradeCommunityTokenService {
     required String externalAddress,
     required ExternalAddressType externalAddressType,
     required String? tokenAddress,
-    required FatAddressData? fatAddressData,
+    required FatAddressV2Data? fatAddressData,
   }) {
     if (tokenAddress != null && tokenAddress.isNotEmpty) {
       return _getBytesFromAddress(tokenAddress);
@@ -358,7 +358,7 @@ class TradeCommunityTokenService {
     if (fatAddressData == null) {
       throw StateError('fatAddressData is required for first buy of $externalAddress');
     }
-    return fatAddressData.toFatAddressBytes();
+    return fatAddressData.toBytes();
   }
 
   Future<EvmUserOperation?> _buildAllowanceApprovalOperationIfNeeded({

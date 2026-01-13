@@ -3,11 +3,13 @@
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/domain/content_payment_token_resolver_service.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
-import 'package:ion/app/features/tokenized_communities/providers/content_creator_payment_coins_group_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/content_payment_token_context_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/services/trade_community_token_quote_controller.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
@@ -36,11 +38,15 @@ typedef TradeCommunityTokenControllerParams = ({
 @riverpod
 class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   TradeCommunityTokenQuoteController? _quoteController;
+  CommunityTokenPricingIdentifierResolver? _pricingIdentifierResolver;
+  ContentPaymentTokenSource? _contentPaymentTokenSource;
 
   @override
   TradeCommunityTokenState build(TradeCommunityTokenControllerParams params) {
     final externalAddress = params.externalAddress;
-    state = const TradeCommunityTokenState();
+    state = TradeCommunityTokenState(
+      isPaymentTokenSelectable: !params.externalAddressType.isContentToken,
+    );
 
     _quoteController ??= TradeCommunityTokenQuoteController(
       serviceResolver: () => ref.read(tradeCommunityTokenServiceProvider.future),
@@ -52,6 +58,26 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     final pubkey = params.eventReference?.masterPubkey ??
         CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
 
+    _pricingIdentifierResolver ??= CommunityTokenPricingIdentifierResolver(
+      externalAddress: externalAddress,
+      externalAddressType: params.externalAddressType,
+      tokenExistsResolver: () async {
+        final tokenInfo = await ref.read(tokenMarketInfoProvider(externalAddress).future);
+        final tokenAddress = tokenInfo?.addresses.blockchain?.trim() ?? '';
+        return tokenAddress.isNotEmpty;
+      },
+      fatAddressHexResolver: () async {
+        final fatAddressData = await ref.read(
+          fatAddressDataProvider(
+            externalAddress: externalAddress,
+            externalAddressType: params.externalAddressType,
+            eventReference: params.eventReference,
+          ).future,
+        );
+        return fatAddressData.toHex();
+      },
+    );
+
     ref
       ..listen(currentWalletViewDataProvider, (_, __) => _updateDerivedState())
       ..listen(walletsNotifierProvider, (_, __) => _updateDerivedState())
@@ -61,7 +87,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       );
     if (params.externalAddressType.isContentToken) {
       ref.listen(
-        contentCreatorPaymentCoinsGroupProvider(
+        contentPaymentTokenContextProvider(
           externalAddress: externalAddress,
           externalAddressType: params.externalAddressType,
           eventReference: params.eventReference,
@@ -112,22 +138,32 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     }
 
     try {
-      final group = await ref.read(
-        contentCreatorPaymentCoinsGroupProvider(
+      final paymentContext = await ref.read(
+        contentPaymentTokenContextProvider(
           externalAddress: params.externalAddress,
           externalAddressType: params.externalAddressType,
           eventReference: params.eventReference,
         ).future,
       );
-
-      final paymentToken = group.coins.firstOrNull?.coin;
+      _contentPaymentTokenSource = paymentContext?.source;
+      final paymentToken = paymentContext?.token;
+      final group = paymentContext?.coinsGroup;
       if (paymentToken == null) {
         throw StateError('Creator payment token is missing.');
       }
 
+      final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+      final resolvedGroup =
+          _contentPaymentTokenSource == ContentPaymentTokenSource.supportedTokenFallback
+              ? _derivePaymentCoinsGroup(paymentToken, walletView)
+              : group;
+
+      final isSelectable =
+          _contentPaymentTokenSource == ContentPaymentTokenSource.supportedTokenFallback;
       state = state.copyWith(
         selectedPaymentToken: paymentToken,
-        paymentCoinsGroup: group,
+        paymentCoinsGroup: resolvedGroup,
+        isPaymentTokenSelectable: isSelectable,
       );
     } catch (error, stackTrace) {
       Logger.error(
@@ -247,7 +283,9 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   void selectPaymentToken(CoinData token) {
-    if (params.externalAddressType.isContentToken) return;
+    if (!state.isPaymentTokenSelectable) {
+      return;
+    }
     state = state.copyWith(selectedPaymentToken: token);
     _updateDerivedState();
     _scheduleQuoteUpdates();
@@ -282,6 +320,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         paymentCoinsGroup: null,
         targetWallet: null,
         targetNetwork: null,
+        isPaymentTokenSelectable: !params.externalAddressType.isContentToken,
       );
       return;
     }
@@ -290,11 +329,14 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         ? await _updateDerivedStateForSell()
         : await _updateDerivedStateForBuy(paymentToken, paymentCoinsGroup);
 
+    final isSelectable = !params.externalAddressType.isContentToken ||
+        _contentPaymentTokenSource == ContentPaymentTokenSource.supportedTokenFallback;
     state = state.copyWith(
       selectedPaymentToken: paymentToken,
       paymentCoinsGroup: paymentCoinsGroup,
       targetWallet: targetWallet,
       targetNetwork: targetNetwork,
+      isPaymentTokenSelectable: isSelectable,
     );
   }
 
@@ -303,15 +345,25 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   ) async {
     if (params.externalAddressType.isContentToken) {
       try {
-        final group = await ref.read(
-          contentCreatorPaymentCoinsGroupProvider(
+        final paymentContext = await ref.read(
+          contentPaymentTokenContextProvider(
             externalAddress: params.externalAddress,
             externalAddressType: params.externalAddressType,
             eventReference: params.eventReference,
           ).future,
         );
-        final token = group.coins.firstOrNull?.coin;
-        return (token: token, coinsGroup: group);
+        _contentPaymentTokenSource = paymentContext?.source;
+        if (paymentContext == null) {
+          return (token: null, coinsGroup: null);
+        }
+
+        if (paymentContext.source == ContentPaymentTokenSource.supportedTokenFallback) {
+          final token = state.selectedPaymentToken ?? paymentContext.token;
+          final coinsGroup = _derivePaymentCoinsGroup(token, walletView);
+          return (token: token, coinsGroup: coinsGroup);
+        }
+
+        return (token: paymentContext.token, coinsGroup: paymentContext.coinsGroup);
       } catch (error, stackTrace) {
         Logger.error(
           error,
@@ -456,27 +508,11 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   Future<String> _resolvePricingIdentifier(CommunityTokenTradeMode mode) async {
-    final externalAddress = params.externalAddress;
-
-    if (mode == CommunityTokenTradeMode.sell) {
-      return externalAddress;
+    final resolver = _pricingIdentifierResolver;
+    if (resolver == null) {
+      throw StateError('CommunityTokenPricingIdentifierResolver is not initialized');
     }
-
-    final tokenInfo = await ref.read(tokenMarketInfoProvider(externalAddress).future);
-    final tokenAddress = tokenInfo?.addresses.blockchain;
-    final tokenExists = tokenAddress != null && tokenAddress.isNotEmpty;
-    if (tokenExists) {
-      return externalAddress;
-    }
-
-    final fatAddressData = await ref.read(
-      fatAddressDataProvider(
-        externalAddress: externalAddress,
-        externalAddressType: params.externalAddressType,
-        eventReference: params.eventReference,
-      ).future,
-    );
-    return fatAddressData.toFatAddressHex();
+    return resolver.resolve(mode);
   }
 
   CoinsGroup _buildInterimCommunityTokenGroup({
