@@ -134,6 +134,7 @@ import 'package:ion/app/features/user/pages/profile_edit_page/profile_edit_page.
 import 'package:ion/app/features/user/pages/profile_page/pages/follow_list_modal/follow_list_modal.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/payment_selection_modal/payment_selection_modal.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/request_coins_form_modal/request_coins_form_modal.dart';
+import 'package:ion/app/features/user/pages/profile_page/pages/user_holdings_page.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_page.dart';
 import 'package:ion/app/features/user/pages/profile_page/self_profile_page.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/switch_account_modal.dart';
