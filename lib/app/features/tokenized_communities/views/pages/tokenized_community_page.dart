@@ -44,7 +44,7 @@ enum TokenizedCommunityTabType implements TabType {
   @override
   String get iconAsset {
     return switch (this) {
-      TokenizedCommunityTabType.chart => Assets.svg.iconChartLine,
+      TokenizedCommunityTabType.chart => Assets.svg.iconCreatecoinProfit,
       TokenizedCommunityTabType.holders => Assets.svg.iconSearchGroups,
       TokenizedCommunityTabType.trades => Assets.svg.fluentArrowSort16Regular,
       TokenizedCommunityTabType.comments => Assets.svg.iconBlockComment,

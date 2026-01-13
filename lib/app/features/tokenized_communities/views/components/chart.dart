@@ -159,7 +159,7 @@ class _ChartHeader extends StatelessWidget {
 
     final titleRow = Row(
       children: [
-        Assets.svg.iconChartLine.icon(
+        Assets.svg.iconCreatecoinProfit.icon(
           size: 18.0.s,
           color: colors.onTertiaryBackground,
         ),
