@@ -13,6 +13,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
@@ -48,9 +49,14 @@ class PostTokenButton extends ConsumerWidget {
 }
 
 class _TokenAvailability extends StatelessWidget {
-  const _TokenAvailability({required this.available, required this.child});
+  const _TokenAvailability({
+    required this.available,
+    required this.child,
+    required this.isProtectedUser,
+  });
 
   final bool available;
+  final bool isProtectedUser;
 
   final Widget child;
 
@@ -58,14 +64,16 @@ class _TokenAvailability extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: available ? HitTestBehavior.deferToChild : HitTestBehavior.translucent,
-      onTap: available
-          ? null
-          : () {
-              showSimpleBottomSheet<void>(
-                context: context,
-                child: const TokenCreationNotAvailableModal(),
-              );
-            },
+      onTap: isProtectedUser
+          ? () {}
+          : available
+              ? null
+              : () {
+                  showSimpleBottomSheet<void>(
+                    context: context,
+                    child: const TokenCreationNotAvailableModal(),
+                  );
+                },
       child: IgnorePointer(
         ignoring: !available,
         child: Opacity(
@@ -141,6 +149,11 @@ class _ContentEntityButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventReference = entity.toEventReference();
+    // Check if this account is protected from token operations
+    final isProtected = ref
+        .read(tokenOperationProtectedAccountsServiceProvider)
+        .isProtectedAccountEvent(eventReference);
+
     final ownerHasBscWallet = ref
         .watch(
           userMetadataProvider(eventReference.masterPubkey)
@@ -161,7 +174,8 @@ class _ContentEntityButton extends ConsumerWidget {
     final externalAddressType = entity.externalAddressType;
 
     return _TokenAvailability(
-      available: isTokenCreationAvailable,
+      available: isTokenCreationAvailable && !isProtected,
+      isProtectedUser: isProtected,
       child: _TokenButton(
         padding: padding,
         child:

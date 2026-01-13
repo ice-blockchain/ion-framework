@@ -799,6 +799,14 @@ class UserDeviceRevokedException extends IONException {
         );
 }
 
+class TokenOperationProtectedException extends IONException {
+  const TokenOperationProtectedException()
+      : super(
+          10145,
+          'Token operations are not allowed for this protected account',
+        );
+}
+
 class ShareUrlNotFoundException extends IONException {
   ShareUrlNotFoundException(dynamic entityInfo) : super(10145, 'Share URL not found $entityInfo');
 }

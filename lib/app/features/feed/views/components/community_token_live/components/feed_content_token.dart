@@ -14,10 +14,12 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
@@ -276,7 +278,10 @@ class ContentTokenHeader extends HookConsumerWidget {
             if (showBuyButton)
               PositionedDirectional(
                 bottom: -11.5.s,
-                child: _BuyButton(tokenDefinition: tokenDefinition),
+                child: _BuyButton(
+                  tokenDefinition: tokenDefinition,
+                  eventReference: eventReference,
+                ),
               ),
           ],
         ),
@@ -288,15 +293,24 @@ class ContentTokenHeader extends HookConsumerWidget {
 class _BuyButton extends ConsumerWidget {
   const _BuyButton({
     required this.tokenDefinition,
+    required this.eventReference,
   });
 
   final CommunityTokenDefinitionEntity tokenDefinition;
+  final EventReference eventReference;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenDefinitionData = tokenDefinition.data;
 
     if (tokenDefinitionData is! CommunityTokenDefinitionIon) {
+      return const SizedBox.shrink();
+    }
+
+    // Hide buy button if this account is protected from token operations
+    if (ref
+        .read(tokenOperationProtectedAccountsServiceProvider)
+        .isProtectedAccountEvent(eventReference)) {
       return const SizedBox.shrink();
     }
 

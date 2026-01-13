@@ -8,6 +8,7 @@ import 'package:ion/app/features/tokenized_communities/domain/trade_community_to
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/services/token_operation_protected_accounts_service.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
@@ -24,10 +25,12 @@ class TradeCommunityTokenService {
   TradeCommunityTokenService({
     required this.repository,
     required this.ionConnectService,
+    required this.protectedAccountsService,
   });
 
   final TradeCommunityTokenRepository repository;
   final CommunityTokenIonConnectService ionConnectService;
+  final TokenOperationProtectedAccountsService protectedAccountsService;
 
   Future<TransactionResult> buyCommunityToken({
     required String externalAddress,
@@ -45,6 +48,11 @@ class TradeCommunityTokenService {
     FatAddressV2Data? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
+    // Check if this account is protected from token operations
+    if (protectedAccountsService.isProtectedAccountFromExternalAddress(externalAddress)) {
+      throw const TokenOperationProtectedException();
+    }
+
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
     final firstBuy = _isFirstBuy(existingTokenAddress);
@@ -109,6 +117,11 @@ class TradeCommunityTokenService {
     required bool shouldSendEvents,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
+    // Check if this account is protected from token operations
+    if (protectedAccountsService.isProtectedAccountFromExternalAddress(externalAddress)) {
+      throw const TokenOperationProtectedException();
+    }
+
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final toTokenBytes = _getBytesFromAddress(paymentTokenAddress);
 
