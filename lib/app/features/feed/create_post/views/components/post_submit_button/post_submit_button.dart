@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
@@ -122,7 +123,7 @@ class PostSubmitButton extends HookConsumerWidget {
           if (!context.mounted) return;
 
           if (nsfwCheckResult is NsfwFailure) {
-            showErrorModal(context, nsfwCheckResult.error);
+            showErrorModal(context, NSFWProcessingException());
             return;
           }
 
