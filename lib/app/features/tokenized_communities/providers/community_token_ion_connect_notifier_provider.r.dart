@@ -252,12 +252,6 @@ class CommunityTokenIonConnectService {
     required EventReference eventReference,
   }) async {
     try {
-      final entity = await _getIonConnectEntity(eventReference);
-
-      if (entity == null) {
-        throw EntityNotFoundException(eventReference);
-      }
-
       final shareUrl = await _getEventShareUrl(eventReference);
 
       if (shareUrl == null) {
