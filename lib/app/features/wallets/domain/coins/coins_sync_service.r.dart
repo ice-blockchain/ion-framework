@@ -59,11 +59,6 @@ class CoinsSyncService {
     final version = _coinsRepository.getCoinsVersion() ?? 0;
     final response = await _ionIdentityClient.coins.getCoins(currentVersion: version);
 
-    await (
-      _coinsRepository.setCoinsVersion(response.version),
-      _coinsRepository.setLastSyncTime(currentTime),
-    ).wait;
-
     if (response.networks.isNotEmpty) {
       await _networksRepository.setAll(
         response.networks.map(NetworkData.fromDTO).toList(),
@@ -71,10 +66,13 @@ class CoinsSyncService {
     }
 
     if (response.coins.isEmpty) {
+      await _saveSyncData(response.version, DateTime.now().millisecondsSinceEpoch);
       return;
     }
 
     await _coinsRepository.updateCoins(CoinsMapper().fromDtoToDb(response.coins));
+
+    await _saveSyncData(response.version, currentTime);
   }
 
   Future<void> saveCoinsVersion(int coinsVersion) async {
@@ -82,4 +80,11 @@ class CoinsSyncService {
   }
 
   Future<bool> hasSavedCoins() => _coinsRepository.hasSavedCoins();
+
+  Future<void> _saveSyncData(int coinsVersion, int lastSyncTime) async {
+    await (
+      saveCoinsVersion(coinsVersion),
+      _coinsRepository.setLastSyncTime(lastSyncTime),
+    ).wait;
+  }
 }

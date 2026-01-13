@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:ion/app/features/config/data/models/app_config_cache_strategy.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
+import 'package:ion/app/features/tokenized_communities/data/models/supported_swap_token_config_dto.f.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TradeCommunityTokenApi {
@@ -52,11 +53,13 @@ class TradeCommunityTokenApi {
     return address;
   }
 
-  Future<List<Map<String, dynamic>>> fetchSupportedSwapTokens() async {
-    return _configRepository.getConfig<List<Map<String, dynamic>>>(
+  Future<List<SupportedSwapTokenConfigDto>> fetchSupportedSwapTokens() async {
+    return _configRepository.getConfig<List<SupportedSwapTokenConfigDto>>(
       _supportedSwapTokensConfigName,
       cacheStrategy: AppConfigCacheStrategy.localStorage,
-      parser: (data) => (jsonDecode(data) as List).cast<Map<String, dynamic>>(),
+      parser: (data) => (jsonDecode(data) as List)
+          .map((e) => SupportedSwapTokenConfigDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
       checkVersion: true,
     );
   }

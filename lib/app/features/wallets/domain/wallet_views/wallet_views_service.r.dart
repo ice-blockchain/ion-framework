@@ -12,6 +12,7 @@ import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart
 import 'package:ion/app/features/wallets/data/repository/networks_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_comparator.dart';
+import 'package:ion/app/features/wallets/domain/coins/wallet_view_coins_catalog_sync_service.r.dart';
 import 'package:ion/app/features/wallets/domain/wallet_views/sync_wallet_views_coins_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
@@ -64,6 +65,7 @@ Future<WalletViewsService> walletViewsService(Ref ref) async {
     ref.watch(networksRepositoryProvider),
     transactionsRepo,
     syncService,
+    ref.watch(walletViewCoinsCatalogSyncServiceProvider),
     await ref.watch(walletViewsLiveUpdaterProvider.future),
   );
 
@@ -81,6 +83,7 @@ class WalletViewsService {
     this._networksRepository,
     this._transactionsRepository,
     this._syncWalletViewCoinsService,
+    this._walletViewCoinsCatalogSyncService,
     this._liveUpdater,
   );
 
@@ -91,6 +94,7 @@ class WalletViewsService {
   final NetworksRepository _networksRepository;
   final TransactionsRepository _transactionsRepository;
   final SyncWalletViewCoinsService _syncWalletViewCoinsService;
+  final WalletViewCoinsCatalogSyncService _walletViewCoinsCatalogSyncService;
   final WalletViewsLiveUpdater _liveUpdater;
 
   final StreamController<List<WalletViewData>> _walletViewsController =
@@ -162,6 +166,7 @@ class WalletViewsService {
   }) async {
     if (updatePeriodicCoinsSync) {
       final coins = _originWalletViews.expand((wv) => wv.coins).map((c) => c.coin).toList();
+      await _walletViewCoinsCatalogSyncService.upsertMissingFromWalletViews(coins);
       await _syncWalletViewCoinsService.start(coins);
     }
 
