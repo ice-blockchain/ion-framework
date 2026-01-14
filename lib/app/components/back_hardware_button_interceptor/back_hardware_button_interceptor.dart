@@ -30,7 +30,7 @@ class BackHardwareButtonInterceptor extends HookWidget {
           return true;
         }
       },
-      [],
+      [onBackPress],
     );
 
     final backButtonInterceptor = useCallback(
