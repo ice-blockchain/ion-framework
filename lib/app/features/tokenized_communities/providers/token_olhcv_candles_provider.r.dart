@@ -15,6 +15,7 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
 
+  // 1. Load initial candles
   final initialCandles = await client.communityTokens.loadOhlcvCandles(
     externalAddress: externalAddress,
     interval: interval,
@@ -22,7 +23,7 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
 
   yield initialCandles;
 
-  // Subscribe to realtime updates
+  // 2. Subscribe to realtime updates
   final subscription = await client.communityTokens.subscribeToOhlcvCandles(
     ionConnectAddress: externalAddress,
     interval: interval,
@@ -33,6 +34,7 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
   final currentCandles = List<OhlcvCandle>.from(initialCandles);
   const maxCandles = 50;
 
+  // 3. Process realtime updates
   await for (final batch in subscription.stream) {
     if (batch.isEmpty) {
       yield currentCandles;

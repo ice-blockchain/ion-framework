@@ -43,16 +43,59 @@ class TokenAreaLineChart extends HookConsumerWidget {
       [calcData.chartMaxY, yAxisLabelTextStyle],
     );
 
-    // UI logic stays here
+    const initialScale = 3.0;
+
+    final chartKey = useMemoized(GlobalKey.new);
+    final transformationController = useTransformationController(
+      initialValue: Matrix4.identity()..scaleByDouble(initialScale, initialScale, 1, 1),
+    );
+    final didInit = useRef(false);
+
+    useEffect(
+      () {
+        if (didInit.value) return null;
+        didInit.value = true;
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = chartKey.currentContext;
+          if (ctx == null) return;
+
+          final box = ctx.findRenderObject() as RenderBox?;
+          if (box == null || !box.hasSize) return;
+
+          final totalWidth = box.size.width;
+          // Calculate drawable width (total width minus reserved space for Y-axis labels)
+          final drawableWidth = totalWidth - reservedSize;
+
+          final translateX = -drawableWidth * (initialScale - 1);
+
+          transformationController.value = Matrix4.identity()
+            ..translateByDouble(translateX, 0, 0, 1)
+            ..scaleByDouble(initialScale, initialScale, 1, 1);
+        });
+
+        return null;
+      },
+      [],
+    );
+
     final lineColor = isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
+    final canInteract = !isLoading;
 
     return LineChart(
+      key: chartKey,
+      transformationConfig: FlTransformationConfig(
+        scaleAxis: FlScaleAxis.horizontal,
+        panEnabled: canInteract,
+        scaleEnabled: false,
+        transformationController: transformationController,
+      ),
       LineChartData(
         minY: calcData.chartMinY,
         maxY: calcData.chartMaxY,
         minX: 0,
         maxX: calcData.maxX,
-        clipData: const FlClipData.all(), // Clip line to chart bounds
+        clipData: const FlClipData.all(),
         borderData: FlBorderData(show: false),
         gridData: const FlGridData(
           drawHorizontalLine: false,
@@ -103,37 +146,35 @@ class TokenAreaLineChart extends HookConsumerWidget {
             ),
           ),
         ),
-        lineTouchData: !isLoading
-            ? LineTouchData(
-                touchTooltipData: LineTouchTooltipData(
-                  getTooltipColor: (_) => colors.primaryBackground,
-                  getTooltipItems: (touchedSpots) {
-                    return touchedSpots
-                        .map(
-                          (spot) => LineTooltipItem(
-                            spot.y.toStringAsFixed(4),
-                            styles.caption2.copyWith(color: colors.primaryText),
-                          ),
-                        )
-                        .toList();
-                  },
+        lineTouchData: LineTouchData(
+          enabled: canInteract,
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipColor: (_) => colors.primaryBackground,
+            getTooltipItems: (touchedSpots) {
+              return touchedSpots
+                  .map(
+                    (spot) => LineTooltipItem(
+                      spot.y.toStringAsFixed(4),
+                      styles.caption2.copyWith(color: colors.primaryText),
+                    ),
+                  )
+                  .toList();
+            },
+          ),
+          getTouchedSpotIndicator: (barData, spotIndexes) {
+            return spotIndexes.map((index) {
+              return TouchedSpotIndicatorData(
+                FlLine(
+                  color: colors.primaryAccent.withValues(alpha: 0.3),
+                  strokeWidth: 0.5.s,
                 ),
-                getTouchedSpotIndicator: (barData, spotIndexes) {
-                  return spotIndexes.map((index) {
-                    return TouchedSpotIndicatorData(
-                      FlLine(
-                        color: colors.primaryAccent.withValues(alpha: 0.3),
-                        strokeWidth: 0.5.s,
-                      ),
-                      const FlDotData(),
-                    );
-                  }).toList();
-                },
-                getTouchLineStart: (_, __) => 0,
-                getTouchLineEnd: (_, __) => double.infinity,
-              )
-            // Disable interactions for loading/empty states.
-            : const LineTouchData(enabled: false),
+                const FlDotData(),
+              );
+            }).toList();
+          },
+          getTouchLineStart: (_, __) => 0,
+          getTouchLineEnd: (_, __) => double.infinity,
+        ),
         lineBarsData: [
           LineChartBarData(
             spots: calcData.spots,
