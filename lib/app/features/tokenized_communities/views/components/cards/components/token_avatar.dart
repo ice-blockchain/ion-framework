@@ -19,6 +19,7 @@ class TokenAvatar extends HookWidget {
     required this.innerBorderRadius,
     required this.borderWidth,
     this.borderColor,
+    this.enablePaletteGenerator = true,
     super.key,
   });
 
@@ -31,10 +32,11 @@ class TokenAvatar extends HookWidget {
   final double borderWidth;
 
   final Color? borderColor;
+  final bool enablePaletteGenerator;
 
   @override
   Widget build(BuildContext context) {
-    final imageColors = useImageColors(imageUrl);
+    final imageColors = useImageColors(imageUrl, enabled: enablePaletteGenerator);
 
     final gradient = useMemoized(
       () {
