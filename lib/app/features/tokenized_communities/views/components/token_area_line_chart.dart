@@ -24,6 +24,17 @@ class TokenAreaLineChart extends HookConsumerWidget {
     return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding.s;
   }
 
+  double _calculateInitialScale(int dataPointCount) {
+    const maxPointsPerScreen = 30;
+    const maxScale = 3.0;
+
+    if (dataPointCount < maxPointsPerScreen) {
+      return 1;
+    }
+
+    return (dataPointCount / maxPointsPerScreen).clamp(1.0, maxScale);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
@@ -43,19 +54,18 @@ class TokenAreaLineChart extends HookConsumerWidget {
       [calcData.chartMaxY, yAxisLabelTextStyle],
     );
 
-    const initialScale = 3.0;
+    final initialScale = useMemoized(
+      () => _calculateInitialScale(candles.length),
+      [candles.length],
+    );
 
     final chartKey = useMemoized(GlobalKey.new);
     final transformationController = useTransformationController(
       initialValue: Matrix4.identity()..scaleByDouble(initialScale, initialScale, 1, 1),
     );
-    final didInit = useRef(false);
 
     useEffect(
       () {
-        if (didInit.value) return null;
-        didInit.value = true;
-
         WidgetsBinding.instance.addPostFrameCallback((_) {
           final ctx = chartKey.currentContext;
           if (ctx == null) return;
@@ -64,9 +74,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
           if (box == null || !box.hasSize) return;
 
           final totalWidth = box.size.width;
-          // Calculate drawable width (total width minus reserved space for Y-axis labels)
           final drawableWidth = totalWidth - reservedSize;
-
           final translateX = -drawableWidth * (initialScale - 1);
 
           transformationController.value = Matrix4.identity()
@@ -76,7 +84,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
 
         return null;
       },
-      [],
+      [initialScale, reservedSize],
     );
 
     final lineColor = isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
