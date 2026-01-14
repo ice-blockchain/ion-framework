@@ -69,11 +69,6 @@ class ForceAccountSecurityService {
     _maybeTrigger();
   }
 
-  void onLifecycleChanged(AppLifecycleState value) {
-    _lifecycle = value;
-    _maybeTrigger();
-  }
-
   void _maybeTrigger() {
     if (rootNavigatorKey.currentContext == null) return;
 
@@ -169,7 +164,7 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
       appLifecycleProvider,
       fireImmediately: true,
       (_, AppLifecycleState next) {
-        service.onLifecycleChanged(next);
+        service._lifecycle = next;
         if (next == AppLifecycleState.resumed) {
           ref
             ..invalidate(userDetailsProvider)
