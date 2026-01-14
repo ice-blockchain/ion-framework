@@ -52,8 +52,6 @@ class OneToOneMessageList extends HookConsumerWidget {
         return 80.0.s;
       case MessageType.document:
         return 90.0.s;
-      case MessageType.ad:
-        return 200.0.s;
     }
   }
 
@@ -172,7 +170,6 @@ class OneToOneMessageList extends HookConsumerWidget {
                 if (_shouldShowDateHeader(index)) {
                   estimatedHeight += 50.0.s; // Date header height estimate
                 }
-
                 // Add margin spacing
                 return estimatedHeight += _getBottomMargin(index);
               },
@@ -234,11 +231,6 @@ class OneToOneMessageList extends HookConsumerWidget {
                           onTapReply: () => onTapReply(entity),
                         ),
                       MessageType.document => DocumentMessage(
-                          margin: margin,
-                          eventMessage: message,
-                          onTapReply: () => onTapReply(entity),
-                        ),
-                      MessageType.ad => TextMessage(
                           margin: margin,
                           eventMessage: message,
                           onTapReply: () => onTapReply(entity),
