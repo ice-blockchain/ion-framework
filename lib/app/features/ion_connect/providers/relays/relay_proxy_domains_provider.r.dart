@@ -28,15 +28,17 @@ List<String> relaysProxyDomains(Ref ref) {
 /// Candidates are returned in the following order:
 /// 1) Preferred proxy URI (if saved for this logical relay)
 /// 2) The original logical relay URI (direct IP)
-/// 3) Remaining proxy URIs built as `wss://<sha256(ip)[0:16]>.443`
+/// 3) Remaining proxy URIs built as `wss://<sha256(ip)[0:16]>.domain:443`
 @riverpod
 List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
   final logicalUri = Uri.parse(logicalRelayUrl);
+  final normalizedLogicalUri =
+      (logicalUri.hasPort && logicalUri.port == 4443) ? logicalUri.replace(port: 443) : logicalUri;
   final ip = logicalUri.host;
 
   // If we can't extract an IP/host, fall back to the original URI only.
   if (ip.isEmpty) {
-    return <Uri>[logicalUri];
+    return <Uri>[normalizedLogicalUri];
   }
 
   final domains = ref.read(relaysProxyDomainsProvider);
@@ -47,9 +49,9 @@ List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
   final normalizedIp = hashHex.substring(0, 16);
 
   Uri proxyUriForDomain(String domain) => Uri(
-        scheme: logicalUri.scheme.isNotEmpty ? logicalUri.scheme : 'wss',
+        scheme: normalizedLogicalUri.scheme.isNotEmpty ? normalizedLogicalUri.scheme : 'wss',
         host: '$normalizedIp.$domain',
-        port: 443,
+        port: normalizedLogicalUri.hasPort ? normalizedLogicalUri.port : null,
       );
 
   final candidates = <Uri>[];
@@ -60,7 +62,7 @@ List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
   }
 
   // Then try direct IP.
-  candidates.add(logicalUri);
+  candidates.add(normalizedLogicalUri);
 
   // Then try the rest of proxy domains.
   for (final domain in domains) {

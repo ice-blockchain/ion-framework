@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:io' hide WebSocket;
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/providers/internet_connection_checker_provider.r.dart';
@@ -46,9 +47,8 @@ mixin RelayCreateMixin {
 
       lastConnectionState = connectionState;
 
-      final usedDomain = proxyDomains.firstWhere(
+      final usedDomain = proxyDomains.firstWhereOrNull(
         (d) => connectUri.host.endsWith(d),
-        orElse: () => '',
       );
 
       final hasInternetConnection = ref.read(hasInternetConnectionProvider);
@@ -62,7 +62,7 @@ mixin RelayCreateMixin {
         // If we connected directly (no proxy domain), clear any previously saved preference.
         ref
             .read(relayProxyDomainPreferenceProvider(url).notifier)
-            .persistPreferredProxyDomain(usedDomain.isEmpty ? null : usedDomain);
+            .persistPreferredProxyDomain(usedDomain);
 
         await ref.read(relayReachabilityProvider.notifier).clear(url);
         return relay;
