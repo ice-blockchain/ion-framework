@@ -52,11 +52,7 @@ List<EntitiesDataSource>? userTokenizedCommunityDataSource(Ref ref, String pubke
       actionSource: ActionSourceUser(pubkey),
       entityFilter: (entity) =>
           entity.masterPubkey == pubkey &&
-          (entity is CommunityTokenDefinitionEntity ||
-              entity is CommunityTokenActionEntity ||
-              (entity is GenericRepostEntity &&
-                  (entity.data.kind == GenericRepostEntity.communityTokenDefinitionRepostKind ||
-                      entity.data.kind == GenericRepostEntity.communityTokenActionRepostKind))),
+          (entity is CommunityTokenDefinitionEntity || entity is CommunityTokenActionEntity),
       requestFilter: RequestFilter(
         kinds: _requestKinds,
         authors: [pubkey],
