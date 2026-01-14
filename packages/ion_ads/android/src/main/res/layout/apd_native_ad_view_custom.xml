@@ -63,13 +63,13 @@
             android:textStyle="normal"
             android:textSize="14sp"
             android:textColor="#0A0A0A"
-            app:layout_constraintEnd_toEndOf="@+id/native_custom_title"
+            app:layout_constraintEnd_toStartOf="@+id/native_custom_cta"
             app:layout_constraintStart_toStartOf="@+id/native_custom_title"
             app:layout_constraintTop_toBottomOf="@+id/native_custom_title" />
 
         <Button
             android:id="@+id/native_custom_cta"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="32dp"
             android:background="@drawable/apd_native_cta_round_outline"
             android:backgroundTint="#0156FF"
@@ -108,8 +108,8 @@
 
         <TextView
             android:id="@+id/native_custom_ad_attribution"
-            android:layout_width="24dp"
-            android:layout_height="18dp"
+            android:layout_width="@dimen/apd_native_ad_attribution_w"
+            android:layout_height="@dimen/apd_native_ad_attribution_h"
             android:layout_marginStart="@dimen/apd_native_custom_content_margin_v"
             android:layout_marginTop="@dimen/apd_native_custom_content_margin_v"
             android:background="@drawable/apd_native_ad_round_outline"
@@ -126,17 +126,25 @@
             app:layout_constraintStart_toStartOf="@+id/native_media_wrapper"
             app:layout_constraintTop_toTopOf="@+id/native_media_wrapper" />
 
-        <ImageView
+        <androidx.cardview.widget.CardView
             android:id="@+id/native_custom_ad_choices"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="@dimen/apd_native_ad_attribution_h"
+            android:layout_height="@dimen/apd_native_ad_attribution_h"
             android:layout_marginTop="@dimen/apd_native_custom_content_margin_v"
             android:layout_marginEnd="@dimen/apd_native_custom_content_margin_v"
-            android:elevation="4dp"
-            android:src="@drawable/ad_choices"
-            android:visibility="visible"
-            android:contentDescription="@string/apd_native_custom_ad_attribution"
+            android:backgroundTint="@color/apd_ad_attribution_text_color"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="0dp"
             app:layout_constraintTop_toTopOf="@+id/native_media_wrapper"
-            app:layout_constraintEnd_toEndOf="@+id/native_media_wrapper" />
+            app:layout_constraintEnd_toEndOf="@+id/native_media_wrapper">
+
+            <ImageView
+                android:id="@+id/native_custom_ad_choices_icon"
+                android:src="@drawable/ad_choices"
+                android:contentDescription="@string/apd_native_custom_ad_attribution"
+                android:layout_gravity="center"
+                android:layout_width="12dp"
+                android:layout_height="12dp" />
+        </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.appodeal.ads.nativead.NativeAdView>

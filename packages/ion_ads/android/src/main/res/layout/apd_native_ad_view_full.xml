@@ -122,27 +122,35 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
-        <ImageView
+        <androidx.cardview.widget.CardView
             android:id="@+id/native_custom_ad_choices"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="@dimen/apd_native_ad_attribution_h"
+            android:layout_height="@dimen/apd_native_ad_attribution_h"
             android:layout_marginTop="@dimen/apd_native_custom_card_padding"
             android:layout_marginStart="@dimen/apd_native_custom_card_padding"
-            android:elevation="4dp"
-            android:src="@drawable/ad_choices"
-            android:contentDescription="@string/apd_native_custom_ad_attribution"
+            android:backgroundTint="@color/apd_ad_attribution_text_color"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="0dp"
             app:layout_constraintStart_toStartOf="@+id/native_custom_content"
-            app:layout_constraintTop_toTopOf="@+id/native_custom_content" />
+            app:layout_constraintTop_toTopOf="@+id/native_custom_content">
+
+            <ImageView
+                android:id="@+id/native_custom_ad_choices_icon"
+                android:src="@drawable/ad_choices"
+                android:contentDescription="@string/apd_native_custom_ad_attribution"
+                android:layout_gravity="center"
+                android:layout_width="12dp"
+                android:layout_height="12dp" />
+        </androidx.cardview.widget.CardView>
 
         <TextView
             android:id="@+id/native_custom_ad_attribution"
-            android:layout_width="24dp"
-            android:layout_height="18dp"
-
+            android:layout_width="@dimen/apd_native_ad_attribution_w"
+            android:layout_height="@dimen/apd_native_ad_attribution_h"
             android:layout_marginStart="@dimen/apd_native_custom_content_margin_v"
             android:layout_marginTop="@dimen/apd_native_custom_card_padding"
             android:background="@drawable/apd_native_ad_round_outline"
-            android:backgroundTint="@color/apd_ad_attribution_background"
+            android:backgroundTint="@color/apd_ad_attribution_text_color"
             android:elevation="4dp"
             android:gravity="center"
             android:maxLines="1"
@@ -153,6 +161,6 @@
             android:fontFamily="@font/notosans_bold"
             android:textSize="11sp"
             app:layout_constraintStart_toEndOf="@+id/native_custom_ad_choices"
-            app:layout_constraintTop_toTopOf="@id/native_custom_content" />
+            app:layout_constraintTop_toTopOf="@+id/native_custom_content" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.appodeal.ads.nativead.NativeAdView>

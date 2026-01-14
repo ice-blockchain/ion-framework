@@ -61,6 +61,8 @@ class TextMessage extends HookConsumerWidget {
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
+    final isAd = eventMessage.id.startsWith('ad_id_') && !isMe;
+
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),
       [eventMessage],
@@ -116,7 +118,7 @@ class TextMessage extends HookConsumerWidget {
       messageItem: messageItem,
       contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 12.0.s),
       child: IntrinsicWidth(
-        child: isMe
+        child: !isAd
             ? Column(
                 crossAxisAlignment:
                     repliedMessageItem != null ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -316,6 +318,7 @@ class _AdItem extends StatelessWidget {
           width: 246,
           child: AppodealNativeAd(
             options: NativeAdOptions.customOptions(
+              nativeAdType: NativeAdType.contentStream,
               adActionButtonConfig: AdActionButtonConfig(
                 position: AdActionPosition.bottom,
               ),
