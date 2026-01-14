@@ -28,7 +28,6 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
@@ -54,7 +53,6 @@ class Post extends ConsumerWidget {
     this.contentWrapper,
     this.onVideoTap,
     this.plainInlineStyles = false,
-    this.enableTokenNavigation = false,
     super.key,
   });
 
@@ -78,7 +76,6 @@ class Post extends ConsumerWidget {
   final bool network;
   final bool cache;
   final bool plainInlineStyles;
-  final bool enableTokenNavigation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,10 +112,6 @@ class Post extends ConsumerWidget {
 
     final isParentShown = displayParent && parentEventReference != null;
 
-    final hasToken = enableTokenNavigation &&
-        (ref.watch(ionConnectEntityHasTokenProvider(eventReference: eventReference)).valueOrNull ??
-            false);
-
     final content = Column(
       children: [
         SizedBox(height: headerOffset ?? 10.0.s),
@@ -146,7 +139,7 @@ class Post extends ConsumerWidget {
       ],
     );
 
-    final postWidget = Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (isParentShown) ...[
@@ -185,17 +178,6 @@ class Post extends ConsumerWidget {
         if (contentWrapper != null) contentWrapper!(content) else content,
       ],
     );
-
-    if (hasToken) {
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () =>
-            TokenizedCommunityRoute(externalAddress: eventReference.toString()).push<void>(context),
-        child: postWidget,
-      );
-    }
-
-    return postWidget;
   }
 
   EventReference? _getQuotedEventReference({required IonConnectEntity entity}) {

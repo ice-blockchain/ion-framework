@@ -21,11 +21,14 @@ import 'package:ion/app/features/feed/views/components/reply_list/reply_list.dar
 import 'package:ion/app/features/feed/views/components/scroll_to_top_button/scroll_to_top_button.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/services/analytics_service/analytics_service_provider.r.dart';
 
@@ -75,23 +78,29 @@ class PostDetailsPage extends HookConsumerWidget {
                       headers: [
                         SliverToBoxAdapter(
                           child: switch (entity) {
-                            CommunityTokenActionEntity() => CommunityTokenAction(
-                                eventReference: eventReference,
-                                enableTokenNavigation: true,
+                            CommunityTokenActionEntity() => _TokenNavigationWrapper(
+                                entity: entity,
+                                child: CommunityTokenAction(
+                                  eventReference: eventReference,
+                                ),
                               ),
-                            CommunityTokenDefinitionEntity() => CommunityTokenLive(
-                                eventReference: eventReference,
-                                enableTokenNavigation: true,
+                            CommunityTokenDefinitionEntity() => _TokenNavigationWrapper(
+                                entity: entity,
+                                child: CommunityTokenLive(
+                                  eventReference: eventReference,
+                                ),
                               ),
-                            ModifiablePostEntity() || PostEntity() => Post(
+                            ModifiablePostEntity() || PostEntity() => _TokenNavigationWrapper(
                                 eventReference: eventReference,
-                                timeFormat: TimestampFormat.detailed,
-                                onDelete: context.pop,
-                                isTextSelectable: true,
-                                bodyMaxLines: null,
-                                displayParent: true,
-                                showNotInterested: false,
-                                enableTokenNavigation: true,
+                                child: Post(
+                                  eventReference: eventReference,
+                                  timeFormat: TimestampFormat.detailed,
+                                  onDelete: context.pop,
+                                  isTextSelectable: true,
+                                  bodyMaxLines: null,
+                                  displayParent: true,
+                                  showNotInterested: false,
+                                ),
                               ),
                             _ => const SizedBox.shrink(),
                           },
@@ -117,6 +126,53 @@ class PostDetailsPage extends HookConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TokenNavigationWrapper extends ConsumerWidget {
+  const _TokenNavigationWrapper({
+    required this.child,
+    this.entity,
+    this.eventReference,
+  });
+
+  final Widget child;
+  final IonConnectEntity? entity;
+  final EventReference? eventReference;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final String? externalAddress;
+
+    switch (entity) {
+      case final CommunityTokenDefinitionEntity tokenDef:
+        externalAddress = tokenDef.data.externalAddress;
+      case final CommunityTokenActionEntity tokenAction:
+        final tokenDefinition = ref
+            .watch(ionConnectEntityProvider(eventReference: tokenAction.data.definitionReference))
+            .valueOrNull as CommunityTokenDefinitionEntity?;
+        externalAddress = tokenDefinition?.data.externalAddress;
+      default:
+        if (eventReference != null) {
+          final hasToken = ref
+                  .watch(ionConnectEntityHasTokenProvider(eventReference: eventReference!))
+                  .valueOrNull ??
+              false;
+          externalAddress = hasToken ? eventReference.toString() : null;
+        } else {
+          externalAddress = null;
+        }
+    }
+
+    if (externalAddress == null) {
+      return child;
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress!).push<void>(context),
+      child: child,
     );
   }
 }

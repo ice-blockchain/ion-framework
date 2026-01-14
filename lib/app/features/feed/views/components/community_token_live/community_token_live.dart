@@ -21,7 +21,6 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trade_row.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -29,7 +28,6 @@ class CommunityTokenLive extends HookConsumerWidget {
   const CommunityTokenLive({
     required this.eventReference,
     this.network = false,
-    this.enableTokenNavigation = false,
     this.headerOffset,
     super.key,
   });
@@ -37,8 +35,6 @@ class CommunityTokenLive extends HookConsumerWidget {
   final EventReference eventReference;
 
   final bool network;
-
-  final bool enableTokenNavigation;
 
   final double? headerOffset;
 
@@ -71,7 +67,7 @@ class CommunityTokenLive extends HookConsumerWidget {
 
     final isTwitterToken = entity.data.platform == CommunityTokenPlatform.x;
 
-    final postWidget = Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (entity.data.kind == UserMetadataEntity.kind &&
@@ -108,20 +104,6 @@ class CommunityTokenLive extends HookConsumerWidget {
         CounterItemsFooter(eventReference: eventReference),
       ],
     );
-
-    if (enableTokenNavigation) {
-      final route = TokenizedCommunityRoute(
-        externalAddress: entity.data.externalAddress,
-      );
-
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => route.push<void>(context),
-        child: postWidget,
-      );
-    }
-
-    return postWidget;
   }
 }
 
