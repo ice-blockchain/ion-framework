@@ -19,6 +19,7 @@ import 'package:ion/app/features/force_update/providers/force_update_provider.r.
 import 'package:ion/app/features/ion_connect/providers/global_subscription.r.dart';
 import 'package:ion/app/features/push_notifications/background/firebase_messaging_background_service.dart';
 import 'package:ion/app/features/push_notifications/providers/pushes_init_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/tokenized_community_onboarding_provider.r.dart';
 import 'package:ion/app/features/user/providers/account_notifications_sync_provider.r.dart';
 import 'package:ion/app/features/user/providers/force_account_security_notifier.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_chat_relays_sync_provider.r.dart';
@@ -84,7 +85,8 @@ Future<void> initApp(Ref ref) async {
     ..listen(pushesInitProvider, noop)
     ..listen(globalSubscriptionProvider, (_, subscription) => subscription?.init())
     ..listen(accountNotificationsSyncProvider, noop)
-    ..listen(deepLinkHandlerProvider, noop);
+    ..listen(deepLinkHandlerProvider, noop)
+    ..listen(tokenizedCommunityOnboardingServiceProvider, noop);
 
   initFirebaseMessagingBackgroundHandler();
 
