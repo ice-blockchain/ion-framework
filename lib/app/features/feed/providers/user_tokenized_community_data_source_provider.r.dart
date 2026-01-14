@@ -14,16 +14,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'user_tokenized_community_data_source_provider.r.g.dart';
 
 const _requestKinds = [
-  CommunityTokenActionEntity.kind,
-  CommunityTokenDefinitionEntity.kind,
   GenericRepostEntity.communityTokenDefinitionRepostKind,
   GenericRepostEntity.communityTokenActionRepostKind,
+  CommunityTokenActionEntity.kind,
 ];
 
 const _withCountersKinds = [
   CommunityTokenActionEntity.kind,
   CommunityTokenDefinitionEntity.kind,
-  GenericRepostEntity.kind,
 ];
 
 @riverpod
