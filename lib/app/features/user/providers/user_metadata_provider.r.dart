@@ -142,7 +142,6 @@ String _buildSearchForDependencies() {
 
 @riverpod
 Future<UserMetadataLiteEntity?> userMetadataLite(Ref ref, String masterPubkey) async {
-  final expirationDuration = ref.watch(userMetadataCacheDurationProvider);
   final userMetadataLite = await ref.watch(
     ionConnectEntityProvider(
       network: false,
@@ -150,7 +149,6 @@ Future<UserMetadataLiteEntity?> userMetadataLite(Ref ref, String masterPubkey) a
         masterPubkey: masterPubkey,
         kind: UserMetadataLiteEntity.kind,
       ),
-      expirationDuration: expirationDuration,
     ).future,
   ) as UserMetadataLiteEntity?;
   return userMetadataLite;
