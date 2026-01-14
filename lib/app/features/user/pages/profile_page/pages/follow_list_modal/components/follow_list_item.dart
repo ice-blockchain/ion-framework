@@ -36,7 +36,8 @@ class FollowListItem extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    if (!data.isLoading && data.valueOrNull == null) {
+    // Filter for empty users now works only for network == true.
+    if (network && !data.isLoading && data.valueOrNull == null) {
       ListCachedObjects.updateObject<ValueWithKey>(context, (key: pubkey, value: 'hidden'));
       return const SizedBox.shrink();
     }
