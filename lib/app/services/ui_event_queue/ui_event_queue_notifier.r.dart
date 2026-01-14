@@ -3,14 +3,26 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ui_event_queue_notifier.r.g.dart';
 
+@immutable
 abstract class UiEvent {
-  const UiEvent();
+  const UiEvent({required this.id});
 
-  void performAction(BuildContext context);
+  final String id;
+
+  Future<void> performAction(BuildContext context);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UiEvent && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 @Riverpod(keepAlive: true)
@@ -20,14 +32,29 @@ class UiEventQueueNotifier extends _$UiEventQueueNotifier {
     return Queue();
   }
 
+  bool _processing = false;
+
   void emit(UiEvent event) {
-    state = Queue.of(state)..add(event);
+    if (!state.contains(event)) {
+      state = Queue.of(state)..add(event);
+    }
   }
 
-  UiEvent? consume() {
-    if (state.isEmpty) return null;
-    final nextEvent = state.first;
-    state = Queue.of(state)..removeFirst();
-    return nextEvent;
+  Future<void> processQueue(BuildContext context) async {
+    if (_processing) return;
+    _processing = true;
+    try {
+      while (state.isNotEmpty) {
+        final event = state.first;
+        state = Queue.of(state)..removeFirst();
+        try {
+          await event.performAction(context);
+        } catch (error, stackTrace) {
+          Logger.error(error, stackTrace: stackTrace);
+        }
+      }
+    } finally {
+      _processing = false;
+    }
   }
 }

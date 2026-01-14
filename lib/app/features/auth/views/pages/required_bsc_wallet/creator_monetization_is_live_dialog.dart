@@ -20,15 +20,15 @@ import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 class CreatorMonetizationIsLiveDialogEvent extends UiEvent {
-  const CreatorMonetizationIsLiveDialogEvent();
+  const CreatorMonetizationIsLiveDialogEvent() : super(id: 'creator_monetization_is_live_dialog');
 
   static bool shown = false;
 
   @override
-  void performAction(BuildContext context) {
+  Future<void> performAction(BuildContext context) async {
     if (!shown) {
       shown = true;
-      showSimpleBottomSheet<void>(
+      await showSimpleBottomSheet<void>(
         context: context,
         isDismissible: false,
         backgroundColor: context.theme.appColors.forest,

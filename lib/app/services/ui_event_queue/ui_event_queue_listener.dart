@@ -17,8 +17,9 @@ class UiEventQueueListener extends HookConsumerWidget {
 
     useOnInit(
       () {
-        final notifier = ref.read(uiEventQueueNotifierProvider.notifier);
-        notifier.consume()?.performAction(rootNavigatorKey.currentContext!);
+        ref
+            .read(uiEventQueueNotifierProvider.notifier)
+            .processQueue(rootNavigatorKey.currentContext!);
       },
       uiEvents.toList(),
     );

@@ -18,11 +18,11 @@ import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 
 class ShowTurnOnNotificationsEvent extends UiEvent {
-  const ShowTurnOnNotificationsEvent();
+  const ShowTurnOnNotificationsEvent() : super(id: 'turn_on_notifications');
 
   @override
-  void performAction(BuildContext context) {
-    context.go(NotificationsRoute().location);
+  Future<void> performAction(BuildContext context) async {
+    await context.push<void>(NotificationsRoute().location);
   }
 }
 

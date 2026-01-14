@@ -7,12 +7,12 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 
 class DeeplinkNavigateEvent extends UiEvent {
-  const DeeplinkNavigateEvent(this.path);
+  const DeeplinkNavigateEvent(this.path) : super(id: 'deeplink_navigate_$path');
 
   final String path;
 
   @override
-  void performAction(BuildContext context) {
+  Future<void> performAction(BuildContext context) async {
     final context = rootNavigatorKey.currentContext;
     if (context == null || !context.mounted) {
       return;
@@ -31,7 +31,7 @@ class DeeplinkNavigateEvent extends UiEvent {
         path == SelfProfileRoute().location) {
       GoRouter.of(context).go(path);
     } else {
-      GoRouter.of(context).push(path);
+      await GoRouter.of(context).push(path);
     }
   }
 }

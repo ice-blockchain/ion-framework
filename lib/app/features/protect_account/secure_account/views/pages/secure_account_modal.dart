@@ -17,15 +17,15 @@ import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SecureAccountDialogEvent extends UiEvent {
-  const SecureAccountDialogEvent();
+  const SecureAccountDialogEvent() : super(id: 'secure_account_dialog');
 
   static bool shown = false;
 
   @override
-  void performAction(BuildContext context) {
+  Future<void> performAction(BuildContext context) async {
     if (!shown) {
       shown = true;
-      showSimpleBottomSheet<void>(
+      await showSimpleBottomSheet<void>(
         context: context,
         isDismissible: false,
         child: const SecureAccountModal(

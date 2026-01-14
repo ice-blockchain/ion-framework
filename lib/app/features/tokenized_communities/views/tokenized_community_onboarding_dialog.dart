@@ -14,16 +14,17 @@ import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class TokenizedCommunityOnboardingDialogEvent extends UiEvent {
-  const TokenizedCommunityOnboardingDialogEvent();
+  const TokenizedCommunityOnboardingDialogEvent()
+      : super(id: 'tokenized_community_onboarding_dialog');
 
   static bool shown = false;
 
   @override
-  void performAction(BuildContext context) {
+  Future<void> performAction(BuildContext context) async {
     //TODO:uncomment
     // if (!shown) {
     shown = true;
-    showSimpleBottomSheet<void>(
+    await showSimpleBottomSheet<void>(
       context: context,
       isDismissible: false,
       backgroundColor: context.theme.appColors.forest,
@@ -86,7 +87,7 @@ class _ContentState extends ConsumerWidget {
               SizedBox(height: 21.0.s),
               Button(
                 minimumSize: Size(double.infinity, 56.0.s),
-                label: Text(context.i18n.bsc_required_dialog_action_button),
+                label: const Text('onboarding'),
                 onPressed: () => context.pop(),
               ),
               ScreenBottomOffset(),
