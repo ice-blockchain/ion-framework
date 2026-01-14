@@ -98,13 +98,36 @@ class StoryViewerPage extends HookConsumerWidget {
       [initialStoryReference, storyViewerState.userStories.isEmpty],
     );
 
-    useOnInit(
+    final routeAnimation = ModalRoute.of(context)?.animation;
+
+    useEffect(
       () {
-        if (storyViewerState.userStories.isEmpty && context.mounted && context.canPop()) {
-          context.pop();
+        if (storyViewerState.userStories.isNotEmpty) {
+          return null;
         }
+
+        void tryPop() {
+          if (context.mounted && context.canPop()) {
+            context.pop();
+          }
+        }
+
+        if (routeAnimation == null || routeAnimation.isCompleted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => tryPop());
+          return null;
+        }
+
+        void listener(AnimationStatus status) {
+          if (status == AnimationStatus.completed) {
+            routeAnimation.removeStatusListener(listener);
+            tryPop();
+          }
+        }
+
+        routeAnimation.addStatusListener(listener);
+        return () => routeAnimation.removeStatusListener(listener);
       },
-      [storyViewerState.userStories.isEmpty],
+      [storyViewerState.userStories.isEmpty, routeAnimation],
     );
 
     final visitedUsers = useRef<Set<String>>(<String>{});
@@ -114,8 +137,9 @@ class StoryViewerPage extends HookConsumerWidget {
         if (stories.isEmpty) {
           return;
         }
-        final firstNotViewedStoryIndex =
-            stories.indexWhere((story) => !viewedStories.contains(story.toEventReference()));
+        final firstNotViewedStoryIndex = stories.indexWhere(
+          (story) => !viewedStories.contains(story.toEventReference()),
+        );
         final initialStoryIndex = initialStoryReference != null
             ? stories.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
@@ -136,9 +160,7 @@ class StoryViewerPage extends HookConsumerWidget {
 
         if (moveToIndex != -1 && moveToIndex < stories.length) {
           ref
-              .watch(
-                singleUserStoryViewingControllerProvider(currentUserPubkey).notifier,
-              )
+              .watch(singleUserStoryViewingControllerProvider(currentUserPubkey).notifier)
               .moveToStoryIndex(moveToIndex);
         }
 
