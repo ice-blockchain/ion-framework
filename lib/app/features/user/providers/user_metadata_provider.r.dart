@@ -20,7 +20,6 @@ import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_metadata_lite.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
-import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -34,17 +33,14 @@ class UserMetadata extends _$UserMetadata {
     bool cache = true,
     bool network = true,
   }) async {
-    final expirationDuration = ref.watch(userMetadataCacheDurationProvider);
     final userMetadata = await ref.watch(
       ionConnectEntityProvider(
         cache: cache,
         network: network,
-        expirationDuration: expirationDuration,
         eventReference: ReplaceableEventReference(
           masterPubkey: masterPubkey,
           kind: UserMetadataEntity.kind,
         ),
-        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
         search: _buildSearchForDependencies(),
       ).future,
     ) as UserMetadataEntity?;
@@ -60,12 +56,10 @@ class UserMetadata extends _$UserMetadata {
         ionConnectEntityProvider(
           actionType: ActionType.write,
           cache: cache,
-          expirationDuration: expirationDuration,
           eventReference: ReplaceableEventReference(
             masterPubkey: masterPubkey,
             kind: UserMetadataEntity.kind,
           ),
-          cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
           search: _buildSearchForDependencies(),
         ).future,
       ) as UserMetadataEntity?;
@@ -124,18 +118,15 @@ class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier 
     if (masterPubkey == null) {
       return;
     }
-    final expirationDuration = ref.watch(userMetadataCacheDurationProvider);
 
     //should match the call in UserMetadata provider
     final _ = await ref.refresh(
       ionConnectEntityProvider(
         cache: false,
-        expirationDuration: expirationDuration,
         eventReference: ReplaceableEventReference(
           masterPubkey: masterPubkey,
           kind: UserMetadataEntity.kind,
         ),
-        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
         search: _buildSearchForDependencies(),
       ).future,
     );
@@ -221,6 +212,7 @@ Future<UserPreviewEntity?> userPreviewData(
   return null;
 }
 
+// We need to refetch the user metadata periodically to keep the dependencies up to date (e.g., kind0 → kind31175).
 @riverpod
 Duration userMetadataCacheDuration(Ref ref) {
   return ref.watch(envProvider.notifier).get<Duration>(EnvVariable.USER_METADATA_CACHE_DURATION);

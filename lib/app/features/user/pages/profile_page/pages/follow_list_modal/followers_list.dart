@@ -57,7 +57,6 @@ class FollowersList extends HookConsumerWidget {
               key: ValueKey(masterPubkeys[index]),
               pubkey: masterPubkeys[index],
               follower: isCurrentUserFollowers ? true : null,
-              network: true,
             ),
           ),
         ),
