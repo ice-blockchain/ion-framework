@@ -45,32 +45,10 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   @override
   FeedForYouContentState build(FeedType feedType, {FeedModifier? feedModifier}) {
     Future.microtask(fetchEntities);
+
+    _refreshOnContentLangChange();
+
     ref
-      // Watch content language changes and refresh feed when they change
-      ..listen(
-        contentLanguageWatchProvider.select(
-          (async) => async.valueOrNull?.hashtags ?? const <String>[],
-        ),
-        (previous, next) {
-          // Skip refresh on initial build (when previous is null)
-          if (previous == null) return;
-
-          // Only refresh if hashtags actually changed (order-independent comparison)
-          final previousSet = previous.toSet();
-          final nextSet = next.toSet();
-          final hasChanged = previous.length != next.length ||
-              previousSet.length != nextSet.length ||
-              !previousSet.every(nextSet.contains);
-
-          if (hasChanged) {
-            Future.microtask(() {
-              if (!state.isLoading) {
-                refresh();
-              }
-            });
-          }
-        },
-      )
       ..listen(
         feedFollowingContentProvider(
           feedType,
@@ -97,6 +75,30 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       englishContentFallbackEnabled: false,
       hasMoreFollowing: true,
       modifiersPagination: {},
+    );
+  }
+
+  void _refreshOnContentLangChange() {
+    ref.listen(
+      contentLanguageWatchProvider.select(
+        (async) => async.valueOrNull?.hashtags ?? const <String>[],
+      ),
+      (previous, next) {
+        // Skip refresh on initial build (when previous is null)
+        if (previous == null) return;
+
+        // Only refresh if hashtags actually changed (order-independent comparison)
+        const equality = DeepCollectionEquality.unordered();
+        final hasChanged = !equality.equals(next, previous);
+
+        if (hasChanged) {
+          Future.microtask(() {
+            if (!state.isLoading) {
+              refresh();
+            }
+          });
+        }
+      },
     );
   }
 
