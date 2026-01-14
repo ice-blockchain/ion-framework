@@ -145,7 +145,7 @@ class _ErrorState extends StatelessWidget {
           quoteError! as LetsExchangeException,
         ),
       NotEnoughGasOnBscException() => context.i18n.error_swap_not_enough_gas_on_bsc,
-      InsufficientBalanceException() => context.i18n.error_swap_82000,
+      InsufficientBalanceException() => context.i18n.wallet_coin_amount_insufficient_funds,
       final AmountBelowMinimumException ex =>
         context.i18n.error_swap_amount_below_min(ex.minAmount, ex.symbol),
       _ => context.i18n.error_getting_swap_quote,
