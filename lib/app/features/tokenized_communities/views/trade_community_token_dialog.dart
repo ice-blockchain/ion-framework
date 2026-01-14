@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -26,6 +28,7 @@ import 'package:ion/app/features/tokenized_communities/views/trade_community_tok
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/continue_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/slippage_action.dart';
@@ -74,6 +77,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     );
     final state = ref.watch(tradeCommunityTokenControllerProvider(params));
     final controller = ref.read(tradeCommunityTokenControllerProvider(params).notifier);
+
+    useOnInit(
+      () => ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
+    );
 
     final initialMode = this.initialMode;
     useOnInit(

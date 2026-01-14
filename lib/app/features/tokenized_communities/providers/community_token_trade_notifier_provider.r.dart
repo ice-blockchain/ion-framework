@@ -42,6 +42,8 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
   static const _firstBuyMetadataSentKey = 'community_token_first_buy';
   static const _broadcastedStatus = 'broadcasted';
 
+  static const _syncWalletDataDelay = Duration(seconds: 3);
+
   @override
   FutureOr<String?> build(CommunityTokenTradeNotifierParams params) => null;
 
@@ -139,8 +141,12 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       }
 
       unawaited(
-        ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
+        Future.delayed(
+          _syncWalletDataDelay,
+          () => ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
+        ),
       );
+
       return txHash;
     });
   }
