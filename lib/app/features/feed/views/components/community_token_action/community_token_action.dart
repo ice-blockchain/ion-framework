@@ -16,16 +16,12 @@ import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 
 class CommunityTokenAction extends HookConsumerWidget {
   const CommunityTokenAction({
     required this.eventReference,
     this.network = false,
-    this.enableTokenNavigation = false,
     this.headerOffset,
     super.key,
   });
@@ -33,8 +29,6 @@ class CommunityTokenAction extends HookConsumerWidget {
   final EventReference eventReference;
 
   final bool network;
-
-  final bool enableTokenNavigation;
 
   final double? headerOffset;
 
@@ -65,13 +59,7 @@ class CommunityTokenAction extends HookConsumerWidget {
       );
     }
 
-    final tokenDefinition = enableTokenNavigation
-        ? ref
-            .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
-            .valueOrNull as CommunityTokenDefinitionEntity?
-        : null;
-
-    final postWidget = Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: headerOffset ?? 0),
@@ -97,19 +85,5 @@ class CommunityTokenAction extends HookConsumerWidget {
         CounterItemsFooter(eventReference: eventReference),
       ],
     );
-
-    if (enableTokenNavigation && tokenDefinition != null) {
-      final route = TokenizedCommunityRoute(
-        externalAddress: tokenDefinition.data.externalAddress,
-      );
-
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => route.push<void>(context),
-        child: postWidget,
-      );
-    }
-
-    return postWidget;
   }
 }
