@@ -139,7 +139,7 @@ class OnboardingPage {
   final String description;
 }
 
-class _OnboardingCarousel extends HookWidget {
+class _OnboardingCarousel extends StatelessWidget {
   const _OnboardingCarousel({
     required this.pages,
     required this.pageController,
@@ -154,12 +154,23 @@ class _OnboardingCarousel extends HookWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 274.0.s,
-      child: PageView(
-        controller: pageController,
-        onPageChanged: onPageChanged,
-        children: [
-          for (final page in pages) _OnboardingCarouselPage(page: page),
-        ],
+      child: AnimatedBuilder(
+        animation: pageController,
+        builder: (context, child) {
+          return PageView.builder(
+            controller: pageController,
+            onPageChanged: onPageChanged,
+            itemCount: pages.length,
+            itemBuilder: (context, index) {
+              final page = pageController.hasClients ? pageController.page ?? 0.0 : 0.0;
+              final opacity = (1 - (page - index).abs()).clamp(0.0, 1.0);
+              return Opacity(
+                opacity: opacity,
+                child: _OnboardingCarouselPage(page: pages[index]),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -219,7 +230,9 @@ class _OnboardingProgress extends StatelessWidget {
         total,
         (index) => Padding(
           padding: EdgeInsets.symmetric(horizontal: 2.0.s),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
             width: 6.0.s,
             height: 6.0.s,
             decoration: BoxDecoration(
