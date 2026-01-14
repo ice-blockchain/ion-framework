@@ -51,11 +51,7 @@ class MissingEventsHandler implements EventsMetadataHandler {
           cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
           expirationDuration: _userMetadataExpirationDuration,
         ),
-      if (restEvents.isNotEmpty)
-        _ionConnectEntitiesManager.fetch(
-          eventReferences: restEvents,
-          cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
-        ),
+      if (restEvents.isNotEmpty) _ionConnectEntitiesManager.fetch(eventReferences: restEvents),
     ]);
 
     return [];
