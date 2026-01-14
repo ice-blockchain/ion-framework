@@ -82,13 +82,13 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
 
       final rng = Random(conversations.length);
       final adIndex = rng.nextInt(conversations.length);
+      final lastConversation = conversations.last;
 
       conversations.insert(
         adIndex,
-        const ConversationListItem(
-          conversationId: '-1',
+        lastConversation.copyWith(
+          conversationId: 'ad_${lastConversation.conversationId}',
           type: ConversationType.ad,
-          joinedAt: 0,
         ),
       );
     });

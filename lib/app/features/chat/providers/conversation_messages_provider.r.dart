@@ -57,10 +57,24 @@ class ConversationMessages extends _$ConversationMessages {
       state = const AsyncData([]);
       return;
     }
-
     final currentMessages = state.valueOrNull ?? [];
     final tailIds = tail.map((message) => message.sharedId).toSet();
     final olderMessages = currentMessages.where((message) => !tailIds.contains(message.sharedId));
+
+    final lastMessageItem = tail.firstOrNull;
+    if (lastMessageItem != null) {
+      final adMessageItem = EventMessage(
+        id: 'ad_id_${lastMessageItem.createdAt}',
+        content: lastMessageItem.content,
+        createdAt: lastMessageItem.createdAt,
+        pubkey: 'ad_key_${lastMessageItem.pubkey}',
+        kind: lastMessageItem.kind,
+        tags: lastMessageItem.tags,
+        sig: lastMessageItem.sig,
+      );
+
+      tail.insert(0, adMessageItem);
+    }
 
     final merged = [...tail, ...olderMessages];
 
