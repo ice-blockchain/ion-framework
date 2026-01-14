@@ -13,4 +13,6 @@
     <dimen name="apd_native_custom_cta_padding_h">20dp</dimen>
     <dimen name="apd_native_custom_ad_attribution_elevation">0dp</dimen>
     <dimen name="apd_native_custom_card_padding">16dp</dimen>
+    <dimen name="apd_native_ad_attribution_w">27dp</dimen>
+    <dimen name="apd_native_ad_attribution_h">18dp</dimen>
 </resources>
