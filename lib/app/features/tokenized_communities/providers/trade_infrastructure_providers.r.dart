@@ -8,6 +8,7 @@ import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
 import 'package:ion/app/features/tokenized_communities/data/token_info_cache.dart';
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
+import 'package:ion/app/features/tokenized_communities/domain/supported_swap_tokens_resolver_service.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_payment_token_groups_service.dart';
@@ -26,6 +27,14 @@ import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'trade_infrastructure_providers.r.g.dart';
+
+@riverpod
+Future<SupportedSwapTokensResolverService> supportedSwapTokensResolverService(Ref ref) async {
+  return SupportedSwapTokensResolverService(
+    coinsRepository: ref.watch(coinsRepositoryProvider),
+    ionIdentityClient: await ref.watch(ionIdentityClientProvider.future),
+  );
+}
 
 @riverpod
 Future<TradeCommunityTokenApi> tradeCommunityTokenApi(
@@ -100,19 +109,17 @@ Future<TradeCommunityTokenService> tradeCommunityTokenService(
 Future<List<CoinData>> supportedSwapTokens(Ref ref) async {
   final api = await ref.watch(tradeCommunityTokenApiProvider.future);
   final supportedTokensConfig = await api.fetchSupportedSwapTokens();
-  final coinsRepository = ref.watch(coinsRepositoryProvider);
+  final supportedTokensResolver =
+      await ref.watch(supportedSwapTokensResolverServiceProvider.future);
 
-  final supportedAddresses = supportedTokensConfig
-      .map((e) => e['address'] as String)
-      .map((e) => e.trim().toLowerCase())
-      .where((e) => e.isNotEmpty)
-      .toSet();
+  final resolvedCoins = await supportedTokensResolver.resolveFromConfig(supportedTokensConfig);
+  if (resolvedCoins.isNotEmpty) return resolvedCoins;
 
-  final supportedCoins = await coinsRepository.getCoinsByFilters(
-    contractAddresses: supportedAddresses,
+  final currentWalletView = await ref.watch(currentWalletViewDataProvider.future);
+  return supportedTokensResolver.resolveFromWalletViewFallback(
+    supportedTokensConfig: supportedTokensConfig,
+    walletViewCoins: currentWalletView.coins.map((e) => e.coin),
   );
-
-  return supportedCoins;
 }
 
 @riverpod
