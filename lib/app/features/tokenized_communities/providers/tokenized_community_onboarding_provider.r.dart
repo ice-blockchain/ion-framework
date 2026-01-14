@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/views/pages/tokenized_community_onboarding/tokenized_community_onboarding_dialog.dart';
+import 'package:ion/app/features/tokenized_communities/views/pages/tokenized_community_onboarding_dialog/tokenized_community_onboarding_dialog.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/providers/route_location_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
