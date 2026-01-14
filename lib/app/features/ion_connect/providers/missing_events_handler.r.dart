@@ -44,20 +44,19 @@ class MissingEventsHandler implements EventsMetadataHandler {
       (event) => event.kind == UserMetadataEntity.kind,
     );
 
-    if (userMetadataEvents.isNotEmpty) {
-      await _ionConnectEntitiesManager.fetch(
-        eventReferences: userMetadataEvents,
-        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
-        expirationDuration: _userMetadataExpirationDuration,
-      );
-    }
-
-    if (restEvents.isNotEmpty) {
-      await _ionConnectEntitiesManager.fetch(
-        eventReferences: restEvents,
-        cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
-      );
-    }
+    await Future.wait([
+      if (userMetadataEvents.isNotEmpty)
+        _ionConnectEntitiesManager.fetch(
+          eventReferences: userMetadataEvents,
+          cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
+          expirationDuration: _userMetadataExpirationDuration,
+        ),
+      if (restEvents.isNotEmpty)
+        _ionConnectEntitiesManager.fetch(
+          eventReferences: restEvents,
+          cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
+        ),
+    ]);
 
     return [];
   }
