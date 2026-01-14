@@ -28,16 +28,20 @@ class FollowersCount extends _$FollowersCount {
       ),
     ];
 
-    return await ref.watch(
-      countProvider(
-        actionSource: ActionSourceUser(pubkey),
-        requestData: EventCountRequestData(filters: filters),
-        key: pubkey,
-        type: EventCountResultType.followers,
-        cache: cache,
-        network: network,
-      ).future,
-    ) as FutureOr<int?>;
+    try {
+      return await ref.watch(
+        countProvider(
+          actionSource: ActionSourceUser(pubkey),
+          requestData: EventCountRequestData(filters: filters),
+          key: pubkey,
+          type: EventCountResultType.followers,
+          cache: cache,
+          network: network,
+        ).future,
+      ) as FutureOr<int?>;
+    } catch (error) {
+      return null;
+    }
   }
 
   void addOne() {

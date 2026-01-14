@@ -59,6 +59,12 @@ class RelayAuth extends _$RelayAuth {
           ref.read(relaysReplicaDelayProvider.notifier).setDelay();
           return true;
         }
+        // If relay is already authenticated with a different public key (user switch/logout race condition),
+        // close the relay connection. RelayClosedMixin will automatically invalidate the relay provider,
+        // causing the next request to get a fresh connection with correct credentials.
+        if (RelayAuthService.isAlreadyAuthenticatedWithDifferentKeyError(error)) {
+          relay.close();
+        }
         return false;
       },
     );
@@ -187,5 +193,14 @@ class RelayAuthService {
 
   static bool isRelayAuthoritativeError(Object? error) {
     return error is SendEventException && error.code.startsWith('relay-is-authoritative');
+  }
+
+  /// Detects if the error indicates the relay is already authenticated with a different public key.
+  /// This can happen during user switch/logout when a relay connection is reused before being invalidated.
+  static bool isAlreadyAuthenticatedWithDifferentKeyError(Object? error) {
+    if (error is! SendEventException) return false;
+    final errorMessage = error.code.toLowerCase();
+    return errorMessage.contains('already authenticated') &&
+        errorMessage.contains('different public key');
   }
 }

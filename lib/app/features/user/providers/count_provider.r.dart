@@ -110,11 +110,16 @@ class Count extends _$Count {
             },
           );
 
-      await ref.read(ionConnectNotifierProvider.notifier).sendEvent(
-            requestEvent,
-            actionSource: ActionSourceRelayUrl(relay.keys.first.url),
-            cache: false,
-          );
+      try {
+        await ref.read(ionConnectNotifierProvider.notifier).sendEvent(
+              requestEvent,
+              actionSource: ActionSourceRelayUrl(relay.keys.first.url),
+              cache: false,
+            );
+      } catch (sendError) {
+        relay.keys.first.unsubscribe(subscription.id);
+        rethrow;
+      }
 
       final responseEntity = await messagesFuture;
 
