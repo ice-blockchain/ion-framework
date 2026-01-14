@@ -1,12 +1,7 @@
 package com.appodeal.appodeal_flutter.native_ad
 
 import android.app.Activity
-import android.widget.Button
-import android.widget.RelativeLayout
-import android.widget.TextView
 import com.appodeal.ads.nativead.NativeAdView
-import com.appodeal.ads.nativead.NativeAdViewAppWall
-import com.appodeal.ads.nativead.NativeAdViewContentStream
 import com.appodeal.ads.nativead.NativeAdViewNewsFeed
 import com.appodeal.appodeal_flutter.R
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -22,81 +17,84 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         val context = activity.applicationContext
         val layoutInflater = activity.layoutInflater
         // Create the NativeAdView
-        val nativeAdView = when (val nativeAdViewType = nativeAdOptions.nativeAdViewType) {
+        val nativeAdView = when (nativeAdOptions.nativeAdViewType) {
             NativeAdViewType.ContentStream -> layoutInflater.inflate(
                 R.layout.apd_native_ad_view_custom,
                 null
-            ) as NativeAdView // NativeAdViewContentStream(context)
+            ) as NativeAdView
             NativeAdViewType.AppWall -> layoutInflater.inflate(
                 R.layout.apd_native_ad_view_full,
                 null
-            ) as NativeAdView // NativeAdViewAppWall(context)
+            ) as NativeAdView
             NativeAdViewType.Chat -> layoutInflater.inflate(
                 R.layout.apd_native_ad_view_chat_list,
                 null
             ) as NativeAdView
             NativeAdViewType.NewsFeed -> NativeAdViewNewsFeed(context)
-            else -> throw IllegalArgumentException("Unknown NativeAdViewType: $nativeAdViewType")
+            else -> throw IllegalArgumentException("Unknown NativeAdViewType: ${nativeAdOptions.nativeAdViewType}")
         }
 
-        if (nativeAdOptions.nativeAdViewType == NativeAdViewType.ContentStream) {
+        if (nativeAdOptions.nativeAdViewType == NativeAdViewType.Chat) {
             return nativeAdView
         }
 
-        // set ad choices config
-        val adChoiceConfig = nativeAdOptions.adChoiceConfig
-        val adChoicePosition = adChoiceConfig.position
+        val constraintSet = ConstraintSet()
+        val nativeCustomContentId = R.id.native_custom_content
+        val constraintLayout = nativeAdView.findViewById<ConstraintLayout>(nativeCustomContentId)
+        constraintSet.clone(constraintLayout)
 
         val adActionButtonConfig = nativeAdOptions.adActionButtonConfig
         val adActionPosIndex = adActionButtonConfig.position
-
-        //nativeAdView.setAdChoicesPosition(adChoicePosition)
-        val nativeCustomContentId = R.id.native_custom_content
-        val attributionViewId = R.id.native_custom_ad_attribution
-        val adChoicesViewId = R.id.native_custom_ad_choices
-        val constraintLayout = nativeAdView.findViewById<ConstraintLayout>(nativeCustomContentId)
 
         val cardPadding = activity.resources.getDimensionPixelSize(R.dimen.apd_native_custom_card_padding)
         val horizontalSpacing = activity.resources.getDimensionPixelSize(R.dimen.apd_native_custom_content_margin_v)
         val density = activity.resources.displayMetrics.density
 
-        val marginPx = (adChoiceConfig.margin * density).toInt()
         apdLog(
             "AppodealNativeAdView nativeAdViewType: ${nativeAdOptions.nativeAdViewType}, " +
                     "density: $density, cardPadding:$cardPadding, horizontalSpacing:$horizontalSpacing, " +
-                    "marginPx:$marginPx, adActionPosIndex:$adActionPosIndex"
+                    "adActionPosIndex:$adActionPosIndex"
         )
 
-        val constraintSet = ConstraintSet()
-        constraintSet.clone(constraintLayout)
+        if (nativeAdOptions.nativeAdViewType == NativeAdViewType.AppWall) {
+            // set ad choices config for AppWall
+            val adChoiceConfig = nativeAdOptions.adChoiceConfig
+            val adChoicePosition = adChoiceConfig.position
 
-        // Clear existing horizontal constraints to avoid conflicts
-        constraintSet.clear(attributionViewId, ConstraintSet.START)
-        constraintSet.clear(attributionViewId, ConstraintSet.END)
-        constraintSet.clear(adChoicesViewId, ConstraintSet.START)
-        constraintSet.clear(adChoicesViewId, ConstraintSet.END)
+            val attributionViewId = R.id.native_custom_ad_attribution
+            val adChoicesViewId = R.id.native_custom_ad_choices
 
-        // Always top anchored to media wrapper
-        constraintSet.connect(attributionViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
-        constraintSet.connect(adChoicesViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
+            val marginPx = (adChoiceConfig.margin * density).toInt()
 
-        when (adChoicePosition) {
-            Position.START_TOP -> {
-                constraintSet.connect(adChoicesViewId, ConstraintSet.START, nativeCustomContentId, ConstraintSet.START, cardPadding)
-                constraintSet.connect(attributionViewId, ConstraintSet.START, adChoicesViewId, ConstraintSet.END, horizontalSpacing)
+            // Clear existing horizontal constraints to avoid conflicts
+            constraintSet.clear(attributionViewId, ConstraintSet.START)
+            constraintSet.clear(attributionViewId, ConstraintSet.END)
+            constraintSet.clear(adChoicesViewId, ConstraintSet.START)
+            constraintSet.clear(adChoicesViewId, ConstraintSet.END)
+
+            // Always top anchored to media wrapper
+            constraintSet.connect(attributionViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
+            constraintSet.connect(adChoicesViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
+
+            when (adChoicePosition) {
+                Position.START_TOP -> {
+                    constraintSet.connect(adChoicesViewId, ConstraintSet.START, nativeCustomContentId, ConstraintSet.START, cardPadding)
+                    constraintSet.connect(attributionViewId, ConstraintSet.START, adChoicesViewId, ConstraintSet.END, horizontalSpacing)
+                }
+
+                Position.END_TOP -> {
+                    constraintSet.connect(attributionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, cardPadding)
+                    constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
+                }
+
+                else -> {
+                    constraintSet.connect(attributionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, cardPadding)
+                    constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
+                }
             }
 
-            Position.END_TOP -> {
-                constraintSet.connect(attributionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, cardPadding)
-                constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
-            }
-
-            else -> {
-                constraintSet.connect(attributionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, cardPadding)
-                constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
-            }
+            constraintSet.applyTo(constraintLayout)
         }
-        //constraintSet.applyTo(constraintLayout)
 
         // set adActionButtonConfig config
         val callToActionViewId = R.id.native_custom_cta
@@ -110,10 +108,10 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
 
         constraintSet.clear(nativeMediaViewId, ConstraintSet.BOTTOM)
 
-        // Always top anchored to media wrapper
+        // Always end anchored to media wrapper
         constraintSet.connect(callToActionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, 0)
 
-        when (adChoicePosition) {
+        when (adActionPosIndex) {
             Position.START_TOP -> {
                 constraintSet.connect(callToActionViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, 0)
                 constraintSet.connect(nativeMediaViewId, ConstraintSet.BOTTOM, nativeCustomContentId, ConstraintSet.BOTTOM, 0)
@@ -121,10 +119,13 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
             }
 
             Position.START_BOTTOM -> {
-                constraintSet.connect(callToActionViewId, ConstraintSet.BOTTOM, nativeCustomContentId, ConstraintSet.TOP, 0)
+                constraintSet.connect(callToActionViewId, ConstraintSet.BOTTOM, nativeCustomContentId, ConstraintSet.BOTTOM, 0)
                 constraintSet.connect(callToActionViewId, ConstraintSet.START, nativeCustomContentId, ConstraintSet.START, 0)
                 constraintSet.connect(nativeMediaViewId, ConstraintSet.BOTTOM, callToActionViewId, ConstraintSet.TOP, horizontalSpacing)
                 constraintSet.setDimensionRatio(nativeMediaViewId, "H,9:16")
+
+                constraintSet.clear(R.id.native_custom_title, ConstraintSet.END)
+                constraintSet.clear(R.id.native_custom_description, ConstraintSet.END)
             }
 
             else -> {

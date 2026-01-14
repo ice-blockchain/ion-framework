@@ -9,6 +9,5 @@ enum MessageType {
   visualMedia,
   requestFunds,
   moneySent,
-  sharedPost,
-  ad
+  sharedPost
 }

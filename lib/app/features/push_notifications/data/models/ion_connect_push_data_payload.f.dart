@@ -245,7 +245,6 @@ class IonConnectPushDataPayload {
       MessageType.audio => PushNotificationType.chatVoiceMessage,
       MessageType.document => PushNotificationType.chatDocumentMessage,
       MessageType.text => PushNotificationType.chatTextMessage,
-      MessageType.ad => PushNotificationType.chatTextMessage,
       MessageType.emoji => PushNotificationType.chatEmojiMessage,
       MessageType.profile => PushNotificationType.chatProfileMessage,
       MessageType.requestFunds => PushNotificationType.chatPaymentRequestMessage,

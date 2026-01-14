@@ -30,20 +30,24 @@ internal class AppodealNativeAdView(activity: Activity, arguments: HashMap<*, *>
 
             apdLog("AppodealNativeAdView#adView-lazy-nativeAdOptions: $nativeAdOptions")
 
-            val adView = when (nativeAdOptions.nativeAdViewType) {
-                NativeAdViewType.Custom -> {
-                    apdLog("AppodealNativeAdView#adView-lazy-nativeAdViewType: Custom")
-                    val customNativeAdViewBinder = Appodeal.nativeAdViewBinder
-                        ?: throw IllegalArgumentException("NativeAdViewBinder is not set")
-                    customNativeAdViewBinder.bind(activity, nativeAdOptions)
-                }
+            apdLog("AppodealNativeAdView#adView-lazy-nativeAdViewType: ${nativeAdOptions.nativeAdViewType}")
+            val templateNativeAdViewBinder = templateNativeAdViewBinder
+            val adView = templateNativeAdViewBinder.bind(activity, nativeAdOptions)
 
-                else -> {
-                    apdLog("AppodealNativeAdView#adView-lazy-nativeAdViewType: ${nativeAdOptions.nativeAdViewType}")
-                    val templateNativeAdViewBinder = templateNativeAdViewBinder
-                    templateNativeAdViewBinder.bind(activity, nativeAdOptions)
-                }
-            }
+//            val adView = when (nativeAdOptions.nativeAdViewType) {
+//                NativeAdViewType.Custom -> {
+//                    apdLog("AppodealNativeAdView#adView-lazy-nativeAdViewType: Custom")
+//                    val customNativeAdViewBinder = Appodeal.nativeAdViewBinder
+//                        ?: throw IllegalArgumentException("NativeAdViewBinder is not set")
+//                    customNativeAdViewBinder.bind(activity, nativeAdOptions)
+//                }
+//
+//                else -> {
+//                    apdLog("AppodealNativeAdView#adView-lazy-nativeAdViewType: ${nativeAdOptions.nativeAdViewType}")
+//                    val templateNativeAdViewBinder = templateNativeAdViewBinder
+//                    templateNativeAdViewBinder.bind(activity, nativeAdOptions)
+//                }
+//            }
             apdLog("AppodealNativeAdView#adView-lazy-registerView: $adView")
             adView.registerView(nativeAd, placement)
             return@lazy WeakReference(adView)
