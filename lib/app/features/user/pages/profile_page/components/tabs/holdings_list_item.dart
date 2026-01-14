@@ -47,8 +47,8 @@ class HoldingsListItem extends ConsumerWidget {
                         holder.position.holder?.addresses?.ionConnect,
                   ),
                   if (holder.position.holder?.addresses?.twitter != null)
-                    Positioned(
-                      left: 23.0.s,
+                    PositionedDirectional(
+                      start: 23.0.s,
                       top: 20.0.s,
                       child: Assets.svg.iconLoginXlogo.icon(size: 12.0.s),
                     ),

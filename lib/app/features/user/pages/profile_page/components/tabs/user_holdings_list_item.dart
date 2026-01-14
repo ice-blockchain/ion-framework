@@ -38,8 +38,8 @@ class UserHoldingsListItem extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10.0.s),
                   ),
                   if (token.addresses.twitter != null)
-                    Positioned(
-                      left: 23.0.s,
+                    PositionedDirectional(
+                      start: 23.0.s,
                       top: 20.0.s,
                       child: _TwitterBadge(),
                     ),
