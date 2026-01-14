@@ -810,3 +810,7 @@ class TokenOperationProtectedException extends IONException {
 class ShareUrlNotFoundException extends IONException {
   ShareUrlNotFoundException(dynamic entityInfo) : super(10145, 'Share URL not found $entityInfo');
 }
+
+class NSFWProcessingException extends IONException {
+  NSFWProcessingException() : super(10146, 'Can not process NSFW media file');
+}
