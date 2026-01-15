@@ -40,9 +40,9 @@ class UrlMatcher extends TextMatcher {
       r'(?:[^@\s]+@)?' // optional auth
       r'(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|localhost)' // host or localhost
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/[^\s!?,;]*[A-Za-z0-9/:._-])?' // optional path (allows wide range of URL path characters)
-      r'(?:\?[^\s!?,;]*[A-Za-z0-9%_=&:.-])?' // optional query params
-      r'\b' // word boundary
+      r'(?:\/(?:[^\s?]*[A-Za-z0-9/_-])?)?' // optional path
+      r'(?:\?(?:[^\s.]*[A-Za-z0-9%_=&:-]|[^\s]*(?:\.[A-Za-z0-9%_=&:-])+))?' // optional query params
+      '(?![A-Za-z0-9])' // not followed by alphanumeric
       ')'
       '|'
       // www-prefixed URLs without scheme
@@ -50,9 +50,9 @@ class UrlMatcher extends TextMatcher {
       r'www\.' // www.
       r'(?:[A-Za-z0-9-]+\.)*[A-Za-z0-9-]+' // domain parts
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/[^\s!?,;]*[A-Za-z0-9/:._-])?' // optional path (allows wide range of URL path characters)
-      r'(?:\?[^\s!?,;]*[A-Za-z0-9%_=&:.-])?' // optional query params
-      r'\b' // word boundary
+      r'(?:\/(?:[^\s?]*[A-Za-z0-9/_-])?)?' // optional path
+      r'(?:\?(?:[^\s.]*[A-Za-z0-9%_=&:-]|[^\s]*(?:\.[A-Za-z0-9%_=&:-])+))?' // optional query params
+      '(?![A-Za-z0-9])' // not followed by alphanumeric
       ')'
       '|'
       // bare domain - must be all lowercase, with valid TLD-like structure
@@ -61,9 +61,9 @@ class UrlMatcher extends TextMatcher {
       '(?<![A-Za-z])' // not preceded by a letter (prevents matching mid-word like "text.To")
       r'[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.(?:[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.)*[a-z]{2,}' // domain.tld
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/[^\s!?,;]*[A-Za-z0-9/:._-])?' // optional path (allows wide range of URL path characters)
-      r'(?:\?[^\s!?,;]*[A-Za-z0-9%_=&:.-])?' // optional query params
-      '(?![A-Za-z0-9-])' // not followed by alphanumeric or dash (acts as boundary)
+      r'(?:\/(?:[^\s?]*[a-z0-9/_-])?)?' // optional path
+      r'(?:\?(?:[^\s.]*[a-z0-9%_=&:-]|[^\s]*(?:\.[a-z0-9%_=&:-])+))?' // optional query params
+      '(?![A-Za-z0-9-])' // not followed by alphanumeric or dash
       ')'
       ')';
 
