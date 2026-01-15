@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
@@ -64,7 +66,7 @@ class FeedProfileToken extends StatelessWidget {
   }
 }
 
-class ProfileTokenHeader extends StatelessWidget {
+class ProfileTokenHeader extends ConsumerWidget {
   const ProfileTokenHeader({
     required this.token,
     required this.externalAddress,
@@ -77,11 +79,13 @@ class ProfileTokenHeader extends StatelessWidget {
   final bool minimal;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final creatorPubkey = MasterPubkeyResolver.resolve(
       externalAddress,
       eventReference: null,
     );
+
+    final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(creatorPubkey));
 
     return Column(
       children: [
@@ -96,14 +100,16 @@ class ProfileTokenHeader extends StatelessWidget {
               imageUrl: token.imageUrl,
               borderWidth: 2.s,
             ),
-            PositionedDirectional(
-              bottom: -6.0.s,
-              end: -6.0.s,
-              child: ProfileMainAction(
-                pubkey: creatorPubkey,
-                profileMode: ProfileMode.dark,
+            // Disable actions for own profile token
+            if (!isCurrentUserProfile)
+              PositionedDirectional(
+                bottom: -6.0.s,
+                end: -6.0.s,
+                child: ProfileMainAction(
+                  pubkey: creatorPubkey,
+                  profileMode: ProfileMode.dark,
+                ),
               ),
-            ),
           ],
         ),
         SizedBox(height: 8.0.s),
