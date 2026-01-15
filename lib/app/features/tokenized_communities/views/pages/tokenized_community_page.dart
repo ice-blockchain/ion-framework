@@ -15,6 +15,7 @@ import 'package:ion/app/features/components/bookmarks/bookmark_button.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/trading_stats_formatted.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_latest_trades_provider.r.dart';
@@ -83,6 +84,10 @@ class TokenizedCommunityPage extends HookConsumerWidget {
     final tokenDefinition = ref
         .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
         .valueOrNull;
+    final tradeEventReference = switch (tokenDefinition?.data) {
+      CommunityTokenDefinitionIon(:final eventReference) => eventReference,
+      _ => null,
+    };
     final tokenType = ref.watch(tokenTypeForExternalAddressProvider(externalAddress)).valueOrNull;
     final activeTab = useState(TokenizedCommunityTabType.chart);
     final isCommentInputFocused = useMemoized(() => ValueNotifier<bool>(false), []);
@@ -200,9 +205,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         builder: (context, isFocused, _) {
           return isFocused
               ? const SizedBox.shrink()
-              : FloatingTradeIsland(
-                  externalAddress: externalAddress,
-                );
+              : tradeEventReference != null
+                  ? FloatingTradeIsland(eventReference: tradeEventReference)
+                  : FloatingTradeIsland(externalAddress: externalAddress);
         },
       ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
