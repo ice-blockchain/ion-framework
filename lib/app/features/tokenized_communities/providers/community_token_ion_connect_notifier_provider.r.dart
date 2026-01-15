@@ -79,23 +79,22 @@ class CommunityTokenIonConnectService {
 
     if (isOwnToken) {
       await _ionConnectNotifier.sendEvent(tokenDefinitionFirstBuyEvent);
-      return;
+    } else {
+      await _ionConnectNotifier
+          .sendEvent(
+            tokenDefinitionFirstBuyEvent,
+            actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
+            metadataBuilders: [_userEventsMetadataBuilder],
+            // Since we're sending this event only to the token owner, if owner shares
+            // relays with the current user, we need to retry the sending to the current
+            // user's relays in case of is-relay-authoritative error.
+            ignoreAuthoritativeErrors: false,
+          )
+          .catchError(
+            (_) => _ionConnectNotifier.sendEvent(tokenDefinitionFirstBuyEvent),
+            test: RelayAuthService.isRelayAuthoritativeError,
+          );
     }
-
-    await _ionConnectNotifier
-        .sendEvent(
-          tokenDefinitionFirstBuyEvent,
-          actionSource: ActionSource.user(communityTokenDefinition.masterPubkey),
-          metadataBuilders: [_userEventsMetadataBuilder],
-          // Since we're sending this event only to the token owner, if owner shares
-          // relays with the current user, we need to retry the sending to the current
-          // user's relays in case of is-relay-authoritative error.
-          ignoreAuthoritativeErrors: false,
-        )
-        .catchError(
-          (_) => _ionConnectNotifier.sendEvent(tokenDefinitionFirstBuyEvent),
-          test: RelayAuthService.isRelayAuthoritativeError,
-        );
 
     await _cacheTokenDefinitionFirstBuyReference(
       tokenDefinitionFirstBuyEvent: tokenDefinitionFirstBuyEvent,
