@@ -3,6 +3,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -40,7 +41,7 @@ class UiEventQueueNotifier extends _$UiEventQueueNotifier {
     }
   }
 
-  Future<void> processQueue(BuildContext context) async {
+  Future<void> processQueue() async {
     if (_processing) return;
     _processing = true;
     try {
@@ -48,7 +49,7 @@ class UiEventQueueNotifier extends _$UiEventQueueNotifier {
         final event = state.first;
         state = Queue.of(state)..removeFirst();
         try {
-          await event.performAction(context);
+          await event.performAction(rootNavigatorKey.currentContext!);
         } catch (error, stackTrace) {
           Logger.error(error, stackTrace: stackTrace);
         }

@@ -57,6 +57,7 @@ class TokenizedCommunityOnboardingService {
   Future<void> _maybeTrigger() async {
     if (!_authenticated) return;
     if (!_delegationCompleted) return;
+    // We're showing the onboarding only after the creator monetization is live dialog
     if (!_creatorMonetizationIsLiveDialogShown) return;
     if (_route != FeedRoute().location) return;
 

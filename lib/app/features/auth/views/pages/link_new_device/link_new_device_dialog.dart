@@ -112,9 +112,8 @@ class LinkNewDeviceDialog extends HookConsumerWidget {
   Future<bool> _hasUploadedKeypair(WidgetRef ref) async {
     try {
       final currentUserMetadata = await ref.read(currentUserMetadataProvider.future);
-      final keypairAttachment = DeviceKeypairUtils.extractDeviceKeypairAttachmentFromMetadata(
-        currentUserMetadata,
-      );
+      final keypairAttachment =
+          DeviceKeypairUtils.extractDeviceKeypairAttachmentFromMetadata(currentUserMetadata);
       return keypairAttachment != null;
     } catch (e) {
       Logger.error(

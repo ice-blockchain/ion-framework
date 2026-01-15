@@ -81,10 +81,10 @@ class _TokenizedCommunityOnboarding extends HookWidget {
 
     return Stack(
       children: [
-        Positioned(
+        PositionedDirectional(
           top: -50.0.s,
-          left: -43.0.s,
-          right: -43.0.s,
+          start: -43.0.s,
+          end: -43.0.s,
           child: Assets.images.tokenizedCommunities.creatorMonetizationLiveRays
               .iconWithDimensions(width: 461.s, height: 461.s),
         ),

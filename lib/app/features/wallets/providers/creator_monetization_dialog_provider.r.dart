@@ -171,9 +171,7 @@ class CreatorMonetizationIsLiveDialogShown extends _$CreatorMonetizationIsLiveDi
     if (userPreferencesService == null) {
       return false;
     }
-    final foo = userPreferencesService.getValue<bool>(_key) ?? false;
-
-    return foo;
+    return userPreferencesService.getValue<bool>(_key) ?? false;
   }
 
   Future<void> setShown() async {
