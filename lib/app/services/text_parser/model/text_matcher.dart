@@ -84,7 +84,15 @@ class UrlMatcher extends TextMatcher {
       // Check if the host is an IP address (IPv4)
       final ipv4Pattern = RegExp(r'^(\d{1,3}\.){3}\d{1,3}$');
       if (ipv4Pattern.hasMatch(uri.host)) {
-        return true; // IP addresses are valid
+        // Validate that each octet is in the valid range (0-255)
+        final octets = uri.host.split('.');
+        if (octets.every((octet) {
+          final value = int.tryParse(octet);
+          return value != null && value >= 0 && value <= 255;
+        })) {
+          return true; // Valid IPv4 address
+        }
+        return false; // Invalid IPv4 address (octets out of range)
       }
 
       final parts = uri.host.split('.');

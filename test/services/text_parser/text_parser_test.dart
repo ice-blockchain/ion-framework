@@ -271,6 +271,38 @@ void main() {
       expect(results[2].text, equals('. Next sentence'));
     });
 
+    test('should parse URLs with colons in path (hash-based file identifiers)', () {
+      final results = parser.parse(
+        'https://181.41.142.253:4443/files/7a0bc7082bf5be6ef65a4d32a34dab5992849f0ef4fea26b856f421e4a19b90f:6453cd7ec4462521526dac7f520de5a16edc218d4607da2717a917f052b3885c.webp',
+      );
+
+      expect(results.length, equals(1));
+      expect(
+        results[0].text,
+        equals(
+          'https://181.41.142.253:4443/files/7a0bc7082bf5be6ef65a4d32a34dab5992849f0ef4fea26b856f421e4a19b90f:6453cd7ec4462521526dac7f520de5a16edc218d4607da2717a917f052b3885c.webp',
+        ),
+      );
+      expect(results[0].matcher, isA<UrlMatcher>());
+    });
+
+    test('should parse multiple URLs with colons in path', () {
+      final results = parser.parse(
+        'Post with media https://181.41.142.253:4443/files/hash1:hash2.webp and https://example.com/files/abc:def.mp4',
+      );
+
+      expect(results.length, equals(4));
+      expect(results[0].text, equals('Post with media '));
+      expect(
+        results[1].text,
+        equals('https://181.41.142.253:4443/files/hash1:hash2.webp'),
+      );
+      expect(results[1].matcher, isA<UrlMatcher>());
+      expect(results[2].text, equals(' and '));
+      expect(results[3].text, equals('https://example.com/files/abc:def.mp4'));
+      expect(results[3].matcher, isA<UrlMatcher>());
+    });
+
     test('should not parse valid bare domain with TLD but followed by extra symbols', () {
       final results = parser.parse('Visit ice.ion for info');
 
