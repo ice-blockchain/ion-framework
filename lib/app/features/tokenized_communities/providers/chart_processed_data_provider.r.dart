@@ -2,6 +2,8 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/num.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_candles_normalizer.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_change_calculator.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -32,11 +34,14 @@ ChartProcessedData chartProcessedData(
   final chartCandles = _mapOhlcvToChartCandles(candles);
   final isEmpty = chartCandles.isEmpty;
 
+  final normalizedCandles =
+      chartCandles.length > 1 ? normalizeCandles(chartCandles, selectedRange) : chartCandles;
+
   final candlesToShow = isEmpty
       ? _buildFlatCandles(price)
-      : chartCandles.length == 1
-          ? _expandSingleCandleToFlatLine(chartCandles.first, selectedRange)
-          : chartCandles;
+      : normalizedCandles.length == 1
+          ? _expandSingleCandleToFlatLine(normalizedCandles.first, selectedRange)
+          : normalizedCandles;
 
   final changePercent =
       isEmpty ? 0.0 : calculatePriceChangePercent(candles, selectedRange.duration);
@@ -58,10 +63,7 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
           low: candle.low,
           close: candle.close,
           price: Decimal.parse(candle.close.toString()),
-          date: DateTime.fromMillisecondsSinceEpoch(
-            candle.timestamp ~/ 1000, // timestamp is in microseconds
-            isUtc: true,
-          ),
+          date: candle.timestamp.toDateTime,
         ),
       )
       .toList();
