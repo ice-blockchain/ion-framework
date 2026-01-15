@@ -41,8 +41,6 @@ class CreatorTokensTabContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useAutomaticKeepAlive();
-
     final selectedFilter = ref.watch(creatorTokensFilterNotifierProvider);
 
     // Watch the appropriate provider based on tab type

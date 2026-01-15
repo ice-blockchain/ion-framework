@@ -19,11 +19,12 @@ enum TokenTypeFilter {
     };
   }
 
-  bool matchesTokenType(CommunityTokenType? tokenType, CommunityTokenSource? tokenSource) {
+  bool matchesTokenType(CommunityTokenType? tokenType, CommunityTokenSource tokenSource) {
     return switch (this) {
       TokenTypeFilter.all => true,
       TokenTypeFilter.creator => tokenType == CommunityTokenType.profile,
       TokenTypeFilter.content => tokenType != null &&
+          tokenSource.isIonConnect &&
           (tokenType == CommunityTokenType.post ||
               tokenType == CommunityTokenType.video ||
               tokenType == CommunityTokenType.article),

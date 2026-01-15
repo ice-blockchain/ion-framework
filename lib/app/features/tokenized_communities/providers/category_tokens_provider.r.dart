@@ -37,8 +37,8 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
 
     state = state.copyWith(sessionId: session.id);
 
-    await _subscribeToRealtimeUpdates(session.id, _type);
-    await _loadInitial();
+    unawaited(_subscribeToRealtimeUpdates(session.id, _type));
+    unawaited(_loadInitial());
   }
 
   Future<void> _loadInitial() async {
@@ -185,32 +185,10 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
 
   void _handleRealtimeEvent(List<CommunityTokenBase> events) {
     for (final event in events) {
-      if (event is CommunityToken) {
-        _prependToken(event);
-        return;
-      }
-
       if (event is CommunityTokenPatch) {
         _applyPatch(event);
       }
     }
-  }
-
-  void _prependToken(CommunityToken token) {
-    final existingIndex = state.browsingItems.indexWhere(
-      (item) => item.addresses.ionConnect == token.addresses.ionConnect,
-    );
-
-    if (existingIndex != -1) {
-      final updatedItems = List<CommunityToken>.from(state.browsingItems);
-      updatedItems[existingIndex] = token;
-      state = state.copyWith(browsingItems: updatedItems);
-      return;
-    }
-
-    state = state.copyWith(
-      browsingItems: [token, ...state.browsingItems],
-    );
   }
 
   void _applyPatch(CommunityTokenPatch patch) {
@@ -227,15 +205,6 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
       final updatedItems = List<CommunityToken>.from(state.browsingItems);
       updatedItems[existingIndex] = updated;
       state = state.copyWith(browsingItems: updatedItems);
-    } else {
-      try {
-        final newToken = CommunityToken.fromJson(patch.toJson());
-        state = state.copyWith(
-          browsingItems: [newToken, ...state.browsingItems],
-        );
-      } catch (_) {
-        // Ignore patches that can't form a full entity.
-      }
     }
   }
 

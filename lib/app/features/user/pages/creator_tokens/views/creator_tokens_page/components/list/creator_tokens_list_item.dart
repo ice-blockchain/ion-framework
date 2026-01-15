@@ -9,7 +9,6 @@ import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/token_type_gradients.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -29,14 +28,13 @@ class CreatorTokensListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useOnInit(() {
-      ref
-          .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
-          .cacheToken(token);
-    });
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
+        ref
+            .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
+            .cacheToken(token);
+
         TokenizedCommunityRoute(
           externalAddress: token.externalAddress,
         ).push<void>(context);
@@ -56,6 +54,7 @@ class CreatorTokensListItem extends HookConsumerWidget {
                   outerBorderRadius: 10.s,
                   innerBorderRadius: 10.s,
                   borderWidth: 0,
+                  enablePaletteGenerator: false,
                 ),
                 if (token.source.isTwitter)
                   PositionedDirectional(
