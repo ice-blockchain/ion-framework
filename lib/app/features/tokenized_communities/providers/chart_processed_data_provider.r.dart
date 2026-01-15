@@ -38,7 +38,7 @@ ChartProcessedData chartProcessedData(
       chartCandles.length > 1 ? normalizeCandles(chartCandles, selectedRange) : chartCandles;
 
   final candlesToShow = isEmpty
-      ? _buildFlatCandles(price)
+      ? _buildFlatCandles(price, selectedRange)
       : normalizedCandles.length == 1
           ? _expandSingleCandleToFlatLine(normalizedCandles.first, selectedRange)
           : normalizedCandles;
@@ -70,13 +70,14 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
 }
 
 // Builds flat candles for empty state (all candles at same price).
-List<ChartCandle> _buildFlatCandles(Decimal price) {
+List<ChartCandle> _buildFlatCandles(Decimal price, ChartTimeRange selectedRange) {
   final now = DateTime.now();
-  const count = 20;
+  final interval = selectedRange.duration;
+  const count = 35;
   final value = double.tryParse(price.toString()) ?? 0;
 
   return List<ChartCandle>.generate(count, (index) {
-    final date = now.subtract(Duration(minutes: (count - index) * 15));
+    final date = now.subtract(interval * (count - index));
     return ChartCandle(
       open: value,
       high: value,

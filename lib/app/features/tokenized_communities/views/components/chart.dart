@@ -149,6 +149,7 @@ class _ChartContent extends StatelessWidget {
                 aspectRatio: 1.7,
                 child: TokenAreaLineChart(
                   candles: candles,
+                  selectedRange: selectedRange,
                   isLoading: isLoading,
                 ),
               ),

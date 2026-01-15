@@ -12,11 +12,13 @@ import 'package:ion/app/utils/string.dart';
 class TokenAreaLineChart extends HookConsumerWidget {
   const TokenAreaLineChart({
     required this.candles,
+    required this.selectedRange,
     this.isLoading = false,
     super.key,
   });
 
   final List<ChartCandle> candles;
+  final ChartTimeRange selectedRange;
   final bool isLoading;
 
   double _calculateReservedSize(double maxY, TextStyle style) {
@@ -25,14 +27,13 @@ class TokenAreaLineChart extends HookConsumerWidget {
   }
 
   double _calculateInitialScale(int dataPointCount) {
-    const maxPointsPerScreen = 30;
-    const maxScale = 3.0;
+    const maxPointsPerScreen = 35;
 
     if (dataPointCount < maxPointsPerScreen) {
       return 1;
     }
 
-    return (dataPointCount / maxPointsPerScreen).clamp(1.0, maxScale);
+    return dataPointCount / maxPointsPerScreen;
   }
 
   @override
@@ -41,7 +42,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
     final styles = context.theme.appTextThemes;
 
     final calcData = ref.watch(
-      chartCalculationDataProvider(candles: candles),
+      chartCalculationDataProvider(candles: candles, selectedRange: selectedRange),
     );
 
     if (calcData == null) {

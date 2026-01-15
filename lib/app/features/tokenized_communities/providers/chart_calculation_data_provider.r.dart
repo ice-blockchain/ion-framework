@@ -36,6 +36,7 @@ class ChartCalculationData {
 ChartCalculationData? chartCalculationData(
   Ref ref, {
   required List<ChartCandle> candles,
+  required ChartTimeRange selectedRange,
 }) {
   if (candles.isEmpty) {
     return null;
@@ -63,16 +64,21 @@ ChartCalculationData? chartCalculationData(
       .map((entry) => FlSpot(entry.key.toDouble(), entry.value.close))
       .toList();
 
-  // Build bottom labels from candle times (max 8 evenly spaced)
-  final bottomLabelsCount = math.min(8, candles.length);
+  // Build bottom labels with consistent spacing
+  const targetLabelsCount = 5;
+  final bottomLabelsCount =
+      candles.length <= 1 ? candles.length : math.min(targetLabelsCount, candles.length);
+
   final indexToLabel = <int, String>{};
   double xAxisStep = 1;
   if (bottomLabelsCount > 0 && candles.length > 1) {
-    xAxisStep = (candles.length - 1) / (bottomLabelsCount - 1);
+    // Map labels proportionally to actual candles
     for (var i = 0; i < bottomLabelsCount; i++) {
-      final idx = (i * xAxisStep).round().clamp(0, candles.length - 1);
-      indexToLabel[idx] = formatChartTime(candles[idx].date);
+      final progress = i / (bottomLabelsCount - 1);
+      final idx = (progress * (candles.length - 1)).round().clamp(0, candles.length - 1);
+      indexToLabel[idx] = formatChartAxisLabel(candles[idx].date, selectedRange);
     }
+    xAxisStep = (candles.length - 1) / (bottomLabelsCount - 1);
   }
 
   final maxX = (candles.length - 1).toDouble();
