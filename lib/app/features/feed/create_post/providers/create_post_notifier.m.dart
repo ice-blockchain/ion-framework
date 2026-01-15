@@ -217,8 +217,8 @@ class CreatePostNotifier extends _$CreatePostNotifier {
 
       final conversion = await convertDeltaToPmoTags(postContent.toJson());
 
-      final contentMediaLinks = media.values.isNotEmpty
-          ? media.values.map((mediaItem) => ' ${mediaItem.url}').join()
+      final contentMediaLinks = modifiedMedia.values.isNotEmpty
+          ? modifiedMedia.values.map((mediaItem) => ' ${mediaItem.url}').join()
           : '';
 
       final textContent = conversion.contentToSign + contentMediaLinks;
