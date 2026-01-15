@@ -40,9 +40,9 @@ class UrlMatcher extends TextMatcher {
       r'(?:[^@\s]+@)?' // optional auth
       r'(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|localhost)' // host or localhost
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
-      r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
-      r'\b' // word boundary
+      r'(?:\/(?:[^\s?]*[A-Za-z0-9/_-])?)?' // optional path
+      r'(?:\?(?:[^\s.]*[A-Za-z0-9%_=&:-]|[^\s]*(?:\.[A-Za-z0-9%_=&:-])+))?' // optional query params
+      '(?![A-Za-z0-9])' // not followed by alphanumeric
       ')'
       '|'
       // www-prefixed URLs without scheme
@@ -50,9 +50,9 @@ class UrlMatcher extends TextMatcher {
       r'www\.' // www.
       r'(?:[A-Za-z0-9-]+\.)*[A-Za-z0-9-]+' // domain parts
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
-      r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
-      r'\b' // word boundary
+      r'(?:\/(?:[^\s?]*[A-Za-z0-9/_-])?)?' // optional path
+      r'(?:\?(?:[^\s.]*[A-Za-z0-9%_=&:-]|[^\s]*(?:\.[A-Za-z0-9%_=&:-])+))?' // optional query params
+      '(?![A-Za-z0-9])' // not followed by alphanumeric
       ')'
       '|'
       // bare domain - must be all lowercase, with valid TLD-like structure
@@ -61,9 +61,9 @@ class UrlMatcher extends TextMatcher {
       '(?<![A-Za-z])' // not preceded by a letter (prevents matching mid-word like "text.To")
       r'[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.(?:[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.)*[a-z]{2,}' // domain.tld
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
-      r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
-      '(?![A-Za-z0-9-])' // not followed by alphanumeric or dash (acts as boundary)
+      r'(?:\/(?:[^\s?]*[a-z0-9/_-])?)?' // optional path
+      r'(?:\?(?:[^\s.]*[a-z0-9%_=&:-]|[^\s]*(?:\.[a-z0-9%_=&:-])+))?' // optional query params
+      '(?![A-Za-z0-9-])' // not followed by alphanumeric or dash
       ')'
       ')';
 
@@ -80,6 +80,20 @@ class UrlMatcher extends TextMatcher {
       // Extract the TLD from the URL
       final uri = Uri.tryParse(match.contains('://') ? match : 'https://$match');
       if (uri == null || uri.host.isEmpty) return false;
+
+      // Check if the host is an IP address (IPv4)
+      final ipv4Pattern = RegExp(r'^(\d{1,3}\.){3}\d{1,3}$');
+      if (ipv4Pattern.hasMatch(uri.host)) {
+        // Validate that each octet is in the valid range (0-255)
+        final octets = uri.host.split('.');
+        if (octets.every((octet) {
+          final value = int.tryParse(octet);
+          return value != null && value >= 0 && value <= 255;
+        })) {
+          return true; // Valid IPv4 address
+        }
+        return false; // Invalid IPv4 address (octets out of range)
+      }
 
       final parts = uri.host.split('.');
       if (parts.length < 2) return false;

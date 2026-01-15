@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -109,12 +108,14 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       }.toList();
 
-      final contentWithMedia = await _buildContentWithMediaLinksDelta(
-        content: postContent,
-        media: media.values.toList(),
-      );
+      final conversion = await convertDeltaToPmoTags(postContent.toJson());
 
-      final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
+      final contentMediaLinks = media.values.isNotEmpty
+          ? media.values.map((mediaItem) => ' ${mediaItem.url}').join()
+          : '';
+
+      final textContent = conversion.contentToSign + contentMediaLinks;
+
       final expiration = _buildExpiration();
       final ugcSerialLabel = await _buildUgcSerialLabel(
         parentEntity: parentEntity,
@@ -124,7 +125,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       );
 
       final postData = ModifiablePostData(
-        textContent: conversion.contentToSign,
+        textContent: textContent,
         media: media,
         replaceableEventId: ReplaceableEventIdentifier.generate(),
         publishedAt: _buildEntityPublishedAt(),
@@ -214,16 +215,16 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       ];
 
-      final contentWithMedia = await _buildContentWithMediaLinksDelta(
-        content: postContent,
-        media: modifiedMedia.values.toList(),
-      );
+      final conversion = await convertDeltaToPmoTags(postContent.toJson());
 
-      // Convert Delta to PMO tags before creating data model
-      final conversion = await convertDeltaToPmoTags(contentWithMedia.toJson());
+      final contentMediaLinks = modifiedMedia.values.isNotEmpty
+          ? modifiedMedia.values.map((mediaItem) => ' ${mediaItem.url}').join()
+          : '';
+
+      final textContent = conversion.contentToSign + contentMediaLinks;
 
       final postData = modifiedEntity.data.copyWith(
-        textContent: conversion.contentToSign,
+        textContent: textContent,
         media: modifiedMedia,
         relatedHashtags: relatedHashtags,
         relatedPubkeys:
@@ -525,23 +526,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       ImmutableEventReference() => QuotedImmutableEvent(eventReference: quotedEventReference),
       _ => throw UnsupportedEventReference(quotedEventReference)
     };
-  }
-
-  Future<Delta> _buildContentWithMediaLinksDelta({
-    required Delta content,
-    required List<MediaAttachment> media,
-  }) async {
-    // Don't flatten links - keep URLs as plain text for backward compatibility
-    // Media attachments still use spaces as they're handled separately
-    final newContentDelta = content;
-
-    return Delta.fromOperations(
-      media
-          .map(
-            (mediaItem) => Operation.insert(' ', {Attribute.link.key: mediaItem.url}),
-          )
-          .toList(),
-    ).concat(newContentDelta);
   }
 
   List<RelatedEvent> _buildRelatedEvents(IonConnectEntity parentEntity) {
