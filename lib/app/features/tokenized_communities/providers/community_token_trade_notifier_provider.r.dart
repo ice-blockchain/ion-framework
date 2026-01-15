@@ -321,9 +321,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
     await coinsRepository.updateCoins(
       [
-        coinData.toDB(
-          isCreatorToken: true,
-        ),
+        coinData.toDB(),
       ],
     );
 
