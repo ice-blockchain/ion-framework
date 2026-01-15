@@ -73,8 +73,6 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
             constraintSet.clear(adChoicesViewId, ConstraintSet.END)
 
             // Always top anchored to media wrapper
-
-
             when (adChoicePosition) {
                 Position.START_TOP -> {
                     constraintSet.connect(adChoicesViewId, ConstraintSet.START, nativeCustomContentId, ConstraintSet.START, cardPadding)
