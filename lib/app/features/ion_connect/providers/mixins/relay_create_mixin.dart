@@ -9,6 +9,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/providers/internet_connection_checker_provider.r.dart';
 import 'package:ion/app/features/core/providers/internet_status_stream_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relay_disliked_connect_urls_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_proxy_domain_preference_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_proxy_domains_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/relays_reachability_provider.r.dart';
@@ -16,11 +17,8 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/logging.dart';
 
 mixin RelayCreateMixin {
-  Future<IonConnectRelay> createRelay(
-    Ref ref,
-    String url, {
-    Set<String> dislikedConnectUrls = const <String>{},
-  }) async {
+  Future<IonConnectRelay> createRelay(Ref ref, String url) async {
+    final dislikedConnectUrls = ref.read(relayDislikedConnectUrlsProvider(url));
     final candidates = ref.read(relayConnectUrisProvider(url));
     final proxyDomains = ref.read(relaysProxyDomainsProvider);
     final savedPreferredDomain = ref.read(relayProxyDomainPreferenceProvider(url));
