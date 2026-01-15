@@ -150,6 +150,13 @@ class HolderTile extends StatelessWidget {
   }
 }
 
+///
+/// rank 1 -> bonding curve
+/// rank 2 -> 1st medal badge
+/// rank 3 -> 2nd medal badge
+/// rank 4 -> 3rd medal badge
+/// rank n -> n-1 text badge
+///
 class _RankBadge extends StatelessWidget {
   const _RankBadge({required this.rank});
 
@@ -170,7 +177,7 @@ class _RankBadge extends StatelessWidget {
       child: isMedal
           ? _MedalIcon(rank: rank)
           : Text(
-              '$rank',
+              '${rank - 1}',
               style: context.theme.appTextThemes.body.copyWith(color: colors.primaryAccent),
             ),
     );
