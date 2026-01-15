@@ -175,15 +175,30 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     );
 
     final canShowNativeAds = ref.watch(ionAdClientProvider).valueOrNull?.isNativeLoaded ?? false;
-    final nextAdIndex = useMemoized(
+    final adPositionsRef = useRef<Set<int>>({});
+    final adPositions = useMemoized(
       () {
+        if (flattenedVideos.length < showAdAfter || !canShowNativeAds) return adPositionsRef.value;
+
         final rng = Random(flattenedVideos.length);
-        return showAdAfter + rng.nextInt(showAdAfter) - showAdAfter / 2;
+        var currentPos = adPositionsRef.value.isEmpty ? 0 : adPositionsRef.value.reduce(max) + 1;
+
+        while (currentPos < flattenedVideos.length + adPositionsRef.value.length + 10) {
+          // Logic: next ad after 7 +/- 3 videos
+          final gap = (showAdAfter + rng.nextInt(showAdAfter) - showAdAfter / 2).toInt();
+          currentPos += max(3, gap);
+
+          adPositionsRef.value.add(currentPos);
+          currentPos++;
+        }
+        return adPositionsRef.value;
       },
-      [flattenedVideos],
+      [flattenedVideos.length, canShowNativeAds],
     );
 
     final isAdVisible = useState(false);
+    final totalItemCount =
+        flattenedVideos.length + adPositions.where((p) => p < flattenedVideos.length + 10).length;
 
     final nextVideoParams = useMemoized(
       () {
@@ -262,23 +277,32 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
           swipeDuration: animationDuration,
           child: PageView.builder(
             controller: userPageController,
-            itemCount: flattenedVideos.length,
+            itemCount: totalItemCount,
             scrollDirection: Axis.vertical,
             physics: const NeverScrollableScrollPhysics(),
             onPageChanged: (index) {
-              onVideoSeen?.call(flattenedVideos[index].entity);
-              _loadMore(ref, index, flattenedVideos.length);
-              currentEventReference.value = flattenedVideos[index].entity.toEventReference();
+              final adsBefore = adPositions.where((p) => p < index).length;
+              final videoIndex = index - adsBefore;
+              if (!adPositions.contains(index) && videoIndex < flattenedVideos.length) {
+                onVideoSeen?.call(flattenedVideos[videoIndex].entity);
+                _loadMore(ref, videoIndex, flattenedVideos.length);
+                currentEventReference.value = flattenedVideos[videoIndex].entity.toEventReference();
+              }
             },
             itemBuilder: (_, index) {
-              if (index % nextAdIndex == 0 && index != 0 && canShowNativeAds) {
+              if (adPositions.contains(index) && canShowNativeAds) {
                 isAdVisible.value = true;
-                return AdVideoViewer(flattenedVideos[index].entity.id);
+                final prevVideoIndex =
+                    max(0, index - adPositions.where((p) => p < index).length - 1);
+                return AdVideoViewer(flattenedVideos[prevVideoIndex].entity.id);
               } else {
-                final mainIndex = index - (index ~/ nextAdIndex);
-                isAdVisible.value = false;
+                final adsBefore = adPositions.where((p) => p < index).length;
+                final videoIndex = index - adsBefore;
 
-                final flattenedVideo = flattenedVideos[mainIndex];
+                if (videoIndex >= flattenedVideos.length) return const SizedBox.shrink();
+
+                isAdVisible.value = false;
+                final flattenedVideo = flattenedVideos[videoIndex];
                 final perPageEventReference = flattenedVideo.entity.toEventReference();
                 final media = flattenedVideo.media;
 
