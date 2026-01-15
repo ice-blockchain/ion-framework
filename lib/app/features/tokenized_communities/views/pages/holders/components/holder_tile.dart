@@ -10,6 +10,12 @@ import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
+enum RankBadgeType {
+  regular,
+  burning,
+  bondingCurve,
+}
+
 class BondingCurveHolderTile extends StatelessWidget {
   const BondingCurveHolderTile({
     required this.holder,
@@ -26,6 +32,31 @@ class BondingCurveHolderTile extends StatelessWidget {
       displayName: context.i18n.tokenized_community_bonding_curve,
       supplyShare: holder.position.supplyShare,
       avatarUrl: Assets.svg.iconBondingCurveAvatar,
+      badgeType: RankBadgeType.bondingCurve,
+    );
+  }
+}
+
+class BurningHolderTile extends StatelessWidget {
+  const BurningHolderTile({
+    required this.holder,
+    super.key,
+  });
+
+  final TopHolder holder;
+
+  @override
+  Widget build(BuildContext context) {
+    final holderAddress = holder.position.holder?.addresses?.ionConnect ?? '';
+
+    return HolderTile(
+      rank: holder.position.rank,
+      amountText: formatAmountCompactFromRaw(holder.position.amount),
+      displayName: holder.position.holder?.display ?? 'Burned',
+      supplyShare: holder.position.supplyShare,
+      avatarUrl: holder.position.holder?.avatar,
+      badgeType: RankBadgeType.burning,
+      address: holderAddress,
     );
   }
 }
@@ -77,6 +108,8 @@ class HolderTile extends StatelessWidget {
     this.avatarUrl,
     this.holderAddress,
     this.isXUser = false,
+    this.badgeType = RankBadgeType.regular,
+    this.address,
     super.key,
   });
 
@@ -90,6 +123,8 @@ class HolderTile extends StatelessWidget {
   final String? avatarUrl;
   final String? holderAddress;
   final bool isXUser;
+  final RankBadgeType badgeType;
+  final String? address;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +146,7 @@ class HolderTile extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                _RankBadge(rank: rank),
+                _RankBadge(rank: rank, type: badgeType),
                 SizedBox(width: 12.0.s),
                 HolderAvatar(
                   imageUrl: avatarUrl,
@@ -123,6 +158,7 @@ class HolderTile extends StatelessWidget {
                   child: _NameAndAmount(
                     name: displayName,
                     handle: username,
+                    address: address,
                     isCreator: isCreator,
                     verified: verified,
                     amountText: amountText,
@@ -150,22 +186,30 @@ class HolderTile extends StatelessWidget {
   }
 }
 
-///
-/// rank 1 -> bonding curve
-/// rank 2 -> 1st medal badge
-/// rank 3 -> 2nd medal badge
-/// rank 4 -> 3rd medal badge
-/// rank n -> n-1 text badge
-///
 class _RankBadge extends StatelessWidget {
-  const _RankBadge({required this.rank});
+  const _RankBadge({
+    required this.rank,
+    required this.type,
+  });
 
   final int rank;
+  final RankBadgeType type;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
-    final isMedal = rank <= 4;
+
+    final child = switch (type) {
+      RankBadgeType.burning => Assets.svg.iconTokenFire.icon(),
+      RankBadgeType.bondingCurve => Assets.svg.iconMemeBondingcurve.icon(),
+      RankBadgeType.regular => rank <= 4
+          ? _MedalIcon(rank: rank)
+          : Text(
+              '$rank',
+              style: context.theme.appTextThemes.body.copyWith(color: colors.primaryAccent),
+            ),
+    };
+
     return Container(
       width: 30.0.s,
       height: 30.0.s,
@@ -174,12 +218,7 @@ class _RankBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0.s),
       ),
       alignment: Alignment.center,
-      child: isMedal
-          ? _MedalIcon(rank: rank)
-          : Text(
-              '${rank - 1}',
-              style: context.theme.appTextThemes.body.copyWith(color: colors.primaryAccent),
-            ),
+      child: child,
     );
   }
 }
@@ -205,15 +244,17 @@ class _MedalIcon extends StatelessWidget {
 class _NameAndAmount extends StatelessWidget {
   const _NameAndAmount({
     required this.name,
-    required this.handle,
     required this.amountText,
     required this.verified,
     required this.isCreator,
+    this.handle,
+    this.address,
     this.isXUser = true,
   });
 
   final String name;
   final String? handle;
+  final String? address;
   final String amountText;
   final bool verified;
   final bool isCreator;
@@ -256,7 +297,11 @@ class _NameAndAmount extends StatelessWidget {
           ],
         ),
         Text(
-          handle != null ? '$handle • $amountText' : amountText,
+          address != null
+              ? shortenAddress(address!)
+              : handle != null
+                  ? '$handle • $amountText'
+                  : amountText,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: texts.caption.copyWith(color: colors.quaternaryText),

@@ -9,6 +9,7 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/compo
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 const int holdersCountLimit = 5;
 
@@ -153,13 +154,18 @@ class _TopHolderList extends ConsumerWidget {
           padding: EdgeInsets.zero,
           itemCount: holders.length,
           itemBuilder: (context, index) {
+            final holder = holders[index];
+
             if (index == 0) {
               return BondingCurveHolderTile(
-                holder: holders[index],
+                holder: holder,
               );
             }
 
-            final holder = holders[index];
+            if (holder.isBurning) {
+              return BurningHolderTile(holder: holder);
+            }
+
             return TopHolderTile(holder: holder);
           },
           separatorBuilder: (context, index) => SizedBox(height: 4.0.s),

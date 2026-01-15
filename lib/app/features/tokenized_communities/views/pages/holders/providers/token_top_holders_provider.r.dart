@@ -230,9 +230,15 @@ class TokenTopHolders extends _$TokenTopHolders {
   }
 
   void _normalizeRanks(List<TopHolder> list) {
+    // Check if burning holder is at index 1 (second position)
+    final hasBurningAtSecond = list.length > 1 && list[1].isBurning;
+
     for (var i = 0; i < list.length; i++) {
-      final desiredRank = i + 1;
       final current = list[i];
+
+      // If burning is at second position, use i, otherwise use i + 1
+      final desiredRank = hasBurningAtSecond ? i : i + 1;
+
       if (current.position.rank != desiredRank) {
         list[i] = current.copyWith(
           position: current.position.copyWith(rank: desiredRank),
