@@ -160,11 +160,27 @@ class PasskeysSigner {
     required bool localCredsOnly,
   }) async {
     try {
-      return await sign(
+      final assertion = await sign(
         challenge,
         localCredsOnly: localCredsOnly,
       );
+      await _clearCanSuggestStateOnSuccess(username);
+      return assertion;
     } on NoCredentialsAvailableException {
+      if (localCredsOnly && username.isNotEmpty) {
+        try {
+          final assertion = await sign(challenge);
+          await _clearCanSuggestStateOnSuccess(username);
+          return assertion;
+        } on NoCredentialsAvailableException {
+          await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
+            username: username,
+            state: LocalPasskeyCredsState.canSuggest,
+          );
+          throw const NoLocalPasskeyCredsFoundIONIdentityException();
+        }
+      }
+
       if (localCredsOnly) {
         await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
           username: username,
@@ -172,9 +188,36 @@ class PasskeysSigner {
         );
       }
       throw const NoLocalPasskeyCredsFoundIONIdentityException();
+    } on PasskeyValidationException catch (e) {
+      // Auto-passkey attempt (username == '') is triggered on focus.
+      // If backend sends an invalid challenge (empty rpId), don't crash the UI
+      if (username.isEmpty && localCredsOnly) {
+        throw NoLocalPasskeyCredsFoundIONIdentityException(e.message);
+      }
+      rethrow;
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
     }
+  }
+
+  Future<void> _clearCanSuggestStateOnSuccess(String username) async {
+    if (username.isEmpty) return;
+    final state = localPasskeyCredsStateStorage.getLocalPasskeyCredsState(username: username);
+    if (state == LocalPasskeyCredsState.canSuggest) {
+      await localPasskeyCredsStateStorage.removeLocalPasskeyCredsState(username: username);
+    }
+  }
+
+  String _resolveRelyingPartyId(UserActionChallenge challenge) {
+    // direct rp.id from challenge should be not empty
+    final direct = challenge.rp.id.trim();
+    if (direct.isNotEmpty) {
+      return direct;
+    }
+
+    throw PasskeyValidationException(
+      'Invalid passkey assertion challenge: relying party id (rp.id) is empty',
+    );
   }
 
   /// Signs a user action challenge, returning a [AssertionRequestData] containing
@@ -186,13 +229,14 @@ class PasskeysSigner {
     UserActionChallenge challenge, {
     bool localCredsOnly = false,
   }) async {
+    final relyingPartyId = _resolveRelyingPartyId(challenge);
     final timeoutMs = localCredsOnly == true ? options.timeout : options.otherDeviceTimeout;
     try {
       final fido2Assertion = await _withWatchdog(
         future: PasskeyAuthenticator().authenticate(
           AuthenticateRequestType(
             preferImmediatelyAvailableCredentials: localCredsOnly,
-            relyingPartyId: challenge.rp.id,
+            relyingPartyId: relyingPartyId,
             challenge: challenge.challenge,
             timeout: timeoutMs,
             userVerification: challenge.userVerification,
