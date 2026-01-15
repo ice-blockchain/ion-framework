@@ -470,6 +470,7 @@ PODS:
 DEPENDENCIES:
   - app_badge_plus (from `.symlinks/plugins/app_badge_plus/ios`)
   - app_links (from `.symlinks/plugins/app_links/ios`)
+  - Appodeal (= 3.12.0)
   - appsflyer_sdk (from `.symlinks/plugins/appsflyer_sdk/ios`)
   - AppsFlyerFramework
   - audio_waveforms (from `.symlinks/plugins/audio_waveforms/ios`)
@@ -809,6 +810,6 @@ SPEC CHECKSUMS:
   video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
 
-PODFILE CHECKSUM: 4cc7a88db4d77b534b4017a5fb11869b8f1f57ee
+PODFILE CHECKSUM: 80251ee82151db7728bee3acbed86b2e20aaecaf
 
 COCOAPODS: 1.16.2
