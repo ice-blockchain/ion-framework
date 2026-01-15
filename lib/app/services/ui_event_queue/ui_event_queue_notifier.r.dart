@@ -47,11 +47,12 @@ class UiEventQueueNotifier extends _$UiEventQueueNotifier {
     try {
       while (state.isNotEmpty) {
         final event = state.first;
-        state = Queue.of(state)..removeFirst();
         try {
           await event.performAction(rootNavigatorKey.currentContext!);
         } catch (error, stackTrace) {
           Logger.error(error, stackTrace: stackTrace);
+        } finally {
+          state = Queue.of(state)..removeFirst();
         }
       }
     } finally {

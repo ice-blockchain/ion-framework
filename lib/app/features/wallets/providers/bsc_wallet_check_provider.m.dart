@@ -3,8 +3,8 @@
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
+import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -21,15 +21,16 @@ class BscWalletCheckResult with _$BscWalletCheckResult {
 
 @riverpod
 Future<BscWalletCheckResult> bscWalletCheck(Ref ref) async {
-  final networks = await ref.watch(networksProvider.future);
+  final networks = await ref.watch(networksStreamProvider.future);
+  final mainCryptoWallets = await ref.watch(mainCryptoWalletsProvider.future);
+
   final bscNetwork = networks.firstWhereOrNull((n) => n.isBsc);
 
   if (bscNetwork == null) {
     return const BscWalletCheckResult(hasBscWallet: false);
   }
 
-  final userMetadata = await ref.watch(currentUserMetadataProvider.future);
-  final hasBscWallet = userMetadata?.data.wallets?[bscNetwork.id] != null;
+  final hasBscWallet = mainCryptoWallets.any((wallet) => wallet.network == bscNetwork.id);
 
   return BscWalletCheckResult(
     hasBscWallet: hasBscWallet,

@@ -124,7 +124,6 @@ class _ContentState extends ConsumerWidget {
     final address = await _createBscWallet(context, ref, network: bscNetwork);
     if (!context.mounted || address == null) return;
 
-    ref.invalidate(bscWalletCheckProvider);
     await ref
         .read(userMetadataInvalidatorNotifierProvider.notifier)
         .invalidateCurrentUserMetadataProviders();
