@@ -22,7 +22,7 @@ import 'package:ion_token_analytics/src/community_tokens/top_holders/top_holders
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/trading_stats/trading_stats_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/user_holdings/user_holdings_repository.dart';
-import 'package:ion_token_analytics/src/community_tokens/user_holdings/user_holdings_repository_mock.dart';
+import 'package:ion_token_analytics/src/community_tokens/user_holdings/user_holdings_repository_impl.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class IonCommunityTokensService {
@@ -74,8 +74,7 @@ class IonCommunityTokensService {
       categoryTokensRepository: CategoryTokensRepositoryImpl(networkClient),
       globalSearchTokensRepository: GlobalSearchTokensRepositoryRemote(networkClient),
       bondingCurveProgressRepository: BondingCurveProgressRepositoryImpl(networkClient),
-      // TODO: Switch to UserHoldingsRepositoryImpl when backend is ready
-      userHoldingsRepository: UserHoldingsRepositoryMock(),
+      userHoldingsRepository: UserHoldingsRepositoryImpl(networkClient),
     );
     return service;
   }
