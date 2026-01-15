@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/empty_list/empty_list.dart';
@@ -64,14 +62,11 @@ class FeedPostsList extends HookConsumerWidget {
         const IonEntityListItem.custom(child: InviteFriendsListItem()),
       );
     }
-    log('_getFeedListItems ionAdClient :${ionAdClient?.isNativeLoaded}');
     if (initialListItems.length >= startAdOffset &&
         ionAdClient != null &&
         ionAdClient.isNativeLoaded) {
-      log('_getFeedListItems length:${initialListItems.length}');
       final adIndices =
           ionAdClient.computeInsertionIndices(initialListItems.length, startOffset: startAdOffset);
-      log('_getFeedListItems adIndices:$adIndices');
       for (final index in adIndices) {
         initialListItems.insert(
           index,

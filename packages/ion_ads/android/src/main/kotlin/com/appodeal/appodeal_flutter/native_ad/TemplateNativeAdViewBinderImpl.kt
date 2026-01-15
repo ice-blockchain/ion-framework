@@ -73,18 +73,33 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
             constraintSet.clear(adChoicesViewId, ConstraintSet.END)
 
             // Always top anchored to media wrapper
-            constraintSet.connect(attributionViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
-            constraintSet.connect(adChoicesViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
+
 
             when (adChoicePosition) {
                 Position.START_TOP -> {
                     constraintSet.connect(adChoicesViewId, ConstraintSet.START, nativeCustomContentId, ConstraintSet.START, cardPadding)
                     constraintSet.connect(attributionViewId, ConstraintSet.START, adChoicesViewId, ConstraintSet.END, horizontalSpacing)
+                    constraintSet.connect(
+                        attributionViewId,
+                        ConstraintSet.TOP,
+                        nativeCustomContentId,
+                        ConstraintSet.TOP,
+                        marginPx + cardPadding + horizontalSpacing
+                    )
+                    constraintSet.connect(
+                        adChoicesViewId,
+                        ConstraintSet.TOP,
+                        nativeCustomContentId,
+                        ConstraintSet.TOP,
+                        marginPx + cardPadding + horizontalSpacing
+                    )
                 }
 
                 Position.END_TOP -> {
                     constraintSet.connect(attributionViewId, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, cardPadding)
                     constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
+                    constraintSet.connect(attributionViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
+                    constraintSet.connect(adChoicesViewId, ConstraintSet.TOP, nativeCustomContentId, ConstraintSet.TOP, marginPx)
                 }
 
                 else -> {
@@ -92,8 +107,6 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
                     constraintSet.connect(adChoicesViewId, ConstraintSet.END, attributionViewId, ConstraintSet.START, horizontalSpacing)
                 }
             }
-
-            constraintSet.applyTo(constraintLayout)
         }
 
         // set adActionButtonConfig config
@@ -121,11 +134,12 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
             Position.START_BOTTOM -> {
                 constraintSet.connect(callToActionViewId, ConstraintSet.BOTTOM, nativeCustomContentId, ConstraintSet.BOTTOM, 0)
                 constraintSet.connect(callToActionViewId, ConstraintSet.START, nativeCustomContentId, ConstraintSet.START, 0)
-                constraintSet.connect(nativeMediaViewId, ConstraintSet.BOTTOM, callToActionViewId, ConstraintSet.TOP, horizontalSpacing)
+                constraintSet.connect(nativeMediaViewId, ConstraintSet.BOTTOM, callToActionViewId, ConstraintSet.TOP, 0)
                 constraintSet.setDimensionRatio(nativeMediaViewId, "H,9:16")
 
                 constraintSet.clear(R.id.native_custom_title, ConstraintSet.END)
                 constraintSet.clear(R.id.native_custom_description, ConstraintSet.END)
+                constraintSet.connect(R.id.native_custom_title, ConstraintSet.END, nativeCustomContentId, ConstraintSet.END, 0)
             }
 
             else -> {
@@ -134,36 +148,6 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         }
         constraintSet.applyTo(constraintLayout)
 
-//        val adAttributionBackgroundColor = nativeAdOptions.adAttributionConfig.backgroundColor
-//        nativeAdView.setAdAttributionBackground(adAttributionBackgroundColor)
-//        val adAttributionTextColor = nativeAdOptions.adAttributionConfig.textColor
-//        nativeAdView.setAdAttributionTextColor(adAttributionTextColor)
-//
-//        // set ad title config
-//        val adTitleConfigFontSize = nativeAdOptions.adTitleConfig.fontSize.toFloat()
-//        (nativeAdView.titleView as? TextView)?.textSize = adTitleConfigFontSize
-//
-//        // set ad description config
-//        val adDescriptionFontSize = nativeAdOptions.adDescriptionConfig.fontSize.toFloat()
-//        (nativeAdView.descriptionView as? TextView)?.apply {
-//            textSize = adDescriptionFontSize
-//            setTextColor(nativeAdOptions.adDescriptionConfig.textColor)
-//        }
-//
-//        // set ad action button config
-//        val adActionButtonFontSize = nativeAdOptions.adActionButtonConfig.fontSize.toFloat()
-//        (nativeAdView.callToActionView as? Button)?.apply {
-//            textSize = adActionButtonFontSize
-//            setBackgroundColor(nativeAdOptions.adActionButtonConfig.backgroundColor)
-//            setBackgroundResource(R.drawable.apd_native_cta_round_outline)
-//            setTextColor(nativeAdOptions.adActionButtonConfig.textColor)
-//        }
-//
-//        val density = context.resources.displayMetrics.density
-//        val iconSize = (nativeAdOptions.adIconConfig.size * density).toInt()
-//
-//        (nativeAdView.iconView)?.layoutParams =
-//            RelativeLayout.LayoutParams(iconSize, iconSize)
 
         return nativeAdView
     }

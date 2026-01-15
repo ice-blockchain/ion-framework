@@ -7,6 +7,7 @@ import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'conversation_messages_provider.r.g.dart';
@@ -62,7 +63,9 @@ class ConversationMessages extends _$ConversationMessages {
     final olderMessages = currentMessages.where((message) => !tailIds.contains(message.sharedId));
 
     final lastMessageItem = tail.firstOrNull;
-    if (lastMessageItem != null) {
+    final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
+
+    if (lastMessageItem != null && (ionAdClient?.isNativeLoaded ?? false)) {
       final adMessageItem = EventMessage(
         id: 'ad_id_${lastMessageItem.createdAt}',
         content: lastMessageItem.content,

@@ -2,4 +2,5 @@
 <resources>
     <color name="apd_ad_attribution_background">#F5F7FF</color>
     <color name="apd_ad_attribution_text_color">#FFFFFF</color>
+    <color name="apd_ad_on_tertiary_background">#5A5E66</color>
 </resources>
