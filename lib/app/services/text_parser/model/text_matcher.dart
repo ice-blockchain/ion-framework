@@ -40,8 +40,8 @@ class UrlMatcher extends TextMatcher {
       r'(?:[^@\s]+@)?' // optional auth
       r'(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|localhost)' // host or localhost
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
-      r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
+      r'(?:\/[^\s!?,;]*[A-Za-z0-9/:._-])?' // optional path (allows wide range of URL path characters)
+      r'(?:\?[^\s!?,;]*[A-Za-z0-9%_=&:.-])?' // optional query params
       r'\b' // word boundary
       ')'
       '|'
@@ -50,8 +50,8 @@ class UrlMatcher extends TextMatcher {
       r'www\.' // www.
       r'(?:[A-Za-z0-9-]+\.)*[A-Za-z0-9-]+' // domain parts
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
-      r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
+      r'(?:\/[^\s!?,;]*[A-Za-z0-9/:._-])?' // optional path (allows wide range of URL path characters)
+      r'(?:\?[^\s!?,;]*[A-Za-z0-9%_=&:.-])?' // optional query params
       r'\b' // word boundary
       ')'
       '|'
@@ -61,8 +61,8 @@ class UrlMatcher extends TextMatcher {
       '(?<![A-Za-z])' // not preceded by a letter (prevents matching mid-word like "text.To")
       r'[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.(?:[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?\.)*[a-z]{2,}' // domain.tld
       r'(?::\d{2,5})?' // optional port
-      r'(?:\/(?:[^\s!?.,;:]*[A-Za-z0-9\/]|(?=\?)))?' // optional path (allows /? for query-only paths)
-      r'(?:\?[^\s!?.,;:]*[A-Za-z0-9%_=&-])?' // optional query params
+      r'(?:\/[^\s!?,;]*[A-Za-z0-9/:._-])?' // optional path (allows wide range of URL path characters)
+      r'(?:\?[^\s!?,;]*[A-Za-z0-9%_=&:.-])?' // optional query params
       '(?![A-Za-z0-9-])' // not followed by alphanumeric or dash (acts as boundary)
       ')'
       ')';
@@ -80,6 +80,12 @@ class UrlMatcher extends TextMatcher {
       // Extract the TLD from the URL
       final uri = Uri.tryParse(match.contains('://') ? match : 'https://$match');
       if (uri == null || uri.host.isEmpty) return false;
+
+      // Check if the host is an IP address (IPv4)
+      final ipv4Pattern = RegExp(r'^(\d{1,3}\.){3}\d{1,3}$');
+      if (ipv4Pattern.hasMatch(uri.host)) {
+        return true; // IP addresses are valid
+      }
 
       final parts = uri.host.split('.');
       if (parts.length < 2) return false;
