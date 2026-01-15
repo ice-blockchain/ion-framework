@@ -35,9 +35,9 @@ import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_ads/ion_ads.dart';
 
 class RecentChatsTimelinePage extends HookConsumerWidget {
   const RecentChatsTimelinePage({
@@ -88,8 +88,9 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
       const [],
     );
 
+    final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
     useOnInit(() {
-      if (conversations.isEmpty) return;
+      if (conversations.isEmpty || !(ionAdClient?.isNativeLoaded ?? false)) return;
 
       final rng = Random(conversations.length);
       final adIndex = rng.nextInt(conversations.length);
@@ -472,7 +473,7 @@ class AdChatTile extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
-      height: 54,
+      height: 62,
       width: double.infinity,
       child: AppodealNativeAd(
         options: NativeAdOptions.customOptions(
