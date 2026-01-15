@@ -95,6 +95,8 @@
 	<string>This app uses Face ID to securely authenticate your identity for account access.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This identifier will be used to deliver more relevant ads and measure performance.</string>
+	<key>NSCalendarsUsageDescription</key>
+    <string>This identifier will be used to provide personalised advertising experience tailored to you</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(ADMOB_ID)</string>
 	<key>NSUserActivityTypes</key>

@@ -19,13 +19,13 @@
 
         <com.appodeal.ads.nativead.NativeMediaView
             android:id="@+id/native_custom_media"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:cardBackgroundColor="@android:color/black"
-            app:layout_constraintStart_toStartOf="@+id/native_custom_content"
-            app:layout_constraintEnd_toEndOf="@+id/native_custom_content"
-            app:layout_constraintTop_toTopOf="@+id/native_custom_content"
-            app:layout_constraintBottom_toBottomOf="@+id/native_custom_content" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/bottom_media_card"
