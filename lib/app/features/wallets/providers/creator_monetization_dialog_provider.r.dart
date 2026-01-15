@@ -19,18 +19,18 @@ import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:synchronized/synchronized.dart';
 
-part 'bsc_wallet_check_service.r.g.dart';
+part 'creator_monetization_dialog_provider.r.g.dart';
 
-class BscWalletCheckService {
-  BscWalletCheckService({
+class CreatorMonetizationDialogService {
+  CreatorMonetizationDialogService({
     required void Function() emitDialog,
     required Future<BscWalletCheckResult> Function() checkWallet,
-    required UserPreferencesService? userPreferencesService,
+    required Future<void> Function() setShownForUser,
+    required bool alreadyShownForUser,
   })  : _emitDialog = emitDialog,
         _checkWallet = checkWallet,
-        _userPreferencesService = userPreferencesService;
-
-  static const _shownKey = 'required_bsc_wallet_dialog_bootstrap_shown_v1';
+        _alreadyShownForUser = alreadyShownForUser,
+        _setShownForUser = setShownForUser;
 
   bool _authenticated = false;
   bool? _onboardingComplete;
@@ -41,8 +41,8 @@ class BscWalletCheckService {
 
   final void Function() _emitDialog;
   final Future<BscWalletCheckResult> Function() _checkWallet;
-
-  UserPreferencesService? _userPreferencesService;
+  final Future<void> Function() _setShownForUser;
+  final bool _alreadyShownForUser;
 
   void onSplashCompleted({required bool splashCompleted}) {
     _splashCompleted = splashCompleted;
@@ -69,11 +69,6 @@ class BscWalletCheckService {
     _maybeTrigger();
   }
 
-  void onUserPreferencesServiceChanged(UserPreferencesService? service) {
-    _userPreferencesService = service;
-    _maybeTrigger();
-  }
-
   void onRouteChanged(String value) {
     _route = value;
     _maybeTrigger();
@@ -86,17 +81,14 @@ class BscWalletCheckService {
       if (_onboardingComplete != true) return;
       if (_route != FeedRoute().location) return;
       if (_currentUserHasToken == null || (_currentUserHasToken ?? false)) return;
-      final prefs = _userPreferencesService;
-      if (prefs == null) return;
 
       try {
-        final alreadyShownForUser = prefs.getValue<bool>(_shownKey) ?? false;
         final bscWalletCheckResult = await _checkWallet();
         // We show at least once for every user even if already has BSC wallet
         // it is just for user who hasn't yet the BSC wallet flow will be different for this pop up
-        if (!alreadyShownForUser || !bscWalletCheckResult.hasBscWallet) {
+        if (!_alreadyShownForUser || !bscWalletCheckResult.hasBscWallet) {
           _emitDialog();
-          await prefs.setValue(_shownKey, true);
+          await _setShownForUser();
           return;
         }
       } catch (e) {
@@ -107,15 +99,17 @@ class BscWalletCheckService {
 }
 
 @Riverpod(keepAlive: true)
-BscWalletCheckService bscWalletCheckService(Ref ref) {
-  final service = BscWalletCheckService(
+CreatorMonetizationDialogService creatorMonetizationDialogService(Ref ref) {
+  final service = CreatorMonetizationDialogService(
     emitDialog: () {
       ref
           .read(uiEventQueueNotifierProvider.notifier)
           .emit(const CreatorMonetizationIsLiveDialogEvent());
     },
     checkWallet: () => ref.read(bscWalletCheckProvider.future),
-    userPreferencesService: ref.read(currentUserPreferencesServiceProvider),
+    alreadyShownForUser: ref.watch(creatorMonetizationIsLiveDialogShownProvider),
+    setShownForUser: () =>
+        ref.read(creatorMonetizationIsLiveDialogShownProvider.notifier).setShown(),
   );
 
   ref
@@ -147,13 +141,6 @@ BscWalletCheckService bscWalletCheckService(Ref ref) {
         service.onRouteChanged(next);
       },
     )
-    ..listen<UserPreferencesService?>(
-      currentUserPreferencesServiceProvider,
-      fireImmediately: true,
-      (_, UserPreferencesService? next) {
-        service.onUserPreferencesServiceChanged(next);
-      },
-    )
     ..listen<AsyncValue<bool?>>(
       currentUserHasTokenProvider,
       fireImmediately: true,
@@ -172,4 +159,29 @@ BscWalletCheckService bscWalletCheckService(Ref ref) {
     );
 
   return service;
+}
+
+@Riverpod(keepAlive: true)
+class CreatorMonetizationIsLiveDialogShown extends _$CreatorMonetizationIsLiveDialogShown {
+  static const String _key = 'creator_monetization_is_live_dialog_shown';
+
+  @override
+  bool build() {
+    final userPreferencesService = ref.watch(currentUserPreferencesServiceProvider);
+    if (userPreferencesService == null) {
+      return false;
+    }
+    final foo = userPreferencesService.getValue<bool>(_key) ?? false;
+
+    return foo;
+  }
+
+  Future<void> setShown() async {
+    final userPreferencesService = ref.read(currentUserPreferencesServiceProvider);
+    if (userPreferencesService == null) {
+      return;
+    }
+    await userPreferencesService.setValue(_key, true);
+    state = true;
+  }
 }

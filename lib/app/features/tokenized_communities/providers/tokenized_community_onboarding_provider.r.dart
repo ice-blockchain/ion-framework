@@ -6,13 +6,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/tokenized_community_onboarding_dialog/tokenized_community_onboarding_dialog.dart';
+import 'package:ion/app/features/wallets/providers/creator_monetization_dialog_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/providers/route_location_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:synchronized/synchronized.dart';
 
 part 'tokenized_community_onboarding_provider.r.g.dart';
 
@@ -27,8 +27,8 @@ class TokenizedCommunityOnboardingService {
 
   bool _authenticated = false;
   bool _delegationCompleted = false;
+  bool _creatorMonetizationIsLiveDialogShown = false;
   String? _route;
-  final _lock = Lock();
 
   final void Function() _emitDialog;
 
@@ -49,28 +49,31 @@ class TokenizedCommunityOnboardingService {
     _maybeTrigger();
   }
 
-  Future<void> _maybeTrigger() async {
-    return _lock.synchronized(() async {
-      if (!_authenticated) return;
-      if (!_delegationCompleted) return;
-      if (_route != FeedRoute().location) return;
+  void onCreatorMonetizationIsLiveDialogShown({required bool shown}) {
+    _creatorMonetizationIsLiveDialogShown = shown;
+    _maybeTrigger();
+  }
 
-      try {
-        final alreadyShownForUser = _userPreferencesService.getValue<bool>(_shownKey) ?? false;
-        if (!alreadyShownForUser) {
-          _emitDialog();
-          //TODO:uncomment
-          // await prefs.setValue(_shownKey, true);
-          return;
-        }
-      } catch (error, stackTrace) {
-        Logger.error(
-          error,
-          message: 'Failed to show tokenized community onboarding',
-          stackTrace: stackTrace,
-        );
+  Future<void> _maybeTrigger() async {
+    if (!_authenticated) return;
+    if (!_delegationCompleted) return;
+    if (!_creatorMonetizationIsLiveDialogShown) return;
+    if (_route != FeedRoute().location) return;
+
+    try {
+      final alreadyShownForUser = _userPreferencesService.getValue<bool>(_shownKey) ?? false;
+      if (!alreadyShownForUser) {
+        _emitDialog();
+        await _userPreferencesService.setValue(_shownKey, true);
+        return;
       }
-    });
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        message: 'Failed to show tokenized community onboarding',
+        stackTrace: stackTrace,
+      );
+    }
   }
 }
 
@@ -93,22 +96,29 @@ TokenizedCommunityOnboardingService? tokenizedCommunityOnboardingService(Ref ref
     ..listen<AsyncValue<AuthState>>(
       authProvider,
       fireImmediately: true,
-      (_, AsyncValue<AuthState> next) {
+      (_, next) {
         service.onAuthenticated(authenticated: next.valueOrNull?.isAuthenticated ?? false);
       },
     )
     ..listen<AsyncValue<bool?>>(
       delegationCompleteProvider,
       fireImmediately: true,
-      (_, AsyncValue<bool?> next) {
+      (_, next) {
         service.onDelegationCompleted(delegationCompleted: next.valueOrNull ?? false);
       },
     )
     ..listen<String>(
       routeLocationProvider,
       fireImmediately: true,
-      (_, String next) {
+      (_, next) {
         service.onRouteChanged(next);
+      },
+    )
+    ..listen<bool>(
+      creatorMonetizationIsLiveDialogShownProvider,
+      fireImmediately: true,
+      (_, next) {
+        service.onCreatorMonetizationIsLiveDialogShown(shown: next);
       },
     );
 

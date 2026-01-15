@@ -59,14 +59,6 @@ class _ContentState extends ConsumerWidget {
     final textStyles = context.theme.appTextThemes;
     final colors = context.theme.appColors;
 
-    ref.listen(bscWalletCheckProvider, (prev, next) {
-      next.whenData((result) {
-        if (result.hasBscWallet && context.mounted) {
-          Navigator.of(context).pop();
-        }
-      });
-    });
-
     final isCreatingWallet = ref.watch(
       walletAddressNotifierProvider.select((state) => state.isLoading),
     );
