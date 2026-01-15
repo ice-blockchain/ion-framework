@@ -189,8 +189,8 @@ class PasskeysSigner {
       }
       throw const NoLocalPasskeyCredsFoundIONIdentityException();
     } on PasskeyValidationException catch (e) {
-      // Auto-passkey attempt (username == '') is triggered on focus.
-      // If backend sends an invalid challenge (empty rpId), don't crash the UI
+      // Auto-login with passkey is tried when username is empty (e.g., field focus).
+      // If the backend returns a bad challenge (like empty rpId), just avoid showing an error to the user.
       if (username.isEmpty && localCredsOnly) {
         throw NoLocalPasskeyCredsFoundIONIdentityException(e.message);
       }
@@ -208,8 +208,7 @@ class PasskeysSigner {
     }
   }
 
-  String _resolveRelyingPartyId(UserActionChallenge challenge) {
-    // direct rp.id from challenge should be not empty
+  String _resolveRelyingId(UserActionChallenge challenge) {
     final direct = challenge.rp.id.trim();
     if (direct.isNotEmpty) {
       return direct;
@@ -229,7 +228,7 @@ class PasskeysSigner {
     UserActionChallenge challenge, {
     bool localCredsOnly = false,
   }) async {
-    final relyingPartyId = _resolveRelyingPartyId(challenge);
+    final relyingPartyId = _resolveRelyingId(challenge);
     final timeoutMs = localCredsOnly == true ? options.timeout : options.otherDeviceTimeout;
     try {
       final fido2Assertion = await _withWatchdog(
