@@ -53,6 +53,9 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
       }
     }
 
+    // Defensive: Sort before removing to ensure we remove actual oldest
+    currentCandles.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
     // Remove oldest candles if exceeding max
     if (currentCandles.length > maxCandles) {
       final amountToRemove = currentCandles.length - maxCandles;
