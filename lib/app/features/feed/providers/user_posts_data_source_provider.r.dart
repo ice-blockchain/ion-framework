@@ -65,16 +65,6 @@ List<EntitiesDataSource>? userPostsDataSource(Ref ref, String pubkey) {
     ...[
       for (final kind in withTokensKinds) ...SearchExtensions.withTokens(forKind: kind).extensions,
     ],
-    TagMarkerSearchExtension(
-      tagName: RelatedReplaceableEvent.tagName,
-      marker: RelatedEventMarker.reply.toShortString(),
-      negative: true,
-    ),
-    TagMarkerSearchExtension(
-      tagName: RelatedImmutableEvent.tagName,
-      marker: RelatedEventMarker.reply.toShortString(),
-      negative: true,
-    ),
     GenericIncludeSearchExtension(
       forKind: CommunityTokenActionEntity.kind,
       includeKind: CommunityTokenDefinitionEntity.kind,
