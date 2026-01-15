@@ -8,8 +8,7 @@
     app:descriptionViewId="@+id/native_custom_description"
     app:mediaViewId="@+id/native_custom_media"
     app:iconViewId="@+id/native_custom_icon"
-    app:titleViewId="@+id/native_custom_title"
-    app:ratingViewId="@+id/native_custom_rating">
+    app:titleViewId="@+id/native_custom_title">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/native_custom_content"
@@ -18,8 +17,8 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/native_custom_icon_wrapper"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="@android:color/transparent"
@@ -39,6 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/apd_native_custom_icon_padding"
             android:layout_marginEnd="@dimen/apd_native_custom_title_margin"
+            android:layout_marginTop="4dp"
             android:background="@android:color/transparent"
             android:ellipsize="end"
             android:fontFamily="@font/notosans_medium"
@@ -68,6 +68,7 @@
                 android:src="@drawable/ad_choices"
                 android:contentDescription="@string/apd_native_custom_ad_attribution"
                 android:layout_gravity="center"
+                android:layout_marginStart="1dp"
                 android:layout_width="12dp"
                 android:layout_height="12dp" />
         </androidx.cardview.widget.CardView>
@@ -94,10 +95,16 @@
 
         <RatingBar
             android:id="@+id/native_custom_rating"
-            style="@style/adRatingBar"
-            android:layout_width="wrap_content"
+            style="@android:style/Widget.Material.RatingBar.Small"
+            android:progressTint="@color/apd_ad_on_tertiary_background"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="2dp"
+            android:isIndicator="true"
+            android:rating="1.5"
+            android:scaleX="0.8"
+            android:scaleY="0.8"
+            android:transformPivotY="6dp"
             app:layout_constraintStart_toEndOf="@+id/native_custom_ad_attribution"
             app:layout_constraintTop_toTopOf="@+id/native_custom_ad_choices"
             app:layout_constraintBottom_toBottomOf="@+id/native_custom_ad_choices" />
@@ -119,11 +126,17 @@
 
         <TextView
             android:id="@+id/native_custom_description"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:fontFamily="@font/notosans_medium"
+            android:textSize="13sp"
+            android:textColor="#0A0A0A"
+            app:layout_constraintStart_toEndOf="@+id/native_custom_ad_attribution"
+            app:layout_constraintTop_toTopOf="@+id/native_custom_ad_choices"
+            app:layout_constraintBottom_toBottomOf="@+id/native_custom_ad_choices" />
 
         <com.appodeal.ads.nativead.NativeMediaView
             android:id="@+id/native_custom_media"

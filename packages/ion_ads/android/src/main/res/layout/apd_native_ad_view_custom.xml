@@ -17,13 +17,13 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/native_custom_icon_wrapper"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginTop="2dp"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="@android:color/transparent"
             app:layout_constraintTop_toTopOf="@+id/native_custom_content"
-            app:layout_constraintBottom_toBottomOf="@+id/native_custom_description"
             app:layout_constraintStart_toStartOf="@+id/native_custom_content">
 
             <com.appodeal.ads.nativead.NativeIconView
@@ -39,6 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/apd_native_custom_title_margin"
             android:layout_marginEnd="@dimen/apd_native_custom_title_margin"
+            android:layout_marginTop="1dp"
             android:background="@android:color/transparent"
             android:ellipsize="end"
             android:fontFamily="@font/notosans_medium"
@@ -63,14 +64,29 @@
             android:textStyle="normal"
             android:textSize="14sp"
             android:textColor="#0A0A0A"
+            android:visibility="invisible"
             app:layout_constraintEnd_toStartOf="@+id/native_custom_cta"
+            app:layout_constraintStart_toStartOf="@+id/native_custom_title"
+            app:layout_constraintTop_toBottomOf="@+id/native_custom_title" />
+
+        <RatingBar
+            android:id="@+id/native_custom_rating"
+            style="@android:style/Widget.Material.RatingBar.Small"
+            android:progressTint="@color/apd_ad_on_tertiary_background"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:isIndicator="true"
+            android:rating="1.5"
+            android:scaleX="0.8"
+            android:scaleY="0.8"
+            android:transformPivotY="6dp"
             app:layout_constraintStart_toStartOf="@+id/native_custom_title"
             app:layout_constraintTop_toBottomOf="@+id/native_custom_title" />
 
         <Button
             android:id="@+id/native_custom_cta"
             android:layout_width="0dp"
-            android:layout_height="32dp"
+            android:layout_height="34dp"
             android:background="@drawable/apd_native_cta_round_outline"
             android:backgroundTint="#0156FF"
             android:maxLines="1"
@@ -95,7 +111,7 @@
             app:layout_constraintDimensionRatio="H,10:16"
             app:layout_constraintStart_toStartOf="@+id/native_custom_content"
             app:layout_constraintEnd_toEndOf="@+id/native_custom_content"
-            app:layout_constraintTop_toBottomOf="@+id/native_custom_description"
+            app:layout_constraintTop_toBottomOf="@+id/native_custom_icon_wrapper"
             app:layout_constraintBottom_toBottomOf="@+id/native_custom_content">
 
             <com.appodeal.ads.nativead.NativeMediaView
@@ -143,6 +159,7 @@
                 android:src="@drawable/ad_choices"
                 android:contentDescription="@string/apd_native_custom_ad_attribution"
                 android:layout_gravity="center"
+                android:layout_marginStart="1dp"
                 android:layout_width="12dp"
                 android:layout_height="12dp" />
         </androidx.cardview.widget.CardView>
