@@ -6,6 +6,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/wallets/data/database/dao/networks_dao.m.dart';
+import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao.m.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
@@ -24,6 +26,8 @@ Future<PeriodicTransactionsSyncService> periodicTransactionsSyncService(Ref ref)
     await ref.watch(syncTransactionsServiceProvider.future),
     await ref.watch(transactionsRepositoryProvider.future),
     await ref.watch(failedTransferServiceProvider.future),
+    ref.watch(swapTransactionsDaoProvider),
+    ref.watch(networksDaoProvider),
   );
 }
 
@@ -31,13 +35,17 @@ class PeriodicTransactionsSyncService {
   PeriodicTransactionsSyncService(
     this._syncTransactionsService,
     this._transactionsRepository,
-    this._failedTransferService, {
+    this._failedTransferService,
+    this._swapTransactionsDao,
+    this._networksDao, {
     this.initialSyncDelay = const Duration(seconds: 30),
   });
 
   final SyncTransactionsService _syncTransactionsService;
   final TransactionsRepository _transactionsRepository;
   final FailedTransferService _failedTransferService;
+  final SwapTransactionsDao _swapTransactionsDao;
+  final NetworksDao _networksDao;
   final Map<String, bool> _walletSyncInProgress = {};
   final Duration initialSyncDelay;
 
@@ -116,6 +124,20 @@ class PeriodicTransactionsSyncService {
 
       if (walletAddress != null && !walletNetworks.containsKey(walletAddress)) {
         walletNetworks[walletAddress] = tx.network;
+      }
+    }
+
+    // Also add wallets expecting swap second-leg transactions
+    final pendingSwaps = await _swapTransactionsDao.getPendingSwaps();
+    for (final swap in pendingSwaps) {
+      if (!walletNetworks.containsKey(swap.toWalletAddress)) {
+        final network = await _getNetworkById(swap.toNetworkId);
+        if (network != null) {
+          walletNetworks[swap.toWalletAddress] = network;
+          Logger.log(
+            'Added swap second-leg wallet ${swap.toWalletAddress} (${swap.toNetworkId}) to sync',
+          );
+        }
       }
     }
 
@@ -263,5 +285,11 @@ class PeriodicTransactionsSyncService {
             'Periodic sync: Failed to delete failed transfers from relay for wallet $walletAddress',
       );
     }
+  }
+
+  Future<NetworkData?> _getNetworkById(String networkId) async {
+    final network = await _networksDao.getById(networkId);
+    if (network == null) return null;
+    return NetworkData.fromDB(network);
   }
 }
