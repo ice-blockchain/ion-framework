@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao.m.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
@@ -19,6 +20,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -648,7 +650,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     try {
       onSwapStart();
 
-      await swapController.swapCoins(
+      final txHash = await swapController.swapCoins(
         swapCoinData: swapCoinParameters,
         sendCoinCallback: ({required String depositAddress, required num amount}) async {
           // DO NOTHING HERE
@@ -656,6 +658,16 @@ class SwapCoinsController extends _$SwapCoinsController {
         swapQuoteInfo: swapQuoteInfo,
         ionSwapRequest: ionSwapRequest,
       );
+
+      if (txHash.isNotEmpty) {
+        try {
+          final swapTransactionsDao = ref.read(swapTransactionsDaoProvider);
+          await swapTransactionsDao.saveSwap(fromTxHash: txHash);
+          Logger.log('Saved swap transaction: $txHash');
+        } catch (e) {
+          Logger.error('Failed to save swap transaction: $e');
+        }
+      }
 
       onSwapSuccess();
     } catch (e, stackTrace) {

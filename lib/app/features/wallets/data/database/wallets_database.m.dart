@@ -17,6 +17,7 @@ import 'package:ion/app/features/wallets/data/database/tables/duration_type.dart
 import 'package:ion/app/features/wallets/data/database/tables/funds_requests_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/networks_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/nfts_table.d.dart';
+import 'package:ion/app/features/wallets/data/database/tables/swap_transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
@@ -58,6 +59,7 @@ WalletsDatabase walletsDatabase(Ref ref) {
     CryptoWalletsTable,
     FundsRequestsTable,
     NftsTable,
+    SwapTransactionsTable,
   ],
 )
 class WalletsDatabase extends _$WalletsDatabase {
@@ -70,7 +72,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -266,6 +268,10 @@ class WalletsDatabase extends _$WalletsDatabase {
           // Recreate transactions table with correct primary key (tx_hash, wallet_view_id, type) with isSwap column.
           await m.deleteTable(schema.transactionsTableV2.actualTableName);
           await m.createTable(schema.transactionsTableV2);
+        },
+        from22To23: (m, schema) async {
+          await m.createTable(schema.swapTransactionsTable);
+          await m.dropColumn(schema.transactionsTableV2, 'is_swap');
         },
       ),
     );
