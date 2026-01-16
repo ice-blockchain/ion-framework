@@ -377,7 +377,7 @@ abstract class DeltaMarkdownConverter {
     final hasBold = attributes.containsKey('bold');
     final hasItalic = attributes.containsKey('italic');
 
-    // Handle mentions first (format: [@username][encoded_ref])
+    // Handle mentions first (format: [@username](encoded_ref))
     // Use originalContent for the display text (e.g., @username)
     if (hasMention) {
       final encodedRef = content; // content is already the encoded reference
@@ -655,46 +655,48 @@ abstract class DeltaMarkdownConverter {
       final opStart = textPosition;
       final opEnd = textPosition + text.length;
 
-      // Check if any mention is entirely within this operation
-      var matchedMention = false;
-      for (final mention in mentions) {
-        // Check if mention's position is entirely within this operation's range
-        if (mention.start >= opStart && mention.end <= opEnd) {
-          // Extract the mention text from this operation
+      // Collect all mentions that are entirely within this operation
+      final opMentions = mentions
+          .where((mention) => mention.start >= opStart && mention.end <= opEnd)
+          .toList()
+        ..sort((a, b) => a.start.compareTo(b.start));
+      if (opMentions.isEmpty) {
+        // No mentions in this operation: keep it as-is
+        newDelta.insert(text, op.attributes);
+      } else {
+        var cursor = 0;
+        for (final mention in opMentions) {
           final mentionStartInOp = mention.start - opStart;
           final mentionEndInOp = mention.end - opStart;
+          // Insert text before the mention, if any
+          if (mentionStartInOp > cursor) {
+            newDelta.insert(
+              text.substring(cursor, mentionStartInOp),
+              op.attributes,
+            );
+          }
+          // Extract the mention text from this operation
           final mentionText = text.substring(mentionStartInOp, mentionEndInOp);
-
           // Verify the extracted text matches the bech32 value
           if (mentionText == mention.bech32Value) {
-            // Split operation into three parts: before, mention, after
-            if (mentionStartInOp > 0) {
-              // Text before mention
-              newDelta.insert(text.substring(0, mentionStartInOp), op.attributes);
-            }
-
             // Mention with attribute
             final attrs = {
               ...?op.attributes,
               'mention': mention.bech32Value,
             };
             newDelta.insert(mentionText, attrs);
-
-            if (mentionEndInOp < text.length) {
-              // Text after mention
-              newDelta.insert(text.substring(mentionEndInOp), op.attributes);
-            }
-
-            matchedMention = true;
-            break;
+          } else {
+            // If the text does not match, fall back to plain text
+            newDelta.insert(mentionText, op.attributes);
           }
+          cursor = mentionEndInOp;
+        }
+        // Insert any remaining text after the last mention
+        if (cursor < text.length) {
+          newDelta.insert(text.substring(cursor), op.attributes);
         }
       }
-
-      if (!matchedMention) {
-        newDelta.insert(text, op.attributes);
-      }
-
+      
       textPosition = opEnd;
     }
 

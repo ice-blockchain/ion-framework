@@ -156,7 +156,9 @@ String deltaToMarkdown(Delta delta) {
 Delta markdownToDelta(String markdown) {
   // Pre-process markdown to extract and handle mention links with bech32 encoding
   // Pattern: [@username](ion:nprofile...) or [@username](nostr:npub...)
-  final mentionPattern = RegExp(r'\[@([^\]]+)\]\(((?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+)\)');
+  final mentionPattern = RegExp(
+    r'\[@([^\]]+)\]\(((?:ion:|nostr:)?n(?:profile|pub)[ac-hj-np-z02-9]+)\)',
+  );
   final mentions = <({int start, int end, String username, String bech32})>[];
 
   // Find all mention matches
@@ -338,7 +340,9 @@ Map<String, dynamic>? _normalizeAttributes(Map<String, dynamic>? attrs) {
 
 /// Checks if a string is a bech32 encoded mention.
 bool _isBech32Mention(String value) {
-  final bech32Pattern = RegExp(r'^(?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+$');
+  final bech32Pattern = RegExp(
+    r'^(?:ion:|nostr:)?n(?:profile|pub)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]+$',
+  );
   return bech32Pattern.hasMatch(value);
 }
 
