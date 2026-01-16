@@ -175,8 +175,7 @@ Delta markdownToDelta(String markdown) {
           attrs = {
             ...attrs,
             MentionAttribute.attributeKey: linkValue,
-          }
-          ..remove('link');
+          }..remove('link');
           processedDelta.insert(text, attrs);
           continue;
         }
