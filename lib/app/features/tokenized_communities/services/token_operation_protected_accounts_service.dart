@@ -31,7 +31,6 @@ class TokenOperationProtectedAccountsService {
     try {
       final masterPubkey = MasterPubkeyResolver.resolve(
         externalAddress,
-        eventReference: null,
       );
       return isProtectedAccount(masterPubkey);
     } catch (_) {
