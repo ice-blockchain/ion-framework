@@ -920,6 +920,7 @@
   "tokenized_community_creator_token_live_title": "Токен создателя АКТИВЕН!",
   "tokenized_community_creator_token_live_subtitle": "Поздравляем, ваш токен создателя теперь активен и доступен всем для торговли",
   "tokenized_community_holders_tab": "Держатели",
+  "tokenized_community_burned": "Сожжено",
   "token_comment_holders_only": "Комментарии доступны только держателям токенов.",
   "tokenized_community_not_available_description": "Создание токенов недоступно для ранее созданных публикаций.",
   "tokenized_community_not_available_title": "Ошибка токенизированного контента",

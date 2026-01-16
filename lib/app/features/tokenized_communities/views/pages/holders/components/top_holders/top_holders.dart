@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_empty.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
@@ -142,6 +143,7 @@ class _TopHolderList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final holdersAsync =
         ref.watch(tokenTopHoldersProvider(externalAddress, limit: holdersCountLimit));
+    final boundingCurveAddress = ref.watch(bondingCurveAddressProvider).valueOrNull;
     return holdersAsync.when(
       data: (holders) {
         if (holders.isEmpty) {
@@ -156,7 +158,7 @@ class _TopHolderList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final holder = holders[index];
 
-            if (index == 0) {
+            if (boundingCurveAddress != null && holder.isBoundingCurve(boundingCurveAddress)) {
               return BondingCurveHolderTile(
                 holder: holder,
               );

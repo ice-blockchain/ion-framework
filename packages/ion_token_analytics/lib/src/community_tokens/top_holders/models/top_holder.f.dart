@@ -54,4 +54,10 @@ extension TopHolderExtension on TopHolder {
     return holderAddress != null &&
         holderAddress.toLowerCase() == _topHolderBurnAddress.toLowerCase();
   }
+
+  /// Returns true if this holder is the bounding curve contract
+  bool isBoundingCurve(String address) {
+    final holderAddress = position.holder?.addresses?.ionConnect;
+    return holderAddress != null && holderAddress.toLowerCase() == address.toLowerCase();
+  }
 }

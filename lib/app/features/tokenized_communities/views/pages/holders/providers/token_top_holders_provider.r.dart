@@ -223,27 +223,16 @@ class TokenTopHolders extends _$TokenTopHolders {
     }
 
     final rank = item.position.rank;
-    final insertAt = (rank - 1).clamp(0, list.length);
-    list.insert(insertAt, item);
 
-    _normalizeRanks(list);
-  }
-
-  void _normalizeRanks(List<TopHolder> list) {
-    // Check if burning holder is at index 1 (second position)
-    final hasBurningAtSecond = list.length > 1 && list[1].isBurning;
-
-    for (var i = 0; i < list.length; i++) {
-      final current = list[i];
-
-      // If burning is at second position, use i, otherwise use i + 1
-      final desiredRank = hasBurningAtSecond ? i : i + 1;
-
-      if (current.position.rank != desiredRank) {
-        list[i] = current.copyWith(
-          position: current.position.copyWith(rank: desiredRank),
-        );
-      }
+    if (rank == 0) {
+      // Count existing rank 0 items to insert after them
+      final rankZeroCount = list.where((h) => h.position.rank == 0).length;
+      list.insert(rankZeroCount, item);
+    } else {
+      // Count rank 0 items, then insert after them using rank - 1
+      final rankZeroCount = list.where((h) => h.position.rank == 0).length;
+      final insertAt = (rankZeroCount + rank - 1).clamp(0, list.length);
+      list.insert(insertAt, item);
     }
   }
 

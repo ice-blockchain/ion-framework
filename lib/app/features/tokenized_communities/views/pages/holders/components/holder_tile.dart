@@ -52,7 +52,7 @@ class BurningHolderTile extends StatelessWidget {
     return HolderTile(
       rank: holder.position.rank,
       amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: holder.position.holder?.display ?? 'Burned',
+      displayName: holder.position.holder?.display ?? context.i18n.tokenized_community_burned,
       supplyShare: holder.position.supplyShare,
       avatarUrl: holder.position.holder?.avatar,
       badgeType: RankBadgeType.burning,
@@ -202,7 +202,7 @@ class _RankBadge extends StatelessWidget {
     final child = switch (type) {
       RankBadgeType.burning => Assets.svg.iconTokenFire.icon(),
       RankBadgeType.bondingCurve => Assets.svg.iconMemeBondingcurve.icon(),
-      RankBadgeType.regular => rank <= 4
+      RankBadgeType.regular => rank <= 3
           ? _MedalIcon(rank: rank)
           : Text(
               '$rank',
@@ -231,10 +231,9 @@ class _MedalIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (rank) {
-      1 => Assets.svg.iconMemeBondingcurve,
-      2 => Assets.svg.iconMeme1stplace,
-      3 => Assets.svg.iconMeme2ndtplace,
-      4 => Assets.svg.iconMeme3rdplace,
+      1 => Assets.svg.iconMeme1stplace,
+      2 => Assets.svg.iconMeme2ndtplace,
+      3 => Assets.svg.iconMeme3rdplace,
       _ => throw UnimplementedError(),
     }
         .icon();
