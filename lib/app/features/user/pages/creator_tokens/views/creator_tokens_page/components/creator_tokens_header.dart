@@ -25,6 +25,7 @@ class CreatorTokensHeader extends ConsumerWidget {
     required this.backButtonIcon,
     required this.onPop,
     required this.onSearchToggle,
+    this.carouselKey,
     this.scrollController,
     super.key,
   });
@@ -38,6 +39,7 @@ class CreatorTokensHeader extends ConsumerWidget {
   final Widget backButtonIcon;
   final VoidCallback onPop;
   final VoidCallback onSearchToggle;
+  final Key? carouselKey;
   final ScrollController? scrollController;
 
   @override
@@ -65,19 +67,24 @@ class CreatorTokensHeader extends ConsumerWidget {
               ),
               Opacity(
                 opacity: 1 - opacity,
-                child: featuredTokensAsync.when(
-                  data: (tokens) {
-                    if (tokens.isEmpty) return const SizedBox.shrink();
+                child: SizedBox(
+                  key: carouselKey,
+                  width: double.infinity,
+                  height: CreatorTokensCarousel.carouselHeight.s,
+                  child: featuredTokensAsync.when(
+                    data: (tokens) {
+                      if (tokens.isEmpty) return const SizedBox.shrink();
 
-                    return CreatorTokensCarousel(
-                      tokens: tokens,
-                      onItemChanged: (token) {
-                        selectedToken.value = token;
-                      },
-                    );
-                  },
-                  loading: () => const CreatorTokensCarouselSkeleton(),
-                  error: (_, __) => const SizedBox.shrink(),
+                      return CreatorTokensCarousel(
+                        tokens: tokens,
+                        onItemChanged: (token) {
+                          selectedToken.value = token;
+                        },
+                      );
+                    },
+                    loading: () => const CreatorTokensCarouselSkeleton(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ],

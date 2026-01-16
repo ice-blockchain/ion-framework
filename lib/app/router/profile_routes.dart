@@ -410,7 +410,7 @@ class CreatorTokensRoute extends BaseRouteData with _$CreatorTokensRoute {
   CreatorTokensRoute()
       : super(
           child: const CreatorTokensPage(),
-          canPop: false,
+          canPop: true,
         );
 }
 

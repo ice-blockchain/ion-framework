@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/router/utils/back_gesture_exclusion.dart';
 
 const double _kMinFlingVelocity = 1; // Screen widths per second.
 
@@ -238,6 +239,8 @@ mixin CupertinoRouteTransitionMixin<T> on PageRoute<T> {
         linearTransition: linearTransition,
         child: _CupertinoBackGestureDetector<T>(
           enabledCallback: () => route.popGestureEnabled,
+          shouldStartPopGesture: (event) =>
+              !BackGestureExclusionRegistry.isExcluded(route, event.position),
           onStartPopGesture: () => _startPopGesture<T>(route),
           child: child,
         ),
@@ -687,12 +690,15 @@ class _CupertinoBackGestureDetector<T> extends StatefulWidget {
     required this.enabledCallback,
     required this.onStartPopGesture,
     required this.child,
+    this.shouldStartPopGesture,
     super.key,
   });
 
   final Widget child;
 
   final ValueGetter<bool> enabledCallback;
+
+  final bool Function(PointerDownEvent event)? shouldStartPopGesture;
 
   final ValueGetter<_CupertinoBackGestureController<T>> onStartPopGesture;
 
@@ -761,9 +767,15 @@ class _CupertinoBackGestureDetectorState<T> extends State<_CupertinoBackGestureD
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (widget.enabledCallback()) {
-      _recognizer.addPointer(event);
+    if (!widget.enabledCallback()) {
+      return;
     }
+
+    if (widget.shouldStartPopGesture != null && !widget.shouldStartPopGesture!(event)) {
+      return;
+    }
+
+    _recognizer.addPointer(event);
   }
 
   double _convertToLogical(double value) {

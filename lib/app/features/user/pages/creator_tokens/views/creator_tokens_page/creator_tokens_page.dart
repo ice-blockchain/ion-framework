@@ -23,6 +23,7 @@ import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
+import 'package:ion/app/router/utils/back_gesture_exclusion.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -63,6 +64,60 @@ class CreatorTokensPage extends HookConsumerWidget {
 
     final isGlobalSearchVisible = useState<bool>(false);
     final lastSearchQuery = useRef<String?>(null);
+
+    final carouselKey = useMemoized(GlobalKey.new);
+    final carouselRect = useMemoized(() => ValueNotifier<Rect?>(null));
+    final route = ModalRoute.of(context);
+
+    void updateCarouselRect() {
+      final carouselContext = carouselKey.currentContext;
+      if (carouselContext == null) {
+        if (carouselRect.value != null) {
+          carouselRect.value = null;
+        }
+        return;
+      }
+
+      final renderObject = carouselContext.findRenderObject();
+      if (renderObject is! RenderBox || !renderObject.hasSize) {
+        return;
+      }
+
+      final origin = renderObject.localToGlobal(Offset.zero);
+      final rect = origin & renderObject.size;
+      if (carouselRect.value != rect) {
+        carouselRect.value = rect;
+      }
+    }
+
+    useEffect(
+      () {
+        if (route == null) {
+          return null;
+        }
+
+        BackGestureExclusionRegistry.register(route, carouselRect);
+        return () => BackGestureExclusionRegistry.unregister(route, carouselRect);
+      },
+      [route, carouselRect],
+    );
+
+    useEffect(
+      () {
+        void listener() => updateCarouselRect();
+        scrollController.addListener(listener);
+        WidgetsBinding.instance.addPostFrameCallback((_) => updateCarouselRect());
+        return () => scrollController.removeListener(listener);
+      },
+      [scrollController],
+    );
+
+    useEffect(
+      () {
+        return carouselRect.dispose;
+      },
+      const [],
+    );
 
     // Collapse header when search field is focused
     useOnInit(
@@ -200,6 +255,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                             resetGlobalSearch();
                           }
                         },
+                        carouselKey: carouselKey,
                       ),
                       const SliverToBoxAdapter(
                         child: SectionSeparator(),
