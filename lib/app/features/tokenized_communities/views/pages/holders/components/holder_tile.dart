@@ -31,7 +31,7 @@ class BondingCurveHolderTile extends StatelessWidget {
       amountText: formatAmountCompactFromRaw(holder.position.amount),
       displayName: context.i18n.tokenized_community_bonding_curve,
       supplyShare: holder.position.supplyShare,
-      avatarUrl: Assets.svg.iconBondingCurveAvatar,
+      avatarUrl: holder.position.holder?.avatar,
       badgeType: RankBadgeType.bondingCurve,
     );
   }
