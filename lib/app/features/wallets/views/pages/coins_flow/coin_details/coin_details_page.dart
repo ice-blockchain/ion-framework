@@ -40,9 +40,11 @@ class CoinDetailsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final walletView = ref.watch(currentWalletViewDataProvider).requireValue;
     final coinsGroup = walletView.coinGroups.firstWhere((e) => e.symbolGroup == symbolGroup);
-    final networkSelectorData = ref.watch(
-      networkSelectorNotifierProvider(symbolGroup: symbolGroup),
-    );
+    final networkSelectorData = ref
+        .watch(
+          networkSelectorNotifierProvider(symbolGroup: symbolGroup),
+        )
+        .valueOrNull;
     final history = ref
         .watch(
           coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup),

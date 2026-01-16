@@ -16,7 +16,7 @@ class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
   SelectedCryptoWalletData build({required String symbolGroup}) {
     final network = ref.watch(
       networkSelectorNotifierProvider(symbolGroup: symbolGroup).select(
-        (state) => state?.selected.whenOrNull(network: (network) => network),
+        (asyncState) => asyncState.valueOrNull?.selected.whenOrNull(network: (network) => network),
       ),
     );
 

@@ -58,6 +58,7 @@ class Balance extends ConsumerWidget {
                     .read(
                       networkSelectorNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
                     )
+                    .valueOrNull
                     ?.selected
                     .mapOrNull(network: (network) => network.network);
                 final wallet = ref
@@ -84,6 +85,7 @@ class Balance extends ConsumerWidget {
                     .read(
                       networkSelectorNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
                     )
+                    .valueOrNull
                     ?.selected
                     .mapOrNull(network: (n) => n.network);
 

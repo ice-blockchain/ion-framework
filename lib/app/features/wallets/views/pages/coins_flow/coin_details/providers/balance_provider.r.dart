@@ -27,7 +27,7 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
   CoinBalanceState build({required String symbolGroup}) {
     final currentNetwork = ref.watch(
       networkSelectorNotifierProvider(symbolGroup: symbolGroup).select(
-        (state) => state?.selected.whenOrNull(network: (network) => network),
+        (asyncState) => asyncState.valueOrNull?.selected.whenOrNull(network: (network) => network),
       ),
     );
 

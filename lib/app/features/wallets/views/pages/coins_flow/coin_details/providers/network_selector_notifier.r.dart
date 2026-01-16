@@ -9,7 +9,7 @@ part 'network_selector_notifier.r.g.dart';
 @riverpod
 class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
   @override
-  NetworkSelectorData? build({required String symbolGroup}) {
+  Future<NetworkSelectorData?> build({required String symbolGroup}) async {
     final networksValue = ref
         .watch(
           syncedCoinsBySymbolGroupProvider(symbolGroup),
@@ -25,20 +25,32 @@ class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
       ...wrappedNetworks,
     ];
 
+    // Get previous selection from state (safe with valueOrNull in async providers)
+    final previousState = state.valueOrNull;
+    final previousSelection = previousState?.selected;
+
+    // Preserve previous selection if it's still valid, otherwise use first item
+    final selectedItem = previousSelection != null && items.contains(previousSelection)
+        ? previousSelection
+        : items.first;
+
     return NetworkSelectorData(
       items: items,
-      selected: items.first,
+      selected: selectedItem,
     );
   }
 
   set selected(SelectedNetworkItem item) {
+    final currentState = state.valueOrNull;
+    if (currentState == null) return;
+
     final canUpdate = item.map(
-      network: (item) => state?.items.contains(item) ?? false,
+      network: (item) => currentState.items.contains(item),
       all: (_) => true,
     );
 
     if (canUpdate) {
-      state = state!.copyWith(selected: item);
+      state = AsyncData(currentState.copyWith(selected: item));
     }
   }
 }
