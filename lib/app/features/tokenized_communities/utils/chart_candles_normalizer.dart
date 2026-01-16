@@ -5,11 +5,12 @@ import 'package:ion/app/features/tokenized_communities/views/components/chart.da
 
 // Normalizes candles by filling gaps based on selectedRange interval.
 // Example: [10:00, 15:00] with 1h interval → [10:00, 11:00, 12:00, 13:00, 14:00, 15:00]
+// Also fills gap from last candle to "now" (works for both single and multiple candles)
 List<ChartCandle> normalizeCandles(
   List<ChartCandle> candles,
   ChartTimeRange selectedRange,
 ) {
-  if (candles.length < 2) return candles;
+  if (candles.isEmpty) return candles;
 
   // Sort by date to ensure correct order
   final sorted = List<ChartCandle>.from(candles)..sort((a, b) => a.date.compareTo(b.date));
@@ -45,6 +46,27 @@ List<ChartCandle> normalizeCandles(
           fillDate = fillDate.add(interval);
         }
       }
+    }
+  }
+
+  // Fill gap from last candle to "now"
+  if (normalized.isNotEmpty) {
+    final lastCandle = normalized.last;
+    final now = DateTime.now();
+
+    var fillDate = lastCandle.date.add(interval);
+    while (!fillDate.isAfter(now)) {
+      normalized.add(
+        ChartCandle(
+          open: lastCandle.close,
+          high: lastCandle.close,
+          low: lastCandle.close,
+          close: lastCandle.close,
+          price: Decimal.parse(lastCandle.close.toStringAsFixed(4)),
+          date: fillDate,
+        ),
+      );
+      fillDate = fillDate.add(interval);
     }
   }
 

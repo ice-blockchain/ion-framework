@@ -74,15 +74,30 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('returns single candle unchanged', () {
-        final candle = createCandle(date: baseDate);
+      test('fills single candle from past to now', () {
+        // Create a candle from 1 hour ago
+        final pastDate = DateTime.now().subtract(const Duration(hours: 1));
+        final candle = createCandle(date: pastDate);
         final result = normalizeCandles([candle], ChartTimeRange.m15);
-        expect(result, [candle]);
+
+        // Should have more than 1 candle (original + filled ones)
+        expect(result.length, greaterThan(1));
+        // First candle should be the original
+        expectCandle(result[0], date: pastDate, close: price1);
+        // Last candle should be close to "now" (within one interval)
+        final lastCandle = result.last;
+        final now = DateTime.now();
+        final gapToNow = now.difference(lastCandle.date);
+        expect(gapToNow, lessThan(interval15min));
+        // All filled candles should use the original close price
+        for (var i = 1; i < result.length; i++) {
+          expect(result[i].close, price1);
+        }
       });
     });
 
     group('no gaps', () {
-      test('returns two candles unchanged when no gap exists', () {
+      test('returns two candles with fill to now when no gap exists', () {
         final candles = [
           // ignore: avoid_redundant_argument_values
           createCandle(date: baseDate, price: price1),
@@ -90,36 +105,44 @@ void main() {
         ];
 
         final result = normalizeCandles(candles, ChartTimeRange.m15);
-        expect(result.length, 2);
+        // Should have at least 2 candles (original) + filled to now
+        expect(result.length, greaterThanOrEqualTo(2));
         expectCandle(result[0], date: baseDate, close: price1);
         expectCandle(result[1], date: baseDate.add(interval15min), close: price2);
+        // Last candle should be close to "now"
+        final lastCandle = result.last;
+        final now = DateTime.now();
+        final gapToNow = now.difference(lastCandle.date);
+        expect(gapToNow, lessThan(interval15min));
       });
 
-      test('does not fill gap when gap equals interval', () {
+      test('does not fill gap when gap equals interval but fills to now', () {
         final candles = [
           createCandle(date: baseDate),
           createCandle(date: baseDate.add(interval15min)),
         ];
 
         final result = normalizeCandles(candles, ChartTimeRange.m15);
-        expect(result.length, 2);
+        // Should have at least 2 candles (original) + filled to now
+        expect(result.length, greaterThanOrEqualTo(2));
         expectCandle(result[0], date: baseDate, close: price1);
         expectCandle(result[1], date: baseDate.add(interval15min), close: price1);
       });
 
-      test('does not fill gap when gap is smaller than interval', () {
+      test('does not fill gap when gap is smaller than interval but fills to now', () {
         final candles = [
           createCandle(date: baseDate),
           createCandle(date: baseDate.add(const Duration(minutes: 10))),
         ];
 
         final result = normalizeCandles(candles, ChartTimeRange.m15);
-        expect(result.length, 2);
+        // Should have at least 2 candles (original) + filled to now
+        expect(result.length, greaterThanOrEqualTo(2));
       });
     });
 
     group('single gap filling', () {
-      test('fills single gap correctly', () {
+      test('fills single gap correctly and fills to now', () {
         final candles = [
           // ignore: avoid_redundant_argument_values
           createCandle(date: baseDate, price: price1),
@@ -128,14 +151,21 @@ void main() {
 
         final result = normalizeCandles(candles, ChartTimeRange.m15);
 
-        expect(result.length, 9);
+        // Should have at least 9 candles (2 original + 7 filled between) + filled to now
+        expect(result.length, greaterThanOrEqualTo(9));
         expectCandle(result[0], date: baseDate, close: price1);
         expectCandleAtDate(result, baseDate.add(interval15min), close: price1);
         expectCandleAtDate(result, baseDate.add(interval1h45min), close: price1);
-        expectCandle(result[result.length - 1], date: baseDate.add(interval2h), close: price2);
+        // Check that the second original candle exists
+        expectCandleAtDate(result, baseDate.add(interval2h), close: price2);
+        // Last candle should be close to "now"
+        final lastCandle = result.last;
+        final now = DateTime.now();
+        final gapToNow = now.difference(lastCandle.date);
+        expect(gapToNow, lessThan(interval15min));
       });
 
-      test('handles very large gaps correctly', () {
+      test('handles very large gaps correctly and fills to now', () {
         final candles = [
           createCandle(date: baseDate),
           createCandle(date: baseDate.add(interval24h), price: price2),
@@ -143,17 +173,24 @@ void main() {
 
         final result = normalizeCandles(candles, ChartTimeRange.m15);
 
-        expect(result.length, 97);
+        // Should have at least 97 candles (2 original + 95 filled between) + filled to now
+        expect(result.length, greaterThanOrEqualTo(97));
         expectCandle(result[0], date: baseDate, close: price1);
         expectCandleAtDate(result, baseDate.add(interval15min), close: price1);
         expectCandleAtDate(result, baseDate.add(interval2h30min), close: price1);
         expectCandleAtDate(result, baseDate.add(interval23h45min), close: price1);
-        expectCandle(result[result.length - 1], date: baseDate.add(interval24h), close: price2);
+        // Check that the second original candle exists
+        expectCandleAtDate(result, baseDate.add(interval24h), close: price2);
+        // Last candle should be close to "now"
+        final lastCandle = result.last;
+        final now = DateTime.now();
+        final gapToNow = now.difference(lastCandle.date);
+        expect(gapToNow, lessThan(interval15min));
       });
     });
 
     group('multiple gaps', () {
-      test('fills multiple gaps correctly', () {
+      test('fills multiple gaps correctly and fills to now', () {
         final candles = [
           // ignore: avoid_redundant_argument_values
           createCandle(date: baseDate, price: price1),
@@ -163,17 +200,24 @@ void main() {
 
         final result = normalizeCandles(candles, ChartTimeRange.m15);
 
-        expect(result.length, 11);
+        // Should have at least 11 candles (3 original + 8 filled between) + filled to now
+        expect(result.length, greaterThanOrEqualTo(11));
         expectCandle(result[0], date: baseDate, close: price1);
         expectCandleAtDate(result, baseDate.add(interval15min), close: price1);
         expectCandleAtDate(result, baseDate.add(interval1h), close: price2);
         expectCandleAtDate(result, baseDate.add(interval1h15min), close: price2);
-        expectCandle(result[result.length - 1], date: baseDate.add(interval2h30min), close: price3);
+        // Check that the last original candle exists
+        expectCandleAtDate(result, baseDate.add(interval2h30min), close: price3);
+        // Last candle should be close to "now"
+        final lastCandle = result.last;
+        final now = DateTime.now();
+        final gapToNow = now.difference(lastCandle.date);
+        expect(gapToNow, lessThan(interval15min));
       });
     });
 
     group('data integrity', () {
-      test('sorts unsorted input before normalizing', () {
+      test('sorts unsorted input before normalizing and fills to now', () {
         final candles = [
           createCandle(date: baseDate.add(interval15min), price: price2),
           // ignore: avoid_redundant_argument_values
@@ -182,9 +226,15 @@ void main() {
 
         final result = normalizeCandles(candles, ChartTimeRange.m15);
 
-        expect(result.length, 2);
+        // Should have at least 2 candles (original) + filled to now
+        expect(result.length, greaterThanOrEqualTo(2));
         expectCandle(result[0], date: baseDate, close: price1);
         expectCandle(result[1], date: baseDate.add(interval15min), close: price2);
+        // Last candle should be close to "now"
+        final lastCandle = result.last;
+        final now = DateTime.now();
+        final gapToNow = now.difference(lastCandle.date);
+        expect(gapToNow, lessThan(interval15min));
       });
 
       test('preserves original candle properties', () {
@@ -245,17 +295,75 @@ void main() {
     });
 
     group('different intervals', () {
-      test('works with different time ranges', () {
+      test('works with different time ranges and fills to now', () {
         final candles = [
           createCandle(date: baseDate),
           createCandle(date: baseDate.add(const Duration(hours: 3))),
         ];
 
         final result1h = normalizeCandles(candles, ChartTimeRange.h1);
-        expect(result1h.length, 4);
+        // Should have at least 4 candles (2 original + 2 filled between) + filled to now
+        expect(result1h.length, greaterThanOrEqualTo(4));
 
         final result15m = normalizeCandles(candles, ChartTimeRange.m15);
-        expect(result15m.length, 13);
+        // Should have at least 13 candles (2 original + 11 filled between) + filled to now
+        expect(result15m.length, greaterThanOrEqualTo(13));
+      });
+    });
+
+    group('fill to now', () {
+      test('fills gap from last candle to now for multiple candles', () {
+        // Create candles ending 2 hours ago
+        final twoHoursAgo = DateTime.now().subtract(const Duration(hours: 2));
+        final candles = [
+          // ignore: avoid_redundant_argument_values
+          createCandle(date: twoHoursAgo.subtract(interval1h), price: price1),
+          createCandle(date: twoHoursAgo, price: price2),
+        ];
+
+        final result = normalizeCandles(candles, ChartTimeRange.m15);
+
+        // Should have original candles + filled ones to "now"
+        expect(result.length, greaterThan(2));
+        // First candle should be original
+        expectCandle(result[0], date: twoHoursAgo.subtract(interval1h), close: price1);
+        // Second candle should be original
+        final secondCandle = result.firstWhere((c) => c.date == twoHoursAgo);
+        expect(secondCandle.close, price2);
+        // Last candle should be close to "now"
+        final lastCandle = result.last;
+        final now = DateTime.now();
+        final gapToNow = now.difference(lastCandle.date);
+        expect(gapToNow, lessThan(interval15min));
+      });
+
+      test('does not fill if last candle is very recent', () {
+        // Create a candle just 5 minutes ago (less than 15min interval)
+        final recentDate = DateTime.now().subtract(const Duration(minutes: 5));
+        final candle = createCandle(date: recentDate);
+        final result = normalizeCandles([candle], ChartTimeRange.m15);
+
+        // Should only have the original candle (gap < interval)
+        expect(result.length, 1);
+        expectCandle(result[0], date: recentDate, close: price1);
+      });
+
+      test('fills single candle from yesterday to now', () {
+        // Create a candle from yesterday
+        final yesterday = DateTime.now().subtract(const Duration(days: 1));
+        // ignore: avoid_redundant_argument_values
+        final candle = createCandle(date: yesterday, price: price1);
+        final result = normalizeCandles([candle], ChartTimeRange.h1);
+
+        // Should have many candles (original + filled ones)
+        expect(result.length, greaterThan(20)); // At least 24 hours worth
+        // First candle should be original
+        expectCandle(result[0], date: yesterday, close: price1);
+        // Last candle should be close to "now"
+        final lastCandle = result.last;
+        final now = DateTime.now();
+        final gapToNow = now.difference(lastCandle.date);
+        expect(gapToNow, lessThan(interval1h));
       });
     });
   });
