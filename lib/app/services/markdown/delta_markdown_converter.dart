@@ -696,7 +696,7 @@ abstract class DeltaMarkdownConverter {
           newDelta.insert(text.substring(cursor), op.attributes);
         }
       }
-      
+
       textPosition = opEnd;
     }
 
