@@ -53,6 +53,7 @@ class NetworkData with _$NetworkData {
   bool get isSolana => id == 'Solana' || id == 'SolanaDevnet';
   bool get isTon => id == 'Ton' || id == 'TonTestnet';
   bool get isBsc => id == 'Bsc' || id == 'BscTestnet';
+  bool get isIon => id == 'Ion' || id == 'IonTestnet';
 
   String getExplorerUrl(String txHash) => explorerUrl.replaceAll('{txHash}', txHash);
 }
