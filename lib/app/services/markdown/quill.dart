@@ -85,20 +85,17 @@ String deltaToMarkdown(Delta delta) {
         final data = op.data;
         final attributes = op.attributes;
 
-        // Handle mentions: convert to markdown link format [@username](bech32)
+        // Handle mentions: convert mention attribute to link attribute
         if (data is String && (attributes?.containsKey(MentionAttribute.attributeKey) ?? false)) {
           final bech32Value = attributes![MentionAttribute.attributeKey] as String;
-          final mentionText = '[$data]($bech32Value)';
 
-          // Create new attributes without mention attribute for other formatting
-          final otherAttributes = Map<String, dynamic>.from(attributes)
+          // Create attributes with link instead of mention
+          final linkAttributes = Map<String, dynamic>.from(attributes)
             ..remove(MentionAttribute.attributeKey)
-            ..remove(MentionAttribute.showMarketCapKey);
+            ..remove(MentionAttribute.showMarketCapKey)
+            ..[Attribute.link.key] = bech32Value;
 
-          processedDelta.insert(
-            mentionText,
-            otherAttributes.isNotEmpty ? otherAttributes : null,
-          );
+          processedDelta.insert(data, linkAttributes);
         }
         // Handle underline: markdown doesn't support underline natively,
         // so we need to wrap it in HTML <u> tags
@@ -157,21 +154,13 @@ String deltaToMarkdown(Delta delta) {
 }
 
 Delta markdownToDelta(String markdown) {
-  // Unescape markdown that may have been escaped during conversion
-  // The markdown converter escapes special characters like [, ], (, ) with backslashes
-  var unescapedMarkdown = markdown
-      .replaceAll(r'\[', '[')
-      .replaceAll(r'\]', ']')
-      .replaceAll(r'\(', '(')
-      .replaceAll(r'\)', ')');
-
   // Pre-process markdown to extract and handle mention links with bech32 encoding
   // Pattern: [@username](ion:nprofile...) or [@username](nostr:npub...)
   final mentionPattern = RegExp(r'\[@([^\]]+)\]\(((?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+)\)');
   final mentions = <({int start, int end, String username, String bech32})>[];
 
   // Find all mention matches
-  for (final match in mentionPattern.allMatches(unescapedMarkdown)) {
+  for (final match in mentionPattern.allMatches(markdown)) {
     mentions.add(
       (
         start: match.start,
@@ -183,7 +172,7 @@ Delta markdownToDelta(String markdown) {
   }
 
   // Replace mentions with plain text temporarily for markdown parsing
-  var processedMarkdown = unescapedMarkdown;
+  var processedMarkdown = markdown;
   var offset = 0;
   for (final mention in mentions) {
     final adjustedStart = mention.start + offset;
