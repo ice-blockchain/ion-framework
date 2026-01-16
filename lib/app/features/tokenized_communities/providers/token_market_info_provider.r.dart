@@ -37,7 +37,7 @@ Stream<CommunityToken?> tokenMarketInfo(
     );
   }
 
-  yield currentToken;
+  yield currentToken ?? cachedToken;
 
   // 2. Subscribe to real-time updates
   final subscription = await client.communityTokens.subscribeToTokenInfo(externalAddress);
