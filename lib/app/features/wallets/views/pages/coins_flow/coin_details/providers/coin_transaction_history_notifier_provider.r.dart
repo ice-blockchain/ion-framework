@@ -12,6 +12,7 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
+import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
@@ -27,6 +28,7 @@ part 'coin_transaction_history_notifier_provider.r.g.dart';
 class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
   static const int _pageSize = 20;
   static const String _tag = 'CoinTransactionHistory: ';
+  static const String _ionBridgeWalletAddress = 'Uf8PSnTugXPqSS9HgrEWdrU1yOoy2wH4qCaqsZhCaV2HSIEw';
 
   late List<String> _coinWalletAddresses;
   late List<CoinInWalletData> _coins;
@@ -330,6 +332,15 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     if (!hasTimestamp) {
       Logger.warning('$_tag Ignored transaction with missing date: ${tx.txHash}');
       return false;
+    }
+
+    if (tx.type == TransactionType.receive &&
+        tx.senderWalletAddress == _ionBridgeWalletAddress &&
+        tx.network.isIon) {
+      final asset = tx.cryptoAsset.as<CoinTransactionAsset>();
+      if (asset != null && asset.amount == 0.1) {
+        return false;
+      }
     }
 
     if (!allowDuplicates && _history.any((h) => h.origin.txHash == tx.txHash)) {
