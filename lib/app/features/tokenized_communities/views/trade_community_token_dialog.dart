@@ -18,6 +18,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_trade_notifier_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/external_address_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
@@ -60,12 +61,12 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final resolvedExternalAddress = externalAddress ?? eventReference!.toString();
-    final resolvedExternalAddressType = externalAddress != null
-        ? const ExternalAddressType.x()
-        : ref
+    final resolvedExternalAddressType = eventReference != null
+        ? ref
             .watch(ionConnectEntityProvider(eventReference: eventReference!))
             .valueOrNull
-            ?.externalAddressType;
+            ?.externalAddressType
+        : ref.watch(externalAddressTypeProvider(externalAddress: externalAddress!)).valueOrNull;
     if (resolvedExternalAddressType == null) {
       return const SheetContent(body: SizedBox.shrink());
     }
