@@ -39,8 +39,9 @@ class SwapService {
   final IonSwapService _ionSwapService;
   final IonToBscBridgeService _ionToBscBridgeService;
 
-  /// TODO: Remove mock. Returns hash of the out-transaction.
-  Future<String> swapCoins({
+  /// Returns the transaction hash of the swap transaction if it's exists
+  /// For now only [IonSwapService] and [IonBscToIonBridgeService] are supported
+  Future<String?> swapCoins({
     required SwapCoinParameters swapCoinData,
     required SendCoinCallback sendCoinCallback,
     SwapQuoteInfo? swapQuoteInfo,
@@ -52,13 +53,11 @@ class SwapService {
           throw const IonSwapException('Ion swap request is required for ION → BSC bridge');
         }
 
-        // TODO: Remove mock
-        // await _ionToBscBridgeService.bridgeToBsc(
-        //   swapCoinData: swapCoinData,
-        //   request: ionSwapRequest,
-        // );
-        await Future<void>.delayed(const Duration(seconds: 2));
-        return '4b1ba4985225b599a29ca7be24ed34a0b1a84d3b7a1d3a5ecf4da1f70973eb0f';
+        await _ionToBscBridgeService.bridgeToBsc(
+          swapCoinData: swapCoinData,
+          request: ionSwapRequest,
+        );
+        return null;
       }
 
       if (_ionBscToIonBridgeService.isSupportedPair(swapCoinData)) {
@@ -66,13 +65,11 @@ class SwapService {
           throw const IonSwapException('Ion swap request is required for on-chain bridge');
         }
 
-        // TODO: Remove mock
-        // await _ionBscToIonBridgeService.bridgeToIon(
-        //   swapCoinData: swapCoinData,
-        //   request: ionSwapRequest,
-        // );
-        await Future<void>.delayed(const Duration(seconds: 2));
-        return '0xebe55cec9314e0429e4261d9695f8e1b810ccef7d53464524aad42ec0e38e632';
+        final txHash = await _ionBscToIonBridgeService.bridgeToIon(
+          swapCoinData: swapCoinData,
+          request: ionSwapRequest,
+        );
+        return txHash;
       }
 
       if (isIonBscSwap(swapCoinData)) {
@@ -80,12 +77,11 @@ class SwapService {
           throw const IonSwapException('Ion swap request is required for on-chain swap');
         }
 
-        // await _ionSwapService.swapCoins(
-        //   swapCoinData: swapCoinData,
-        //   request: ionSwapRequest,
-        // );
-        // TODO: Remove mock
-        return '';
+        final txHash = await _ionSwapService.swapCoins(
+          swapCoinData: swapCoinData,
+          request: ionSwapRequest,
+        );
+        return txHash;
       }
 
       if (swapQuoteInfo == null) {
@@ -93,13 +89,12 @@ class SwapService {
       }
 
       if (swapCoinData.isBridge) {
-        // await _bridgeService.tryToBridge(
-        //   swapCoinData: swapCoinData,
-        //   sendCoinCallback: sendCoinCallback,
-        //   swapQuoteInfo: swapQuoteInfo,
-        // );
-        // TODO: Remove mock
-        return '';
+        await _bridgeService.tryToBridge(
+          swapCoinData: swapCoinData,
+          sendCoinCallback: sendCoinCallback,
+          swapQuoteInfo: swapQuoteInfo,
+        );
+        return null;
       }
 
       if (swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id) {
@@ -109,8 +104,7 @@ class SwapService {
         );
 
         final isSuccessSwap = txData != null;
-        // TODO: Remove mock
-        if (isSuccessSwap) return '';
+        if (isSuccessSwap) return null;
       }
 
       await _cexService.tryToCexSwap(
@@ -118,13 +112,13 @@ class SwapService {
         sendCoinCallback: sendCoinCallback,
         swapQuoteInfo: swapQuoteInfo,
       );
-      // TODO: Remove mock
-      return '';
     } on Exception catch (e) {
       throw IonSwapException(
         'Failed to swap coins: $e',
       );
     }
+
+    return null;
   }
 
   Future<SwapQuoteInfo> getSwapQuote({
