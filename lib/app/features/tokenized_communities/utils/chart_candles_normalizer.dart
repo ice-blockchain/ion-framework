@@ -32,14 +32,16 @@ List<ChartCandle> normalizeCandles(
         while (fillDate.isBefore(next.date)) {
           // Forward-fill: use previous candle's close price
           final fillPrice = Decimal.parse(current.close.toStringAsFixed(4));
-          normalized.add(ChartCandle(
-            open: current.close,
-            high: current.close,
-            low: current.close,
-            close: current.close,
-            price: fillPrice,
-            date: fillDate,
-          ));
+          normalized.add(
+            ChartCandle(
+              open: current.close,
+              high: current.close,
+              low: current.close,
+              close: current.close,
+              price: fillPrice,
+              date: fillDate,
+            ),
+          );
           fillDate = fillDate.add(interval);
         }
       }

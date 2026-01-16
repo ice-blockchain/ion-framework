@@ -84,6 +84,7 @@ void main() {
     group('no gaps', () {
       test('returns two candles unchanged when no gap exists', () {
         final candles = [
+          // ignore: avoid_redundant_argument_values
           createCandle(date: baseDate, price: price1),
           createCandle(date: baseDate.add(interval15min), price: price2),
         ];
