@@ -218,7 +218,7 @@ jobs:
           steps: ${{ '{}' }}
   ios-cicd:
     name: iOS -- build, deploy (${{ matrix.deployment_target }})
-    needs: [flutter]
+    needs: [ flutter ]
     runs-on: macos-15
     strategy:
       matrix:
@@ -275,11 +275,9 @@ jobs:
               echo "IOS_SIGN_TYPE=adhoc" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=firebase" >> $GITHUB_ENV
               echo "RELEASE_NOTES=${{ env.APP_ENV }}_${{ github.ref_name }}" >> $GITHUB_ENV
-              echo "ENV_FILE=.app.env" >> $GITHUB_ENV
             else
               echo "IOS_SIGN_TYPE=appstore" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=testflight" >> $GITHUB_ENV
-              echo "ENV_FILE=.merged.store.app.env" >> $GITHUB_ENV
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
       - name: Fetch code signing identity (${{env.IOS_SIGN_TYPE}})
@@ -287,6 +285,14 @@ jobs:
         run: |
           cd main-repo
           bundle exec fastlane ios fetch_code_identity sign_type:$IOS_SIGN_TYPE
+      - name: Prepare Envied env file (store only)
+        if: ${{ env.DEPLOYMENT_TYPE == 'store' }}
+        run: |
+          cd main-repo
+          # Envied reads .app.env at codegen time. For store builds we generate .merged.store.app.env,
+          # so mirror it into .app.env and regenerate envied outputs.
+          cp .merged.store.app.env .app.env
+          dart run build_runner build --delete-conflicting-outputs --build-filter="**/*.env.g.dart"
       - name: Build iOS App (v${{ env.APP_VERSION }} build:${{ env.BUILD_NUMBER }})
         id: build-app
         run: |
@@ -295,7 +301,7 @@ jobs:
           source .env
           set +a
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
-          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=$ENV_FILE
+          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         if: ${{ github.event_name != 'pull_request' }}
@@ -314,7 +320,7 @@ jobs:
           steps: ${{ '{}' }}
   android-cicd:
     name: Android -- build, deploy (${{ matrix.deployment_target }})
-    needs: [flutter]
+    needs: [ flutter ]
     runs-on: macos-15
     strategy:
       matrix:
@@ -376,11 +382,9 @@ jobs:
               echo "ANDROID_ARCHIVE_TYPE=apk" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=firebase" >> $GITHUB_ENV
               echo "RELEASE_NOTES=${{ env.APP_ENV }}_${{ github.ref_name }}" >> $GITHUB_ENV
-              echo "ENV_FILE=.app.env" >> $GITHUB_ENV
             else
               echo "ANDROID_ARCHIVE_TYPE=appbundle" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=playstore" >> $GITHUB_ENV
-              echo "ENV_FILE=.merged.store.app.env" >> $GITHUB_ENV
           fi
 
           if [[ ${{ env.APP_ENV == 'production' }} == true ]]
@@ -397,11 +401,19 @@ jobs:
               echo "RELEASE_STATUS=draft" >> $GITHUB_ENV
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
+      - name: Prepare Envied env file (store only)
+        if: ${{ env.DEPLOYMENT_TYPE == 'store' }}
+        run: |
+          cd main-repo
+          # Envied reads .app.env at codegen time. For store builds we generate .merged.store.app.env,
+          # so mirror it into .app.env and regenerate envied outputs.
+          cp .merged.store.app.env .app.env
+          dart run build_runner build --delete-conflicting-outputs --build-filter="**/*.env.g.dart"
       - name: Build Android App (${{env.ANDROID_ARCHIVE_TYPE}} v${{ env.APP_VERSION }} build:${{ env.BUILD_NUMBER }})
         id: build-app
         run: |
           cd main-repo
-          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=$ENV_FILE
+          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         if: ${{ github.event_name != 'pull_request' }}
@@ -422,7 +434,7 @@ jobs:
     name: Cleanup cache
     permissions:
       actions: write
-    needs: [flutter, ios-cicd, android-cicd]
+    needs: [ flutter, ios-cicd, android-cicd ]
     runs-on: macos-15
     if: always() && needs.flutter.result == 'success'
     steps:

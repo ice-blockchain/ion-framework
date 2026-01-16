@@ -2,6 +2,10 @@ targets:
   $default:
     auto_apply_builders: false
     builders:
+      envied_generator|envied:
+        generate_for:
+          include:
+            - lib/**/env_provider.r.dart
       freezed:freezed:
         generate_for:
           include:
@@ -27,13 +31,13 @@ targets:
         generate_for:
           include:
             - lib/**/database/**.d.dart
-            - lib/**.m.dart         
+            - lib/**.m.dart
         options:
           sql:
-              dialect: sqlite
-              options:
-                modules:
-                  - json1
+            dialect: sqlite
+            options:
+              modules:
+                - json1
           use_sql_column_name_as_json_key: true
           databases:
             chat_database: lib/app/features/chat/model/database/chat_database.m.dart
