@@ -57,22 +57,9 @@ class TokenCard extends HookConsumerWidget {
   final bool skipAmountFormatting;
   final ValueChanged<String?>? onValidationError;
 
-  void _onPercentageChanged(int percentage, WidgetRef ref) {
-    final coin = coinsGroup?.coins.firstWhereOrNull(
-      (c) => c.coin.network.id == network?.id,
-    );
-    final amount = coin?.amount;
-    if (amount == null) return;
-
-    final newAmount = amount * (percentage / 100);
-    ref.read(swapCoinsControllerProvider.notifier).setAmount(newAmount);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.appColors;
-    final textStyles = context.theme.appTextThemes;
-    final iconUrl = coinsGroup?.iconUrl;
     final focusNode = useFocusNode();
     final coinForNetwork = coinsGroup?.coins.firstWhereOrNull(
       (CoinInWalletData c) => c.coin.network.id == network?.id,
@@ -152,310 +139,430 @@ class TokenCard extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                type == CoinSwapType.sell
-                    ? context.i18n.wallet_swap_coins_sell
-                    : context.i18n.wallet_swap_coins_buy,
-                style: textStyles.subtitle3.copyWith(
-                  color: colors.onTertiaryBackground,
-                ),
-              ),
-              if (type == CoinSwapType.sell)
-                Row(
-                  spacing: 5.0.s,
-                  children: [
-                    SumPercentageAction(
-                      percentage: 25,
-                      onPercentageChanged: (percentage) {
-                        if (onPercentageChanged != null) {
-                          onPercentageChanged!.call(percentage);
-                        }
-
-                        _onPercentageChanged(
-                          percentage,
-                          ref,
-                        );
-                      },
-                    ),
-                    SumPercentageAction(
-                      percentage: 50,
-                      onPercentageChanged: (percentage) {
-                        if (onPercentageChanged != null) {
-                          onPercentageChanged!.call(percentage);
-                        }
-
-                        _onPercentageChanged(
-                          percentage,
-                          ref,
-                        );
-                      },
-                    ),
-                    SumPercentageAction(
-                      percentage: 75,
-                      onPercentageChanged: (percentage) {
-                        if (onPercentageChanged != null) {
-                          onPercentageChanged!.call(percentage);
-                        }
-
-                        _onPercentageChanged(
-                          percentage,
-                          ref,
-                        );
-                      },
-                    ),
-                    SumPercentageAction(
-                      percentage: 100,
-                      text: context.i18n.wallet_max.capitalize(),
-                      onPercentageChanged: (percentage) {
-                        if (onPercentageChanged != null) {
-                          onPercentageChanged!.call(percentage);
-                        }
-
-                        _onPercentageChanged(
-                          percentage,
-                          ref,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-            ],
+          _TokenTypeHeader(
+            type: type,
+            coinsGroup: coinsGroup,
+            network: network,
+            onPercentageChanged: onPercentageChanged,
           ),
           SizedBox(
             height: 16.0.s,
           ),
-          GestureDetector(
+          _TokenCardContent(
             onTap: onTap,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (iconUrl != null && coinsGroup != null)
-                  Flexible(
-                    child: Row(
-                      spacing: 10.0.s,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (network != null)
-                          CoinIconWithNetwork.small(
-                            iconUrl,
-                            network: network!,
-                            showPlaceholder: true,
-                          )
-                        else
-                          SizedBox.square(
-                            dimension: 40.0.s,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0.s),
-                              child: Image.network(
-                                iconUrl,
-                                width: 40.0.s,
-                                height: 40.0.s,
-                                fit: BoxFit.cover,
-                                errorBuilder:
-                                    avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
-                              ),
-                            ),
-                          ),
-                        Flexible(
-                          child: Column(
-                            spacing: 2.0.s,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      coinsGroup!.abbreviation,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style: textStyles.body.copyWith(
-                                        color: colors.primaryText,
-                                      ),
-                                    ),
-                                  ),
-                                  if (showArrow) ...[
-                                    SizedBox(
-                                      width: 4.0.s,
-                                    ),
-                                    Assets.svg.iconArrowDown.icon(
-                                      color: colors.sharkText,
-                                      size: 12.0.s,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              if (network != null)
-                                Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
-                                  decoration: BoxDecoration(
-                                    color: colors.attentionBlock,
-                                    borderRadius: BorderRadius.circular(16.0.s),
-                                  ),
-                                  child: Text(
-                                    network?.displayName ?? '',
-                                    style: textStyles.caption3.copyWith(
-                                      color: colors.quaternaryText,
-                                      fontSize: 11.0.s,
-                                      height: 1,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else if (avatarWidget != null && coinsGroup != null)
-                  Row(
-                    spacing: 10.0.s,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      avatarWidget!,
-                      Column(
-                        spacing: 2.0.s,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            coinsGroup!.abbreviation,
-                            style: textStyles.body.copyWith(
-                              color: colors.primaryText,
-                            ),
-                          ),
-                          if (network != null)
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
-                              decoration: BoxDecoration(
-                                color: colors.attentionBlock,
-                                borderRadius: BorderRadius.circular(16.0.s),
-                              ),
-                              child: Text(
-                                network?.displayName ?? '',
-                                style: textStyles.caption3.copyWith(
-                                  color: colors.quaternaryText,
-                                  fontSize: 11.0.s,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  )
-                else if (showSelectButton)
-                  Button(
-                    onPressed: onTap,
-                    type: ButtonType.outlined,
-                    leadingIconOffset: 4.0.s,
-                    label: Text(
-                      context.i18n.wallet_swap_coins_select_coin,
-                      style: textStyles.body.copyWith(
-                        color: colors.secondaryBackground,
-                      ),
-                    ),
-                    tintColor: colors.primaryAccent,
-                    backgroundColor: colors.primaryAccent,
-                    borderRadius: BorderRadius.circular(12.0.s),
-                    leadingIcon: Assets.svg.iconCreatecoinNewcoin.icon(
-                      color: colors.secondaryBackground,
-                      size: 20.0.s,
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: Size(128.0.s, 36.0.s),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.0.s,
-                        vertical: 6.0.s,
-                      ),
-                    ),
-                  ),
-                Expanded(
-                  child: SizedBox(
-                    width: 150.0.s,
-                    child: TextFormField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      readOnly: isReadOnly ?? coinsGroup == null,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: textStyles.headline2.copyWith(
-                        color: isError ? colors.attentionRed : colors.primaryText,
-                      ),
-                      cursorHeight: 24.0.s,
-                      cursorWidth: 3.0.s,
-                      cursorRadius: Radius.circular(0.s),
-                      enabled: enabled,
-                      inputFormatters: [
-                        CoinInputFormatter(
-                          maxDecimals: coinForNetwork?.coin.decimals ?? 2,
-                        ),
-                      ],
-                      textAlign: TextAlign.end,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: '0.00',
-                        hintStyle: textStyles.headline2.copyWith(
-                          color: colors.tertiaryText,
-                        ),
-                        isDense: true,
-                        errorStyle: textStyles.caption2.copyWith(
-                          color: colors.attentionRed,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            iconUrl: coinsGroup?.iconUrl,
+            coinsGroup: coinsGroup,
+            network: network,
+            avatarWidget: avatarWidget,
+            showArrow: showArrow,
+            isReadOnly: isReadOnly,
+            controller: controller,
+            showSelectButton: showSelectButton,
+            isError: isError,
+            enabled: enabled,
+            focusNode: focusNode,
+            coinForNetwork: coinForNetwork,
+            skipValidation: skipValidation,
           ),
           SizedBox(
             height: 8.0.s,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Assets.svg.iconWallet.icon(
-                      color: isError ? colors.attentionRed : colors.tertiaryText,
-                      size: 12.0.s,
-                    ),
-                    SizedBox(
-                      width: 4.0.s,
-                    ),
-                    Flexible(
-                      child: Builder(
-                        builder: (context) {
-                          final maxValue = coinForNetwork?.amount;
-                          final decimals =
-                              coinForNetwork?.coin.decimals ?? SwapConstants.defaultDecimals;
+          _TokenCardFooter(
+            isError: isError,
+            coinForNetwork: coinForNetwork,
+            coinsGroup: coinsGroup,
+            enteredAmountUSD: enteredAmountUSD,
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-                          return Text(
-                            maxValue != null
-                                ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup!.abbreviation}'
-                                : '0.00',
-                            style: textStyles.caption2.copyWith(
-                              color: isError ? colors.attentionRed : colors.tertiaryText,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          );
-                        },
+class _TokenTypeHeader extends HookConsumerWidget {
+  const _TokenTypeHeader({
+    required this.type,
+    required this.coinsGroup,
+    required this.network,
+    required this.onPercentageChanged,
+  });
+  final CoinsGroup? coinsGroup;
+  final NetworkData? network;
+  final CoinSwapType type;
+  final ValueChanged<int>? onPercentageChanged;
+
+  void _onPercentageChanged(int percentage, WidgetRef ref) {
+    final coin = coinsGroup?.coins.firstWhereOrNull(
+      (c) => c.coin.network.id == network?.id,
+    );
+    final amount = coin?.amount;
+    if (amount == null) return;
+
+    final newAmount = amount * (percentage / 100);
+    ref.read(swapCoinsControllerProvider.notifier).setAmount(newAmount);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.theme.appColors;
+    final textStyles = context.theme.appTextThemes;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          type == CoinSwapType.sell
+              ? context.i18n.wallet_swap_coins_sell
+              : context.i18n.wallet_swap_coins_buy,
+          style: textStyles.subtitle3.copyWith(
+            color: colors.onTertiaryBackground,
+          ),
+        ),
+        if (type == CoinSwapType.sell)
+          Row(
+            spacing: 5.0.s,
+            children: [
+              SumPercentageAction(
+                percentage: 25,
+                onPercentageChanged: (percentage) {
+                  if (onPercentageChanged != null) {
+                    onPercentageChanged!.call(percentage);
+                  }
+
+                  _onPercentageChanged(
+                    percentage,
+                    ref,
+                  );
+                },
+              ),
+              SumPercentageAction(
+                percentage: 50,
+                onPercentageChanged: (percentage) {
+                  if (onPercentageChanged != null) {
+                    onPercentageChanged!.call(percentage);
+                  }
+
+                  _onPercentageChanged(
+                    percentage,
+                    ref,
+                  );
+                },
+              ),
+              SumPercentageAction(
+                percentage: 75,
+                onPercentageChanged: (percentage) {
+                  if (onPercentageChanged != null) {
+                    onPercentageChanged!.call(percentage);
+                  }
+
+                  _onPercentageChanged(
+                    percentage,
+                    ref,
+                  );
+                },
+              ),
+              SumPercentageAction(
+                percentage: 100,
+                text: context.i18n.wallet_max.capitalize(),
+                onPercentageChanged: (percentage) {
+                  if (onPercentageChanged != null) {
+                    onPercentageChanged!.call(percentage);
+                  }
+
+                  _onPercentageChanged(
+                    percentage,
+                    ref,
+                  );
+                },
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _TokenCardContent extends StatelessWidget {
+  const _TokenCardContent({
+    required this.onTap,
+    required this.iconUrl,
+    required this.coinsGroup,
+    required this.network,
+    required this.avatarWidget,
+    required this.showArrow,
+    required this.controller,
+    required this.showSelectButton,
+    required this.isError,
+    required this.enabled,
+    required this.focusNode,
+    required this.coinForNetwork,
+    required this.skipValidation,
+    this.isReadOnly,
+  });
+
+  final VoidCallback onTap;
+  final String? iconUrl;
+  final CoinsGroup? coinsGroup;
+  final NetworkData? network;
+  final Widget? avatarWidget;
+  final bool showArrow;
+  final bool? isReadOnly;
+  final TextEditingController? controller;
+  final bool showSelectButton;
+  final bool isError;
+  final bool enabled;
+  final bool skipValidation;
+  final FocusNode? focusNode;
+  final CoinInWalletData? coinForNetwork;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    final textStyles = context.theme.appTextThemes;
+    final iconUrl = coinsGroup?.iconUrl;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (iconUrl != null && coinsGroup != null)
+            Flexible(
+              child: Row(
+                spacing: 10.0.s,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (network != null)
+                    CoinIconWithNetwork.small(
+                      iconUrl,
+                      network: network!,
+                      showPlaceholder: true,
+                    )
+                  else
+                    SizedBox.square(
+                      dimension: 40.0.s,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0.s),
+                        child: Image.network(
+                          iconUrl,
+                          width: 40.0.s,
+                          height: 40.0.s,
+                          fit: BoxFit.cover,
+                          errorBuilder: avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
+                        ),
                       ),
                     ),
+                  Flexible(
+                    child: Column(
+                      spacing: 2.0.s,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                coinsGroup!.abbreviation,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: textStyles.body.copyWith(
+                                  color: colors.primaryText,
+                                ),
+                              ),
+                            ),
+                            if (showArrow) ...[
+                              SizedBox(
+                                width: 4.0.s,
+                              ),
+                              Assets.svg.iconArrowDown.icon(
+                                color: colors.sharkText,
+                                size: 12.0.s,
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (network != null)
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
+                            decoration: BoxDecoration(
+                              color: colors.attentionBlock,
+                              borderRadius: BorderRadius.circular(16.0.s),
+                            ),
+                            child: Text(
+                              network?.displayName ?? '',
+                              style: textStyles.caption3.copyWith(
+                                color: colors.quaternaryText,
+                                fontSize: 11.0.s,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (avatarWidget != null && coinsGroup != null)
+            Row(
+              spacing: 10.0.s,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                avatarWidget!,
+                Column(
+                  spacing: 2.0.s,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      coinsGroup!.abbreviation,
+                      style: textStyles.body.copyWith(
+                        color: colors.primaryText,
+                      ),
+                    ),
+                    if (network != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
+                        decoration: BoxDecoration(
+                          color: colors.attentionBlock,
+                          borderRadius: BorderRadius.circular(16.0.s),
+                        ),
+                        child: Text(
+                          network?.displayName ?? '',
+                          style: textStyles.caption3.copyWith(
+                            color: colors.quaternaryText,
+                            fontSize: 11.0.s,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
+              ],
+            )
+          else if (showSelectButton)
+            Button(
+              onPressed: onTap,
+              type: ButtonType.outlined,
+              leadingIconOffset: 4.0.s,
+              label: Text(
+                context.i18n.wallet_swap_coins_select_coin,
+                style: textStyles.body.copyWith(
+                  color: colors.secondaryBackground,
+                ),
               ),
-              Text(
-                enteredAmountUSD,
-                style: textStyles.caption2.copyWith(
-                  color: colors.tertiaryText,
+              tintColor: colors.primaryAccent,
+              backgroundColor: colors.primaryAccent,
+              borderRadius: BorderRadius.circular(12.0.s),
+              leadingIcon: Assets.svg.iconCreatecoinNewcoin.icon(
+                color: colors.secondaryBackground,
+                size: 20.0.s,
+              ),
+              style: OutlinedButton.styleFrom(
+                minimumSize: Size(128.0.s, 36.0.s),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10.0.s,
+                  vertical: 6.0.s,
+                ),
+              ),
+            ),
+          Expanded(
+            child: SizedBox(
+              width: 150.0.s,
+              child: TextFormField(
+                controller: controller,
+                focusNode: focusNode,
+                readOnly: isReadOnly ?? coinsGroup == null,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                style: textStyles.headline2.copyWith(
+                  color: isError ? colors.attentionRed : colors.primaryText,
+                ),
+                cursorHeight: 24.0.s,
+                cursorWidth: 3.0.s,
+                cursorRadius: Radius.circular(0.s),
+                enabled: enabled,
+                inputFormatters: [
+                  CoinInputFormatter(
+                    maxDecimals: coinForNetwork?.coin.decimals ?? 2,
+                  ),
+                ],
+                textAlign: TextAlign.end,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: '0.00',
+                  hintStyle: textStyles.headline2.copyWith(
+                    color: colors.tertiaryText,
+                  ),
+                  isDense: true,
+                  errorStyle: textStyles.caption2.copyWith(
+                    color: colors.attentionRed,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TokenCardFooter extends StatelessWidget {
+  const _TokenCardFooter({
+    required this.isError,
+    required this.coinForNetwork,
+    required this.coinsGroup,
+    required this.enteredAmountUSD,
+  });
+
+  final bool isError;
+  final CoinInWalletData? coinForNetwork;
+  final CoinsGroup? coinsGroup;
+  final String enteredAmountUSD;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    final textStyles = context.theme.appTextThemes;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              Assets.svg.iconWallet.icon(
+                color: isError ? colors.attentionRed : colors.tertiaryText,
+                size: 12.0.s,
+              ),
+              SizedBox(
+                width: 4.0.s,
+              ),
+              Flexible(
+                child: Builder(
+                  builder: (context) {
+                    final maxValue = coinForNetwork?.amount;
+                    final decimals = coinForNetwork?.coin.decimals ?? SwapConstants.defaultDecimals;
+
+                    return Text(
+                      maxValue != null
+                          ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup!.abbreviation}'
+                          : '0.00',
+                      style: textStyles.caption2.copyWith(
+                        color: isError ? colors.attentionRed : colors.tertiaryText,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  },
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        Text(
+          enteredAmountUSD,
+          style: textStyles.caption2.copyWith(
+            color: colors.tertiaryText,
+          ),
+        ),
+      ],
     );
   }
 }
