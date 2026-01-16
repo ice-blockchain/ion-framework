@@ -99,18 +99,21 @@ abstract class DeltaMarkdownConverter {
 
       final opData = op.data! as String;
       final opAttrs = _getFormattingAttributes(op.attributes);
-      final opStyling = _getStylingAttributes(op.attributes);
 
       if (pendingOp == null) {
         pendingOp = op;
       } else {
         final pendingData = pendingOp.data! as String;
         final pendingAttrs = _getFormattingAttributes(pendingOp.attributes);
-        final pendingStyling = _getStylingAttributes(pendingOp.attributes);
 
-        // Check if operations can be merged (same formatting AND styling attributes)
-        if (_areFormattingAttributesEqual(pendingAttrs, opAttrs) &&
-            _areFormattingAttributesEqual(pendingStyling, opStyling)) {
+        // Check if operations can be merged:
+        // 1. Must have same formatting attributes (bold, italic, etc.)
+        // 2. Hashtags and cashtags don't prevent merging (they can be inside formatted text)
+        // 3. Mentions MUST have matching boundaries (they're interactive elements)
+        final canMerge = _areFormattingAttributesEqual(pendingAttrs, opAttrs) &&
+            _canMergeStylingAttributes(pendingOp.attributes, op.attributes);
+
+        if (canMerge) {
           final mergedData = pendingData + opData;
           final mergedAttrs = _mergeAttributes(pendingOp.attributes, op.attributes);
           pendingOp = Operation.insert(mergedData, mergedAttrs);
@@ -157,25 +160,28 @@ abstract class DeltaMarkdownConverter {
     return formattingAttrs.isEmpty ? null : formattingAttrs;
   }
 
-  /// Extracts styling attributes from operation attributes.
-  /// Styling attributes: hashtag, cashtag, mention
-  static Map<String, dynamic>? _getStylingAttributes(Map<String, dynamic>? attributes) {
-    if (attributes == null) return null;
+  /// Determines if two operations can be merged based on their styling attributes.
+  /// Mentions require exact matching (both present or both absent with same value).
+  /// Hashtags and cashtags don't prevent merging.
+  static bool _canMergeStylingAttributes(
+    Map<String, dynamic>? attrs1,
+    Map<String, dynamic>? attrs2,
+  ) {
+    final mention1 = attrs1?['mention'];
+    final mention2 = attrs2?['mention'];
 
-    const stylingKeys = {
-      'hashtag',
-      'cashtag',
-      'mention',
-    };
-
-    final stylingAttrs = <String, dynamic>{};
-    for (final entry in attributes.entries) {
-      if (stylingKeys.contains(entry.key)) {
-        stylingAttrs[entry.key] = entry.value;
-      }
+    // If both have mentions, they must match exactly
+    if (mention1 != null && mention2 != null) {
+      return mention1 == mention2;
     }
 
-    return stylingAttrs.isEmpty ? null : stylingAttrs;
+    // If only one has a mention, they can't be merged
+    if (mention1 != null || mention2 != null) {
+      return false;
+    }
+
+    // Neither has mention, they can be merged (hashtags/cashtags don't matter)
+    return true;
   }
 
   /// Compares two attribute maps for equality, considering only formatting attributes.
