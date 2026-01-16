@@ -13,9 +13,8 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
-import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
@@ -27,12 +26,12 @@ import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokenIsLiveDialogEvent extends UiEvent {
-  const CreatorTokenIsLiveDialogEvent();
+  CreatorTokenIsLiveDialogEvent(this.tokenDefinitionEventReference);
 
   static bool shown = false;
+  final ReplaceableEventReference tokenDefinitionEventReference;
 
   @override
   void performAction(BuildContext context) {
@@ -41,14 +40,17 @@ class CreatorTokenIsLiveDialogEvent extends UiEvent {
       showSimpleBottomSheet<void>(
         context: context,
         backgroundColor: context.theme.appColors.forest,
-        child: const CreatorTokenIsLiveDialog(),
+        child:
+            CreatorTokenIsLiveDialog(tokenDefinitionEventReference: tokenDefinitionEventReference),
       ).whenComplete(() => shown = false);
     }
   }
 }
 
 class CreatorTokenIsLiveDialog extends HookConsumerWidget {
-  const CreatorTokenIsLiveDialog({super.key});
+  const CreatorTokenIsLiveDialog({required this.tokenDefinitionEventReference, super.key});
+
+  final ReplaceableEventReference tokenDefinitionEventReference;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,13 +60,15 @@ class CreatorTokenIsLiveDialog extends HookConsumerWidget {
     return ProfileGradientBackground(
       colors: imageColors ?? useAvatarFallbackColors,
       disableDarkGradient: false,
-      child: const _ContentState(),
+      child: _ContentState(tokenDefinitionEventReference),
     );
   }
 }
 
 class _ContentState extends HookConsumerWidget {
-  const _ContentState();
+  const _ContentState(this.tokenDefinitionEventReference);
+
+  final ReplaceableEventReference tokenDefinitionEventReference;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,9 +79,7 @@ class _ContentState extends HookConsumerWidget {
 
     final eventReferenceString = userMetadata?.toEventReference().toString();
 
-    final hasBscWallet = (userMetadata?.hasBscWallet).falseOrValue;
-
-    final token = eventReferenceString != null && hasBscWallet
+    final token = eventReferenceString != null
         ? ref.watch(tokenMarketInfoProvider(eventReferenceString)).valueOrNull
         : null;
 
@@ -147,16 +149,7 @@ class _ContentState extends HookConsumerWidget {
                     ? () async {
                         isLoading.value = true;
                         try {
-                          final tokenDefinitionEntity = await ref.watch(
-                            tokenDefinitionForExternalAddressProvider(
-                              externalAddress: token.externalAddress,
-                            ).future,
-                          );
-
-                          final tokenDefinitionEventReference =
-                              tokenDefinitionEntity?.toEventReference();
-
-                          if (tokenDefinitionEventReference != null && context.mounted) {
+                          if (context.mounted) {
                             context.pop();
 
                             await ShareViaMessageModalRoute(

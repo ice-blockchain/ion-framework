@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -29,7 +28,7 @@ class CommunityTokenDefinitionHandler extends GlobalSubscriptionEventHandler {
   final LocalStorage localStorage;
   final IonConnectCache ionConnectCache;
   final String? currentUserMasterPubkey;
-  final VoidCallback uiEventQueueCallback;
+  final void Function(ReplaceableEventReference tokenDefinitionEventReference) uiEventQueueCallback;
 
   String get localStorageKey => 'creator_token_is_live_dialog_shown_$currentUserMasterPubkey';
 
@@ -53,8 +52,8 @@ class CommunityTokenDefinitionHandler extends GlobalSubscriptionEventHandler {
           )
         )
         when originalEventMasterPubkey == currentUserMasterPubkey &&
-            (localStorage.getBool(localStorageKey) ?? false)) {
-      uiEventQueueCallback();
+            !(localStorage.getBool(localStorageKey) ?? false)) {
+      uiEventQueueCallback(entity.toEventReference());
       await localStorage.setBool(key: localStorageKey, value: true);
     }
 
@@ -68,8 +67,10 @@ CommunityTokenDefinitionHandler communityTokenDefinitionHandler(Ref ref) {
   final cache = ref.watch(ionConnectCacheProvider.notifier);
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
-  void uiEventQueueCallback() {
-    ref.read(uiEventQueueNotifierProvider.notifier).emit(const CreatorTokenIsLiveDialogEvent());
+  void uiEventQueueCallback(ReplaceableEventReference tokenDefinitionEventReference) {
+    ref
+        .read(uiEventQueueNotifierProvider.notifier)
+        .emit(CreatorTokenIsLiveDialogEvent(tokenDefinitionEventReference));
   }
 
   return CommunityTokenDefinitionHandler(
