@@ -917,6 +917,8 @@
   "tokenized_community_chart_tab": "Grafik",
   "tokenized_community_comments_empty": "Sohbete katılan ilk kişi olun",
   "tokenized_community_comments_tab": "Yorumlar",
+  "tokenized_community_creator_token_live_title": "İçerik üreticisi tokeni YAYINDA!",
+  "tokenized_community_creator_token_live_subtitle": "Tebrikler, içerik üreticisi tokeniniz artık yayında ve herkesin işlem yapması için mevcut",
   "tokenized_community_holders_tab": "Sahipler",
   "token_comment_holders_only": "Yorumlar yalnızca token sahipleri için kullanılabilir.",
   "tokenized_community_not_available_description": "Önceden oluşturulmuş gönderiler için token oluşturma kullanılamaz.",

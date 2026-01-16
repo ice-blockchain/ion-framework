@@ -16,6 +16,7 @@ import 'package:ion/app/features/feed/notifications/providers/notifications/repo
 import 'package:ion/app/features/feed/notifications/providers/notifications/token_launch_notification_handler.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_handler.r.dart';
 import 'package:ion/app/features/user/providers/badge_award_handler.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_handler.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -37,6 +38,7 @@ Future<EventsManagementService> eventsManagementService(Ref ref) async {
     ref.watch(badgeAwardHandlerProvider),
     ref.watch(userDelegationHandlerProvider),
     ref.watch(tokenLaunchNotificationHandlerProvider),
+    ref.watch(communityTokenDefinitionHandlerProvider),
   ];
 
   final manager = EventsManagementService(handlers);
