@@ -160,11 +160,27 @@ class PasskeysSigner {
     required bool localCredsOnly,
   }) async {
     try {
-      return await sign(
+      final assertion = await sign(
         challenge,
         localCredsOnly: localCredsOnly,
       );
+      await _clearCanSuggestStateOnSuccess(username);
+      return assertion;
     } on NoCredentialsAvailableException {
+      if (localCredsOnly && username.isNotEmpty) {
+        try {
+          final assertion = await sign(challenge);
+          await _clearCanSuggestStateOnSuccess(username);
+          return assertion;
+        } on NoCredentialsAvailableException {
+          await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
+            username: username,
+            state: LocalPasskeyCredsState.canSuggest,
+          );
+          throw const NoLocalPasskeyCredsFoundIONIdentityException();
+        }
+      }
+
       if (localCredsOnly) {
         await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
           username: username,
@@ -172,9 +188,35 @@ class PasskeysSigner {
         );
       }
       throw const NoLocalPasskeyCredsFoundIONIdentityException();
+    } on PasskeyValidationException catch (e) {
+      // Auto-login with passkey is tried when username is empty (e.g., field focus).
+      // If the backend returns a bad challenge (like empty rpId), just avoid showing an error to the user.
+      if (username.isEmpty && localCredsOnly) {
+        throw NoLocalPasskeyCredsFoundIONIdentityException(e.message);
+      }
+      rethrow;
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
     }
+  }
+
+  Future<void> _clearCanSuggestStateOnSuccess(String username) async {
+    if (username.isEmpty) return;
+    final state = localPasskeyCredsStateStorage.getLocalPasskeyCredsState(username: username);
+    if (state == LocalPasskeyCredsState.canSuggest) {
+      await localPasskeyCredsStateStorage.removeLocalPasskeyCredsState(username: username);
+    }
+  }
+
+  String _resolveRelyingId(UserActionChallenge challenge) {
+    final direct = challenge.rp.id.trim();
+    if (direct.isNotEmpty) {
+      return direct;
+    }
+
+    throw PasskeyValidationException(
+      'Invalid passkey assertion challenge: relying party id (rp.id) is empty',
+    );
   }
 
   /// Signs a user action challenge, returning a [AssertionRequestData] containing
@@ -186,13 +228,14 @@ class PasskeysSigner {
     UserActionChallenge challenge, {
     bool localCredsOnly = false,
   }) async {
+    final relyingPartyId = _resolveRelyingId(challenge);
     final timeoutMs = localCredsOnly == true ? options.timeout : options.otherDeviceTimeout;
     try {
       final fido2Assertion = await _withWatchdog(
         future: PasskeyAuthenticator().authenticate(
           AuthenticateRequestType(
             preferImmediatelyAvailableCredentials: localCredsOnly,
-            relyingPartyId: challenge.rp.id,
+            relyingPartyId: relyingPartyId,
             challenge: challenge.challenge,
             timeout: timeoutMs,
             userVerification: challenge.userVerification,
