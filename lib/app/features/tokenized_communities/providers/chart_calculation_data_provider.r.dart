@@ -65,9 +65,19 @@ ChartCalculationData? chartCalculationData(
       .toList();
 
   // Build bottom labels with consistent spacing
-  const targetLabelsCount = 5;
-  final bottomLabelsCount =
-      candles.length <= 1 ? candles.length : math.min(targetLabelsCount, candles.length);
+  // Calculate labels based on scale: 8 labels per screen (35 candles)
+  // When scale = 1.0 (< 35 candles), limit to actual candle count
+  // When scale > 1.0, use formula: (totalCandles / 35) * 8
+  const maxPointsPerScreen = 35;
+  const labelsPerScreen = 8;
+
+  final scale = candles.length < maxPointsPerScreen ? 1.0 : candles.length / maxPointsPerScreen;
+  final calculatedLabels = (scale * labelsPerScreen).round();
+  final bottomLabelsCount = candles.length <= 1
+      ? candles.length
+      : scale == 1.0
+          ? math.min(candles.length, labelsPerScreen) // Limit to actual candles when scale = 1
+          : math.max(1, calculatedLabels); // Use calculated value when scale > 1
 
   final indexToLabel = <int, String>{};
   double xAxisStep = 1;
