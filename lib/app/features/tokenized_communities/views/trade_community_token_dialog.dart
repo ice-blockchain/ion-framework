@@ -61,12 +61,21 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final resolvedExternalAddress = externalAddress ?? eventReference!.toString();
-    final resolvedExternalAddressType = eventReference != null
+    final externalAddressTypeAsync = eventReference != null
         ? ref
             .watch(ionConnectEntityProvider(eventReference: eventReference!))
-            .valueOrNull
-            ?.externalAddressType
-        : ref.watch(externalAddressTypeProvider(externalAddress: externalAddress!)).valueOrNull;
+            .whenData((entity) => entity?.externalAddressType)
+        : ref.watch(externalAddressTypeProvider(externalAddress: externalAddress!));
+
+    if (externalAddressTypeAsync.isLoading || externalAddressTypeAsync.hasError) {
+      return const SheetContent(
+        body: Center(
+          child: CircularProgressIndicator.adaptive(),
+        ),
+      );
+    }
+
+    final resolvedExternalAddressType = externalAddressTypeAsync.valueOrNull;
     if (resolvedExternalAddressType == null) {
       return const SheetContent(body: SizedBox.shrink());
     }
