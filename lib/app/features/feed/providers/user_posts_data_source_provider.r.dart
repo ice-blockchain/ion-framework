@@ -14,8 +14,6 @@ import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_posts_data_source_provider.r.g.dart';
@@ -27,9 +25,6 @@ const requestKinds = [
   ArticleEntity.kind,
   GenericRepostEntity.modifiablePostRepostKind,
   GenericRepostEntity.articleRepostKind,
-  GenericRepostEntity.communityTokenDefinitionRepostKind,
-  GenericRepostEntity.communityTokenActionRepostKind,
-  CommunityTokenActionEntity.kind,
 ];
 
 const withCountersKinds = [
@@ -38,7 +33,6 @@ const withCountersKinds = [
   ArticleEntity.kind,
   RepostEntity.kind,
   GenericRepostEntity.kind,
-  CommunityTokenActionEntity.kind,
 ];
 
 const withTokensKinds = [
@@ -75,10 +69,6 @@ List<EntitiesDataSource>? userPostsDataSource(Ref ref, String pubkey) {
       marker: RelatedEventMarker.reply.toShortString(),
       negative: true,
     ),
-    GenericIncludeSearchExtension(
-      forKind: CommunityTokenActionEntity.kind,
-      includeKind: CommunityTokenDefinitionEntity.kind,
-    ),
     ExpirationSearchExtension(expiration: false),
   ]).toString();
 
@@ -91,9 +81,7 @@ List<EntitiesDataSource>? userPostsDataSource(Ref ref, String pubkey) {
               entity is ArticleEntity ||
               entity is GenericRepostEntity ||
               (entity is PostEntity && entity.data.parentEvent == null) ||
-              entity is RepostEntity ||
-              entity is CommunityTokenDefinitionEntity ||
-              entity is CommunityTokenActionEntity),
+              entity is RepostEntity),
       requestFilter: RequestFilter(
         kinds: requestKinds,
         authors: [pubkey],

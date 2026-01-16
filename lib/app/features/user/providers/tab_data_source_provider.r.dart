@@ -6,6 +6,7 @@ import 'package:ion/app/features/feed/providers/user_holdings_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_data_source_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_replies_data_source_provider.r.dart';
+import 'package:ion/app/features/feed/providers/user_tokenized_community_data_source_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_videos_data_source_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
@@ -22,9 +23,9 @@ List<EntitiesDataSource>? tabDataSource(
 }) {
   switch (type) {
     case TabEntityType.posts:
-    case TabEntityType.holdings:
-      // Holdings uses the same data source as posts (filtering happens at provider level)
       return ref.watch(userPostsDataSourceProvider(pubkey));
+    case TabEntityType.holdings:
+      return ref.watch(userTokenizedCommunityDataSourceProvider(pubkey));
     case TabEntityType.articles:
       return ref.watch(userArticlesDataSourceProvider(pubkey));
     case TabEntityType.replies:
