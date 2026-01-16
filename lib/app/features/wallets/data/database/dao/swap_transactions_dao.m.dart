@@ -20,11 +20,22 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
 
   Future<int> saveSwap({
     required String fromTxHash,
+    required String fromWalletAddress,
+    required String toWalletAddress,
+    required String fromNetworkId,
+    required String toNetworkId,
+    required String amount,
     String? toTxHash,
   }) async {
     return into(swapTransactionsTable).insert(
       SwapTransactionsTableCompanion.insert(
         fromTxHash: fromTxHash,
+        fromWalletAddress: fromWalletAddress,
+        toWalletAddress: toWalletAddress,
+        fromNetworkId: fromNetworkId,
+        toNetworkId: toNetworkId,
+        amount: amount,
+        createdAt: DateTime.now(),
         toTxHash: Value(toTxHash),
       ),
     );
@@ -49,5 +60,16 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
   Stream<List<SwapTransaction>> watchPendingSwaps() {
     final query = select(swapTransactionsTable)..where((t) => t.toTxHash.isNull());
     return query.watch();
+  }
+
+  Future<List<SwapTransaction>> getPendingSwaps() async {
+    final query = select(swapTransactionsTable)..where((t) => t.toTxHash.isNull());
+    return query.get();
+  }
+
+  Future<List<SwapTransaction>> getPendingSwapsForWallet(String walletAddress) async {
+    final query = select(swapTransactionsTable)
+      ..where((t) => t.toTxHash.isNull() & t.toWalletAddress.equals(walletAddress));
+    return query.get();
   }
 }

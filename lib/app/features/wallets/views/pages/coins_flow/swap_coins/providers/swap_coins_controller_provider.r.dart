@@ -661,10 +661,18 @@ class SwapCoinsController extends _$SwapCoinsController {
         ionSwapRequest: ionSwapRequest,
       );
 
-      if (txHash.isNotEmpty) {
+      if (txHash != null && txHash.isNotEmpty) {
         try {
           final swapTransactionsDao = ref.read(swapTransactionsDaoProvider);
-          await swapTransactionsDao.saveSwap(fromTxHash: txHash);
+          final buyNetwork = state.buyNetwork;
+          await swapTransactionsDao.saveSwap(
+            fromTxHash: txHash,
+            fromWalletAddress: swapCoinParameters.userSellAddress!,
+            toWalletAddress: swapCoinParameters.userBuyAddress!,
+            fromNetworkId: sellNetwork.id,
+            toNetworkId: buyNetwork!.id,
+            amount: swapCoinParameters.amount,
+          );
           Logger.log('Saved swap transaction: $txHash');
         } catch (e) {
           Logger.error('Failed to save swap transaction: $e');

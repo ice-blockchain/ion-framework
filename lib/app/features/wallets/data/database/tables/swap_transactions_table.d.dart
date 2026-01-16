@@ -8,6 +8,13 @@ class SwapTransactionsTable extends Table {
   TextColumn get fromTxHash => text()();
   TextColumn get toTxHash => text().nullable()();
 
+  TextColumn get fromWalletAddress => text()();
+  TextColumn get toWalletAddress => text()();
+  TextColumn get fromNetworkId => text()();
+  TextColumn get toNetworkId => text()();
+  TextColumn get amount => text()();
+  DateTimeColumn get createdAt => dateTime()();
+
   @override
   String? get tableName => 'swap_transactions_table';
 }

@@ -2,11 +2,15 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao.m.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
+import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
+import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
+import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -23,98 +27,154 @@ Future<SwapWatcherService> swapWatcherService(Ref ref) async {
 class SwapWatcherService {
   SwapWatcherService(this._swapTransactionsDao, this._transactionsRepository);
 
+  static const _ionBridgeMultisigAddress =
+      'Uf8PSnTugXPqSS9HgrEWdrU1yOoy2wH4qCaqsZhCaV2HSIEw';
+  static const _matchingTimeWindow = Duration(minutes: 30);
+  static const _amountTolerancePercent = 5.0;
+
   final SwapTransactionsDao _swapTransactionsDao;
   final TransactionsRepository _transactionsRepository;
-  StreamSubscription<List<SwapTransaction>>? _subscription;
-  final Map<int, Timer> _pollingTimers = {};
+  StreamSubscription<List<SwapTransaction>>? _swapSubscription;
+  StreamSubscription<List<TransactionData>>? _txSubscription;
   bool _isRunning = false;
+  List<SwapTransaction> _pendingSwaps = [];
 
   void startWatching() {
     if (_isRunning) return;
     _isRunning = true;
     Logger.log('SwapWatcherService: Starting to watch for pending swaps');
-    _subscription = _swapTransactionsDao
+
+    _swapSubscription = _swapTransactionsDao
         .watchPendingSwaps()
         .distinct(listEquals)
         .listen(_onPendingSwapsChanged);
+
+    _txSubscription = _transactionsRepository
+        .watchTransactions(type: TransactionType.receive)
+        .distinct(
+          (list1, list2) =>
+              const ListEquality<TransactionData>().equals(list1, list2),
+        )
+        .listen(_onNewTransactions);
   }
 
   void stopWatching() {
     if (!_isRunning) return;
     _isRunning = false;
     Logger.log('SwapWatcherService: Stopping watch');
-    _subscription?.cancel();
-    _subscription = null;
-    for (final timer in _pollingTimers.values) {
-      timer.cancel();
-    }
-    _pollingTimers.clear();
+    _swapSubscription?.cancel();
+    _swapSubscription = null;
+    _txSubscription?.cancel();
+    _txSubscription = null;
+    _pendingSwaps = [];
   }
 
   void _onPendingSwapsChanged(List<SwapTransaction> pendingSwaps) {
     if (!_isRunning) return;
 
-    for (final swap in pendingSwaps) {
-      if (!_pollingTimers.containsKey(swap.swapId)) {
-        Logger.log('SwapWatcherService: Found pending swap ${swap.swapId}, fromTxHash: ${swap.fromTxHash}');
-        _startPollingForSwap(swap);
+    _pendingSwaps = pendingSwaps;
+    if (pendingSwaps.isNotEmpty) {
+      final swapIds = pendingSwaps.map((s) => s.swapId).join(', ');
+      Logger.log(
+        'SwapWatcherService: Watching ${pendingSwaps.length} pending swaps: [$swapIds]',
+      );
+    }
+  }
+
+  void _onNewTransactions(List<TransactionData> transactions) {
+    if (!_isRunning || _pendingSwaps.isEmpty) return;
+
+    for (final tx in transactions) {
+      _tryMatchSecondLeg(tx);
+    }
+  }
+
+  Future<void> _tryMatchSecondLeg(TransactionData tx) async {
+    final receiverAddress = tx.receiverWalletAddress;
+    if (receiverAddress == null) return;
+
+    final pendingSwapsForWallet =
+        await _swapTransactionsDao.getPendingSwapsForWallet(receiverAddress);
+
+    for (final swap in pendingSwapsForWallet) {
+      if (_isSecondLegMatch(swap, tx)) {
+        Logger.log(
+          'SwapWatcherService: Found second leg match! '
+          'Swap ${swap.swapId} (${swap.fromTxHash}) -> ${tx.txHash}',
+        );
+        await _swapTransactionsDao.updateToTxHash(
+          swapId: swap.swapId,
+          toTxHash: tx.txHash,
+        );
       }
     }
   }
 
-  void _startPollingForSwap(SwapTransaction swap) {
-    _pollingTimers[swap.swapId] = Timer.periodic(
-      const Duration(seconds: 5),
-      (_) => _pollSecondLeg(swap),
-    );
-    _pollSecondLeg(swap);
-  }
-
-  Future<void> _pollSecondLeg(SwapTransaction swap) async {
-    if (!_isRunning) return;
-
-    final transactions = await _transactionsRepository.getTransactions(
-      txHashes: [swap.fromTxHash],
-    );
-    if (transactions.isEmpty) {
-      Logger.log('SwapWatcherService: Transaction not found for hash ${swap.fromTxHash}');
-      return;
+  bool _isSecondLegMatch(SwapTransaction swap, TransactionData tx) {
+    if (swap.fromNetworkId == 'bsc' && swap.toNetworkId == 'ion') {
+      return _matchBscToIon(swap, tx);
     }
 
-    final networkId = transactions.first.network.id;
-    final isIonToBsc = networkId == 'ion';
+    if (swap.fromNetworkId == 'ion' && swap.toNetworkId == 'bsc') {
+      // TODO: Implement when BSC minting works
+      return false;
+    }
+
+    return false;
+  }
+
+  bool _matchBscToIon(SwapTransaction swap, TransactionData tx) {
+    if (tx.network.id != 'ion') {
+      return false;
+    }
+
+    if (tx.senderWalletAddress != _ionBridgeMultisigAddress) {
+      return false;
+    }
+
+    if (!_isWithinTimeWindow(swap.createdAt, tx.dateConfirmed)) {
+      return false;
+    }
+
+    if (!_isAmountSimilar(swap.amount, tx)) {
+      return false;
+    }
 
     Logger.log(
-      'SwapWatcherService: Polling second leg for swap ${swap.swapId}, '
-      'network: $networkId, isIonToBsc: $isIonToBsc',
+      'SwapWatcherService: BSC→ION match criteria met for swap ${swap.swapId}:\n'
+      '  - Network: ${tx.network.id} (expected: ion)\n'
+      '  - Sender: ${tx.senderWalletAddress} (expected: $_ionBridgeMultisigAddress)\n'
+      '  - Time window: within ${_matchingTimeWindow.inMinutes} minutes\n'
+      '  - Amount: similar to ${swap.amount}',
     );
 
-    final secondLegHash = isIonToBsc
-        ? await _fetchBscSecondLeg(swap.fromTxHash)
-        : await _fetchIonSecondLeg(swap.fromTxHash);
-
-    if (secondLegHash != null && _isRunning) {
-      Logger.log(
-        'SwapWatcherService: Found second leg for swap ${swap.swapId}: $secondLegHash',
-      );
-      await _swapTransactionsDao.updateToTxHash(
-        swapId: swap.swapId,
-        toTxHash: secondLegHash,
-      );
-      _pollingTimers[swap.swapId]?.cancel();
-      _pollingTimers.remove(swap.swapId);
-    }
+    return true;
   }
 
-  Future<String?> _fetchBscSecondLeg(String ionTxHash) async {
-    await Future<void>.delayed(const Duration(seconds: 2));
-    // BSC mint not available in logs (minting disabled due to BE issue)
-    return null;
+  bool _isWithinTimeWindow(DateTime swapCreatedAt, DateTime? txConfirmedAt) {
+    if (txConfirmedAt == null) return true;
+
+    final difference = txConfirmedAt.difference(swapCreatedAt);
+    return difference >= Duration.zero && difference <= _matchingTimeWindow;
   }
 
-  Future<String?> _fetchIonSecondLeg(String bscTxHash) async {
-    await Future<void>.delayed(const Duration(seconds: 2));
-    // Real ION second-leg tx from logs: BSC→ION swap mint from bridge
-    return '8950b5edb66929ceb71de1e63b1ba593c6134840710d60caf47e7ddb3c402e78';
+  bool _isAmountSimilar(String swapAmount, TransactionData tx) {
+    final txRawAmount = switch (tx.cryptoAsset) {
+      CoinTransactionAsset(:final rawAmount) => rawAmount,
+      _ => null,
+    };
+
+    if (txRawAmount == null) return false;
+
+    final swapAmountValue = double.tryParse(swapAmount);
+    final txAmountValue = double.tryParse(txRawAmount);
+
+    if (swapAmountValue == null || txAmountValue == null) return false;
+    if (swapAmountValue == 0) return false;
+
+    final percentDifference =
+        ((swapAmountValue - txAmountValue).abs() / swapAmountValue) * 100;
+
+    return percentDifference <= _amountTolerancePercent;
   }
 }
