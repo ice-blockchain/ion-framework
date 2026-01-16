@@ -548,7 +548,6 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       userPubkey: transaction.userPubkey,
       eventId: transaction.eventId,
       memo: transaction.memo,
-      isSwap: transaction.isSwap,
     );
   }
 

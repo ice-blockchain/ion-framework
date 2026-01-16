@@ -17,6 +17,7 @@ import 'package:ion/app/features/wallets/data/database/tables/duration_type.dart
 import 'package:ion/app/features/wallets/data/database/tables/funds_requests_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/networks_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/nfts_table.d.dart';
+import 'package:ion/app/features/wallets/data/database/tables/swap_transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
@@ -59,6 +60,7 @@ WalletsDatabase walletsDatabase(Ref ref) {
     CryptoWalletsTable,
     FundsRequestsTable,
     NftsTable,
+    SwapTransactionsTable,
   ],
 )
 class WalletsDatabase extends _$WalletsDatabase {

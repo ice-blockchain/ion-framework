@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coin_initializer.r.dart';
 import 'package:ion/app/features/wallets/domain/networks/networks_initializer.r.dart';
+import 'package:ion/app/features/wallets/domain/swap/swap_watcher_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/periodic_transactions_sync_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/undefined_transactions_binder.r.dart';
@@ -37,13 +38,15 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
       final periodicSyncServiceFuture = ref.watch(periodicTransactionsSyncServiceProvider.future);
       final undefinedTransactionsBinderFuture =
           ref.watch(undefinedTransactionsBinderProvider.future);
+      final swapWatcherServiceFuture = ref.watch(swapWatcherServiceProvider.future);
 
-      final (_, _, syncService, periodicSyncService, undefinedTransactionsBinder) = await (
+      final (_, _, syncService, periodicSyncService, undefinedTransactionsBinder, swapWatcherService) = await (
         coinInitializer.initialize(),
         networksInitializer.initialize(),
         syncServiceFuture,
         periodicSyncServiceFuture,
         undefinedTransactionsBinderFuture,
+        swapWatcherServiceFuture,
       ).wait;
 
       unawaited(
@@ -53,6 +56,10 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
       // Start periodic syncing for broadcasted transactions
       periodicSyncService.startWatching();
       ref.onDispose(periodicSyncService.stopWatching);
+
+      // Start watching for pending swap transactions
+      swapWatcherService.startWatching();
+      ref.onDispose(swapWatcherService.stopWatching);
 
       undefinedTransactionsBinder.initialize();
 
