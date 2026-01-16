@@ -121,9 +121,13 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         slippagePercent: formState.slippage,
       );
       // Invalidate token market info to refresh balance
-      ref.invalidate(
-        tokenMarketInfoProvider(params.externalAddress),
-      );
+      ref
+        ..invalidate(
+          tokenMarketInfoProvider(params.externalAddress),
+        )
+        ..invalidate(
+          cachedTokenMarketInfoNotifierProvider(params.externalAddress),
+        );
 
       final txHash = _requireBroadcastedTxHash(response);
 
@@ -217,9 +221,13 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       );
 
       // Invalidate token market info to refresh balance
-      ref.invalidate(
-        tokenMarketInfoProvider(params.externalAddress),
-      );
+      ref
+        ..invalidate(
+          tokenMarketInfoProvider(params.externalAddress),
+        )
+        ..invalidate(
+          cachedTokenMarketInfoNotifierProvider(params.externalAddress),
+        );
 
       final txHash = _requireBroadcastedTxHash(response);
 
