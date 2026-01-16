@@ -26,6 +26,7 @@ class TokenOperationProtectedAccountsService {
   }
 
   // Checks if the account associated with the given external address is protected from token operations.
+  // for x tokens external address has not a master pubkey so catch exception and return false
   bool isProtectedAccountFromExternalAddress(String externalAddress) {
     try {
       final masterPubkey = MasterPubkeyResolver.resolve(
