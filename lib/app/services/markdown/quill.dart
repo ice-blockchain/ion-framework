@@ -163,7 +163,24 @@ Delta markdownToDelta(String markdown) {
     } else if (op.key == 'insert' && op.data is String) {
       // Check for HTML <u> tags and convert them to underline attributes
       final text = op.data! as String;
-      final attrs = _normalizeAttributes(op.attributes);
+      var attrs = _normalizeAttributes(op.attributes);
+
+      // Check if this is a mention link: [@username](bech32)
+      // Markdown parser converts this to: insert "@username" with link attribute = "bech32"
+      if (attrs != null && attrs.containsKey('link')) {
+        final linkValue = attrs['link'] as String?;
+        // Check if the link is a bech32 encoded mention (ion: or nostr: prefix)
+        if (linkValue != null && _isBech32Mention(linkValue)) {
+          // Convert link attribute to mention attribute
+          attrs = {
+            ...attrs,
+            MentionAttribute.attributeKey: linkValue,
+          }
+          ..remove('link');
+          processedDelta.insert(text, attrs);
+          continue;
+        }
+      }
 
       // Pattern to match <u>...</u> tags, including nested markdown formatting
       final underlinePattern = RegExp('<u>(.*?)</u>', dotAll: true);
@@ -257,6 +274,12 @@ Map<String, dynamic>? _normalizeAttributes(Map<String, dynamic>? attrs) {
   }
 
   return normalized.isEmpty ? null : normalized;
+}
+
+/// Checks if a string is a bech32 encoded mention.
+bool _isBech32Mention(String value) {
+  final bech32Pattern = RegExp(r'^(?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+$');
+  return bech32Pattern.hasMatch(value);
 }
 
 void _processMatches(Operation op, Delta processedDelta) {
