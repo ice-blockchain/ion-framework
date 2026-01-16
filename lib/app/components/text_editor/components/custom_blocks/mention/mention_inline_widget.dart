@@ -25,7 +25,7 @@ class MentionInlineWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = context.theme.appTextThemes.body2.copyWith(
+    final textStyle = context.theme.appTextThemes.caption2.copyWith(
       height: 1,
       leadingDistribution: TextLeadingDistribution.even,
     );

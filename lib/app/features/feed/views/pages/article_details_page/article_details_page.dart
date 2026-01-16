@@ -57,7 +57,8 @@ class ArticleDetailsPage extends HookConsumerWidget {
     );
     final delta = parsedMedia.content;
     final media = {
-      for (final attachment in parsedMedia.media) attachment.url: attachment,
+      ...articleEntity.data.media,
+      for (final entry in articleEntity.data.media.entries) entry.value.url: entry.value,
     };
 
     final topics = articleEntity.data.topics;
