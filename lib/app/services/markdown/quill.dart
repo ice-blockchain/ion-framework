@@ -85,9 +85,24 @@ String deltaToMarkdown(Delta delta) {
         final data = op.data;
         final attributes = op.attributes;
 
+        // Handle mentions: convert to markdown link format [@username](bech32)
+        if (data is String && (attributes?.containsKey(MentionAttribute.attributeKey) ?? false)) {
+          final bech32Value = attributes![MentionAttribute.attributeKey] as String;
+          final mentionText = '[$data]($bech32Value)';
+
+          // Create new attributes without mention attribute for other formatting
+          final otherAttributes = Map<String, dynamic>.from(attributes)
+            ..remove(MentionAttribute.attributeKey)
+            ..remove(MentionAttribute.showMarketCapKey);
+
+          processedDelta.insert(
+            mentionText,
+            otherAttributes.isNotEmpty ? otherAttributes : null,
+          );
+        }
         // Handle underline: markdown doesn't support underline natively,
         // so we need to wrap it in HTML <u> tags
-        if (data is String && (attributes?.containsKey('underline') ?? false)) {
+        else if (data is String && (attributes?.containsKey('underline') ?? false)) {
           // Check if there are other attributes (bold, italic) that need to be handled
           final hasBold = attributes?.containsKey('bold') ?? false;
           final hasItalic = attributes?.containsKey('italic') ?? false;
@@ -142,8 +157,52 @@ String deltaToMarkdown(Delta delta) {
 }
 
 Delta markdownToDelta(String markdown) {
-  final delta = _mdToDelta.convert(markdown);
+  // Unescape markdown that may have been escaped during conversion
+  // The markdown converter escapes special characters like [, ], (, ) with backslashes
+  var unescapedMarkdown = markdown
+      .replaceAll(r'\[', '[')
+      .replaceAll(r'\]', ']')
+      .replaceAll(r'\(', '(')
+      .replaceAll(r'\)', ')');
+
+  // Pre-process markdown to extract and handle mention links with bech32 encoding
+  // Pattern: [@username](ion:nprofile...) or [@username](nostr:npub...)
+  final mentionPattern = RegExp(r'\[@([^\]]+)\]\(((?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+)\)');
+  final mentions = <({int start, int end, String username, String bech32})>[];
+
+  // Find all mention matches
+  for (final match in mentionPattern.allMatches(unescapedMarkdown)) {
+    mentions.add(
+      (
+        start: match.start,
+        end: match.end,
+        username: match.group(1)!,
+        bech32: match.group(2)!,
+      ),
+    );
+  }
+
+  // Replace mentions with plain text temporarily for markdown parsing
+  var processedMarkdown = unescapedMarkdown;
+  var offset = 0;
+  for (final mention in mentions) {
+    final adjustedStart = mention.start + offset;
+    final adjustedEnd = mention.end + offset;
+    final placeholder = '@${mention.username}';
+    processedMarkdown = processedMarkdown.substring(0, adjustedStart) +
+        placeholder +
+        processedMarkdown.substring(adjustedEnd);
+    offset += placeholder.length - (mention.end - mention.start);
+  }
+
+  final delta = _mdToDelta.convert(processedMarkdown);
   final processedDelta = Delta();
+
+  // Build a map of @username -> bech32 for quick lookup
+  final usernameToBech32 = <String, String>{};
+  for (final mention in mentions) {
+    usernameToBech32['@${mention.username}'] = mention.bech32;
+  }
 
   for (final op in delta.operations) {
     if (op.key == 'insert' && op.data is Map) {
@@ -165,10 +224,23 @@ Delta markdownToDelta(String markdown) {
       final text = op.data! as String;
       var attrs = _normalizeAttributes(op.attributes);
 
-      // Check if this is a mention link: [@username](bech32)
-      // Markdown parser converts this to: insert "@username" with link attribute = "bech32"
+      // Check if this text matches a mention we extracted
+      if (usernameToBech32.containsKey(text)) {
+        final bech32 = usernameToBech32[text]!;
+        // Insert the username with mention attribute
+        attrs = {
+          ...?attrs,
+          MentionAttribute.attributeKey: bech32,
+        };
+        processedDelta.insert(text, attrs);
+        continue;
+      }
+
+      // Check if this is a mention link with bech32 encoding (fallback for other formats)
+      // Markdown parser converts [@username](bech32) to: insert "@username" with link attribute = "bech32"
       if (attrs != null && attrs.containsKey('link')) {
         final linkValue = attrs['link'] as String?;
+
         // Check if the link is a bech32 encoded mention (ion: or nostr: prefix)
         if (linkValue != null && _isBech32Mention(linkValue)) {
           // Convert link attribute to mention attribute
