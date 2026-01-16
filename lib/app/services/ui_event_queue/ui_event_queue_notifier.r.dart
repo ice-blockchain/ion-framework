@@ -48,7 +48,10 @@ class UiEventQueueNotifier extends _$UiEventQueueNotifier {
       while (state.isNotEmpty) {
         final event = state.first;
         try {
-          await event.performAction(rootNavigatorKey.currentContext!);
+          final context = rootNavigatorKey.currentContext;
+          if (context != null && context.mounted) {
+            await event.performAction(context);
+          }
         } catch (error, stackTrace) {
           Logger.error(error, stackTrace: stackTrace);
         } finally {
