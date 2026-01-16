@@ -22,4 +22,6 @@ dependency_overrides:
     path: packages/ion_lint_rules
   ion_swap_client:
     path: packages/ion_swap_client
+  ion_token_analytics:
+    path: packages/ion_token_analytics
   js: ^0.7.1
