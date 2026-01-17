@@ -222,38 +222,23 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(externalAddress);
     final userData = pubkey == null ? null : ref.read(userPreviewDataProvider(pubkey)).valueOrNull;
 
-    // Get suggested token details if tokenInfo is null
-    SuggestCreationDetailsResponse? suggestedDetails;
-    final eventRef = params.eventReference;
-    final pubkeyValue = pubkey;
-    if (tokenInfo == null && eventRef != null && pubkeyValue != null) {
-      suggestedDetails = ref
-          .read(
-            suggestTokenCreationDetailsFromEventProvider(
-              (
-                eventReference: eventRef,
-                externalAddress: externalAddress,
-                pubkey: pubkeyValue,
-              ),
-            ),
-          )
-          .valueOrNull;
+    String? tokenTitle;
+    String? communityAvatar;
+
+    if (state.suggestedDetailsState != null) {
+      final suggestedDetails = state.suggestedDetailsState!.valueOrNull;
+
+      tokenTitle = suggestedDetails?.name ?? '';
+      communityAvatar = suggestedDetails?.picture ?? '';
+    } else {
+      tokenTitle = tokenInfo?.title ??
+          userData?.data.trimmedDisplayName ??
+          userData?.data.name ??
+          pubkey ??
+          externalAddress;
+
+      communityAvatar = tokenInfo?.imageUrl ?? userData?.data.avatarUrl;
     }
-
-    // Build token title: use tokenInfo title, or suggested name+ticker, or fallback to user data
-    final tokenTitle = tokenInfo?.title ??
-        (suggestedDetails != null
-            ? '${suggestedDetails.name} (${suggestedDetails.ticker})'
-            : null) ??
-        userData?.data.trimmedDisplayName ??
-        userData?.data.name ??
-        pubkey ??
-        externalAddress;
-
-    // Build community avatar: use tokenInfo image, or suggested picture, or fallback to user avatar
-    final communityAvatar =
-        tokenInfo?.imageUrl ?? suggestedDetails?.picture ?? userData?.data.avatarUrl;
-
     final interimState = state.copyWith(
       communityTokenBalance: balance,
       communityTokenCoinsGroup: _buildInterimCommunityTokenGroup(

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
+import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -38,6 +39,7 @@ class TokenCard extends HookConsumerWidget {
     this.enabled = true,
     this.skipAmountFormatting = false,
     this.isError = false,
+    this.isCoinLoading = false,
     super.key,
   });
 
@@ -56,6 +58,7 @@ class TokenCard extends HookConsumerWidget {
   final bool enabled;
   final bool skipAmountFormatting;
   final ValueChanged<String?>? onValidationError;
+  final bool? isCoinLoading;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -163,6 +166,7 @@ class TokenCard extends HookConsumerWidget {
             focusNode: focusNode,
             coinForNetwork: coinForNetwork,
             skipValidation: skipValidation,
+            isCoinLoading: isCoinLoading,
           ),
           SizedBox(
             height: 8.0.s,
@@ -298,6 +302,7 @@ class _TokenCardContent extends StatelessWidget {
     required this.coinForNetwork,
     required this.skipValidation,
     this.isReadOnly,
+    this.isCoinLoading,
   });
 
   final VoidCallback onTap;
@@ -314,6 +319,7 @@ class _TokenCardContent extends StatelessWidget {
   final bool skipValidation;
   final FocusNode? focusNode;
   final CoinInWalletData? coinForNetwork;
+  final bool? isCoinLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -332,54 +338,47 @@ class _TokenCardContent extends StatelessWidget {
                 spacing: 10.0.s,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (network != null)
-                    CoinIconWithNetwork.small(
-                      iconUrl,
-                      network: network!,
-                      showPlaceholder: true,
-                    )
-                  else
-                    SizedBox.square(
-                      dimension: 40.0.s,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0.s),
-                        child: Image.network(
-                          iconUrl,
-                          width: 40.0.s,
-                          height: 40.0.s,
-                          fit: BoxFit.cover,
-                          errorBuilder: avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
-                        ),
-                      ),
-                    ),
+                  _CoinIcon(
+                    iconUrl: iconUrl,
+                    network: network,
+                    avatarWidget: avatarWidget,
+                    isCoinLoading: isCoinLoading,
+                  ),
                   Flexible(
                     child: Column(
                       spacing: 2.0.s,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                coinsGroup!.abbreviation,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: textStyles.body.copyWith(
-                                  color: colors.primaryText,
+                        if (isCoinLoading ?? false)
+                          SkeletonBox(
+                            width: 100.0.s,
+                            height: 16.0.s,
+                            baseColor: colors.attentionBlock,
+                          )
+                        else
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  coinsGroup!.abbreviation,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: textStyles.body.copyWith(
+                                    color: colors.primaryText,
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (showArrow) ...[
-                              SizedBox(
-                                width: 4.0.s,
-                              ),
-                              Assets.svg.iconArrowDown.icon(
-                                color: colors.sharkText,
-                                size: 12.0.s,
-                              ),
+                              if (showArrow) ...[
+                                SizedBox(
+                                  width: 4.0.s,
+                                ),
+                                Assets.svg.iconArrowDown.icon(
+                                  color: colors.sharkText,
+                                  size: 12.0.s,
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
+                          ),
                         if (network != null)
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
@@ -504,6 +503,52 @@ class _TokenCardContent extends StatelessWidget {
   }
 }
 
+class _CoinIcon extends StatelessWidget {
+  const _CoinIcon({
+    required this.iconUrl,
+    this.network,
+    this.avatarWidget,
+    this.isCoinLoading = false,
+  });
+  final String iconUrl;
+  final NetworkData? network;
+  final Widget? avatarWidget;
+  final bool? isCoinLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    if (isCoinLoading ?? false) {
+      return SkeletonBox(
+        width: 40.0.s,
+        height: 40.0.s,
+        baseColor: colors.attentionBlock,
+      );
+    }
+    if (network != null) {
+      return CoinIconWithNetwork.small(
+        iconUrl,
+        network: network!,
+        showPlaceholder: true,
+      );
+    } else {
+      return SizedBox.square(
+        dimension: 40.0.s,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8.0.s),
+          child: Image.network(
+            iconUrl,
+            width: 40.0.s,
+            height: 40.0.s,
+            fit: BoxFit.cover,
+            errorBuilder: avatarWidget != null ? (_, __, ___) => avatarWidget! : null,
+          ),
+        ),
+      );
+    }
+  }
+}
+
 class _TokenCardFooter extends StatelessWidget {
   const _TokenCardFooter({
     required this.isError,
@@ -543,7 +588,7 @@ class _TokenCardFooter extends StatelessWidget {
 
                     return Text(
                       maxValue != null
-                          ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup!.abbreviation}'
+                          ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup?.abbreviation ?? ''}'
                           : '0.00',
                       style: textStyles.caption2.copyWith(
                         color: isError ? colors.attentionRed : colors.tertiaryText,

@@ -33,14 +33,17 @@ class SkeletonBox extends StatelessWidget {
     super.key,
     this.width,
     this.height,
+    this.baseColor,
   });
 
   final double? width;
   final double? height;
+  final Color? baseColor;
 
   @override
   Widget build(BuildContext context) {
     return Skeleton(
+      baseColor: baseColor,
       child: ListItem(
         constraints: BoxConstraints(
           maxWidth: width ?? double.infinity,
