@@ -4602,6 +4602,12 @@ final class Schema23 extends i0.VersionedSchema {
           _column_75,
           _column_76,
           _column_77,
+          _column_78,
+          _column_79,
+          _column_80,
+          _column_81,
+          _column_82,
+          _column_37,
         ],
         attachedDatabase: database,
       ),
@@ -4616,6 +4622,18 @@ class Shape22 extends i0.VersionedTable {
       columnsByName['from_tx_hash']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<String> get toTxHash =>
       columnsByName['to_tx_hash']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get fromWalletAddress =>
+      columnsByName['from_wallet_address']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get toWalletAddress =>
+      columnsByName['to_wallet_address']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get fromNetworkId =>
+      columnsByName['from_network_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get toNetworkId =>
+      columnsByName['to_network_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get amount =>
+      columnsByName['amount']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<DateTime> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
 }
 
 i1.GeneratedColumn<int> _column_75(String aliasedName) =>
@@ -4625,10 +4643,25 @@ i1.GeneratedColumn<int> _column_75(String aliasedName) =>
         defaultConstraints:
             i1.GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
 i1.GeneratedColumn<String> _column_76(String aliasedName) =>
-    i1.GeneratedColumn<String>('from_tx_hash', aliasedName, false,
+    i1.GeneratedColumn<String>('from_tx_hash', aliasedName, true,
         type: i1.DriftSqlType.string);
 i1.GeneratedColumn<String> _column_77(String aliasedName) =>
     i1.GeneratedColumn<String>('to_tx_hash', aliasedName, true,
+        type: i1.DriftSqlType.string);
+i1.GeneratedColumn<String> _column_78(String aliasedName) =>
+    i1.GeneratedColumn<String>('from_wallet_address', aliasedName, false,
+        type: i1.DriftSqlType.string);
+i1.GeneratedColumn<String> _column_79(String aliasedName) =>
+    i1.GeneratedColumn<String>('to_wallet_address', aliasedName, false,
+        type: i1.DriftSqlType.string);
+i1.GeneratedColumn<String> _column_80(String aliasedName) =>
+    i1.GeneratedColumn<String>('from_network_id', aliasedName, false,
+        type: i1.DriftSqlType.string);
+i1.GeneratedColumn<String> _column_81(String aliasedName) =>
+    i1.GeneratedColumn<String>('to_network_id', aliasedName, false,
+        type: i1.DriftSqlType.string);
+i1.GeneratedColumn<String> _column_82(String aliasedName) =>
+    i1.GeneratedColumn<String>('amount', aliasedName, false,
         type: i1.DriftSqlType.string);
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,

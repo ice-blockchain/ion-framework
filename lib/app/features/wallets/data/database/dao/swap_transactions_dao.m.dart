@@ -19,34 +19,114 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
   SwapTransactionsDao({required WalletsDatabase db}) : super(db);
 
   Future<int> saveSwap({
-    required String fromTxHash,
     required String fromWalletAddress,
     required String toWalletAddress,
     required String fromNetworkId,
     required String toNetworkId,
     required String amount,
+    required String toAmount,
+    String? fromTxHash,
     String? toTxHash,
   }) async {
     return into(swapTransactionsTable).insert(
       SwapTransactionsTableCompanion.insert(
-        fromTxHash: fromTxHash,
+        fromTxHash: Value(fromTxHash),
         fromWalletAddress: fromWalletAddress,
         toWalletAddress: toWalletAddress,
         fromNetworkId: fromNetworkId,
         toNetworkId: toNetworkId,
         amount: amount,
+        toAmount: toAmount,
         createdAt: DateTime.now(),
         toTxHash: Value(toTxHash),
       ),
     );
   }
 
-  Future<SwapTransaction?> getSwapByHash(String hash) async {
+  Future<List<SwapTransaction>> getSwaps({
+    List<String?> fromTxHashes = const [],
+    List<String?> toTxHashes = const [],
+    List<String> fromWalletAddresses = const [],
+    List<String> toWalletAddresses = const [],
+    int limit = 100,
+  }) async {
     final query = select(swapTransactionsTable)
       ..where(
-        (t) => t.fromTxHash.equals(hash) | t.toTxHash.equals(hash),
-      );
-    return query.getSingleOrNull();
+        (t) => _buildWhereClause(
+          t,
+          fromTxHashes: fromTxHashes,
+          toTxHashes: toTxHashes,
+          fromWalletAddresses: fromWalletAddresses,
+          toWalletAddresses: toWalletAddresses,
+        ),
+      )
+      ..limit(limit);
+    return query.get();
+  }
+
+  Stream<List<SwapTransaction>> watchSwaps({
+    List<String?> fromTxHashes = const [],
+    List<String?> toTxHashes = const [],
+    List<String> fromWalletAddresses = const [],
+    List<String> toWalletAddresses = const [],
+    int limit = 100,
+  }) {
+    final query = select(swapTransactionsTable)
+      ..where(
+        (t) => _buildWhereClause(
+          t,
+          fromTxHashes: fromTxHashes,
+          toTxHashes: toTxHashes,
+          fromWalletAddresses: fromWalletAddresses,
+          toWalletAddresses: toWalletAddresses,
+        ),
+      )
+      ..limit(limit);
+    return query.watch();
+  }
+
+  Expression<bool> _buildWhereClause(
+    $SwapTransactionsTableTable t, {
+    List<String?> fromTxHashes = const [],
+    List<String?> toTxHashes = const [],
+    List<String> fromWalletAddresses = const [],
+    List<String> toWalletAddresses = const [],
+  }) {
+    Expression<bool> expr = const Constant(true);
+
+    if (fromTxHashes.isNotEmpty) {
+      expr = expr & _buildNullableColumnFilter(t.fromTxHash, fromTxHashes);
+    }
+
+    if (toTxHashes.isNotEmpty) {
+      expr = expr & _buildNullableColumnFilter(t.toTxHash, toTxHashes);
+    }
+
+    if (fromWalletAddresses.isNotEmpty) {
+      expr = expr & t.fromWalletAddress.isIn(fromWalletAddresses);
+    }
+
+    if (toWalletAddresses.isNotEmpty) {
+      expr = expr & t.toWalletAddress.isIn(toWalletAddresses);
+    }
+
+    return expr;
+  }
+
+  Expression<bool> _buildNullableColumnFilter(
+    GeneratedColumn<String> column,
+    List<String?> values,
+  ) {
+    final hasNull = values.contains(null);
+    final nonNullValues = values.whereType<String>().toList();
+
+    if (hasNull && nonNullValues.isEmpty) {
+      return column.isNull();
+    } else if (!hasNull && nonNullValues.isNotEmpty) {
+      return column.isIn(nonNullValues);
+    } else {
+      return column.isNull() | column.isIn(nonNullValues);
+    }
   }
 
   Future<int> updateToTxHash({
@@ -57,19 +137,11 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
         .write(SwapTransactionsTableCompanion(toTxHash: Value(toTxHash)));
   }
 
-  Stream<List<SwapTransaction>> watchPendingSwaps() {
-    final query = select(swapTransactionsTable)..where((t) => t.toTxHash.isNull());
-    return query.watch();
-  }
-
-  Future<List<SwapTransaction>> getPendingSwaps() async {
-    final query = select(swapTransactionsTable)..where((t) => t.toTxHash.isNull());
-    return query.get();
-  }
-
-  Future<List<SwapTransaction>> getPendingSwapsForWallet(String walletAddress) async {
-    final query = select(swapTransactionsTable)
-      ..where((t) => t.toTxHash.isNull() & t.toWalletAddress.equals(walletAddress));
-    return query.get();
+  Future<int> updateFromTxHash({
+    required int swapId,
+    required String fromTxHash,
+  }) async {
+    return (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
+        .write(SwapTransactionsTableCompanion(fromTxHash: Value(fromTxHash)));
   }
 }
