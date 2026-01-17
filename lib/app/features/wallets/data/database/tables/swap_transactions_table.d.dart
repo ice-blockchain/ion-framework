@@ -5,7 +5,7 @@ import 'package:drift/drift.dart';
 @DataClassName('SwapTransaction')
 class SwapTransactionsTable extends Table {
   IntColumn get swapId => integer().autoIncrement()();
-  TextColumn get fromTxHash => text()();
+  TextColumn get fromTxHash => text().nullable()();
   TextColumn get toTxHash => text().nullable()();
 
   TextColumn get fromWalletAddress => text()();
@@ -13,6 +13,7 @@ class SwapTransactionsTable extends Table {
   TextColumn get fromNetworkId => text()();
   TextColumn get toNetworkId => text()();
   TextColumn get amount => text()();
+  TextColumn get toAmount => text()();
   DateTimeColumn get createdAt => dateTime()();
 
   @override

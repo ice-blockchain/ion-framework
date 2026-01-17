@@ -338,6 +338,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
       final swapController = await ref.read(ionSwapClientProvider.future);
 
+      final buyNetwork = state.buyNetwork;
+
       await swapController.swapCoins(
         swapQuoteInfo: swapQuoteInfo,
         swapCoinData: swapCoinParameters,
@@ -352,6 +354,24 @@ class SwapCoinsController extends _$SwapCoinsController {
             if (sellAddress == null) {
               onSwapError();
               return;
+            }
+
+            try {
+              final swapTransactionsDao = ref.read(swapTransactionsDaoProvider);
+              final sellAmount = double.tryParse(swapCoinParameters.amount) ?? 0;
+              final rate = swapQuoteInfo?.priceForSellTokenInBuyToken ?? 1.0;
+              final expectedReceiveAmount = sellAmount * rate;
+              await swapTransactionsDao.saveSwap(
+                fromWalletAddress: swapCoinParameters.userSellAddress!,
+                toWalletAddress: swapCoinParameters.userBuyAddress!,
+                fromNetworkId: sellNetwork.id,
+                toNetworkId: buyNetwork!.id,
+                amount: swapCoinParameters.amount,
+                toAmount: expectedReceiveAmount.toString(),
+              );
+              Logger.log('Saved swap transaction (first-leg pending)');
+            } catch (e) {
+              Logger.error('Failed to save swap transaction: $e');
             }
 
             await _sendCoinCallback(
@@ -665,6 +685,9 @@ class SwapCoinsController extends _$SwapCoinsController {
         try {
           final swapTransactionsDao = ref.read(swapTransactionsDaoProvider);
           final buyNetwork = state.buyNetwork;
+          final sellAmount = double.tryParse(swapCoinParameters.amount) ?? 0;
+          final rate = swapQuoteInfo?.priceForSellTokenInBuyToken ?? 1.0;
+          final expectedReceiveAmount = sellAmount * rate;
           await swapTransactionsDao.saveSwap(
             fromTxHash: txHash,
             fromWalletAddress: swapCoinParameters.userSellAddress!,
@@ -672,6 +695,7 @@ class SwapCoinsController extends _$SwapCoinsController {
             fromNetworkId: sellNetwork.id,
             toNetworkId: buyNetwork!.id,
             amount: swapCoinParameters.amount,
+            toAmount: expectedReceiveAmount.toString(),
           );
           Logger.log('Saved swap transaction: $txHash');
         } catch (e) {

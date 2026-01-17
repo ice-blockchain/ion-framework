@@ -3,6 +3,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/features/wallets/data/database/dao/networks_dao.m.dart';
+import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao.m.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/periodic_transactions_sync_service.r.dart';
@@ -20,25 +22,47 @@ class MockTransactionsRepository extends Mock implements TransactionsRepository 
 
 class MockFailedTransferService extends Mock implements FailedTransferService {}
 
+class MockSwapTransactionsDao extends Mock implements SwapTransactionsDao {}
+
+class MockNetworksDao extends Mock implements NetworksDao {}
+
 void main() {
   late MockSyncTransactionsService mockSyncTransactionsService;
   late MockTransactionsRepository mockTransactionsRepository;
   late MockFailedTransferService mockFailedTransferService;
+  late MockSwapTransactionsDao mockSwapTransactionsDao;
+  late MockNetworksDao mockNetworksDao;
   late PeriodicTransactionsSyncService service;
 
   setUpAll(() {
     registerFallbackValue(<String>[]);
     registerFallbackValue(<TransactionStatus>[]);
+    registerFallbackValue(<String?>[]);
   });
 
   setUp(() {
     mockSyncTransactionsService = MockSyncTransactionsService();
     mockTransactionsRepository = MockTransactionsRepository();
     mockFailedTransferService = MockFailedTransferService();
+    mockSwapTransactionsDao = MockSwapTransactionsDao();
+    mockNetworksDao = MockNetworksDao();
+
+    when(
+      () => mockSwapTransactionsDao.getSwaps(
+        toTxHashes: any(named: 'toTxHashes'),
+        fromTxHashes: any(named: 'fromTxHashes'),
+        fromWalletAddresses: any(named: 'fromWalletAddresses'),
+        toWalletAddresses: any(named: 'toWalletAddresses'),
+        limit: any(named: 'limit'),
+      ),
+    ).thenAnswer((_) async => []);
+
     service = PeriodicTransactionsSyncService(
       mockSyncTransactionsService,
       mockTransactionsRepository,
       mockFailedTransferService,
+      mockSwapTransactionsDao,
+      mockNetworksDao,
       initialSyncDelay: const Duration(microseconds: 10),
     );
   });

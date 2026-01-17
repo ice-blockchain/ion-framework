@@ -128,7 +128,7 @@ class PeriodicTransactionsSyncService {
     }
 
     // Also add wallets expecting swap second-leg transactions
-    final pendingSwaps = await _swapTransactionsDao.getPendingSwaps();
+    final pendingSwaps = await _swapTransactionsDao.getSwaps(toTxHashes: [null]);
     for (final swap in pendingSwaps) {
       if (!walletNetworks.containsKey(swap.toWalletAddress)) {
         final network = await _getNetworkById(swap.toNetworkId);
@@ -136,6 +136,22 @@ class PeriodicTransactionsSyncService {
           walletNetworks[swap.toWalletAddress] = network;
           Logger.log(
             'Added swap second-leg wallet ${swap.toWalletAddress} (${swap.toNetworkId}) to sync',
+          );
+        }
+      }
+    }
+
+    // Also add wallets for swaps without first-leg tx detected
+    final swapsWithoutFromTx = await _swapTransactionsDao.getSwaps(
+      fromTxHashes: [null],
+    );
+    for (final swap in swapsWithoutFromTx) {
+      if (!walletNetworks.containsKey(swap.fromWalletAddress)) {
+        final network = await _getNetworkById(swap.fromNetworkId);
+        if (network != null) {
+          walletNetworks[swap.fromWalletAddress] = network;
+          Logger.log(
+            'Added swap first-leg wallet ${swap.fromWalletAddress} (${swap.fromNetworkId}) to sync',
           );
         }
       }
