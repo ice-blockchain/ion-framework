@@ -275,9 +275,11 @@ jobs:
               echo "IOS_SIGN_TYPE=adhoc" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=firebase" >> $GITHUB_ENV
               echo "RELEASE_NOTES=${{ env.APP_ENV }}_${{ github.ref_name }}" >> $GITHUB_ENV
+              echo "ENV_FILE=.app.env" >> $GITHUB_ENV
             else
               echo "IOS_SIGN_TYPE=appstore" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=testflight" >> $GITHUB_ENV
+              echo "ENV_FILE=.merged.store.app.env" >> $GITHUB_ENV
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
       - name: Fetch code signing identity (${{env.IOS_SIGN_TYPE}})
@@ -297,11 +299,16 @@ jobs:
         id: build-app
         run: |
           cd main-repo
+
           set -a
           source .env
+          source $ENV_FILE
           set +a
+
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
-          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist
+          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist \
+            --dart-define=FACEBOOK_APP_ID=$FACEBOOK_APP_ID \
+            --dart-define=FACEBOOK_CLIENT_TOKEN=$FACEBOOK_CLIENT_TOKEN
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         if: ${{ github.event_name != 'pull_request' }}
@@ -382,9 +389,11 @@ jobs:
               echo "ANDROID_ARCHIVE_TYPE=apk" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=firebase" >> $GITHUB_ENV
               echo "RELEASE_NOTES=${{ env.APP_ENV }}_${{ github.ref_name }}" >> $GITHUB_ENV
+              echo "ENV_FILE=.app.env" >> $GITHUB_ENV
             else
               echo "ANDROID_ARCHIVE_TYPE=appbundle" >> $GITHUB_ENV
               echo "DEPLOYMENT_TARGET=playstore" >> $GITHUB_ENV
+              echo "ENV_FILE=.merged.store.app.env" >> $GITHUB_ENV
           fi
 
           if [[ ${{ env.APP_ENV == 'production' }} == true ]]
@@ -413,7 +422,19 @@ jobs:
         id: build-app
         run: |
           cd main-repo
-          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION
+          
+          set -a
+          source .env
+          source $ENV_FILE
+          set +a
+
+          flutter build $ANDROID_ARCHIVE_TYPE \
+            --release \
+            --flavor=$APP_FLAVOR \
+            --build-number=$BUILD_NUMBER \
+            --build-name=$APP_VERSION \
+            --dart-define=FACEBOOK_APP_ID=$FACEBOOK_APP_ID \
+            --dart-define=FACEBOOK_CLIENT_TOKEN=$FACEBOOK_CLIENT_TOKEN
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         if: ${{ github.event_name != 'pull_request' }}

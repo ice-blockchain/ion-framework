@@ -70,12 +70,16 @@ void main() {
     setUp(() {
       mockSyncStrategy = _MockSyncStrategy();
       mockDao = _MockUserSentLikesDao();
+      // When the sync strategy sends a reaction, mimic a successful backend
+      // response by returning the optimistic state (the second argument) rather
+      // than a constant PostLike. Using a fixed PostLike here can lead to a
+      // mismatch between the optimistic state and the backend state, causing
+      // the OptimisticOperationManager to schedule an additional sync and
+      // resulting in unexpected extra calls. Returning the provided next
+      // PostLike ensures the backend state matches the optimistic one and
+      // avoids unnecessary follow‑up syncs.
       when(() => mockSyncStrategy.send(any(), any())).thenAnswer(
-        (_) async => const PostLike(
-          eventReference: eventRef,
-          likesCount: 5,
-          likedByMe: false,
-        ),
+        (invocation) async => invocation.positionalArguments[1] as PostLike,
       );
       when(() => mockDao.hasUserLiked(any())).thenAnswer((_) async => false);
       when(
@@ -143,7 +147,6 @@ void main() {
 
         verify(() => mockSyncStrategy.send(any(), any())).called(2);
       },
-      skip: 'Temporarily disabled: flaky mock call count (unexpected extra send).',
     );
 
     test(
@@ -180,7 +183,6 @@ void main() {
 
         verify(() => mockSyncStrategy.send(any(), any())).called(2);
       },
-      skip: 'Temporarily disabled: flaky mock call count (unexpected extra send).',
     );
 
     test('debounce delay is at least 300ms', () async {
