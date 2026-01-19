@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
@@ -13,7 +14,19 @@ import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'tokenized_community_onboarding_provider.r.g.dart';
+part 'tokenized_community_onboarding_provider.m.g.dart';
+part 'tokenized_community_onboarding_provider.m.freezed.dart';
+
+@freezed
+class Params with _$Params {
+  factory Params({
+    required bool? authenticated,
+    required bool? delegationCompleted,
+    required bool? hasBscWallet,
+    required bool? alreadyShown,
+    required String? route,
+  }) = _Params;
+}
 
 class TokenizedCommunityOnboardingService {
   TokenizedCommunityOnboardingService({
@@ -22,50 +35,35 @@ class TokenizedCommunityOnboardingService {
   })  : _emitDialog = emitDialog,
         _setShown = setShown;
 
-  bool? _authenticated;
-  bool? _delegationCompleted;
-  bool? _userHasBscWallet;
-  bool? _alreadyShown;
-  String? _route;
-
   final void Function() _emitDialog;
   final Future<void> Function() _setShown;
 
-  void onAuthenticated({required bool? authenticated}) {
-    _authenticated = authenticated;
-    _maybeTrigger();
-  }
-
-  void onDelegationCompleted({required bool? delegationCompleted}) {
-    _delegationCompleted = delegationCompleted;
-    _maybeTrigger();
-  }
-
-  void onUserHasBscWalletChanged({required bool hasBscWallet}) {
-    _userHasBscWallet = hasBscWallet;
-    _maybeTrigger();
-  }
-
-  void onRouteChanged(String value) {
-    _route = value;
-    _maybeTrigger();
-  }
-
-  void onShownChanged({required bool? shown}) {
-    _alreadyShown = shown;
-    _maybeTrigger();
-  }
-
-  Future<void> _maybeTrigger() async {
-    if (_authenticated != true) return;
-    if (_delegationCompleted != true) return;
-    if (_userHasBscWallet != true) return;
-    if (_alreadyShown ?? true) return;
-    if (_route != FeedRoute().location) return;
+  Future<void> process(Params params) async {
+    if (params.authenticated != true) return;
+    if (params.delegationCompleted != true) return;
+    if (params.hasBscWallet != true) return;
+    if (params.alreadyShown ?? true) return;
+    if (params.route != FeedRoute().location) return;
 
     _emitDialog();
     await _setShown();
   }
+}
+
+@riverpod
+Params params(Ref ref) {
+  final authenticated = ref.watch(authProvider);
+  final delegationCompleted = ref.watch(delegationCompleteProvider);
+  final bscWalletCheck = ref.watch(bscWalletCheckProvider);
+  final alreadyShown = ref.watch(tokenizedCommunityOnboardingShownProvider);
+  final route = ref.watch(routeLocationProvider);
+  return Params(
+    authenticated: authenticated.valueOrNull?.isAuthenticated,
+    delegationCompleted: delegationCompleted.valueOrNull,
+    hasBscWallet: bscWalletCheck.valueOrNull?.hasBscWallet,
+    alreadyShown: alreadyShown,
+    route: route,
+  );
 }
 
 @riverpod
@@ -85,44 +83,9 @@ TokenizedCommunityOnboardingService? tokenizedCommunityOnboardingService(Ref ref
     },
   );
 
-  ref
-    ..listen<AsyncValue<AuthState>>(
-      authProvider,
-      fireImmediately: true,
-      (_, next) {
-        service.onAuthenticated(authenticated: next.valueOrNull?.isAuthenticated);
-      },
-    )
-    ..listen<AsyncValue<bool?>>(
-      delegationCompleteProvider,
-      fireImmediately: true,
-      (_, next) {
-        service.onDelegationCompleted(delegationCompleted: next.valueOrNull);
-      },
-    )
-    ..listen<String>(
-      routeLocationProvider,
-      fireImmediately: true,
-      (_, next) {
-        service.onRouteChanged(next);
-      },
-    )
-    ..listen<AsyncValue<BscWalletCheckResult>>(
-      bscWalletCheckProvider,
-      fireImmediately: true,
-      (_, next) {
-        if (!next.isLoading && next.hasValue) {
-          service.onUserHasBscWalletChanged(hasBscWallet: next.value!.hasBscWallet);
-        }
-      },
-    )
-    ..listen<bool?>(
-      tokenizedCommunityOnboardingShownProvider,
-      fireImmediately: true,
-      (_, next) {
-        service.onShownChanged(shown: next);
-      },
-    );
+  ref.listen(paramsProvider, (_, params) {
+    service.process(params);
+  });
 
   return service;
 }

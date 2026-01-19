@@ -25,7 +25,6 @@ class TokenizedCommunityOnboardingDialogEvent extends UiEvent {
       shown = true;
       await showSimpleBottomSheet<void>(
         context: context,
-        isDismissible: false,
         backgroundColor: context.theme.appColors.forest,
         child: const TokenizedCommunityOnboardingDialog(),
       ).whenComplete(() => shown = false);
