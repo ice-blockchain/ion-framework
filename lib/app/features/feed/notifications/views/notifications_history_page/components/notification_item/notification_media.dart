@@ -81,13 +81,13 @@ class NotificationMedia extends HookConsumerWidget {
     }
 
     final (:content, :media) =
-        ListCachedObjects.maybeObjectOf<MediaContentWithKey>(context, entity.id)
+        ListCachedObjects.maybeObjectOf<MediaContentWithKey>(context, displayEntity.id)
                 ?.mediaWithContent ??
             ref.watch(
               parsedMediaWithMentionsProvider(postData).select((value) {
                 ListCachedObjects.updateObject(
                   context,
-                  (key: entity.id, mediaWithContent: value),
+                  (key: displayEntity.id, mediaWithContent: value),
                 );
                 return (content: value.content, media: value.media);
               }),
