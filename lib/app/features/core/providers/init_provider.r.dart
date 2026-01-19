@@ -26,7 +26,7 @@ import 'package:ion/app/features/user/providers/relays/user_file_storage_relays_
 import 'package:ion/app/features/user/providers/relays/user_relays_sync_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_awards_sync_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/coins_sync_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/creator_monetization_dialog_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/creator_monetization_dialog_provider.m.dart';
 import 'package:ion/app/features/wallets/providers/user_public_wallets_sync_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallets_initializer_provider.r.dart';
 import 'package:ion/app/services/conversion_tracking/facebook_conversion_tracking_service.r.dart';
