@@ -2,16 +2,22 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 typedef PathWithKey = ({String key, String filePath});
+typedef MediaContentWithKey = ({
+  String key,
+  ({Delta content, List<MediaAttachment> media}) mediaWithContent
+});
 // In rare cases we might want to store an entity along with custom key
 // for example shared post messages: kind 30014 -> kind 16 -> kind 30175
 // we want to cache kind 30175 with key of kind 16 event reference
@@ -49,6 +55,7 @@ class ListCachedObjects extends InheritedWidget {
       final PathWithKey fileMap => fileMap.key,
       final EntityWithKey entityMap => entityMap.key,
       final MessageStatusWithKey statusMap => statusMap.key,
+      final MediaContentWithKey mediaContentMap => mediaContentMap.key,
       final ValueWithKey valueWithKey => valueWithKey.key,
       final EventMessage event => event.sharedId ?? event.id,
       final MessageMediaTableData media => media.messageEventReference,

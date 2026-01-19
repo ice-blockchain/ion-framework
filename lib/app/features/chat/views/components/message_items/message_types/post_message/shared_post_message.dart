@@ -90,7 +90,19 @@ class SharedPostMessage extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
+    final (:content, :media) =
+        ListCachedObjects.maybeObjectOf<MediaContentWithKey>(context, postEntity.id)
+                ?.mediaWithContent ??
+            ref.watch(
+              parsedMediaWithMentionsProvider(postData).select((value) {
+                ListCachedObjects.updateObject(
+                  context,
+                  (key: postEntity.id, mediaWithContent: value),
+                );
+                return (content: value.content, media: value.media);
+              }),
+            );
+
     final hasContent = content.isNotEmpty;
     if (!hasContent && media.isEmpty) return const SizedBox.shrink();
 

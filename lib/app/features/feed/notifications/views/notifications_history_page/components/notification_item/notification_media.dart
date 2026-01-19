@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
@@ -79,7 +80,19 @@ class NotificationMedia extends HookConsumerWidget {
       return null;
     }
 
-    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
+    final (:content, :media) =
+        ListCachedObjects.maybeObjectOf<MediaContentWithKey>(context, entity.id)
+                ?.mediaWithContent ??
+            ref.watch(
+              parsedMediaWithMentionsProvider(postData).select((value) {
+                ListCachedObjects.updateObject(
+                  context,
+                  (key: entity.id, mediaWithContent: value),
+                );
+                return (content: value.content, media: value.media);
+              }),
+            );
+
     if (content.isEmpty) return null;
     final firstMedia = media.firstWhereOrNull(
       (item) => [MediaType.image, MediaType.video].contains(item.mediaType),

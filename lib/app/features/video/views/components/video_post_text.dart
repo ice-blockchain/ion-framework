@@ -10,6 +10,7 @@ import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
@@ -41,7 +42,19 @@ class VideoTextPost extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
+    final (:content, :media) =
+        ListCachedObjects.maybeObjectOf<MediaContentWithKey>(context, entity.id)
+                ?.mediaWithContent ??
+            ref.watch(
+              parsedMediaWithMentionsProvider(postData).select((value) {
+                ListCachedObjects.updateObject(
+                  context,
+                  (key: entity.id, mediaWithContent: value),
+                );
+                return (content: value.content, media: value.media);
+              }),
+            );
+
     if (content.isEmpty) return const SizedBox.shrink();
     final isTextExpanded = useState(false);
     final style = context.theme.appTextThemes.body2.copyWith(

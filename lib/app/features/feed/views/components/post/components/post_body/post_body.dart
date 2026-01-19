@@ -9,6 +9,7 @@ import 'package:ion/app/components/text_editor/utils/is_attributed_operation.dar
 import 'package:ion/app/components/url_preview/providers/url_metadata_provider.r.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_data.f.dart';
@@ -57,7 +58,19 @@ class PostBody extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final (:content, :media) = ref.watch(parsedMediaWithMentionsProvider(postData));
+    final (:content, :media) =
+        ListCachedObjects.maybeObjectOf<MediaContentWithKey>(context, entity.id)
+                ?.mediaWithContent ??
+            ref.watch(
+              parsedMediaWithMentionsProvider(postData).select((value) {
+                ListCachedObjects.updateObject(
+                  context,
+                  (key: entity.id, mediaWithContent: value),
+                );
+                return (content: value.content, media: value.media);
+              }),
+            );
+
     final hasContent = content.isNotEmpty;
     if (!hasContent && media.isEmpty) return const SizedBox.shrink();
 

@@ -12,6 +12,7 @@ import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/text_editor/text_editor_preview.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
@@ -52,11 +53,20 @@ class ArticleDetailsPage extends HookConsumerWidget {
     final scrollController = useScrollController();
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    final parsedMedia = ref.watch(
-      parsedMediaWithMentionsProvider(articleEntity.data),
-    );
-    final delta = parsedMedia.content;
-    final media = {
+    final (:content, :media) =
+        ListCachedObjects.maybeObjectOf<MediaContentWithKey>(context, articleEntity.id)
+                ?.mediaWithContent ??
+            ref.watch(
+              parsedMediaWithMentionsProvider(articleEntity.data).select((value) {
+                ListCachedObjects.updateObject(
+                  context,
+                  (key: articleEntity.id, mediaWithContent: value),
+                );
+                return (content: value.content, media: value.media);
+              }),
+            );
+
+    final mediaMap = {
       ...articleEntity.data.media,
       for (final entry in articleEntity.data.media.entries) entry.value.url: entry.value,
     };
@@ -94,12 +104,12 @@ class ArticleDetailsPage extends HookConsumerWidget {
           ScreenSideOffset.small(
             child: forMeasurement
                 ? ArticleContentMeasurer(
-                    content: delta,
-                    media: media,
+                    content: content,
+                    media: mediaMap,
                   )
                 : TextEditorPreview(
-                    content: delta,
-                    media: media,
+                    content: content,
+                    media: mediaMap,
                     authorPubkey: articleEntity.masterPubkey,
                     enableInteractiveSelection: true,
                     eventReference: eventReference.encode(),
@@ -129,7 +139,7 @@ class ArticleDetailsPage extends HookConsumerWidget {
 
     // Measure the full content height offscreen
     final (contentHeight, contentMeasurer) = useContentHeight(
-      contentKey: delta,
+      contentKey: content,
       contentBuilder: (key) => SizedBox(
         key: key,
         width: screenWidth,
