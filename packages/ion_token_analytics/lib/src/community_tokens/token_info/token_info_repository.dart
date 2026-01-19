@@ -8,7 +8,7 @@ import 'package:ion_token_analytics/src/core/network_client.dart';
 abstract class TokenInfoRepository {
   Future<CommunityToken?> getTokenInfo(String externalAddress);
 
-  Future<NetworkSubscription<CommunityTokenPatch>?> subscribeToTokenInfo(String externalAddress);
+  Future<NetworkSubscription<CommunityTokenBase>?> subscribeToTokenInfo(String externalAddress);
 
   Future<Position?> getHolderPosition(String tokenExternalAddress, String holderExternalAddress);
 

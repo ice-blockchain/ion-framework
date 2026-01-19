@@ -53,7 +53,7 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   }
 
   @override
-  Future<NetworkSubscription<CommunityTokenPatch>?> subscribeToTokenInfo(
+  Future<NetworkSubscription<CommunityTokenBase>?> subscribeToTokenInfo(
     String externalAddress,
   ) async {
     try {
@@ -62,9 +62,15 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
         queryParameters: {'externalAddresses': externalAddress},
       );
 
-      final tokenStream = subscription.stream.map(CommunityTokenPatch.fromJson);
+      final tokenStream = subscription.stream.map<CommunityTokenBase>((data) {
+        try {
+          return CommunityToken.fromJson(data);
+        } catch (_) {
+          return CommunityTokenPatch.fromJson(data);
+        }
+      });
 
-      return NetworkSubscription<CommunityTokenPatch>(
+      return NetworkSubscription<CommunityTokenBase>(
         stream: tokenStream,
         close: subscription.close,
       );
