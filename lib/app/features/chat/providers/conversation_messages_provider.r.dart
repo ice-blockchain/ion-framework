@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:ion/app/extensions/event_message.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -16,6 +17,8 @@ part 'conversation_messages_provider.r.g.dart';
 class ConversationMessages extends _$ConversationMessages {
   static const int _tailLimit = 100;
   static const int _pageSize = 50;
+  static const String adIdPrefix = 'ad_id_';
+  static const String adKeyPrefix = 'ad_key_';
 
   StreamSubscription<List<EventMessage>>? _tailSubscription;
   StreamSubscription<List<EventReference>>? _deletedMessagesSubscription;
@@ -62,26 +65,36 @@ class ConversationMessages extends _$ConversationMessages {
     final tailIds = tail.map((message) => message.sharedId).toSet();
     final olderMessages = currentMessages.where((message) => !tailIds.contains(message.sharedId));
 
-    final lastMessageItem = tail.firstOrNull;
-    final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
+    final updatedTail = _injectAdIfPossible(tail.toList());
 
-    if (lastMessageItem != null && (ionAdClient?.isNativeLoaded ?? false)) {
-      final adMessageItem = EventMessage(
-        id: 'ad_id_${lastMessageItem.createdAt}',
-        content: lastMessageItem.content,
-        createdAt: lastMessageItem.createdAt,
-        pubkey: 'ad_key_${lastMessageItem.pubkey}',
-        kind: lastMessageItem.kind,
-        tags: lastMessageItem.tags,
-        sig: lastMessageItem.sig,
-      );
-
-      tail.insert(0, adMessageItem);
-    }
-
-    final merged = [...tail, ...olderMessages];
-
+    final merged = [...updatedTail, ...olderMessages];
     state = AsyncData(merged);
+  }
+
+  List<EventMessage> _injectAdIfPossible(List<EventMessage> tail) {
+    final lastMessageItem = tail.firstOrNull;
+    if (lastMessageItem == null) return tail;
+
+    final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
+    final isNativeLoaded = ionAdClient?.isNativeLoaded ?? false;
+
+    if (!isNativeLoaded) return tail;
+
+    final isMe = ref.watch(isCurrentUserSelectorProvider(lastMessageItem.masterPubkey));
+    if (isMe) return tail;
+
+    final adMessageItem = EventMessage(
+      id: '$adIdPrefix${lastMessageItem.createdAt}',
+      content: lastMessageItem.content,
+      createdAt: lastMessageItem.createdAt,
+      pubkey: '$adKeyPrefix${lastMessageItem.pubkey}',
+      kind: lastMessageItem.kind,
+      tags: lastMessageItem.tags,
+      sig: lastMessageItem.sig,
+    );
+
+    tail.insert(0, adMessageItem);
+    return tail;
   }
 
   /// Loads more messages (older) and appends them to the state.

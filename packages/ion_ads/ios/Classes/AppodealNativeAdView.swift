@@ -57,11 +57,13 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
         // Setup the ad queue
         nativeAdQueue = APDNativeAdQueue()
         nativeAdQueue.settings = APDNativeAdSettings.default()
-        // { custom, contentStream, appWall, newsFeed, chat }
+        // { custom, contentStream, appWall, newsFeed, chat, article }
         if nativeAdType == 2 {
             nativeAdQueue.settings.adViewClass = NativeAdStoryView.self
         }  else if nativeAdType == 4 {
             nativeAdQueue.settings.adViewClass = NativeAdChatListView.self
+        } else if nativeAdType == 5 {
+            nativeAdQueue.settings.adViewClass = NativeAdArticleView.self
         } else {
             nativeAdQueue.settings.adViewClass = NativeAdCardView.self
         }
@@ -93,7 +95,7 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
             
             let adActionButtonConfig = options["adActionButtonConfig"] as? [String: Any]
             let adActionPosIndex = adActionButtonConfig?["position"] as? Int ?? 0 // Default to top (0)
-            logToFlutter("setupAdView, posIndex: \(posIndex), margin: \(margin), placement: \(placement), nativeAd: \(nativeAd), adActionPosIndex: \(adActionPosIndex)")
+            logToFlutter("setupAdView, posIndex: \(posIndex), margin: \(margin), placement: \(placement), rating: \(nativeAd.contentRating), starRating: \(nativeAd.starRating), adActionPosIndex: \(adActionPosIndex)")
 
             // Get the ad view from the SDK, configured with our NativeView class.
             let adView = try nativeAd.getViewForPlacement(placement, withRootViewController: rootViewController)
@@ -137,7 +139,7 @@ extension AppodealNativeAdView: APDNativeAdQueueDelegate, APDNativeAdPresentatio
     func adQueueAdIsAvailable(_ adQueue: APDNativeAdQueue, ofCount count: UInt) {
         guard nativeArray.isEmpty else { return }
 
-        let ads = adQueue.getNativeAds(ofCount: 1)
+        let ads = adQueue.getNativeAds(ofCount: adQueue.currentAdCount)
         if !ads.isEmpty {
             logToFlutter("Successfully retrieved 1 ad from the queue.")
             nativeArray.append(contentsOf: ads)

@@ -30,11 +30,15 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
                 R.layout.apd_native_ad_view_chat_list,
                 null
             ) as NativeAdView
+            NativeAdViewType.Article -> layoutInflater.inflate(
+                R.layout.apd_native_ad_view_article,
+                null
+            ) as NativeAdView
             NativeAdViewType.NewsFeed -> NativeAdViewNewsFeed(context)
             else -> throw IllegalArgumentException("Unknown NativeAdViewType: ${nativeAdOptions.nativeAdViewType}")
         }
 
-        if (nativeAdOptions.nativeAdViewType == NativeAdViewType.Chat) {
+        if (nativeAdOptions.nativeAdViewType == NativeAdViewType.Chat || nativeAdOptions.nativeAdViewType == NativeAdViewType.Article) {
             return nativeAdView
         }
 

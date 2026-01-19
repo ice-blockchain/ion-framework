@@ -12,6 +12,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/hooks/use_has_reaction.dart';
 import 'package:ion/app/features/chat/model/message_list_item.f.dart';
+import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/replied_message_list_item_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/message_reactions.dart';
@@ -61,7 +62,7 @@ class TextMessage extends HookConsumerWidget {
 
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey));
 
-    final isAd = eventMessage.id.startsWith('ad_id_') && !isMe;
+    final isAd = eventMessage.id.startsWith(ConversationMessages.adIdPrefix);
 
     final entity = useMemoized(
       () => ReplaceablePrivateDirectMessageEntity.fromEventMessage(eventMessage),

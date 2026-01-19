@@ -161,6 +161,8 @@ class NativeAdOptions with AppodealPlatformArguments {
         return width * 2;
       case NativeAdType.chat:
         return width * 0.8;
+      case NativeAdType.article:
+        return width * 0.8;
       case NativeAdType.contentStream:
         return width * 0.764;
       case NativeAdType.custom:
@@ -204,4 +206,4 @@ class NativeAdOptions with AppodealPlatformArguments {
       };
 }
 
-enum NativeAdType { custom, contentStream, appWall, newsFeed, chat }
+enum NativeAdType { custom, contentStream, appWall, newsFeed, chat, article }

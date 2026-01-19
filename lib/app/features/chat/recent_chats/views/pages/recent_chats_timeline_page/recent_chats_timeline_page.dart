@@ -19,6 +19,7 @@ import 'package:ion/app/features/chat/community/providers/community_metadata_pro
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
+import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
@@ -78,21 +79,23 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     );
 
     final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
-    useOnInit(() {
-      if (conversations.isEmpty || !(ionAdClient?.isNativeLoaded ?? false)) return;
+    useOnInit(
+      () {
+        if (conversations.isEmpty || !(ionAdClient?.isNativeLoaded ?? false)) return;
 
-      final rng = Random(conversations.length);
-      final adIndex = rng.nextInt(conversations.length);
-      final lastConversation = conversations.last;
+        final rng = Random(conversations.length);
+        final adIndex = rng.nextInt(conversations.length - 1);
+        final lastConversation = conversations.last;
 
-      conversations.insert(
-        adIndex,
-        lastConversation.copyWith(
-          conversationId: 'ad_${lastConversation.conversationId}',
-          type: ConversationType.ad,
-        ),
-      );
-    });
+        conversations.insert(
+          adIndex,
+          lastConversation.copyWith(
+            conversationId: '${ConversationMessages.adIdPrefix}${lastConversation.conversationId}',
+            type: ConversationType.ad,
+          ),
+        );
+      },
+    );
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
@@ -421,9 +424,10 @@ class AdChatTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      height: 62,
+    return Container(
+      height: 72.0.s,
       width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: AppodealNativeAd(
         options: NativeAdOptions.customOptions(
           nativeAdType: NativeAdType.chat,

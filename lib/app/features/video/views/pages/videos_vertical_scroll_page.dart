@@ -284,14 +284,16 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
               final adsBefore = adPositions.where((p) => p < index).length;
               final videoIndex = index - adsBefore;
               if (!adPositions.contains(index) && videoIndex < flattenedVideos.length) {
+                isAdVisible.value = false;
                 onVideoSeen?.call(flattenedVideos[videoIndex].entity);
                 _loadMore(ref, videoIndex, flattenedVideos.length);
                 currentEventReference.value = flattenedVideos[videoIndex].entity.toEventReference();
+              } else if (adPositions.contains(index) && canShowNativeAds) {
+                isAdVisible.value = true;
               }
             },
             itemBuilder: (_, index) {
               if (adPositions.contains(index) && canShowNativeAds) {
-                isAdVisible.value = true;
                 final prevVideoIndex =
                     max(0, index - adPositions.where((p) => p < index).length - 1);
                 return AdVideoViewer(flattenedVideos[prevVideoIndex].entity.id);
@@ -301,7 +303,6 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
 
                 if (videoIndex >= flattenedVideos.length) return const SizedBox.shrink();
 
-                isAdVisible.value = false;
                 final flattenedVideo = flattenedVideos[videoIndex];
                 final perPageEventReference = flattenedVideo.entity.toEventReference();
                 final media = flattenedVideo.media;
