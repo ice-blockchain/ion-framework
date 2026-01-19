@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/user_holdings_list_item.dart';
 import 'package:ion/app/features/user/providers/user_holdings_provider.r.dart';
@@ -56,6 +57,8 @@ class HoldingsList extends ConsumerWidget {
                   );
                 },
               ),
+              SizedBox(height: 16.0.s),
+              SectionSeparator(height: 4.s),
             ],
           ),
         );
