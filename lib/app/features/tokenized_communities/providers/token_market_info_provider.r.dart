@@ -48,16 +48,20 @@ Stream<CommunityToken?> tokenMarketInfo(
     }
 
     var mutableToken = currentToken;
-    await for (final patch in subscription.stream) {
-      if (mutableToken == null) {
-        mutableToken = patch as CommunityToken;
-      } else {
-        mutableToken = mutableToken.merge(patch);
+    await for (final update in subscription.stream) {
+      if (update is CommunityToken) {
+        mutableToken = update;
+      } else if (update is CommunityTokenPatch) {
+        if (mutableToken == null) {
+          continue;
+        } else {
+          mutableToken = mutableToken.merge(update);
+        }
       }
       unawaited(
         ref
             .read(cachedTokenMarketInfoNotifierProvider(externalAddress).notifier)
-            .cacheToken(mutableToken),
+            .cacheToken(mutableToken!),
       );
       yield mutableToken;
     }
