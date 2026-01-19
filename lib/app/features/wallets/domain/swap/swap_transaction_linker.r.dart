@@ -86,25 +86,45 @@ class SwapTransactionLinker {
     _pendingSwaps = [];
   }
 
+  // Note: Network IDs in the database use mixed case (e.g., "Ion", "Bsc")
+  // while identifiers use lowercase. We compare case-insensitively to handle both.
   SwapTransactionIdentifier? _getIdentifier(String networkId) =>
-      _identifiers.firstWhereOrNull((i) => i.networkId == networkId);
+      _identifiers.firstWhereOrNull(
+        (i) => i.networkId.toLowerCase() == networkId.toLowerCase(),
+      );
 
   void _onPendingSwapsChanged(List<SwapTransaction> pendingSwaps) {
     if (!_isRunning) return;
 
     _pendingSwaps = pendingSwaps;
     if (pendingSwaps.isNotEmpty) {
-      final swapIds = pendingSwaps.map((s) => s.swapId).join(', ');
+      final swapDetails = pendingSwaps
+          .map(
+            (s) => 'id:${s.swapId} (${s.fromNetworkId}->${s.toNetworkId}, '
+                'fromTx:${s.fromTxHash ?? "pending"}, toTx:${s.toTxHash ?? "pending"})',
+          )
+          .join(', ');
       Logger.log(
-        'SwapTransactionLinker: Watching ${pendingSwaps.length} pending swaps: [$swapIds]',
+        'SwapTransactionLinker: Watching ${pendingSwaps.length} pending swaps: [$swapDetails]',
       );
+    } else {
+      Logger.log('SwapTransactionLinker: No pending swaps to watch');
     }
   }
 
   void _onNewIncomingTransactions(List<TransactionData> transactions) {
     if (!_isRunning || _pendingSwaps.isEmpty) return;
 
+    Logger.log(
+      'SwapTransactionLinker: Processing ${transactions.length} incoming transactions '
+      'against ${_pendingSwaps.length} pending swaps',
+    );
+
     for (final tx in transactions) {
+      Logger.log(
+        'SwapTransactionLinker: Checking incoming tx ${tx.txHash} '
+        '(${tx.network.id}, from: ${tx.senderWalletAddress}, to: ${tx.receiverWalletAddress})',
+      );
       _tryMatchSecondLeg(tx);
     }
   }
@@ -112,28 +132,52 @@ class SwapTransactionLinker {
   void _onNewOutgoingTransactions(List<TransactionData> transactions) {
     if (!_isRunning) return;
 
+    Logger.log(
+      'SwapTransactionLinker: Processing ${transactions.length} outgoing transactions',
+    );
+
     for (final tx in transactions) {
+      Logger.log(
+        'SwapTransactionLinker: Checking outgoing tx ${tx.txHash} '
+        '(${tx.network.id}, from: ${tx.senderWalletAddress}, to: ${tx.receiverWalletAddress})',
+      );
       _tryMatchFirstLeg(tx);
     }
   }
 
   Future<void> _tryMatchSecondLeg(TransactionData tx) async {
     final receiverAddress = tx.receiverWalletAddress;
-    if (receiverAddress == null) return;
+    if (receiverAddress == null) {
+      Logger.log(
+        'SwapTransactionLinker: Skipping second-leg match - no receiver address',
+      );
+      return;
+    }
 
     final pendingSwapsForWallet = await _swapTransactionsDao.getSwaps(
       toWalletAddresses: [receiverAddress],
       toTxHashes: [null],
     );
 
+    Logger.log(
+      'SwapTransactionLinker: Found ${pendingSwapsForWallet.length} pending swaps '
+      'for wallet $receiverAddress',
+    );
+
     for (final swap in pendingSwapsForWallet) {
       final identifier = _getIdentifier(swap.toNetworkId);
-      if (identifier == null) continue;
+      if (identifier == null) {
+        Logger.log(
+          'SwapTransactionLinker: No identifier for network ${swap.toNetworkId}, '
+          'skipping swap ${swap.swapId}',
+        );
+        continue;
+      }
 
       if (identifier.isSecondLegMatch(swap, tx)) {
         Logger.log(
-          'SwapTransactionLinker: Found second leg match! '
-          'Swap ${swap.swapId} (${swap.fromTxHash}) -> ${tx.txHash}',
+          'SwapTransactionLinker: ✓ Second-leg LINKED! '
+          'Swap ${swap.swapId} (fromTx: ${swap.fromTxHash}) -> toTx: ${tx.txHash}',
         );
         await _swapTransactionsDao.updateToTxHash(
           swapId: swap.swapId,
@@ -148,14 +192,24 @@ class SwapTransactionLinker {
       fromTxHashes: [null],
     );
 
+    Logger.log(
+      'SwapTransactionLinker: Found ${swapsWithoutFromTx.length} swaps without first-leg tx',
+    );
+
     for (final swap in swapsWithoutFromTx) {
       final identifier = _getIdentifier(swap.fromNetworkId);
-      if (identifier == null) continue;
+      if (identifier == null) {
+        Logger.log(
+          'SwapTransactionLinker: No identifier for network ${swap.fromNetworkId}, '
+          'skipping swap ${swap.swapId}',
+        );
+        continue;
+      }
 
       if (identifier.isFirstLegMatch(swap, tx)) {
         Logger.log(
-          'SwapTransactionLinker: Found first leg match! '
-          'Swap ${swap.swapId} <- ${tx.txHash}',
+          'SwapTransactionLinker: ✓ First-leg LINKED! '
+          'Swap ${swap.swapId} <- fromTx: ${tx.txHash}',
         );
         await _swapTransactionsDao.updateFromTxHash(
           swapId: swap.swapId,
