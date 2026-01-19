@@ -17,43 +17,13 @@ final class NativeAdStoryView: UIView {
         }
     }
 
-    private lazy var adChoiceContainer: UIImageView = {
-        let imageView = UIImageView()
-        let bundle = Bundle(for: NativeAdStoryView.self)
-        imageView.image = UIImage(named: "ad_choices", in: bundle, compatibleWith: nil)
-        imageView.contentMode = .scaleAspectFit
-        imageView.backgroundColor = .clear
-
-        return imageView
-    }()
-
-    private lazy var iconImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.backgroundColor = UIColor.App.secondaryBackground
-        imageView.layer.cornerRadius = 8
-        imageView.clipsToBounds = true
-
-        return imageView
-    }()
-
-    private lazy var titleTextLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.darkText
-        label.font = AppFonts.header
-        label.textAlignment = .left
-
-        return label
-    }()
-
-    private lazy var descriptionTextLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.darkGray
-        label.font = AppFonts.primaryLabel
-        label.numberOfLines = 1
-        label.textAlignment = .left
-
-        return label
-    }()
+    private lazy var adChoiceContainer = AdComponents.createAdChoiceView(for: NativeAdStoryView.self)
+    private lazy var adTag = AdComponents.createAdTag()
+    private lazy var iconImageView = AdComponents.createIconView()
+    private lazy var titleTextLabel = AdComponents.createTitleLabel()
+    private lazy var descriptionTextLabel = AdComponents.createDescriptionLabel()
+    private lazy var callToActionView = AdComponents.createCallToActionLabel()
+    private lazy var starRatingView = AdComponents.createRatingLabel()
 
     private lazy var mediaContainer: UIView = {
         let view = UIView()
@@ -61,17 +31,6 @@ final class NativeAdStoryView: UIView {
         view.backgroundColor = .black
         view.contentMode = .scaleAspectFit
         return view
-    }()
-
-    private lazy var callToActionView: UILabel = {
-        let label = UILabel()
-        label.backgroundColor = UIColor.App.accent
-        label.textColor = UIColor.white
-        label.textAlignment = .center
-        label.font = AppFonts.secondaryLabel
-        label.layer.cornerRadius = 10
-        label.clipsToBounds = true
-        return label
     }()
 
     private lazy var bottomContainerView: UIView = {
@@ -86,32 +45,11 @@ final class NativeAdStoryView: UIView {
         return view
     }()
 
-    private lazy var starRatingView: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.darkText
-        label.font = AppFonts.primaryLabel
-        return label
-    }()
-
-    private lazy var adTag: UILabel = {
-        let label = UILabel()
-        label.backgroundColor = UIColor.white
-        label.textColor = UIColor.App.text
-        label.textAlignment = .center
-        label.font = AppFonts.caption3
-        label.layer.cornerRadius = 6
-        label.clipsToBounds = true
-
-        label.text = "Ad"
-        return label
-    }()
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         clipsToBounds = true
 
         AppFonts.loadFonts()
-
         layoutViews()
     }
 
@@ -140,12 +78,6 @@ final class NativeAdStoryView: UIView {
             bottomContainerView.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
-
-        // 4. Add overlays (AdTag, AdChoices) to the main view (on top of media)
-//        for item in [adTag, adChoiceContainer] {
-//            addSubview(item)
-//            item.translatesAutoresizingMaskIntoConstraints = false
-//        }
 
         NSLayoutConstraint.activate([
             // --- Media Container (Fullscreen) ---
@@ -253,4 +185,9 @@ extension NativeAdStoryView: APDNativeAdView {
     func mediaContainerView() -> UIView { return mediaContainer }
     func contentRatingLabel() -> UILabel { return starRatingView }
     func adChoicesView() -> UIView { return adChoiceContainer }
+
+    func setRating(_ rating: NSNumber) {
+        starRatingView.text = AdComponents.starString(for: rating)
+        starRatingView.isHidden = rating.intValue == 0
+    }
 }

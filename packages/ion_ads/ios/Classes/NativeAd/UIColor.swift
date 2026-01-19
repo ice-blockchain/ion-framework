@@ -26,8 +26,9 @@ extension UIColor {
     struct App {
         static let accent = UIColor(hex: "#0166FF")!
         static let secondaryAccent = UIColor.white //  UIColor(named: "StackSecondaryColor")
-        static let text = UIColor.darkText // UIColor(named: "StackTextColor")
+        static let text = UIColor(hex: "#0E0E0E") ?? UIColor.darkText // UIColor(named: "StackTextColor")
         static let cardBackground = UIColor(hex: "#F5F7FF")!
+        static let onTertiaryBackground = UIColor(hex: "#5A5E66")!
         
         static var tableBackground: UIColor {
             if #available(iOS 13, *) {
@@ -117,7 +118,7 @@ enum AppFonts {
     
     static let secondaryLabel = UIFont(name: "NotoSans-SemiBold", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
     
-    static let caption3 = UIFont(name: "NotoSans-Bold", size: 11) ?? UIFont.systemFont(ofSize: 11, weight: .heavy)
+    static let adTag = UIFont(name: "NotoSans-Bold", size: 11) ?? UIFont.systemFont(ofSize: 11, weight: .heavy)
     static let title = UIFont.systemFont(ofSize: 16, weight: .bold)
 }
 

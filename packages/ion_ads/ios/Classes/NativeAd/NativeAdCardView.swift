@@ -10,44 +10,13 @@ final class NativeAdCardView: UIView {
             setupCallToActionConstraints()
         }
     }
-    
-    private lazy var adChoiceContainer: UIImageView = {
-        let imageView = UIImageView()
-        let bundle = Bundle(for: NativeAdCardView.self)
-        imageView.image = UIImage(named: "ad_choices", in: bundle, compatibleWith: nil)
-        imageView.contentMode = .scaleAspectFit
-        imageView.backgroundColor = .clear
-
-        return imageView
-    }()
-
-    private lazy var iconImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.backgroundColor = UIColor.App.secondaryBackground
-        imageView.layer.cornerRadius = 8
-        imageView.clipsToBounds = true
-
-        return imageView
-    }()
-
-    private lazy var titleTextLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.darkText
-        label.font = AppFonts.header
-        label.textAlignment = .left
-
-        return label
-    }()
-
-    private lazy var descriptionTextLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.darkGray
-        label.font = AppFonts.primaryLabel
-        label.numberOfLines = 2
-        label.textAlignment = .left
-
-        return label
-    }()
+    private lazy var adChoiceContainer = AdComponents.createAdChoiceView(for: NativeAdCardView.self)
+    private lazy var adTag = AdComponents.createAdTag()
+    private lazy var iconImageView = AdComponents.createIconView()
+    private lazy var titleTextLabel = AdComponents.createTitleLabel()
+    private lazy var descriptionTextLabel = AdComponents.createDescriptionLabel()
+    private lazy var callToActionView = AdComponents.createCallToActionLabel()
+    private lazy var starRatingView = AdComponents.createRatingLabel()
 
     private lazy var mediaContainer: UIView = {
         let view = UIView()
@@ -56,30 +25,12 @@ final class NativeAdCardView: UIView {
         return view
     }()
 
-    private lazy var callToActionView: UILabel = {
-        let label = UILabel()
-        label.backgroundColor = UIColor.App.accent
-        label.textColor = UIColor.white
-        label.textAlignment = .center
-        label.font = AppFonts.secondaryLabel
-        label.layer.cornerRadius = 10
-        label.clipsToBounds = true
-        return label
-    }()
-
     private lazy var cardBackgroundView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 12
         view.clipsToBounds = true
         view.backgroundColor = UIColor.App.secondaryBackground
         return view
-    }()
-
-    private lazy var starRatingView: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.darkText
-        label.font = AppFonts.primaryLabel
-        return label
     }()
 
     override init(frame: CGRect) {
@@ -97,19 +48,6 @@ final class NativeAdCardView: UIView {
     }
 
     private func layoutViews() {
-        let adTag: UILabel = {
-            let label = UILabel()
-            label.backgroundColor = UIColor.white
-            label.textColor = UIColor.App.text
-            label.textAlignment = .center
-            label.font = AppFonts.caption3
-            label.layer.cornerRadius = 6
-            label.clipsToBounds = true
-
-            label.text = "Ad"
-            return label
-        }()
-
         // Add all subviews to the main view
         [
             titleTextLabel,
@@ -148,18 +86,10 @@ final class NativeAdCardView: UIView {
             starRatingView.leadingAnchor.constraint(equalTo: descriptionTextLabel.leadingAnchor),
             starRatingView.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
 
-//            callToActionView.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
-//            callToActionView.leadingAnchor.constraint(equalTo: titleTextLabel.trailingAnchor, constant: 10),
-//            callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-//            callToActionView.heightAnchor.constraint(equalToConstant: 32),
-//            callToActionView.widthAnchor.constraint(equalToConstant: 100),
-
             // --- (Media, AdTag, AdChoice constraints are unchanged) ---
             cardBackgroundView.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 8),
             cardBackgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             cardBackgroundView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            //cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: 0),
-            //cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 10.0/16.0),
 
             mediaContainer.topAnchor.constraint(equalTo: cardBackgroundView.topAnchor),
             mediaContainer.bottomAnchor.constraint(equalTo: cardBackgroundView.bottomAnchor),
@@ -211,7 +141,7 @@ final class NativeAdCardView: UIView {
                 callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
                 
                 cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: callToActionView.topAnchor, constant: -padding),
-                cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 16.0/9.0),
+                cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 9.0/16.0),
             ])
         }
 
@@ -228,8 +158,4 @@ extension NativeAdCardView: APDNativeAdView {
 
     func contentRatingLabel() -> UILabel {return starRatingView   }
     func adChoicesView() -> UIView { return adChoiceContainer }
-
-    //    static func nib() -> UINib {
-    //            //return UINib.init(nibName: "Native", bundle: Bundle.main)
-    //        }
 }
