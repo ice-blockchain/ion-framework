@@ -3,7 +3,6 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -41,25 +40,28 @@ class UiEventQueueNotifier extends _$UiEventQueueNotifier {
     }
   }
 
-  Future<void> processQueue() async {
+  Future<void> processQueue(Future<void> Function(UiEvent event) processor) async {
     if (_processing) return;
     _processing = true;
     try {
       while (state.isNotEmpty) {
-        final event = state.first;
-        try {
-          final context = rootNavigatorKey.currentContext;
-          if (context != null && context.mounted) {
-            await event.performAction(context);
-          }
-        } catch (error, stackTrace) {
-          Logger.error(error, stackTrace: stackTrace);
-        } finally {
-          state = Queue.of(state)..removeFirst();
-        }
+        await _consume(processor);
       }
     } finally {
       _processing = false;
+    }
+  }
+
+  Future<void> _consume(Future<void> Function(UiEvent event) processor) async {
+    if (state.isNotEmpty) {
+      final event = state.first;
+      try {
+        await processor(event);
+      } catch (error, stackTrace) {
+        Logger.error(error, stackTrace: stackTrace);
+      } finally {
+        state = Queue.of(state)..remove(event);
+      }
     }
   }
 }
