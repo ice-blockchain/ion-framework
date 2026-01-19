@@ -78,10 +78,12 @@ class CommunityTokenDefinitionRepository {
           '#h': [tokenInfo.addresses.twitter],
         };
       } else {
-        creatorEventReference =
-            ReplaceableEventReference.fromString(tokenInfo.creator.addresses!.ionConnect!);
+        creatorEventReference = ReplaceableEventReference(
+          masterPubkey: tokenInfo.creator.addresses!.ionConnect!,
+          kind: UserMetadataEntity.kind,
+        );
         tags = {
-          '#a': [tokenInfo.creator.addresses!.ionConnect],
+          '#a': [creatorEventReference.toString()],
           '!#t': [communityTokenActionTopic],
         };
       }
