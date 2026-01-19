@@ -36,6 +36,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.lossRed,
     required this.anakiwa,
     required this.shadow,
+    required this.forest,
   });
 
   factory AppColorsExtension.fromTemplate(TemplateColors templateColors) {
@@ -71,6 +72,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       lossRed: templateColors.lossRed,
       anakiwa: templateColors.anakiwa,
       shadow: templateColors.shadow,
+      forest: templateColors.forest,
     );
   }
 
@@ -107,6 +109,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       lossRed: const Color(0xFFFF396E),
       anakiwa: const Color(0xFF91D4FF),
       shadow: const Color(0xFF2D62D9),
+      forest: const Color(0xFF010008),
     );
   }
 
@@ -141,6 +144,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color lossRed;
   final Color anakiwa;
   final Color shadow;
+  final Color forest;
 
   @override
   ThemeExtension<AppColorsExtension> copyWith({
@@ -175,6 +179,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? lossRed,
     Color? anakiwa,
     Color? shadow,
+    Color? forest,
   }) {
     return AppColorsExtension(
       primaryAccent: primaryAccent ?? this.primaryAccent,
@@ -208,6 +213,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       lossRed: lossRed ?? this.lossRed,
       anakiwa: anakiwa ?? this.anakiwa,
       shadow: shadow ?? this.shadow,
+      forest: forest ?? this.forest,
     );
   }
 
@@ -252,6 +258,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       lossRed: Color.lerp(lossRed, other.lossRed, t)!,
       anakiwa: Color.lerp(anakiwa, other.anakiwa, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
+      forest: Color.lerp(forest, other.forest, t)!,
     );
   }
 }
