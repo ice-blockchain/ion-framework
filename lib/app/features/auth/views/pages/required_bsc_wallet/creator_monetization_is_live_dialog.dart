@@ -82,13 +82,13 @@ class _ContentState extends ConsumerWidget {
               ),
               SizedBox(height: 14.0.s),
               Text(
-                'title',
+                context.i18n.bsc_required_dialog_title,
                 style: textStyles.title.copyWith(color: colors.onPrimaryAccent),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 8.0.s),
               Text(
-                'description',
+                context.i18n.bsc_required_dialog_description,
                 style: textStyles.body2.copyWith(color: colors.secondaryBackground),
                 textAlign: TextAlign.center,
               ),
