@@ -4,11 +4,12 @@ import 'dart:async';
 
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
+import 'package:ion_token_analytics/src/http2_client/models/http2_subscription.dart';
 
 class NetworkClient {
   NetworkClient.fromBaseUrl(String baseUrl, {required String? authToken})
-    : _client = Http2Client.fromBaseUrl(baseUrl),
-      _authToken = authToken;
+      : _client = Http2Client.fromBaseUrl(baseUrl),
+        _authToken = authToken;
 
   final Http2Client _client;
 
@@ -17,10 +18,10 @@ class NetworkClient {
   static const Duration _defaultTimeout = Duration(seconds: 30);
 
   Future<T> get<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) {
+      String path, {
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) {
     return _request<T>(
       path,
       queryParameters: _buildQueryParameters(queryParameters),
@@ -52,11 +53,11 @@ class NetworkClient {
   }
 
   Future<T> post<T>(
-    String path, {
-    Object? data,
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) {
+      String path, {
+        Object? data,
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) {
     return _request<T>(
       path,
       data: data,
@@ -67,12 +68,12 @@ class NetworkClient {
   }
 
   Future<T> _request<T>(
-    String path, {
-    required String method,
-    Object? data,
-    Map<String, String>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
+      String path, {
+        required String method,
+        Object? data,
+        Map<String, String>? queryParameters,
+        Map<String, String>? headers,
+      }) async {
     final response = await _client.request<T>(
       path,
       data: data,
@@ -93,10 +94,10 @@ class NetworkClient {
   }
 
   Future<NetworkSubscription<T>> subscribe<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
+      String path, {
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) async {
     final subscription = await _client.subscribe<T>(
       path,
       queryParameters: _buildQueryParameters(queryParameters),
@@ -107,10 +108,10 @@ class NetworkClient {
   }
 
   Future<NetworkSubscription<T>> subscribeSse<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
+      String path, {
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) async {
     final subscription = await _client.subscribeSse<T>(
       path,
       queryParameters: _buildQueryParameters(queryParameters),
@@ -125,37 +126,139 @@ class NetworkClient {
     // We intercept that error and convert it into an empty map event for
     // map-typed subscriptions. Downstream repositories can
     // interpret an empty map as the EOSE marker.
-    final stream = subscription.stream.transform(
-      StreamTransformer<T, T>.fromHandlers(
-        handleData: (data, sink) => sink.add(data),
-        handleError: (error, stackTrace, sink) {
-          final text = error.toString();
-          final isNil = error is FormatException && text.contains('<nil>');
-
-          if (isNil) {
-            if (<String, dynamic>{} is T) {
-              sink.add(<String, dynamic>{} as T);
-              return;
-            }
-            if (<dynamic, dynamic>{} is T) {
-              sink.add(<dynamic, dynamic>{} as T);
-              return;
-            }
-
-            // If the subscription type isn't map-like/list-like, just swallow the marker.
-            return;
-          }
-
-          sink.addError(error, stackTrace);
-        },
-      ),
+    //
+    // Also handles automatic reconnection on connection errors during stream processing.
+    final (stream, closeFn) = _createReconnectingStream<T>(
+      subscription,
+      path,
+      queryParameters,
+      headers,
     );
 
-    return NetworkSubscription<T>(stream: stream, close: subscription.close);
+    return NetworkSubscription<T>(stream: stream, close: closeFn);
   }
 
   Future<void> dispose() {
     return _client.dispose();
+  }
+
+  /// Creates a reconnecting stream that automatically retries on connection errors.
+  (Stream<T>, Future<void> Function()) _createReconnectingStream<T>(
+      Http2Subscription<T> initialSubscription,
+      String path,
+      Map<String, dynamic>? queryParameters,
+      Map<String, String>? headers,
+      ) {
+    final controller = StreamController<T>.broadcast();
+    var currentSubscription = initialSubscription;
+    StreamSubscription<T>? currentListener;
+    var isClosed = false;
+    var reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+
+    void listenToSubscription(Http2Subscription<T> sub) {
+      // Cancel previous listener if exists
+      currentListener?.cancel();
+
+      currentListener = sub.stream.listen(
+            (data) {
+          if (!controller.isClosed && !isClosed) {
+            controller.add(data);
+            reconnectAttempts = 0; // Reset on successful data
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) async {
+          if (controller.isClosed || isClosed) return;
+
+          final text = error.toString();
+          final isNil = error is FormatException && text.contains('<nil>');
+
+          if (isNil) {
+            // Handle <nil> marker
+            if (<String, dynamic>{} is T) {
+              controller.add(<String, dynamic>{} as T);
+              return;
+            }
+            if (<dynamic, dynamic>{} is T) {
+              controller.add(<dynamic, dynamic>{} as T);
+              return;
+            }
+            return;
+          }
+
+          // Retry on all errors (similar to Dio and BscRpcFailoverHttpClient)
+          if (reconnectAttempts < maxReconnectAttempts) {
+            try {
+              // Close the old subscription
+              try {
+                await currentSubscription.close();
+              } catch (_) {
+                // Ignore errors closing old subscription
+              }
+
+              // Disconnect the dead connection
+              try {
+                await _client.connection.disconnect();
+              } catch (_) {
+                // Ignore errors during disconnect
+              }
+
+              // Wait a bit before retrying
+              await Future<void>.delayed(Duration(milliseconds: 200 * (reconnectAttempts + 1)));
+
+              // Create a new subscription (bypassing the outer subscribeSse to avoid double retry)
+              reconnectAttempts++;
+              final newSub = await _client.subscribeSse<T>(
+                path,
+                queryParameters: _buildQueryParameters(queryParameters),
+                headers: _addAuthorizationHeader(headers),
+              );
+
+              currentSubscription = newSub;
+
+              // Listen to the new subscription
+              listenToSubscription(newSub);
+            } catch (reconnectError) {
+              if (reconnectAttempts >= maxReconnectAttempts) {
+                controller.addError(error, stackTrace);
+              } else {
+                // Try again with current subscription (will fail and retry)
+                listenToSubscription(currentSubscription);
+              }
+            }
+          } else {
+            // Max attempts reached, propagate the error
+            controller.addError(error, stackTrace);
+          }
+        },
+        onDone: () {
+          if (!controller.isClosed && !isClosed) {
+            controller.close();
+          }
+        },
+        cancelOnError: false,
+      );
+    }
+
+    // Start listening to the initial subscription
+    listenToSubscription(initialSubscription);
+
+    // Close function
+    Future<void> closeFn() async {
+      if (isClosed) return;
+      isClosed = true;
+      await currentListener?.cancel();
+      try {
+        await currentSubscription.close();
+      } catch (_) {
+        // Ignore errors
+      }
+      if (!controller.isClosed) {
+        await controller.close();
+      }
+    }
+
+    return (controller.stream, closeFn);
   }
 
   /// Builds a map of query parameters suitable for HTTP requests.
