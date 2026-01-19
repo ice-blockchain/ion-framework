@@ -8,8 +8,8 @@ import 'package:ion_token_analytics/src/http2_client/models/http2_subscription.d
 
 class NetworkClient {
   NetworkClient.fromBaseUrl(String baseUrl, {required String? authToken})
-    : _client = Http2Client.fromBaseUrl(baseUrl),
-      _authToken = authToken;
+      : _client = Http2Client.fromBaseUrl(baseUrl),
+        _authToken = authToken;
 
   final Http2Client _client;
 
@@ -18,10 +18,10 @@ class NetworkClient {
   static const Duration _defaultTimeout = Duration(seconds: 30);
 
   Future<T> get<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) {
+      String path, {
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) {
     return _request<T>(
       path,
       queryParameters: _buildQueryParameters(queryParameters),
@@ -53,11 +53,11 @@ class NetworkClient {
   }
 
   Future<T> post<T>(
-    String path, {
-    Object? data,
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) {
+      String path, {
+        Object? data,
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) {
     return _request<T>(
       path,
       data: data,
@@ -68,12 +68,12 @@ class NetworkClient {
   }
 
   Future<T> _request<T>(
-    String path, {
-    required String method,
-    Object? data,
-    Map<String, String>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
+      String path, {
+        required String method,
+        Object? data,
+        Map<String, String>? queryParameters,
+        Map<String, String>? headers,
+      }) async {
     final response = await _client.request<T>(
       path,
       data: data,
@@ -94,10 +94,10 @@ class NetworkClient {
   }
 
   Future<NetworkSubscription<T>> subscribe<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
+      String path, {
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) async {
     final subscription = await _client.subscribe<T>(
       path,
       queryParameters: _buildQueryParameters(queryParameters),
@@ -108,10 +108,10 @@ class NetworkClient {
   }
 
   Future<NetworkSubscription<T>> subscribeSse<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
+      String path, {
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) async {
     final subscription = await _client.subscribeSse<T>(
       path,
       queryParameters: _buildQueryParameters(queryParameters),
@@ -144,11 +144,11 @@ class NetworkClient {
 
   /// Creates a reconnecting stream that automatically retries on connection errors.
   (Stream<T>, Future<void> Function()) _createReconnectingStream<T>(
-    Http2Subscription<T> initialSubscription,
-    String path,
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  ) {
+      Http2Subscription<T> initialSubscription,
+      String path,
+      Map<String, dynamic>? queryParameters,
+      Map<String, String>? headers,
+      ) {
     final controller = StreamController<T>.broadcast();
     var currentSubscription = initialSubscription;
     StreamSubscription<T>? currentListener;
@@ -161,7 +161,7 @@ class NetworkClient {
       currentListener?.cancel();
 
       currentListener = sub.stream.listen(
-        (data) {
+            (data) {
           if (!controller.isClosed && !isClosed) {
             controller.add(data);
             reconnectAttempts = 0; // Reset on successful data
