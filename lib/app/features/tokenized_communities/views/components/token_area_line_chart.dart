@@ -96,6 +96,10 @@ class TokenAreaLineChart extends HookConsumerWidget {
     // Track if Y-range change is from scroll (animate) vs data load (no animate)
     final isScrollTriggered = useRef(false);
 
+    // Track if initial scroll position has been set (hide chart until positioned)
+    // Initially chart renders at position 0 (start), then we move it to end position
+    final isPositioned = useState(false);
+
     void calculateVisibleYRange() {
       // Skip if loading or chart not ready
       if (isLoading) return;
@@ -161,9 +165,11 @@ class TokenAreaLineChart extends HookConsumerWidget {
       [transformationController, calcData, candles, reservedSize],
     );
 
-    // Set initial transformation (scroll to end)
+    // Set initial transformation (scroll to end) and mark as positioned
     useEffect(
       () {
+        isPositioned.value = false; // Reset on data change
+
         WidgetsBinding.instance.addPostFrameCallback((_) {
           final ctx = chartKey.currentContext;
           if (ctx == null) return;
@@ -178,6 +184,8 @@ class TokenAreaLineChart extends HookConsumerWidget {
           transformationController.value = Matrix4.identity()
             ..translateByDouble(translateX, 0, 0, 1)
             ..scaleByDouble(initialScale, initialScale, 1, 1);
+
+          isPositioned.value = true; // Now safe to show
         });
 
         return null;
@@ -210,129 +218,133 @@ class TokenAreaLineChart extends HookConsumerWidget {
     // Only animate Y-axis changes triggered by scroll, not by data load
     final duration = isScrollTriggered.value ? scrollAnimationDuration : Duration.zero;
 
-    return LineChart(
-      key: chartKey,
-      duration: duration,
-      transformationConfig: FlTransformationConfig(
-        scaleAxis: FlScaleAxis.horizontal,
-        panEnabled: canInteract,
-        scaleEnabled: false,
-        transformationController: transformationController,
-      ),
-      LineChartData(
-        minY: effectiveMinY,
-        maxY: effectiveMaxY,
-        minX: 0,
-        maxX: calcData.maxX,
-        clipData: const FlClipData.all(),
-        borderData: FlBorderData(show: false),
-        gridData: const FlGridData(
-          drawHorizontalLine: false,
-          drawVerticalLine: false,
+    // Hide chart until initial scroll position is set (prevents visible jump)
+    return Opacity(
+      opacity: isPositioned.value ? 1.0 : 0.0,
+      child: LineChart(
+        key: chartKey,
+        duration: duration,
+        transformationConfig: FlTransformationConfig(
+          scaleAxis: FlScaleAxis.horizontal,
+          panEnabled: canInteract,
+          scaleEnabled: false,
+          transformationController: transformationController,
         ),
-        titlesData: FlTitlesData(
-          leftTitles: const AxisTitles(),
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(
-              minIncluded: false,
-              maxIncluded: false,
-              showTitles: true,
-              reservedSize: reservedSize,
-              getTitlesWidget: (value, meta) => Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: ChartPriceLabel(value: value),
-              ),
-            ),
+        LineChartData(
+          minY: effectiveMinY,
+          maxY: effectiveMaxY,
+          minX: 0,
+          maxX: calcData.maxX,
+          clipData: const FlClipData.all(),
+          borderData: FlBorderData(show: false),
+          gridData: const FlGridData(
+            drawHorizontalLine: false,
+            drawVerticalLine: false,
           ),
-          topTitles: const AxisTitles(),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 26.0.s,
-              interval: calcData.xAxisStep,
-              getTitlesWidget: (value, meta) {
-                final i = value.round();
-                final text = calcData.indexToLabel[i];
-                if (text == null) return const SizedBox.shrink();
-
-                final label = Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Text(
-                    text,
-                    style: styles.caption5.copyWith(color: colors.tertiaryText),
-                  ),
-                );
-
-                if (i == 0) {
-                  return Transform.translate(
-                    offset: Offset(13.0.s, 0),
-                    child: label,
-                  );
-                }
-
-                return label;
-              },
-            ),
-          ),
-        ),
-        lineTouchData: LineTouchData(
-          enabled: canInteract,
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (_) => colors.primaryBackground,
-            getTooltipItems: (touchedSpots) {
-              return touchedSpots
-                  .map(
-                    (spot) => LineTooltipItem(
-                      spot.y.toStringAsFixed(4),
-                      styles.caption2.copyWith(color: colors.primaryText),
-                    ),
-                  )
-                  .toList();
-            },
-          ),
-          getTouchedSpotIndicator: (barData, spotIndexes) {
-            return spotIndexes.map((index) {
-              return TouchedSpotIndicatorData(
-                FlLine(
-                  color: colors.primaryAccent.withValues(alpha: 0.3),
-                  strokeWidth: 0.5.s,
+          titlesData: FlTitlesData(
+            leftTitles: const AxisTitles(),
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(
+                minIncluded: false,
+                maxIncluded: false,
+                showTitles: true,
+                reservedSize: reservedSize,
+                getTitlesWidget: (value, meta) => Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: ChartPriceLabel(value: value),
                 ),
-                const FlDotData(),
-              );
-            }).toList();
-          },
-          getTouchLineStart: (_, __) => 0,
-          getTouchLineEnd: (_, __) => double.infinity,
-        ),
-        lineBarsData: [
-          LineChartBarData(
-            spots: calcData.spots,
-            color: lineColor,
-            barWidth: 1.5.s,
-            dotData: FlDotData(
-              checkToShowDot: (spot, barData) => spot.x == barData.spots.last.x,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 3.0.s,
-                  color: lineColor,
-                  strokeWidth: 1.5.s,
-                  strokeColor: colors.secondaryBackground,
-                );
-              },
+              ),
             ),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  lineColor.withValues(alpha: 0.3),
-                  lineColor.withValues(alpha: 0),
-                ],
+            topTitles: const AxisTitles(),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 26.0.s,
+                interval: calcData.xAxisStep,
+                getTitlesWidget: (value, meta) {
+                  final i = value.round();
+                  final text = calcData.indexToLabel[i];
+                  if (text == null) return const SizedBox.shrink();
+
+                  final label = Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Text(
+                      text,
+                      style: styles.caption5.copyWith(color: colors.tertiaryText),
+                    ),
+                  );
+
+                  if (i == 0) {
+                    return Transform.translate(
+                      offset: Offset(13.0.s, 0),
+                      child: label,
+                    );
+                  }
+
+                  return label;
+                },
               ),
             ),
           ),
-        ],
+          lineTouchData: LineTouchData(
+            enabled: canInteract,
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipColor: (_) => colors.primaryBackground,
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots
+                    .map(
+                      (spot) => LineTooltipItem(
+                        spot.y.toStringAsFixed(4),
+                        styles.caption2.copyWith(color: colors.primaryText),
+                      ),
+                    )
+                    .toList();
+              },
+            ),
+            getTouchedSpotIndicator: (barData, spotIndexes) {
+              return spotIndexes.map((index) {
+                return TouchedSpotIndicatorData(
+                  FlLine(
+                    color: colors.primaryAccent.withValues(alpha: 0.3),
+                    strokeWidth: 0.5.s,
+                  ),
+                  const FlDotData(),
+                );
+              }).toList();
+            },
+            getTouchLineStart: (_, __) => 0,
+            getTouchLineEnd: (_, __) => double.infinity,
+          ),
+          lineBarsData: [
+            LineChartBarData(
+              spots: calcData.spots,
+              color: lineColor,
+              barWidth: 1.5.s,
+              dotData: FlDotData(
+                checkToShowDot: (spot, barData) => spot.x == barData.spots.last.x,
+                getDotPainter: (spot, percent, barData, index) {
+                  return FlDotCirclePainter(
+                    radius: 3.0.s,
+                    color: lineColor,
+                    strokeWidth: 1.5.s,
+                    strokeColor: colors.secondaryBackground,
+                  );
+                },
+              ),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    lineColor.withValues(alpha: 0.3),
+                    lineColor.withValues(alpha: 0),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
