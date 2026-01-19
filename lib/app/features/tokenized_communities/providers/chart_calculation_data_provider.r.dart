@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -53,8 +54,8 @@ ChartCalculationData? chartCalculationData(
   }
 
   // Calculate Y-axis padding
-  final yPadding = _calculateYPadding(minY, maxY);
-  final chartMinY = minY - yPadding;
+  final yPadding = calculateChartYPadding(minY, maxY);
+  final chartMinY = (minY - yPadding).clamp(0.0, double.infinity);
   final chartMaxY = maxY + yPadding;
 
   // Transform candles to FlSpot
@@ -103,16 +104,4 @@ ChartCalculationData? chartCalculationData(
     xAxisStep: xAxisStep,
     maxX: maxX,
   );
-}
-
-// Calculates Y-axis padding for chart visualization.
-// Returns 10% of the range if values differ, or 5% of the minimum value
-// (with a minimum of 0.0001) when all values are identical to prevent flat lines.
-double _calculateYPadding(double minY, double maxY) {
-  final range = maxY - minY;
-  if (range > 0) {
-    return range * 0.1;
-  }
-  // Minimum 5% padding when all values are identical
-  return (minY * 0.05).clamp(0.0001, double.infinity);
 }

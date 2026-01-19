@@ -53,6 +53,25 @@ class Chart extends HookConsumerWidget {
       ),
     );
 
+    // Cache the last successfully loaded candles to show during loading
+    final cachedCandles = useRef<List<ChartCandle>?>(null);
+    final cachedChangePercent = useRef<double>(0);
+
+    // Update cache when we have real data (moved to useEffect to avoid side effects in build)
+    useEffect(
+      () {
+        if (chartDisplayData.candlesToShow.isNotEmpty && !chartDisplayData.isEmpty) {
+          cachedCandles.value = chartDisplayData.candlesToShow;
+          cachedChangePercent.value = chartDisplayData.changePercent;
+        }
+        return null;
+      },
+      [
+        chartDisplayData.candlesToShow.length,
+        chartDisplayData.changePercent,
+      ],
+    );
+
     return candlesAsync.when(
       data: (_) {
         return _ChartContent(
@@ -77,11 +96,12 @@ class Chart extends HookConsumerWidget {
         );
       },
       loading: () {
+        // Use cached candles if available (interval change), otherwise null (initial load)
         return _ChartContent(
           price: price,
           label: label,
-          changePercent: 0,
-          candles: demoCandles,
+          changePercent: cachedChangePercent.value,
+          candles: cachedCandles.value,
           isLoading: true,
           selectedRange: selectedRange.value,
           onRangeChanged: null,
@@ -120,7 +140,7 @@ class _ChartContent extends StatelessWidget {
   final Decimal price;
   final String label;
   final double changePercent;
-  final List<ChartCandle> candles;
+  final List<ChartCandle>? candles;
   final bool isLoading;
   final ChartTimeRange selectedRange;
   final ValueChanged<ChartTimeRange>? onRangeChanged;
@@ -147,11 +167,21 @@ class _ChartContent extends StatelessWidget {
             child: Center(
               child: AspectRatio(
                 aspectRatio: 1.7,
-                child: TokenAreaLineChart(
-                  candles: candles,
-                  selectedRange: selectedRange,
-                  isLoading: isLoading,
-                ),
+                // Show demo chart on initial load, real chart otherwise
+                // Use different keys to ensure clean widget lifecycle separation
+                child: candles != null
+                    ? TokenAreaLineChart(
+                        key: const ValueKey('chart'),
+                        candles: candles!,
+                        selectedRange: selectedRange,
+                        isLoading: isLoading,
+                      )
+                    : TokenAreaLineChart(
+                        key: const ValueKey('placeholder'),
+                        candles: demoCandles,
+                        selectedRange: selectedRange,
+                        isLoading: true,
+                      ),
               ),
             ),
           ),
@@ -400,7 +430,7 @@ class ChartCandle {
   final DateTime date;
 }
 
-// Simple demo data to render something if no candles are provided.
+// Demo candles for initial placeholder display
 final demoCandles = _generateDemoCandles();
 
 List<ChartCandle> _generateDemoCandles() {

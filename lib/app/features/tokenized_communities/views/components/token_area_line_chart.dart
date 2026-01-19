@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/utils/string.dart';
 
@@ -36,8 +39,27 @@ class TokenAreaLineChart extends HookConsumerWidget {
     return dataPointCount / maxPointsPerScreen;
   }
 
+  /// Converts pixel coordinates to data coordinates based on transformation matrix.
+  ({double startX, double endX}) _calculateVisibleDataRange(
+    Matrix4 matrix,
+    double drawableWidth,
+    double maxX,
+  ) {
+    final scaleX = matrix.storage[0];
+    final translateX = matrix.storage[12];
+    final dataPerPixel = maxX / drawableWidth;
+
+    final startX = ((-translateX / scaleX) * dataPerPixel).clamp(0.0, maxX);
+    final endX = (((-translateX + drawableWidth) / scaleX) * dataPerPixel).clamp(0.0, maxX);
+
+    return (startX: startX, endX: endX);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    const debounceDelay = Duration(milliseconds: 150);
+    const scrollAnimationDuration = Duration(milliseconds: 250);
+
     final colors = context.theme.appColors;
     final styles = context.theme.appTextThemes;
 
@@ -65,6 +87,81 @@ class TokenAreaLineChart extends HookConsumerWidget {
       initialValue: Matrix4.identity()..scaleByDouble(initialScale, initialScale, 1, 1),
     );
 
+    // Debounce timer for Y-range calculation
+    final debounceTimerRef = useRef<Timer?>(null);
+
+    // State for visible Y range (updated on scroll)
+    final visibleYRange = useState<({double minY, double maxY})?>(null);
+
+    // Track if Y-range change is from scroll (animate) vs data load (no animate)
+    final isScrollTriggered = useRef(false);
+
+    void calculateVisibleYRange() {
+      // Skip if loading or chart not ready
+      if (isLoading) return;
+      final ctx = chartKey.currentContext;
+      if (ctx == null) return;
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) return;
+
+      // Get current scroll position and zoom level
+      final matrix = transformationController.value;
+      final scaleX = matrix.storage[0];
+      final drawableWidth = box.size.width - reservedSize;
+      if (drawableWidth <= 0 || calcData.maxX <= 0 || scaleX <= 0) return;
+
+      // Find which data points are visible on screen (convert scroll position to data indices)
+      final visibleRange = _calculateVisibleDataRange(matrix, drawableWidth, calcData.maxX);
+      final startIndex = visibleRange.startX.floor();
+      final endIndex = visibleRange.endX.ceil().clamp(0, candles.length - 1);
+
+      // Get only the chart points that are currently visible
+      final visibleSpots = calcData.spots.where((spot) {
+        final idx = spot.x.toInt();
+        return idx >= startIndex && idx <= endIndex;
+      }).toList();
+      if (visibleSpots.isEmpty) {
+        visibleYRange.value = null;
+        return;
+      }
+
+      // Find min/max Y values from visible points and add padding
+      final minY = visibleSpots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+      final maxY = visibleSpots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+      final newYRange = calculatePaddedYRange(minY, maxY);
+
+      // Update Y-axis range only if it actually changed
+      final currentRange = visibleYRange.value;
+      if (currentRange == null ||
+          currentRange.minY != newYRange.minY ||
+          currentRange.maxY != newYRange.maxY) {
+        visibleYRange.value = newYRange;
+      }
+    }
+
+    // Listen to scroll/pan and update Y range (debounced)
+    useEffect(
+      () {
+        void onTransformationChanged() {
+          debounceTimerRef.value?.cancel();
+          debounceTimerRef.value = Timer(debounceDelay, () {
+            isScrollTriggered.value = true; // Mark as scroll-triggered for animation
+            calculateVisibleYRange();
+          });
+        }
+
+        transformationController.addListener(onTransformationChanged);
+
+        return () {
+          debounceTimerRef.value?.cancel();
+          debounceTimerRef.value = null;
+          transformationController.removeListener(onTransformationChanged);
+        };
+      },
+      [transformationController, calcData, candles, reservedSize],
+    );
+
+    // Set initial transformation (scroll to end)
     useEffect(
       () {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -88,11 +185,35 @@ class TokenAreaLineChart extends HookConsumerWidget {
       [initialScale, reservedSize],
     );
 
+    // Calculate initial Y range when data loads
+    useEffect(
+      () {
+        visibleYRange.value = null;
+        isScrollTriggered.value = false; // Data change, not scroll - no animation
+
+        if (!isLoading) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            calculateVisibleYRange();
+          });
+        }
+
+        return null;
+      },
+      [calcData, candles, isLoading],
+    );
+
     final lineColor = isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
     final canInteract = !isLoading;
 
+    final effectiveMinY = visibleYRange.value?.minY ?? calcData.chartMinY;
+    final effectiveMaxY = visibleYRange.value?.maxY ?? calcData.chartMaxY;
+
+    // Only animate Y-axis changes triggered by scroll, not by data load
+    final duration = isScrollTriggered.value ? scrollAnimationDuration : Duration.zero;
+
     return LineChart(
       key: chartKey,
+      duration: duration,
       transformationConfig: FlTransformationConfig(
         scaleAxis: FlScaleAxis.horizontal,
         panEnabled: canInteract,
@@ -100,8 +221,8 @@ class TokenAreaLineChart extends HookConsumerWidget {
         transformationController: transformationController,
       ),
       LineChartData(
-        minY: calcData.chartMinY,
-        maxY: calcData.chartMaxY,
+        minY: effectiveMinY,
+        maxY: effectiveMaxY,
         minX: 0,
         maxX: calcData.maxX,
         clipData: const FlClipData.all(),
