@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
@@ -80,15 +81,16 @@ class CommunityTokenImage extends HookWidget {
             borderRadius: BorderRadius.circular(innerBorderRadius),
             child: Builder(
               builder: (context) {
-                if (imageUrl == null) {
-                  return const SizedBox.shrink();
+                final imageSize = width - (innerPadding * 2) - (borderWidth * 2);
+                if (imageUrl == null || imageUrl!.isEmpty) {
+                  return DefaultAvatar(size: imageSize);
                 }
                 if (imageUrl!.isSvg) {
                   return SvgPicture.network(
                     imageUrl!,
                     width: width,
                     height: height,
-                    errorBuilder: (context, url, error) => Container(),
+                    errorBuilder: (context, url, error) => DefaultAvatar(size: imageSize),
                   );
                 }
 
@@ -97,7 +99,7 @@ class CommunityTokenImage extends HookWidget {
                   fit: BoxFit.cover,
                   width: width,
                   height: height,
-                  errorWidget: (context, url, error) => Container(),
+                  errorWidget: (context, url, error) => DefaultAvatar(size: imageSize),
                 );
               },
             ),
