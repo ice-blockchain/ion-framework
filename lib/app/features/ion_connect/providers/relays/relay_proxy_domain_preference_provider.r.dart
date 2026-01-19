@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:ion/app/features/core/providers/proxy_domains_provider.r.dart';
+import 'package:ion/app/features/core/providers/relay_proxy_domains_provider.r.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,7 +25,7 @@ class RelayProxyDomainPreference extends _$RelayProxyDomainPreference {
     final prefs = ref.watch(currentUserPreferencesServiceProvider);
     if (prefs == null) return null;
 
-    final allowedDomains = ref.watch(proxyDomainsProvider);
+    final allowedDomains = ref.watch(relayProxyDomainsProvider);
 
     final saved = prefs.getValue<String>(_prefKeyFor(logicalRelayUrl));
     if (saved == null || saved.trim().isEmpty) return null;
@@ -51,7 +51,7 @@ class RelayProxyDomainPreference extends _$RelayProxyDomainPreference {
     final key = _prefKeyFor(logicalRelayUrl);
 
     final normalized = domain?.trim();
-    final allowedDomains = ref.read(proxyDomainsProvider);
+    final allowedDomains = ref.read(relayProxyDomainsProvider);
     // Don't persist unknown domains; clear instead.
     if (normalized == null || !allowedDomains.contains(normalized)) {
       await prefs.remove(key);

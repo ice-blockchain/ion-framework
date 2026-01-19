@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/providers/internet_connection_checker_provider.r.dart';
 import 'package:ion/app/features/core/providers/internet_status_stream_provider.r.dart';
-import 'package:ion/app/features/core/providers/proxy_domains_provider.r.dart';
+import 'package:ion/app/features/core/providers/relay_proxy_domains_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_disliked_connect_urls_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_proxy_domain_preference_provider.r.dart';
@@ -19,8 +19,8 @@ import 'package:ion/app/utils/logging.dart';
 mixin RelayCreateMixin {
   Future<IonConnectRelay> createRelay(Ref ref, String url) async {
     final dislikedConnectUrls = ref.read(relayDislikedConnectUrlsProvider(url));
-    final candidates = ref.read(connectUrisProvider(url));
-    final proxyDomains = ref.read(proxyDomainsProvider);
+    final candidates = ref.read(relayConnectUrisProvider(url));
+    final proxyDomains = ref.read(relayProxyDomainsProvider);
     final savedPreferredDomain = ref.read(relayProxyDomainPreferenceProvider(url));
 
     ConnectionState? lastConnectionState;
