@@ -2,10 +2,208 @@
 
 // ignore_for_file: constant_identifier_names
 
+import 'package:envied/envied.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'env_provider.r.g.dart';
+
+@Envied(path: '.app.env', obfuscate: true)
+abstract class AppEnv {
+  // Core app ids/origin
+  @EnviedField(varName: 'ION_ANDROID_APP_ID')
+  static final String ionAndroidAppId = _AppEnv.ionAndroidAppId;
+
+  @EnviedField(varName: 'ION_IOS_APP_ID')
+  static final String ionIosAppId = _AppEnv.ionIosAppId;
+
+  @EnviedField(varName: 'ION_ORIGIN')
+  static final String ionOrigin = _AppEnv.ionOrigin;
+
+  @EnviedField(varName: 'ION_INTERNAL_DEEP_LINK_SCHEME', defaultValue: 'ionapp')
+  static final String ionInternalDeepLinkScheme = _AppEnv.ionInternalDeepLinkScheme;
+
+  // Debug / feature flags
+  @EnviedField(varName: 'SHOW_DEBUG_INFO', defaultValue: 'false')
+  static final String showDebugInfo = _AppEnv.showDebugInfo;
+
+  @EnviedField(varName: 'OPTIMISTIC_UI_ENABLED', defaultValue: 'false')
+  static final String optimisticUiEnabled = _AppEnv.optimisticUiEnabled;
+
+  // Tokens / secrets
+  @EnviedField(varName: 'BANUBA_TOKEN')
+  static final String banubaToken = _AppEnv.banubaToken;
+
+  @EnviedField(varName: 'SENTRY_DSN')
+  static final String sentryDsn = _AppEnv.sentryDsn;
+
+  @EnviedField(varName: 'FOUNDATION_APP_GROUP')
+  static final String foundationAppGroup = _AppEnv.foundationAppGroup;
+
+  @EnviedField(varName: 'ICLOUD_CONTAINER_ID')
+  static final String icloudContainerId = _AppEnv.icloudContainerId;
+
+  // Firebase configs (platform specific)
+  @EnviedField(varName: 'FIREBASE_CONFIG_ANDROID')
+  static final String firebaseConfigAndroid = _AppEnv.firebaseConfigAndroid;
+
+  @EnviedField(varName: 'FIREBASE_CONFIG_IOS')
+  static final String firebaseConfigIos = _AppEnv.firebaseConfigIos;
+
+  // Durations / limits
+  @EnviedField(varName: 'STORY_EXPIRATION_HOURS')
+  static final String storyExpirationHours = _AppEnv.storyExpirationHours;
+
+  @EnviedField(varName: 'EDIT_POST_ALLOWED_MINUTES')
+  static final String editPostAllowedMinutes = _AppEnv.editPostAllowedMinutes;
+
+  @EnviedField(varName: 'EDIT_MESSAGE_ALLOWED_MINUTES')
+  static final String editMessageAllowedMinutes = _AppEnv.editMessageAllowedMinutes;
+
+  @EnviedField(varName: 'CHAT_PRIVACY_CACHE_MINUTES')
+  static final String chatPrivacyCacheMinutes = _AppEnv.chatPrivacyCacheMinutes;
+
+  @EnviedField(varName: 'USER_METADATA_CACHE_MINUTES', defaultValue: '2')
+  static final String userMetadataCacheMinutes = _AppEnv.userMetadataCacheMinutes;
+
+  @EnviedField(varName: 'COMMUNITY_CREATION_CACHE_MINUTES')
+  static final String communityCreationCacheMinutes = _AppEnv.communityCreationCacheMinutes;
+
+  @EnviedField(varName: 'COMMUNITY_MEMBERS_COUNT_CACHE_MINUTES')
+  static final String communityMembersCountCacheMinutes = _AppEnv.communityMembersCountCacheMinutes;
+
+  @EnviedField(varName: 'GIFT_WRAP_EXPIRATION_HOURS')
+  static final String giftWrapExpirationHours = _AppEnv.giftWrapExpirationHours;
+
+  @EnviedField(varName: 'MIN_APP_VERSION_CONFIG_CACHE_MINUTES', defaultValue: '480')
+  static final String minAppVersionConfigCacheMinutes = _AppEnv.minAppVersionConfigCacheMinutes;
+
+  @EnviedField(varName: 'GENERIC_CONFIG_CACHE_MINUTES', defaultValue: '480')
+  static final String genericConfigCacheMinutes = _AppEnv.genericConfigCacheMinutes;
+
+  @EnviedField(varName: 'RELAY_PING_INTERVAL_SECONDS', defaultValue: '3600')
+  static final String relayPingIntervalSeconds = _AppEnv.relayPingIntervalSeconds;
+
+  @EnviedField(varName: 'FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER', defaultValue: '5')
+  static final String feedMinVisibleArticleCategoriesNumber =
+      _AppEnv.feedMinVisibleArticleCategoriesNumber;
+
+  @EnviedField(varName: 'ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES', defaultValue: '1440')
+  static final String enforceAccountSecurityDelayInMinutes =
+      _AppEnv.enforceAccountSecurityDelayInMinutes;
+
+  @EnviedField(varName: 'ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES', defaultValue: '60')
+  static final String accountNotificationSettingsSyncIntervalMinutes =
+      _AppEnv.accountNotificationSettingsSyncIntervalMinutes;
+
+  // AppsFlyer
+  @EnviedField(varName: 'AF_ANDROID_APP_ID')
+  static final String afAndroidAppId = _AppEnv.afAndroidAppId;
+
+  @EnviedField(varName: 'AF_IOS_APP_ID')
+  static final String afIosAppId = _AppEnv.afIosAppId;
+
+  @EnviedField(varName: 'AF_ONE_LINK_TEMPLATE_ID')
+  static final String afOneLinkTemplateId = _AppEnv.afOneLinkTemplateId;
+
+  @EnviedField(varName: 'AF_DEV_KEY')
+  static final String afDevKey = _AppEnv.afDevKey;
+
+  @EnviedField(varName: 'AF_BRAND_DOMAIN')
+  static final String afBrandDomain = _AppEnv.afBrandDomain;
+
+  @EnviedField(varName: 'AF_BASE_HOST')
+  static final String afBaseHost = _AppEnv.afBaseHost;
+
+  // Misc
+  @EnviedField(varName: 'CHECKSUM')
+  static final String checksum = _AppEnv.checksum;
+
+  @EnviedField(varName: 'INDEXER_BASE_URL')
+  static final String indexerBaseUrl = _AppEnv.indexerBaseUrl;
+
+  @EnviedField(varName: 'NFT_IDENTITY_BASE_URL')
+  static final String nftIdentityBaseUrl = _AppEnv.nftIdentityBaseUrl;
+
+  @EnviedField(varName: 'SHARE_APP_NAME')
+  static final String shareAppName = _AppEnv.shareAppName;
+
+  @EnviedField(varName: 'ION_TOKEN_ANALYTICS_BASE_URL')
+  static final String ionTokenAnalyticsBaseUrl = _AppEnv.ionTokenAnalyticsBaseUrl;
+
+  // Crypto / swaps
+  @EnviedField(varName: 'CRYPTOCURRENCIES_SWAP_OKX_API_KEY')
+  static final String cryptocurrenciesSwapOkxApiKey = _AppEnv.cryptocurrenciesSwapOkxApiKey;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_SWAP_OKX_SIGN_KEY')
+  static final String cryptocurrenciesSwapOkxSignKey = _AppEnv.cryptocurrenciesSwapOkxSignKey;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_SWAP_OKX_PASSPHRASE')
+  static final String cryptocurrenciesSwapOkxPassphrase = _AppEnv.cryptocurrenciesSwapOkxPassphrase;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_SWAP_OKX_API_URL')
+  static final String cryptocurrenciesSwapOkxApiUrl = _AppEnv.cryptocurrenciesSwapOkxApiUrl;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_BRIDGE_RELAY_BASE_URL')
+  static final String cryptocurrenciesBridgeRelayBaseUrl =
+      _AppEnv.cryptocurrenciesBridgeRelayBaseUrl;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_KEY')
+  static final String cryptocurrenciesCexLetsExchangeApiKey =
+      _AppEnv.cryptocurrenciesCexLetsExchangeApiKey;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_URL')
+  static final String cryptocurrenciesCexLetsExchangeApiUrl =
+      _AppEnv.cryptocurrenciesCexLetsExchangeApiUrl;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_AFFILIATE_ID')
+  static final String cryptocurrenciesCexLetsExchangeApiAffiliateId =
+      _AppEnv.cryptocurrenciesCexLetsExchangeApiAffiliateId;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_CEX_EXOLIX_API_KEY')
+  static final String cryptocurrenciesCexExolixApiKey = _AppEnv.cryptocurrenciesCexExolixApiKey;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_CEX_EXOLIX_API_URL')
+  static final String cryptocurrenciesCexExolixApiUrl = _AppEnv.cryptocurrenciesCexExolixApiUrl;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_BSC_RPC_URL')
+  static final String cryptocurrenciesBscRpcUrl = _AppEnv.cryptocurrenciesBscRpcUrl;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_BSC_RPC_URLS')
+  static final String cryptocurrenciesBscRpcUrls = _AppEnv.cryptocurrenciesBscRpcUrls;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_ION_SWAP_CONTRACT_ADDRESS')
+  static final String cryptocurrenciesIonSwapContractAddress =
+      _AppEnv.cryptocurrenciesIonSwapContractAddress;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_ICE_BSC_TOKEN_ADDRESS')
+  static final String cryptocurrenciesIceBscTokenAddress =
+      _AppEnv.cryptocurrenciesIceBscTokenAddress;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_ION_BSC_TOKEN_ADDRESS')
+  static final String cryptocurrenciesIonBscTokenAddress =
+      _AppEnv.cryptocurrenciesIonBscTokenAddress;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_ION_BRIDGE_ROUTER_CONTRACT_ADDRESS')
+  static final String cryptocurrenciesIonBridgeRouterContractAddress =
+      _AppEnv.cryptocurrenciesIonBridgeRouterContractAddress;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_ION_BRIDGE_CONTRACT_ADDRESS')
+  static final String cryptocurrenciesIonBridgeContractAddress =
+      _AppEnv.cryptocurrenciesIonBridgeContractAddress;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_ION_TRADE_URL')
+  static final String cryptocurrenciesIonTradeUrl = _AppEnv.cryptocurrenciesIonTradeUrl;
+
+  @EnviedField(varName: 'CRYPTOCURRENCIES_ION_JRPC_URL')
+  static final String cryptocurrenciesIonJrpcUrl = _AppEnv.cryptocurrenciesIonJrpcUrl;
+
+  @EnviedField(varName: 'RELAY_PROXY_DOMAINS')
+  static final String relayProxyDomains = _AppEnv.relayProxyDomains;
+
+  @EnviedField(varName: 'RPC_PROXY_DOMAINS')
+  static final String rpcProxyDomains = _AppEnv.rpcProxyDomains;
+}
 
 enum EnvVariable {
   ION_ANDROID_APP_ID,
@@ -16,9 +214,9 @@ enum EnvVariable {
   BANUBA_TOKEN,
   STORY_EXPIRATION_HOURS,
   EDIT_POST_ALLOWED_MINUTES,
-  USER_METADATA_SYNC_MINUTES,
-  CHAT_PRIVACY_CACHE_MINUTES,
+  USER_METADATA_CACHE_DURATION,
   EDIT_MESSAGE_ALLOWED_MINUTES,
+  CHAT_PRIVACY_CACHE_MINUTES,
   COMMUNITY_CREATION_CACHE_MINUTES,
   COMMUNITY_MEMBERS_COUNT_CACHE_MINUTES,
   GIFT_WRAP_EXPIRATION_HOURS,
@@ -63,7 +261,7 @@ enum EnvVariable {
   CRYPTOCURRENCIES_ION_TRADE_URL,
   CRYPTOCURRENCIES_ION_JRPC_URL,
   RELAY_PROXY_DOMAINS,
-  RPC_PROXY_DOMAINS,
+  RPC_PROXY_DOMAINS
 }
 
 @Riverpod(keepAlive: true)
@@ -71,127 +269,112 @@ class Env extends _$Env {
   @override
   void build() {}
 
-  /// Gets a typed environment variable value.
-  /// Throws if the variable is not found or cannot be converted to type [T].
+  static String _norm(String v) => v.trim();
+
+  static int _toInt(String v) => int.parse(_norm(v));
+
+  static bool _toBool(String v) {
+    final s = _norm(v).toLowerCase();
+    return s == 'true' || s == '1' || s == 'yes' || s == 'y';
+  }
+
+  /// New env getter backed by `envied`-generated `AppEnv`.
+  ///
+  /// NOTE: We keep the old `Env.get()` (fromEnvironment) for now and can
+  /// switch call sites incrementally.
   T get<T>(EnvVariable variable) {
     return switch (variable) {
-      EnvVariable.ION_ANDROID_APP_ID => const String.fromEnvironment('ION_ANDROID_APP_ID') as T,
-      EnvVariable.ION_IOS_APP_ID => const String.fromEnvironment('ION_IOS_APP_ID') as T,
-      EnvVariable.ION_ORIGIN => const String.fromEnvironment('ION_ORIGIN') as T,
-      EnvVariable.ION_INTERNAL_DEEP_LINK_SCHEME =>
-        const String.fromEnvironment('ION_INTERNAL_DEEP_LINK_SCHEME', defaultValue: 'ionapp') as T,
-      EnvVariable.SHOW_DEBUG_INFO => const bool.fromEnvironment('SHOW_DEBUG_INFO') as T,
-      EnvVariable.BANUBA_TOKEN => const String.fromEnvironment('BANUBA_TOKEN') as T,
-      EnvVariable.STORY_EXPIRATION_HOURS =>
-        const int.fromEnvironment('STORY_EXPIRATION_HOURS') as T,
-      EnvVariable.USER_METADATA_SYNC_MINUTES =>
-        const int.fromEnvironment('USER_METADATA_SYNC_MINUTES') as T,
-      EnvVariable.CHAT_PRIVACY_CACHE_MINUTES =>
-        const int.fromEnvironment('CHAT_PRIVACY_CACHE_MINUTES') as T,
-      EnvVariable.EDIT_POST_ALLOWED_MINUTES =>
-        const int.fromEnvironment('EDIT_POST_ALLOWED_MINUTES') as T,
-      EnvVariable.EDIT_MESSAGE_ALLOWED_MINUTES =>
-        const int.fromEnvironment('EDIT_MESSAGE_ALLOWED_MINUTES') as T,
+      EnvVariable.ION_ANDROID_APP_ID => AppEnv.ionAndroidAppId as T,
+      EnvVariable.ION_IOS_APP_ID => AppEnv.ionIosAppId as T,
+      EnvVariable.ION_ORIGIN => AppEnv.ionOrigin as T,
+      EnvVariable.ION_INTERNAL_DEEP_LINK_SCHEME => AppEnv.ionInternalDeepLinkScheme as T,
+      EnvVariable.SHOW_DEBUG_INFO => _toBool(AppEnv.showDebugInfo) as T,
+      EnvVariable.BANUBA_TOKEN => AppEnv.banubaToken as T,
+      EnvVariable.STORY_EXPIRATION_HOURS => _toInt(AppEnv.storyExpirationHours) as T,
+      EnvVariable.EDIT_POST_ALLOWED_MINUTES => _toInt(AppEnv.editPostAllowedMinutes) as T,
+      EnvVariable.USER_METADATA_CACHE_DURATION => Duration(
+          minutes: _toInt(AppEnv.userMetadataCacheMinutes),
+        ) as T,
+      EnvVariable.EDIT_MESSAGE_ALLOWED_MINUTES => _toInt(AppEnv.editMessageAllowedMinutes) as T,
+      EnvVariable.CHAT_PRIVACY_CACHE_MINUTES => _toInt(AppEnv.chatPrivacyCacheMinutes) as T,
       EnvVariable.COMMUNITY_CREATION_CACHE_MINUTES =>
-        const int.fromEnvironment('COMMUNITY_CREATION_CACHE_MINUTES') as T,
+        _toInt(AppEnv.communityCreationCacheMinutes) as T,
       EnvVariable.COMMUNITY_MEMBERS_COUNT_CACHE_MINUTES =>
-        const int.fromEnvironment('COMMUNITY_MEMBERS_COUNT_CACHE_MINUTES') as T,
-      EnvVariable.GIFT_WRAP_EXPIRATION_HOURS =>
-        const int.fromEnvironment('GIFT_WRAP_EXPIRATION_HOURS') as T,
-      EnvVariable.MIN_APP_VERSION_CONFIG_CACHE_DURATION => const Duration(
-          minutes: int.fromEnvironment('MIN_APP_VERSION_CONFIG_CACHE_MINUTES', defaultValue: 480),
+        _toInt(AppEnv.communityMembersCountCacheMinutes) as T,
+      EnvVariable.GIFT_WRAP_EXPIRATION_HOURS => _toInt(AppEnv.giftWrapExpirationHours) as T,
+      EnvVariable.MIN_APP_VERSION_CONFIG_CACHE_DURATION => Duration(
+          minutes: _toInt(AppEnv.minAppVersionConfigCacheMinutes),
         ) as T,
-      EnvVariable.GENERIC_CONFIG_CACHE_DURATION => const Duration(
-          minutes: int.fromEnvironment('GENERIC_CONFIG_CACHE_MINUTES', defaultValue: 480),
+      EnvVariable.GENERIC_CONFIG_CACHE_DURATION => Duration(
+          minutes: _toInt(AppEnv.genericConfigCacheMinutes),
         ) as T,
-      EnvVariable.ICLOUD_CONTAINER_ID => const String.fromEnvironment('ICLOUD_CONTAINER_ID') as T,
-      EnvVariable.SENTRY_DSN => const String.fromEnvironment('SENTRY_DSN') as T,
-      EnvVariable.FOUNDATION_APP_GROUP => const String.fromEnvironment('FOUNDATION_APP_GROUP') as T,
+      EnvVariable.ICLOUD_CONTAINER_ID => AppEnv.icloudContainerId as T,
+      EnvVariable.SENTRY_DSN => AppEnv.sentryDsn as T,
+      EnvVariable.FOUNDATION_APP_GROUP => AppEnv.foundationAppGroup as T,
       EnvVariable.FIREBASE_CONFIG => switch (defaultTargetPlatform) {
-          TargetPlatform.android => const String.fromEnvironment('FIREBASE_CONFIG_ANDROID') as T,
-          TargetPlatform.iOS => const String.fromEnvironment('FIREBASE_CONFIG_IOS') as T,
+          TargetPlatform.android => AppEnv.firebaseConfigAndroid as T,
+          TargetPlatform.iOS => AppEnv.firebaseConfigIos as T,
           _ => throw UnsupportedError('Unsupported platform'),
         },
-      EnvVariable.RELAY_PING_INTERVAL_DURATION => const Duration(
-          seconds: int.fromEnvironment(
-            'RELAY_PING_INTERVAL_SECONDS',
-            defaultValue: 3600,
-          ),
+      EnvVariable.RELAY_PING_INTERVAL_DURATION => Duration(
+          seconds: _toInt(AppEnv.relayPingIntervalSeconds),
         ) as T,
-      EnvVariable.CHECKSUM => const String.fromEnvironment('CHECKSUM') as T,
-      EnvVariable.FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER => const int.fromEnvironment(
-          'FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER',
-          defaultValue: 5,
+      EnvVariable.CHECKSUM => AppEnv.checksum as T,
+      EnvVariable.FEED_MIN_VISIBLE_ARTICLE_CATEGORIES_NUMBER =>
+        _toInt(AppEnv.feedMinVisibleArticleCategoriesNumber) as T,
+      EnvVariable.ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES => Duration(
+          minutes: _toInt(AppEnv.enforceAccountSecurityDelayInMinutes),
         ) as T,
-      EnvVariable.ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES => const Duration(
-          minutes: int.fromEnvironment(
-            'ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES',
-            defaultValue: 1440,
-          ),
-        ) as T,
-      EnvVariable.ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES => const Duration(
-          minutes: int.fromEnvironment(
-            'ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES',
-            defaultValue: 60,
-          ),
+      EnvVariable.ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES => Duration(
+          minutes: _toInt(AppEnv.accountNotificationSettingsSyncIntervalMinutes),
         ) as T,
       EnvVariable.AF_APP_ID => switch (defaultTargetPlatform) {
-          TargetPlatform.iOS => const String.fromEnvironment('AF_IOS_APP_ID') as T,
-          TargetPlatform.android => const String.fromEnvironment('AF_ANDROID_APP_ID') as T,
+          TargetPlatform.iOS => AppEnv.afIosAppId as T,
+          TargetPlatform.android => AppEnv.afAndroidAppId as T,
           _ => throw UnsupportedError('Unsupported platform'),
         },
-      EnvVariable.AF_ONE_LINK_TEMPLATE_ID =>
-        const String.fromEnvironment('AF_ONE_LINK_TEMPLATE_ID') as T,
-      EnvVariable.AF_DEV_KEY => const String.fromEnvironment('AF_DEV_KEY') as T,
-      EnvVariable.AF_BRAND_DOMAIN => const String.fromEnvironment('AF_BRAND_DOMAIN') as T,
-      EnvVariable.AF_BASE_HOST => const String.fromEnvironment('AF_BASE_HOST') as T,
-      EnvVariable.OPTIMISTIC_UI_ENABLED => const bool.fromEnvironment('OPTIMISTIC_UI_ENABLED') as T,
-      EnvVariable.INDEXER_BASE_URL => const String.fromEnvironment('INDEXER_BASE_URL') as T,
-      EnvVariable.NFT_IDENTITY_BASE_URL =>
-        const String.fromEnvironment('NFT_IDENTITY_BASE_URL') as T,
-      EnvVariable.SHARE_APP_NAME => const String.fromEnvironment('SHARE_APP_NAME') as T,
-      EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_API_KEY =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_SWAP_OKX_API_KEY') as T,
-      EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_SIGN_KEY =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_SWAP_OKX_SIGN_KEY') as T,
-      EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_API_URL =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_SWAP_OKX_API_URL') as T,
+      EnvVariable.AF_ONE_LINK_TEMPLATE_ID => AppEnv.afOneLinkTemplateId as T,
+      EnvVariable.AF_DEV_KEY => AppEnv.afDevKey as T,
+      EnvVariable.AF_BRAND_DOMAIN => AppEnv.afBrandDomain as T,
+      EnvVariable.AF_BASE_HOST => AppEnv.afBaseHost as T,
+      EnvVariable.OPTIMISTIC_UI_ENABLED => _toBool(AppEnv.optimisticUiEnabled) as T,
+      EnvVariable.INDEXER_BASE_URL => AppEnv.indexerBaseUrl as T,
+      EnvVariable.NFT_IDENTITY_BASE_URL => AppEnv.nftIdentityBaseUrl as T,
+      EnvVariable.SHARE_APP_NAME => AppEnv.shareAppName as T,
+      EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_API_KEY => AppEnv.cryptocurrenciesSwapOkxApiKey as T,
+      EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_SIGN_KEY => AppEnv.cryptocurrenciesSwapOkxSignKey as T,
       EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_PASSPHRASE =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_SWAP_OKX_PASSPHRASE') as T,
+        AppEnv.cryptocurrenciesSwapOkxPassphrase as T,
+      EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_API_URL => AppEnv.cryptocurrenciesSwapOkxApiUrl as T,
       EnvVariable.CRYPTOCURRENCIES_BRIDGE_RELAY_BASE_URL =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_BRIDGE_RELAY_BASE_URL') as T,
+        AppEnv.cryptocurrenciesBridgeRelayBaseUrl as T,
       EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_KEY =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_KEY') as T,
+        AppEnv.cryptocurrenciesCexLetsExchangeApiKey as T,
       EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_URL =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_URL') as T,
+        AppEnv.cryptocurrenciesCexLetsExchangeApiUrl as T,
       EnvVariable.CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_AFFILIATE_ID =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_CEX_LETS_EXCHANGE_API_AFFILIATE_ID') as T,
+        AppEnv.cryptocurrenciesCexLetsExchangeApiAffiliateId as T,
       EnvVariable.CRYPTOCURRENCIES_CEX_EXOLIX_API_KEY =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_CEX_EXOLIX_API_KEY') as T,
+        AppEnv.cryptocurrenciesCexExolixApiKey as T,
       EnvVariable.CRYPTOCURRENCIES_CEX_EXOLIX_API_URL =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_CEX_EXOLIX_API_URL') as T,
-      EnvVariable.ION_TOKEN_ANALYTICS_BASE_URL =>
-        const String.fromEnvironment('ION_TOKEN_ANALYTICS_BASE_URL') as T,
-      EnvVariable.CRYPTOCURRENCIES_BSC_RPC_URL =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_BSC_RPC_URL') as T,
-      EnvVariable.CRYPTOCURRENCIES_BSC_RPC_URLS =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_BSC_RPC_URLS') as T,
+        AppEnv.cryptocurrenciesCexExolixApiUrl as T,
+      EnvVariable.ION_TOKEN_ANALYTICS_BASE_URL => AppEnv.ionTokenAnalyticsBaseUrl as T,
+      EnvVariable.CRYPTOCURRENCIES_BSC_RPC_URL => AppEnv.cryptocurrenciesBscRpcUrl as T,
+      EnvVariable.CRYPTOCURRENCIES_BSC_RPC_URLS => AppEnv.cryptocurrenciesBscRpcUrls as T,
       EnvVariable.CRYPTOCURRENCIES_ION_SWAP_CONTRACT_ADDRESS =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_ION_SWAP_CONTRACT_ADDRESS') as T,
+        AppEnv.cryptocurrenciesIonSwapContractAddress as T,
       EnvVariable.CRYPTOCURRENCIES_ICE_BSC_TOKEN_ADDRESS =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_ICE_BSC_TOKEN_ADDRESS') as T,
+        AppEnv.cryptocurrenciesIceBscTokenAddress as T,
       EnvVariable.CRYPTOCURRENCIES_ION_BSC_TOKEN_ADDRESS =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_ION_BSC_TOKEN_ADDRESS') as T,
+        AppEnv.cryptocurrenciesIonBscTokenAddress as T,
       EnvVariable.CRYPTOCURRENCIES_ION_BRIDGE_ROUTER_CONTRACT_ADDRESS =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_ION_BRIDGE_ROUTER_CONTRACT_ADDRESS') as T,
+        AppEnv.cryptocurrenciesIonBridgeRouterContractAddress as T,
       EnvVariable.CRYPTOCURRENCIES_ION_BRIDGE_CONTRACT_ADDRESS =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_ION_BRIDGE_CONTRACT_ADDRESS') as T,
-      EnvVariable.CRYPTOCURRENCIES_ION_TRADE_URL =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_ION_TRADE_URL') as T,
-      EnvVariable.CRYPTOCURRENCIES_ION_JRPC_URL =>
-        const String.fromEnvironment('CRYPTOCURRENCIES_ION_JRPC_URL') as T,
-      EnvVariable.RELAY_PROXY_DOMAINS => const String.fromEnvironment('RELAY_PROXY_DOMAINS') as T,
-      EnvVariable.RPC_PROXY_DOMAINS => const String.fromEnvironment('RPC_PROXY_DOMAINS') as T,
+        AppEnv.cryptocurrenciesIonBridgeContractAddress as T,
+      EnvVariable.CRYPTOCURRENCIES_ION_TRADE_URL => AppEnv.cryptocurrenciesIonTradeUrl as T,
+      EnvVariable.CRYPTOCURRENCIES_ION_JRPC_URL => AppEnv.cryptocurrenciesIonJrpcUrl as T,
+      EnvVariable.RELAY_PROXY_DOMAINS => AppEnv.relayProxyDomains as T,
+      EnvVariable.RPC_PROXY_DOMAINS => AppEnv.rpcProxyDomains as T,
     };
   }
 }
