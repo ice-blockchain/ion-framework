@@ -85,6 +85,7 @@ class _CoinsGroupItemContent extends StatelessWidget {
       backgroundColor: context.theme.appColors.tertiaryBackground,
       leading: CoinIconWidget(
         imageUrl: coinsGroup.iconUrl,
+        showPlaceholder: true,
         type: WalletItemIconType.big(),
       ),
       onTap: onTap,
