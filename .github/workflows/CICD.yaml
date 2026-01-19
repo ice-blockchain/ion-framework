@@ -218,7 +218,7 @@ jobs:
           steps: ${{ '{}' }}
   ios-cicd:
     name: iOS -- build, deploy (${{ matrix.deployment_target }})
-    needs: [flutter]
+    needs: [ flutter ]
     runs-on: macos-15
     strategy:
       matrix:
@@ -287,15 +287,28 @@ jobs:
         run: |
           cd main-repo
           bundle exec fastlane ios fetch_code_identity sign_type:$IOS_SIGN_TYPE
+      - name: Prepare Envied env file (store only)
+        if: ${{ env.DEPLOYMENT_TYPE == 'store' }}
+        run: |
+          cd main-repo
+          # Envied reads .app.env at codegen time. For store builds we generate .merged.store.app.env,
+          # so mirror it into .app.env and regenerate envied outputs.
+          cp .merged.store.app.env .app.env
+          dart run build_runner build --delete-conflicting-outputs --build-filter="**/*.env.g.dart"
       - name: Build iOS App (v${{ env.APP_VERSION }} build:${{ env.BUILD_NUMBER }})
         id: build-app
         run: |
           cd main-repo
+
           set -a
           source .env
+          source $ENV_FILE
           set +a
+
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
-          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=$ENV_FILE
+          flutter build ipa --release --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --export-options-plist=ios/ExportOptions.plist \
+            --dart-define=FACEBOOK_APP_ID=$FACEBOOK_APP_ID \
+            --dart-define=FACEBOOK_CLIENT_TOKEN=$FACEBOOK_CLIENT_TOKEN
       - name: Deploy iOS App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         if: ${{ github.event_name != 'pull_request' }}
@@ -314,7 +327,7 @@ jobs:
           steps: ${{ '{}' }}
   android-cicd:
     name: Android -- build, deploy (${{ matrix.deployment_target }})
-    needs: [flutter]
+    needs: [ flutter ]
     runs-on: macos-15
     strategy:
       matrix:
@@ -397,11 +410,31 @@ jobs:
               echo "RELEASE_STATUS=draft" >> $GITHUB_ENV
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
+      - name: Prepare Envied env file (store only)
+        if: ${{ env.DEPLOYMENT_TYPE == 'store' }}
+        run: |
+          cd main-repo
+          # Envied reads .app.env at codegen time. For store builds we generate .merged.store.app.env,
+          # so mirror it into .app.env and regenerate envied outputs.
+          cp .merged.store.app.env .app.env
+          dart run build_runner build --delete-conflicting-outputs --build-filter="**/*.env.g.dart"
       - name: Build Android App (${{env.ANDROID_ARCHIVE_TYPE}} v${{ env.APP_VERSION }} build:${{ env.BUILD_NUMBER }})
         id: build-app
         run: |
           cd main-repo
-          flutter build $ANDROID_ARCHIVE_TYPE --release --flavor=$APP_FLAVOR --build-number=$BUILD_NUMBER --build-name=$APP_VERSION --dart-define-from-file=$ENV_FILE
+          
+          set -a
+          source .env
+          source $ENV_FILE
+          set +a
+
+          flutter build $ANDROID_ARCHIVE_TYPE \
+            --release \
+            --flavor=$APP_FLAVOR \
+            --build-number=$BUILD_NUMBER \
+            --build-name=$APP_VERSION \
+            --dart-define=FACEBOOK_APP_ID=$FACEBOOK_APP_ID \
+            --dart-define=FACEBOOK_CLIENT_TOKEN=$FACEBOOK_CLIENT_TOKEN
       - name: Deploy Android App to ${{env.DEPLOYMENT_TARGET}}
         id: deploy-app
         if: ${{ github.event_name != 'pull_request' }}
@@ -422,7 +455,7 @@ jobs:
     name: Cleanup cache
     permissions:
       actions: write
-    needs: [flutter, ios-cicd, android-cicd]
+    needs: [ flutter, ios-cicd, android-cicd ]
     runs-on: macos-15
     if: always() && needs.flutter.result == 'success'
     steps:
