@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/components/image/ion_network_image.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
-import 'package:ion/generated/assets.gen.dart';
 
 class TokenAvatar extends HookWidget {
   const TokenAvatar({
@@ -85,10 +84,7 @@ class TokenAvatar extends HookWidget {
           child: Builder(
             builder: (context) {
               if (imageUrl == null) {
-                return _NoImage(
-                  size: imageSize.width,
-                  innerBorderRadius: innerBorderRadius,
-                );
+                return DefaultAvatar(size: imageSize.width);
               }
               return IonNetworkImage(
                 imageUrl: imageUrl!,
@@ -100,10 +96,7 @@ class TokenAvatar extends HookWidget {
                     imageUrl!,
                     width: imageSize.width,
                     height: imageSize.height,
-                    errorBuilder: (context, url, error) => _NoImage(
-                      size: imageSize.width,
-                      innerBorderRadius: innerBorderRadius,
-                    ),
+                    errorBuilder: (context, url, error) => DefaultAvatar(size: imageSize.width),
                   );
                 },
               );
@@ -111,32 +104,6 @@ class TokenAvatar extends HookWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _NoImage extends StatelessWidget {
-  const _NoImage({
-    required this.size,
-    required this.innerBorderRadius,
-  });
-
-  final double size;
-  final double innerBorderRadius;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(innerBorderRadius),
-      child: Container(
-        width: size,
-        height: size,
-        alignment: AlignmentDirectional.center,
-        color: context.theme.appColors.onTertiaryFill,
-        child: Assets.svg.iconProfileNoimage.icon(
-          size: size * 0.9,
-        ),
-      ),
     );
   }
 }
