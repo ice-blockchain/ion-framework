@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/token_creation_not_available_modal/token_creation_not_available_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -53,11 +54,12 @@ class _TokenAvailability extends StatelessWidget {
     required this.available,
     required this.child,
     required this.isProtectedUser,
+    required this.isReply,
   });
 
   final bool available;
   final bool isProtectedUser;
-
+  final bool isReply;
   final Widget child;
 
   @override
@@ -71,7 +73,11 @@ class _TokenAvailability extends StatelessWidget {
               : () {
                   showSimpleBottomSheet<void>(
                     context: context,
-                    child: const TokenCreationNotAvailableModal(),
+                    child: TokenCreationNotAvailableModal(
+                      type: isReply
+                          ? TokenCreationNotAvailableModalType.comments
+                          : TokenCreationNotAvailableModalType.noDefinition,
+                    ),
                   );
                 },
       child: IgnorePointer(
@@ -173,9 +179,15 @@ class _ContentEntityButton extends ConsumerWidget {
 
     final externalAddressType = entity.externalAddressType;
 
+    var isReply = false;
+    if (entity is ModifiablePostEntity) {
+      isReply = (entity as ModifiablePostEntity).data.isReply;
+    }
+
     return _TokenAvailability(
-      available: isTokenCreationAvailable && !isProtected,
+      available: isTokenCreationAvailable && !isProtected && !isReply,
       isProtectedUser: isProtected,
+      isReply: isReply,
       child: _TokenButton(
         padding: padding,
         child:
