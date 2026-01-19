@@ -7,6 +7,9 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/suggested_token_details.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/suggested_token_details_state.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/video_frame_extractor.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -32,11 +35,14 @@ typedef SuggestTokenCreationDetailsParams = ({
 });
 
 @riverpod
-Future<SuggestCreationDetailsResponse?> suggestTokenCreationDetailsFromEvent(
+Future<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
   Ref ref,
   SuggestTokenCreationDetailsFromEventParams params,
 ) async {
   try {
+    // Check if token already exists, and proceed only if it does not exist
+    final isTokenExists = await ref.read(tokenExistsProvider(params.externalAddress).future);
+    if (isTokenExists) return const SuggestedTokenDetailsState.skipped();
     // Get entity to extract content
     final entity =
         ref.watch(ionConnectEntityProvider(eventReference: params.eventReference)).valueOrNull;
@@ -85,7 +91,15 @@ Future<SuggestCreationDetailsResponse?> suggestTokenCreationDetailsFromEvent(
       ).future,
     );
 
-    return response;
+    // TODO: Handle picture unavailability. Return empty picture, start a periodic requests of the url(which came in picture field), untill it became avaialable(not having 404 status code), then emit new state with not empty picture.
+
+    return SuggestedTokenDetailsState.suggested(
+      suggestedDetails: SuggestedTokenDetails(
+        ticker: response?.ticker ?? '',
+        name: response?.name ?? '',
+        picture: response?.picture ?? '',
+      ),
+    );
   } catch (e, stackTrace) {
     Logger.log('suggestTokenCreationDetailsFromEvent error: $e', stackTrace: stackTrace);
     return null;

@@ -8,6 +8,7 @@ import 'package:ion/app/features/tokenized_communities/enums/community_token_tra
 import 'package:ion/app/features/tokenized_communities/providers/content_payment_token_context_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/suggest_token_creation_details_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/suggested_token_details_state.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
@@ -63,9 +64,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       externalAddress: externalAddress,
       externalAddressType: params.externalAddressType,
       tokenExistsResolver: () async {
-        final tokenInfo = await ref.read(tokenMarketInfoProvider(externalAddress).future);
-        final tokenAddress = tokenInfo?.addresses.blockchain?.trim() ?? '';
-        return tokenAddress.isNotEmpty;
+        return ref.read(tokenExistsProvider(externalAddress).future);
       },
       fatAddressHexResolver: () async {
         final fatAddressData = await ref.read(
@@ -88,8 +87,23 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       );
     final eventRef = params.eventReference;
     final pubkeyValue = pubkey;
+    // In case this is the first buy of a content token, we need to get the AI-suggested token creation details
+    if (eventRef != null && pubkeyValue != null && params.externalAddressType.isContentToken) {
+      TradeCommunityTokenState mapToTradeState(
+        AsyncValue<SuggestedTokenDetailsState?> suggestedDetailsState,
+      ) {
+        final shouldSkipSuggestedDetails =
+            suggestedDetailsState.valueOrNull is SuggestedTokenDetailsStateSkipped;
 
-    if (eventRef != null && pubkeyValue != null) {
+        return state.copyWith(
+          suggestedDetails: suggestedDetailsState.valueOrNull?.maybeWhen(
+            suggested: (details) => details,
+            orElse: () => null,
+          ),
+          shouldWaitSuggestedDetails: !shouldSkipSuggestedDetails,
+        );
+      }
+
       ref.listen(
         suggestTokenCreationDetailsFromEventProvider(
           (
@@ -99,8 +113,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
           ),
         ),
         (previous, current) {
-          // Update loading state
-          state = state.copyWith(suggestedDetailsState: current);
+          state = mapToTradeState(current);
           _updateCommunityTokenState();
         },
       );
@@ -115,7 +128,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
           ),
         ),
       );
-      state = state.copyWith(suggestedDetailsState: initialAsyncValue);
+      state = mapToTradeState(initialAsyncValue);
     }
 
     if (params.externalAddressType.isContentToken) {
@@ -225,8 +238,8 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     String? tokenTitle;
     String? communityAvatar;
 
-    if (state.suggestedDetailsState != null) {
-      final suggestedDetails = state.suggestedDetailsState!.valueOrNull;
+    if (state.shouldWaitSuggestedDetails) {
+      final suggestedDetails = state.suggestedDetails;
 
       tokenTitle = suggestedDetails?.name ?? '';
       communityAvatar = suggestedDetails?.picture ?? '';
