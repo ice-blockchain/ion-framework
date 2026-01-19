@@ -56,6 +56,7 @@ dependencies:
   drift_db_viewer: ^2.1.0
   drift_flutter: ^0.2.5
   email_validator: ^3.0.0
+  envied: ^1.1.1
   es_compression: ^2.0.14
   extended_text: ^15.0.2
   extension_google_sign_in_as_googleapis_auth: ^2.0.12
@@ -197,6 +198,7 @@ dev_dependencies:
   build_runner: ^2.4.15
   custom_lint: ^0.7.2
   drift_dev: ^2.28.0
+  envied_generator: ^1.1.1
   flutter_gen: ^5.8.0
   flutter_gen_runner: ^5.8.0
   flutter_launcher_icons: ^0.14.2

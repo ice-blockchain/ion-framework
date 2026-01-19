@@ -70,12 +70,16 @@ void main() {
     setUp(() {
       mockSyncStrategy = _MockSyncStrategy();
       mockDao = _MockUserSentLikesDao();
+      // When the sync strategy sends a reaction, mimic a successful backend
+      // response by returning the optimistic state (the second argument) rather
+      // than a constant PostLike. Using a fixed PostLike here can lead to a
+      // mismatch between the optimistic state and the backend state, causing
+      // the OptimisticOperationManager to schedule an additional sync and
+      // resulting in unexpected extra calls. Returning the provided next
+      // PostLike ensures the backend state matches the optimistic one and
+      // avoids unnecessary follow‑up syncs.
       when(() => mockSyncStrategy.send(any(), any())).thenAnswer(
-        (_) async => const PostLike(
-          eventReference: eventRef,
-          likesCount: 5,
-          likedByMe: false,
-        ),
+        (invocation) async => invocation.positionalArguments[1] as PostLike,
       );
       when(() => mockDao.hasUserLiked(any())).thenAnswer((_) async => false);
       when(
@@ -94,86 +98,92 @@ void main() {
       ).thenAnswer((_) async {});
     });
 
-    test('allows toggle operations for different content simultaneously', () async {
-      const eventRef2 = ImmutableEventReference(
-        masterPubkey: 'pubkey456',
-        eventId: 'event456',
-        kind: 1,
-      );
+    test(
+      'allows toggle operations for different content simultaneously',
+      () async {
+        const eventRef2 = ImmutableEventReference(
+          masterPubkey: 'pubkey456',
+          eventId: 'event456',
+          kind: 1,
+        );
 
-      final container = createContainer(
-        overrides: [
-          currentPubkeySelectorProvider
-              .overrideWith(() => _FakeCurrentPubkeySelector('testPubkey')),
-          userSentLikesDaoProvider.overrideWithValue(mockDao),
-          likeSyncStrategyProvider.overrideWithValue(mockSyncStrategy),
-          postLikeWatchProvider(eventRef.toString()).overrideWith(
-            (ref) => Stream.value(
-              const PostLike(
-                eventReference: eventRef,
-                likesCount: 5,
-                likedByMe: true,
+        final container = createContainer(
+          overrides: [
+            currentPubkeySelectorProvider
+                .overrideWith(() => _FakeCurrentPubkeySelector('testPubkey')),
+            userSentLikesDaoProvider.overrideWithValue(mockDao),
+            likeSyncStrategyProvider.overrideWithValue(mockSyncStrategy),
+            postLikeWatchProvider(eventRef.toString()).overrideWith(
+              (ref) => Stream.value(
+                const PostLike(
+                  eventReference: eventRef,
+                  likesCount: 5,
+                  likedByMe: true,
+                ),
               ),
             ),
-          ),
-          postLikeWatchProvider(eventRef2.toString()).overrideWith(
-            (ref) => Stream.value(
-              const PostLike(
-                eventReference: eventRef2,
-                likesCount: 3,
-                likedByMe: true,
+            postLikeWatchProvider(eventRef2.toString()).overrideWith(
+              (ref) => Stream.value(
+                const PostLike(
+                  eventReference: eventRef2,
+                  likesCount: 3,
+                  likedByMe: true,
+                ),
               ),
             ),
-          ),
-          likesCountProvider(eventRef).overrideWithValue(5),
-          likesCountProvider(eventRef2).overrideWithValue(3),
-          isLikedProvider(eventRef).overrideWithValue(true),
-          isLikedProvider(eventRef2).overrideWithValue(true),
-        ],
-      );
+            likesCountProvider(eventRef).overrideWithValue(5),
+            likesCountProvider(eventRef2).overrideWithValue(3),
+            isLikedProvider(eventRef).overrideWithValue(true),
+            isLikedProvider(eventRef2).overrideWithValue(true),
+          ],
+        );
 
-      final notifier = container.read(toggleLikeNotifierProvider.notifier);
+        final notifier = container.read(toggleLikeNotifierProvider.notifier);
 
-      final future1 = notifier.toggle(eventRef);
-      final future2 = notifier.toggle(eventRef2);
+        final future1 = notifier.toggle(eventRef);
+        final future2 = notifier.toggle(eventRef2);
 
-      await Future.wait([future1, future2]);
+        await Future.wait([future1, future2]);
 
-      verify(() => mockSyncStrategy.send(any(), any())).called(2);
-    });
+        verify(() => mockSyncStrategy.send(any(), any())).called(2);
+      },
+    );
 
-    test('allows subsequent toggle after debounce period', () async {
-      final container = createContainer(
-        overrides: [
-          currentPubkeySelectorProvider
-              .overrideWith(() => _FakeCurrentPubkeySelector('testPubkey')),
-          userSentLikesDaoProvider.overrideWithValue(mockDao),
-          likeSyncStrategyProvider.overrideWithValue(mockSyncStrategy),
-          postLikeWatchProvider(eventRef.toString()).overrideWith(
-            (ref) => Stream.value(
-              const PostLike(
-                eventReference: eventRef,
-                likesCount: 5,
-                likedByMe: true,
+    test(
+      'allows subsequent toggle after debounce period',
+      () async {
+        final container = createContainer(
+          overrides: [
+            currentPubkeySelectorProvider
+                .overrideWith(() => _FakeCurrentPubkeySelector('testPubkey')),
+            userSentLikesDaoProvider.overrideWithValue(mockDao),
+            likeSyncStrategyProvider.overrideWithValue(mockSyncStrategy),
+            postLikeWatchProvider(eventRef.toString()).overrideWith(
+              (ref) => Stream.value(
+                const PostLike(
+                  eventReference: eventRef,
+                  likesCount: 5,
+                  likedByMe: true,
+                ),
               ),
             ),
-          ),
-          likesCountProvider(eventRef).overrideWithValue(5),
-          isLikedProvider(eventRef).overrideWithValue(true),
-        ],
-      );
+            likesCountProvider(eventRef).overrideWithValue(5),
+            isLikedProvider(eventRef).overrideWithValue(true),
+          ],
+        );
 
-      final notifier = container.read(toggleLikeNotifierProvider.notifier);
+        final notifier = container.read(toggleLikeNotifierProvider.notifier);
 
-      await notifier.toggle(eventRef);
-      verify(() => mockSyncStrategy.send(any(), any())).called(1);
+        await notifier.toggle(eventRef);
+        verify(() => mockSyncStrategy.send(any(), any())).called(1);
 
-      unawaited(notifier.toggle(eventRef));
-      await Future<void>.delayed(const Duration(milliseconds: 350));
-      await notifier.toggle(eventRef);
+        unawaited(notifier.toggle(eventRef));
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+        await notifier.toggle(eventRef);
 
-      verify(() => mockSyncStrategy.send(any(), any())).called(2);
-    });
+        verify(() => mockSyncStrategy.send(any(), any())).called(2);
+      },
+    );
 
     test('debounce delay is at least 300ms', () async {
       final container = createContainer(
