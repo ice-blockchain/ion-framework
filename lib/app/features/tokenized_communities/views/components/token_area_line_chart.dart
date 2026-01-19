@@ -185,10 +185,9 @@ class TokenAreaLineChart extends HookConsumerWidget {
       [initialScale, reservedSize],
     );
 
-    // Calculate initial Y range when data loads
+    // Calculate Y range when data loads
     useEffect(
       () {
-        visibleYRange.value = null;
         isScrollTriggered.value = false; // Data change, not scroll - no animation
 
         if (!isLoading) {
