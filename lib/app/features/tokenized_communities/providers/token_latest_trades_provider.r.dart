@@ -228,6 +228,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
   }
 
   void _emit() {
+    _sortTrades(); // Ensure consistent ordering
     final controller = _controller;
     if (controller == null || controller.isClosed) return;
     controller.add(List<LatestTrade>.unmodifiable(_currentTrades));
@@ -249,5 +250,9 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       return da.compareTo(db);
     }
     return a.compareTo(b);
+  }
+
+  void _sortTrades() {
+    _currentTrades.sort((a, b) => _createdAtAsc(b.position.createdAt, a.position.createdAt));
   }
 }
