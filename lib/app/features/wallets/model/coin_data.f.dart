@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:ion/app/features/tokenized_communities/enums/tokenized_community_token_type.f.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart' as db;
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion_identity_client/ion_identity.dart' as ion;
@@ -23,7 +24,8 @@ class CoinData with _$CoinData {
     required Duration syncFrequency,
     @Default(false) bool native,
     @Default(false) bool prioritized,
-    @Default(false) bool isCreatorToken,
+    String? tokenizedCommunityExternalAddress,
+    TokenizedCommunityTokenType? tokenizedCommunityTokenType,
   }) = _CoinData;
 
   factory CoinData.fromDB(db.Coin coin, NetworkData network) {
@@ -40,7 +42,10 @@ class CoinData with _$CoinData {
       syncFrequency: coin.syncFrequency,
       native: coin.native,
       prioritized: coin.prioritized,
-      isCreatorToken: coin.isCreatorToken,
+      tokenizedCommunityExternalAddress: coin.tokenizedCommunityExternalAddress,
+      tokenizedCommunityTokenType: coin.tokenizedCommunityTokenType != null
+          ? TokenizedCommunityTokenType.fromJson(coin.tokenizedCommunityTokenType!)
+          : null,
     );
   }
 
@@ -58,15 +63,16 @@ class CoinData with _$CoinData {
       syncFrequency: coin.syncFrequency,
       native: coin.native ?? false,
       prioritized: coin.prioritized ?? false,
+      tokenizedCommunityExternalAddress: coin.tokenizedCommunityExternalAddress,
+      tokenizedCommunityTokenType: coin.tokenizedCommunityTokenType != null
+          ? TokenizedCommunityTokenType.fromJson(coin.tokenizedCommunityTokenType!)
+          : null,
     );
   }
 
   const CoinData._();
 
-  db.Coin toDB({
-    bool? isCreatorToken,
-  }) =>
-      db.Coin(
+  db.Coin toDB() => db.Coin(
         id: id,
         contractAddress: contractAddress,
         decimals: decimals,
@@ -79,7 +85,8 @@ class CoinData with _$CoinData {
         syncFrequency: syncFrequency,
         native: native,
         prioritized: prioritized,
-        isCreatorToken: isCreatorToken ?? this.isCreatorToken,
+        tokenizedCommunityExternalAddress: tokenizedCommunityExternalAddress,
+        tokenizedCommunityTokenType: tokenizedCommunityTokenType?.toJson(),
       );
 
   bool get isValid =>

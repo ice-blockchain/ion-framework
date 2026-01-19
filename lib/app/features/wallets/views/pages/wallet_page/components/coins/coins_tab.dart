@@ -5,12 +5,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/extensions/num.dart';
+import 'package:ion/app/features/tokenized_communities/enums/tokenized_community_token_type.f.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/models/token_type_filter.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/features/wallets/providers/filtered_assets_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/coins_list/coin_item.dart';
 import 'package:ion/app/features/wallets/views/pages/manage_coins/providers/manage_coins_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/coins_tab_footer.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/empty_state/empty_state.dart';
+import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/wallet_coins_filter_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/wallet_page_loader_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -35,9 +38,30 @@ class CoinsTab extends ConsumerWidget {
     }
 
     final groups = ref.watch(filteredCoinsNotifierProvider.select((state) => state.valueOrNull));
-    final isCreatorTokensTab = tabType == WalletTabType.creatorTokens;
+    final selectedFilter = ref.watch(walletCoinsFilterNotifierProvider);
+
     final filteredGroups = groups?.where((group) {
-      return group.coins.any((coin) => coin.coin.isCreatorToken == isCreatorTokensTab);
+      if (selectedFilter == TokenTypeFilter.all) {
+        return true;
+      }
+      return group.coins.any((coinInWallet) {
+        final coin = coinInWallet.coin;
+        final tokenType = coin.tokenizedCommunityTokenType;
+
+        if (tokenType == null) {
+          // Regular coin - only matches "all" filter
+          return selectedFilter == TokenTypeFilter.all;
+        }
+
+        return switch (selectedFilter) {
+          TokenTypeFilter.all => true,
+          TokenTypeFilter.creator => tokenType == TokenizedCommunityTokenType.tokenTypeProfile,
+          TokenTypeFilter.content => tokenType == TokenizedCommunityTokenType.tokenTypePost ||
+              tokenType == TokenizedCommunityTokenType.tokenTypeArticle ||
+              tokenType == TokenizedCommunityTokenType.tokenTypeVideo,
+          TokenTypeFilter.x => tokenType == TokenizedCommunityTokenType.tokenTypeXcom,
+        };
+      });
     }).toList();
 
     if (filteredGroups == null || filteredGroups.isEmpty) {

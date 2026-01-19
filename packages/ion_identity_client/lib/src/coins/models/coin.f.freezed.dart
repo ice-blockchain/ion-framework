@@ -33,6 +33,9 @@ mixin _$Coin {
   Duration get syncFrequency => throw _privateConstructorUsedError;
   bool? get native => throw _privateConstructorUsedError;
   bool? get prioritized => throw _privateConstructorUsedError;
+  String? get tokenizedCommunityExternalAddress =>
+      throw _privateConstructorUsedError;
+  String? get tokenizedCommunityTokenType => throw _privateConstructorUsedError;
 
   /// Serializes this Coin to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -60,7 +63,9 @@ abstract class $CoinCopyWith<$Res> {
       String symbolGroup,
       @SyncFrequencyConverter() Duration syncFrequency,
       bool? native,
-      bool? prioritized});
+      bool? prioritized,
+      String? tokenizedCommunityExternalAddress,
+      String? tokenizedCommunityTokenType});
 }
 
 /// @nodoc
@@ -90,6 +95,8 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
     Object? syncFrequency = null,
     Object? native = freezed,
     Object? prioritized = freezed,
+    Object? tokenizedCommunityExternalAddress = freezed,
+    Object? tokenizedCommunityTokenType = freezed,
   }) {
     return _then(_value.copyWith(
       contractAddress: null == contractAddress
@@ -140,6 +147,15 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
           ? _value.prioritized
           : prioritized // ignore: cast_nullable_to_non_nullable
               as bool?,
+      tokenizedCommunityExternalAddress: freezed ==
+              tokenizedCommunityExternalAddress
+          ? _value.tokenizedCommunityExternalAddress
+          : tokenizedCommunityExternalAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tokenizedCommunityTokenType: freezed == tokenizedCommunityTokenType
+          ? _value.tokenizedCommunityTokenType
+          : tokenizedCommunityTokenType // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -163,7 +179,9 @@ abstract class _$$CoinImplCopyWith<$Res> implements $CoinCopyWith<$Res> {
       String symbolGroup,
       @SyncFrequencyConverter() Duration syncFrequency,
       bool? native,
-      bool? prioritized});
+      bool? prioritized,
+      String? tokenizedCommunityExternalAddress,
+      String? tokenizedCommunityTokenType});
 }
 
 /// @nodoc
@@ -190,6 +208,8 @@ class __$$CoinImplCopyWithImpl<$Res>
     Object? syncFrequency = null,
     Object? native = freezed,
     Object? prioritized = freezed,
+    Object? tokenizedCommunityExternalAddress = freezed,
+    Object? tokenizedCommunityTokenType = freezed,
   }) {
     return _then(_$CoinImpl(
       contractAddress: null == contractAddress
@@ -240,6 +260,15 @@ class __$$CoinImplCopyWithImpl<$Res>
           ? _value.prioritized
           : prioritized // ignore: cast_nullable_to_non_nullable
               as bool?,
+      tokenizedCommunityExternalAddress: freezed ==
+              tokenizedCommunityExternalAddress
+          ? _value.tokenizedCommunityExternalAddress
+          : tokenizedCommunityExternalAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tokenizedCommunityTokenType: freezed == tokenizedCommunityTokenType
+          ? _value.tokenizedCommunityTokenType
+          : tokenizedCommunityTokenType // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -259,7 +288,9 @@ class _$CoinImpl implements _Coin {
       required this.symbolGroup,
       @SyncFrequencyConverter() required this.syncFrequency,
       this.native = false,
-      this.prioritized = false});
+      this.prioritized = false,
+      this.tokenizedCommunityExternalAddress,
+      this.tokenizedCommunityTokenType});
 
   factory _$CoinImpl.fromJson(Map<String, dynamic> json) =>
       _$$CoinImplFromJson(json);
@@ -291,10 +322,14 @@ class _$CoinImpl implements _Coin {
   @override
   @JsonKey()
   final bool? prioritized;
+  @override
+  final String? tokenizedCommunityExternalAddress;
+  @override
+  final String? tokenizedCommunityTokenType;
 
   @override
   String toString() {
-    return 'Coin(contractAddress: $contractAddress, decimals: $decimals, iconURL: $iconURL, id: $id, name: $name, network: $network, priceUSD: $priceUSD, symbol: $symbol, symbolGroup: $symbolGroup, syncFrequency: $syncFrequency, native: $native, prioritized: $prioritized)';
+    return 'Coin(contractAddress: $contractAddress, decimals: $decimals, iconURL: $iconURL, id: $id, name: $name, network: $network, priceUSD: $priceUSD, symbol: $symbol, symbolGroup: $symbolGroup, syncFrequency: $syncFrequency, native: $native, prioritized: $prioritized, tokenizedCommunityExternalAddress: $tokenizedCommunityExternalAddress, tokenizedCommunityTokenType: $tokenizedCommunityTokenType)';
   }
 
   @override
@@ -319,7 +354,15 @@ class _$CoinImpl implements _Coin {
                 other.syncFrequency == syncFrequency) &&
             (identical(other.native, native) || other.native == native) &&
             (identical(other.prioritized, prioritized) ||
-                other.prioritized == prioritized));
+                other.prioritized == prioritized) &&
+            (identical(other.tokenizedCommunityExternalAddress,
+                    tokenizedCommunityExternalAddress) ||
+                other.tokenizedCommunityExternalAddress ==
+                    tokenizedCommunityExternalAddress) &&
+            (identical(other.tokenizedCommunityTokenType,
+                    tokenizedCommunityTokenType) ||
+                other.tokenizedCommunityTokenType ==
+                    tokenizedCommunityTokenType));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -337,7 +380,9 @@ class _$CoinImpl implements _Coin {
       symbolGroup,
       syncFrequency,
       native,
-      prioritized);
+      prioritized,
+      tokenizedCommunityExternalAddress,
+      tokenizedCommunityTokenType);
 
   /// Create a copy of Coin
   /// with the given fields replaced by the non-null parameter values.
@@ -368,7 +413,9 @@ abstract class _Coin implements Coin {
       required final String symbolGroup,
       @SyncFrequencyConverter() required final Duration syncFrequency,
       final bool? native,
-      final bool? prioritized}) = _$CoinImpl;
+      final bool? prioritized,
+      final String? tokenizedCommunityExternalAddress,
+      final String? tokenizedCommunityTokenType}) = _$CoinImpl;
 
   factory _Coin.fromJson(Map<String, dynamic> json) = _$CoinImpl.fromJson;
 
@@ -397,6 +444,10 @@ abstract class _Coin implements Coin {
   bool? get native;
   @override
   bool? get prioritized;
+  @override
+  String? get tokenizedCommunityExternalAddress;
+  @override
+  String? get tokenizedCommunityTokenType;
 
   /// Create a copy of Coin
   /// with the given fields replaced by the non-null parameter values.

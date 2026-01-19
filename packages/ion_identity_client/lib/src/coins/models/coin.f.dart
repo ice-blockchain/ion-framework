@@ -20,6 +20,8 @@ class Coin with _$Coin {
     @SyncFrequencyConverter() required Duration syncFrequency,
     @Default(false) bool? native,
     @Default(false) bool? prioritized,
+    String? tokenizedCommunityExternalAddress,
+    String? tokenizedCommunityTokenType,
   }) = _Coin;
 
   factory Coin.fromJson(Map<String, dynamic> json) => _$CoinFromJson(json);

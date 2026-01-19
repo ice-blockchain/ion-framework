@@ -20,6 +20,7 @@ import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/coins_tab.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/coins_tab_header.dart';
+import 'package:ion/app/features/wallets/views/pages/wallet_page/components/coins/wallet_coins_filter_bar.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/friends/friends_list.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/header/wallet_header.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/nfts/nfts_tab.dart';
@@ -106,19 +107,18 @@ class WalletPage extends HookConsumerWidget {
               ),
             ),
             ...switch (activeTab.value) {
-              WalletTabType.coins => const [
-                  CoinsTabHeader(tabType: WalletTabType.coins),
-                  CoinsTab(tabType: WalletTabType.coins),
+              WalletTabType.coins => [
+                  const CoinsTabHeader(tabType: WalletTabType.coins),
+                  SliverToBoxAdapter(
+                    child: WalletCoinsFilterBar(scrollController: scrollController),
+                  ),
+                  const CoinsTab(tabType: WalletTabType.coins),
                 ],
               WalletTabType.nfts => const [
                   SliverToBoxAdapter(
                     child: NftsTabHeader(),
                   ),
                   NftsTab(),
-                ],
-              WalletTabType.creatorTokens => const [
-                  CoinsTabHeader(tabType: WalletTabType.creatorTokens),
-                  CoinsTab(tabType: WalletTabType.creatorTokens),
                 ],
             },
           ],

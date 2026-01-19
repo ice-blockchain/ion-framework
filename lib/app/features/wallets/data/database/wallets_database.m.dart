@@ -71,7 +71,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => 24;
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -282,6 +282,40 @@ class WalletsDatabase extends _$WalletsDatabase {
                 },
                 newColumns: [schema.coinsTable.isCreatorToken],
               ),
+            );
+          }
+        },
+        from23To24: (Migrator m, Schema24 schema) async {
+          // Remove deprecated is_creator_token column if present
+          final isCreatorTokenExists = await isColumnExists(
+            tableName: schema.coinsTable.actualTableName,
+            columnName: 'is_creator_token',
+          );
+          if (isCreatorTokenExists) {
+            await m.dropColumn(schema.coinsTable, 'is_creator_token');
+          }
+
+          // Add tokenized_community_external_address column if missing
+          final tokenizedCommunityExternalAddressExists = await isColumnExists(
+            tableName: schema.coinsTable.actualTableName,
+            columnName: 'tokenized_community_external_address',
+          );
+          if (!tokenizedCommunityExternalAddressExists) {
+            await m.addColumn(
+              schema.coinsTable,
+              schema.coinsTable.tokenizedCommunityExternalAddress,
+            );
+          }
+
+          // Add tokenized_community_token_type column if missing
+          final tokenizedCommunityTokenTypeExists = await isColumnExists(
+            tableName: schema.coinsTable.actualTableName,
+            columnName: 'tokenized_community_token_type',
+          );
+          if (!tokenizedCommunityTokenTypeExists) {
+            await m.addColumn(
+              schema.coinsTable,
+              schema.coinsTable.tokenizedCommunityTokenType,
             );
           }
         },

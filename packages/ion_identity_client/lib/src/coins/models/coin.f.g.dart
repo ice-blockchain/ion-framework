@@ -20,6 +20,10 @@ _$CoinImpl _$$CoinImplFromJson(Map<String, dynamic> json) => _$CoinImpl(
           .fromJson((json['syncFrequency'] as num).toInt()),
       native: json['native'] as bool? ?? false,
       prioritized: json['prioritized'] as bool? ?? false,
+      tokenizedCommunityExternalAddress:
+          json['tokenizedCommunityExternalAddress'] as String?,
+      tokenizedCommunityTokenType:
+          json['tokenizedCommunityTokenType'] as String?,
     );
 
 Map<String, dynamic> _$$CoinImplToJson(_$CoinImpl instance) =>
@@ -37,4 +41,8 @@ Map<String, dynamic> _$$CoinImplToJson(_$CoinImpl instance) =>
           const SyncFrequencyConverter().toJson(instance.syncFrequency),
       if (instance.native case final value?) 'native': value,
       if (instance.prioritized case final value?) 'prioritized': value,
+      if (instance.tokenizedCommunityExternalAddress case final value?)
+        'tokenizedCommunityExternalAddress': value,
+      if (instance.tokenizedCommunityTokenType case final value?)
+        'tokenizedCommunityTokenType': value,
     };
