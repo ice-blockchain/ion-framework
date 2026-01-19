@@ -69,19 +69,17 @@ class CommunityTokenDefinitionRepository {
     if (tokenInfo.creator.addresses?.ionConnect == null) {
       throw TokenAddressNotFoundException(externalAddress);
     } else {
+      creatorEventReference = ReplaceableEventReference(
+        masterPubkey: tokenInfo.creator.addresses!.ionConnect!,
+        kind: UserMetadataEntity.kind,
+      );
       if (tokenInfo.source.isTwitter) {
-        creatorEventReference = ReplaceableEventReference(
-          masterPubkey: tokenInfo.creator.addresses!.ionConnect!,
-          kind: UserMetadataEntity.kind,
-        );
         tags = {
           '#h': [tokenInfo.addresses.twitter],
         };
       } else {
-        creatorEventReference =
-            ReplaceableEventReference.fromString(tokenInfo.creator.addresses!.ionConnect!);
         tags = {
-          '#a': [tokenInfo.creator.addresses!.ionConnect],
+          '#a': [creatorEventReference.toString()],
           '!#t': [communityTokenActionTopic],
         };
       }
