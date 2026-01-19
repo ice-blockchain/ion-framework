@@ -18,14 +18,14 @@ part 'tokenized_community_onboarding_provider.m.g.dart';
 part 'tokenized_community_onboarding_provider.m.freezed.dart';
 
 @freezed
-class Params with _$Params {
-  factory Params({
+class TokenizedCommunityOnboardingParams with _$TokenizedCommunityOnboardingParams {
+  factory TokenizedCommunityOnboardingParams({
     required bool? authenticated,
     required bool? delegationCompleted,
     required bool? hasBscWallet,
     required bool? alreadyShown,
     required String? route,
-  }) = _Params;
+  }) = _TokenizedCommunityOnboardingParams;
 }
 
 class TokenizedCommunityOnboardingService {
@@ -38,7 +38,7 @@ class TokenizedCommunityOnboardingService {
   final void Function() _emitDialog;
   final Future<void> Function() _setShown;
 
-  Future<void> process(Params params) async {
+  Future<void> process(TokenizedCommunityOnboardingParams params) async {
     if (params.authenticated != true) return;
     if (params.delegationCompleted != true) return;
     if (params.hasBscWallet != true) return;
@@ -51,13 +51,13 @@ class TokenizedCommunityOnboardingService {
 }
 
 @riverpod
-Params params(Ref ref) {
+TokenizedCommunityOnboardingParams tokenizedCommunityOnboardingParams(Ref ref) {
   final authenticated = ref.watch(authProvider);
   final delegationCompleted = ref.watch(delegationCompleteProvider);
   final bscWalletCheck = ref.watch(bscWalletCheckProvider);
   final alreadyShown = ref.watch(tokenizedCommunityOnboardingShownProvider);
   final route = ref.watch(routeLocationProvider);
-  return Params(
+  return TokenizedCommunityOnboardingParams(
     authenticated: authenticated.valueOrNull?.isAuthenticated,
     delegationCompleted: delegationCompleted.valueOrNull,
     hasBscWallet: bscWalletCheck.valueOrNull?.hasBscWallet,
@@ -83,7 +83,7 @@ TokenizedCommunityOnboardingService? tokenizedCommunityOnboardingService(Ref ref
     },
   );
 
-  ref.listen(paramsProvider, (_, params) {
+  ref.listen(tokenizedCommunityOnboardingParamsProvider, (_, params) {
     service.process(params);
   });
 

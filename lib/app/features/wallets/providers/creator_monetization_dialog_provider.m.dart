@@ -17,13 +17,13 @@ part 'creator_monetization_dialog_provider.m.g.dart';
 part 'creator_monetization_dialog_provider.m.freezed.dart';
 
 @freezed
-class Params with _$Params {
-  factory Params({
+class CreatorMonetizationDialogParams with _$CreatorMonetizationDialogParams {
+  factory CreatorMonetizationDialogParams({
     required bool? authenticated,
     required bool? delegationCompleted,
     required bool? hasBscWallet,
     required String? route,
-  }) = _Params;
+  }) = _CreatorMonetizationDialogParams;
 }
 
 class CreatorMonetizationDialogService {
@@ -33,7 +33,7 @@ class CreatorMonetizationDialogService {
 
   final void Function() _emitDialog;
 
-  Future<void> process(Params params) async {
+  Future<void> process(CreatorMonetizationDialogParams params) async {
     if (params.authenticated != true) return;
     if (params.delegationCompleted != true) return;
     if (params.hasBscWallet ?? true) return;
@@ -44,12 +44,12 @@ class CreatorMonetizationDialogService {
 }
 
 @riverpod
-Params params(Ref ref) {
+CreatorMonetizationDialogParams creatorMonetizationDialogParams(Ref ref) {
   final authenticated = ref.watch(authProvider);
   final delegationCompleted = ref.watch(delegationCompleteProvider);
   final bscWalletCheck = ref.watch(bscWalletCheckProvider);
   final route = ref.watch(routeLocationProvider);
-  return Params(
+  return CreatorMonetizationDialogParams(
     authenticated: authenticated.valueOrNull?.isAuthenticated,
     delegationCompleted: delegationCompleted.valueOrNull,
     hasBscWallet: bscWalletCheck.valueOrNull?.hasBscWallet,
@@ -67,7 +67,7 @@ CreatorMonetizationDialogService creatorMonetizationDialogService(Ref ref) {
     },
   );
 
-  ref.listen(paramsProvider, (_, params) {
+  ref.listen(creatorMonetizationDialogParamsProvider, (_, params) {
     service.process(params);
   });
 
