@@ -4,6 +4,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/logging.dart';
+import 'package:ion/app/utils/proxy_host.dart';
 
 /// Connectivity status enum compatible with previous usage.
 enum InternetStatus {
@@ -35,10 +37,18 @@ class InternetConnectionChecker {
     required Duration checkNoInternetInterval,
     required List<InternetCheckOption> options,
     Duration confirmDisconnectDelay = const Duration(seconds: 30),
+    List<String> proxyDomains = const <String>[],
+    String? initialPreferredProxyDomain,
+    FutureOr<void> Function(String? domain)? persistPreferredProxyDomain,
+    int proxyPort = 443,
   })  : _checkInterval = checkInterval,
         _checkNoInternetInterval = checkNoInternetInterval,
         _internetCheckOptions = options,
-        _confirmDisconnectDelay = confirmDisconnectDelay {
+        _confirmDisconnectDelay = confirmDisconnectDelay,
+        _proxyDomains = proxyDomains,
+        _preferredProxyDomain = initialPreferredProxyDomain,
+        _persistPreferredProxyDomain = persistPreferredProxyDomain,
+        _proxyPort = proxyPort {
     _statusStreamController.onListen = _maybeEmitStatusUpdate;
     _statusStreamController.onCancel = _handleStatusChangeCancel;
   }
@@ -49,6 +59,11 @@ class InternetConnectionChecker {
   final Duration _checkNoInternetInterval;
   final List<InternetCheckOption> _internetCheckOptions;
   final Duration _confirmDisconnectDelay;
+
+  final List<String> _proxyDomains;
+  String? _preferredProxyDomain;
+  final FutureOr<void> Function(String? domain)? _persistPreferredProxyDomain;
+  final int _proxyPort;
 
   InternetStatus? _lastStatus;
   Timer? _timerHandle;
@@ -126,13 +141,92 @@ class InternetConnectionChecker {
   }
 
   Future<bool> _hasInternetAccess() async {
+    // 1) Fast-path: try saved preferred proxy domain first (if any).
+    final preferred = _preferredProxyDomain?.trim();
+    if (preferred != null && preferred.isNotEmpty) {
+      final ok = await _hasProxyAccessForDomain(preferred);
+      if (ok) {
+        await _persistPreferredProxyDomainSafe(preferred);
+        return true;
+      }
+
+      await _persistPreferredProxyDomainSafe(null);
+      _preferredProxyDomain = null;
+    }
+
+    // 2) Direct connectivity checks (existing behavior).
     for (final option in _internetCheckOptions) {
       final isSuccess = await _dialHost(option);
       if (isSuccess) {
+        // Direct connectivity is available; clear any proxy preference.
+        await _persistPreferredProxyDomainSafe(null);
+        _preferredProxyDomain = null;
         return true;
       }
     }
+
+    // 3) Proxy failover checks (only if direct checks failed).
+    for (final domain in _proxyDomains) {
+      final normalized = domain.trim();
+      if (normalized.isEmpty) continue;
+
+      final ok = await _hasProxyAccessForDomain(normalized);
+      if (ok) {
+        reportFailover(
+          Exception(
+            '[Internet] Connectivity failover via proxy domain: $normalized',
+          ),
+          StackTrace.current,
+          tag: 'internet_failover_to_proxy',
+        );
+
+        _preferredProxyDomain = normalized;
+        await _persistPreferredProxyDomainSafe(normalized);
+        return true;
+      }
+    }
+
     return false;
+  }
+
+  Future<bool> _hasProxyAccessForDomain(String domain) async {
+    // Build and dial proxy hosts derived from the configured IP targets.
+    for (final option in _internetCheckOptions) {
+      final ip = _extractHost(option.host);
+      if (ip.isEmpty) continue;
+
+      final proxyHost = buildProxyHostForIp(ip: ip, domain: domain);
+      final proxyOption = InternetCheckOption(
+        host: proxyHost,
+        port: _proxyPort,
+        timeout: option.timeout,
+      );
+
+      final ok = await _dialHost(proxyOption);
+      if (ok) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  Future<void> _persistPreferredProxyDomainSafe(String? domain) async {
+    final persist = _persistPreferredProxyDomain;
+    if (persist == null) return;
+
+    try {
+      final result = persist(domain);
+      if (result is Future) {
+        await result;
+      }
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: '[Internet] failed to persist preferred proxy domain',
+      );
+    }
   }
 
   Future<bool> _dialHost(InternetCheckOption option) async {
@@ -174,5 +268,6 @@ class InternetConnectionChecker {
     _timerHandle = null;
     _lastStatus = null;
     _isAwaitingDisconnectConfirmation = false;
+    _preferredProxyDomain = null;
   }
 }

@@ -1,20 +1,17 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:convert';
-
-import 'package:convert/convert.dart' as convert;
-import 'package:cryptography/dart.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_proxy_domain_preference_provider.r.dart';
+import 'package:ion/app/utils/proxy_host.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'relay_proxy_domains_provider.r.g.dart';
+part 'proxy_domains_provider.r.g.dart';
 
 /// Proxy domains used to reach Nostr relays when direct IP connectivity is
 /// unavailable or unreliable.
 @riverpod
-List<String> relaysProxyDomains(Ref ref) {
+List<String> proxyDomains(Ref ref) {
   final env = ref.watch(envProvider.notifier);
   final domainsRaw = env.get<String>(EnvVariable.RELAY_PROXY_DOMAINS);
   return domainsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
@@ -30,7 +27,7 @@ List<String> relaysProxyDomains(Ref ref) {
 /// 2) The original logical relay URI (direct IP)
 /// 3) Remaining proxy URIs built as `wss://<sha256(ip)[0:16]>.domain:443`
 @riverpod
-List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
+List<Uri> connectUris(Ref ref, String logicalRelayUrl) {
   final logicalUri = Uri.parse(logicalRelayUrl);
   final normalizedLogicalUri =
       (logicalUri.hasPort && logicalUri.port == 4443) ? logicalUri.replace(port: 443) : logicalUri;
@@ -41,16 +38,12 @@ List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
     return <Uri>[normalizedLogicalUri];
   }
 
-  final domains = ref.read(relaysProxyDomainsProvider);
+  final domains = ref.read(proxyDomainsProvider);
   final preferredDomain = ref.read(relayProxyDomainPreferenceProvider(logicalRelayUrl));
-
-  final hash = const DartSha256().hashSync(utf8.encode(ip));
-  final hashHex = convert.hex.encode(hash.bytes);
-  final normalizedIp = hashHex.substring(0, 16);
 
   Uri proxyUriForDomain(String domain) => Uri(
         scheme: normalizedLogicalUri.scheme.isNotEmpty ? normalizedLogicalUri.scheme : 'wss',
-        host: '$normalizedIp.$domain',
+        host: buildProxyHostForIp(ip: ip, domain: domain),
         port: normalizedLogicalUri.hasPort ? normalizedLogicalUri.port : null,
       );
 
