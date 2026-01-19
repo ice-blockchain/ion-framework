@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/wallets/data/database/tables/swap_transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_transactions_dao.m.g.dart';
@@ -28,7 +29,13 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     String? fromTxHash,
     String? toTxHash,
   }) async {
-    return into(swapTransactionsTable).insert(
+    Logger.log(
+      'SwapTransactionsDao: Saving swap - '
+      'from: $fromNetworkId ($fromWalletAddress) -> to: $toNetworkId ($toWalletAddress), '
+      'amount: $amount, toAmount: $toAmount, '
+      'fromTxHash: $fromTxHash, toTxHash: $toTxHash',
+    );
+    final swapId = await into(swapTransactionsTable).insert(
       SwapTransactionsTableCompanion.insert(
         fromTxHash: Value(fromTxHash),
         fromWalletAddress: fromWalletAddress,
@@ -37,10 +44,12 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
         toNetworkId: toNetworkId,
         amount: amount,
         toAmount: toAmount,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
         toTxHash: Value(toTxHash),
       ),
     );
+    Logger.log('SwapTransactionsDao: Swap saved with ID: $swapId');
+    return swapId;
   }
 
   Future<List<SwapTransaction>> getSwaps({
@@ -133,15 +142,25 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     required int swapId,
     required String toTxHash,
   }) async {
-    return (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
+    Logger.log(
+      'SwapTransactionsDao: Updating toTxHash for swap $swapId -> $toTxHash',
+    );
+    final result = (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
         .write(SwapTransactionsTableCompanion(toTxHash: Value(toTxHash)));
+    Logger.log('SwapTransactionsDao: Updated toTxHash for swap $swapId');
+    return result;
   }
 
   Future<int> updateFromTxHash({
     required int swapId,
     required String fromTxHash,
   }) async {
-    return (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
+    Logger.log(
+      'SwapTransactionsDao: Updating fromTxHash for swap $swapId -> $fromTxHash',
+    );
+    final result = (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
         .write(SwapTransactionsTableCompanion(fromTxHash: Value(fromTxHash)));
+    Logger.log('SwapTransactionsDao: Updated fromTxHash for swap $swapId');
+    return result;
   }
 }
