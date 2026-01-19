@@ -1061,6 +1061,7 @@
   "wallet_coin_address": "Adresse {coin}",
   "wallet_coin_amount": "Montant {coin}",
   "wallet_coin_amount_insufficient_funds": "Fonds insuffisants",
+  "wallet_coin_amount_insufficient": "Insuffisant",
   "wallet_coin_amount_must_be_positive": "Le montant doit être positif",
   "wallet_coin_amount_too_low_for_sending": "Le montant saisi est trop faible pour l'envoi",
   "wallet_coins_search_hint": "Rechercher par nom de jeton",

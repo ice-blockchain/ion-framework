@@ -1061,6 +1061,7 @@
   "wallet_coin_address": "{coin} 地址",
   "wallet_coin_amount": "{coin} 数量",
   "wallet_coin_amount_insufficient_funds": "资金不足",
+  "wallet_coin_amount_insufficient": "不足",
   "wallet_coin_amount_must_be_positive": "金额必须为正数",
   "wallet_coin_amount_too_low_for_sending": "输入的金额太低，无法发送",
   "wallet_coins_search_hint": "按代币名称搜索",

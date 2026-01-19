@@ -9,10 +9,10 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/sum_percentage_action.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/hooks/use_validate_amount.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_constants.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
@@ -25,6 +25,7 @@ class TokenCard extends HookConsumerWidget {
   const TokenCard({
     required this.type,
     required this.onTap,
+    this.onValidationError,
     this.coinsGroup,
     this.network,
     this.controller,
@@ -34,9 +35,9 @@ class TokenCard extends HookConsumerWidget {
     this.showSelectButton = true,
     this.showArrow = true,
     this.skipValidation = false,
-    this.isInsufficientFundsError = false,
     this.enabled = true,
     this.skipAmountFormatting = false,
+    this.isError = false,
     super.key,
   });
 
@@ -51,9 +52,10 @@ class TokenCard extends HookConsumerWidget {
   final bool showSelectButton;
   final bool showArrow;
   final bool skipValidation;
-  final bool isInsufficientFundsError;
+  final bool isError;
   final bool enabled;
   final bool skipAmountFormatting;
+  final ValueChanged<String?>? onValidationError;
 
   void _onPercentageChanged(int percentage, WidgetRef ref) {
     final coin = coinsGroup?.coins.firstWhereOrNull(
@@ -86,6 +88,16 @@ class TokenCard extends HookConsumerWidget {
         return formatToCurrency(usdValue);
       },
       [controller?.text, coinForNetwork?.coin.priceUSD],
+    );
+
+    useValidateAmount(
+      controller: controller,
+      focusNode: focusNode,
+      coinForNetwork: coinForNetwork,
+      coinsGroup: coinsGroup,
+      onValidationError: onValidationError,
+      context: context,
+      skipValidation: skipValidation,
     );
 
     useEffect(
@@ -366,9 +378,8 @@ class TokenCard extends HookConsumerWidget {
                       focusNode: focusNode,
                       readOnly: isReadOnly ?? coinsGroup == null,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      autovalidateMode: AutovalidateMode.always,
                       style: textStyles.headline2.copyWith(
-                        color: isInsufficientFundsError ? colors.attentionRed : colors.primaryText,
+                        color: isError ? colors.attentionRed : colors.primaryText,
                       ),
                       cursorHeight: 24.0.s,
                       cursorWidth: 3.0.s,
@@ -391,34 +402,6 @@ class TokenCard extends HookConsumerWidget {
                           color: colors.attentionRed,
                         ),
                       ),
-                      validator: (value) {
-                        if (skipValidation) return null;
-
-                        final trimmedValue = value?.trim() ?? '';
-                        if (trimmedValue.isEmpty) return null;
-
-                        final parsed = parseAmount(trimmedValue);
-                        if (parsed == null) return '';
-
-                        final maxValue = coinForNetwork?.amount;
-                        if (maxValue != null && (parsed > maxValue || parsed < 0)) {
-                          return context.i18n.wallet_coin_amount_insufficient_funds;
-                        } else if (parsed < 0) {
-                          return context.i18n.wallet_coin_amount_must_be_positive;
-                        }
-
-                        // If we know decimals for the selected network, enforce min amount check
-
-                        final decimals = coinForNetwork?.coin.decimals;
-                        if (decimals != null) {
-                          final amount = toBlockchainUnits(parsed, decimals);
-                          if (amount == BigInt.zero && parsed > 0) {
-                            return context.i18n.wallet_coin_amount_too_low_for_sending;
-                          }
-                        }
-
-                        return null;
-                      },
                     ),
                   ),
                 ),
@@ -435,7 +418,7 @@ class TokenCard extends HookConsumerWidget {
                 child: Row(
                   children: [
                     Assets.svg.iconWallet.icon(
-                      color: isInsufficientFundsError ? colors.attentionRed : colors.tertiaryText,
+                      color: isError ? colors.attentionRed : colors.tertiaryText,
                       size: 12.0.s,
                     ),
                     SizedBox(
@@ -453,9 +436,7 @@ class TokenCard extends HookConsumerWidget {
                                 ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup!.abbreviation}'
                                 : '0.00',
                             style: textStyles.caption2.copyWith(
-                              color: isInsufficientFundsError
-                                  ? colors.attentionRed
-                                  : colors.tertiaryText,
+                              color: isError ? colors.attentionRed : colors.tertiaryText,
                             ),
                             overflow: TextOverflow.ellipsis,
                           );

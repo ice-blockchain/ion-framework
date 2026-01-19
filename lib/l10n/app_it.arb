@@ -1061,6 +1061,7 @@
   "wallet_coin_address": "Indirizzo {coin}",
   "wallet_coin_amount": "Importo {coin}",
   "wallet_coin_amount_insufficient_funds": "Fondi insufficienti",
+  "wallet_coin_amount_insufficient": "Insufficienti",
   "wallet_coin_amount_must_be_positive": "L'importo deve essere positivo",
   "wallet_coin_amount_too_low_for_sending": "L'importo inserito è troppo basso per l'invio",
   "wallet_coins_search_hint": "Cerca per nome del token",

@@ -1061,6 +1061,7 @@
   "wallet_coin_address": "{coin} adresi",
   "wallet_coin_amount": "{coin} tutarı",
   "wallet_coin_amount_insufficient_funds": "Yetersiz bakiye",
+  "wallet_coin_amount_insufficient": "Yetersiz",
   "wallet_coin_amount_must_be_positive": "Tutar pozitif olmalıdır",
   "wallet_coin_amount_too_low_for_sending": "Girilen tutar göndermek için çok düşük",
   "wallet_coins_search_hint": "Token adına göre ara",

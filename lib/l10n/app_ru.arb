@@ -1061,6 +1061,7 @@
   "wallet_coin_address": "Адрес {coin}",
   "wallet_coin_amount": "Сумма {coin}",
   "wallet_coin_amount_insufficient_funds": "Недостаточно средств",
+  "wallet_coin_amount_insufficient": "Недостаточно",
   "wallet_coin_amount_must_be_positive": "Сумма должна быть положительной",
   "wallet_coin_amount_too_low_for_sending": "Введённая сумма слишком мала для отправки",
   "wallet_coins_search_hint": "Искать по названию токена",
