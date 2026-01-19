@@ -34,6 +34,7 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
   @override
   WidgetSpan buildWidgetSpan(Widget widget) {
     return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
       child: widget,
     );
   }
