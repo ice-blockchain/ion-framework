@@ -3,12 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_empty.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 const int holdersCountLimit = 5;
 
@@ -141,6 +143,7 @@ class _TopHolderList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final holdersAsync =
         ref.watch(tokenTopHoldersProvider(externalAddress, limit: holdersCountLimit));
+    final boundingCurveAddress = ref.watch(bondingCurveAddressProvider).valueOrNull;
     return holdersAsync.when(
       data: (holders) {
         if (holders.isEmpty) {
@@ -153,13 +156,18 @@ class _TopHolderList extends ConsumerWidget {
           padding: EdgeInsets.zero,
           itemCount: holders.length,
           itemBuilder: (context, index) {
-            if (index == 0) {
+            final holder = holders[index];
+
+            if (boundingCurveAddress != null && holder.isBoundingCurve(boundingCurveAddress)) {
               return BondingCurveHolderTile(
-                holder: holders[index],
+                holder: holder,
               );
             }
 
-            final holder = holders[index];
+            if (holder.isBurning) {
+              return BurningHolderTile(holder: holder);
+            }
+
             return TopHolderTile(holder: holder);
           },
           separatorBuilder: (context, index) => SizedBox(height: 4.0.s),

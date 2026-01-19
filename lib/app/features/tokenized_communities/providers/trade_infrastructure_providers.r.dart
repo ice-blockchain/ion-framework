@@ -106,6 +106,12 @@ Future<TradeCommunityTokenService> tradeCommunityTokenService(
 }
 
 @riverpod
+Future<String> bondingCurveAddress(Ref ref) async {
+  final repository = await ref.watch(tradeCommunityTokenRepositoryProvider.future);
+  return repository.fetchBondingCurveAddress();
+}
+
+@riverpod
 Future<List<CoinData>> supportedSwapTokens(Ref ref) async {
   final api = await ref.watch(tradeCommunityTokenApiProvider.future);
   final supportedTokensConfig = await api.fetchSupportedSwapTokens();

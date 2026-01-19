@@ -920,6 +920,7 @@
   "tokenized_community_creator_token_live_title": "创作者代币已上线！",
   "tokenized_community_creator_token_live_subtitle": "恭喜，您的创作者代币现已上线，所有人都可以交易",
   "tokenized_community_holders_tab": "持有者",
+  "tokenized_community_burned": "已销毁",
   "token_comment_holders_only": "评论仅对代币持有者开放。",
   "tokenized_community_not_available_description": "已创建的帖子无法创建代币。",
   "tokenized_community_not_available_title": "代币化内容错误",

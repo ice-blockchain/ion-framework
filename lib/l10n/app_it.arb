@@ -920,6 +920,7 @@
   "tokenized_community_creator_token_live_title": "Il token del creatore è LIVE!",
   "tokenized_community_creator_token_live_subtitle": "Congratulazioni, il tuo token creatore è ora attivo e disponibile per tutti per scambiarlo",
   "tokenized_community_holders_tab": "Detentori",
+  "tokenized_community_burned": "Bruciato",
   "token_comment_holders_only": "I commenti sono disponibili solo per i detentori di token.",
   "tokenized_community_not_available_description": "La creazione di token non è disponibile per i post creati in precedenza.",
   "tokenized_community_not_available_title": "Errore di contenuto tokenizzato",

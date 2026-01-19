@@ -35,6 +35,9 @@ extension TopHolderPatchExtension on TopHolderPatch {
   }
 }
 
+/// Burn address for tokenized communities
+const String _topHolderBurnAddress = '0x0000000000000000000000000000000000696f6e';
+
 extension TopHolderExtension on TopHolder {
   TopHolder merge(TopHolderPatch patch) {
     final orgJson = toJson();
@@ -43,5 +46,18 @@ extension TopHolderExtension on TopHolder {
     final mergedJson = deepMerge(orgJson, patchJson);
 
     return TopHolder.fromJson(mergedJson);
+  }
+
+  /// Returns true if this holder is a burned holder (tokens sent to burn address)
+  bool get isBurning {
+    final holderAddress = position.holder?.addresses?.ionConnect;
+    return holderAddress != null &&
+        holderAddress.toLowerCase() == _topHolderBurnAddress.toLowerCase();
+  }
+
+  /// Returns true if this holder is the bounding curve contract
+  bool isBoundingCurve(String address) {
+    final holderAddress = position.holder?.addresses?.ionConnect;
+    return holderAddress != null && holderAddress.toLowerCase() == address.toLowerCase();
   }
 }

@@ -8,6 +8,7 @@ import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
@@ -28,7 +29,7 @@ class HoldersPage extends HookConsumerWidget {
     final topHoldersProvider = tokenTopHoldersProvider(externalAddress, limit: 20);
     final topHoldersAsync = ref.watch(topHoldersProvider);
     final topHolders = topHoldersAsync.valueOrNull ?? const <TopHolder>[];
-
+    final boundingCurveAddress = ref.watch(bondingCurveAddressProvider).valueOrNull;
     return Scaffold(
       appBar: NavigationAppBar.screen(
         title: Text(context.i18n.holders, style: context.theme.appTextThemes.subtitle2),
@@ -53,14 +54,24 @@ class HoldersPage extends HookConsumerWidget {
                     itemBuilder: (context, index) {
                       final topPadding = index == 0 ? 12.s : 7.s;
                       final bottomPadding = 7.s;
+                      final holder = topHolders[index];
 
-                      if (index == 0) {
+                      if (boundingCurveAddress != null &&
+                          holder.isBoundingCurve(boundingCurveAddress)) {
                         return _HoldersListPadding(
                           topPadding: topPadding,
                           bottomPadding: bottomPadding,
                           child: BondingCurveHolderTile(
-                            holder: topHolders[index],
+                            holder: holder,
                           ),
+                        );
+                      }
+
+                      if (holder.isBurning) {
+                        return _HoldersListPadding(
+                          topPadding: topPadding,
+                          bottomPadding: bottomPadding,
+                          child: BurningHolderTile(holder: holder),
                         );
                       }
 
@@ -68,7 +79,7 @@ class HoldersPage extends HookConsumerWidget {
                         topPadding: topPadding,
                         bottomPadding: bottomPadding,
                         child: TopHolderTile(
-                          holder: topHolders[index],
+                          holder: holder,
                         ),
                       );
                     },
