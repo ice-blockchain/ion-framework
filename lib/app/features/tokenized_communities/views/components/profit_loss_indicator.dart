@@ -8,7 +8,7 @@ import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 /// A widget that displays profit/loss indicator for a token position.
-/// 
+///
 /// Shows an icon and formatted P&L amount with appropriate color:
 /// - Green for profit (positive P&L)
 /// - Red for loss (negative P&L)
@@ -23,9 +23,8 @@ class ProfitLossIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isProfit = position.pnl >= 0;
-    final profitColor = isProfit
-        ? context.theme.appColors.success
-        : context.theme.appColors.raspberry;
+    final profitColor =
+        isProfit ? context.theme.appColors.success : context.theme.appColors.raspberry;
 
     final pnlSign = getNumericSign(position.pnl);
     final pnlAmount = MarketDataFormatter.formatCompactNumber(position.pnl.abs());

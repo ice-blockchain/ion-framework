@@ -6,7 +6,7 @@ import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 /// A widget that displays a gradient circle indicator for token types.
-/// 
+///
 /// Shows a colored gradient circle for content token types (post, video, article).
 /// Returns an empty widget for profile tokens or if no gradient is available.
 class TokenTypeGradientIndicator extends StatelessWidget {
