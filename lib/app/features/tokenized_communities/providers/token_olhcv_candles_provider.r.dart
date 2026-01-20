@@ -14,6 +14,16 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
   String interval,
 ) async* {
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
+
+  // 1. Load initial candles
+  final initialCandles = await client.communityTokens.loadOhlcvCandles(
+    externalAddress: externalAddress,
+    interval: interval,
+  );
+
+  yield initialCandles;
+
+  // 2. Subscribe to realtime updates
   final subscription = await client.communityTokens.subscribeToOhlcvCandles(
     ionConnectAddress: externalAddress,
     interval: interval,
@@ -21,11 +31,10 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
 
   ref.onDispose(subscription.close);
 
-  final currentCandles = <OhlcvCandle>[];
-
-  // Maximum candles to keep: 50 is sufficient for chart display
+  final currentCandles = List<OhlcvCandle>.from(initialCandles);
   const maxCandles = 50;
 
+  // 3. Process realtime updates
   await for (final batch in subscription.stream) {
     if (batch.isEmpty) {
       yield currentCandles;
@@ -43,6 +52,9 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
         currentCandles.add(candle);
       }
     }
+
+    // Defensive: Sort before removing to ensure we remove actual oldest
+    currentCandles.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     // Remove oldest candles if exceeding max
     if (currentCandles.length > maxCandles) {

@@ -2,6 +2,8 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/num.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_candles_normalizer.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_change_calculator.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -32,11 +34,14 @@ ChartProcessedData chartProcessedData(
   final chartCandles = _mapOhlcvToChartCandles(candles);
   final isEmpty = chartCandles.isEmpty;
 
+  final normalizedCandles =
+      chartCandles.length > 1 ? normalizeCandles(chartCandles, selectedRange) : chartCandles;
+
   final candlesToShow = isEmpty
-      ? _buildFlatCandles(price)
-      : chartCandles.length == 1
-          ? _expandSingleCandleToFlatLine(chartCandles.first, selectedRange)
-          : chartCandles;
+      ? _buildFlatCandles(price, selectedRange)
+      : normalizedCandles.length == 1
+          ? _expandSingleCandleToFlatLine(normalizedCandles.first, selectedRange)
+          : normalizedCandles;
 
   final changePercent =
       isEmpty ? 0.0 : calculatePriceChangePercent(candles, selectedRange.duration);
@@ -58,23 +63,21 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
           low: candle.low,
           close: candle.close,
           price: Decimal.parse(candle.close.toString()),
-          date: DateTime.fromMillisecondsSinceEpoch(
-            candle.timestamp ~/ 1000, // timestamp is in microseconds
-            isUtc: true,
-          ),
+          date: candle.timestamp.toDateTime,
         ),
       )
       .toList();
 }
 
 // Builds flat candles for empty state (all candles at same price).
-List<ChartCandle> _buildFlatCandles(Decimal price) {
+List<ChartCandle> _buildFlatCandles(Decimal price, ChartTimeRange selectedRange) {
   final now = DateTime.now();
-  const count = 20;
+  final interval = selectedRange.duration;
+  const count = 35;
   final value = double.tryParse(price.toString()) ?? 0;
 
   return List<ChartCandle>.generate(count, (index) {
-    final date = now.subtract(Duration(minutes: (count - index) * 15));
+    final date = now.subtract(interval * (count - index));
     return ChartCandle(
       open: value,
       high: value,

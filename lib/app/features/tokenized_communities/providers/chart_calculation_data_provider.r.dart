@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -36,6 +37,7 @@ class ChartCalculationData {
 ChartCalculationData? chartCalculationData(
   Ref ref, {
   required List<ChartCandle> candles,
+  required ChartTimeRange selectedRange,
 }) {
   if (candles.isEmpty) {
     return null;
@@ -52,27 +54,48 @@ ChartCalculationData? chartCalculationData(
   }
 
   // Calculate Y-axis padding
-  final yPadding = _calculateYPadding(minY, maxY);
-  final chartMinY = minY - yPadding;
+  final yPadding = calculateChartYPadding(minY, maxY);
+  final chartMinY = (minY - yPadding).clamp(0.0, double.infinity);
   final chartMaxY = maxY + yPadding;
 
   // Transform candles to FlSpot
-  final spots = candles
+  final allSpots = candles
       .asMap()
       .entries
       .map((entry) => FlSpot(entry.key.toDouble(), entry.value.close))
       .toList();
 
-  // Build bottom labels from candle times (max 8 evenly spaced)
-  final bottomLabelsCount = math.min(8, candles.length);
+  // Limit to last 2000 points for rendering performance (fl_chart has issues with 7000+ points)
+  const maxRenderPoints = 2000;
+  final spots = allSpots.length > maxRenderPoints
+      ? allSpots.sublist(allSpots.length - maxRenderPoints)
+      : allSpots;
+
+  // Build bottom labels with consistent spacing
+  // Calculate labels based on scale: 8 labels per screen (35 candles)
+  // When scale = 1.0 (< 35 candles), limit to actual candle count
+  // When scale > 1.0, use formula: (totalCandles / 35) * 8
+  const maxPointsPerScreen = 35;
+  const labelsPerScreen = 8;
+
+  final scale = candles.length < maxPointsPerScreen ? 1.0 : candles.length / maxPointsPerScreen;
+  final calculatedLabels = (scale * labelsPerScreen).round();
+  final bottomLabelsCount = candles.length <= 1
+      ? candles.length
+      : scale == 1.0
+          ? math.min(candles.length, labelsPerScreen) // Limit to actual candles when scale = 1
+          : math.max(1, calculatedLabels); // Use calculated value when scale > 1
+
   final indexToLabel = <int, String>{};
   double xAxisStep = 1;
   if (bottomLabelsCount > 0 && candles.length > 1) {
-    xAxisStep = (candles.length - 1) / (bottomLabelsCount - 1);
+    // Map labels proportionally to actual candles
     for (var i = 0; i < bottomLabelsCount; i++) {
-      final idx = (i * xAxisStep).round().clamp(0, candles.length - 1);
-      indexToLabel[idx] = formatChartTime(candles[idx].date);
+      final progress = i / (bottomLabelsCount - 1);
+      final idx = (progress * (candles.length - 1)).round().clamp(0, candles.length - 1);
+      indexToLabel[idx] = formatChartAxisLabel(candles[idx].date, selectedRange);
     }
+    xAxisStep = (candles.length - 1) / (bottomLabelsCount - 1);
   }
 
   final maxX = (candles.length - 1).toDouble();
@@ -87,16 +110,4 @@ ChartCalculationData? chartCalculationData(
     xAxisStep: xAxisStep,
     maxX: maxX,
   );
-}
-
-// Calculates Y-axis padding for chart visualization.
-// Returns 10% of the range if values differ, or 5% of the minimum value
-// (with a minimum of 0.0001) when all values are identical to prevent flat lines.
-double _calculateYPadding(double minY, double maxY) {
-  final range = maxY - minY;
-  if (range > 0) {
-    return range * 0.1;
-  }
-  // Minimum 5% padding when all values are identical
-  return (minY * 0.05).clamp(0.0001, double.infinity);
 }

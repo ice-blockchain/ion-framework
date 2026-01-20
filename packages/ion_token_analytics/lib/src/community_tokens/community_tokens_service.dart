@@ -81,6 +81,20 @@ class IonCommunityTokensService {
     return _tokenInfoRepository.subscribeToTokenInfo(externalAddress);
   }
 
+  Future<List<OhlcvCandle>> loadOhlcvCandles({
+    required String externalAddress,
+    required String interval,
+    int limit = 60,
+    int offset = 0,
+  }) {
+    return _ohlcvCandlesRepository.loadOhlcvCandles(
+      externalAddress: externalAddress,
+      interval: interval,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
   Future<NetworkSubscription<List<OhlcvCandle>>> subscribeToOhlcvCandles({
     required String ionConnectAddress,
     required String interval,
