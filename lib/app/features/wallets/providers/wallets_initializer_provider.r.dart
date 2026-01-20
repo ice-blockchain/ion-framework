@@ -41,7 +41,14 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
           ref.watch(undefinedTransactionsBinderProvider.future);
       final swapTransactionLinkerFuture = ref.watch(swapTransactionLinkerProvider.future);
 
-      final (_, _, syncService, periodicSyncService, undefinedTransactionsBinder, swapTransactionLinker) = await (
+      final (
+        _,
+        _,
+        syncService,
+        periodicSyncService,
+        undefinedTransactionsBinder,
+        swapTransactionLinker
+      ) = await (
         coinInitializer.initialize(),
         networksInitializer.initialize(),
         syncServiceFuture,
