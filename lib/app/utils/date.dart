@@ -152,6 +152,48 @@ String formatShortTimestamp(DateTime dateTime, {Locale? locale, BuildContext? co
   return DateFormat.yMMMd(locale.languageCode).format(dateTime);
 }
 
+/// Formats a [DateTime] into a compact relative time string:
+/// - < 1 hour: "5m" (minutes)
+/// - < 1 day: "3h" (hours)
+/// - Otherwise: "2d" (days)
+///
+/// Uses localized short messages (e.g., 'm', 'h', 'd') via [shortLocalesMap].
+String formatCompactTimestamp(DateTime dateTime, {Locale? locale}) {
+  locale ??= const Locale('en');
+  final now = DateTime.now();
+  final diff = now.difference(dateTime.toLocal());
+
+  // Use the helper to find the best matching short locale key
+  // e.g. 'en' -> 'en_short', 'tr' -> 'tr_short'
+  final shortKey = toTimeagoShortLocale(locale);
+
+  // Retrieve the LookupMessages for that key (or fallback)
+  final messages = shortLocalesMap[shortKey] ?? shortLocalesMap['en_short']!;
+
+  if (diff.inMinutes < 60) {
+    // "1m", "5m", etc.
+    // The short messages usually handle this via `minutes(...)`
+    // We pass the raw minutes.
+    final m = diff.inMinutes;
+    // If < 1 minute, maybe "now" or "0m" or just "1m".
+    // User requested "1m" starts from under 1h.
+    // Often timeago returns "1m" for <45s depending on implementation,
+    // but let's trust the `minutes` formatter from the locale map.
+    // We'll treat < 1 minute as 1 minute to be safe or 0?
+    // User examples: "1m, 5m, 45m".
+    // Let's coerce at least 1m if it's small?
+    // Or just use diff.inMinutes.
+    // If diff.inMinutes is 0, `messages.minutes(0)` might produce "0m".
+    return messages.minutes(max(1, m));
+  } else if (diff.inHours < 24) {
+    // "1h", "23h"
+    return messages.hours(diff.inHours);
+  } else {
+    // "1d", "2d", etc.
+    return messages.days(diff.inDays);
+  }
+}
+
 /// Formats a [DateTime] in a detailed style for post details:
 /// "Jan 1, 2024, 08:45 PM" (month-day-year, hh:mm AM/PM).
 String formatDetailedTimestamp(DateTime dateTime, {Locale? locale}) {
