@@ -134,6 +134,12 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               ? collapsedHeaderOffset
               : expandedHeaderTabsOffset;
           final currentOffset = controller.position.pixels;
+          if (currentOffset <= 0) {
+            if (activeTab.value != TokenizedCommunityTabType.chart) {
+              activeTab.value = TokenizedCommunityTabType.chart;
+            }
+            return;
+          }
           int? newIndex;
 
           for (var i = 0; i < sectionKeys.length; i++) {
@@ -391,7 +397,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               ),
             ),
           ],
-          SizedBox(height: 120.0.s),
+          SizedBox(height: 1120.0.s),
         ],
       ),
     );
