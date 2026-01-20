@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/layouts/collapsing_header_layout.dart';
@@ -98,6 +99,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
     final isCommentInputFocused = useMemoized(() => ValueNotifier<bool>(false), []);
     final innerScrollController = useState<ScrollController?>(null);
     final ignoreScrollUpdates = useState(false);
+    final pendingTabIndex = useRef<int?>(null);
 
     useEffect(
       () {
@@ -106,10 +108,10 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       [isCommentInputFocused],
     );
 
-    final sectionKeys = useMemoized(
-      () => List.generate(
+    final sectionContexts = useMemoized(
+      () => List<BuildContext?>.filled(
         TokenizedCommunityTabType.values.length,
-        (_) => GlobalKey(),
+        null,
       ),
       [],
     );
@@ -128,7 +130,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           const expandedHeaderTabsOffset = 40.0; // Height of the pinned tabs row
 
           final nestedState =
-              sectionKeys.first.currentContext?.findAncestorStateOfType<NestedScrollViewState>();
+              sectionContexts.first?.findAncestorStateOfType<NestedScrollViewState>();
           final outer = nestedState?.outerController;
           final offsetBias = outer != null && outer.hasClients && outer.position.pixels > 0
               ? collapsedHeaderOffset
@@ -142,8 +144,8 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           }
           int? newIndex;
 
-          for (var i = 0; i < sectionKeys.length; i++) {
-            final sectionContext = sectionKeys[i].currentContext;
+          for (var i = 0; i < sectionContexts.length; i++) {
+            final sectionContext = sectionContexts[i];
             if (sectionContext == null) continue;
             final renderObject = sectionContext.findRenderObject();
             if (renderObject == null) continue;
@@ -158,7 +160,20 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           }
 
           if (newIndex != null && newIndex != activeTab.value.index) {
-            activeTab.value = TokenizedCommunityTabType.values[newIndex];
+            final resolvedIndex = newIndex;
+            if (pendingTabIndex.value == resolvedIndex) {
+              return;
+            }
+            pendingTabIndex.value = resolvedIndex;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              if (pendingTabIndex.value != resolvedIndex) return;
+              if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+                return;
+              }
+              activeTab.value = TokenizedCommunityTabType.values[resolvedIndex];
+              pendingTabIndex.value = null;
+            });
           }
         }
 
@@ -166,13 +181,13 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         handleScroll();
         return () => controller.removeListener(handleScroll);
       },
-      [innerScrollController.value, sectionKeys],
+      [innerScrollController.value, sectionContexts],
     );
 
     Future<void> scrollToSection(int index) async {
       ignoreScrollUpdates.value = true;
       try {
-        final targetCtx = sectionKeys[index].currentContext;
+        final targetCtx = sectionContexts[index];
         if (targetCtx == null) return;
 
         double outerOffsetDy = 0;
@@ -199,7 +214,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           }
         }
 
-        final updatedCtx = sectionKeys[index].currentContext;
+        final updatedCtx = sectionContexts[index];
         if (updatedCtx == null) return;
 
         final ro = updatedCtx.findRenderObject();
@@ -361,40 +376,48 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               token: tokenInfo,
               trailing: SimpleSeparator(height: 4.0.s),
             ),
-          KeyedSubtree(
-            key: sectionKeys[TokenizedCommunityTabType.chart.index],
-            child: _TokenChart(
-              externalAddress: externalAddress,
-            ),
+          Builder(
+            builder: (context) {
+              sectionContexts[TokenizedCommunityTabType.chart.index] = context;
+              return _TokenChart(
+                externalAddress: externalAddress,
+              );
+            },
           ),
           SimpleSeparator(height: 4.0.s),
           _TokenStats(externalAddress: externalAddress),
           SimpleSeparator(height: 4.0.s),
-          KeyedSubtree(
-            key: sectionKeys[TokenizedCommunityTabType.holders.index],
-            child: TopHolders(
-              externalAddress: externalAddress,
-            ),
+          Builder(
+            builder: (context) {
+              sectionContexts[TokenizedCommunityTabType.holders.index] = context;
+              return TopHolders(
+                externalAddress: externalAddress,
+              );
+            },
           ),
           SimpleSeparator(height: 4.0.s),
-          KeyedSubtree(
-            key: sectionKeys[TokenizedCommunityTabType.trades.index],
-            child: LatestTradesCard(
-              externalAddress: externalAddress,
-            ),
+          Builder(
+            builder: (context) {
+              sectionContexts[TokenizedCommunityTabType.trades.index] = context;
+              return LatestTradesCard(
+                externalAddress: externalAddress,
+              );
+            },
           ),
           if (tokenDefinition != null) ...[
             SimpleSeparator(height: 4.0.s),
-            KeyedSubtree(
-              key: sectionKeys[TokenizedCommunityTabType.comments.index],
-              child: CommentsSectionCompact(
-                tokenDefinition: tokenDefinition,
-                onCommentInputFocusChanged: (bool isFocused) {
-                  if (isCommentInputFocused.value != isFocused) {
-                    isCommentInputFocused.value = isFocused;
-                  }
-                },
-              ),
+            Builder(
+              builder: (context) {
+                sectionContexts[TokenizedCommunityTabType.comments.index] = context;
+                return CommentsSectionCompact(
+                  tokenDefinition: tokenDefinition,
+                  onCommentInputFocusChanged: (bool isFocused) {
+                    if (isCommentInputFocused.value != isFocused) {
+                      isCommentInputFocused.value = isFocused;
+                    }
+                  },
+                );
+              },
             ),
           ],
           SizedBox(height: 1120.0.s),
