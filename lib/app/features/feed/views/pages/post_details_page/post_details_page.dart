@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/analytics_events.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/can_reply_notifier.r.dart';
+import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/community_token_action/community_token_action.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/community_token_live.dart';
 import 'package:ion/app/features/feed/views/components/post/post.dart';
@@ -44,7 +45,13 @@ class PostDetailsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final canReply = ref.watch(canReplyProvider(eventReference)).value ?? false;
     final scrollController = useScrollController();
-    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+    final entity = ref
+        .watch(
+          ionConnectEntityWithCountersProvider(
+            eventReference: eventReference,
+          ),
+        )
+        .valueOrNull;
     final isReply = entity is ModifiablePostEntity && entity.data.isReply ||
         entity is PostEntity && entity.data.isReply;
 

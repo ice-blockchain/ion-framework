@@ -181,6 +181,8 @@ class CommunityTokenDefinitionIon
     required int kind,
     required CommunityTokenDefinitionIonType type,
   }) {
+    final dTagPrefix = type == CommunityTokenDefinitionIonType.firstBuyAction ? firstBuyPrefix : '';
+
     final dTag = switch (eventReference) {
       ImmutableEventReference() => eventReference.eventId,
       ReplaceableEventReference() when eventReference.kind == UserMetadataEntity.kind =>
@@ -188,10 +190,11 @@ class CommunityTokenDefinitionIon
       ReplaceableEventReference() => '${eventReference.kind}.${eventReference.dTag}',
       _ => throw UnsupportedEventReference(eventReference),
     };
+
     return CommunityTokenDefinitionIon(
       eventReference: eventReference,
       kind: kind,
-      dTag: dTag,
+      dTag: '$dTagPrefix$dTag',
       type: type,
       platform: CommunityTokenPlatform.ion,
       relatedHashtags: _buildRelatedHashtags(type),
@@ -199,6 +202,8 @@ class CommunityTokenDefinitionIon
   }
 
   const CommunityTokenDefinitionIon._();
+
+  static String firstBuyPrefix = 'first_buy';
 
   @override
   String get externalAddress => eventReference.toString();
