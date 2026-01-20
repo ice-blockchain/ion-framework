@@ -4,7 +4,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
+import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -79,6 +82,56 @@ Future<List<String>> extractVideoFrames(
   } catch (e) {
     return [];
   }
+}
+
+@riverpod
+Future<List<String>> extractVideoFramesFromEntity(
+  Ref ref,
+  dynamic entity,
+) async {
+  final frames = <String>[];
+  if (entity is ModifiablePostEntity) {
+    if (entity.data.hasVideo) {
+      final videos = entity.data.videos;
+      if (videos.isNotEmpty) {
+        final primaryVideo = videos.first;
+        final videoUrl = primaryVideo.url;
+        String? videoPath;
+
+        if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
+          // Use cache manager to return cached file or download and cache it.
+          try {
+            final cachedFile = await IONCacheManager.networkVideos.getSingleFile(videoUrl);
+            videoPath = cachedFile.path;
+          } catch (e) {
+            Logger.log('extractVideoFramesFromEntity, error: $e');
+            // Silently fail - video frame extraction is optional
+            videoPath = null;
+          }
+        }
+
+        // If we have a local path, try to extract frames
+        if (videoPath != null) {
+          try {
+            final file = File(videoPath);
+            if (file.existsSync()) {
+              final extractedFrames = await ref.read(extractVideoFramesProvider(videoPath).future);
+
+              // Add MIME type prefix to each frame (video frames are JPEG image thumbnails)
+              final framesWithMimeType =
+                  extractedFrames.map((frame) => 'data:image/webp;base64,$frame').toList();
+              frames.addAll(framesWithMimeType);
+            }
+          } catch (e) {
+            Logger.log('extractVideoFramesFromEntity, error: $e');
+            // Silently fail - video frame extraction is optional
+          }
+        }
+      }
+    }
+  }
+
+  return frames;
 }
 
 String _formatTimestamp(int ms) {

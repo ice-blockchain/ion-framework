@@ -86,9 +86,8 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         (_, __) => _updateCommunityTokenState(),
       );
     final eventRef = params.eventReference;
-    final pubkeyValue = pubkey;
     // In case this is the first buy of a content token, we need to get the AI-suggested token creation details
-    if (eventRef != null && pubkeyValue != null && params.externalAddressType.isContentToken) {
+    if (eventRef != null && pubkey != null && params.externalAddressType.isContentToken) {
       TradeCommunityTokenState mapToTradeState(
         AsyncValue<SuggestedTokenDetailsState?> suggestedDetailsState,
       ) {
@@ -109,7 +108,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
           (
             eventReference: eventRef,
             externalAddress: externalAddress,
-            pubkey: pubkeyValue,
+            pubkey: pubkey,
           ),
         ),
         (previous, current) {
@@ -124,7 +123,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
           (
             eventReference: eventRef,
             externalAddress: externalAddress,
-            pubkey: pubkeyValue,
+            pubkey: pubkey,
           ),
         ),
       );

@@ -153,7 +153,6 @@ class TokenCard extends HookConsumerWidget {
           ),
           _TokenCardContent(
             onTap: onTap,
-            iconUrl: coinsGroup?.iconUrl,
             coinsGroup: coinsGroup,
             network: network,
             avatarWidget: avatarWidget,
@@ -289,7 +288,6 @@ class _TokenTypeHeader extends HookConsumerWidget {
 class _TokenCardContent extends StatelessWidget {
   const _TokenCardContent({
     required this.onTap,
-    required this.iconUrl,
     required this.coinsGroup,
     required this.network,
     required this.avatarWidget,
@@ -306,7 +304,6 @@ class _TokenCardContent extends StatelessWidget {
   });
 
   final VoidCallback onTap;
-  final String? iconUrl;
   final CoinsGroup? coinsGroup;
   final NetworkData? network;
   final Widget? avatarWidget;
@@ -332,14 +329,14 @@ class _TokenCardContent extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (iconUrl != null && coinsGroup != null)
+          if (coinsGroup != null && (iconUrl != null || (isCoinLoading ?? false)))
             Flexible(
               child: Row(
                 spacing: 10.0.s,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _CoinIcon(
-                    iconUrl: iconUrl,
+                    iconUrl: iconUrl ?? '',
                     network: network,
                     avatarWidget: avatarWidget,
                     isCoinLoading: isCoinLoading,

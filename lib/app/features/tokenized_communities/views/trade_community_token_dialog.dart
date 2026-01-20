@@ -192,9 +192,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             SizedBox(height: 16.0.s),
             ContinueButton(
               error: buttonError.value,
-              isEnabled: state.mode == CommunityTokenTradeMode.buy
-                  ? _isBuyContinueButtonEnabled(state)
-                  : _isSellContinueButtonEnabled(state),
+              isEnabled: _isContinueButtonEnabled(state),
               onPressed: () => _handleButtonPress(
                 context,
                 ref,
@@ -207,6 +205,15 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  bool _isContinueButtonEnabled(TradeCommunityTokenState state) {
+    return !state.shouldWaitSuggestedDetails ||
+        ((state.suggestedDetails?.name.isNotEmpty ?? false) &&
+                (state.suggestedDetails?.ticker.isNotEmpty ?? false)) &&
+            (state.mode == CommunityTokenTradeMode.buy
+                ? _isBuyContinueButtonEnabled(state)
+                : _isSellContinueButtonEnabled(state));
   }
 
   bool _isBuyContinueButtonEnabled(TradeCommunityTokenState state) {
