@@ -113,7 +113,7 @@ class _CarouselCard extends HookConsumerWidget {
                       imageSize: Size.square(90.0.s),
                       outerBorderRadius: 22.0.s,
                       innerBorderRadius: 22.0.s,
-                      borderWidth: 2.0.s,
+                      borderWidth: 1.5.s,
                       borderColor: context.theme.appColors.secondaryBackground,
                     ),
                     SizedBox(height: 10.0.s),
