@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao.m.dart';
+import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
@@ -361,7 +361,7 @@ class SwapCoinsController extends _$SwapCoinsController {
               return;
             }
 
-            final swapTransactionsDao = ref.read(swapTransactionsDaoProvider);
+            final swapsRepository = await ref.read(swapsRepositoryProvider.future);
             final sellAmount = double.tryParse(swapCoinParameters.amount) ?? 0;
             final rate = swapQuoteInfo?.priceForSellTokenInBuyToken ?? 1.0;
             final expectedReceiveAmount = sellAmount * rate;
@@ -381,7 +381,7 @@ class SwapCoinsController extends _$SwapCoinsController {
               'rate: $rate, expectedReceive: $expectedReceiveAmount, '
               'rawSellAmount: $rawSellAmount, rawBuyAmount: $rawBuyAmount',
             );
-            await swapTransactionsDao.saveSwap(
+            await swapsRepository.saveSwap(
               fromWalletAddress: swapCoinParameters.userSellAddress!,
               toWalletAddress: swapCoinParameters.userBuyAddress!,
               fromNetworkId: sellNetwork.id,
@@ -390,7 +390,7 @@ class SwapCoinsController extends _$SwapCoinsController {
               toAmount: rawBuyAmount,
             );
             Logger.log(
-              'SwapCoinsController: Swap saved (first-leg pending), '
+              'SwapCoinsController: Swap saved (from-tx pending), '
               'depositAddress: $depositAddress',
             );
 
@@ -709,7 +709,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         ionSwapRequest: ionSwapRequest,
       );
 
-      final swapTransactionsDao = ref.read(swapTransactionsDaoProvider);
+      final swapsRepository = await ref.read(swapsRepositoryProvider.future);
       final sellAmount = double.tryParse(swapCoinParameters.amount) ?? 0;
       final rate = swapQuoteInfo?.priceForSellTokenInBuyToken ?? 1.0;
       final expectedReceiveAmount = sellAmount * rate;
@@ -729,7 +729,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         'rawSellAmount: $rawSellAmount, rawBuyAmount: $rawBuyAmount, '
         'fromTxHash: $txHash',
       );
-      await swapTransactionsDao.saveSwap(
+      await swapsRepository.saveSwap(
         fromTxHash: txHash,
         fromWalletAddress: swapCoinParameters.userSellAddress!,
         toWalletAddress: swapCoinParameters.userBuyAddress!,

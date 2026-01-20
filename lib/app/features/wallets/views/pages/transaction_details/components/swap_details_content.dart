@@ -9,7 +9,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
-import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/swap_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/components/actions_section.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/transaction_details.dart';
@@ -28,15 +28,7 @@ class SwapDetailsContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final secondTransactionAsync = ref.watch(
-      transactionNotifierProvider(
-        walletViewId: selectedTransaction.walletViewId,
-        txHash: selectedTransaction.txHash,
-        type: selectedTransaction.type == TransactionType.receive
-            ? TransactionType.send
-            : TransactionType.receive,
-      ),
-    );
+    final swapAsync = ref.watch(swapDetailsProvider(selectedTransaction.txHash));
 
     final assetAbbreviation =
         selectedTransaction.assetData.mapOrNull(coin: (coin) => coin.coinsGroup)?.abbreviation;
@@ -44,16 +36,32 @@ class SwapDetailsContent extends ConsumerWidget {
         (selectedTransaction.status != TransactionStatus.confirmed &&
             selectedTransaction.status != TransactionStatus.failed);
 
+    final loader = [
+      const SliverToBoxAdapter(
+        child: _SwapDetailsCardSkeleton(),
+      ),
+      SliverToBoxAdapter(
+        child: SizedBox(height: 20.s),
+      ),
+    ];
+
     return CustomScrollView(
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        ...secondTransactionAsync.when(
+        ...swapAsync.when(
           skipLoadingOnReload: true,
-          data: (secondTransaction) {
+          data: (swap) {
+            if (swap == null) return loader;
+
+            final fromTransaction = swap.fromTransaction;
+            final toTransaction = swap.toTransaction;
+
+            if (fromTransaction == null || toTransaction == null) return loader;
+
             final isSellFirst = selectedTransaction.type == TransactionType.send;
-            final sellTransaction = isSellFirst ? selectedTransaction : secondTransaction;
-            final buyTransaction = isSellFirst ? secondTransaction : selectedTransaction;
+            final sellTransaction = isSellFirst ? fromTransaction : toTransaction;
+            final buyTransaction = isSellFirst ? toTransaction : fromTransaction;
 
             final sellCoinData = sellTransaction.assetData.mapOrNull(coin: (coin) => coin)!;
             final buyCoinData = buyTransaction.assetData.mapOrNull(coin: (coin) => coin)!;
@@ -87,22 +95,8 @@ class SwapDetailsContent extends ConsumerWidget {
               ),
             ];
           },
-          loading: () => [
-            const SliverToBoxAdapter(
-              child: _SwapDetailsCardSkeleton(),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(height: 20.s),
-            ),
-          ],
-          error: (error, stack) => [
-            const SliverToBoxAdapter(
-              child: _SwapDetailsCardSkeleton(),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(height: 20.s),
-            ),
-          ],
+          loading: () => loader,
+          error: (error, stack) => loader,
         ),
         SliverToBoxAdapter(
           child: ScreenSideOffset.small(

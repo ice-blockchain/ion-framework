@@ -52,7 +52,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     return swapId;
   }
 
-  Future<List<SwapTransaction>> getSwaps({
+  Future<List<SwapTransactions>> getSwaps({
     List<String?> fromTxHashes = const [],
     List<String?> toTxHashes = const [],
     List<String> fromWalletAddresses = const [],
@@ -73,7 +73,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     return query.get();
   }
 
-  Stream<List<SwapTransaction>> watchSwaps({
+  Stream<List<SwapTransactions>> watchSwaps({
     List<String?> fromTxHashes = const [],
     List<String?> toTxHashes = const [],
     List<String> fromWalletAddresses = const [],

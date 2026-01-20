@@ -2,7 +2,7 @@
 
 import 'package:drift/drift.dart';
 
-@DataClassName('SwapTransaction')
+@DataClassName('SwapTransactions')
 class SwapTransactionsTable extends Table {
   IntColumn get swapId => integer().autoIncrement()();
   TextColumn get fromTxHash => text().nullable()();
