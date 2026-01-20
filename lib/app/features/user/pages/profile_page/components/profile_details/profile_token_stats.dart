@@ -295,9 +295,7 @@ class ProfileTokenStatsFeed extends StatelessWidget {
                       enableDecoration: false,
                       profileMode: ProfileMode.dark,
                       height: 44.s,
-                      pubkey: ReplaceableEventReference.fromString(
-                        tokenInfo.creator.addresses!.ionConnect!,
-                      ).masterPubkey,
+                      pubkey: tokenInfo.creator.addresses!.ionConnect!,
                     ),
                   ),
                   GradientHorizontalDivider(
