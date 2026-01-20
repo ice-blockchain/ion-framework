@@ -88,6 +88,7 @@ class ProfileTokenHeader extends ConsumerWidget {
 
     return Column(
       children: [
+        SizedBox(height: 4.0.s),
         Stack(
           clipBehavior: Clip.none,
           children: [
