@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:haptic_feedback/haptic_feedback.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
@@ -369,7 +370,14 @@ class _RangeSelector extends StatelessWidget {
     Widget chip(ChartTimeRange range) {
       final isSelected = range == selected;
       return GestureDetector(
-        onTap: onChanged == null ? null : () => onChanged!(range),
+        onTap: onChanged == null
+            ? null
+            : () {
+                if (!isSelected) {
+                  Haptics.vibrate(HapticsType.light).catchError((_) {});
+                }
+                onChanged!(range);
+              },
         behavior: HitTestBehavior.opaque,
         child: Container(
           margin: EdgeInsetsDirectional.only(end: 8.0.s),
