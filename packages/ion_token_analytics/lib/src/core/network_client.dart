@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
@@ -154,7 +155,7 @@ class NetworkClient {
     StreamSubscription<T>? currentListener;
     var isClosed = false;
     var reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
+    const maxRetryDelayMs = 10000; // 10 seconds max delay
 
     void listenToSubscription(Http2Subscription<T> sub) {
       // Cancel previous listener if exists
@@ -186,49 +187,44 @@ class NetworkClient {
             return;
           }
 
-          // Retry on all errors (similar to Dio and BscRpcFailoverHttpClient)
-          if (reconnectAttempts < maxReconnectAttempts) {
+          // Retry indefinitely with exponential backoff (capped at maxRetryDelayMs)
+          reconnectAttempts++;
+          try {
+            // Close the old subscription
             try {
-              // Close the old subscription
-              try {
-                await currentSubscription.close();
-              } catch (_) {
-                // Ignore errors closing old subscription
-              }
-
-              // Disconnect the dead connection
-              try {
-                await _client.connection.disconnect();
-              } catch (_) {
-                // Ignore errors during disconnect
-              }
-
-              // Wait a bit before retrying
-              await Future<void>.delayed(Duration(milliseconds: 200 * (reconnectAttempts + 1)));
-
-              // Create a new subscription (bypassing the outer subscribeSse to avoid double retry)
-              reconnectAttempts++;
-              final newSub = await _client.subscribeSse<T>(
-                path,
-                queryParameters: _buildQueryParameters(queryParameters),
-                headers: _addAuthorizationHeader(headers),
-              );
-
-              currentSubscription = newSub;
-
-              // Listen to the new subscription
-              listenToSubscription(newSub);
-            } catch (reconnectError) {
-              if (reconnectAttempts >= maxReconnectAttempts) {
-                controller.addError(error, stackTrace);
-              } else {
-                // Try again with current subscription (will fail and retry)
-                listenToSubscription(currentSubscription);
-              }
+              await currentSubscription.close();
+            } catch (_) {
+              // Ignore errors closing old subscription
             }
-          } else {
-            // Max attempts reached, propagate the error
-            controller.addError(error, stackTrace);
+
+            // Disconnect the dead connection
+            try {
+              await _client.connection.disconnect();
+            } catch (_) {
+              // Ignore errors during disconnect
+            }
+
+            // Wait before retrying using exponential backoff (capped at maxRetryDelayMs)
+            final delayMs = math.min(
+              maxRetryDelayMs,
+              (200 * math.pow(2, reconnectAttempts - 1)).toInt(),
+            );
+            await Future<void>.delayed(Duration(milliseconds: delayMs));
+
+            // Create a new subscription (bypassing the outer subscribeSse to avoid double retry)
+            final newSub = await _client.subscribeSse<T>(
+              path,
+              queryParameters: _buildQueryParameters(queryParameters),
+              headers: _addAuthorizationHeader(headers),
+            );
+
+            currentSubscription = newSub;
+
+            // Listen to the new subscription
+            listenToSubscription(newSub);
+          } catch (reconnectError) {
+            // Retry indefinitely - will trigger onError again and retry
+            listenToSubscription(currentSubscription);
           }
         },
         onDone: () {
