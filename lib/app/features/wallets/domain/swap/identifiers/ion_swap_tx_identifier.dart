@@ -5,8 +5,7 @@ import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
 
 class IonSwapTxIdentifier extends SwapTransactionIdentifier {
-  static const _bridgeMultisigAddress =
-      'Uf8PSnTugXPqSS9HgrEWdrU1yOoy2wH4qCaqsZhCaV2HSIEw';
+  static const _bridgeMultisigAddress = 'Uf8PSnTugXPqSS9HgrEWdrU1yOoy2wH4qCaqsZhCaV2HSIEw';
 
   /// ION message fee (in nanotons, 1 ION = 1_000_000_000 nanotons).
   /// Reference: https://docs.ton.org/foundations/fees
@@ -54,5 +53,4 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
     );
     return isMatch;
   }
-
 }

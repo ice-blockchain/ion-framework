@@ -59,16 +59,14 @@ class SwapTransactionLinker {
     _incomingTxSubscription = _transactionsRepository
         .watchTransactions(type: TransactionType.receive)
         .distinct(
-          (list1, list2) =>
-              const ListEquality<TransactionData>().equals(list1, list2),
+          (list1, list2) => const ListEquality<TransactionData>().equals(list1, list2),
         )
         .listen(_onNewIncomingTransactions);
 
     _outgoingTxSubscription = _transactionsRepository
         .watchTransactions(type: TransactionType.send)
         .distinct(
-          (list1, list2) =>
-              const ListEquality<TransactionData>().equals(list1, list2),
+          (list1, list2) => const ListEquality<TransactionData>().equals(list1, list2),
         )
         .listen(_onNewOutgoingTransactions);
   }
@@ -86,8 +84,7 @@ class SwapTransactionLinker {
     _pendingSwaps = [];
   }
 
-  SwapTransactionIdentifier? _getIdentifier(String networkId) =>
-      _identifiers.firstWhereOrNull(
+  SwapTransactionIdentifier? _getIdentifier(String networkId) => _identifiers.firstWhereOrNull(
         (i) => i.networkId.toLowerCase() == networkId.toLowerCase(),
       );
 
@@ -98,10 +95,8 @@ class SwapTransactionLinker {
     final sourceIdentifier = _getIdentifier(fromNetworkId);
     final destIdentifier = _getIdentifier(toNetworkId);
 
-    final sourceFee =
-        sourceIdentifier?.getCrossChainFee(isSource: true) ?? BigInt.zero;
-    final destFee =
-        destIdentifier?.getCrossChainFee(isSource: false) ?? BigInt.zero;
+    final sourceFee = sourceIdentifier?.getCrossChainFee(isSource: true) ?? BigInt.zero;
+    final destFee = destIdentifier?.getCrossChainFee(isSource: false) ?? BigInt.zero;
 
     return sourceFee + destFee;
   }
