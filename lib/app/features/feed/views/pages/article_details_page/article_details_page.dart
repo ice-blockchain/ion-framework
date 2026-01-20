@@ -162,6 +162,8 @@ class ArticleDetailsPage extends HookConsumerWidget {
             eventReference: eventReference,
             entity: articleEntity,
             onDelete: context.pop,
+            iconColor: context.theme.appColors.onTertiaryBackground,
+            showShadow: false,
           ),
         ],
       ),
