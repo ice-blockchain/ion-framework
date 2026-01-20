@@ -9,8 +9,8 @@ double calculateChartYPadding(double minY, double maxY) {
     return range * 0.20;
   }
 
-  // Minimum 5% padding when all values are identical
-  return (minY * 0.05).clamp(0.0001, double.infinity);
+  // Minimum 20% padding when all values are identical
+  return (minY * 0.20).clamp(0.0001, double.infinity);
 }
 
 // Returns a record with minY and maxY values that include appropriate padding.

@@ -59,11 +59,17 @@ ChartCalculationData? chartCalculationData(
   final chartMaxY = maxY + yPadding;
 
   // Transform candles to FlSpot
-  final spots = candles
+  final allSpots = candles
       .asMap()
       .entries
       .map((entry) => FlSpot(entry.key.toDouble(), entry.value.close))
       .toList();
+
+  // Limit to last 2000 points for rendering performance (fl_chart has issues with 7000+ points)
+  const maxRenderPoints = 2000;
+  final spots = allSpots.length > maxRenderPoints
+      ? allSpots.sublist(allSpots.length - maxRenderPoints)
+      : allSpots;
 
   // Build bottom labels with consistent spacing
   // Calculate labels based on scale: 8 labels per screen (35 candles)
