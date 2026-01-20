@@ -7,6 +7,7 @@ import 'package:ion/app/features/tokenized_communities/utils/market_data_formatt
 import 'package:ion/app/features/tokenized_communities/views/components/profit_loss_indicator.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_price_label.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_type_gradient_indicator.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/twitter_badge.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -44,7 +45,11 @@ class UserHoldingsListItem extends StatelessWidget {
                     PositionedDirectional(
                       start: 23.0.s,
                       top: 20.0.s,
-                      child: _TwitterBadge(),
+                      child: TwitterBadge(
+                        iconSize: 8.0.s,
+                        iconColor: Colors.white,
+                        containerSize: 13.0.s,
+                      ),
                     )
                   else if (token.type != CommunityTokenType.profile)
                     PositionedDirectional(
@@ -103,26 +108,6 @@ class UserHoldingsListItem extends StatelessWidget {
           text: '\$${MarketDataFormatter.formatCompactNumber(position.amountUSD)}',
         ),
       ],
-    );
-  }
-}
-
-class _TwitterBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 13.0.s,
-      height: 13.0.s,
-      decoration: BoxDecoration(
-        color: context.theme.appColors.asphalt,
-        borderRadius: BorderRadius.circular(4.0.s),
-      ),
-      child: Center(
-        child: Assets.svg.iconLoginXlogo.icon(
-          size: 8.0.s,
-          color: Colors.white,
-        ),
-      ),
     );
   }
 }

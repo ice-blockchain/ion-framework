@@ -10,6 +10,7 @@ import 'package:ion/app/features/tokenized_communities/utils/market_data_formatt
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_price_label.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_type_gradient_indicator.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/twitter_badge.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -61,16 +62,10 @@ class CreatorTokensListItem extends HookConsumerWidget {
                   PositionedDirectional(
                     bottom: 0.s,
                     end: -6.s,
-                    child: Container(
+                    child: TwitterBadge(
+                      iconSize: 8.0.s,
                       padding: EdgeInsets.all(2.s),
-                      decoration: BoxDecoration(
-                        color: context.theme.appColors.asphalt,
-                        borderRadius: BorderRadius.circular(4.0.s),
-                      ),
-                      child: Assets.svg.iconLoginXlogo.icon(
-                        size: 8.0.s,
-                        color: context.theme.appColors.secondaryBackground,
-                      ),
+                      iconColor: context.theme.appColors.secondaryBackground,
                     ),
                   )
                 else if (token.type != CommunityTokenType.profile)

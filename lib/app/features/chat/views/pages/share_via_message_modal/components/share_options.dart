@@ -26,6 +26,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/twitter_badge.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -149,7 +150,10 @@ class ShareOptions extends HookConsumerWidget {
             ),
             ShareOptionsMenuItem(
               buttonType: ButtonType.dropdown,
-              icon: Assets.svg.iconLoginXlogo.icon(size: iconSize),
+              icon: TwitterBadge(
+                iconSize: iconSize,
+                showContainer: false,
+              ),
               label: context.i18n.feed_x,
               onPressed: () {
                 ref.read(socialShareServiceProvider).shareToTwitter(
