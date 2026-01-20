@@ -25,6 +25,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_latest_tr
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/prefix_x_token_ticker.dart';
 import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart_stats.dart';
@@ -348,6 +349,10 @@ String? _normalizeChartTitle({
   required BuildContext context,
 }) {
   final ticker = token.marketData.ticker ?? '';
+
+  if (token.source.isTwitter) {
+    return prefixXTokenTicker(ticker);
+  }
 
   if (token.type == CommunityTokenType.profile) {
     // Creator token: @nickname (ticker) in lowercase
