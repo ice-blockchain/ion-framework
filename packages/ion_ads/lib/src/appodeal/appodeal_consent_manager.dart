@@ -5,8 +5,8 @@ class AppodealConsentForm {
   const AppodealConsentForm();
 
   /// Private method channel for communicating with native platform.
-  final MethodChannel _consentManagerChannel =
-      const MethodChannel('appodeal_flutter/consent_manager');
+  static const MethodChannel _consentManagerChannel =
+      MethodChannel('appodeal_flutter/consent_manager');
 
   /// Load consent form to determine the user's consent preferences.
   ///
