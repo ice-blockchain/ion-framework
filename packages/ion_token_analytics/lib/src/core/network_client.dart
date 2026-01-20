@@ -29,6 +29,28 @@ class NetworkClient {
     );
   }
 
+  Future<NetworkResponse<T>> getWithResponse<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
+  }) async {
+    final response = await _client.request<T>(
+      path,
+      queryParameters: _buildQueryParameters(queryParameters),
+      options: Http2RequestOptions(
+        timeout: _defaultTimeout,
+        headers: _addAuthorizationHeader(headers),
+      ),
+    );
+
+    if (response.statusCode != 200) {
+      //TODO: add custom exceptions with codes
+      throw Exception('Request failed with status ${response.statusCode}: $path');
+    }
+
+    return NetworkResponse<T>(data: response.data as T, headers: response.headers);
+  }
+
   Future<T> post<T>(
     String path, {
     Object? data,
@@ -180,6 +202,13 @@ class NetworkClient {
 
     return reqHeaders;
   }
+}
+
+class NetworkResponse<T> {
+  NetworkResponse({required this.data, this.headers});
+
+  final T data;
+  final Map<String, String>? headers;
 }
 
 class NetworkSubscription<T> {

@@ -16,6 +16,7 @@ class ProfileRoutes {
     ),
     TypedGoRoute<CreatorTokensRoute>(path: 'creator-tokens-fullstack'),
     TypedGoRoute<HoldersRoute>(path: 'holders-fullstack'),
+    TypedGoRoute<UserHoldingsRoute>(path: 'user-holdings-fullstack'),
     TypedGoRoute<TradesRoute>(path: 'trades-fullstack'),
     TypedShellRoute<ModalShellRouteData>(
       routes: [
@@ -430,4 +431,13 @@ class TradesRoute extends BaseRouteData with _$TradesRoute {
         );
 
   final String externalAddress;
+}
+
+class UserHoldingsRoute extends BaseRouteData with _$UserHoldingsRoute {
+  UserHoldingsRoute({required this.holderAddress})
+      : super(
+          child: UserHoldingsPage(holderAddress: holderAddress),
+        );
+
+  final String holderAddress;
 }

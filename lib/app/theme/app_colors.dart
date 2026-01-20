@@ -43,6 +43,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.forest,
     required this.electricViolet,
     required this.heliotrope,
+    required this.asphalt,
   });
 
   factory AppColorsExtension.fromTemplate(TemplateColors templateColors) {
@@ -85,6 +86,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       forest: templateColors.forest,
       electricViolet: templateColors.electricViolet,
       heliotrope: templateColors.heliotrope,
+      asphalt: templateColors.asphalt,
     );
   }
 
@@ -128,6 +130,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       forest: const Color(0xFF010008),
       electricViolet: const Color(0xFF6F2EFE),
       heliotrope: const Color(0xFF9973FD),
+      asphalt: const Color(0xFF1D1E20),
     );
   }
 
@@ -169,6 +172,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color forest;
   final Color electricViolet;
   final Color heliotrope;
+  final Color asphalt;
 
   @override
   ThemeExtension<AppColorsExtension> copyWith({
@@ -210,6 +214,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? forest,
     Color? electricViolet,
     Color? heliotrope,
+    Color? asphalt,
   }) {
     return AppColorsExtension(
       primaryAccent: primaryAccent ?? this.primaryAccent,
@@ -250,6 +255,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       forest: forest ?? this.forest,
       electricViolet: electricViolet ?? this.electricViolet,
       heliotrope: heliotrope ?? this.heliotrope,
+      asphalt: asphalt ?? this.asphalt,
     );
   }
 
@@ -301,6 +307,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       forest: Color.lerp(forest, other.forest, t)!,
       electricViolet: Color.lerp(electricViolet, other.electricViolet, t)!,
       heliotrope: Color.lerp(heliotrope, other.heliotrope, t)!,
+      asphalt: Color.lerp(asphalt, other.asphalt, t)!,
     );
   }
 }

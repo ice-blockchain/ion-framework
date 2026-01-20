@@ -7,6 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/twitter_badge.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
@@ -102,17 +103,12 @@ class TwitterTokenHeader extends StatelessWidget {
                 PositionedDirectional(
                   bottom: -3.s,
                   end: -3.s,
-                  child: Container(
+                  child: TwitterBadge(
+                    iconSize: 12.0.s,
                     padding: EdgeInsets.all(3.58.s),
-                    decoration: BoxDecoration(
-                      color: const Color(0xff1D1E20),
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(6.0.s),
-                    ),
-                    child: Assets.svg.iconLoginXlogo.icon(
-                      size: 12.0.s,
-                      color: context.theme.appColors.secondaryBackground,
-                    ),
+                    borderRadius: 6.0.s,
+                    border: Border.all(color: Colors.white),
+                    iconColor: context.theme.appColors.secondaryBackground,
                   ),
                 ),
               ],

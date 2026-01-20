@@ -8,7 +8,9 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/token_type_gradients.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/token_price_label.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/token_type_gradient_indicator.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/twitter_badge.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -60,23 +62,17 @@ class CreatorTokensListItem extends HookConsumerWidget {
                   PositionedDirectional(
                     bottom: 0.s,
                     end: -6.s,
-                    child: Container(
+                    child: TwitterBadge(
+                      iconSize: 8.0.s,
                       padding: EdgeInsets.all(2.s),
-                      decoration: BoxDecoration(
-                        color: const Color(0xff1D1E20),
-                        borderRadius: BorderRadius.circular(4.0.s),
-                      ),
-                      child: Assets.svg.iconLoginXlogo.icon(
-                        size: 8.0.s,
-                        color: context.theme.appColors.secondaryBackground,
-                      ),
+                      iconColor: context.theme.appColors.secondaryBackground,
                     ),
                   )
                 else if (token.type != CommunityTokenType.profile)
                   PositionedDirectional(
                     end: -6.0.s,
                     bottom: -1.0.s,
-                    child: _GradientIndicator(tokenType: token.type),
+                    child: TokenTypeGradientIndicator(tokenType: token.type),
                   ),
               ],
             ),
@@ -100,44 +96,15 @@ class CreatorTokensListItem extends HookConsumerWidget {
               ),
             ),
             SizedBox(width: 8.0.s),
-            _TokenPriceLabel(
-              price: token.marketData.priceUSD,
+            TokenPriceLabel(
+              text: formatPriceWithSubscript(token.marketData.priceUSD),
+              textStyle: context.theme.appTextThemes.caption4.copyWith(
+                color: context.theme.appColors.primaryBackground,
+                fontWeight: FontWeight.bold,
+              ),
+              height: 20.0.s,
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TokenPriceLabel extends StatelessWidget {
-  const _TokenPriceLabel({
-    required this.price,
-  });
-
-  final double price;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 6.0.s,
-        vertical: 2.0.s,
-      ),
-      decoration: ShapeDecoration(
-        color: context.theme.appColors.primaryAccent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0.s),
-        ),
-      ),
-      height: 20.0.s,
-      child: Center(
-        child: Text(
-          formatPriceWithSubscript(price),
-          style: context.theme.appTextThemes.caption4.copyWith(
-            color: context.theme.appColors.primaryBackground,
-            fontWeight: FontWeight.bold,
-          ),
         ),
       ),
     );
@@ -194,29 +161,6 @@ class _CreatorStatsWidget extends StatelessWidget {
           ],
         ],
       ],
-    );
-  }
-}
-
-class _GradientIndicator extends StatelessWidget {
-  const _GradientIndicator({
-    required this.tokenType,
-  });
-
-  final CommunityTokenType tokenType;
-
-  @override
-  Widget build(BuildContext context) {
-    final gradient = TokenTypeGradients.getGradientForType(tokenType);
-    if (gradient == null) return const SizedBox.shrink();
-
-    return Container(
-      width: 12.0.s,
-      height: 12.0.s,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: gradient,
-      ),
     );
   }
 }
