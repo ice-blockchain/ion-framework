@@ -315,6 +315,8 @@ PODS:
   - GTMSessionFetcher/Core (3.5.0)
   - GTMSessionFetcher/Full (3.5.0):
     - GTMSessionFetcher/Core
+  - haptic_feedback (0.5.1):
+    - Flutter
   - icloud_storage (0.0.1):
     - Flutter
   - image_cropper (0.0.4):
@@ -471,6 +473,7 @@ DEPENDENCIES:
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - GoogleUtilities
+  - haptic_feedback (from `.symlinks/plugins/haptic_feedback/ios`)
   - icloud_storage (from `.symlinks/plugins/icloud_storage/ios`)
   - image_cropper (from `.symlinks/plugins/image_cropper/ios`)
   - ion_content_labeler (from `.symlinks/plugins/ion_content_labeler/ios`)
@@ -605,6 +608,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
   google_sign_in_ios:
     :path: ".symlinks/plugins/google_sign_in_ios/darwin"
+  haptic_feedback:
+    :path: ".symlinks/plugins/haptic_feedback/ios"
   icloud_storage:
     :path: ".symlinks/plugins/icloud_storage/ios"
   image_cropper:
@@ -723,6 +728,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  haptic_feedback: 1f22d7ad3abb43bb814aa42fdf548dc6d9e8245a
   icloud_storage: e55639f0c0d7cb2b0ba9c0b3d5968ccca9cd9aa2
   image_cropper: 64567491beea6cd1bc4b11948e2babb590de5826
   ion_content_labeler: f7b0a605150742a6e41c82730110b008c582d788
