@@ -240,9 +240,9 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     if (state.shouldWaitSuggestedDetails) {
       final suggestedDetails = state.suggestedDetails;
-
-      tokenTitle = suggestedDetails?.name ?? '';
-      communityAvatar = suggestedDetails?.picture ?? '';
+      tokenTitle = suggestedDetails?.name.trim() ?? '';
+      final suggestedPicture = suggestedDetails?.picture.trim();
+      communityAvatar = suggestedPicture?.isNotEmpty ?? false ? suggestedPicture : null;
     } else {
       tokenTitle = tokenInfo?.title ??
           userData?.data.trimmedDisplayName ??

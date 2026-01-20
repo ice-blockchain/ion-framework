@@ -467,7 +467,8 @@ class _TokenCards extends HookConsumerWidget {
                     onValidationError: onValidationError,
                     onTap: () {},
                     isError: isError,
-                    isCoinLoading: state.shouldWaitSuggestedDetails && state.suggestedDetails == null,
+                    isCoinLoading:
+                        state.shouldWaitSuggestedDetails && state.suggestedDetails == null,
                   ),
                 ]
               : [
@@ -482,7 +483,8 @@ class _TokenCards extends HookConsumerWidget {
                     skipAmountFormatting: true,
                     showArrow: false,
                     onTap: () {},
-                    isCoinLoading: state.shouldWaitSuggestedDetails && state.suggestedDetails == null,
+                    isCoinLoading:
+                        state.shouldWaitSuggestedDetails && state.suggestedDetails == null,
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(

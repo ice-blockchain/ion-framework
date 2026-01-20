@@ -35,18 +35,26 @@ typedef SuggestTokenCreationDetailsParams = ({
 });
 
 @riverpod
-Future<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
+Stream<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
   Ref ref,
   SuggestTokenCreationDetailsFromEventParams params,
-) async {
+) async* {
+  var isDisposed = false;
+  ref.onDispose(() {
+    isDisposed = true;
+  });
+
   try {
     // Check if token already exists, and proceed only if it does not exist
     final isTokenExists = await ref.read(tokenExistsProvider(params.externalAddress).future);
-    if (isTokenExists) return const SuggestedTokenDetailsState.skipped();
+    if (isTokenExists) {
+      yield const SuggestedTokenDetailsState.skipped();
+      return;
+    }
     // Get entity to extract content
     final entity =
         ref.watch(ionConnectEntityProvider(eventReference: params.eventReference)).valueOrNull;
-    if (entity == null) return null;
+    if (entity == null) return;
 
     // Extract content text based on entity type
     String? contentText;
@@ -64,10 +72,10 @@ Future<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
       }
       contentText = parts.join('\n').trim();
     }
-    if (contentText == null || contentText.isEmpty) return null;
+    if (contentText == null || contentText.isEmpty) return;
     // Get user metadata for creator info
     final userMetadata = await ref.watch(userMetadataProvider(params.pubkey).future);
-    if (userMetadata == null) return null;
+    if (userMetadata == null) return;
     // Build creator info
     final creatorInfo = CreatorInfo(
       name: userMetadata.data.displayName.isNotEmpty
@@ -91,18 +99,59 @@ Future<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
       ).future,
     );
 
-    // TODO: Handle picture unavailability. Return empty picture, start a periodic requests of the url(which came in picture field), untill it became avaialable(not having 404 status code), then emit new state with not empty picture.
-
-    return SuggestedTokenDetailsState.suggested(
-      suggestedDetails: SuggestedTokenDetails(
-        ticker: response?.ticker ?? '',
-        name: response?.name ?? '',
-        picture: response?.picture ?? '',
-      ),
+    final details = SuggestedTokenDetails(
+      ticker: response?.ticker ?? '',
+      name: response?.name ?? '',
+      picture: response?.picture ?? '',
     );
+    final pictureUrl = details.picture.trim();
+
+    if (pictureUrl.isEmpty) {
+      yield SuggestedTokenDetailsState.suggested(suggestedDetails: details);
+      return;
+    }
+
+    final isAvailable = await _isPictureAvailable(pictureUrl);
+    if (isAvailable) {
+      yield SuggestedTokenDetailsState.suggested(suggestedDetails: details);
+      return;
+    }
+
+    // Emit empty picture first, then poll until the image becomes available.
+    yield SuggestedTokenDetailsState.suggested(
+      suggestedDetails: details.copyWith(picture: ''),
+    );
+
+    final deadline = DateTime.now().add(const Duration(minutes: 2));
+    const delay = Duration(seconds: 1);
+
+    while (!isDisposed && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(delay);
+      if (isDisposed) return;
+      if (await _isPictureAvailable(pictureUrl)) {
+        yield SuggestedTokenDetailsState.suggested(suggestedDetails: details);
+        return;
+      }
+    }
   } catch (e, stackTrace) {
     Logger.log('suggestTokenCreationDetailsFromEvent error: $e', stackTrace: stackTrace);
-    return null;
+    yield const SuggestedTokenDetailsState.skipped();
+    return;
+  }
+}
+
+Future<bool> _isPictureAvailable(String url) async {
+  final client = HttpClient();
+  try {
+    final uri = Uri.parse(url);
+    final request = await client.headUrl(uri);
+    request.headers.set('User-Agent', 'IonApp/1.0');
+    final response = await request.close();
+    return response.statusCode != HttpStatus.notFound;
+  } catch (_) {
+    return false;
+  } finally {
+    client.close();
   }
 }
 
