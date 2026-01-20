@@ -6,7 +6,12 @@ class MasterPubkeyResolver {
   MasterPubkeyResolver._();
 
   static String resolve(String externalAddress, {EventReference? eventReference}) {
-    return eventReference?.masterPubkey ??
-        ReplaceableEventReference.fromString(externalAddress).masterPubkey;
+    if (eventReference != null) {
+      return eventReference.masterPubkey;
+    } else if (!externalAddress.contains(EventReference.separator)) {
+      return externalAddress;
+    } else {
+      return ReplaceableEventReference.fromString(externalAddress).masterPubkey;
+    }
   }
 }
