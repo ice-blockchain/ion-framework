@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/features/core/providers/relay_proxy_domains_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -83,15 +84,36 @@ class IonConnectMediaUrlFallback extends _$IonConnectMediaUrlFallback {
       return null;
     }
 
-    final fallbackHosts = userRelays
-        .map((relayUrl) => Uri.parse(relayUrl).host)
-        .toSet()
-        .difference(_failedHosts[authorPubkey] ?? {});
+    final initialUri = Uri.parse(initialAssetUrl);
+    final normalizedPort =
+        initialUri.hasPort ? (initialUri.port == 4443 ? 443 : initialUri.port) : null;
 
-    if (fallbackHosts.isEmpty) {
-      return null;
+    final failed = _failedHosts[authorPubkey] ?? <String>{};
+
+    // Iterate relays in their provided order. For each relay, expand it into
+    // ordered connect candidates (preferred proxy -> direct -> remaining proxies)
+    // and try candidate hosts in order.
+    for (final relayUrl in userRelays) {
+      Uri relayUri;
+      try {
+        relayUri = Uri.parse(relayUrl);
+      } catch (_) {
+        continue;
+      }
+
+      // If we cannot parse a host, skip.
+      if (relayUri.host.isEmpty) continue;
+
+      final candidates = ref.read(relayConnectUrisProvider(relayUrl));
+      for (final candidate in candidates) {
+        final host = candidate.host;
+        if (host.isEmpty) continue;
+        if (failed.contains(host)) continue;
+
+        return initialUri.replace(host: host, port: normalizedPort).toString();
+      }
     }
 
-    return Uri.parse(initialAssetUrl).replace(host: fallbackHosts.first).toString();
+    return null;
   }
 }
