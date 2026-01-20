@@ -355,6 +355,7 @@
   "creator_tokens_filter_all_tokens": "Tous les jetons",
   "creator_tokens_filter_content_tokens": "Jetons de contenu",
   "creator_tokens_filter_creator_tokens": "Jetons de créateur",
+  "creator_tokens_filter_general_coins": "Jetons généraux",
   "creator_tokens_filter_title": "Filtre",
   "creator_tokens_filter_x_tokens": "Jetons X",
   "dapp_details_launch_dapp_button_title": "Lancer dApp",

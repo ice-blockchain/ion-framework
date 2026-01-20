@@ -18,14 +18,12 @@ class CoinsTabHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: ScreenSideOffset.small(
-        child: Padding(
-          padding: EdgeInsetsDirectional.only(top: 8.0.s),
-          child: WalletSearchBar(
-            padding: EdgeInsetsDirectional.only(
-              bottom: 16.0.s,
-            ),
-            tabType: tabType,
+        child: WalletSearchBar(
+          padding: EdgeInsetsDirectional.only(
+            top: 8.0.s,
+            bottom: 16.0.s,
           ),
+          tabType: tabType,
         ),
       ),
     );

@@ -21,7 +21,7 @@ class WalletCoinsFilterBar extends StatelessWidget {
 
     return ScreenSideOffset.small(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 12.0.s),
+        padding: EdgeInsets.only(bottom: 12.0.s),
         child: Row(
           children: [
             Assets.svg.iconFilter.icon(

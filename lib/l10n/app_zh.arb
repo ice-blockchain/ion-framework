@@ -355,6 +355,7 @@
   "creator_tokens_filter_all_tokens": "所有代币",
   "creator_tokens_filter_content_tokens": "内容代币",
   "creator_tokens_filter_creator_tokens": "创作者代币",
+  "creator_tokens_filter_general_coins": "通用代币",
   "creator_tokens_filter_title": "筛选",
   "creator_tokens_filter_x_tokens": "X 代币",
   "dapp_details_launch_dapp_button_title": "启动 dApp",

@@ -49,12 +49,13 @@ class CoinsTab extends ConsumerWidget {
         final tokenType = coin.tokenizedCommunityTokenType;
 
         if (tokenType == null) {
-          // Regular coin - only matches "all" filter
-          return selectedFilter == TokenTypeFilter.all;
+          // Regular coin - matches "all" and "general" filters
+          return selectedFilter == TokenTypeFilter.all || selectedFilter == TokenTypeFilter.general;
         }
 
         return switch (selectedFilter) {
           TokenTypeFilter.all => true,
+          TokenTypeFilter.general => false,
           TokenTypeFilter.creator => tokenType == TokenizedCommunityTokenType.tokenTypeProfile,
           TokenTypeFilter.content => tokenType == TokenizedCommunityTokenType.tokenTypePost ||
               tokenType == TokenizedCommunityTokenType.tokenTypeArticle ||

@@ -6,6 +6,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 enum TokenTypeFilter {
   all,
+  general,
   creator,
   content,
   x;
@@ -13,6 +14,7 @@ enum TokenTypeFilter {
   String getLabel(BuildContext context) {
     return switch (this) {
       TokenTypeFilter.all => context.i18n.creator_tokens_filter_all_tokens,
+      TokenTypeFilter.general => context.i18n.creator_tokens_filter_general_coins,
       TokenTypeFilter.creator => context.i18n.creator_tokens_filter_creator_tokens,
       TokenTypeFilter.content => context.i18n.creator_tokens_filter_content_tokens,
       TokenTypeFilter.x => context.i18n.creator_tokens_filter_x_tokens,
@@ -22,6 +24,7 @@ enum TokenTypeFilter {
   bool matchesTokenType(CommunityTokenType? tokenType, CommunityTokenSource tokenSource) {
     return switch (this) {
       TokenTypeFilter.all => true,
+      TokenTypeFilter.general => tokenType == null,
       TokenTypeFilter.creator => tokenType == CommunityTokenType.profile,
       TokenTypeFilter.content => tokenType != null &&
           tokenSource.isIonConnect &&

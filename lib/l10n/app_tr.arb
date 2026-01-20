@@ -355,6 +355,7 @@
   "creator_tokens_filter_all_tokens": "Tüm tokenler",
   "creator_tokens_filter_content_tokens": "İçerik Tokenleri",
   "creator_tokens_filter_creator_tokens": "İçerik Üretici Tokenleri",
+  "creator_tokens_filter_general_coins": "Genel tokenler",
   "creator_tokens_filter_title": "Filtre",
   "creator_tokens_filter_x_tokens": "X Tokenleri",
   "dapp_details_launch_dapp_button_title": "dApp'i başlat",
