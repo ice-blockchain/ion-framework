@@ -97,6 +97,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
     final activeTab = useState(TokenizedCommunityTabType.chart);
     final isCommentInputFocused = useMemoized(() => ValueNotifier<bool>(false), []);
     final innerScrollController = useState<ScrollController?>(null);
+    final ignoreScrollUpdates = useState(false);
 
     useEffect(
       () {
@@ -113,52 +114,107 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       [],
     );
 
-    Future<void> scrollToSection(int index) async {
-      final targetCtx = sectionKeys[index].currentContext;
-      if (targetCtx == null) return;
+    useEffect(
+      () {
+        final controller = innerScrollController.value;
+        if (controller == null) return null;
 
-      double outerOffsetDy = 0;
+        void handleScroll() {
+          if (ignoreScrollUpdates.value || !controller.hasClients) {
+            return;
+          }
 
-      final nestedState = targetCtx.findAncestorStateOfType<NestedScrollViewState>();
-      final inner = nestedState?.innerController ?? innerScrollController.value;
-      if (inner == null || !inner.hasClients) return;
+          const collapsedHeaderOffset = 160.0; // AppBar + pinned tabs + spacing
+          const expandedHeaderTabsOffset = 40.0; // Height of the pinned tabs row
 
-      final outer = nestedState?.outerController;
-      if (outer != null && outer.hasClients) {
-        outerOffsetDy = outer.position.pixels;
-        final outerTarget = outer.position.maxScrollExtent - (index == 0 ? 40 : 0);
+          final nestedState =
+              sectionKeys.first.currentContext?.findAncestorStateOfType<NestedScrollViewState>();
+          final outer = nestedState?.outerController;
+          final offsetBias = outer != null && outer.hasClients && outer.position.pixels > 0
+              ? collapsedHeaderOffset
+              : expandedHeaderTabsOffset;
+          final currentOffset = controller.position.pixels;
+          int? newIndex;
 
-        unawaited(
-          outer.animateTo(
-            outerTarget,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          ),
-        );
-        if (index == 0) {
-          return;
+          for (var i = 0; i < sectionKeys.length; i++) {
+            final sectionContext = sectionKeys[i].currentContext;
+            if (sectionContext == null) continue;
+            final renderObject = sectionContext.findRenderObject();
+            if (renderObject == null) continue;
+            final viewport = RenderAbstractViewport.of(renderObject);
+
+            final sectionOffset = viewport.getOffsetToReveal(renderObject, 0).offset;
+            if (sectionOffset <= currentOffset + offsetBias) {
+              newIndex = i;
+            } else {
+              break;
+            }
+          }
+
+          if (newIndex != null && newIndex != activeTab.value.index) {
+            activeTab.value = TokenizedCommunityTabType.values[newIndex];
+          }
         }
+
+        controller.addListener(handleScroll);
+        handleScroll();
+        return () => controller.removeListener(handleScroll);
+      },
+      [innerScrollController.value, sectionKeys],
+    );
+
+    Future<void> scrollToSection(int index) async {
+      ignoreScrollUpdates.value = true;
+      try {
+        final targetCtx = sectionKeys[index].currentContext;
+        if (targetCtx == null) return;
+
+        double outerOffsetDy = 0;
+
+        final nestedState = targetCtx.findAncestorStateOfType<NestedScrollViewState>();
+        final inner = nestedState?.innerController ?? innerScrollController.value;
+        if (inner == null || !inner.hasClients) return;
+
+        final outer = nestedState?.outerController;
+        if (outer != null && outer.hasClients) {
+          outerOffsetDy = outer.position.pixels;
+          final outerTarget =
+              index == 0 ? outer.position.minScrollExtent : outer.position.maxScrollExtent;
+
+          unawaited(
+            outer.animateTo(
+              outerTarget,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
+          );
+          if (index == 0) {
+            return;
+          }
+        }
+
+        final updatedCtx = sectionKeys[index].currentContext;
+        if (updatedCtx == null) return;
+
+        final ro = updatedCtx.findRenderObject();
+        if (ro == null) return;
+
+        final viewport = RenderAbstractViewport.of(ro);
+
+        // Align the section to the TOP of the inner viewport.
+        final desired = viewport.getOffsetToReveal(ro, 0).offset;
+        final pos = inner.position;
+        final target = (desired - (outerOffsetDy == 0 ? 40 : 160))
+            .clamp(pos.minScrollExtent, pos.maxScrollExtent);
+
+        await inner.animateTo(
+          target,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } finally {
+        ignoreScrollUpdates.value = false;
       }
-
-      final updatedCtx = sectionKeys[index].currentContext;
-      if (updatedCtx == null) return;
-
-      final ro = updatedCtx.findRenderObject();
-      if (ro == null) return;
-
-      final viewport = RenderAbstractViewport.of(ro);
-
-      // Align the section to the TOP of the inner viewport.
-      final desired = viewport.getOffsetToReveal(ro, 0).offset;
-      final pos = inner.position;
-      final target = (desired - (outerOffsetDy == 0 ? 40 : 160))
-          .clamp(pos.minScrollExtent, pos.maxScrollExtent);
-
-      await inner.animateTo(
-        target,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
     }
 
     return CollapsingHeaderLayout(
