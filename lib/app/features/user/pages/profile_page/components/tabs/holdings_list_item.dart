@@ -145,8 +145,8 @@ class _ProfitLossIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final isProfit = position.pnl >= 0;
     final profitColor = isProfit
-        ? const Color(0xFF35D487) // success green from design
-        : const Color(0xFFFF396E); // loss red from design
+        ? context.theme.appColors.success
+        : context.theme.appColors.lossRed;
 
     final pnlSign = getNumericSign(position.pnl);
     final pnlAmount = MarketDataFormatter.formatCompactNumber(position.pnl.abs());

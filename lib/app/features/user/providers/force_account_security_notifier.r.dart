@@ -13,10 +13,12 @@ import 'package:ion/app/features/core/providers/splash_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/recovery_credentials_enabled_notifier.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/user_details_provider.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/views/pages/secure_account_modal.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/providers/route_location_provider.r.dart';
+import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'force_account_security_notifier.r.g.dart';
@@ -105,7 +107,7 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
           EnvVariable.ENFORCE_ACCOUNT_SECURITY_DELAY_IN_MINUTES,
         ),
     emitDialog: () {
-      // ref.read(uiEventQueueNotifierProvider.notifier).emit(const SecureAccountDialogEvent());
+      ref.read(uiEventQueueNotifierProvider.notifier).emit(const SecureAccountDialogEvent());
     },
   );
 
