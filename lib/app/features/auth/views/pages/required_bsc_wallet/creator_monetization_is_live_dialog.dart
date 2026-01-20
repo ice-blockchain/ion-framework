@@ -20,15 +20,15 @@ import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 class CreatorMonetizationIsLiveDialogEvent extends UiEvent {
-  const CreatorMonetizationIsLiveDialogEvent();
+  const CreatorMonetizationIsLiveDialogEvent() : super(id: 'creator_monetization_is_live_dialog');
 
   static bool shown = false;
 
   @override
-  void performAction(BuildContext context) {
+  Future<void> performAction(BuildContext context) async {
     if (!shown) {
       shown = true;
-      showSimpleBottomSheet<void>(
+      await showSimpleBottomSheet<void>(
         context: context,
         isDismissible: false,
         backgroundColor: context.theme.appColors.forest,
@@ -58,14 +58,6 @@ class _ContentState extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textStyles = context.theme.appTextThemes;
     final colors = context.theme.appColors;
-
-    ref.listen(bscWalletCheckProvider, (prev, next) {
-      next.whenData((result) {
-        if (result.hasBscWallet && context.mounted) {
-          Navigator.of(context).pop();
-        }
-      });
-    });
 
     final isCreatingWallet = ref.watch(
       walletAddressNotifierProvider.select((state) => state.isLoading),
@@ -132,7 +124,6 @@ class _ContentState extends ConsumerWidget {
     final address = await _createBscWallet(context, ref, network: bscNetwork);
     if (!context.mounted || address == null) return;
 
-    ref.invalidate(bscWalletCheckProvider);
     await ref
         .read(userMetadataInvalidatorNotifierProvider.notifier)
         .invalidateCurrentUserMetadataProviders();

@@ -21,15 +21,15 @@ import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ShowAppUpdateModalEvent extends UiEvent {
-  const ShowAppUpdateModalEvent();
+  const ShowAppUpdateModalEvent() : super(id: 'app_update_modal');
 
   static bool shown = false;
 
   @override
-  void performAction(BuildContext context) {
+  Future<void> performAction(BuildContext context) async {
     if (!shown) {
       shown = true;
-      showSimpleBottomSheet<void>(
+      await showSimpleBottomSheet<void>(
         context: context,
         isDismissible: false,
         child: const AppUpdateModal(
@@ -41,17 +41,17 @@ class ShowAppUpdateModalEvent extends UiEvent {
 }
 
 class ShowInAppUpdateModalEvent extends UiEvent {
-  const ShowInAppUpdateModalEvent();
+  const ShowInAppUpdateModalEvent() : super(id: 'in_app_update_modal');
 
   static bool shown = false;
 
   @override
-  void performAction(BuildContext context) {
+  Future<void> performAction(BuildContext context) async {
     final ref = ProviderScope.containerOf(context);
 
     if (!shown) {
       shown = true;
-      showSimpleBottomSheet<void>(
+      await showSimpleBottomSheet<void>(
         context: context,
         child: AppUpdateModal(
           appUpdateType: AppUpdateType.androidSoftUpdate,

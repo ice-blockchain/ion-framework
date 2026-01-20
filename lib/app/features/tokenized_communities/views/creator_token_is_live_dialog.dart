@@ -28,16 +28,17 @@ import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class CreatorTokenIsLiveDialogEvent extends UiEvent {
-  CreatorTokenIsLiveDialogEvent(this.tokenDefinitionEventReference);
+  const CreatorTokenIsLiveDialogEvent(this.tokenDefinitionEventReference)
+      : super(id: 'creator_token_is_live_dialog');
 
   static bool shown = false;
   final ReplaceableEventReference tokenDefinitionEventReference;
 
   @override
-  void performAction(BuildContext context) {
+  Future<void> performAction(BuildContext context) async {
     if (!shown) {
       shown = true;
-      showSimpleBottomSheet<void>(
+      await showSimpleBottomSheet<void>(
         context: context,
         backgroundColor: context.theme.appColors.forest,
         child:

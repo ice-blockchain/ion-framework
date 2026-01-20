@@ -18,6 +18,11 @@ Future<List<NetworkData>> networks(Ref ref) {
 }
 
 @riverpod
+Stream<List<NetworkData>> networksStream(Ref ref) {
+  return ref.watch(networksRepositoryProvider).watchAll().distinct();
+}
+
+@riverpod
 Future<List<NetworkData>> networksByTier(Ref ref, {required int tier}) {
   return ref
       .watch(networksRepositoryProvider)
