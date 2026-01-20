@@ -80,7 +80,7 @@ class CommunityTokenDefinitionRepository {
       } else {
         tags = {
           '#a': [creatorEventReference.toString()],
-          '!#t': [communityTokenActionTopic],
+          '#!t': [communityTokenActionTopic],
         };
       }
     }
