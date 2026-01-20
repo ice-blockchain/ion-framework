@@ -134,9 +134,6 @@ class PeriodicTransactionsSyncService {
         final network = await _getNetworkById(swap.toNetworkId);
         if (network != null) {
           walletNetworks[swap.toWalletAddress] = network;
-          Logger.log(
-            'Added swap to-tx wallet ${swap.toWalletAddress} (${swap.toNetworkId}) to sync',
-          );
         }
       }
     }
@@ -148,9 +145,6 @@ class PeriodicTransactionsSyncService {
         final network = await _getNetworkById(swap.fromNetworkId);
         if (network != null) {
           walletNetworks[swap.fromWalletAddress] = network;
-          Logger.log(
-            'Added swap from-tx wallet ${swap.fromWalletAddress} (${swap.fromNetworkId}) to sync',
-          );
         }
       }
     }

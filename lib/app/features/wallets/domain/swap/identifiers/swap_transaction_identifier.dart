@@ -3,7 +3,6 @@
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
-import 'package:ion/app/services/logger/logger.dart';
 
 abstract class SwapTransactionIdentifier {
   String get networkId;
@@ -29,63 +28,15 @@ abstract class SwapTransactionIdentifier {
   /// Returns true if [tx] is a from-tx (outgoing) match for [swap].
   /// From-tx: user sends tokens TO the bridge on the source network.
   bool isFromTxMatch(SwapTransactions swap, TransactionData tx) {
-    Logger.log(
-      'SwapTxIdentifier[$networkId]: Checking from-tx match for '
-      'swap ${swap.swapId} and tx ${tx.txHash}',
-    );
-
-    // Note: Network IDs in the database use mixed case (e.g., "Ion", "Bsc")
-    // while identifiers and tx.network.id may use different casing.
-    // We compare case-insensitively to handle both.
-    if (swap.fromNetworkId.toLowerCase() != networkId.toLowerCase()) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
-        'swap.fromNetworkId (${swap.fromNetworkId}) != networkId ($networkId)',
-      );
-      return false;
-    }
-    if (tx.network.id.toLowerCase() != networkId.toLowerCase()) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
-        'tx.network.id (${tx.network.id}) != networkId ($networkId)',
-      );
-      return false;
-    }
-    if (tx.senderWalletAddress != swap.fromWalletAddress) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
-        'tx.sender (${tx.senderWalletAddress}) != swap.fromWallet (${swap.fromWalletAddress})',
-      );
-      return false;
-    }
-    if (tx.receiverWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
-        'tx.receiver (${tx.receiverWalletAddress}) != bridgeAddress ($bridgeAddress)',
-      );
-      return false;
-    }
+    if (swap.fromNetworkId.toLowerCase() != networkId.toLowerCase()) return false;
+    if (tx.network.id.toLowerCase() != networkId.toLowerCase()) return false;
+    if (tx.senderWalletAddress != swap.fromWalletAddress) return false;
+    if (tx.receiverWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) return false;
 
     final txDate = tx.dateConfirmed ?? tx.dateRequested;
-    if (!isWithinFromTxTimeWindow(swap.createdAt, txDate)) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
-        'tx outside time window (swap: ${swap.createdAt.toUtc()}, tx: ${txDate?.toUtc()})',
-      );
-      return false;
-    }
-    if (!isOutTxAmountMatch(swap.amount, tx)) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
-        'amount mismatch (swap: ${swap.amount})',
-      );
-      return false;
-    }
+    if (!isWithinFromTxTimeWindow(swap.createdAt, txDate)) return false;
+    if (!isOutTxAmountMatch(swap.amount, tx)) return false;
 
-    Logger.log(
-      'SwapTxIdentifier[$networkId]: From-tx MATCH found! '
-      'Swap ${swap.swapId} <- tx ${tx.txHash}',
-    );
     return true;
   }
 
@@ -93,61 +44,13 @@ abstract class SwapTransactionIdentifier {
   /// To-tx: user receives tokens FROM the bridge on the destination network.
   /// [crossChainFee] is the total fee deducted from toAmount (calculated by linker).
   bool isToTxMatch(SwapTransactions swap, TransactionData tx, {BigInt? crossChainFee}) {
-    Logger.log(
-      'SwapTxIdentifier[$networkId]: Checking to-tx match for '
-      'swap ${swap.swapId} and tx ${tx.txHash}',
-    );
+    if (swap.toNetworkId.toLowerCase() != networkId.toLowerCase()) return false;
+    if (tx.network.id.toLowerCase() != networkId.toLowerCase()) return false;
+    if (tx.receiverWalletAddress != swap.toWalletAddress) return false;
+    if (tx.senderWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) return false;
+    if (!isWithinTimeWindow(swap.createdAt, tx.dateConfirmed)) return false;
+    if (!isInTxAmountMatch(swap.toAmount, tx, crossChainFee: crossChainFee)) return false;
 
-    // Note: Network IDs in the database use mixed case (e.g., "Ion", "Bsc")
-    // while identifiers and tx.network.id may use different casing.
-    // We compare case-insensitively to handle both.
-    if (swap.toNetworkId.toLowerCase() != networkId.toLowerCase()) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
-        'swap.toNetworkId (${swap.toNetworkId}) != networkId ($networkId)',
-      );
-      return false;
-    }
-    if (tx.network.id.toLowerCase() != networkId.toLowerCase()) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
-        'tx.network.id (${tx.network.id}) != networkId ($networkId)',
-      );
-      return false;
-    }
-    if (tx.receiverWalletAddress != swap.toWalletAddress) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
-        'tx.receiver (${tx.receiverWalletAddress}) != swap.toWallet (${swap.toWalletAddress})',
-      );
-      return false;
-    }
-    if (tx.senderWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
-        'tx.sender (${tx.senderWalletAddress}) != bridgeAddress ($bridgeAddress)',
-      );
-      return false;
-    }
-    if (!isWithinTimeWindow(swap.createdAt, tx.dateConfirmed)) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
-        'tx outside time window (swap: ${swap.createdAt.toUtc()}, tx: ${tx.dateConfirmed?.toUtc()})',
-      );
-      return false;
-    }
-    if (!isInTxAmountMatch(swap.toAmount, tx, crossChainFee: crossChainFee)) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
-        'amount mismatch (expected: ${swap.toAmount})',
-      );
-      return false;
-    }
-
-    Logger.log(
-      'SwapTxIdentifier[$networkId]: To-tx MATCH found! '
-      'Swap ${swap.swapId} -> tx ${tx.txHash}',
-    );
     return true;
   }
 
@@ -175,28 +78,10 @@ abstract class SwapTransactionIdentifier {
   /// Override in subclasses to apply network-specific fee deductions.
   bool isOutTxAmountMatch(String swapAmount, TransactionData tx) {
     final (swapAmountValue, txAmountValue) = parseAmounts(swapAmount, tx);
-    if (swapAmountValue == null || txAmountValue == null) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: OutTxAmount - parse failed '
-        '(swap: $swapAmount, tx raw amount: null)',
-      );
-      return false;
-    }
-    if (swapAmountValue == BigInt.zero) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: OutTxAmount - swap amount is 0',
-      );
-      return false;
-    }
+    if (swapAmountValue == null || txAmountValue == null) return false;
+    if (swapAmountValue == BigInt.zero) return false;
 
-    // Default: direct comparison (subclasses override with fee logic)
-    final isMatch = amountsEqual(swapAmountValue, txAmountValue);
-    Logger.log(
-      'SwapTxIdentifier[$networkId]: OutTxAmount - '
-      'swapAmount: $swapAmountValue, txAmount: $txAmountValue, '
-      'match: $isMatch',
-    );
-    return isMatch;
+    return amountsEqual(swapAmountValue, txAmountValue);
   }
 
   /// Incoming tx amount should equal expected receive amount minus applicable fees.
@@ -207,29 +92,12 @@ abstract class SwapTransactionIdentifier {
     BigInt? crossChainFee,
   }) {
     final (expectedAmount, txAmountValue) = parseAmounts(expectedReceiveAmount, tx);
-    if (expectedAmount == null || txAmountValue == null) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: InTxAmount - parse failed '
-        '(expected: $expectedReceiveAmount, tx raw amount: null)',
-      );
-      return false;
-    }
-    if (expectedAmount == BigInt.zero) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: InTxAmount - expected amount is 0',
-      );
-      return false;
-    }
+    if (expectedAmount == null || txAmountValue == null) return false;
+    if (expectedAmount == BigInt.zero) return false;
 
     final fee = crossChainFee ?? BigInt.zero;
     final expectedAfterFee = expectedAmount - fee;
-    final isMatch = amountsEqual(expectedAfterFee, txAmountValue);
-    Logger.log(
-      'SwapTxIdentifier[$networkId]: InTxAmount - '
-      'expectedAmount: $expectedAmount, fee: $fee, expectedAfterFee: $expectedAfterFee, '
-      'txAmount: $txAmountValue, match: $isMatch',
-    );
-    return isMatch;
+    return amountsEqual(expectedAfterFee, txAmountValue);
   }
 
   /// Parses swap amount and transaction raw amount as integers (nanotons).

@@ -372,13 +372,6 @@ class SwapCoinsController extends _$SwapCoinsController {
                 (expectedReceiveAmount * BigInt.from(10).pow(buyDecimals).toDouble())
                     .toStringAsFixed(0);
 
-            Logger.log(
-              'SwapCoinsController: Initiating swap - '
-              '${sellNetwork.id} -> ${buyNetwork.id}, '
-              'amount: ${swapCoinParameters.amount}, '
-              'rate: $rate, expectedReceive: $expectedReceiveAmount, '
-              'rawSellAmount: $rawSellAmount, rawBuyAmount: $rawBuyAmount',
-            );
             await swapsRepository.saveSwap(
               fromWalletAddress: swapCoinParameters.userSellAddress!,
               toWalletAddress: swapCoinParameters.userBuyAddress!,
@@ -386,10 +379,9 @@ class SwapCoinsController extends _$SwapCoinsController {
               toNetworkId: buyNetwork.id,
               amount: rawSellAmount,
               toAmount: rawBuyAmount,
-            );
-            Logger.log(
-              'SwapCoinsController: Swap saved (from-tx pending), '
-              'depositAddress: $depositAddress',
+              fromCoinId: sellCoin.coin.id,
+              toCoinId: buyCoin.coin.id,
+              exchangeRate: rate,
             );
 
             await _sendCoinCallback(
@@ -719,14 +711,6 @@ class SwapCoinsController extends _$SwapCoinsController {
       final rawBuyAmount =
           (expectedReceiveAmount * BigInt.from(10).pow(buyDecimals).toDouble()).toStringAsFixed(0);
 
-      Logger.log(
-        'SwapCoinsController: ION-BSC swap completed - '
-        '${sellNetwork.id} -> ${buyNetwork.id}, '
-        'amount: ${swapCoinParameters.amount}, '
-        'rate: $rate, expectedReceive: $expectedReceiveAmount, '
-        'rawSellAmount: $rawSellAmount, rawBuyAmount: $rawBuyAmount, '
-        'fromTxHash: $txHash',
-      );
       await swapsRepository.saveSwap(
         fromTxHash: txHash,
         fromWalletAddress: swapCoinParameters.userSellAddress!,
@@ -735,9 +719,9 @@ class SwapCoinsController extends _$SwapCoinsController {
         toNetworkId: buyNetwork.id,
         amount: rawSellAmount,
         toAmount: rawBuyAmount,
-      );
-      Logger.log(
-        'SwapCoinsController: ION-BSC swap saved with fromTxHash: $txHash',
+        fromCoinId: sellCoin.coin.id,
+        toCoinId: buyCoin.coin.id,
+        exchangeRate: rate,
       );
 
       onSwapSuccess();

@@ -88,7 +88,6 @@ class SendNftNotifier extends _$SendNftNotifier {
         type: TransactionType.send,
         networkFeeOption: form.selectedNetworkFeeOption,
         memo: result.requestBody['memo']?.toString(),
-        isSwap: false,
       );
 
       await ref

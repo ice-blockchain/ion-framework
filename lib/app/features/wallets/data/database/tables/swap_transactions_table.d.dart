@@ -15,6 +15,10 @@ class SwapTransactionsTable extends Table {
   TextColumn get amount => text()();
   TextColumn get toAmount => text()();
   DateTimeColumn get createdAt => dateTime()();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  TextColumn get fromCoinId => text()();
+  TextColumn get toCoinId => text()();
+  RealColumn get exchangeRate => real()();
 
   @override
   String? get tableName => 'swap_transactions_table';

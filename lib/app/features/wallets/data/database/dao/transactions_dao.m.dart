@@ -13,6 +13,7 @@ import 'package:ion/app/features/wallets/model/crypto_asset_type.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/nft_identifier.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
+import 'package:ion/app/features/wallets/model/swap_status.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
@@ -498,9 +499,15 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       );
     }
 
-    final isFromTx = swapFromTxAlias != null && row.readTableOrNull(swapFromTxAlias) != null;
-    final isToTx = swapToTxAlias != null && row.readTableOrNull(swapToTxAlias) != null;
-    final isSwap = isFromTx || isToTx;
+    final swapFromTx = swapFromTxAlias != null ? row.readTableOrNull(swapFromTxAlias) : null;
+    final swapToTx = swapToTxAlias != null ? row.readTableOrNull(swapToTxAlias) : null;
+
+    SwapStatus? swapStatus;
+    if (swapFromTx != null) {
+      swapStatus = SwapStatus.fromString(swapFromTx.status);
+    } else if (swapToTx != null) {
+      swapStatus = SwapStatus.fromString(swapToTx.status);
+    }
 
     return TransactionData(
       txHash: transaction.txHash,
@@ -523,7 +530,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       userPubkey: transaction.userPubkey,
       eventId: transaction.eventId,
       memo: transaction.memo,
-      isSwap: isSwap,
+      swapStatus: swapStatus,
     );
   }
 
