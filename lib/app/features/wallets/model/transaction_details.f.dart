@@ -6,6 +6,7 @@ import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_fee_option.f.dart';
+import 'package:ion/app/features/wallets/model/swap_status.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
@@ -33,7 +34,7 @@ class TransactionDetails with _$TransactionDetails {
     required CoinData? nativeCoin,
     required NetworkFeeOption? networkFeeOption,
     required String? memo,
-    required bool isSwap,
+    SwapStatus? swapStatus,
   }) = _TransactionDetails;
 
   factory TransactionDetails.fromTransactionData(
@@ -96,7 +97,7 @@ class TransactionDetails with _$TransactionDetails {
             )
           : null,
       dateBroadcasted: null,
-      isSwap: transaction.isSwap,
+      swapStatus: transaction.swapStatus,
     );
   }
 

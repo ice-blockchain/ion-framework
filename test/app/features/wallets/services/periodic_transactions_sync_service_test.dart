@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/features/wallets/data/database/dao/networks_dao.m.dart';
-import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao.m.dart';
+import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/periodic_transactions_sync_service.r.dart';
@@ -22,7 +22,7 @@ class MockTransactionsRepository extends Mock implements TransactionsRepository 
 
 class MockFailedTransferService extends Mock implements FailedTransferService {}
 
-class MockSwapTransactionsDao extends Mock implements SwapTransactionsDao {}
+class MockSwapsRepository extends Mock implements SwapsRepository {}
 
 class MockNetworksDao extends Mock implements NetworksDao {}
 
@@ -30,7 +30,7 @@ void main() {
   late MockSyncTransactionsService mockSyncTransactionsService;
   late MockTransactionsRepository mockTransactionsRepository;
   late MockFailedTransferService mockFailedTransferService;
-  late MockSwapTransactionsDao mockSwapTransactionsDao;
+  late MockSwapsRepository mockSwapsRepository;
   late MockNetworksDao mockNetworksDao;
   late PeriodicTransactionsSyncService service;
 
@@ -44,11 +44,11 @@ void main() {
     mockSyncTransactionsService = MockSyncTransactionsService();
     mockTransactionsRepository = MockTransactionsRepository();
     mockFailedTransferService = MockFailedTransferService();
-    mockSwapTransactionsDao = MockSwapTransactionsDao();
+    mockSwapsRepository = MockSwapsRepository();
     mockNetworksDao = MockNetworksDao();
 
     when(
-      () => mockSwapTransactionsDao.getSwaps(
+      () => mockSwapsRepository.getSwaps(
         toTxHashes: any(named: 'toTxHashes'),
         fromTxHashes: any(named: 'fromTxHashes'),
         fromWalletAddresses: any(named: 'fromWalletAddresses'),
@@ -61,7 +61,7 @@ void main() {
       mockSyncTransactionsService,
       mockTransactionsRepository,
       mockFailedTransferService,
-      mockSwapTransactionsDao,
+      mockSwapsRepository,
       mockNetworksDao,
       initialSyncDelay: const Duration(microseconds: 10),
     );

@@ -26,6 +26,7 @@ class SwapDetailsCard extends HookWidget {
     this.networkFee,
     this.protocolFee,
     this.initiallyExpanded = false,
+    this.hideBuyAmount = false,
     super.key,
   });
 
@@ -47,6 +48,7 @@ class SwapDetailsCard extends HookWidget {
   final String? protocolFee;
 
   final bool initiallyExpanded;
+  final bool hideBuyAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +64,7 @@ class SwapDetailsCard extends HookWidget {
           buyNetwork: buyNetwork,
           sellAmount: sellAmount,
           buyAmount: buyAmount,
+          hideBuyAmount: hideBuyAmount,
         ),
         SizedBox(height: 16.0.s),
         _SwapDetailsSection(
