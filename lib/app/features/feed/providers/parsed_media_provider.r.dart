@@ -2,11 +2,13 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_ad_block.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -16,6 +18,7 @@ import 'package:ion/app/features/ion_connect/model/entity_data_with_related_pubk
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/tokenized_communities/providers/bulk_token_market_info_prefetch_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:ion/app/services/markdown/mention_label_utils.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -30,13 +33,24 @@ part 'parsed_media_provider.r.g.dart';
   final baseParsedMedia = parseMediaContent(data: data);
 
   final mentions = ref.watch(mentionsOverlayProvider(data));
+  final canShowNativeAds = ref.watch(ionAdClientProvider).valueOrNull?.isNativeLoaded ?? false;
 
   final content = mentions.maybeWhen(
     data: (value) => value,
     orElse: () => baseParsedMedia.content,
   );
 
-  return (content: content, media: baseParsedMedia.media);
+  if (data is! ArticleData || !canShowNativeAds) {
+    return (content: content, media: baseParsedMedia.media);
+  }
+
+  final adIndex = Random(DateTime.now().millisecondsSinceEpoch).nextInt(content.length);
+  final operations = content.toList()
+    ..insert(adIndex, Operation.insert('\n', {}))
+    ..insert(adIndex, Operation.insert(TextEditorAdEmbed(), {}));
+  final contentWithAd = Delta.fromOperations(operations);
+
+  return (content: contentWithAd, media: baseParsedMedia.media);
 }
 
 @riverpod
