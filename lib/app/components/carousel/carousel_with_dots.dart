@@ -36,6 +36,7 @@ class CarouselWithDots extends HookWidget {
     this.dotsShape,
     this.dotsActiveShape,
     this.dotsDecorator,
+    this.dotsPosition,
     super.key,
   });
 
@@ -69,6 +70,7 @@ class CarouselWithDots extends HookWidget {
   final ShapeBorder? dotsShape;
   final ShapeBorder? dotsActiveShape;
   final DotsDecorator? dotsDecorator;
+  final double? dotsPosition;
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +125,7 @@ class CarouselWithDots extends HookWidget {
         ),
         if (effectiveDotsCount > 1)
           PositionedDirectional(
-            bottom: 8.s,
+            bottom: dotsPosition ?? 8.s,
             child: DotsIndicator(
               dotsCount: effectiveDotsCount,
               position: currentPage.value,

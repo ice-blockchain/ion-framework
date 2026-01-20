@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/carousel/carousel_with_dots.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
@@ -148,6 +149,21 @@ class ContentTokenHeader extends HookConsumerWidget {
       content = entity.data.title?.trim();
     }
 
+    final visualMedias = useMemoized<List<MediaAttachment>>(
+      () {
+        if (entity == null) return <MediaAttachment>[];
+        if (entity is ModifiablePostEntity) {
+          return entity.data.visualMedias;
+        } else if (entity is PostEntity) {
+          return entity.data.visualMedias;
+        } else if (entity is ArticleEntity) {
+          return entity.data.visualMedias;
+        }
+        return <MediaAttachment>[];
+      },
+      [entity],
+    );
+
     final layoutConfig = useMemoized<_MediaLayoutConfig>(
       () {
         return _MediaLayoutConfig.fromAspectRatio(mediaAttachment?.aspectRatio);
@@ -165,14 +181,35 @@ class ContentTokenHeader extends HookConsumerWidget {
             child: Stack(
               alignment: AlignmentDirectional.center,
               children: [
-                TokenAvatar(
-                  imageSize: layoutConfig.imageSize,
-                  containerSize: layoutConfig.containerSize,
-                  outerBorderRadius: layoutConfig.outerBorderRadius,
-                  innerBorderRadius: layoutConfig.innerBorderRadius,
-                  imageUrl: mediaAttachment?.thumb ?? mediaAttachment?.url,
-                  borderWidth: layoutConfig.borderWidth,
-                ),
+                if (type == CommunityContentTokenType.postImage && visualMedias.length > 1)
+                  CarouselWithDots(
+                    items: visualMedias.map((media) {
+                      return TokenAvatar(
+                        imageSize: layoutConfig.imageSize,
+                        containerSize: layoutConfig.containerSize,
+                        outerBorderRadius: layoutConfig.outerBorderRadius,
+                        innerBorderRadius: layoutConfig.innerBorderRadius,
+                        imageUrl: media.thumb ?? media.url,
+                        borderWidth: layoutConfig.borderWidth,
+                      );
+                    }).toList(),
+                    height: layoutConfig.containerSize.height * 1.1.s, // extra space for dots
+                    dotsActiveSize: 5.s,
+                    dotsSize: 3.s,
+                    dotsSpacing: 2.s,
+                    dotsActiveHeight: 5.s,
+                    dotsPosition: -2.s,
+                    dotsColor: context.theme.appColors.tertiaryText,
+                  )
+                else
+                  TokenAvatar(
+                    imageSize: layoutConfig.imageSize,
+                    containerSize: layoutConfig.containerSize,
+                    outerBorderRadius: layoutConfig.outerBorderRadius,
+                    innerBorderRadius: layoutConfig.innerBorderRadius,
+                    imageUrl: mediaAttachment?.thumb ?? mediaAttachment?.url,
+                    borderWidth: layoutConfig.borderWidth,
+                  ),
                 if (type == CommunityContentTokenType.postVideo)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12.s),
