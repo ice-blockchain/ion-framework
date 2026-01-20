@@ -5,8 +5,8 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao.m.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
+import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/swap/identifiers/bsc_swap_tx_identifier.dart';
 import 'package:ion/app/features/wallets/domain/swap/identifiers/ion_swap_tx_identifier.dart';
@@ -21,18 +21,18 @@ part 'swap_transaction_linker.r.g.dart';
 @Riverpod(keepAlive: true)
 Future<SwapTransactionLinker> swapTransactionLinker(Ref ref) async {
   return SwapTransactionLinker(
-    ref.watch(swapTransactionsDaoProvider),
+    await ref.watch(swapsRepositoryProvider.future),
     await ref.watch(transactionsRepositoryProvider.future),
   );
 }
 
 class SwapTransactionLinker {
   SwapTransactionLinker(
-    this._swapTransactionsDao,
+    this._swapsRepository,
     this._transactionsRepository,
   );
 
-  final SwapTransactionsDao _swapTransactionsDao;
+  final SwapsRepository _swapsRepository;
   final TransactionsRepository _transactionsRepository;
 
   final List<SwapTransactionIdentifier> _identifiers = [
@@ -40,18 +40,18 @@ class SwapTransactionLinker {
     BscSwapTxIdentifier(),
   ];
 
-  StreamSubscription<List<SwapTransaction>>? _swapSubscription;
+  StreamSubscription<List<SwapTransactions>>? _swapSubscription;
   StreamSubscription<List<TransactionData>>? _incomingTxSubscription;
   StreamSubscription<List<TransactionData>>? _outgoingTxSubscription;
   bool _isRunning = false;
-  List<SwapTransaction> _pendingSwaps = [];
+  List<SwapTransactions> _pendingSwaps = [];
 
   void startWatching() {
     if (_isRunning) return;
     _isRunning = true;
     Logger.log('SwapTransactionLinker: Starting to watch for pending swaps');
 
-    _swapSubscription = _swapTransactionsDao
+    _swapSubscription = _swapsRepository
         .watchSwaps(toTxHashes: [null])
         .distinct(listEquals)
         .listen(_onPendingSwapsChanged);
@@ -86,14 +86,12 @@ class SwapTransactionLinker {
     _pendingSwaps = [];
   }
 
-  // Note: Network IDs in the database use mixed case (e.g., "Ion", "Bsc")
-  // while identifiers use lowercase. We compare case-insensitively to handle both.
   SwapTransactionIdentifier? _getIdentifier(String networkId) =>
       _identifiers.firstWhereOrNull(
         (i) => i.networkId.toLowerCase() == networkId.toLowerCase(),
       );
 
-  void _onPendingSwapsChanged(List<SwapTransaction> pendingSwaps) {
+  void _onPendingSwapsChanged(List<SwapTransactions> pendingSwaps) {
     if (!_isRunning) return;
 
     _pendingSwaps = pendingSwaps;
@@ -125,7 +123,7 @@ class SwapTransactionLinker {
         'SwapTransactionLinker: Checking incoming tx ${tx.txHash} '
         '(${tx.network.id}, from: ${tx.senderWalletAddress}, to: ${tx.receiverWalletAddress})',
       );
-      _tryMatchSecondLeg(tx);
+      _tryMatchToTx(tx);
     }
   }
 
@@ -141,20 +139,20 @@ class SwapTransactionLinker {
         'SwapTransactionLinker: Checking outgoing tx ${tx.txHash} '
         '(${tx.network.id}, from: ${tx.senderWalletAddress}, to: ${tx.receiverWalletAddress})',
       );
-      _tryMatchFirstLeg(tx);
+      _tryMatchFromTx(tx);
     }
   }
 
-  Future<void> _tryMatchSecondLeg(TransactionData tx) async {
+  Future<void> _tryMatchToTx(TransactionData tx) async {
     final receiverAddress = tx.receiverWalletAddress;
     if (receiverAddress == null) {
       Logger.log(
-        'SwapTransactionLinker: Skipping second-leg match - no receiver address',
+        'SwapTransactionLinker: Skipping to-tx match - no receiver address',
       );
       return;
     }
 
-    final pendingSwapsForWallet = await _swapTransactionsDao.getSwaps(
+    final pendingSwapsForWallet = await _swapsRepository.getSwaps(
       toWalletAddresses: [receiverAddress],
       toTxHashes: [null],
     );
@@ -174,12 +172,12 @@ class SwapTransactionLinker {
         continue;
       }
 
-      if (identifier.isSecondLegMatch(swap, tx)) {
+      if (identifier.isToTxMatch(swap, tx)) {
         Logger.log(
-          'SwapTransactionLinker: ✓ Second-leg LINKED! '
+          'SwapTransactionLinker: ✓ To-tx LINKED! '
           'Swap ${swap.swapId} (fromTx: ${swap.fromTxHash}) -> toTx: ${tx.txHash}',
         );
-        await _swapTransactionsDao.updateToTxHash(
+        await _swapsRepository.updateToTxHash(
           swapId: swap.swapId,
           toTxHash: tx.txHash,
         );
@@ -187,13 +185,13 @@ class SwapTransactionLinker {
     }
   }
 
-  Future<void> _tryMatchFirstLeg(TransactionData tx) async {
-    final swapsWithoutFromTx = await _swapTransactionsDao.getSwaps(
+  Future<void> _tryMatchFromTx(TransactionData tx) async {
+    final swapsWithoutFromTx = await _swapsRepository.getSwaps(
       fromTxHashes: [null],
     );
 
     Logger.log(
-      'SwapTransactionLinker: Found ${swapsWithoutFromTx.length} swaps without first-leg tx',
+      'SwapTransactionLinker: Found ${swapsWithoutFromTx.length} swaps without from-tx tx',
     );
 
     for (final swap in swapsWithoutFromTx) {
@@ -206,12 +204,12 @@ class SwapTransactionLinker {
         continue;
       }
 
-      if (identifier.isFirstLegMatch(swap, tx)) {
+      if (identifier.isFromTxMatch(swap, tx)) {
         Logger.log(
-          'SwapTransactionLinker: ✓ First-leg LINKED! '
+          'SwapTransactionLinker: ✓ From-tx LINKED! '
           'Swap ${swap.swapId} <- fromTx: ${tx.txHash}',
         );
-        await _swapTransactionsDao.updateFromTxHash(
+        await _swapsRepository.updateFromTxHash(
           swapId: swap.swapId,
           fromTxHash: tx.txHash,
         );

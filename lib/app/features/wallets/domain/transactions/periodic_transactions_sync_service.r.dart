@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/wallets/data/database/dao/networks_dao.m.dart';
-import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao.m.dart';
+import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
@@ -26,7 +26,7 @@ Future<PeriodicTransactionsSyncService> periodicTransactionsSyncService(Ref ref)
     await ref.watch(syncTransactionsServiceProvider.future),
     await ref.watch(transactionsRepositoryProvider.future),
     await ref.watch(failedTransferServiceProvider.future),
-    ref.watch(swapTransactionsDaoProvider),
+    await ref.watch(swapsRepositoryProvider.future),
     ref.watch(networksDaoProvider),
   );
 }
@@ -36,7 +36,7 @@ class PeriodicTransactionsSyncService {
     this._syncTransactionsService,
     this._transactionsRepository,
     this._failedTransferService,
-    this._swapTransactionsDao,
+    this._swapsRepository,
     this._networksDao, {
     this.initialSyncDelay = const Duration(seconds: 30),
   });
@@ -44,7 +44,7 @@ class PeriodicTransactionsSyncService {
   final SyncTransactionsService _syncTransactionsService;
   final TransactionsRepository _transactionsRepository;
   final FailedTransferService _failedTransferService;
-  final SwapTransactionsDao _swapTransactionsDao;
+  final SwapsRepository _swapsRepository;
   final NetworksDao _networksDao;
   final Map<String, bool> _walletSyncInProgress = {};
   final Duration initialSyncDelay;
@@ -127,31 +127,29 @@ class PeriodicTransactionsSyncService {
       }
     }
 
-    // Also add wallets expecting swap second-leg transactions
-    final pendingSwaps = await _swapTransactionsDao.getSwaps(toTxHashes: [null]);
+    // Also add wallets expecting swap to-tx transactions
+    final pendingSwaps = await _swapsRepository.getSwaps(toTxHashes: [null]);
     for (final swap in pendingSwaps) {
       if (!walletNetworks.containsKey(swap.toWalletAddress)) {
         final network = await _getNetworkById(swap.toNetworkId);
         if (network != null) {
           walletNetworks[swap.toWalletAddress] = network;
           Logger.log(
-            'Added swap second-leg wallet ${swap.toWalletAddress} (${swap.toNetworkId}) to sync',
+            'Added swap to-tx wallet ${swap.toWalletAddress} (${swap.toNetworkId}) to sync',
           );
         }
       }
     }
 
-    // Also add wallets for swaps without first-leg tx detected
-    final swapsWithoutFromTx = await _swapTransactionsDao.getSwaps(
-      fromTxHashes: [null],
-    );
+    // Also add wallets for swaps without from-tx tx detected
+    final swapsWithoutFromTx = await _swapsRepository.getSwaps(fromTxHashes: [null]);
     for (final swap in swapsWithoutFromTx) {
       if (!walletNetworks.containsKey(swap.fromWalletAddress)) {
         final network = await _getNetworkById(swap.fromNetworkId);
         if (network != null) {
           walletNetworks[swap.fromWalletAddress] = network;
           Logger.log(
-            'Added swap first-leg wallet ${swap.fromWalletAddress} (${swap.fromNetworkId}) to sync',
+            'Added swap from-tx wallet ${swap.fromWalletAddress} (${swap.fromNetworkId}) to sync',
           );
         }
       }

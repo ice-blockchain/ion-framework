@@ -14,7 +14,7 @@ class BscSwapTxIdentifier extends SwapTransactionIdentifier {
   @override
   String get bridgeAddress => _bridgeContractAddress;
 
-  /// Second-leg (ION → BSC): tx amount = swap.toAmount - (ionBridgeFee + ionMessageFee)
+  /// To-tx (ION → BSC): tx amount = swap.toAmount - (ionBridgeFee + ionMessageFee)
   @override
   bool isInTxAmountMatch(String expectedReceiveAmount, TransactionData tx) {
     final (expectedAmount, txAmountValue) = parseAmounts(expectedReceiveAmount, tx);
@@ -32,7 +32,7 @@ class BscSwapTxIdentifier extends SwapTransactionIdentifier {
       return false;
     }
 
-    // ION → BSC second-leg: tx amount = expected - (bridge fee + message fee)
+    // ION → BSC to-tx: tx amount = expected - (bridge fee + message fee)
     const totalFee =
         SwapTransactionIdentifier.ionBridgeFee + SwapTransactionIdentifier.ionMessageFee;
     final expectedTxAmount = expectedAmount - totalFee;

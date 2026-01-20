@@ -14,7 +14,7 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
   @override
   String get bridgeAddress => _bridgeMultisigAddress;
 
-  /// First-leg (ION → any): tx amount = swap.amount - ionMessageFee
+  /// From-tx (ION → any): tx amount = swap.amount - ionMessageFee
   @override
   bool isOutTxAmountMatch(String swapAmount, TransactionData tx) {
     final (swapAmountValue, txAmountValue) = parseAmounts(swapAmount, tx);
@@ -32,7 +32,7 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
       return false;
     }
 
-    // ION first-leg: tx amount = swap amount - message fee
+    // ION from-tx: tx amount = swap amount - message fee
     final expectedTxAmount = swapAmountValue - SwapTransactionIdentifier.ionMessageFee;
     final isMatch = amountsEqual(expectedTxAmount, txAmountValue);
 
@@ -44,7 +44,7 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
     return isMatch;
   }
 
-  /// Second-leg (BSC → ION): tx amount = swap.toAmount - ionBridgeFee
+  /// To-tx (BSC → ION): tx amount = swap.toAmount - ionBridgeFee
   @override
   bool isInTxAmountMatch(String expectedReceiveAmount, TransactionData tx) {
     final (expectedAmount, txAmountValue) = parseAmounts(expectedReceiveAmount, tx);
@@ -62,7 +62,7 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
       return false;
     }
 
-    // BSC → ION second-leg: tx amount = expected - bridge fee only
+    // BSC → ION to-tx: tx amount = expected - bridge fee only
     final expectedTxAmount = expectedAmount - SwapTransactionIdentifier.ionBridgeFee;
     final isMatch = amountsEqual(expectedTxAmount, txAmountValue);
 

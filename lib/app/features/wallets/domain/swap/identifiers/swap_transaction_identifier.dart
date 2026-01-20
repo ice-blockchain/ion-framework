@@ -12,9 +12,9 @@ abstract class SwapTransactionIdentifier {
 
   Duration get matchingTimeWindow => const Duration(hours: 6);
 
-  /// Time window to look back for first-leg transactions.
-  /// First-leg tx is confirmed BEFORE the swap record is saved to DB.
-  Duration get firstLegLookbackWindow => const Duration(minutes: 10);
+  /// Time window to look back for from-tx transactions.
+  /// From-tx tx is confirmed BEFORE the swap record is saved to DB.
+  Duration get fromTxLookbackWindow => const Duration(minutes: 10);
 
   /// ION bridge fee constants (in nanotons, 1 ION = 1_000_000_000 nanotons).
   /// Reference: https://docs.ton.org/foundations/fees
@@ -25,11 +25,11 @@ abstract class SwapTransactionIdentifier {
   /// Allows for minor rounding differences.
   static const int amountTolerance = 1;
 
-  /// Returns true if [tx] is a first-leg (outgoing) match for [swap].
-  /// First-leg: user sends tokens TO the bridge on the source network.
-  bool isFirstLegMatch(SwapTransaction swap, TransactionData tx) {
+  /// Returns true if [tx] is a from-tx (outgoing) match for [swap].
+  /// From-tx: user sends tokens TO the bridge on the source network.
+  bool isFromTxMatch(SwapTransactions swap, TransactionData tx) {
     Logger.log(
-      'SwapTxIdentifier[$networkId]: Checking first-leg match for '
+      'SwapTxIdentifier[$networkId]: Checking from-tx match for '
       'swap ${swap.swapId} and tx ${tx.txHash}',
     );
 
@@ -38,61 +38,61 @@ abstract class SwapTransactionIdentifier {
     // We compare case-insensitively to handle both.
     if (swap.fromNetworkId.toLowerCase() != networkId.toLowerCase()) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: First-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
         'swap.fromNetworkId (${swap.fromNetworkId}) != networkId ($networkId)',
       );
       return false;
     }
     if (tx.network.id.toLowerCase() != networkId.toLowerCase()) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: First-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
         'tx.network.id (${tx.network.id}) != networkId ($networkId)',
       );
       return false;
     }
     if (tx.senderWalletAddress != swap.fromWalletAddress) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: First-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
         'tx.sender (${tx.senderWalletAddress}) != swap.fromWallet (${swap.fromWalletAddress})',
       );
       return false;
     }
     if (tx.receiverWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: First-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
         'tx.receiver (${tx.receiverWalletAddress}) != bridgeAddress ($bridgeAddress)',
       );
       return false;
     }
 
     final txDate = tx.dateConfirmed ?? tx.dateRequested;
-    if (!isWithinFirstLegTimeWindow(swap.createdAt, txDate)) {
+    if (!isWithinFromTxTimeWindow(swap.createdAt, txDate)) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: First-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
         'tx outside time window (swap: ${swap.createdAt.toUtc()}, tx: ${txDate?.toUtc()})',
       );
       return false;
     }
     if (!isOutTxAmountMatch(swap.amount, tx)) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: First-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: From-tx mismatch - '
         'amount mismatch (swap: ${swap.amount})',
       );
       return false;
     }
 
     Logger.log(
-      'SwapTxIdentifier[$networkId]: First-leg MATCH found! '
+      'SwapTxIdentifier[$networkId]: From-tx MATCH found! '
       'Swap ${swap.swapId} <- tx ${tx.txHash}',
     );
     return true;
   }
 
-  /// Returns true if [tx] is a second-leg (incoming) match for [swap].
-  /// Second-leg: user receives tokens FROM the bridge on the destination network.
-  bool isSecondLegMatch(SwapTransaction swap, TransactionData tx) {
+  /// Returns true if [tx] is a to-tx (incoming) match for [swap].
+  /// To-tx: user receives tokens FROM the bridge on the destination network.
+  bool isToTxMatch(SwapTransactions swap, TransactionData tx) {
     Logger.log(
-      'SwapTxIdentifier[$networkId]: Checking second-leg match for '
+      'SwapTxIdentifier[$networkId]: Checking to-tx match for '
       'swap ${swap.swapId} and tx ${tx.txHash}',
     );
 
@@ -101,49 +101,49 @@ abstract class SwapTransactionIdentifier {
     // We compare case-insensitively to handle both.
     if (swap.toNetworkId.toLowerCase() != networkId.toLowerCase()) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: Second-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
         'swap.toNetworkId (${swap.toNetworkId}) != networkId ($networkId)',
       );
       return false;
     }
     if (tx.network.id.toLowerCase() != networkId.toLowerCase()) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: Second-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
         'tx.network.id (${tx.network.id}) != networkId ($networkId)',
       );
       return false;
     }
     if (tx.receiverWalletAddress != swap.toWalletAddress) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: Second-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
         'tx.receiver (${tx.receiverWalletAddress}) != swap.toWallet (${swap.toWalletAddress})',
       );
       return false;
     }
     if (tx.senderWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: Second-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
         'tx.sender (${tx.senderWalletAddress}) != bridgeAddress ($bridgeAddress)',
       );
       return false;
     }
     if (!isWithinTimeWindow(swap.createdAt, tx.dateConfirmed)) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: Second-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
         'tx outside time window (swap: ${swap.createdAt.toUtc()}, tx: ${tx.dateConfirmed?.toUtc()})',
       );
       return false;
     }
     if (!isInTxAmountMatch(swap.toAmount, tx)) {
       Logger.log(
-        'SwapTxIdentifier[$networkId]: Second-leg mismatch - '
+        'SwapTxIdentifier[$networkId]: To-tx mismatch - '
         'amount mismatch (expected: ${swap.toAmount})',
       );
       return false;
     }
 
     Logger.log(
-      'SwapTxIdentifier[$networkId]: Second-leg MATCH found! '
+      'SwapTxIdentifier[$networkId]: To-tx MATCH found! '
       'Swap ${swap.swapId} -> tx ${tx.txHash}',
     );
     return true;
@@ -159,14 +159,14 @@ abstract class SwapTransactionIdentifier {
     return difference >= Duration.zero && difference <= matchingTimeWindow;
   }
 
-  bool isWithinFirstLegTimeWindow(DateTime swapCreatedAt, DateTime? txDate) {
+  bool isWithinFromTxTimeWindow(DateTime swapCreatedAt, DateTime? txDate) {
     if (txDate == null) return true;
 
     final swapUtc = swapCreatedAt.toUtc();
     final txUtc = txDate.toUtc();
 
     final difference = txUtc.difference(swapUtc);
-    return difference >= -firstLegLookbackWindow && difference <= matchingTimeWindow;
+    return difference >= -fromTxLookbackWindow && difference <= matchingTimeWindow;
   }
 
   /// Outgoing tx amount should equal swap amount minus applicable fees.
@@ -180,7 +180,7 @@ abstract class SwapTransactionIdentifier {
       );
       return false;
     }
-    if (swapAmountValue == 0) {
+    if (swapAmountValue == BigInt.zero) {
       Logger.log(
         'SwapTxIdentifier[$networkId]: OutTxAmount - swap amount is 0',
       );
@@ -208,7 +208,7 @@ abstract class SwapTransactionIdentifier {
       );
       return false;
     }
-    if (expectedAmount == 0) {
+    if (expectedAmount == BigInt.zero) {
       Logger.log(
         'SwapTxIdentifier[$networkId]: InTxAmount - expected amount is 0',
       );
@@ -226,7 +226,7 @@ abstract class SwapTransactionIdentifier {
   }
 
   /// Parses swap amount and transaction raw amount as integers (nanotons).
-  (int?, int?) parseAmounts(String swapAmount, TransactionData tx) {
+  (BigInt?, BigInt?) parseAmounts(String swapAmount, TransactionData tx) {
     final txRawAmount = switch (tx.cryptoAsset) {
       CoinTransactionAsset(:final rawAmount) => rawAmount,
       _ => null,
@@ -234,14 +234,14 @@ abstract class SwapTransactionIdentifier {
 
     if (txRawAmount == null) return (null, null);
 
-    final swapAmountValue = int.tryParse(swapAmount);
-    final txAmountValue = int.tryParse(txRawAmount);
+    final swapAmountValue = BigInt.tryParse(swapAmount);
+    final txAmountValue = BigInt.tryParse(txRawAmount);
 
     return (swapAmountValue, txAmountValue);
   }
 
   /// Compares two amounts with a small tolerance for rounding differences.
-  bool amountsEqual(int expected, int actual, {int tolerance = amountTolerance}) {
-    return (expected - actual).abs() <= tolerance;
+  bool amountsEqual(BigInt expected, BigInt actual, {int tolerance = amountTolerance}) {
+    return (expected - actual).abs() <= BigInt.from(tolerance);
   }
 }

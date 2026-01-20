@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/features/wallets/data/database/tables/coins_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/networks_table.d.dart';
+import 'package:ion/app/features/wallets/data/database/tables/swap_transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
@@ -28,7 +29,7 @@ TransactionsDao transactionsDao(Ref ref) => TransactionsDao(
     );
 
 @DriftAccessor(
-  tables: [TransactionsTable, NetworksTable, CoinsTable],
+  tables: [TransactionsTable, NetworksTable, CoinsTable, SwapTransactionsTable],
 )
 class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$TransactionsDaoMixin {
   TransactionsDao({
@@ -207,6 +208,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
   }) {
     final transactionCoinAlias = alias(coinsTable, 'transactionCoin');
     final nativeCoinAlias = alias(coinsTable, 'nativeCoin');
+    final swapFromTxAlias = alias(swapTransactionsTable, 'swapFromTx');
+    final swapToTxAlias = alias(swapTransactionsTable, 'swapToTx');
 
     final query = (select(transactionsTable)
           ..where((tbl) => where(tbl, transactionCoinAlias, nativeCoinAlias))
@@ -232,6 +235,14 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         nativeCoinAlias,
         nativeCoinAlias.id.equalsExp(transactionsTable.nativeCoinId),
       ),
+      leftOuterJoin(
+        swapFromTxAlias,
+        swapFromTxAlias.fromTxHash.equalsExp(transactionsTable.txHash),
+      ),
+      leftOuterJoin(
+        swapToTxAlias,
+        swapToTxAlias.toTxHash.equalsExp(transactionsTable.txHash),
+      ),
     ]);
 
     return query.map(
@@ -240,6 +251,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
           row,
           nativeCoinAlias: nativeCoinAlias,
           transactionCoinAlias: transactionCoinAlias,
+          swapFromTxAlias: swapFromTxAlias,
+          swapToTxAlias: swapToTxAlias,
         );
       },
     );
@@ -337,6 +350,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
   Stream<TransactionData?> watchTransactionByEventId(String eventId) async* {
     final transactionCoinAlias = alias(coinsTable, 'transactionCoin');
     final nativeCoinAlias = alias(coinsTable, 'nativeCoin');
+    final swapFromTxAlias = alias(swapTransactionsTable, 'swapFromTx');
+    final swapToTxAlias = alias(swapTransactionsTable, 'swapToTx');
 
     final query = (select(transactionsTable)..where((tbl) => tbl.eventId.equals(eventId))).join([
       leftOuterJoin(
@@ -351,6 +366,14 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         nativeCoinAlias,
         nativeCoinAlias.id.equalsExp(transactionsTable.nativeCoinId),
       ),
+      leftOuterJoin(
+        swapFromTxAlias,
+        swapFromTxAlias.fromTxHash.equalsExp(transactionsTable.txHash),
+      ),
+      leftOuterJoin(
+        swapToTxAlias,
+        swapToTxAlias.toTxHash.equalsExp(transactionsTable.txHash),
+      ),
     ]);
 
     yield* query
@@ -359,6 +382,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
             row,
             transactionCoinAlias: transactionCoinAlias,
             nativeCoinAlias: nativeCoinAlias,
+            swapFromTxAlias: swapFromTxAlias,
+            swapToTxAlias: swapToTxAlias,
           ),
         )
         .watchSingleOrNull();
@@ -368,6 +393,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
   Stream<List<TransactionData>> watchUndefinedCoinTransactions() {
     final transactionCoinAlias = alias(coinsTable, 'transactionCoin');
     final nativeCoinAlias = alias(coinsTable, 'nativeCoin');
+    final swapFromTxAlias = alias(swapTransactionsTable, 'swapFromTx');
+    final swapToTxAlias = alias(swapTransactionsTable, 'swapToTx');
 
     final query = (select(transactionsTable)
           ..where(
@@ -389,6 +416,14 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         nativeCoinAlias,
         nativeCoinAlias.id.equalsExp(transactionsTable.nativeCoinId),
       ),
+      leftOuterJoin(
+        swapFromTxAlias,
+        swapFromTxAlias.fromTxHash.equalsExp(transactionsTable.txHash),
+      ),
+      leftOuterJoin(
+        swapToTxAlias,
+        swapToTxAlias.toTxHash.equalsExp(transactionsTable.txHash),
+      ),
     ]);
 
     return query
@@ -397,6 +432,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
             row,
             transactionCoinAlias: transactionCoinAlias,
             nativeCoinAlias: nativeCoinAlias,
+            swapFromTxAlias: swapFromTxAlias,
+            swapToTxAlias: swapToTxAlias,
           ),
         )
         .watch()
@@ -407,6 +444,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     TypedResult row, {
     required $CoinsTableTable nativeCoinAlias,
     required $CoinsTableTable transactionCoinAlias,
+    $SwapTransactionsTableTable? swapFromTxAlias,
+    $SwapTransactionsTableTable? swapToTxAlias,
   }) {
     final transaction = row.readTable(transactionsTable);
     final network = row.readTableOrNull(networksTable);
@@ -459,6 +498,12 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       );
     }
 
+    final isFromTx =
+        swapFromTxAlias != null && row.readTableOrNull(swapFromTxAlias) != null;
+    final isToTx =
+        swapToTxAlias != null && row.readTableOrNull(swapToTxAlias) != null;
+    final isSwap = isFromTx || isToTx;
+
     return TransactionData(
       txHash: transaction.txHash,
       walletViewId: transaction.walletViewId,
@@ -480,6 +525,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       userPubkey: transaction.userPubkey,
       eventId: transaction.eventId,
       memo: transaction.memo,
+      isSwap: isSwap,
     );
   }
 
