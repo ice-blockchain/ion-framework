@@ -234,9 +234,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
           minY: effectiveMinY,
           maxY: effectiveMaxY,
           minX: 0,
-          // Add small padding so the last data point's dot renders fully (not clipped)
-          maxX: calcData.maxX + 0.5,
-          clipData: const FlClipData.all(),
+          maxX: calcData.maxX,
           borderData: FlBorderData(show: false),
           gridData: const FlGridData(
             drawHorizontalLine: false,
