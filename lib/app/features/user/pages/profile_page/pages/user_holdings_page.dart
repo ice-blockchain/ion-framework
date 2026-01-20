@@ -12,6 +12,7 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/compo
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/user_holdings_list_item.dart';
 import 'package:ion/app/features/user/providers/user_holdings_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class UserHoldingsPage extends HookConsumerWidget {
   const UserHoldingsPage({required this.holderAddress, super.key});
@@ -24,9 +25,21 @@ class UserHoldingsPage extends HookConsumerWidget {
     final isLoadingMore = useState(false);
     final hasMore = useState(true);
     final offset = useState(0);
+    final accumulatedHoldings = useState<List<CommunityToken>>([]);
 
     final holdingsAsync = ref.watch(userHoldingsProvider(holderAddress, limit: 20));
-    final holdings = holdingsAsync.valueOrNull?.items ?? const [];
+
+    useEffect(
+      () {
+        final data = holdingsAsync.valueOrNull;
+        if (data != null && offset.value == 0) {
+          accumulatedHoldings.value = data.items;
+          hasMore.value = data.hasMore;
+        }
+        return null;
+      },
+      [holdingsAsync],
+    );
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
@@ -39,7 +52,7 @@ class UserHoldingsPage extends HookConsumerWidget {
             child: LoadMoreBuilder(
               showIndicator: false,
               slivers: [
-                if (holdingsAsync.isLoading && holdings.isEmpty)
+                if (holdingsAsync.isLoading && accumulatedHoldings.value.isEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsetsDirectional.symmetric(horizontal: 16.s, vertical: 12.s),
@@ -48,7 +61,7 @@ class UserHoldingsPage extends HookConsumerWidget {
                   )
                 else
                   SliverList.builder(
-                    itemCount: holdings.length,
+                    itemCount: accumulatedHoldings.value.length,
                     itemBuilder: (context, index) {
                       final topPadding = index == 0 ? 12.s : 7.s;
                       final bottomPadding = 7.s;
@@ -60,7 +73,7 @@ class UserHoldingsPage extends HookConsumerWidget {
                           start: 16.s,
                           end: 16.s,
                         ),
-                        child: UserHoldingsListItem(token: holdings[index]),
+                        child: UserHoldingsListItem(token: accumulatedHoldings.value[index]),
                       );
                     },
                   ),
@@ -84,6 +97,10 @@ class UserHoldingsPage extends HookConsumerWidget {
                   final result = await ref.read(
                     userHoldingsProvider(holderAddress, limit: 20, offset: newOffset).future,
                   );
+                  accumulatedHoldings.value = [
+                    ...accumulatedHoldings.value,
+                    ...result.items,
+                  ];
                   offset.value = newOffset;
                   hasMore.value = result.hasMore;
                 } finally {
@@ -97,6 +114,7 @@ class UserHoldingsPage extends HookConsumerWidget {
                   onRefresh: () async {
                     hasMore.value = true;
                     offset.value = 0;
+                    accumulatedHoldings.value = [];
                     ref.invalidate(userHoldingsProvider(holderAddress, limit: 20));
                   },
                   builder: (context, slivers) => CustomScrollView(

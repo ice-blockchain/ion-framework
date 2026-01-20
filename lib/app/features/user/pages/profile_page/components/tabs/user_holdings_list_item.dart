@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/profit_loss_indicator.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/token_price_label.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/token_type_gradient_indicator.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -37,11 +40,17 @@ class UserHoldingsListItem extends StatelessWidget {
                     imageUrl: token.imageUrl,
                     borderRadius: BorderRadius.circular(10.0.s),
                   ),
-                  if (token.addresses.twitter != null)
+                  if (token.source.isTwitter)
                     PositionedDirectional(
                       start: 23.0.s,
                       top: 20.0.s,
                       child: _TwitterBadge(),
+                    )
+                  else if (token.type != CommunityTokenType.profile)
+                    PositionedDirectional(
+                      end: -6.0.s,
+                      bottom: -1.0.s,
+                      child: TokenTypeGradientIndicator(tokenType: token.type),
                     ),
                 ],
               ),
@@ -81,7 +90,7 @@ class UserHoldingsListItem extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: 6.0.s),
-                        _ProfitLossIndicator(position: position),
+                        ProfitLossIndicator(position: position),
                       ],
                     ),
                   ],
@@ -90,19 +99,8 @@ class UserHoldingsListItem extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 6.0.s, vertical: 2.0.s),
-          decoration: BoxDecoration(
-            color: context.theme.appColors.primaryAccent,
-            borderRadius: BorderRadius.circular(12.0.s),
-          ),
-          child: Text(
-            '\$${MarketDataFormatter.formatCompactNumber(position.amountUSD)}',
-            style: context.theme.appTextThemes.caption2.copyWith(
-              color: context.theme.appColors.onPrimaryAccent,
-              height: 16 / context.theme.appTextThemes.caption2.fontSize!,
-            ),
-          ),
+        TokenPriceLabel(
+          text: '\$${MarketDataFormatter.formatCompactNumber(position.amountUSD)}',
         ),
       ],
     );
@@ -116,7 +114,7 @@ class _TwitterBadge extends StatelessWidget {
       width: 13.0.s,
       height: 13.0.s,
       decoration: BoxDecoration(
-        color: const Color(0xFF1D1E20),
+        color: context.theme.appColors.asphalt,
         borderRadius: BorderRadius.circular(4.0.s),
       ),
       child: Center(
@@ -125,40 +123,6 @@ class _TwitterBadge extends StatelessWidget {
           color: Colors.white,
         ),
       ),
-    );
-  }
-}
-
-class _ProfitLossIndicator extends StatelessWidget {
-  const _ProfitLossIndicator({
-    required this.position,
-  });
-
-  final Position position;
-
-  @override
-  Widget build(BuildContext context) {
-    final isProfit = position.pnl >= 0;
-    final profitColor =
-        isProfit ? context.theme.appColors.success : context.theme.appColors.raspberry;
-
-    final pnlSign = getNumericSign(position.pnl);
-    final pnlAmount = MarketDataFormatter.formatCompactNumber(position.pnl.abs());
-
-    return Row(
-      children: [
-        Assets.svg.iconCreatecoinProfit.icon(
-          size: 14.15.s,
-          color: profitColor,
-        ),
-        SizedBox(width: 4.0.s),
-        Text(
-          '$pnlSign\$$pnlAmount',
-          style: context.theme.appTextThemes.caption.copyWith(
-            color: profitColor,
-          ),
-        ),
-      ],
     );
   }
 }

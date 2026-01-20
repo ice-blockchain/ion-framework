@@ -39,7 +39,8 @@
         "allports": "#017C9F",
         "forest": "#010008",
         "electricViolet": "#6F2EFE",
-        "heliotrope": "#9973FD"
+        "heliotrope": "#9973FD",
+        "asphalt": "#1D1E20"
       },
       "dark": {
         "primaryAccent": "#0166FF",
@@ -79,7 +80,8 @@
         "allports": "#017C9F",
         "forest": "#010008",
         "electricViolet": "#6F2EFE",
-        "heliotrope": "#9973FD"
+        "heliotrope": "#9973FD",
+        "asphalt": "#1D1E20"
       }
     },
     "textThemes": {

@@ -103,7 +103,7 @@ class TwitterTokenHeader extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.all(3.58.s),
                 decoration: BoxDecoration(
-                  color: const Color(0xff1D1E20),
+                  color: context.theme.appColors.asphalt,
                   border: Border.all(color: Colors.white),
                   borderRadius: BorderRadius.circular(6.0.s),
                 ),
