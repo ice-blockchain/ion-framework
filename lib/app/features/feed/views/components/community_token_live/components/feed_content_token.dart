@@ -223,6 +223,7 @@ class ContentTokenHeader extends HookConsumerWidget {
                             name: owner?.data.name,
                             verified: isVerified,
                           ),
+                          creatorMasterPubkey: owner?.masterPubkey,
                           nameColor: context.theme.appColors.onPrimaryAccent,
                           handleColor: context.theme.appColors.attentionBlock,
                         ),

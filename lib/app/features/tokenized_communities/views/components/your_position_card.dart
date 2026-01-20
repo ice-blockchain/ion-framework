@@ -17,11 +17,13 @@ class YourPositionCard extends HookConsumerWidget {
   const YourPositionCard({
     required this.token,
     this.trailing,
+    this.onTap,
     super.key,
   });
 
   final CommunityToken token;
   final Widget? trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,50 +41,53 @@ class YourPositionCard extends HookConsumerWidget {
 
     final avatarColors = useImageColors(avatarUrl);
 
-    return Column(
-      children: [
-        Container(
-          margin: EdgeInsetsDirectional.fromSTEB(16.s, 12.s, 16.s, 12.s),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16.s),
-            child: ProfileBackground(
-              colors: avatarColors,
-              disableDarkGradient: true,
-              child: Padding(
-                padding: EdgeInsetsDirectional.all(12.s),
-                child: IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      CommunityTokenImage(
-                        imageUrl: avatarUrl,
-                        width: 52.s,
-                        height: 52.s,
-                        outerBorderRadius: 12.8.s,
-                        innerBorderRadius: 9.6.s,
-                        innerPadding: 2.s,
-                      ),
-                      SizedBox(width: 10.s),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const _YourPositionCardTitle(),
-                          SizedBox(height: 8.s),
-                          _ProfitDetails(position: position),
-                        ],
-                      ),
-                      const Spacer(),
-                      _AmountDetails(position: position),
-                    ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            margin: EdgeInsetsDirectional.fromSTEB(16.s, 12.s, 16.s, 12.s),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16.s),
+              child: ProfileBackground(
+                colors: avatarColors,
+                disableDarkGradient: true,
+                child: Padding(
+                  padding: EdgeInsetsDirectional.all(12.s),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CommunityTokenImage(
+                          imageUrl: avatarUrl,
+                          width: 52.s,
+                          height: 52.s,
+                          outerBorderRadius: 12.8.s,
+                          innerBorderRadius: 9.6.s,
+                          innerPadding: 2.s,
+                        ),
+                        SizedBox(width: 10.s),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const _YourPositionCardTitle(),
+                            SizedBox(height: 8.s),
+                            _ProfitDetails(position: position),
+                          ],
+                        ),
+                        const Spacer(),
+                        _AmountDetails(position: position),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        if (trailing != null) trailing!,
-      ],
+          if (trailing != null) trailing!,
+        ],
+      ),
     );
   }
 }
