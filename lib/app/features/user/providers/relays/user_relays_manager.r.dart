@@ -238,13 +238,35 @@ class UserRelaysManager extends _$UserRelaysManager {
   }
 }
 
+String normalizeRelayUrl(String raw) {
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty) return trimmed;
+
+  try {
+    final uri = Uri.parse(trimmed);
+
+    // Migration: old relays used :4443, new standard is :443.
+    if (uri.hasPort && uri.port == 4443) {
+      return uri.replace(port: 443).toString();
+    }
+
+    return uri.toString();
+  } catch (_) {
+    // If parsing fails, keep the original string.
+    return trimmed;
+  }
+}
+
 @riverpod
 Future<UserRelaysEntity?> currentUserRelays(Ref ref) async {
   final identityConnectRelays = await ref.watch(currentUserIdentityConnectRelaysProvider.future);
   if (identityConnectRelays == null) {
     return null;
   }
-  final updatedUserRelays = UserRelaysData(list: identityConnectRelays);
+
+  final updatedUserRelays = UserRelaysData(
+    list: identityConnectRelays.map((r) => r.copyWith(url: normalizeRelayUrl(r.url))).toList(),
+  );
   final userRelaysEvent =
       await ref.read(ionConnectNotifierProvider.notifier).sign(updatedUserRelays);
 
@@ -254,7 +276,7 @@ Future<UserRelaysEntity?> currentUserRelays(Ref ref) async {
 extension IonConnectRelayInfoToUserRelay on IonConnectRelayInfo {
   UserRelay toUserRelay() {
     return UserRelay(
-      url: url,
+      url: normalizeRelayUrl(url),
       write: type == null || type == IonConnectRelayType.write,
       read: type == null || type == IonConnectRelayType.read,
     );

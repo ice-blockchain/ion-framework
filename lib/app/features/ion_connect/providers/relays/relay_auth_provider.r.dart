@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -11,12 +12,16 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart' hide requestEvent
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/auth_event.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relay_disliked_connect_urls_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relays_replica_delay_provider.m.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
+import 'package:ion/app/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relay_auth_provider.r.g.dart';
+
+const _defaultTimeout = Duration(seconds: 30);
 
 @riverpod
 class RelayAuth extends _$RelayAuth {
@@ -24,6 +29,9 @@ class RelayAuth extends _$RelayAuth {
   RelayAuthService build(IonConnectRelay relay) {
     final service = RelayAuthService(
       relay: relay,
+      addDislikedConnectUrl: (connectUrl) {
+        ref.read(relayDislikedConnectUrlsProvider(relay.url).notifier).add(connectUrl);
+      },
       createAuthEvent: ({
         required String challenge,
         required String relayUrl,
@@ -70,6 +78,25 @@ class RelayAuth extends _$RelayAuth {
     });
     ref.onDispose(authMessageSubscription.cancel);
 
+    final connectionSubscription = relay.socket.connection.listen((state) {
+      // When the underlying websocket reconnects, any in-flight AUTH attempt is no longer valid.
+      // If we keep the old completer, authenticateRelay() will "short circuit" and we will never
+      // send a new AUTH for the new connection.
+      if (state is Disconnected ||
+          state is Disconnecting ||
+          state is Reconnecting ||
+          state is Reconnected) {
+        final c = service.completer;
+        if (c != null && !c.isCompleted) {
+          c.completeError(
+            const SocketException('Relay connection changed during authentication'),
+          );
+        }
+        service.completer = null;
+      }
+    });
+    ref.onDispose(connectionSubscription.cancel);
+
     return service;
   }
 }
@@ -77,12 +104,15 @@ class RelayAuth extends _$RelayAuth {
 class RelayAuthService {
   RelayAuthService({
     required this.relay,
+    required this.addDislikedConnectUrl,
     required this.createAuthEvent,
     required this.onError,
     this.completer,
   });
 
   final IonConnectRelay relay;
+
+  final void Function(String connectUrl) addDislikedConnectUrl;
 
   final Future<EventMessage> Function({required String challenge, required String relayUrl})
       createAuthEvent;
@@ -130,7 +160,7 @@ class RelayAuthService {
     }
   }
 
-  Future<void> authenticateRelay({bool isRetry = false}) async {
+  Future<void> authenticateRelay() async {
     if (challenge == null || challenge!.isEmpty) throw AuthChallengeIsEmptyException();
 
     // Cases when we need to re-authenticate the relay:
@@ -141,34 +171,61 @@ class RelayAuthService {
     } else {
       return completer!.future;
     }
-    try {
-      final signedAuthEvent = await createAuthEvent(
-        challenge: challenge!,
-        relayUrl: Uri.parse(relay.url).toString(),
-      );
 
-      final authMessage = AuthMessage(
-        challenge: jsonEncode(signedAuthEvent.toJson().last),
-      );
+    var didRetry = false;
+    while (true) {
+      try {
+        final signedAuthEvent = await createAuthEvent(
+          challenge: challenge!,
+          relayUrl: Uri.parse(relay.url).toString(),
+        );
 
-      relay.sendMessage(authMessage);
+        final authMessage = AuthMessage(
+          challenge: jsonEncode(signedAuthEvent.toJson().last),
+        );
 
-      final okMessages = await relay.messages
-          .where((message) => message is OkMessage)
-          .cast<OkMessage>()
-          .firstWhere((message) => signedAuthEvent.id == message.eventId);
+        relay.sendMessage(authMessage);
 
-      if (!okMessages.accepted) {
-        throw SendEventException(okMessages.message);
+        final okMessage = await relay.messages
+            .where((message) => message is OkMessage)
+            .cast<OkMessage>()
+            .firstWhere((message) => signedAuthEvent.id == message.eventId)
+            .timeout(
+          _defaultTimeout,
+          onTimeout: () {
+            addDislikedConnectUrl(relay.connectUrl);
+            relay.close();
+            reportFailover(
+              Exception(
+                '[RELAY] Relay connection failover for logical URL: ${relay.url} and connect URL ${relay.connectUrl} with reason: AUTH OK timeout}',
+              ),
+              StackTrace.current,
+              tag: 'relay_failover_auth_timeout',
+            );
+            throw SendEventException(
+              'auth-required: AUTH OK timeout after ${_defaultTimeout.inSeconds}s',
+            );
+          },
+        );
+
+        if (!okMessage.accepted) {
+          throw SendEventException(okMessage.message);
+        }
+
+        completer?.complete();
+        return;
+      } catch (error, st) {
+        final shouldRetry = await onError(error);
+        if (shouldRetry && !didRetry) {
+          didRetry = true;
+          continue;
+        }
+
+        // Make sure waiters get the failure and propagate it to the current caller.
+        completer?.completeError(error, st);
+
+        Error.throwWithStackTrace(error, st);
       }
-
-      completer?.complete();
-    } catch (error) {
-      final shouldRetry = await onError(error);
-      if (shouldRetry && !isRetry) {
-        return authenticateRelay(isRetry: true);
-      }
-      completer?.completeError(error);
     }
   }
 
