@@ -31,10 +31,10 @@ internal class AppodealNativeAdView(activity: Activity, arguments: HashMap<*, *>
             val nativeAdOptions = nativeAdOptions ?: return@lazy WeakReference(null)
 
             apdLog("AppodealNativeAdView#adView-lazy-nativeAdOptions: $nativeAdOptions")
-
-            apdLog("AppodealNativeAdView#adView-lazy-nativeAdViewType: ${nativeAdOptions.nativeAdViewType}")
             val templateNativeAdViewBinder = templateNativeAdViewBinder
             val adView = templateNativeAdViewBinder.bind(activity, nativeAdOptions)
+            apdLog("AppodealNativeAdView#adView-lazy-nativeAdView: $adView")
+
             val ratingBar = adView.findViewById<RatingBar>(R.id.native_custom_rating)
             val descriptionView = adView.findViewById<TextView>(R.id.native_custom_description)
             if (nativeAd.rating > 0) {

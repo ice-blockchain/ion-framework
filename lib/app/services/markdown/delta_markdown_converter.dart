@@ -429,6 +429,18 @@ abstract class DeltaMarkdownConverter {
       return placeholder;
     }
 
+    if (data.containsKey('text-editor-ad')) {
+      const placeholder = '\n';
+      const replacement = '\n--ad--\n';
+      _addEmbedPmoTag(
+        currentIndex: currentIndex,
+        placeholder: placeholder,
+        replacement: replacement,
+        pmoTags: pmoTags,
+      );
+      return placeholder;
+    }
+
     // Fallback: empty placeholder if embed type is unknown
     return '';
   }
