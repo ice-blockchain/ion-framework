@@ -46,7 +46,7 @@ class StoryProgressBarContainer extends ConsumerWidget {
     final storiesCount =
         max(ref.watch(storiesCountProvider(currentUserPubkey)).valueOrNull ?? 0, stories.length);
 
-    if (stories.isEmpty || storiesCount == null) {
+    if (stories.isEmpty) {
       return const SizedBox();
     }
 
