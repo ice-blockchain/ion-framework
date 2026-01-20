@@ -195,9 +195,11 @@ abstract class AppEnv {
   @EnviedField(varName: 'CRYPTOCURRENCIES_ION_JRPC_URL')
   static final String cryptocurrenciesIonJrpcUrl = _AppEnv.cryptocurrenciesIonJrpcUrl;
 
-  // Relay proxy domains
   @EnviedField(varName: 'RELAY_PROXY_DOMAINS')
   static final String relayProxyDomains = _AppEnv.relayProxyDomains;
+
+  @EnviedField(varName: 'RPC_PROXY_DOMAINS')
+  static final String rpcProxyDomains = _AppEnv.rpcProxyDomains;
 }
 
 enum EnvVariable {
@@ -255,6 +257,7 @@ enum EnvVariable {
   CRYPTOCURRENCIES_ION_TRADE_URL,
   CRYPTOCURRENCIES_ION_JRPC_URL,
   RELAY_PROXY_DOMAINS,
+  RPC_PROXY_DOMAINS
 }
 
 @Riverpod(keepAlive: true)
@@ -366,6 +369,7 @@ class Env extends _$Env {
       EnvVariable.CRYPTOCURRENCIES_ION_TRADE_URL => AppEnv.cryptocurrenciesIonTradeUrl as T,
       EnvVariable.CRYPTOCURRENCIES_ION_JRPC_URL => AppEnv.cryptocurrenciesIonJrpcUrl as T,
       EnvVariable.RELAY_PROXY_DOMAINS => AppEnv.relayProxyDomains as T,
+      EnvVariable.RPC_PROXY_DOMAINS => AppEnv.rpcProxyDomains as T,
     };
   }
 }
