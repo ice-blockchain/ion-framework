@@ -7,6 +7,7 @@ import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/text_editor_cashtag_embed_builder.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_ad_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_code_block/text_editor_code_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_separator_block/text_editor_separator_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
@@ -168,6 +169,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
           TextEditorCodeBuilder(readOnly: true),
           if (convertMentionsToEmbeds) const TextEditorMentionEmbedBuilder(showClose: false),
           if (convertMentionsToEmbeds) const TextEditorCashtagEmbedBuilder(showClose: false),
+          TextEditorAdBuilder(),
         ],
         unknownEmbedBuilder: TextEditorUnknownEmbedBuilder(),
         disableClipboard: true,
