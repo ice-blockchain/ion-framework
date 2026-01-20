@@ -4,7 +4,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/features/core/providers/dio_provider.r.dart';
+import 'package:ion/app/features/ion_connect/model/relay_info.f.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relay_info_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,16 +14,19 @@ part 'ion_connect_relays_ranker.r.g.dart';
 @riverpod
 IonConnectRelaysRanker ionConnectRelaysRanker(Ref ref) {
   return IonConnectRelaysRanker(
-    dio: ref.watch(dioProvider),
+    /// Using provider instead of the underlying repository to cache the result for the future use
+    /// Using GET nip-11 data instead of HEAD to make sure the relay is available.
+    getRelayInfo: ({required String relayUrl}) async =>
+        ref.refresh(relayInfoProvider(relayUrl).future),
   );
 }
 
 final class IonConnectRelaysRanker {
   const IonConnectRelaysRanker({
-    required this.dio,
+    required this.getRelayInfo,
   });
 
-  final Dio dio;
+  final Future<RelayInfo> Function({required String relayUrl}) getRelayInfo;
 
   /// Ranks the relays based on their latency.
   ///
@@ -35,7 +39,7 @@ final class IonConnectRelaysRanker {
     for (final relayUrl in relaysUrls) {
       _getRankedRelay(relayUrl, cancelToken).then(
         (result) {
-          Logger.log('[RELAY] Relays ping results ${result.latency}');
+          Logger.log('[RELAY] Ranking. Relays ping results ${result.latency}');
           measurements
             ..add(result)
             ..sort((a, b) => a.latency.compareTo(b.latency));
@@ -45,7 +49,7 @@ final class IonConnectRelaysRanker {
         (Object? reason) {
           Logger.error(
             reason is Object ? reason : 'Unknown error',
-            message: '[RELAY] Error pinging relay $relayUrl',
+            message: '[RELAY] Ranking. Error pinging relay $relayUrl',
           );
         },
       ).whenComplete(() {
@@ -65,25 +69,8 @@ final class IonConnectRelaysRanker {
   ]) async {
     final stopWatch = Stopwatch()..start();
     try {
-      final parsedRelayUrl = Uri.parse(relayUrl);
-      final relayUri = Uri(
-        scheme: 'https',
-        host: parsedRelayUrl.host,
-        port: parsedRelayUrl.hasPort ? parsedRelayUrl.port : null,
-      );
       const timeout = Duration(seconds: 30);
-
-      await dio.headUri<void>(
-        relayUri,
-        options: Options(
-          headers: {
-            'Accept': 'application/nostr+json',
-          },
-          sendTimeout: timeout,
-          receiveTimeout: timeout,
-        ),
-        cancelToken: cancelToken,
-      );
+      await getRelayInfo(relayUrl: relayUrl).timeout(timeout);
       return RankedRelay(url: relayUrl, latency: stopWatch.elapsedMilliseconds);
     } catch (e) {
       return RankedRelay.unreachable(url: relayUrl);
