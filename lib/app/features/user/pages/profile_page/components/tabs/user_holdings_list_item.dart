@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/profit_loss_indicator.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_price_label.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_type_gradient_indicator.dart';
@@ -36,10 +36,13 @@ class UserHoldingsListItem extends StatelessWidget {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Avatar(
-                    size: 30.0.s,
+                  TokenAvatar(
                     imageUrl: token.imageUrl,
-                    borderRadius: BorderRadius.circular(10.0.s),
+                    containerSize: Size.square(30.0.s),
+                    imageSize: Size.square(30.0.s),
+                    outerBorderRadius: 10.0.s,
+                    innerBorderRadius: 10.0.s,
+                    borderWidth: 0,
                   ),
                   if (token.source.isTwitter)
                     PositionedDirectional(
