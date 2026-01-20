@@ -745,6 +745,7 @@
   "profile_holdings": "Portefeuille",
   "profile_holdings_empty_list": "{username} n'a pas encore de portefeuille",
   "profile_holdings_empty_list_current_user": "Vous n'avez pas encore de portefeuille",
+  "profile_holdings_with_count": "Portefeuille ({count})",
   "profile_location": "Localisation",
   "profile_log_out": "Déconnecter {nickname}",
   "profile_login_with_new_account": "Se connecter avec un nouveau compte",

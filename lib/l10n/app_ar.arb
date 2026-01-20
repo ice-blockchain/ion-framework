@@ -757,6 +757,7 @@
   "profile_holdings": "الممتلكات",
   "profile_holdings_empty_list": "ليس لدى {username} أي ممتلكات بعد",
   "profile_holdings_empty_list_current_user": "ليس لديك أي ممتلكات بعد",
+  "profile_holdings_with_count": "الممتلكات ({count})",
   "profile_location": "الموقع",
   "profile_log_out": "تسجيل الخروج {nickname}",
   "profile_login_with_new_account": "تسجيل الدخول بحساب جديد",
