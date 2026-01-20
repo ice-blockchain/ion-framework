@@ -16,14 +16,15 @@ abstract class SwapTransactionIdentifier {
   /// From-tx tx is confirmed BEFORE the swap record is saved to DB.
   Duration get fromTxLookbackWindow => const Duration(minutes: 10);
 
-  /// ION bridge fee constants (in nanotons, 1 ION = 1_000_000_000 nanotons).
-  /// Reference: https://docs.ton.org/foundations/fees
-  static const int ionMessageFee = 60960000; // 0.06096 ION
-  static const int ionBridgeFee = 500000000; // 0.5 ION
-
-  /// Tolerance for amount comparison (in nanotons).
+  /// Tolerance for amount comparison (in smallest units).
   /// Allows for minor rounding differences.
   static const int amountTolerance = 1;
+
+  /// Returns cross-chain fees for this network (in smallest units).
+  /// Override in subclasses to provide network-specific fees.
+  /// - isSource=true: fees when bridging OUT of this network
+  /// - isSource=false: fees when bridging INTO this network
+  BigInt getCrossChainFee({required bool isSource}) => BigInt.zero;
 
   /// Returns true if [tx] is a from-tx (outgoing) match for [swap].
   /// From-tx: user sends tokens TO the bridge on the source network.
@@ -90,7 +91,8 @@ abstract class SwapTransactionIdentifier {
 
   /// Returns true if [tx] is a to-tx (incoming) match for [swap].
   /// To-tx: user receives tokens FROM the bridge on the destination network.
-  bool isToTxMatch(SwapTransactions swap, TransactionData tx) {
+  /// [crossChainFee] is the total fee deducted from toAmount (calculated by linker).
+  bool isToTxMatch(SwapTransactions swap, TransactionData tx, {BigInt? crossChainFee}) {
     Logger.log(
       'SwapTxIdentifier[$networkId]: Checking to-tx match for '
       'swap ${swap.swapId} and tx ${tx.txHash}',
@@ -134,7 +136,7 @@ abstract class SwapTransactionIdentifier {
       );
       return false;
     }
-    if (!isInTxAmountMatch(swap.toAmount, tx)) {
+    if (!isInTxAmountMatch(swap.toAmount, tx, crossChainFee: crossChainFee)) {
       Logger.log(
         'SwapTxIdentifier[$networkId]: To-tx mismatch - '
         'amount mismatch (expected: ${swap.toAmount})',
@@ -198,8 +200,12 @@ abstract class SwapTransactionIdentifier {
   }
 
   /// Incoming tx amount should equal expected receive amount minus applicable fees.
-  /// Override in subclasses to apply network-specific fee deductions.
-  bool isInTxAmountMatch(String expectedReceiveAmount, TransactionData tx) {
+  /// [crossChainFee] is the total cross-chain fee to deduct from expected amount.
+  bool isInTxAmountMatch(
+    String expectedReceiveAmount,
+    TransactionData tx, {
+    BigInt? crossChainFee,
+  }) {
     final (expectedAmount, txAmountValue) = parseAmounts(expectedReceiveAmount, tx);
     if (expectedAmount == null || txAmountValue == null) {
       Logger.log(
@@ -215,12 +221,13 @@ abstract class SwapTransactionIdentifier {
       return false;
     }
 
-    // Default: direct comparison (subclasses override with fee logic)
-    final isMatch = amountsEqual(expectedAmount, txAmountValue);
+    final fee = crossChainFee ?? BigInt.zero;
+    final expectedAfterFee = expectedAmount - fee;
+    final isMatch = amountsEqual(expectedAfterFee, txAmountValue);
     Logger.log(
       'SwapTxIdentifier[$networkId]: InTxAmount - '
-      'expectedAmount: $expectedAmount, txAmount: $txAmountValue, '
-      'match: $isMatch',
+      'expectedAmount: $expectedAmount, fee: $fee, expectedAfterFee: $expectedAfterFee, '
+      'txAmount: $txAmountValue, match: $isMatch',
     );
     return isMatch;
   }

@@ -91,6 +91,21 @@ class SwapTransactionLinker {
         (i) => i.networkId.toLowerCase() == networkId.toLowerCase(),
       );
 
+  BigInt _calculateCrossChainFee({
+    required String fromNetworkId,
+    required String toNetworkId,
+  }) {
+    final sourceIdentifier = _getIdentifier(fromNetworkId);
+    final destIdentifier = _getIdentifier(toNetworkId);
+
+    final sourceFee =
+        sourceIdentifier?.getCrossChainFee(isSource: true) ?? BigInt.zero;
+    final destFee =
+        destIdentifier?.getCrossChainFee(isSource: false) ?? BigInt.zero;
+
+    return sourceFee + destFee;
+  }
+
   void _onPendingSwapsChanged(List<SwapTransactions> pendingSwaps) {
     if (!_isRunning) return;
 
@@ -163,8 +178,8 @@ class SwapTransactionLinker {
     );
 
     for (final swap in pendingSwapsForWallet) {
-      final identifier = _getIdentifier(swap.toNetworkId);
-      if (identifier == null) {
+      final destIdentifier = _getIdentifier(swap.toNetworkId);
+      if (destIdentifier == null) {
         Logger.log(
           'SwapTransactionLinker: No identifier for network ${swap.toNetworkId}, '
           'skipping swap ${swap.swapId}',
@@ -172,7 +187,12 @@ class SwapTransactionLinker {
         continue;
       }
 
-      if (identifier.isToTxMatch(swap, tx)) {
+      final crossChainFee = _calculateCrossChainFee(
+        fromNetworkId: swap.fromNetworkId,
+        toNetworkId: swap.toNetworkId,
+      );
+
+      if (destIdentifier.isToTxMatch(swap, tx, crossChainFee: crossChainFee)) {
         Logger.log(
           'SwapTransactionLinker: ✓ To-tx LINKED! '
           'Swap ${swap.swapId} (fromTx: ${swap.fromTxHash}) -> toTx: ${tx.txHash}',

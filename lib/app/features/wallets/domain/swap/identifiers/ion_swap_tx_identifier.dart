@@ -8,11 +8,22 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
   static const _bridgeMultisigAddress =
       'Uf8PSnTugXPqSS9HgrEWdrU1yOoy2wH4qCaqsZhCaV2HSIEw';
 
+  /// ION message fee (in nanotons, 1 ION = 1_000_000_000 nanotons).
+  /// Reference: https://docs.ton.org/foundations/fees
+  static final BigInt _ionMessageFee = BigInt.from(60960000); // 0.06096 ION
+
+  /// ION bridge fee (in nanotons).
+  static final BigInt _ionBridgeFee = BigInt.from(500000000); // 0.5 ION
+
   @override
   String get networkId => 'ion';
 
   @override
   String get bridgeAddress => _bridgeMultisigAddress;
+
+  @override
+  BigInt getCrossChainFee({required bool isSource}) =>
+      isSource ? (_ionBridgeFee + _ionMessageFee) : _ionBridgeFee;
 
   /// From-tx (ION → any): tx amount = swap.amount - ionMessageFee
   @override
@@ -25,7 +36,7 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
       );
       return false;
     }
-    if (swapAmountValue == 0) {
+    if (swapAmountValue == BigInt.zero) {
       Logger.log(
         'SwapTxIdentifier[$networkId]: OutTxAmount - swap amount is 0',
       );
@@ -33,7 +44,7 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
     }
 
     // ION from-tx: tx amount = swap amount - message fee
-    final expectedTxAmount = swapAmountValue - SwapTransactionIdentifier.ionMessageFee;
+    final expectedTxAmount = swapAmountValue - _ionMessageFee;
     final isMatch = amountsEqual(expectedTxAmount, txAmountValue);
 
     Logger.log(
@@ -44,33 +55,4 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
     return isMatch;
   }
 
-  /// To-tx (BSC → ION): tx amount = swap.toAmount - ionBridgeFee
-  @override
-  bool isInTxAmountMatch(String expectedReceiveAmount, TransactionData tx) {
-    final (expectedAmount, txAmountValue) = parseAmounts(expectedReceiveAmount, tx);
-    if (expectedAmount == null || txAmountValue == null) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: InTxAmount - parse failed '
-        '(expected: $expectedReceiveAmount, tx raw amount: null)',
-      );
-      return false;
-    }
-    if (expectedAmount == 0) {
-      Logger.log(
-        'SwapTxIdentifier[$networkId]: InTxAmount - expected amount is 0',
-      );
-      return false;
-    }
-
-    // BSC → ION to-tx: tx amount = expected - bridge fee only
-    final expectedTxAmount = expectedAmount - SwapTransactionIdentifier.ionBridgeFee;
-    final isMatch = amountsEqual(expectedTxAmount, txAmountValue);
-
-    Logger.log(
-      'SwapTxIdentifier[$networkId]: InTxAmount - '
-      'expectedAmount: $expectedAmount, expectedAfterFee: $expectedTxAmount, '
-      'txAmount: $txAmountValue, match: $isMatch',
-    );
-    return isMatch;
-  }
 }
