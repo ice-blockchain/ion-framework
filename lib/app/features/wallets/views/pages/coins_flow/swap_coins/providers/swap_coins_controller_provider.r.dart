@@ -20,7 +20,6 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -362,28 +361,14 @@ class SwapCoinsController extends _$SwapCoinsController {
             }
 
             final swapsRepository = await ref.read(swapsRepositoryProvider.future);
-            final sellAmount = double.tryParse(swapCoinParameters.amount) ?? 0;
-            final rate = swapQuoteInfo?.priceForSellTokenInBuyToken ?? 1.0;
-            final expectedReceiveAmount = sellAmount * rate;
-
-            final sellDecimals = sellCoin.coin.decimals;
-            final buyDecimals = buyCoin.coin.decimals;
-            final rawSellAmount =
-                (sellAmount * BigInt.from(10).pow(sellDecimals).toDouble()).toStringAsFixed(0);
-            final rawBuyAmount =
-                (expectedReceiveAmount * BigInt.from(10).pow(buyDecimals).toDouble())
-                    .toStringAsFixed(0);
-
-            await swapsRepository.saveSwap(
-              fromWalletAddress: swapCoinParameters.userSellAddress!,
-              toWalletAddress: swapCoinParameters.userBuyAddress!,
-              fromNetworkId: sellNetwork.id,
-              toNetworkId: buyNetwork.id,
-              amount: rawSellAmount,
-              toAmount: rawBuyAmount,
-              fromCoinId: sellCoin.coin.id,
-              toCoinId: buyCoin.coin.id,
-              exchangeRate: rate,
+            await _saveSwapRecord(
+              swapsRepository: swapsRepository,
+              swapCoinParameters: swapCoinParameters,
+              swapQuoteInfo: swapQuoteInfo,
+              sellNetwork: sellNetwork,
+              buyNetwork: buyNetwork,
+              sellCoin: sellCoin,
+              buyCoin: buyCoin,
             );
 
             await _sendCoinCallback(
@@ -702,28 +687,15 @@ class SwapCoinsController extends _$SwapCoinsController {
       );
 
       final swapsRepository = await ref.read(swapsRepositoryProvider.future);
-      final sellAmount = double.tryParse(swapCoinParameters.amount) ?? 0;
-      final rate = swapQuoteInfo?.priceForSellTokenInBuyToken ?? 1.0;
-      final expectedReceiveAmount = sellAmount * rate;
-
-      final sellDecimals = sellCoin.coin.decimals;
-      final buyDecimals = buyCoin.coin.decimals;
-      final rawSellAmount =
-          (sellAmount * BigInt.from(10).pow(sellDecimals).toDouble()).toStringAsFixed(0);
-      final rawBuyAmount =
-          (expectedReceiveAmount * BigInt.from(10).pow(buyDecimals).toDouble()).toStringAsFixed(0);
-
-      await swapsRepository.saveSwap(
+      await _saveSwapRecord(
+        swapsRepository: swapsRepository,
+        swapCoinParameters: swapCoinParameters,
+        swapQuoteInfo: swapQuoteInfo,
+        sellNetwork: sellNetwork,
+        buyNetwork: buyNetwork,
+        sellCoin: sellCoin,
+        buyCoin: buyCoin,
         fromTxHash: txHash,
-        fromWalletAddress: swapCoinParameters.userSellAddress!,
-        toWalletAddress: swapCoinParameters.userBuyAddress!,
-        fromNetworkId: sellNetwork.id,
-        toNetworkId: buyNetwork.id,
-        amount: rawSellAmount,
-        toAmount: rawBuyAmount,
-        fromCoinId: sellCoin.coin.id,
-        toCoinId: buyCoin.coin.id,
-        exchangeRate: rate,
       );
 
       onSwapSuccess();
@@ -819,6 +791,41 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
 
     return sellCoin.amount < amount;
+  }
+
+  Future<void> _saveSwapRecord({
+    required SwapsRepository swapsRepository,
+    required SwapCoinParameters swapCoinParameters,
+    required SwapQuoteInfo? swapQuoteInfo,
+    required NetworkData sellNetwork,
+    required NetworkData buyNetwork,
+    required CoinInWalletData sellCoin,
+    required CoinInWalletData buyCoin,
+    String? fromTxHash,
+  }) async {
+    final sellAmount = double.tryParse(swapCoinParameters.amount) ?? 0;
+    final rate = swapQuoteInfo?.priceForSellTokenInBuyToken ?? 1.0;
+    final expectedReceiveAmount = sellAmount * rate;
+
+    final sellDecimals = sellCoin.coin.decimals;
+    final buyDecimals = buyCoin.coin.decimals;
+    final rawSellAmount =
+        (sellAmount * BigInt.from(10).pow(sellDecimals).toDouble()).toStringAsFixed(0);
+    final rawBuyAmount =
+        (expectedReceiveAmount * BigInt.from(10).pow(buyDecimals).toDouble()).toStringAsFixed(0);
+
+    await swapsRepository.saveSwap(
+      fromTxHash: fromTxHash,
+      fromWalletAddress: swapCoinParameters.userSellAddress!,
+      toWalletAddress: swapCoinParameters.userBuyAddress!,
+      fromNetworkId: sellNetwork.id,
+      toNetworkId: buyNetwork.id,
+      amount: rawSellAmount,
+      toAmount: rawBuyAmount,
+      fromCoinId: sellCoin.coin.id,
+      toCoinId: buyCoin.coin.id,
+      exchangeRate: rate,
+    );
   }
 }
 

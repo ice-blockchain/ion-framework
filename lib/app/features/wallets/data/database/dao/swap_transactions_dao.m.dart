@@ -55,6 +55,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     List<String?> toTxHashes = const [],
     List<String> fromWalletAddresses = const [],
     List<String> toWalletAddresses = const [],
+    List<SwapStatus> statuses = const [],
     int limit = 100,
   }) async {
     final query = select(swapTransactionsTable)
@@ -65,6 +66,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
           toTxHashes: toTxHashes,
           fromWalletAddresses: fromWalletAddresses,
           toWalletAddresses: toWalletAddresses,
+          statuses: statuses,
         ),
       )
       ..limit(limit);
@@ -76,6 +78,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     List<String?> toTxHashes = const [],
     List<String> fromWalletAddresses = const [],
     List<String> toWalletAddresses = const [],
+    List<SwapStatus> statuses = const [],
     int limit = 100,
   }) {
     final query = select(swapTransactionsTable)
@@ -86,6 +89,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
           toTxHashes: toTxHashes,
           fromWalletAddresses: fromWalletAddresses,
           toWalletAddresses: toWalletAddresses,
+          statuses: statuses,
         ),
       )
       ..limit(limit);
@@ -98,6 +102,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     List<String?> toTxHashes = const [],
     List<String> fromWalletAddresses = const [],
     List<String> toWalletAddresses = const [],
+    List<SwapStatus> statuses = const [],
   }) {
     Expression<bool> expr = const Constant(true);
 
@@ -115,6 +120,10 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
 
     if (toWalletAddresses.isNotEmpty) {
       expr = expr & t.toWalletAddress.isIn(toWalletAddresses);
+    }
+
+    if (statuses.isNotEmpty) {
+      expr = expr & t.status.isIn(statuses.map((s) => s.name).toList());
     }
 
     return expr;
@@ -142,13 +151,24 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     String? toTxHash,
     SwapStatus? status,
   }) async {
+    final currentSwap = await (select(swapTransactionsTable)
+          ..where((t) => t.swapId.equals(swapId)))
+        .getSingleOrNull();
+
+    if (currentSwap == null) return 0;
+
     final companion = SwapTransactionsTableCompanion(
-      fromTxHash: fromTxHash != null ? Value(fromTxHash) : const Value.absent(),
-      toTxHash: toTxHash != null ? Value(toTxHash) : const Value.absent(),
+      fromTxHash: fromTxHash != null && currentSwap.fromTxHash == null
+          ? Value(fromTxHash)
+          : const Value.absent(),
+      toTxHash: toTxHash != null && currentSwap.toTxHash == null
+          ? Value(toTxHash)
+          : const Value.absent(),
       status: status != null ? Value(status.name) : const Value.absent(),
     );
 
-    return (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId))).write(companion);
+    return (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
+        .write(companion);
   }
 
   Future<List<SwapTransactions>> getPendingSwapsOlderThan(DateTime cutoff) async {
@@ -156,6 +176,13 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
       ..where(
         (t) => t.status.equals(SwapStatus.pending.name) & t.createdAt.isSmallerThanValue(cutoff),
       );
+    return query.get();
+  }
+
+  Future<List<SwapTransactions>> getIncompleteSwaps({int limit = 100}) async {
+    final query = select(swapTransactionsTable)
+      ..where((t) => t.fromTxHash.isNull() | t.toTxHash.isNull())
+      ..limit(limit);
     return query.get();
   }
 }

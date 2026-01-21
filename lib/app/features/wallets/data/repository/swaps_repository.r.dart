@@ -7,6 +7,7 @@ import 'package:ion/app/features/wallets/data/database/dao/swap_transactions_dao
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/expected_swap_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_details.f.dart';
 import 'package:ion/app/features/wallets/model/swap_status.dart';
@@ -206,6 +207,7 @@ class SwapsRepository {
     List<String?> toTxHashes = const [],
     List<String> fromWalletAddresses = const [],
     List<String> toWalletAddresses = const [],
+    List<SwapStatus> statuses = const [],
     int limit = 100,
   }) =>
       _swapDao.getSwaps(
@@ -213,6 +215,7 @@ class SwapsRepository {
         toTxHashes: toTxHashes,
         fromWalletAddresses: fromWalletAddresses,
         toWalletAddresses: toWalletAddresses,
+        statuses: statuses,
         limit: limit,
       );
 
@@ -221,6 +224,7 @@ class SwapsRepository {
     List<String?> toTxHashes = const [],
     List<String> fromWalletAddresses = const [],
     List<String> toWalletAddresses = const [],
+    List<SwapStatus> statuses = const [],
     int limit = 100,
   }) =>
       _swapDao.watchSwaps(
@@ -228,6 +232,10 @@ class SwapsRepository {
         toTxHashes: toTxHashes,
         fromWalletAddresses: fromWalletAddresses,
         toWalletAddresses: toWalletAddresses,
+        statuses: statuses,
         limit: limit,
       );
+
+  Future<List<SwapTransactions>> getIncompleteSwaps({int limit = 100}) =>
+      _swapDao.getIncompleteSwaps(limit: limit);
 }

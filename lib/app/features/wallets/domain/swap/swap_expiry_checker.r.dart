@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/model/swap_status.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -21,41 +22,66 @@ class SwapExpiryChecker {
 
   final SwapsRepository _swapsRepository;
 
-  static const Duration _matchingTimeWindow = Duration(hours: 6);
-  static const Duration _checkInterval = Duration(minutes: 30);
+  static const Duration matchingTimeWindow = Duration(hours: 6);
 
-  Timer? _expiryCheckTimer;
+  StreamSubscription<List<SwapTransactions>>? _swapSubscription;
+  Timer? _expiryTimer;
   bool _isRunning = false;
+  List<SwapTransactions> _pendingSwaps = [];
 
   void startChecking() {
     if (_isRunning) return;
     _isRunning = true;
 
-    _checkForExpiredSwaps();
-
-    _expiryCheckTimer = Timer.periodic(_checkInterval, (_) {
-      _checkForExpiredSwaps();
-    });
+    _swapSubscription = _swapsRepository
+        .watchSwaps(statuses: [SwapStatus.pending])
+        .listen(_onPendingSwapsChanged);
   }
 
   void stopChecking() {
     if (!_isRunning) return;
     _isRunning = false;
-    _expiryCheckTimer?.cancel();
-    _expiryCheckTimer = null;
+    _swapSubscription?.cancel();
+    _swapSubscription = null;
+    _expiryTimer?.cancel();
+    _expiryTimer = null;
+    _pendingSwaps = [];
+  }
+
+  void _onPendingSwapsChanged(List<SwapTransactions> swaps) {
+    _pendingSwaps = swaps;
+    _scheduleNextCheck();
+  }
+
+  void _scheduleNextCheck() {
+    _expiryTimer?.cancel();
+
+    if (_pendingSwaps.isEmpty) return;
+
+    final oldest = _pendingSwaps.reduce(
+      (a, b) => a.createdAt.isBefore(b.createdAt) ? a : b,
+    );
+
+    final expiryTime = oldest.createdAt.add(matchingTimeWindow);
+    final delay = expiryTime.difference(DateTime.now().toUtc());
+
+    if (delay <= Duration.zero) {
+      _checkForExpiredSwaps();
+    } else {
+      _expiryTimer = Timer(delay, _checkForExpiredSwaps);
+    }
   }
 
   Future<void> _checkForExpiredSwaps() async {
-    final cutoff = DateTime.now().toUtc().subtract(_matchingTimeWindow);
-    final expiredSwaps = await _swapsRepository.getPendingSwapsOlderThan(cutoff);
+    final cutoff = DateTime.now().toUtc().subtract(matchingTimeWindow);
 
-    if (expiredSwaps.isEmpty) return;
-
-    for (final swap in expiredSwaps) {
-      await _swapsRepository.updateSwap(
-        swapId: swap.swapId,
-        status: SwapStatus.failed,
-      );
+    for (final swap in _pendingSwaps) {
+      if (swap.createdAt.isBefore(cutoff)) {
+        await _swapsRepository.updateSwap(
+          swapId: swap.swapId,
+          status: SwapStatus.failed,
+        );
+      }
     }
   }
 }
