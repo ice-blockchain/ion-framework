@@ -8,6 +8,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/twitter_badge.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
@@ -97,63 +98,89 @@ class ProfileTokenHeaderLandscape extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  TokenAvatar(
-                    imageSize: Size.square(52.s),
-                    containerSize: Size.square(62.s),
-                    outerBorderRadius: 16.0.s,
-                    innerBorderRadius: 10.0.s,
-                    imageUrl: token.imageUrl,
-                    borderWidth: 2.s,
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      TokenAvatar(
+                        imageSize: Size.square(52.s),
+                        containerSize: Size.square(62.s),
+                        outerBorderRadius: 16.0.s,
+                        innerBorderRadius: 10.0.s,
+                        imageUrl: token.imageUrl,
+                        borderWidth: 2.s,
+                      ),
+                      if (token.source.isTwitter)
+                        PositionedDirectional(
+                          bottom: -3.s,
+                          end: -3.s,
+                          child: TwitterBadge(
+                            iconSize: 12.0.s,
+                            padding: EdgeInsets.all(3.s),
+                            borderRadius: 5.0.s,
+                            border: Border.all(color: context.theme.appColors.secondaryBackground),
+                            iconColor: context.theme.appColors.secondaryBackground,
+                          ),
+                        ),
+                    ],
                   ),
                   SizedBox(
                     width: 12.s,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            token.title,
-                            style: context.theme.appTextThemes.subtitle3.copyWith(
-                              color: context.theme.appColors.secondaryBackground,
-                            ),
-                          ),
-                          if (token.creator.verified.falseOrValue)
-                            Padding(
-                              padding: EdgeInsetsDirectional.only(start: 5.0.s),
-                              child: Assets.svg.iconBadgeVerify.icon(
-                                size: 16.s,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                token.title,
+                                style: context.theme.appTextThemes.subtitle3.copyWith(
+                                  color: context.theme.appColors.secondaryBackground,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 9.s,
-                      ),
-                      Container(
-                        padding: EdgeInsetsDirectional.symmetric(
-                          vertical: 1.s,
-                          horizontal: 4.s,
+                            if (token.creator.verified.falseOrValue)
+                              Padding(
+                                padding: EdgeInsetsDirectional.only(start: 5.0.s),
+                                child: Assets.svg.iconBadgeVerify.icon(
+                                  size: 16.s,
+                                ),
+                              ),
+                          ],
                         ),
-                        decoration: BoxDecoration(
-                          color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6.0.s),
+                        SizedBox(
+                          height: 9.s,
                         ),
-                        child: Text(
-                          prefixUsername(
-                            username: token.marketData.ticker ?? '',
-                            context: context,
+                        Container(
+                          padding: EdgeInsetsDirectional.symmetric(
+                            vertical: 1.s,
+                            horizontal: 4.s,
                           ),
-                          style: context.theme.appTextThemes.caption2.copyWith(
-                            color: context.theme.appColors.attentionBlock,
+                          decoration: BoxDecoration(
+                            color:
+                                context.theme.appColors.secondaryBackground.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6.0.s),
+                          ),
+                          child: Text(
+                            prefixUsername(
+                              username: token.marketData.ticker ?? '',
+                              context: context,
+                            ),
+                            style: context.theme.appTextThemes.caption2.copyWith(
+                              color: context.theme.appColors.attentionBlock,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+                  SizedBox(
+                    width: 12.s,
+                  ),
                   if (pnl != null) pnl!,
                 ],
               ),
