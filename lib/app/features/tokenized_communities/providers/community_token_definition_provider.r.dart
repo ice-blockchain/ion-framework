@@ -57,17 +57,11 @@ class CommunityTokenDefinitionRepository {
       throw TokenInfoNotFoundException(externalAddress);
     }
 
-    final creatorIonConnectAddress = tokenInfo.creator.addresses?.ionConnect;
-
-    if (creatorIonConnectAddress == null) {
-      throw TokenCreatorIonAddressNotFoundException(externalAddress);
-    }
-
     final EventReference creatorEventReference;
     final Map<String, List<Object?>> tags;
 
     if (tokenInfo.creator.addresses?.ionConnect == null) {
-      throw TokenAddressNotFoundException(externalAddress);
+      throw TokenCreatorIonAddressNotFoundException(externalAddress);
     } else {
       creatorEventReference = ReplaceableEventReference(
         masterPubkey: tokenInfo.creator.addresses!.ionConnect!,
