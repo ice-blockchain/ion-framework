@@ -167,7 +167,7 @@ class TokenHeaderLandscape extends StatelessWidget {
                           ),
                           child: Text(
                             prefixUsername(
-                              username: token.marketData.ticker ?? '',
+                              username: token.marketData.ticker,
                               context: context,
                             ),
                             style: context.theme.appTextThemes.caption2.copyWith(
