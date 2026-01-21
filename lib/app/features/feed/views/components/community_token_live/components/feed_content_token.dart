@@ -149,17 +149,12 @@ class ContentTokenHeader extends HookConsumerWidget {
       content = entity.data.title?.trim();
     }
 
-    final visualMedias = useMemoized<List<MediaAttachment>>(
-      () {
-        if (entity == null) return <MediaAttachment>[];
-        if (entity is ModifiablePostEntity) {
-          return entity.data.visualMedias;
-        } else if (entity is PostEntity) {
-          return entity.data.visualMedias;
-        } else if (entity is ArticleEntity) {
-          return entity.data.visualMedias;
-        }
-        return <MediaAttachment>[];
+    final visualMedias = useMemoized<List<MediaAttachment>?>(
+      () => switch (entity) {
+        ModifiablePostEntity(:final data) => data.visualMedias,
+        PostEntity(:final data) => data.visualMedias,
+        ArticleEntity(:final data) => data.visualMedias,
+        _ => null,
       },
       [entity],
     );
@@ -181,7 +176,9 @@ class ContentTokenHeader extends HookConsumerWidget {
             child: Stack(
               alignment: AlignmentDirectional.center,
               children: [
-                if (type == CommunityContentTokenType.postImage && visualMedias.length > 1)
+                if (type == CommunityContentTokenType.postImage &&
+                    visualMedias != null &&
+                    visualMedias.length > 1)
                   CarouselWithDots(
                     items: visualMedias.map((media) {
                       return TokenAvatar(
