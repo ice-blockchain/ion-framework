@@ -33,9 +33,8 @@ class SwapExpiryChecker {
     if (_isRunning) return;
     _isRunning = true;
 
-    _swapSubscription = _swapsRepository
-        .watchSwaps(statuses: [SwapStatus.pending])
-        .listen(_onPendingSwapsChanged);
+    _swapSubscription =
+        _swapsRepository.watchSwaps(statuses: [SwapStatus.pending]).listen(_onPendingSwapsChanged);
   }
 
   void stopChecking() {
