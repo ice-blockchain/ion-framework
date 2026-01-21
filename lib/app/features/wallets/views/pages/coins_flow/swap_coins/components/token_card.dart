@@ -39,7 +39,8 @@ class TokenCard extends HookConsumerWidget {
     this.enabled = true,
     this.skipAmountFormatting = false,
     this.isError = false,
-    this.isCoinLoading = false,
+    this.isCoinNameLoading = false,
+    this.customIconWidget,
     super.key,
   });
 
@@ -58,7 +59,8 @@ class TokenCard extends HookConsumerWidget {
   final bool enabled;
   final bool skipAmountFormatting;
   final ValueChanged<String?>? onValidationError;
-  final bool? isCoinLoading;
+  final bool isCoinNameLoading;
+  final Widget? customIconWidget;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -165,7 +167,8 @@ class TokenCard extends HookConsumerWidget {
             focusNode: focusNode,
             coinForNetwork: coinForNetwork,
             skipValidation: skipValidation,
-            isCoinLoading: isCoinLoading,
+            isCoinNameLoading: isCoinNameLoading,
+            customIconWidget: customIconWidget,
           ),
           SizedBox(
             height: 8.0.s,
@@ -299,8 +302,9 @@ class _TokenCardContent extends StatelessWidget {
     required this.focusNode,
     required this.coinForNetwork,
     required this.skipValidation,
+    required this.isCoinNameLoading,
+    this.customIconWidget,
     this.isReadOnly,
-    this.isCoinLoading,
   });
 
   final VoidCallback onTap;
@@ -316,7 +320,8 @@ class _TokenCardContent extends StatelessWidget {
   final bool skipValidation;
   final FocusNode? focusNode;
   final CoinInWalletData? coinForNetwork;
-  final bool? isCoinLoading;
+  final bool isCoinNameLoading;
+  final Widget? customIconWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -329,7 +334,7 @@ class _TokenCardContent extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (coinsGroup != null && (iconUrl != null || (isCoinLoading ?? false)))
+          if (coinsGroup != null && iconUrl != null || customIconWidget != null)
             Flexible(
               child: Row(
                 spacing: 10.0.s,
@@ -339,14 +344,14 @@ class _TokenCardContent extends StatelessWidget {
                     iconUrl: iconUrl ?? '',
                     network: network,
                     avatarWidget: avatarWidget,
-                    isCoinLoading: isCoinLoading,
+                    customIconWidget: customIconWidget,
                   ),
                   Flexible(
                     child: Column(
                       spacing: 2.0.s,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isCoinLoading ?? false)
+                        if (isCoinNameLoading)
                           SkeletonBox(
                             width: 100.0.s,
                             height: 16.0.s,
@@ -505,22 +510,17 @@ class _CoinIcon extends StatelessWidget {
     required this.iconUrl,
     this.network,
     this.avatarWidget,
-    this.isCoinLoading = false,
+    this.customIconWidget,
   });
   final String iconUrl;
   final NetworkData? network;
   final Widget? avatarWidget;
-  final bool? isCoinLoading;
+  final Widget? customIconWidget;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    if (isCoinLoading ?? false) {
-      return SkeletonBox(
-        width: 40.0.s,
-        height: 40.0.s,
-        baseColor: colors.attentionBlock,
-      );
+    if (customIconWidget != null) {
+      return customIconWidget!;
     }
     if (network != null) {
       return CoinIconWithNetwork.small(

@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -24,11 +22,11 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_infrastru
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/suggested_community_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
-import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/continue_button.dart';
@@ -173,7 +171,6 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                 },
                 state: state,
                 controller: controller,
-                communityTokenGroup: communityGroup,
                 communityAvatarWidget: communityAvatarWidget,
                 isPaymentTokenSelectable: isPaymentTokenSelectable,
                 onTokenTap: isPaymentTokenSelectable
@@ -407,7 +404,6 @@ class _TokenCards extends HookConsumerWidget {
   const _TokenCards({
     required this.state,
     required this.controller,
-    required this.communityTokenGroup,
     required this.communityAvatarWidget,
     required this.isPaymentTokenSelectable,
     required this.onTokenTap,
@@ -417,7 +413,6 @@ class _TokenCards extends HookConsumerWidget {
 
   final TradeCommunityTokenState state;
   final TradeCommunityTokenController controller;
-  final CoinsGroup communityTokenGroup;
   final Widget? communityAvatarWidget;
   final bool isPaymentTokenSelectable;
   final VoidCallback onTokenTap;
@@ -463,7 +458,7 @@ class _TokenCards extends HookConsumerWidget {
                   SizedBox(height: 10.0.s),
                   TokenCard(
                     type: CoinSwapType.buy,
-                    coinsGroup: communityTokenGroup,
+                    coinsGroup: state.communityTokenCoinsGroup,
                     controller: quoteController,
                     network: state.targetNetwork,
                     avatarWidget: communityAvatarWidget,
@@ -474,8 +469,14 @@ class _TokenCards extends HookConsumerWidget {
                     onValidationError: onValidationError,
                     onTap: () {},
                     isError: isError,
-                    isCoinLoading:
-                        state.shouldWaitSuggestedDetails && state.suggestedDetails == null,
+                    customIconWidget: state.shouldWaitSuggestedDetails
+                        ? SuggestedCommunityAvatar(
+                            pictureUrl: state.suggestedDetails?.picture ?? '',
+                            network: state.targetNetwork,
+                          )
+                        : null,
+                    isCoinNameLoading: state.shouldWaitSuggestedDetails &&
+                        (state.suggestedDetails?.name.isEmpty ?? true),
                   ),
                 ]
               : [
@@ -490,8 +491,14 @@ class _TokenCards extends HookConsumerWidget {
                     skipAmountFormatting: true,
                     showArrow: false,
                     onTap: () {},
-                    isCoinLoading:
-                        state.shouldWaitSuggestedDetails && state.suggestedDetails == null,
+                    customIconWidget: state.shouldWaitSuggestedDetails
+                        ? SuggestedCommunityAvatar(
+                            pictureUrl: state.suggestedDetails?.picture ?? '',
+                            network: state.targetNetwork,
+                          )
+                        : null,
+                    isCoinNameLoading: state.shouldWaitSuggestedDetails &&
+                        (state.suggestedDetails?.name.isEmpty ?? true),
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(

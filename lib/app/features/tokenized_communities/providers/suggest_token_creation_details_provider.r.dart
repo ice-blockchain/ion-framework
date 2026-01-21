@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:io';
-
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -34,26 +32,20 @@ typedef SuggestTokenCreationDetailsParams = ({
 });
 
 @riverpod
-Stream<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
+Future<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
   Ref ref,
   SuggestTokenCreationDetailsFromEventParams params,
-) async* {
-  var isDisposed = false;
-  ref.onDispose(() {
-    isDisposed = true;
-  });
-
+) async {
   try {
     // Check if token already exists, and proceed only if it does not exist
     final isTokenExists = await ref.read(tokenExistsProvider(params.externalAddress).future);
     if (isTokenExists) {
-      yield const SuggestedTokenDetailsState.skipped();
-      return;
+      return const SuggestedTokenDetailsState.skipped();
     }
     // Get entity to extract content
     final entity =
         ref.watch(ionConnectEntityProvider(eventReference: params.eventReference)).valueOrNull;
-    if (entity == null) return;
+    if (entity == null) return null;
 
     // Extract content text based on entity type
     final contentText = switch (entity) {
@@ -73,10 +65,10 @@ Stream<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
         }(),
       _ => null,
     };
-    if (contentText == null || contentText.isEmpty) return;
+    if (contentText == null || contentText.isEmpty) return null;
     // Get user metadata for creator info
     final userMetadata = await ref.watch(userMetadataProvider(params.pubkey).future);
-    if (userMetadata == null) return;
+    if (userMetadata == null) return null;
     // Build creator info
     final creatorInfo = CreatorInfo(
       name: userMetadata.data.displayName.isNotEmpty
@@ -105,55 +97,15 @@ Stream<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
       name: response?.name ?? '',
       picture: response?.picture ?? '',
     );
-    final pictureUrl = details.picture.trim();
 
-    if (pictureUrl.isEmpty) {
-      yield SuggestedTokenDetailsState.suggested(suggestedDetails: details);
-      return;
-    }
-
-    final isAvailable = await _isPictureAvailable(pictureUrl);
-    if (isAvailable) {
-      yield SuggestedTokenDetailsState.suggested(suggestedDetails: details);
-      return;
-    }
-
-    // Emit empty picture first, then poll until the image becomes available.
-    yield SuggestedTokenDetailsState.suggested(
-      suggestedDetails: details.copyWith(picture: ''),
+    return SuggestedTokenDetailsState.suggested(suggestedDetails: details);
+  } catch (error, stackTrace) {
+    Logger.error(
+      error,
+      stackTrace: stackTrace,
+      message: 'suggestTokenCreationDetailsFromEvent error',
     );
-
-    final deadline = DateTime.now().add(const Duration(minutes: 2));
-    const delay = Duration(seconds: 1);
-
-    while (!isDisposed && DateTime.now().isBefore(deadline)) {
-      await Future<void>.delayed(delay);
-      if (isDisposed) return;
-      if (await _isPictureAvailable(pictureUrl)) {
-        yield SuggestedTokenDetailsState.suggested(suggestedDetails: details);
-        return;
-      }
-    }
-  } catch (e, stackTrace) {
-    Logger.log('suggestTokenCreationDetailsFromEvent error: $e', stackTrace: stackTrace);
-    yield const SuggestedTokenDetailsState.skipped();
-    return;
-  }
-}
-
-Future<bool> _isPictureAvailable(String url) async {
-  final client = HttpClient();
-  try {
-    final uri = Uri.parse(url);
-    final request = await client.headUrl(uri);
-    request.headers.set('User-Agent', 'IonApp/1.0');
-    final response = await request.close();
-    return response.statusCode != HttpStatus.notFound;
-  } catch (e) {
-    Logger.log('suggestTokenCreationDetailsFromEvent, isPictureAvailable error: $e');
-    return false;
-  } finally {
-    client.close();
+    return const SuggestedTokenDetailsState.skipped();
   }
 }
 

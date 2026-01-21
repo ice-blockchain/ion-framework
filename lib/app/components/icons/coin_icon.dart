@@ -9,12 +9,14 @@ class CoinIconWidget extends StatelessWidget {
     required this.type,
     this.imageUrl,
     this.showPlaceholder = false,
+    this.placeholder,
     super.key,
   });
 
   final String? imageUrl;
   final WalletItemIconType type;
   final bool showPlaceholder;
+  final Widget? placeholder;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class CoinIconWidget extends StatelessWidget {
       imageUrl: imageUrl,
       type: type,
       showPlaceholder: showPlaceholder,
+      placeholder: placeholder,
     );
   }
 }

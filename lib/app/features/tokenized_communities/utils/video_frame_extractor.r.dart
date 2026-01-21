@@ -10,6 +10,7 @@ import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
+import 'package:ion/app/utils/url.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'video_frame_extractor.r.g.dart';
@@ -79,7 +80,8 @@ Future<List<String>> extractVideoFrames(
     }
 
     return frames;
-  } catch (e) {
+  } catch (error, stackTrace) {
+    Logger.error(error, stackTrace: stackTrace, message: 'Error extracting video frames');
     return [];
   }
 }
@@ -94,37 +96,46 @@ Future<List<String>> extractVideoFramesFromEntity(
     if (entity.data.hasVideo) {
       final videos = entity.data.videos;
       if (videos.isNotEmpty) {
-        final primaryVideo = videos.first;
-        final videoUrl = primaryVideo.url;
-        String? videoPath;
+        for (final video in videos) {
+          final videoUrl = video.url;
+          String? videoPath;
 
-        if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
-          // Use cache manager to return cached file or download and cache it.
-          try {
-            final cachedFile = await IONCacheManager.networkVideos.getSingleFile(videoUrl);
-            videoPath = cachedFile.path;
-          } catch (e) {
-            Logger.log('extractVideoFramesFromEntity, error: $e');
-            // Silently fail - video frame extraction is optional
-            videoPath = null;
-          }
-        }
-
-        // If we have a local path, try to extract frames
-        if (videoPath != null) {
-          try {
-            final file = File(videoPath);
-            if (file.existsSync()) {
-              final extractedFrames = await ref.read(extractVideoFramesProvider(videoPath).future);
-
-              // Add MIME type prefix to each frame (video frames are JPEG image thumbnails)
-              final framesWithMimeType =
-                  extractedFrames.map((frame) => 'data:image/webp;base64,$frame').toList();
-              frames.addAll(framesWithMimeType);
+          if (isNetworkUrl(videoUrl)) {
+            // Use cache manager to return cached file or download and cache it.
+            try {
+              final cachedFile = await IONCacheManager.networkVideos.getSingleFile(videoUrl);
+              videoPath = cachedFile.path;
+            } catch (e, stacktrace) {
+              Logger.error(
+                e,
+                stackTrace: stacktrace,
+                message: 'extractVideoFramesFromEntity, error',
+              );
+              videoPath = null;
             }
-          } catch (e) {
-            Logger.log('extractVideoFramesFromEntity, error: $e');
-            // Silently fail - video frame extraction is optional
+          }
+
+          // If we have a local path, try to extract frames
+          if (videoPath != null) {
+            try {
+              final file = File(videoPath);
+              if (file.existsSync()) {
+                final extractedFrames =
+                    await ref.read(extractVideoFramesProvider(videoPath).future);
+
+                // Add MIME type prefix to each frame (video frames are JPEG image thumbnails)
+                final framesWithMimeType =
+                    extractedFrames.map((frame) => 'data:image/webp;base64,$frame').toList();
+                frames.addAll(framesWithMimeType);
+              }
+            } catch (error, stackTrace) {
+              Logger.error(
+                error,
+                stackTrace: stackTrace,
+                message: 'Error extracting video frames from entity',
+              );
+              // Silently fail - video frame extraction is optional
+            }
           }
         }
       }
