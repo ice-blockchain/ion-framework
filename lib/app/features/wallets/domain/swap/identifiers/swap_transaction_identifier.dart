@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
+import 'package:ion/app/features/wallets/domain/swap/swap_expiry_checker.r.dart';
 import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 
@@ -9,7 +10,7 @@ abstract class SwapTransactionIdentifier {
 
   String get bridgeAddress;
 
-  Duration get matchingTimeWindow => const Duration(hours: 6);
+  Duration get matchingTimeWindow => SwapExpiryChecker.matchingTimeWindow;
 
   /// Time window to look back for from-tx transactions.
   /// From-tx tx is confirmed BEFORE the swap record is saved to DB.

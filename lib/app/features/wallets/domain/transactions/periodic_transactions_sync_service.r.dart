@@ -127,21 +127,16 @@ class PeriodicTransactionsSyncService {
       }
     }
 
-    // Also add wallets expecting swap to-tx transactions
-    final pendingSwaps = await _swapsRepository.getSwaps(toTxHashes: [null]);
-    for (final swap in pendingSwaps) {
-      if (!walletNetworks.containsKey(swap.toWalletAddress)) {
+    // Also add wallets for incomplete swaps (missing fromTxHash or toTxHash)
+    final incompleteSwaps = await _swapsRepository.getIncompleteSwaps();
+    for (final swap in incompleteSwaps) {
+      if (swap.toTxHash == null && !walletNetworks.containsKey(swap.toWalletAddress)) {
         final network = await _getNetworkById(swap.toNetworkId);
         if (network != null) {
           walletNetworks[swap.toWalletAddress] = network;
         }
       }
-    }
-
-    // Also add wallets for swaps without from-tx tx detected
-    final swapsWithoutFromTx = await _swapsRepository.getSwaps(fromTxHashes: [null]);
-    for (final swap in swapsWithoutFromTx) {
-      if (!walletNetworks.containsKey(swap.fromWalletAddress)) {
+      if (swap.fromTxHash == null && !walletNetworks.containsKey(swap.fromWalletAddress)) {
         final network = await _getNetworkById(swap.fromNetworkId);
         if (network != null) {
           walletNetworks[swap.fromWalletAddress] = network;
