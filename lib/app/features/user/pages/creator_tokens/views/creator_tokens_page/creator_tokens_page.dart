@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/hooks/use_node_focused.dart';
 import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.dart';
-import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/featured_tokens_provider.r.dart';
@@ -257,16 +256,10 @@ class CreatorTokensPage extends HookConsumerWidget {
                         },
                         carouselKey: carouselKey,
                       ),
-                      const SliverToBoxAdapter(
-                        child: SectionSeparator(),
-                      ),
                       SliverToBoxAdapter(
                         child: CreatorTokensFilterBar(
                           scrollController: scrollController,
                         ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SectionSeparator(),
                       ),
                       CreatorTokensSearchBar(
                         isVisible: isGlobalSearchVisible.value,

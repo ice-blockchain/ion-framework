@@ -106,7 +106,7 @@ class LatestTradeRow extends StatelessWidget {
           : holderAddress != null
               ? () => ProfileNavigationUtils.navigateToProfile(
                     context,
-                    externalAddress: holderAddress,
+                    pubkey: holderAddress,
                   )
               : null,
       child: content,

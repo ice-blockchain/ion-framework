@@ -196,9 +196,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               imageUrl: tokenInfo?.imageUrl,
               width: 36.s,
               height: 36.s,
-              innerBorderRadius: 10.s,
+              innerBorderRadius: 7.s,
               outerBorderRadius: 10.s,
-              innerPadding: 0.s,
+              innerPadding: 1.5.s,
             ),
             SizedBox(
               width: 8.s,

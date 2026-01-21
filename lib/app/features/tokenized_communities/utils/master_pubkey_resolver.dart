@@ -8,8 +8,6 @@ class MasterPubkeyResolver {
   static String resolve(String externalAddress, {EventReference? eventReference}) {
     if (eventReference != null) {
       return eventReference.masterPubkey;
-    } else if (!externalAddress.contains(EventReference.separator)) {
-      return externalAddress;
     } else {
       return ReplaceableEventReference.fromString(externalAddress).masterPubkey;
     }

@@ -118,14 +118,14 @@ class _SearchIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(
-        vertical: 4.0.s,
+        vertical: 2.0.s,
         horizontal: 16.0.s,
       ),
       child: TextButton(
         onPressed: onPressed,
         child: Assets.svg.iconFieldSearch.icon(
+          size: 20.0.s,
           color: context.theme.appColors.tertiaryText,
-          size: 18.0.s,
         ),
       ),
     );
