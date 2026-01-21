@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/hooks/use_chart_transformation.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
@@ -35,16 +36,6 @@ class TokenAreaLineChart extends HookConsumerWidget {
   double _calculateReservedSize(double maxY, TextStyle style) {
     const chartAnnotationPadding = 10.0;
     return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding.s;
-  }
-
-  double _calculateInitialScale(int dataPointCount) {
-    const maxPointsPerScreen = 35;
-
-    if (dataPointCount < maxPointsPerScreen) {
-      return 1;
-    }
-
-    return dataPointCount / maxPointsPerScreen;
   }
 
   /// Converts pixel coordinates to data coordinates based on transformation matrix.
@@ -82,14 +73,10 @@ class TokenAreaLineChart extends HookConsumerWidget {
       [calcData.chartMaxY, yAxisLabelTextStyle],
     );
 
-    final initialScale = useMemoized(
-      () => _calculateInitialScale(candles.length),
-      [candles.length],
-    );
-
-    final chartKey = useMemoized(GlobalKey.new);
-    final transformationController = useTransformationController(
-      initialValue: Matrix4.identity()..scaleByDouble(initialScale, initialScale, 1, 1),
+    // Chart transformation (scroll/zoom and initial positioning)
+    final transformation = useChartTransformation(
+      dataPointCount: candles.length,
+      reservedSize: reservedSize,
     );
 
     final debounceTimerRef = useRef<Timer?>(null);
@@ -97,9 +84,6 @@ class TokenAreaLineChart extends HookConsumerWidget {
     final visibleYRange = useState<({double minY, double maxY})?>(null);
 
     final isScrollTriggered = useRef(false);
-
-    // Hide chart until initial scroll position is set
-    final isPositioned = useState(false);
 
     final previousTouchedSpotIndex = useRef<int?>(null);
 
@@ -112,13 +96,13 @@ class TokenAreaLineChart extends HookConsumerWidget {
     void calculateVisibleYRange() {
       if (isLoading) return;
 
-      final ctx = chartKey.currentContext;
+      final ctx = transformation.chartKey.currentContext;
       if (ctx == null) return;
       final box = ctx.findRenderObject() as RenderBox?;
       if (box == null || !box.hasSize) return;
 
       // Get current scroll position and zoom level
-      final matrix = transformationController.value;
+      final matrix = transformation.transformationController.value;
       final scaleX = matrix.storage[0];
       final drawableWidth = box.size.width - reservedSize;
       if (drawableWidth <= 0 || calcData.maxX <= 0 || scaleX <= 0) return;
@@ -163,43 +147,15 @@ class TokenAreaLineChart extends HookConsumerWidget {
           });
         }
 
-        transformationController.addListener(onTransformationChanged);
+        transformation.transformationController.addListener(onTransformationChanged);
 
         return () {
           debounceTimerRef.value?.cancel();
           debounceTimerRef.value = null;
-          transformationController.removeListener(onTransformationChanged);
+          transformation.transformationController.removeListener(onTransformationChanged);
         };
       },
-      [transformationController, calcData, candles, reservedSize],
-    );
-
-    // Set initial transformation (scroll to end) and mark as positioned
-    useEffect(
-      () {
-        isPositioned.value = false;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final ctx = chartKey.currentContext;
-          if (ctx == null) return;
-
-          final box = ctx.findRenderObject() as RenderBox?;
-          if (box == null || !box.hasSize) return;
-
-          final totalWidth = box.size.width;
-          final drawableWidth = totalWidth - reservedSize;
-          final translateX = -drawableWidth * (initialScale - 1);
-
-          transformationController.value = Matrix4.identity()
-            ..translateByDouble(translateX, 0, 0, 1)
-            ..scaleByDouble(initialScale, initialScale, 1, 1);
-
-          isPositioned.value = true;
-        });
-
-        return null;
-      },
-      [initialScale, reservedSize],
+      [transformation.transformationController, calcData, candles, reservedSize],
     );
 
     // Calculate Y range when data loads
@@ -312,7 +268,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
 
     // Hide chart until initial scroll position is set (prevents visible jump)
     return Opacity(
-      opacity: isPositioned.value ? 1.0 : 0.0,
+      opacity: transformation.isPositioned.value ? 1.0 : 0.0,
       child: _TooltipListener(
         canInteract: canInteract,
         isTooltipMode: isTooltipMode,
@@ -320,13 +276,13 @@ class TokenAreaLineChart extends HookConsumerWidget {
         pointerDownPosition: pointerDownPosition,
         previousTouchedSpotIndex: previousTouchedSpotIndex,
         child: LineChart(
-          key: chartKey,
+          key: transformation.chartKey,
           duration: duration,
           transformationConfig: FlTransformationConfig(
             scaleAxis: FlScaleAxis.horizontal,
             panEnabled: canInteract,
             scaleEnabled: false,
-            transformationController: transformationController,
+            transformationController: transformation.transformationController,
           ),
           LineChartData(
             minY: displayMinY,
