@@ -111,7 +111,6 @@ dependencies:
   google_sign_in: ^6.2.2
   googleapis: ^13.2.0
   gradient_borders: ^1.0.2
-  haptic_feedback: ^0.6.4+3
   hooks_riverpod: ^2.6.1
   http: ^1.6.0
   icloud_storage: ^2.2.0

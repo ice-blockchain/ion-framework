@@ -4,8 +4,8 @@ import 'dart:math' as math;
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:haptic_feedback/haptic_feedback.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
@@ -374,7 +374,7 @@ class _RangeSelector extends StatelessWidget {
             ? null
             : () {
                 if (!isSelected) {
-                  Haptics.vibrate(HapticsType.light).catchError((_) {});
+                  HapticFeedback.lightImpact();
                 }
                 onChanged!(range);
               },

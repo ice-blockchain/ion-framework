@@ -4,8 +4,8 @@ import 'dart:async';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:haptic_feedback/haptic_feedback.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
@@ -242,7 +242,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
         final currentIndex = spots.first.x.toInt();
         if (previousTouchedSpotIndex.value != currentIndex) {
           previousTouchedSpotIndex.value = currentIndex;
-          Haptics.vibrate(HapticsType.light).catchError((_) {});
+          HapticFeedback.lightImpact();
         }
       }
     }
@@ -432,7 +432,7 @@ class _TooltipListener extends StatelessWidget {
 
   void _activateTooltipMode() {
     isTooltipMode.value = true;
-    Haptics.vibrate(HapticsType.light).catchError((_) {});
+    HapticFeedback.lightImpact();
   }
 
   void _handlePointerDown(PointerDownEvent event) {
