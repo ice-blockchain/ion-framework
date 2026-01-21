@@ -27,6 +27,8 @@ internal class AppodealNativeAdView(activity: Activity, arguments: HashMap<*, *>
     private val adView: WeakReference<NativeAdView?> by lazy {
         try {
             apdLog("AppodealNativeAdView#adView-lazy")
+            val nativeAdCount = Appodeal.getAvailableNativeAdsCount()
+            apdLog("AppodealNativeAdView#adView-lazy nativeAdCount:$nativeAdCount")
             val nativeAd = Appodeal.getNativeAds(1).firstOrNull() ?: return@lazy WeakReference(null)
             val nativeAdOptions = nativeAdOptions ?: return@lazy WeakReference(null)
 
@@ -48,7 +50,7 @@ internal class AppodealNativeAdView(activity: Activity, arguments: HashMap<*, *>
 
             adView.adChoiceView?.visibility = View.GONE
 
-            apdLog("AppodealNativeAdView#adView-lazy-registerView: $adView")
+            apdLog("AppodealNativeAdView#adView-lazy-registerView placement: $placement")
             adView.registerView(nativeAd, placement)
             return@lazy WeakReference(adView)
         } catch (e: Exception) {
@@ -58,7 +60,7 @@ internal class AppodealNativeAdView(activity: Activity, arguments: HashMap<*, *>
     }
 
     override fun getView(): View? {
-        apdLog("AppodealNativeAdView#adView: ${adView.get()}")
+        apdLog("AppodealNativeAdView#adView: getView nativeAdOptions:$nativeAdOptions")
         return adView.get()
     }
 
