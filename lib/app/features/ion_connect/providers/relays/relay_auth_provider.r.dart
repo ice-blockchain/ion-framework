@@ -67,6 +67,12 @@ class RelayAuth extends _$RelayAuth {
           ref.read(relaysReplicaDelayProvider.notifier).setDelay();
           return true;
         }
+        // In case of "already authenticated with a different public key" error,
+        // we need to close the connection and force a fresh reconnection.
+        // This can happen when switching accounts or when the relay has stale auth state.
+        if (RelayAuthService.isAlreadyAuthenticatedWithDifferentKeyError(error)) {
+          relay.close();
+        }
         return false;
       },
     );
@@ -244,5 +250,10 @@ class RelayAuthService {
 
   static bool isRelayAuthoritativeError(Object? error) {
     return error is SendEventException && error.code.startsWith('relay-is-authoritative');
+  }
+
+  static bool isAlreadyAuthenticatedWithDifferentKeyError(Object? error) {
+    return error is SendEventException &&
+        error.code.toLowerCase().contains('already authenticated with a different public key');
   }
 }
