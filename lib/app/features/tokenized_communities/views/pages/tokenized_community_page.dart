@@ -420,7 +420,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               },
             ),
           ],
-          SizedBox(height: 1120.0.s),
+          SizedBox(height: 120.0.s),
         ],
       ),
     );
