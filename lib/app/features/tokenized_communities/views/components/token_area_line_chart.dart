@@ -423,7 +423,7 @@ class _TooltipListener extends StatelessWidget {
   final ObjectRef<int?> previousTouchedSpotIndex;
   final Widget child;
 
-  void _resetTooltipState() {
+  void _resetTooltipState(_) {
     longPressTimer.value?.cancel();
     isTooltipMode.value = false;
     pointerDownPosition.value = null;
@@ -459,8 +459,8 @@ class _TooltipListener extends StatelessWidget {
     return Listener(
       onPointerDown: canInteract ? _handlePointerDown : null,
       onPointerMove: _handlePointerMove,
-      onPointerUp: (_) => _resetTooltipState(),
-      onPointerCancel: (_) => _resetTooltipState(),
+      onPointerUp: _resetTooltipState,
+      onPointerCancel: _resetTooltipState,
       child: child,
     );
   }
