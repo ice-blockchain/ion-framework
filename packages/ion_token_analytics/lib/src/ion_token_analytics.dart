@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion_token_analytics/src/community_tokens/community_tokens_service.dart';
+import 'package:ion_token_analytics/src/core/logger.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 class IonTokenAnalyticsClientOptions {
-  IonTokenAnalyticsClientOptions({required this.baseUrl, this.authToken});
+  IonTokenAnalyticsClientOptions({required this.baseUrl, this.authToken, this.logger});
 
   final String baseUrl;
   final String? authToken;
+  final AnalyticsLogger? logger;
 }
 
 class IonTokenAnalyticsClient {
@@ -19,7 +21,11 @@ class IonTokenAnalyticsClient {
   static Future<IonTokenAnalyticsClient> create({
     required IonTokenAnalyticsClientOptions options,
   }) async {
-    final networkClient = NetworkClient.fromBaseUrl(options.baseUrl, authToken: options.authToken);
+    final networkClient = NetworkClient.fromBaseUrl(
+      options.baseUrl,
+      authToken: options.authToken,
+      logger: options.logger,
+    );
     return IonTokenAnalyticsClient._(
       communityTokens: await IonCommunityTokensService.create(networkClient: networkClient),
     );
