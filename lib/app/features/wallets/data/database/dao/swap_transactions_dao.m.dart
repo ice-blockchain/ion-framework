@@ -151,8 +151,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     String? toTxHash,
     SwapStatus? status,
   }) async {
-    final currentSwap = await (select(swapTransactionsTable)
-          ..where((t) => t.swapId.equals(swapId)))
+    final currentSwap = await (select(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
         .getSingleOrNull();
 
     if (currentSwap == null) return 0;
@@ -161,14 +160,12 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
       fromTxHash: fromTxHash != null && currentSwap.fromTxHash == null
           ? Value(fromTxHash)
           : const Value.absent(),
-      toTxHash: toTxHash != null && currentSwap.toTxHash == null
-          ? Value(toTxHash)
-          : const Value.absent(),
+      toTxHash:
+          toTxHash != null && currentSwap.toTxHash == null ? Value(toTxHash) : const Value.absent(),
       status: status != null ? Value(status.name) : const Value.absent(),
     );
 
-    return (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
-        .write(companion);
+    return (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId))).write(companion);
   }
 
   Future<List<SwapTransactions>> getPendingSwapsOlderThan(DateTime cutoff) async {
