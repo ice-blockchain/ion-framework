@@ -16,8 +16,8 @@ import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class FeedProfileActionToken extends HookConsumerWidget {
-  const FeedProfileActionToken({
+class FeedLandscapeActionToken extends HookConsumerWidget {
+  const FeedLandscapeActionToken({
     required this.externalAddress,
     this.hasNotch = false,
     this.pnl,
@@ -56,7 +56,7 @@ class FeedProfileActionToken extends HookConsumerWidget {
                 colors: useImageColors(token.imageUrl),
                 child: SizedBox(
                   width: double.infinity,
-                  child: ProfileTokenHeaderLandscape(
+                  child: TokenHeaderLandscape(
                     token: token,
                     externalAddress: externalAddress,
                     pnl: pnl,
@@ -72,8 +72,8 @@ class FeedProfileActionToken extends HookConsumerWidget {
   }
 }
 
-class ProfileTokenHeaderLandscape extends StatelessWidget {
-  const ProfileTokenHeaderLandscape({
+class TokenHeaderLandscape extends StatelessWidget {
+  const TokenHeaderLandscape({
     required this.token,
     required this.externalAddress,
     this.pnl,

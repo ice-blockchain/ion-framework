@@ -112,7 +112,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
             if (tokenType != null)
               if (tokenType == CommunityContentTokenType.twitter ||
                   tokenType == CommunityContentTokenType.profile)
-                FeedProfileActionToken(
+                FeedLandscapeActionToken(
                   hasNotch: showProfileBalance,
                   sidePadding: sidePadding,
                   externalAddress: externalAddress,
