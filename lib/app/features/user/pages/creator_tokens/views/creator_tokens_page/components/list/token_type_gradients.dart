@@ -3,6 +3,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/features/tokenized_communities/enums/tokenized_community_token_type.f.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 // Gradients for token type indicators
@@ -54,6 +55,17 @@ class TokenTypeGradients {
       CommunityTokenType.video => video,
       CommunityTokenType.article => article,
       CommunityTokenType.profile => null,
+    };
+  }
+
+  static SweepGradient? getGradientForTokenizedType(TokenizedCommunityTokenType tokenType) {
+    return switch (tokenType) {
+      TokenizedCommunityTokenType.tokenTypePost => post,
+      TokenizedCommunityTokenType.tokenTypeVideo => video,
+      TokenizedCommunityTokenType.tokenTypeArticle => article,
+      TokenizedCommunityTokenType.tokenTypeProfile => null,
+      TokenizedCommunityTokenType.tokenTypeXcom => null,
+      TokenizedCommunityTokenType.tokenTypeUndefined => null,
     };
   }
 }

@@ -9,6 +9,8 @@ import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/enums/tokenized_community_token_type.f.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/token_type_gradients.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/views/components/coins_list/unseen_transaction_indicator.dart';
@@ -78,15 +80,56 @@ class _CoinsGroupItemContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get token type from the first coin that has a tokenized community token type
+    final tokenType = coinsGroup.coins
+        .map((e) => e.coin.tokenizedCommunityTokenType)
+        .whereType<TokenizedCommunityTokenType>()
+        .firstOrNull;
+
     return ListItem(
       key: Key(coinsGroup.symbolGroup),
       title: Text(coinsGroup.name),
       subtitle: Text(coinsGroup.abbreviation),
       backgroundColor: context.theme.appColors.tertiaryBackground,
-      leading: CoinIconWidget(
-        imageUrl: coinsGroup.iconUrl,
-        showPlaceholder: true,
-        type: WalletItemIconType.big(),
+      leading: Stack(
+        alignment: AlignmentDirectional.bottomEnd,
+        clipBehavior: Clip.none,
+        children: [
+          CoinIconWidget(
+            imageUrl: coinsGroup.iconUrl,
+            showPlaceholder: true,
+            type: WalletItemIconType.big(),
+          ),
+          switch (tokenType) {
+            TokenizedCommunityTokenType.tokenTypeXcom => PositionedDirectional(
+                bottom: -3.s,
+                end: -3.s,
+                child: Container(
+                  padding: EdgeInsets.all(2.s),
+                  decoration: BoxDecoration(
+                    color: context.theme.appColors.asphalt,
+                    borderRadius: BorderRadius.circular(4.0.s),
+                  ),
+                  child: Assets.svg.iconLoginXlogo.icon(
+                    size: 8.0.s,
+                    color: context.theme.appColors.secondaryBackground,
+                  ),
+                ),
+              ),
+            TokenizedCommunityTokenType.tokenTypePost ||
+            TokenizedCommunityTokenType.tokenTypeVideo ||
+            TokenizedCommunityTokenType.tokenTypeArticle =>
+              PositionedDirectional(
+                end: -3.0.s,
+                bottom: -3.0.s,
+                child: _CoinGradientIndicator(tokenType: tokenType!),
+              ),
+            TokenizedCommunityTokenType.tokenTypeProfile ||
+            TokenizedCommunityTokenType.tokenTypeUndefined ||
+            null =>
+              const SizedBox.shrink(),
+          },
+        ],
       ),
       onTap: onTap,
       trailing: Column(
@@ -118,6 +161,29 @@ class _CoinsGroupItemContent extends StatelessWidget {
                 .copyWith(color: context.theme.appColors.secondaryText),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CoinGradientIndicator extends StatelessWidget {
+  const _CoinGradientIndicator({
+    required this.tokenType,
+  });
+
+  final TokenizedCommunityTokenType tokenType;
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = TokenTypeGradients.getGradientForTokenizedType(tokenType);
+    if (gradient == null) return const SizedBox.shrink();
+
+    return Container(
+      width: 12.0.s,
+      height: 12.0.s,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: gradient,
       ),
     );
   }

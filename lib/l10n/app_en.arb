@@ -355,6 +355,7 @@
   "creator_tokens_filter_all_tokens": "All tokens",
   "creator_tokens_filter_content_tokens": "Content tokens",
   "creator_tokens_filter_creator_tokens": "Creator tokens",
+  "creator_tokens_filter_general_coins": "General tokens",
   "creator_tokens_filter_title": "Filter",
   "creator_tokens_filter_x_tokens": "X tokens",
   "dapp_details_launch_dapp_button_title": "Launch dApp",

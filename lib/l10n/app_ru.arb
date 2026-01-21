@@ -355,6 +355,7 @@
   "creator_tokens_filter_all_tokens": "Все токены",
   "creator_tokens_filter_content_tokens": "Токены контента",
   "creator_tokens_filter_creator_tokens": "Токены создателя",
+  "creator_tokens_filter_general_coins": "Обычные токены",
   "creator_tokens_filter_title": "Фильтр",
   "creator_tokens_filter_x_tokens": "Токены X",
   "dapp_details_launch_dapp_button_title": "Запустить dApp",
