@@ -137,7 +137,7 @@ class HolderTile extends StatelessWidget {
           : holderAddress != null
               ? () => ProfileNavigationUtils.navigateToProfile(
                     context,
-                    externalAddress: holderAddress,
+                    pubkey: holderAddress,
                   )
               : null,
       child: Row(
