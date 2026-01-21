@@ -107,7 +107,7 @@ class _CoinsGroupItemContent extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.all(2.s),
                   decoration: BoxDecoration(
-                    color: const Color(0xff1D1E20),
+                    color: context.theme.appColors.asphalt,
                     borderRadius: BorderRadius.circular(4.0.s),
                   ),
                   child: Assets.svg.iconLoginXlogo.icon(
