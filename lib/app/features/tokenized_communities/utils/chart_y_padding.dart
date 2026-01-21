@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 // Calculates Y-axis padding
-// Returns 20% of the range if values differ, or 5% of the minimum value
+// Returns 20% of the range if values differ, or 20% of the minimum value
 // (with a minimum of 0.0001) when all values are identical to prevent bottom flat lines.
 double calculateChartYPadding(double minY, double maxY) {
   final range = maxY - minY;
-  if (range > 0) {
+
+  // Only use range-based padding if range is SIGNIFICANT (> 0.1% of max value)
+  // This handles floating point precision issues where range > 0 but is negligible
+  if (range > maxY * 0.001) {
     return range * 0.20;
   }
 

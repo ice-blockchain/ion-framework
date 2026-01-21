@@ -11,6 +11,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
+import 'package:ion/app/hooks/use_chart_gradient.dart';
 import 'package:ion/app/utils/string.dart';
 
 class TokenAreaLineChart extends HookConsumerWidget {
@@ -221,8 +222,15 @@ class TokenAreaLineChart extends HookConsumerWidget {
     final canInteract = !isLoading;
     final tooltipEnabled = canInteract && isTooltipMode.value;
 
-    final effectiveMinY = visibleYRange.value?.minY ?? calcData.chartMinY;
-    final effectiveMaxY = visibleYRange.value?.maxY ?? calcData.chartMaxY;
+    final displayMinY = visibleYRange.value?.minY ?? calcData.chartMinY;
+    final displayMaxY = visibleYRange.value?.maxY ?? calcData.chartMaxY;
+
+    final gradient = useChartGradient(
+      chartMaxY: calcData.chartMaxY,
+      displayMinY: displayMinY,
+      displayMaxY: displayMaxY,
+      hasVisibleRange: visibleYRange.value != null,
+    );
 
     // Only animate Y-axis changes triggered by scroll, not by data load
     final duration = isScrollTriggered.value ? _scrollAnimationDuration : Duration.zero;
@@ -321,8 +329,8 @@ class TokenAreaLineChart extends HookConsumerWidget {
             transformationController: transformationController,
           ),
           LineChartData(
-            minY: effectiveMinY,
-            maxY: effectiveMaxY,
+            minY: displayMinY,
+            maxY: displayMaxY,
             minX: 0,
             maxX: calcData.maxX,
             borderData: FlBorderData(show: false),
@@ -386,8 +394,9 @@ class TokenAreaLineChart extends HookConsumerWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
+                    stops: gradient.gradientStops,
                     colors: [
-                      lineColor.withValues(alpha: 0.3),
+                      lineColor.withValues(alpha: gradient.gradientTopAlpha),
                       lineColor.withValues(alpha: 0),
                     ],
                   ),
