@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
@@ -78,6 +79,7 @@ class Chart extends HookConsumerWidget {
         return _ChartContent(
           price: price,
           label: label,
+          createdAtOfToken: createdAtOfToken,
           changePercent: chartDisplayData.changePercent,
           candles: chartDisplayData.candlesToShow,
           isLoading: false,
@@ -89,6 +91,7 @@ class Chart extends HookConsumerWidget {
         return _ChartContent(
           price: price,
           label: label,
+          createdAtOfToken: createdAtOfToken,
           changePercent: 0,
           candles: chartDisplayData.candlesToShow,
           isLoading: false,
@@ -101,6 +104,7 @@ class Chart extends HookConsumerWidget {
         return _ChartContent(
           price: price,
           label: label,
+          createdAtOfToken: createdAtOfToken,
           changePercent: cachedChangePercent.value,
           candles: cachedCandles.value,
           isLoading: true,
@@ -131,6 +135,7 @@ class _ChartContent extends StatelessWidget {
   const _ChartContent({
     required this.price,
     required this.label,
+    required this.createdAtOfToken,
     required this.changePercent,
     required this.candles,
     required this.isLoading,
@@ -140,6 +145,7 @@ class _ChartContent extends StatelessWidget {
 
   final Decimal price;
   final String label;
+  final String createdAtOfToken;
   final double changePercent;
   final List<ChartCandle>? candles;
   final bool isLoading;
@@ -161,6 +167,7 @@ class _ChartContent extends StatelessWidget {
             price: price,
             label: label,
             changePercent: changePercent,
+            createdAtOfToken: createdAtOfToken,
           ),
           SizedBox(height: 10.0.s),
           Padding(
@@ -238,11 +245,13 @@ class _ValueAndChange extends StatelessWidget {
     required this.price,
     required this.label,
     required this.changePercent,
+    required this.createdAtOfToken,
   });
 
   final Decimal price;
   final String label;
   final double changePercent;
+  final String createdAtOfToken;
 
   @override
   Widget build(BuildContext context) {
@@ -252,15 +261,23 @@ class _ValueAndChange extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Flexible(
-            child: Text(
-              '${_formatPrice(price)} $label',
-              overflow: TextOverflow.ellipsis,
-              style: texts.subtitle.copyWith(color: colors.primaryText),
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    '${_formatPrice(price)} $label',
+                    overflow: TextOverflow.ellipsis,
+                    style: texts.subtitle.copyWith(color: colors.primaryText),
+                  ),
+                ),
+                SizedBox(width: 4.0.s),
+                _TokenAge(createdAtOfToken: createdAtOfToken),
+              ],
             ),
           ),
+          SizedBox(width: 20.0.s),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
             decoration: BoxDecoration(
@@ -274,6 +291,33 @@ class _ValueAndChange extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TokenAge extends StatelessWidget {
+  const _TokenAge({required this.createdAtOfToken});
+
+  final String createdAtOfToken;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    final texts = context.theme.appTextThemes;
+
+    return Row(
+      children: [
+        Assets.svg.iconChartGrowth.icon(
+          size: 10.0.s,
+          color: colors.quaternaryText,
+        ),
+        SizedBox(width: 1.0.s),
+        TimeAgo(
+          timeFormat: TimestampFormat.compact,
+          time: DateTime.parse(createdAtOfToken),
+          style: texts.caption2.copyWith(color: colors.quaternaryText),
+        ),
+      ],
     );
   }
 }

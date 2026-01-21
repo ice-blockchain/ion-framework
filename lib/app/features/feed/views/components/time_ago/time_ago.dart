@@ -6,7 +6,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
 import 'package:ion/app/utils/date.dart';
 
-enum TimestampFormat { short, detailed }
+enum TimestampFormat { short, detailed, compact }
 
 class TimeAgo extends ConsumerWidget {
   const TimeAgo({
@@ -23,9 +23,11 @@ class TimeAgo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(appLocaleProvider);
-    final formattedTime = timeFormat == TimestampFormat.detailed
-        ? formatDetailedTimestamp(time, locale: locale)
-        : formatShortTimestamp(time, locale: locale, context: context);
+    final formattedTime = switch (timeFormat) {
+      TimestampFormat.detailed => formatDetailedTimestamp(time, locale: locale),
+      TimestampFormat.compact => formatCompactTimestamp(time, locale: locale),
+      TimestampFormat.short => formatShortTimestamp(time, locale: locale, context: context),
+    };
 
     return Text(
       formattedTime,
