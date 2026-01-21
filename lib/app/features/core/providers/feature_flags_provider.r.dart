@@ -23,12 +23,12 @@ class FeatureFlags extends _$FeatureFlags {
       MultiAccountsFeatureFlag.multiAccountsEnabled: false,
 
       /// Log flags
-      // if (ref.watch(envProvider.notifier).get(EnvVariable.SHOW_DEBUG_INFO)) ...{
-      LoggerFeatureFlag.logApp: true,
-      LoggerFeatureFlag.logRouters: true,
-      LoggerFeatureFlag.logIonConnect: true,
-      LoggerFeatureFlag.logIonIdentityClient: true,
-      // },
+      if (ref.watch(envProvider.notifier).get(EnvVariable.SHOW_DEBUG_INFO)) ...{
+        LoggerFeatureFlag.logApp: true,
+        LoggerFeatureFlag.logRouters: true,
+        LoggerFeatureFlag.logIonConnect: true,
+        LoggerFeatureFlag.logIonIdentityClient: true,
+      },
     };
   }
 
