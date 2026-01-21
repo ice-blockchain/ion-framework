@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -10,6 +11,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 class TokenCreatorTile extends StatelessWidget {
   const TokenCreatorTile({
     required this.creator,
+    this.creatorMasterPubkey,
     this.nameColor,
     this.handleColor,
     super.key,
@@ -18,11 +20,18 @@ class TokenCreatorTile extends StatelessWidget {
   final Creator creator;
   final Color? nameColor;
   final Color? handleColor;
+  final String? creatorMasterPubkey;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: creatorMasterPubkey != null
+          ? () {
+              ProfileRoute(
+                pubkey: creatorMasterPubkey!,
+              ).push<void>(context);
+            }
+          : null,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

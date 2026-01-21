@@ -25,6 +25,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TabEntitiesList extends HookConsumerWidget {
   const TabEntitiesList({
@@ -101,7 +102,13 @@ class TabEntitiesList extends HookConsumerWidget {
             child: Column(
               children: [
                 SectionSeparator(height: 4.s),
-                YourPositionCard(token: token),
+                YourPositionCard(
+                  token: token,
+                  onTap: () {
+                    TokenizedCommunityRoute(externalAddress: token.externalAddress)
+                        .push<void>(context);
+                  },
+                ),
                 SectionSeparator(height: 8.s),
               ],
             ),

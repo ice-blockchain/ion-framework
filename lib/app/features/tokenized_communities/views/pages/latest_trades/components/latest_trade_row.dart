@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
+import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
@@ -39,6 +40,7 @@ class LatestTradeRow extends StatelessWidget {
     final isCreator =
         creatorAddress != null && holderAddress != null && holderAddress == creatorAddress;
     final isXUser = trade.position.holder.isXUser;
+    final username = trade.position.holder.name;
 
     final badge = Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0.s),
@@ -99,12 +101,14 @@ class LatestTradeRow extends StatelessWidget {
     );
 
     return InkWell(
-      onTap: holderAddress != null
-          ? () => ProfileNavigationUtils.navigateToProfile(
-                context,
-                externalAddress: holderAddress,
-              )
-          : null,
+      onTap: isXUser
+          ? () => openUrlInAppBrowser('https://x.com/$username')
+          : holderAddress != null
+              ? () => ProfileNavigationUtils.navigateToProfile(
+                    context,
+                    externalAddress: holderAddress,
+                  )
+              : null,
       child: content,
     );
   }
