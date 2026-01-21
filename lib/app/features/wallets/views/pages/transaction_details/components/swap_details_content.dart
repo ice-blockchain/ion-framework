@@ -9,7 +9,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/expected_swap_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
-import 'package:ion/app/features/wallets/model/swap_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/providers/swap_provider.r.dart';
