@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/layouts/collapsing_header_layout.dart';
@@ -97,6 +98,8 @@ class TokenizedCommunityPage extends HookConsumerWidget {
     final activeTab = useState(TokenizedCommunityTabType.chart);
     final isCommentInputFocused = useMemoized(() => ValueNotifier<bool>(false), []);
     final innerScrollController = useState<ScrollController?>(null);
+    final ignoreScrollUpdates = useState(false);
+    final pendingTabIndex = useRef<int?>(null);
 
     useEffect(
       () {
@@ -105,60 +108,134 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       [isCommentInputFocused],
     );
 
-    final sectionKeys = useMemoized(
-      () => List.generate(
+    final sectionContexts = useMemoized(
+      () => List<BuildContext?>.filled(
         TokenizedCommunityTabType.values.length,
-        (_) => GlobalKey(),
+        null,
       ),
       [],
     );
 
-    Future<void> scrollToSection(int index) async {
-      final targetCtx = sectionKeys[index].currentContext;
-      if (targetCtx == null) return;
+    useEffect(
+      () {
+        final controller = innerScrollController.value;
+        if (controller == null) return null;
 
-      double outerOffsetDy = 0;
+        void handleScroll() {
+          if (ignoreScrollUpdates.value || !controller.hasClients) {
+            return;
+          }
 
-      final nestedState = targetCtx.findAncestorStateOfType<NestedScrollViewState>();
-      final inner = nestedState?.innerController ?? innerScrollController.value;
-      if (inner == null || !inner.hasClients) return;
+          const collapsedHeaderOffset = 160.0; // AppBar + pinned tabs + spacing
+          const expandedHeaderTabsOffset = 40.0; // Height of the pinned tabs row
 
-      final outer = nestedState?.outerController;
-      if (outer != null && outer.hasClients) {
-        outerOffsetDy = outer.position.pixels;
-        final outerTarget = outer.position.maxScrollExtent - (index == 0 ? 40 : 0);
+          final nestedState =
+              sectionContexts.first?.findAncestorStateOfType<NestedScrollViewState>();
+          final outer = nestedState?.outerController;
+          final offsetBias = outer != null && outer.hasClients && outer.position.pixels > 0
+              ? collapsedHeaderOffset
+              : expandedHeaderTabsOffset;
+          final currentOffset = controller.position.pixels;
+          if (currentOffset <= 0) {
+            if (activeTab.value != TokenizedCommunityTabType.chart) {
+              activeTab.value = TokenizedCommunityTabType.chart;
+            }
+            return;
+          }
+          int? newIndex;
 
-        unawaited(
-          outer.animateTo(
-            outerTarget,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          ),
-        );
-        if (index == 0) {
-          return;
+          for (var i = 0; i < sectionContexts.length; i++) {
+            final sectionContext = sectionContexts[i];
+            if (sectionContext == null) continue;
+            final renderObject = sectionContext.findRenderObject();
+            if (renderObject == null) continue;
+            final viewport = RenderAbstractViewport.of(renderObject);
+
+            final sectionOffset = viewport.getOffsetToReveal(renderObject, 0).offset;
+            if (sectionOffset <= currentOffset + offsetBias) {
+              newIndex = i;
+            } else {
+              break;
+            }
+          }
+
+          if (newIndex != null && newIndex != activeTab.value.index) {
+            final resolvedIndex = newIndex;
+            if (pendingTabIndex.value == resolvedIndex) {
+              return;
+            }
+            pendingTabIndex.value = resolvedIndex;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              if (pendingTabIndex.value != resolvedIndex) return;
+              if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+                return;
+              }
+              activeTab.value = TokenizedCommunityTabType.values[resolvedIndex];
+              pendingTabIndex.value = null;
+            });
+          }
         }
+
+        controller.addListener(handleScroll);
+        handleScroll();
+        return () => controller.removeListener(handleScroll);
+      },
+      [innerScrollController.value, sectionContexts],
+    );
+
+    Future<void> scrollToSection(int index) async {
+      ignoreScrollUpdates.value = true;
+      try {
+        final targetCtx = sectionContexts[index];
+        if (targetCtx == null) return;
+
+        double outerOffsetDy = 0;
+
+        final nestedState = targetCtx.findAncestorStateOfType<NestedScrollViewState>();
+        final inner = nestedState?.innerController ?? innerScrollController.value;
+        if (inner == null || !inner.hasClients) return;
+
+        final outer = nestedState?.outerController;
+        if (outer != null && outer.hasClients) {
+          outerOffsetDy = outer.position.pixels;
+          final outerTarget =
+              index == 0 ? outer.position.minScrollExtent : outer.position.maxScrollExtent;
+
+          unawaited(
+            outer.animateTo(
+              outerTarget,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
+          );
+          if (index == 0) {
+            return;
+          }
+        }
+
+        final updatedCtx = sectionContexts[index];
+        if (updatedCtx == null) return;
+
+        final ro = updatedCtx.findRenderObject();
+        if (ro == null) return;
+
+        final viewport = RenderAbstractViewport.of(ro);
+
+        // Align the section to the TOP of the inner viewport.
+        final desired = viewport.getOffsetToReveal(ro, 0).offset;
+        final pos = inner.position;
+        final target = (desired - (outerOffsetDy == 0 ? 40 : 160))
+            .clamp(pos.minScrollExtent, pos.maxScrollExtent);
+
+        await inner.animateTo(
+          target,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } finally {
+        ignoreScrollUpdates.value = false;
       }
-
-      final updatedCtx = sectionKeys[index].currentContext;
-      if (updatedCtx == null) return;
-
-      final ro = updatedCtx.findRenderObject();
-      if (ro == null) return;
-
-      final viewport = RenderAbstractViewport.of(ro);
-
-      // Align the section to the TOP of the inner viewport.
-      final desired = viewport.getOffsetToReveal(ro, 0).offset;
-      final pos = inner.position;
-      final target = (desired - (outerOffsetDy == 0 ? 40 : 160))
-          .clamp(pos.minScrollExtent, pos.maxScrollExtent);
-
-      await inner.animateTo(
-        target,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
     }
 
     return CollapsingHeaderLayout(
@@ -299,40 +376,48 @@ class TokenizedCommunityPage extends HookConsumerWidget {
               token: tokenInfo,
               trailing: SimpleSeparator(height: 4.0.s),
             ),
-          KeyedSubtree(
-            key: sectionKeys[TokenizedCommunityTabType.chart.index],
-            child: _TokenChart(
-              externalAddress: externalAddress,
-            ),
+          Builder(
+            builder: (context) {
+              sectionContexts[TokenizedCommunityTabType.chart.index] = context;
+              return _TokenChart(
+                externalAddress: externalAddress,
+              );
+            },
           ),
           SimpleSeparator(height: 4.0.s),
           _TokenStats(externalAddress: externalAddress),
           SimpleSeparator(height: 4.0.s),
-          KeyedSubtree(
-            key: sectionKeys[TokenizedCommunityTabType.holders.index],
-            child: TopHolders(
-              externalAddress: externalAddress,
-            ),
+          Builder(
+            builder: (context) {
+              sectionContexts[TokenizedCommunityTabType.holders.index] = context;
+              return TopHolders(
+                externalAddress: externalAddress,
+              );
+            },
           ),
           SimpleSeparator(height: 4.0.s),
-          KeyedSubtree(
-            key: sectionKeys[TokenizedCommunityTabType.trades.index],
-            child: LatestTradesCard(
-              externalAddress: externalAddress,
-            ),
+          Builder(
+            builder: (context) {
+              sectionContexts[TokenizedCommunityTabType.trades.index] = context;
+              return LatestTradesCard(
+                externalAddress: externalAddress,
+              );
+            },
           ),
           if (tokenDefinition != null) ...[
             SimpleSeparator(height: 4.0.s),
-            KeyedSubtree(
-              key: sectionKeys[TokenizedCommunityTabType.comments.index],
-              child: CommentsSectionCompact(
-                tokenDefinition: tokenDefinition,
-                onCommentInputFocusChanged: (bool isFocused) {
-                  if (isCommentInputFocused.value != isFocused) {
-                    isCommentInputFocused.value = isFocused;
-                  }
-                },
-              ),
+            Builder(
+              builder: (context) {
+                sectionContexts[TokenizedCommunityTabType.comments.index] = context;
+                return CommentsSectionCompact(
+                  tokenDefinition: tokenDefinition,
+                  onCommentInputFocusChanged: (bool isFocused) {
+                    if (isCommentInputFocused.value != isFocused) {
+                      isCommentInputFocused.value = isFocused;
+                    }
+                  },
+                );
+              },
             ),
           ],
           SizedBox(height: 120.0.s),
