@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ion/app/features/wallets/data/database/dao/networks_dao.m.dart';
 import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
@@ -23,8 +22,6 @@ class MockTransactionsRepository extends Mock implements TransactionsRepository 
 class MockFailedTransferService extends Mock implements FailedTransferService {}
 
 class MockSwapsRepository extends Mock implements SwapsRepository {}
-
-class MockNetworksDao extends Mock implements NetworksDao {}
 
 void main() {
   late MockSyncTransactionsService mockSyncTransactionsService;
@@ -46,13 +43,7 @@ void main() {
     mockSwapsRepository = MockSwapsRepository();
 
     when(
-      () => mockSwapsRepository.getSwaps(
-        toTxHashes: any(named: 'toTxHashes'),
-        fromTxHashes: any(named: 'fromTxHashes'),
-        fromWalletAddresses: any(named: 'fromWalletAddresses'),
-        toWalletAddresses: any(named: 'toWalletAddresses'),
-        limit: any(named: 'limit'),
-      ),
+      () => mockSwapsRepository.getIncompleteSwaps(limit: any(named: 'limit')),
     ).thenAnswer((_) async => []);
 
     service = PeriodicTransactionsSyncService(
