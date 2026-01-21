@@ -31,7 +31,6 @@ void main() {
   late MockTransactionsRepository mockTransactionsRepository;
   late MockFailedTransferService mockFailedTransferService;
   late MockSwapsRepository mockSwapsRepository;
-  late MockNetworksDao mockNetworksDao;
   late PeriodicTransactionsSyncService service;
 
   setUpAll(() {
@@ -45,7 +44,6 @@ void main() {
     mockTransactionsRepository = MockTransactionsRepository();
     mockFailedTransferService = MockFailedTransferService();
     mockSwapsRepository = MockSwapsRepository();
-    mockNetworksDao = MockNetworksDao();
 
     when(
       () => mockSwapsRepository.getSwaps(
@@ -62,7 +60,6 @@ void main() {
       mockTransactionsRepository,
       mockFailedTransferService,
       mockSwapsRepository,
-      mockNetworksDao,
       initialSyncDelay: const Duration(microseconds: 10),
     );
   });
