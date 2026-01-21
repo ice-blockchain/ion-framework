@@ -6,7 +6,7 @@ class BscSwapTxIdentifier extends SwapTransactionIdentifier {
   static const _bridgeContractAddress = '0x0000000000000000000000000000000000000000';
 
   @override
-  String get networkId => 'bsc';
+  List<String> get networkIds => ['Bsc', 'BscTestnet'];
 
   @override
   String get bridgeAddress => _bridgeContractAddress;
