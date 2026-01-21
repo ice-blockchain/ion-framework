@@ -72,16 +72,6 @@ Stream<CommunityToken?> tokenMarketInfo(
   }
 }
 
-@riverpod
-Future<bool> tokenExists(
-  Ref ref,
-  String externalAddress,
-) async {
-  final tokenInfo = await ref.read(tokenMarketInfoProvider(externalAddress).future);
-  final tokenAddress = tokenInfo?.addresses.blockchain?.trim() ?? '';
-  return tokenAddress.isNotEmpty;
-}
-
 // Guarded wrapper that checks if entity has a token before delegating to tokenMarketInfoProvider.
 @riverpod
 AsyncValue<CommunityToken?> tokenMarketInfoIfAvailable(

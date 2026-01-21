@@ -466,9 +466,7 @@ class _TokenCards extends HookConsumerWidget {
                     skipValidation: true,
                     enabled: false,
                     showArrow: false,
-                    onValidationError: onValidationError,
                     onTap: () {},
-                    isError: isError,
                     customIconWidget: state.shouldWaitSuggestedDetails
                         ? SuggestedCommunityAvatar(
                             pictureUrl: state.suggestedDetails?.picture ?? '',
@@ -490,7 +488,9 @@ class _TokenCards extends HookConsumerWidget {
                     onPercentageChanged: controller.setAmountByPercentage,
                     skipAmountFormatting: true,
                     showArrow: false,
+                    onValidationError: onValidationError,
                     onTap: () {},
+                    isError: isError,
                     customIconWidget: state.shouldWaitSuggestedDetails
                         ? SuggestedCommunityAvatar(
                             pictureUrl: state.suggestedDetails?.picture ?? '',

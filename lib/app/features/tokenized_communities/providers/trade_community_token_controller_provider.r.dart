@@ -64,7 +64,9 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       externalAddress: externalAddress,
       externalAddressType: params.externalAddressType,
       tokenExistsResolver: () async {
-        return ref.read(tokenExistsProvider(externalAddress).future);
+        final tokenInfo = await ref.read(tokenMarketInfoProvider(externalAddress).future);
+        final tokenAddress = tokenInfo?.addresses.blockchain?.trim() ?? '';
+        return tokenAddress.isNotEmpty;
       },
       fatAddressHexResolver: () async {
         final fatAddressData = await ref.read(
@@ -240,8 +242,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     if (state.shouldWaitSuggestedDetails) {
       final suggestedDetails = state.suggestedDetails;
       tokenTitle = suggestedDetails?.name.trim() ?? '';
-      final suggestedPicture = suggestedDetails?.picture.trim();
-      communityAvatar = suggestedPicture?.isNotEmpty ?? false ? suggestedPicture : null;
+      communityAvatar = suggestedDetails?.picture.trim();
     } else {
       tokenTitle = tokenInfo?.title ??
           userData?.data.trimmedDisplayName ??

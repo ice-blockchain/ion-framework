@@ -8,7 +8,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/suggested_token_details.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/suggested_token_details_state.f.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/video_frame_extractor.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -38,7 +38,8 @@ Future<SuggestedTokenDetailsState?> suggestTokenCreationDetailsFromEvent(
 ) async {
   try {
     // Check if token already exists, and proceed only if it does not exist
-    final isTokenExists = await ref.read(tokenExistsProvider(params.externalAddress).future);
+    final isTokenExists = await ref
+        .watch(ionConnectEntityHasTokenProvider(eventReference: params.eventReference).future);
     if (isTokenExists) {
       return const SuggestedTokenDetailsState.skipped();
     }
