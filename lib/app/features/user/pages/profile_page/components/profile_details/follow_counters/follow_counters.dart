@@ -92,6 +92,7 @@ class FollowCounters extends ConsumerWidget {
     final bothAvailable = followingNumber != null && followersNumber != null;
 
     final isLoading = followListAsync.isLoading || followersCountAsync.isLoading;
+    final isInitialLoading = isLoading && !bothAvailable;
     if (!isLoading && !bothAvailable && network) {
       return const SizedBox.shrink();
     }
@@ -106,7 +107,7 @@ class FollowCounters extends ConsumerWidget {
         children: [
           _FollowCounterCellWrapper(
             isExpanded: profileMode != ProfileMode.dark,
-            isLoading: isLoading,
+            isLoading: isInitialLoading,
             child: FollowCountersCell(
               pubkey: pubkey,
               usersNumber: followingNumber ?? 0,
@@ -117,7 +118,7 @@ class FollowCounters extends ConsumerWidget {
           _divider(context),
           _FollowCounterCellWrapper(
             isExpanded: profileMode != ProfileMode.dark,
-            isLoading: isLoading,
+            isLoading: isInitialLoading,
             child: FollowCountersCell(
               pubkey: pubkey,
               usersNumber: followersNumber ?? 0,
