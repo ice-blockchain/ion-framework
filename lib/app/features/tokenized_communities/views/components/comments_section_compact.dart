@@ -50,10 +50,11 @@ class CommentsSectionCompact extends HookConsumerWidget {
     final isInitialLoad = entities == null && !hasData;
 
     final repliesCount = ref
-        .watch(
-          repliesCountProvider(tokenDefinitionEventReference, network: true),
-        )
-        .valueOrNull;
+            .watch(
+              repliesCountProvider(tokenDefinitionEventReference, network: true),
+            )
+            .valueOrNull ??
+        0;
     final hasMore = comments?.hasMore ?? false;
     final canReply =
         ref.watch(canReplyProvider(tokenDefinitionEventReference)).valueOrNull ?? false;
