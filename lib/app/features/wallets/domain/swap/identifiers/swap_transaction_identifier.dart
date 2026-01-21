@@ -6,9 +6,12 @@ import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 
 abstract class SwapTransactionIdentifier {
-  String get networkId;
+  List<String> get networkIds;
 
   String get bridgeAddress;
+
+  bool matchesNetwork(String networkId) =>
+      networkIds.any((id) => id.toLowerCase() == networkId.toLowerCase());
 
   Duration get matchingTimeWindow => SwapExpiryChecker.matchingTimeWindow;
 
@@ -29,8 +32,8 @@ abstract class SwapTransactionIdentifier {
   /// Returns true if [tx] is a from-tx (outgoing) match for [swap].
   /// From-tx: user sends tokens TO the bridge on the source network.
   bool isFromTxMatch(SwapTransactions swap, TransactionData tx) {
-    if (swap.fromNetworkId.toLowerCase() != networkId.toLowerCase()) return false;
-    if (tx.network.id.toLowerCase() != networkId.toLowerCase()) return false;
+    if (!matchesNetwork(swap.fromNetworkId)) return false;
+    if (!matchesNetwork(tx.network.id)) return false;
     if (tx.senderWalletAddress != swap.fromWalletAddress) return false;
     if (tx.receiverWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) return false;
 
@@ -45,8 +48,8 @@ abstract class SwapTransactionIdentifier {
   /// To-tx: user receives tokens FROM the bridge on the destination network.
   /// [crossChainFee] is the total fee deducted from toAmount (calculated by linker).
   bool isToTxMatch(SwapTransactions swap, TransactionData tx, {BigInt? crossChainFee}) {
-    if (swap.toNetworkId.toLowerCase() != networkId.toLowerCase()) return false;
-    if (tx.network.id.toLowerCase() != networkId.toLowerCase()) return false;
+    if (!matchesNetwork(swap.toNetworkId)) return false;
+    if (!matchesNetwork(tx.network.id)) return false;
     if (tx.receiverWalletAddress != swap.toWalletAddress) return false;
     if (tx.senderWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) return false;
     if (!isWithinTimeWindow(swap.createdAt, tx.dateConfirmed)) return false;

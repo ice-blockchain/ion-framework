@@ -14,7 +14,7 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
   static final BigInt _ionBridgeFee = BigInt.from(500000000); // 0.5 ION
 
   @override
-  String get networkId => 'ion';
+  List<String> get networkIds => ['Ion', 'IonTestnet'];
 
   @override
   String get bridgeAddress => _bridgeMultisigAddress;

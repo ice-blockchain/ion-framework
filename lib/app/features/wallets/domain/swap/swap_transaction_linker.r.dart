@@ -82,9 +82,8 @@ class SwapTransactionLinker {
     _pendingSwaps = [];
   }
 
-  SwapTransactionIdentifier? _getIdentifier(String networkId) => _identifiers.firstWhereOrNull(
-        (i) => i.networkId.toLowerCase() == networkId.toLowerCase(),
-      );
+  SwapTransactionIdentifier? _getIdentifier(String networkId) =>
+      _identifiers.firstWhereOrNull((i) => i.matchesNetwork(networkId));
 
   BigInt _calculateCrossChainFee({
     required String fromNetworkId,
