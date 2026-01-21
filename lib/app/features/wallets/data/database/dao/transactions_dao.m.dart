@@ -570,12 +570,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     final swapFromTx = swapFromTxAlias != null ? row.readTableOrNull(swapFromTxAlias) : null;
     final swapToTx = swapToTxAlias != null ? row.readTableOrNull(swapToTxAlias) : null;
 
-    SwapStatus? swapStatus;
-    if (swapFromTx != null) {
-      swapStatus = SwapStatus.fromString(swapFromTx.status);
-    } else if (swapToTx != null) {
-      swapStatus = SwapStatus.fromString(swapToTx.status);
-    }
+    final swap = swapFromTx ?? swapToTx;
+    final swapStatus = swap != null ? SwapStatus.fromString(swap.status) : null;
 
     return TransactionData(
       txHash: transaction.txHash,
