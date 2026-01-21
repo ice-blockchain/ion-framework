@@ -6,12 +6,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
-import 'package:ion/app/features/wallets/data/database/dao/networks_dao.m.dart';
 import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
-import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -27,7 +25,6 @@ Future<PeriodicTransactionsSyncService> periodicTransactionsSyncService(Ref ref)
     await ref.watch(transactionsRepositoryProvider.future),
     await ref.watch(failedTransferServiceProvider.future),
     await ref.watch(swapsRepositoryProvider.future),
-    ref.watch(networksDaoProvider),
   );
 }
 
@@ -36,8 +33,7 @@ class PeriodicTransactionsSyncService {
     this._syncTransactionsService,
     this._transactionsRepository,
     this._failedTransferService,
-    this._swapsRepository,
-    this._networksDao, {
+    this._swapsRepository, {
     this.initialSyncDelay = const Duration(seconds: 30),
   });
 
@@ -45,7 +41,6 @@ class PeriodicTransactionsSyncService {
   final TransactionsRepository _transactionsRepository;
   final FailedTransferService _failedTransferService;
   final SwapsRepository _swapsRepository;
-  final NetworksDao _networksDao;
   final Map<String, bool> _walletSyncInProgress = {};
   final Duration initialSyncDelay;
 
@@ -108,8 +103,8 @@ class PeriodicTransactionsSyncService {
       return;
     }
 
-    // Group wallets by address and extract their networks
-    final walletNetworks = <String, NetworkData>{};
+    // Group wallets by address and extract their network IDs
+    final walletNetworkIds = <String, String>{};
 
     // Add wallets from all pending transactions
     for (final tx in pendingTransactions) {
@@ -122,30 +117,24 @@ class PeriodicTransactionsSyncService {
         continue;
       }
 
-      if (walletAddress != null && !walletNetworks.containsKey(walletAddress)) {
-        walletNetworks[walletAddress] = tx.network;
+      if (walletAddress != null && !walletNetworkIds.containsKey(walletAddress)) {
+        walletNetworkIds[walletAddress] = tx.network.id;
       }
     }
 
     // Also add wallets for incomplete swaps (missing fromTxHash or toTxHash)
     final incompleteSwaps = await _swapsRepository.getIncompleteSwaps();
     for (final swap in incompleteSwaps) {
-      if (swap.toTxHash == null && !walletNetworks.containsKey(swap.toWalletAddress)) {
-        final network = await _getNetworkById(swap.toNetworkId);
-        if (network != null) {
-          walletNetworks[swap.toWalletAddress] = network;
-        }
+      if (swap.toTxHash == null && !walletNetworkIds.containsKey(swap.toWalletAddress)) {
+        walletNetworkIds[swap.toWalletAddress] = swap.toNetworkId;
       }
-      if (swap.fromTxHash == null && !walletNetworks.containsKey(swap.fromWalletAddress)) {
-        final network = await _getNetworkById(swap.fromNetworkId);
-        if (network != null) {
-          walletNetworks[swap.fromWalletAddress] = network;
-        }
+      if (swap.fromTxHash == null && !walletNetworkIds.containsKey(swap.fromWalletAddress)) {
+        walletNetworkIds[swap.fromWalletAddress] = swap.fromNetworkId;
       }
     }
 
-    final syncFutures = walletNetworks.entries.map(
-      (entry) => _startWalletSync(walletAddress: entry.key, network: entry.value),
+    final syncFutures = walletNetworkIds.entries.map(
+      (entry) => _startWalletSync(walletAddress: entry.key, networkId: entry.value),
     );
 
     if (syncFutures.isNotEmpty) {
@@ -160,7 +149,7 @@ class PeriodicTransactionsSyncService {
 
   Future<void> _startWalletSync({
     required String walletAddress,
-    required NetworkData network,
+    required String networkId,
   }) async {
     if (_walletSyncInProgress[walletAddress] ?? false) {
       Logger.log('Wallet $walletAddress sync is already in progress, skipping');
@@ -169,7 +158,7 @@ class PeriodicTransactionsSyncService {
 
     _walletSyncInProgress[walletAddress] = true;
 
-    Logger.log('Starting periodic sync for wallet $walletAddress in ${network.id}');
+    Logger.log('Starting periodic sync for wallet $walletAddress in $networkId');
 
     try {
       // Exponential backoff delay progression:
@@ -185,7 +174,7 @@ class PeriodicTransactionsSyncService {
       );
     } finally {
       _walletSyncInProgress[walletAddress] = false;
-      Logger.log('Periodic sync completed for wallet $walletAddress (${network.id})');
+      Logger.log('Periodic sync completed for wallet $walletAddress ($networkId)');
     }
   }
 
@@ -290,9 +279,4 @@ class PeriodicTransactionsSyncService {
     }
   }
 
-  Future<NetworkData?> _getNetworkById(String networkId) async {
-    final network = await _networksDao.getById(networkId);
-    if (network == null) return null;
-    return NetworkData.fromDB(network);
-  }
 }
