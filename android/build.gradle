@@ -20,6 +20,7 @@ allprojects {
         google()
         mavenCentral()
         maven { url "https://artifactory.appodeal.com/appodeal" }
+        maven { url "https://verve.jfrog.io/artifactory/verve-gradle-release" }
     }
     subprojects {
         afterEvaluate { project ->
