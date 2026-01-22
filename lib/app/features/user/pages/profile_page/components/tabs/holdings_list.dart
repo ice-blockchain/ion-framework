@@ -38,29 +38,33 @@ class HoldingsList extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return Container(
-          color: context.theme.appColors.secondaryBackground,
-          padding: EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Header(holdingsCount: totalHoldingsCount, holderAddress: holderAddress),
-              SizedBox(height: 14.0.s),
-              ...holdings.asMap().entries.map(
-                (entry) {
-                  final index = entry.key;
-                  final token = entry.value;
-                  final isLast = index == holdings.length - 1;
-                  return Padding(
-                    padding: EdgeInsetsDirectional.only(bottom: isLast ? 0.0 : 14.0.s),
-                    child: UserHoldingsListItem(token: token),
-                  );
-                },
+        return Column(
+          children: [
+            Container(
+              color: context.theme.appColors.secondaryBackground,
+              padding: EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Header(holdingsCount: totalHoldingsCount, holderAddress: holderAddress),
+                  SizedBox(height: 14.0.s),
+                  ...holdings.asMap().entries.map(
+                    (entry) {
+                      final index = entry.key;
+                      final token = entry.value;
+                      final isLast = index == holdings.length - 1;
+                      return Padding(
+                        padding: EdgeInsetsDirectional.only(bottom: isLast ? 0.0 : 14.0.s),
+                        child: UserHoldingsListItem(token: token),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 16.0.s),
+                ],
               ),
-              SizedBox(height: 16.0.s),
-              SectionSeparator(height: 4.s),
-            ],
-          ),
+            ),
+            SectionSeparator(height: 4.s),
+          ],
         );
       },
       loading: () => const SizedBox.shrink(),

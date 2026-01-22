@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/profit_loss_indicator.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_price_label.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_type_gradient_indicator.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/twitter_badge.dart';
-import 'package:ion/app/router/utils/profile_navigation_utils.dart';
-import 'package:ion/app/services/browser/browser.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class UserHoldingsListItem extends StatelessWidget {
+class UserHoldingsListItem extends ConsumerWidget {
   const UserHoldingsListItem({
     required this.token,
     super.key,
@@ -23,25 +24,23 @@ class UserHoldingsListItem extends StatelessWidget {
   final CommunityToken token;
 
   @override
-  Widget build(BuildContext context) {
-    final username = token.creator.name;
-    final isXUser = token.creator.isXUser;
+  Widget build(BuildContext context, WidgetRef ref) {
     final position = token.marketData.position;
-    final holderAddress = token.creator.addresses?.ionConnect;
 
     if (position == null) {
       return const SizedBox.shrink();
     }
 
     return GestureDetector(
-      onTap: isXUser
-          ? () => openUrlInAppBrowser('https://x.com/$username')
-          : holderAddress != null
-              ? () => ProfileNavigationUtils.navigateToProfile(
-                    context,
-                    pubkey: holderAddress,
-                  )
-              : null,
+      onTap: () {
+        ref
+            .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
+            .cacheToken(token);
+
+        TokenizedCommunityRoute(
+          externalAddress: token.externalAddress,
+        ).push<void>(context);
+      },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
