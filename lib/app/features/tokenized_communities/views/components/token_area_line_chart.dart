@@ -84,29 +84,6 @@ class TokenAreaLineChart extends HookConsumerWidget {
     final duration =
         visibleYRangeData.isScrollTriggered.value ? _scrollAnimationDuration : Duration.zero;
 
-    Widget buildBottomTitle(double value, TitleMeta meta) {
-      final i = value.round();
-      final text = calcData.indexToLabel[i];
-      if (text == null) return const SizedBox.shrink();
-
-      final label = Align(
-        alignment: Alignment.bottomCenter,
-        child: Text(
-          text,
-          style: styles.caption5.copyWith(color: colors.tertiaryText),
-        ),
-      );
-
-      if (i == 0) {
-        return Transform.translate(
-          offset: Offset(13.0.s, 0),
-          child: label,
-        );
-      }
-
-      return label;
-    }
-
     // Hide chart until initial scroll position is set (prevents visible jump)
     return Opacity(
       opacity: transformation.isPositioned.value ? 1.0 : 0.0,
@@ -184,7 +161,11 @@ class TokenAreaLineChart extends HookConsumerWidget {
                     showTitles: true,
                     reservedSize: 26.0.s,
                     interval: calcData.xAxisStep,
-                    getTitlesWidget: buildBottomTitle,
+                    getTitlesWidget: (value, meta) => _ChartBottomTitle(
+                      value: value,
+                      meta: meta,
+                      calcData: calcData,
+                    ),
                   ),
                 ),
               ),
@@ -234,5 +215,44 @@ class TokenAreaLineChart extends HookConsumerWidget {
         },
       ),
     );
+  }
+}
+
+class _ChartBottomTitle extends StatelessWidget {
+  const _ChartBottomTitle({
+    required this.value,
+    required this.meta,
+    required this.calcData,
+  });
+
+  final double value;
+  final TitleMeta meta;
+  final ChartCalculationData calcData;
+
+  @override
+  Widget build(BuildContext context) {
+    final styles = context.theme.appTextThemes;
+    final colors = context.theme.appColors;
+
+    final i = value.round();
+    final text = calcData.indexToLabel[i];
+    if (text == null) return const SizedBox.shrink();
+
+    final label = Align(
+      alignment: Alignment.bottomCenter,
+      child: Text(
+        text,
+        style: styles.caption5.copyWith(color: colors.tertiaryText),
+      ),
+    );
+
+    if (i == 0) {
+      return Transform.translate(
+        offset: Offset(13.0.s, 0),
+        child: label,
+      );
+    }
+
+    return label;
   }
 }
