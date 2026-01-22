@@ -141,7 +141,7 @@ void main() {
         final now = DateTime.now();
         final candles = [
           createCandle(date: now.subtract(const Duration(hours: 25)), close: 2),
-          createCandle(date: now.subtract(const Duration(hours: 1)), close: 1.0),
+          createCandle(date: now.subtract(const Duration(hours: 1)), close: 1),
         ];
 
         final result = calculatePriceChangePercentFromNow(
@@ -199,7 +199,7 @@ void main() {
         final now = DateTime.now();
         final candles = [
           createCandle(date: now.subtract(const Duration(hours: 1)), close: 1),
-          createCandle(date: now.subtract(const Duration(minutes: 30)), close: 2.0),
+          createCandle(date: now.subtract(const Duration(minutes: 30)), close: 2),
         ];
 
         final result = calculatePriceChangePercentFromNow(
