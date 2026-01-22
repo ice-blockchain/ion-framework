@@ -81,6 +81,7 @@ class PostData
     List<RelatedHashtag>? relatedHashtags,
     List<EventSetting>? settings,
     EntityLabel? mentionMarketCapLabel,
+    EntityLabel? cashtagMarketCapLabel,
     EntityLabel? ugcSerial,
   }) = _PostData;
 
@@ -107,6 +108,10 @@ class PostData
         tags,
         namespace: EntityLabelNamespace.mentionMarketCap,
       ),
+      cashtagMarketCapLabel: EntityLabel.fromTags(
+        tags,
+        namespace: EntityLabelNamespace.cashtagMarketCap,
+      ),
       ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
@@ -130,6 +135,7 @@ class PostData
         if (quotedEvent != null) quotedEvent!.toTag(),
         if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
         if (mentionMarketCapLabel != null) ...mentionMarketCapLabel!.toTags(),
+        if (cashtagMarketCapLabel != null) ...cashtagMarketCapLabel!.toTags(),
         if (relatedHashtags != null) ...relatedHashtags!.map((hashtag) => hashtag.toTag()),
         if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),

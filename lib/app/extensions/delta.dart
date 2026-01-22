@@ -126,3 +126,60 @@ extension MentionDeltaExt on Delta {
     }
   }
 }
+
+extension CashtagDeltaExt on Delta {
+  /// Iterate over all cashtags in document order.
+  ///
+  /// Callback receives:
+  ///   symbolGroup (without '$')
+  ///   externalAddress (only when showMarketCap == true)
+  ///   showMarketCap flag
+  void forEachCashtag(
+    void Function(
+      String symbolGroup, {
+      required bool showMarketCap,
+      String? externalAddress,
+    }) callback,
+  ) {
+    for (final op in operations) {
+      if (op.key != 'insert') continue;
+
+      final data = op.data;
+      final attrs = op.attributes;
+
+      // Text cashtag with attribute
+      if (data is String && attrs != null && attrs.containsKey(CashtagAttribute.attributeKey)) {
+        if (!data.startsWith(r'$')) continue;
+
+        final symbolGroup = data.substring(1);
+        if (symbolGroup.isEmpty) continue;
+
+        final showMarketCap = attrs[CashtagAttribute.showMarketCapKey] == true;
+        final cashtagAttr = attrs[CashtagAttribute.attributeKey];
+
+        // When showMarketCap is enabled, we persist externalAddress in the cashtag attribute value.
+        final externalAddress =
+            (showMarketCap && cashtagAttr is String && cashtagAttr.trim().isNotEmpty)
+                ? cashtagAttr.trim()
+                : null;
+
+        callback(symbolGroup, showMarketCap: showMarketCap, externalAddress: externalAddress);
+      }
+      // Embed cashtag
+      else if (data is Map) {
+        const cashtagKey = 'cashtag';
+        if (!data.containsKey(cashtagKey)) continue;
+
+        final cashtagData = data[cashtagKey];
+        if (cashtagData is! Map) continue;
+
+        final symbolGroup = cashtagData['symbolGroup'] as String?;
+        final externalAddress = cashtagData['externalAddress'] as String?;
+        if (symbolGroup == null || symbolGroup.isEmpty) continue;
+
+        // Embeds are always showMarketCap=true.
+        callback(symbolGroup, showMarketCap: true, externalAddress: externalAddress);
+      }
+    }
+  }
+}

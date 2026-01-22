@@ -9,6 +9,7 @@ import 'package:ion/app/components/inputs/text_input/ion_text_field.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/text_editor/components/suggestions_container.dart';
+import 'package:ion/app/components/text_editor/hooks/use_process_cashtag_embeds.dart';
 import 'package:ion/app/components/text_editor/hooks/use_process_mention_embeds.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -60,6 +61,7 @@ class ArticleFormModal extends HookConsumerWidget {
 
     // Process mention embeds reactively (handles both upgrades and downgrades)
     useProcessMentionEmbeds(articleState.textEditorController, ref);
+    useProcessCashtagEmbeds(articleState.textEditorController, ref);
 
     final scrollController = ScrollController();
     final textEditorKey = useMemoized(TextEditorKeys.createArticle);

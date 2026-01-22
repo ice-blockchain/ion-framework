@@ -22,6 +22,7 @@ class CashtagAttribute extends Attribute<String?> {
   const CashtagAttribute.unset() : this(null);
 
   static const String attributeKey = 'cashtag';
+  static const String showMarketCapKey = 'showMarketCap';
 }
 
 class MentionAttribute extends Attribute<String?> {

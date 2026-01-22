@@ -113,6 +113,7 @@ class ModifiablePostData
     SourcePostReference? sourcePostReference,
     EntityLabel? language,
     EntityLabel? mentionMarketCapLabel,
+    EntityLabel? cashtagMarketCapLabel,
     EntityLabel? ugcSerial,
   }) = _ModifiablePostData;
   factory ModifiablePostData.fromEventMessage(EventMessage eventMessage) {
@@ -149,6 +150,10 @@ class ModifiablePostData
         tags,
         namespace: EntityLabelNamespace.mentionMarketCap,
       ),
+      cashtagMarketCapLabel: EntityLabel.fromTags(
+        tags,
+        namespace: EntityLabelNamespace.cashtagMarketCap,
+      ),
       ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
@@ -179,6 +184,7 @@ class ModifiablePostData
       if (quotedEvent != null) quotedEvent!.toTag(),
       if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
       if (mentionMarketCapLabel != null) ...mentionMarketCapLabel!.toTags(),
+      if (cashtagMarketCapLabel != null) ...cashtagMarketCapLabel!.toTags(),
       if (relatedHashtags != null) ...relatedHashtags!.map((hashtag) => hashtag.toTag()),
       if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
       if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),

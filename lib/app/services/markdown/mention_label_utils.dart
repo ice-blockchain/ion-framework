@@ -30,3 +30,34 @@ Map<String, Set<int>> buildInstanceMapFromLabel(EntityLabel? label) {
 
   return instanceMap;
 }
+
+/// Parses a cashtag market cap label into a restore map.
+///
+/// Storage format (NIP-32 labels):
+///   namespace: community.token.marketcap.show.cashtag
+///   value: symbolGroup (without '$')
+///   additionalElements: [externalAddress, instanceIndex]
+///
+/// Restore format:
+///   symbolGroup -> { instanceIndex -> externalAddress }
+Map<String, Map<int, String>> buildCashtagExternalAddressMapFromLabel(EntityLabel? label) {
+  final out = <String, Map<int, String>>{};
+
+  if (label == null) {
+    return out;
+  }
+
+  for (final labelValue in label.values) {
+    final symbolGroup = labelValue.value;
+    final extras = labelValue.additionalElements;
+    if (symbolGroup.isEmpty || extras.length < 2) continue;
+
+    final externalAddress = extras[0].trim();
+    final instanceIndex = int.tryParse(extras[1]);
+    if (externalAddress.isEmpty || instanceIndex == null) continue;
+
+    out.putIfAbsent(symbolGroup, () => <int, String>{})[instanceIndex] = externalAddress;
+  }
+
+  return out;
+}

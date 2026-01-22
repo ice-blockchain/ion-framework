@@ -17,13 +17,17 @@ class SuggestionsState {
     this.isLoading = false,
   });
 
-  final List<String> suggestions;
+  /// Suggestions payload depends on [taggingCharacter]:
+  /// - '@' => List<String> (pubkeys)
+  /// - '#' => List<String> (hashtags)
+  /// - '$' => List<CoinsGroup>
+  final List<Object> suggestions;
   final String taggingCharacter;
   final bool isVisible;
   final bool isLoading;
 
   SuggestionsState copyWith({
-    List<String>? suggestions,
+    List<Object>? suggestions,
     String? taggingCharacter,
     bool? isVisible,
     bool? isLoading,
@@ -76,10 +80,10 @@ class SuggestionsNotifier extends _$SuggestionsNotifier {
 
     try {
       final suggestions = switch (taggingCharacter) {
-        '#' => await ref.read(hashtagSuggestionsProvider(query).future),
-        '@' => await ref.read(mentionSuggestionsProvider(query).future),
-        r'$' => await ref.read(cashtagSuggestionsProvider(query).future),
-        _ => <String>[],
+        '#' => (await ref.read(hashtagSuggestionsProvider(query).future)).cast<Object>(),
+        '@' => (await ref.read(mentionSuggestionsProvider(query).future)).cast<Object>(),
+        r'$' => (await ref.read(cashtagSuggestionsProvider(query).future)).cast<Object>(),
+        _ => <Object>[],
       };
 
       state = SuggestionsState(

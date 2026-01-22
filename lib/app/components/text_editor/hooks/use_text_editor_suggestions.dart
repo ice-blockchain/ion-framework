@@ -15,7 +15,7 @@ class TextEditorSuggestionsState {
   });
 
   final bool isVisible;
-  final List<String> suggestions;
+  final List<Object> suggestions;
   final String taggingCharacter;
   final bool isLoading;
 }

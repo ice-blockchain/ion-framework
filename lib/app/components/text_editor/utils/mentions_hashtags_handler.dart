@@ -4,14 +4,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/models/cashtag_embed_data.f.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/services/cashtag_insertion_service.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
 import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
+import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 
 class MentionsHashtagsHandler extends TextEditorTypingListener {
@@ -104,9 +109,63 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     ref.invalidate(suggestionsNotifierProvider);
   }
 
+  Future<void> onCashtagSuggestionSelected(CoinsGroup suggestion) async {
+    final fullText = controller.document.toPlainText();
+    final cursorIndex = controller.selection.baseOffset;
+    final tag = _findTagAtCursor(fullText, cursorIndex);
+    if (tag.start == _invalidTagStart || tag.tagChar != r'$') return;
+
+    final symbolGroup = suggestion.symbolGroup;
+    final externalAddress = suggestion.coins.isNotEmpty
+        ? suggestion.coins.first.coin.tokenizedCommunityExternalAddress
+        : null;
+
+    // Non-tokenized coins: keep existing behavior (plain attributed text insertion).
+    if (externalAddress == null || externalAddress.isEmpty) {
+      onSuggestionSelected(symbolGroup);
+      return;
+    }
+
+    // Non-blocking optimistic behavior: only insert as embed when market cap is already cached.
+    final cachedMarketCap = _getCachedTokenMarketCap(externalAddress);
+
+    controller.removeListener(editorListener);
+    try {
+      if (cachedMarketCap != null) {
+        CashtagInsertionService.insertCashtag(
+          controller,
+          tag.start,
+          tag.length,
+          CashtagEmbedData(
+            symbolGroup: symbolGroup,
+            externalAddress: externalAddress,
+          ),
+        );
+      } else {
+        // Insert as plain attributed text; this will not upgrade automatically
+        // until we add the showMarketCap persistence + processing loop.
+        onSuggestionSelected(symbolGroup);
+      }
+    } finally {
+      controller.addListener(editorListener);
+    }
+
+    _reapplyAllTags(controller.document.toPlainText());
+    ref.invalidate(suggestionsNotifierProvider);
+  }
+
   // Gets cached market cap value (non-blocking for optimistic behavior, returns null if not cached).
   double? _getCachedMarketCap(String pubkey) {
     return ref.read(userTokenMarketCapProvider(pubkey));
+  }
+
+  // Gets cached market cap for a tokenized community token by external address.
+  // Returns null if the info isn't cached yet.
+  double? _getCachedTokenMarketCap(String? externalAddress) {
+    if (externalAddress == null || externalAddress.isEmpty) return null;
+    final tokenAsync = ref.read(tokenMarketInfoProvider(externalAddress));
+    final token = tokenAsync.asData?.value;
+    return token?.marketData.marketCap;
   }
 
   void onSuggestionSelected(String suggestion) {

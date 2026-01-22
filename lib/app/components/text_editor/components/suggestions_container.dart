@@ -11,6 +11,7 @@ import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SuggestionsContainer extends HookConsumerWidget {
@@ -63,16 +64,16 @@ class SuggestionsContainer extends HookConsumerWidget {
       color: context.theme.appColors.secondaryBackground,
       child: switch (suggestionsState.taggingCharacter) {
         '@' => MentionsSuggestions(
-            suggestions: suggestionsState.suggestions,
+            suggestions: suggestionsState.suggestions.cast<String>(),
             onSuggestionSelected: _onMentionSuggestionSelected,
           ),
         '#' => HashtagsSuggestions(
-            suggestions: suggestionsState.suggestions,
+            suggestions: suggestionsState.suggestions.cast<String>(),
             onSuggestionSelected: _onSuggestionSelected,
           ),
         r'$' => CashtagsSuggestions(
-            suggestions: suggestionsState.suggestions,
-            onSuggestionSelected: _onSuggestionSelected,
+            suggestions: suggestionsState.suggestions.cast<CoinsGroup>(),
+            onSuggestionSelected: _onCashtagSuggestionSelected,
           ),
         _ => const SizedBox.shrink(),
       },
@@ -87,5 +88,10 @@ class SuggestionsContainer extends HookConsumerWidget {
   void _onSuggestionSelected(String suggestion) {
     final textEditorState = editorKey.currentState;
     textEditorState?.mentionsHashtagsHandler.onSuggestionSelected(suggestion);
+  }
+
+  void _onCashtagSuggestionSelected(CoinsGroup suggestion) {
+    final textEditorState = editorKey.currentState;
+    textEditorState?.mentionsHashtagsHandler.onCashtagSuggestionSelected(suggestion);
   }
 }
