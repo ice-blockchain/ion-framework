@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
@@ -13,12 +14,15 @@ import 'package:ion/app/features/tokenized_communities/providers/token_operation
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
+import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/update_wallet_view_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
@@ -26,6 +30,7 @@ import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -287,17 +292,90 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     CoinsGroup? communityTokenCoinsGroup,
   ) async {
     final tokenData = communityTokenCoinsGroup?.coins.firstOrNull?.coin;
-    if (tokenData == null) return;
-    if (existingTokenAddress != tokenData.contractAddress) return;
+
+    String? contractAddress;
+    NetworkData? network;
+
+    if (tokenData != null) {
+      contractAddress = tokenData.contractAddress;
+      network = tokenData.network;
+    } else if (existingTokenAddress == null || existingTokenAddress.isEmpty) {
+      // First buy - token was just created, need to fetch the address
+      // Get network from BSC wallet first
+      final wallets = ref.read(walletsNotifierProvider).valueOrNull ?? [];
+      final bscWallet = CreatorTokenUtils.findBscWallet(wallets);
+      if (bscWallet == null) {
+        return;
+      }
+      network = await ref.read(networkByIdProvider(bscWallet.network).future);
+      if (network == null) {
+        return;
+      }
+
+      // Try to get token address from tokenMarketInfoProvider (might be updated via stream)
+      final tokenInfo = ref.read(tokenMarketInfoProvider(params.externalAddress)).valueOrNull;
+      contractAddress = tokenInfo?.addresses.blockchain;
+
+      // If still null or empty, retry fetching with fresh data (token might be propagating)
+      if (contractAddress == null || contractAddress.isEmpty) {
+        try {
+          final service = await ref.read(tradeCommunityTokenServiceProvider.future);
+          contractAddress = await withRetry<String>(
+            ({Object? error}) async {
+              final freshTokenInfo =
+                  await service.repository.fetchTokenInfoFresh(params.externalAddress);
+              final tokenAddress = freshTokenInfo?.addresses.blockchain;
+              if (tokenAddress == null || tokenAddress.isEmpty) {
+                throw TokenAddressNotFoundException(params.externalAddress);
+              }
+              return tokenAddress;
+            },
+            maxRetries: 5,
+            initialDelay: const Duration(milliseconds: 500),
+            maxDelay: const Duration(seconds: 2),
+            retryWhen: (error) => error is TokenAddressNotFoundException,
+          );
+          // After successful retry, contractAddress is guaranteed to be non-null and non-empty
+        } catch (error, stackTrace) {
+          Logger.error(
+            error,
+            stackTrace: stackTrace,
+            message: 'Failed to fetch token address after first buy',
+          );
+          return;
+        }
+      }
+
+      // Verify contractAddress is not empty (it's already non-null if we reach here)
+      if (contractAddress.isEmpty) {
+        return;
+      }
+    } else {
+      // Not a first buy, but tokenData is null - this shouldn't happen
+      return;
+    }
+
+    // At this point, contractAddress and network are guaranteed to be non-null
+    // (either from tokenData or successfully fetched in first-buy path)
+
+    // Only skip import if existingTokenAddress exists and doesn't match.
+    // For first buy (existingTokenAddress is null/empty), we should proceed with import.
+    final shouldSkip = existingTokenAddress != null &&
+        existingTokenAddress.isNotEmpty &&
+        existingTokenAddress != contractAddress;
+
+    if (shouldSkip) {
+      return;
+    }
 
     final ionIdentity = await ref.read(ionIdentityClientProvider.future);
 
     final coin = await ionIdentity.coins.getCoinData(
-      contractAddress: tokenData.contractAddress,
-      network: tokenData.network.id,
+      contractAddress: contractAddress,
+      network: network.id,
     );
 
-    final coinData = CoinData.fromDTO(coin, tokenData.network);
+    final coinData = CoinData.fromDTO(coin, network);
 
     final coinsRepository = ref.read(coinsRepositoryProvider);
     final existingCoin = await coinsRepository.getCoinById(coin.id);
