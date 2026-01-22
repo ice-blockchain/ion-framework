@@ -19,14 +19,14 @@ part 'ion_connect_media_url_provider.r.g.dart';
 class IonConnectMediaUrl extends _$IonConnectMediaUrl {
   @override
   String build(String url) {
+    if (!isIonMediaUrl(url)) {
+      return url;
+    }
+
     final fallbackUrl = ref.watch(ionConnectMediaUrlFallbackProvider.select((state) => state[url]));
 
     if (fallbackUrl != null) {
       return fallbackUrl;
-    }
-
-    if (!isIonMediaUrl(url)) {
-      return url;
     }
 
     return ref.watch(ionConnectCdnUrlProvider(url));
