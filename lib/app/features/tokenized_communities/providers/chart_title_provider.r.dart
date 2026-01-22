@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/utils/prefix_x_token_ticker.dart';
@@ -57,9 +56,6 @@ Future<String?> chartTitle(
       return tickerLower.isNotEmpty
           ? (isRTL ? '($tickerLower) $usernamePart' : '$usernamePart ($tickerLower)')
           : usernamePart;
-    } on UserRelaysNotFoundException catch (_) {
-      // User has no relays configured - this is expected, return null to fallback to ticker
-      return null;
     } catch (e, st) {
       Logger.error(
         e,
