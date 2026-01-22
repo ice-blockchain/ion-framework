@@ -108,7 +108,9 @@ class _TokenRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                hideAmount ? coinsGroup.abbreviation : '${amountDouble.formatWithDecimals(decimals)} ${coinsGroup.abbreviation}',
+                hideAmount
+                    ? coinsGroup.abbreviation
+                    : '${amountDouble.formatWithDecimals(decimals)} ${coinsGroup.abbreviation}',
                 style: textStyles.title.copyWith(
                   color: colors.primaryText,
                 ),
