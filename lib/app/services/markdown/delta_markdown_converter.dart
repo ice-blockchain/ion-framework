@@ -35,8 +35,14 @@ abstract class DeltaMarkdownConverter {
         final attributes = op.attributes;
 
         if (data is String) {
+          // For mentions, use the bech32 encoded value instead of display text
+          final contentToWrite = (attributes != null && attributes.containsKey('mention'))
+              ? (attributes['mention'] as String? ?? data)
+              : data;
+
           final result = _processStringContent(
-            content: data,
+            content: contentToWrite,
+            originalContent: data,
             attributes: attributes,
             currentIndex: currentIndex,
             lineStartIndex: lineStartIndex,
@@ -44,8 +50,8 @@ abstract class DeltaMarkdownConverter {
             pmoTags: pmoTags,
           );
 
-          buffer.write(data);
-          currentIndex += data.length;
+          buffer.write(contentToWrite);
+          currentIndex += contentToWrite.length;
           lineStartIndex = result.lineStartIndex;
           inCodeBlock = result.inCodeBlock;
         } else if (data is Map) {
@@ -73,7 +79,7 @@ abstract class DeltaMarkdownConverter {
   /// Merges consecutive string operations that have the same formatting attributes.
   /// This prevents splitting bold/italic formatting at hashtag boundaries.
   /// Formatting attributes include: bold, italic, strike, underline, code, link.
-  /// Styling attributes (hashtag, cashtag, mention) are preserved but don't prevent merging.
+  /// Styling attributes (hashtag, cashtag, mention) are NOT merged to preserve boundaries.
   static List<Operation> _mergeConsecutiveFormattingOps(List<Operation> operations) {
     if (operations.isEmpty) return operations;
 
@@ -100,8 +106,14 @@ abstract class DeltaMarkdownConverter {
         final pendingData = pendingOp.data! as String;
         final pendingAttrs = _getFormattingAttributes(pendingOp.attributes);
 
-        // Check if operations can be merged (same formatting attributes)
-        if (_areFormattingAttributesEqual(pendingAttrs, opAttrs)) {
+        // Check if operations can be merged:
+        // 1. Must have same formatting attributes (bold, italic, etc.)
+        // 2. Hashtags and cashtags don't prevent merging (they can be inside formatted text)
+        // 3. Mentions MUST have matching boundaries (they're interactive elements)
+        final canMerge = _areFormattingAttributesEqual(pendingAttrs, opAttrs) &&
+            _canMergeStylingAttributes(pendingOp.attributes, op.attributes);
+
+        if (canMerge) {
           final mergedData = pendingData + opData;
           final mergedAttrs = _mergeAttributes(pendingOp.attributes, op.attributes);
           pendingOp = Operation.insert(mergedData, mergedAttrs);
@@ -146,6 +158,30 @@ abstract class DeltaMarkdownConverter {
     }
 
     return formattingAttrs.isEmpty ? null : formattingAttrs;
+  }
+
+  /// Determines if two operations can be merged based on their styling attributes.
+  /// Mentions require exact matching (both present or both absent with same value).
+  /// Hashtags and cashtags don't prevent merging.
+  static bool _canMergeStylingAttributes(
+    Map<String, dynamic>? attrs1,
+    Map<String, dynamic>? attrs2,
+  ) {
+    final mention1 = attrs1?['mention'];
+    final mention2 = attrs2?['mention'];
+
+    // If both have mentions, they must match exactly
+    if (mention1 != null && mention2 != null) {
+      return mention1 == mention2;
+    }
+
+    // If only one has a mention, they can't be merged
+    if (mention1 != null || mention2 != null) {
+      return false;
+    }
+
+    // Neither has mention, they can be merged (hashtags/cashtags don't matter)
+    return true;
   }
 
   /// Compares two attribute maps for equality, considering only formatting attributes.
@@ -204,6 +240,7 @@ abstract class DeltaMarkdownConverter {
     bool inCodeBlock,
   }) _processStringContent({
     required String content,
+    required String originalContent,
     required Map<String, dynamic>? attributes,
     required int currentIndex,
     required int lineStartIndex,
@@ -221,8 +258,10 @@ abstract class DeltaMarkdownConverter {
         // Process inline attributes for the segment before this newline
         if (i > segmentStart && attributes != null && attributes.isNotEmpty) {
           final segment = content.substring(segmentStart, i);
+          final originalSegment = originalContent.substring(segmentStart, i);
           _processInlineAttributes(
             content: segment,
+            originalContent: originalSegment,
             attributes: attributes,
             currentIndex: currentIndex + segmentStart,
             pmoTags: pmoTags,
@@ -246,8 +285,10 @@ abstract class DeltaMarkdownConverter {
     // Process inline attributes for remaining content after the last newline
     if (segmentStart < content.length && attributes != null && attributes.isNotEmpty) {
       final segment = content.substring(segmentStart);
+      final originalSegment = originalContent.substring(segmentStart);
       _processInlineAttributes(
         content: segment,
+        originalContent: originalSegment,
         attributes: attributes,
         currentIndex: currentIndex + segmentStart,
         pmoTags: pmoTags,
@@ -313,25 +354,35 @@ abstract class DeltaMarkdownConverter {
     return updatedInCodeBlock;
   }
 
-  /// Processes inline attributes (bold, italic, strike, underline, code, link).
+  /// Processes inline attributes (bold, italic, strike, underline, code, link, mention).
   ///
   /// Formatting is applied in a specific order: code, bold, italic, strike, underline, link.
   /// Code is applied first so other styles wrap the backticks correctly.
+  /// Mentions are formatted as [@username](encoded_reference).
   static void _processInlineAttributes({
     required String content,
+    required String originalContent,
     required Map<String, dynamic> attributes,
     required int currentIndex,
     required List<PmoTag> pmoTags,
   }) {
     // Allow processing links even if content is whitespace-only (needed for media attachments)
     final hasLink = attributes.containsKey('link');
-    if (content.trim().isEmpty && !hasLink) {
-      return; // Skip empty or whitespace-only content without links
+    final hasMention = attributes.containsKey('mention');
+    if (content.trim().isEmpty && !hasLink && !hasMention) {
+      return; // Skip empty or whitespace-only content without links or mentions
     }
 
     var replacement = content;
     final hasBold = attributes.containsKey('bold');
     final hasItalic = attributes.containsKey('italic');
+
+    // Handle mentions first (format: [@username](encoded_ref))
+    // Use originalContent for the display text (e.g., @username)
+    if (hasMention) {
+      final encodedRef = content; // content is already the encoded reference
+      replacement = '[$originalContent]($encodedRef)';
+    }
 
     // Apply formatting in order: code, bold, italic, strike, underline, link
     if (attributes.containsKey('code')) {
@@ -477,6 +528,10 @@ abstract class DeltaMarkdownConverter {
       return Delta()..insert('$plainText\n');
     }
 
+    // First, extract bech32 mentions to add attributes later
+    final mentionExtractions = _extractBech32Mentions(plainText);
+
+    // Parse and process PMO tags
     final parsedTags = _parsePmoTags(pmoTags);
     final buffer = StringBuffer();
     var currentPos = 0;
@@ -544,7 +599,108 @@ abstract class DeltaMarkdownConverter {
     final markdown = buffer.toString();
     // Ensure the markdown ends with a newline for proper parsing
     final markdownWithNewline = markdown.endsWith('\n') ? markdown : '$markdown\n';
-    return markdownToDelta(markdownWithNewline);
+    final delta = markdownToDelta(markdownWithNewline);
+
+    // Now add mention attributes to the Delta for the extracted mentions
+    return _addMentionAttributes(delta, mentionExtractions);
+  }
+
+  /// Extracts bech32 encoded mentions from plain text.
+  ///
+  /// Returns a list of extractions with start/end positions and bech32 value.
+  static List<({int start, int end, String bech32Value})> _extractBech32Mentions(String text) {
+    final extractions = <({int start, int end, String bech32Value})>[];
+
+    // Match ion: or nostr: prefixed bech32 values (nprofile, npub, etc.)
+    final bech32Pattern = RegExp('(?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+');
+
+    for (final match in bech32Pattern.allMatches(text)) {
+      final bech32Value = match.group(0)!;
+
+      extractions.add(
+        (
+          start: match.start,
+          end: match.end,
+          bech32Value: bech32Value,
+        ),
+      );
+    }
+
+    return extractions;
+  }
+
+  /// Adds mention attributes to Delta operations based on extracted mentions.
+  ///
+  /// This processes the Delta to find bech32 values and adds mention attributes.
+  /// The bech32 values remain in the text and will be replaced with @username
+  /// by a higher-level function that has access to user metadata.
+  static Delta _addMentionAttributes(
+    Delta delta,
+    List<({int start, int end, String bech32Value})> mentions,
+  ) {
+    if (mentions.isEmpty) {
+      return delta;
+    }
+
+    final newDelta = Delta();
+    var textPosition = 0;
+
+    for (final op in delta.operations) {
+      if (op.data is! String) {
+        newDelta.insert(op.data, op.attributes);
+        continue;
+      }
+
+      final text = op.data! as String;
+      final opStart = textPosition;
+      final opEnd = textPosition + text.length;
+
+      // Collect all mentions that are entirely within this operation
+      final opMentions = mentions
+          .where((mention) => mention.start >= opStart && mention.end <= opEnd)
+          .toList()
+        ..sort((a, b) => a.start.compareTo(b.start));
+      if (opMentions.isEmpty) {
+        // No mentions in this operation: keep it as-is
+        newDelta.insert(text, op.attributes);
+      } else {
+        var cursor = 0;
+        for (final mention in opMentions) {
+          final mentionStartInOp = mention.start - opStart;
+          final mentionEndInOp = mention.end - opStart;
+          // Insert text before the mention, if any
+          if (mentionStartInOp > cursor) {
+            newDelta.insert(
+              text.substring(cursor, mentionStartInOp),
+              op.attributes,
+            );
+          }
+          // Extract the mention text from this operation
+          final mentionText = text.substring(mentionStartInOp, mentionEndInOp);
+          // Verify the extracted text matches the bech32 value
+          if (mentionText == mention.bech32Value) {
+            // Mention with attribute
+            final attrs = {
+              ...?op.attributes,
+              'mention': mention.bech32Value,
+            };
+            newDelta.insert(mentionText, attrs);
+          } else {
+            // If the text does not match, fall back to plain text
+            newDelta.insert(mentionText, op.attributes);
+          }
+          cursor = mentionEndInOp;
+        }
+        // Insert any remaining text after the last mention
+        if (cursor < text.length) {
+          newDelta.insert(text.substring(cursor), op.attributes);
+        }
+      }
+
+      textPosition = opEnd;
+    }
+
+    return newDelta;
   }
 
   /// Normalizes markdown replacement strings to ensure proper parsing.
