@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/hooks/use_chart_gradient.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_transformation.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_visible_y_range.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart_tooltip_listener.dart';
-import 'package:ion/app/hooks/use_chart_gradient.dart';
 import 'package:ion/app/utils/string.dart';
 
 class TokenAreaLineChart extends HookConsumerWidget {
