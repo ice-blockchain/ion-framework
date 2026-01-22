@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:ion_ads/src/appodeal/appodeal_platform_arguments.dart';
 
 /// This is the configuration of media that will show up as image/video.

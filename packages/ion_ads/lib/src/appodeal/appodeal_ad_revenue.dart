@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:ion_ads/ion_ads.dart';
 
 /// Represents ad revenue details from Appodeal SDK.
