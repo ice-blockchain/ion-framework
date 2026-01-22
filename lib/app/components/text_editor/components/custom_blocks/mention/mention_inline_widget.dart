@@ -25,7 +25,7 @@ class MentionInlineWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = context.theme.appTextThemes.caption2.copyWith(
+    final textStyle = context.theme.appTextThemes.body2.copyWith(
       height: 1,
       leadingDistribution: TextLeadingDistribution.even,
     );
@@ -51,7 +51,7 @@ class MentionInlineWidget extends HookWidget {
             children: [
               SizedBox(width: 2.0.s),
               Assets.svg.iconMemeMarketcap.icon(
-                size: 12.0.s,
+                size: textStyle.fontSize,
                 color: context.theme.appColors.onTertiaryBackground,
               ),
               SizedBox(width: 2.0.s),

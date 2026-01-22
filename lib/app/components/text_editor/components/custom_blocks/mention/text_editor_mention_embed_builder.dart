@@ -101,35 +101,42 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final marketCap = ref.watch(userTokenMarketCapProvider(pubkey));
 
-    return MentionInlineWidget(
-      username: username,
-      marketCap: marketCap ?? 0,
-      onClose: showClose
-          ? () {
-              MentionInsertionService.removeMentionEmbed(controller, embedNode);
-            }
-          : null,
-      onTap: showClose
-          ? null
-          : () {
-              final currentLocation = GoRouterState.of(context).uri.toString();
-              final targetLocation = ProfileRoute(pubkey: pubkey).location;
-
-              if (currentLocation == targetLocation) {
-                // already on this profile page
-                return;
+    final mq = MediaQuery.of(context);
+    return MediaQuery(
+      // To make embedded mention text follow the same scale that the surrounding rich text
+      // have to set textScaleFactor cause it is used by embedded quill widgets to text scaling
+      // ignore: deprecated_member_use
+      data: mq.copyWith(textScaleFactor: 1),
+      child: MentionInlineWidget(
+        username: username,
+        marketCap: marketCap ?? 0,
+        onClose: showClose
+            ? () {
+                MentionInsertionService.removeMentionEmbed(controller, embedNode);
               }
+            : null,
+        onTap: showClose
+            ? null
+            : () {
+                final currentLocation = GoRouterState.of(context).uri.toString();
+                final targetLocation = ProfileRoute(pubkey: pubkey).location;
 
-              //don't navigate to your profile from selfProfile page
-              if (currentLocation == SelfProfileRoute().location) {
-                final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-                if (currentPubkey == pubkey) {
+                if (currentLocation == targetLocation) {
+                  // already on this profile page
                   return;
                 }
-              }
 
-              ProfileRoute(pubkey: pubkey).push<void>(context);
-            },
+                //don't navigate to your profile from selfProfile page
+                if (currentLocation == SelfProfileRoute().location) {
+                  final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+                  if (currentPubkey == pubkey) {
+                    return;
+                  }
+                }
+
+                ProfileRoute(pubkey: pubkey).push<void>(context);
+              },
+      ),
     );
   }
 }
