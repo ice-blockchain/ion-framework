@@ -2,21 +2,13 @@
 
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-/// Calculates the price change percentage from candles over a given duration.
+/// Calculates the price change percentage from a specific duration ago to now.
 ///
-/// Returns the percentage change from the price X time ago to the latest price.
-/// Returns 0.0 if:
-/// - Candles list is empty
-/// - No candle found from the target time ago
-/// - Previous price is zero (to avoid division by zero)
+/// Uses absolute time (DateTime.now()) to find the price at DateTime.now() - duration
+/// (or the latest candle <= that time) and compares it with the latest available price.
 ///
-/// Formula: ((current_price - past_price) / past_price) * 100
-///
-/// Example:
-/// - Latest candle close: $2.00
-/// - Candle 1 hour ago close: $1.00
-/// - Result: ((2.00 - 1.00) / 1.00) * 100 = 100.0%
-double calculatePriceChangePercent(
+/// Returns 0.0 if candles are empty, no past price is found, or past price is zero.
+double calculatePriceChangePercentFromNow(
   List<OhlcvCandle> candles,
   Duration duration,
 ) {
@@ -25,18 +17,34 @@ double calculatePriceChangePercent(
   final sortedCandles = List<OhlcvCandle>.from(candles)
     ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
+  // Get the latest price (most recent candle, closest to DateTime.now())
   final latestCandle = sortedCandles.last;
   final currentPrice = latestCandle.close;
-  final targetTimestamp = latestCandle.timestamp - duration.inMicroseconds;
+
+  // Find the price at DateTime.now() - duration, or the latest candle <= that time
+  final now = DateTime.now();
+  final targetTime = now.subtract(duration);
+  final targetTimestamp = targetTime.microsecondsSinceEpoch;
+
   OhlcvCandle? pastCandle;
-  for (var i = sortedCandles.length - 1; i >= 0; i--) {
-    if (sortedCandles[i].timestamp <= targetTimestamp) {
-      pastCandle = sortedCandles[i];
+  // Iterate from oldest to newest to find the latest candle that is still <= target time
+  // This gives us the price at exactly duration ago if it exists, or the latest candle <= that time
+  for (var i = 0; i < sortedCandles.length; i++) {
+    final candle = sortedCandles[i];
+    if (candle.timestamp <= targetTimestamp) {
+      pastCandle = candle;
+      // Continue to find the latest candle that is still <= target time
+    } else {
+      // We've passed the target time, use the last candle we found
       break;
     }
   }
 
-  if (pastCandle == null || pastCandle.close == 0) return 0;
+  // If no candle found at or before target time (all candles are newer),
+  // use the oldest available candle as fallback
+  pastCandle ??= sortedCandles.first;
+
+  if (pastCandle.close == 0) return 0;
 
   final pastPrice = pastCandle.close;
   return ((currentPrice - pastPrice) / pastPrice) * 100;

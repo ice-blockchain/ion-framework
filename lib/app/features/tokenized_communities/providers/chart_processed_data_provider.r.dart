@@ -4,23 +4,20 @@ import 'package:decimal/decimal.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_candles_normalizer.dart';
-import 'package:ion/app/features/tokenized_communities/utils/price_change_calculator.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chart_processed_data_provider.r.g.dart';
 
-// Processed chart data containing candles ready for display and price change information.
+// Processed chart data containing candles ready for display.
 class ChartProcessedData {
   const ChartProcessedData({
     required this.candlesToShow,
-    required this.changePercent,
     required this.isEmpty,
   });
 
   final List<ChartCandle> candlesToShow;
-  final double changePercent;
   final bool isEmpty;
 }
 
@@ -43,12 +40,8 @@ ChartProcessedData chartProcessedData(
           ? _expandSingleCandleToFlatLine(normalizedCandles.first, selectedRange)
           : normalizedCandles;
 
-  final changePercent =
-      isEmpty ? 0.0 : calculatePriceChangePercent(candles, selectedRange.duration);
-
   return ChartProcessedData(
     candlesToShow: candlesToShow,
-    changePercent: changePercent,
     isEmpty: isEmpty,
   );
 }

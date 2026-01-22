@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_price_change_percent_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
@@ -55,22 +56,21 @@ class Chart extends HookConsumerWidget {
       ),
     );
 
+    final changePercent = ref.watch(tokenPriceChangePercentProvider(externalAddress));
+
     // Cache the last successfully loaded candles to show during loading
     final cachedCandles = useRef<List<ChartCandle>?>(null);
-    final cachedChangePercent = useRef<double>(0);
 
     // Update cache when we have real data (moved to useEffect to avoid side effects in build)
     useEffect(
       () {
         if (chartDisplayData.candlesToShow.isNotEmpty && !chartDisplayData.isEmpty) {
           cachedCandles.value = chartDisplayData.candlesToShow;
-          cachedChangePercent.value = chartDisplayData.changePercent;
         }
         return null;
       },
       [
         chartDisplayData.candlesToShow.length,
-        chartDisplayData.changePercent,
       ],
     );
 
@@ -80,7 +80,7 @@ class Chart extends HookConsumerWidget {
           price: price,
           label: label,
           createdAtOfToken: createdAtOfToken,
-          changePercent: chartDisplayData.changePercent,
+          changePercent: changePercent,
           candles: chartDisplayData.candlesToShow,
           isLoading: false,
           selectedRange: selectedRange.value,
@@ -92,7 +92,7 @@ class Chart extends HookConsumerWidget {
           price: price,
           label: label,
           createdAtOfToken: createdAtOfToken,
-          changePercent: 0,
+          changePercent: changePercent,
           candles: chartDisplayData.candlesToShow,
           isLoading: false,
           selectedRange: selectedRange.value,
@@ -105,7 +105,7 @@ class Chart extends HookConsumerWidget {
           price: price,
           label: label,
           createdAtOfToken: createdAtOfToken,
-          changePercent: cachedChangePercent.value,
+          changePercent: changePercent,
           candles: cachedCandles.value,
           isLoading: true,
           selectedRange: selectedRange.value,
