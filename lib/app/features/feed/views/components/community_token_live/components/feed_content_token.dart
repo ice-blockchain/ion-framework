@@ -5,7 +5,6 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
@@ -133,27 +132,19 @@ class ContentTokenHeader extends HookConsumerWidget {
 
     final isVerified = ref.watch(isUserVerifiedProvider(eventReference.masterPubkey));
 
-    final (mediaAttachment, content) =
-        useMemoized<(MediaAttachment? mediaAttachment, String? content)>(
-      () {
-        if (entity is ModifiablePostEntity) {
-          final parsed = parseMediaContent(data: entity.data);
-          final text = Document.fromDelta(parsed.content).toPlainText().trim();
-          return (entity.data.primaryMedia, text);
-        } else if (entity is PostEntity) {
-          final parsed = parseMediaContent(data: entity.data);
-          final text = Document.fromDelta(parsed.content).toPlainText().trim();
-          return (entity.data.primaryMedia, text);
-        } else if (entity is ArticleEntity) {
-          final headerMedia =
-              entity.data.media.entries.firstWhereOrNull((t) => t.value.url == entity.data.image);
-
-          return (headerMedia?.value, entity.data.title?.trim());
-        }
-        return (null, null);
-      },
-      [entity],
-    );
+    MediaAttachment? mediaAttachment;
+    String? content;
+    if (entity is ModifiablePostEntity) {
+      mediaAttachment = entity.data.primaryMedia;
+      content = ref.watch(parsedMediaPlainTextProvider(entity.data)).trim();
+    } else if (entity is PostEntity) {
+      mediaAttachment = entity.data.primaryMedia;
+      content = ref.watch(parsedMediaPlainTextProvider(entity.data)).trim();
+    } else if (entity is ArticleEntity) {
+      mediaAttachment =
+          entity.data.media.entries.firstWhereOrNull((t) => t.value.url == entity.data.image)?.value;
+      content = entity.data.title?.trim();
+    }
 
     final layoutConfig = useMemoized<_MediaLayoutConfig>(
       () {

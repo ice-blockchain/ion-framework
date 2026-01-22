@@ -38,6 +38,15 @@ part 'parsed_media_provider.r.g.dart';
 }
 
 @riverpod
+String parsedMediaPlainText(
+  Ref ref,
+  EntityDataWithMediaContent data,
+) {
+  final parsed = ref.watch(parsedMediaWithMentionsProvider(data));
+  return Document.fromDelta(parsed.content).toPlainText();
+}
+
+@riverpod
 Future<Delta> mentionsOverlay(
   Ref ref,
   EntityDataWithMediaContent data,
