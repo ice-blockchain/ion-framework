@@ -343,10 +343,12 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                     token: tokenInfo,
                     externalAddress: externalAddress,
                     minimal: true,
+                    showInfoModals: true,
                   ),
                 CommunityContentTokenType.twitter => TwitterTokenHeader(
                     token: tokenInfo,
                     showBuyButton: false,
+                    showInfoModals: true,
                   ),
                 _ => tokenDefinition == null
                     ? const SizedBox.shrink()
