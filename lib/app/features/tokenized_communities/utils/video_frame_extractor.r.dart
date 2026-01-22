@@ -5,9 +5,11 @@ import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_scale_arg.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:ion/app/utils/url.dart';
@@ -57,18 +59,22 @@ Future<List<String>> extractVideoFrames(
         final thumbnail = await videoCompressor.getThumbnail(
           videoFile,
           timestamp: timestamp,
+          imageSettings: const ImageCompressionSettings(
+            scaleResolution: FfmpegScaleArg.p512,
+          ),
         );
 
         // Read the thumbnail file and convert to base64
         final file = File(thumbnail.path);
+
         if (file.existsSync()) {
-          final bytes = file.readAsBytesSync();
+          final bytes = await file.readAsBytes();
           final base64 = _base64Encode(bytes);
           frames.add(base64);
 
           // Clean up temporary file
           try {
-            file.deleteSync();
+            await file.delete();
           } catch (_) {
             // Ignore cleanup errors
           }
@@ -96,47 +102,27 @@ Future<List<String>> extractVideoFramesFromEntity(
     if (entity.data.hasVideo) {
       final videos = entity.data.videos;
       if (videos.isNotEmpty) {
-        for (final video in videos) {
-          final videoUrl = video.url;
-          String? videoPath;
-
+        final videoUrl = videos.first.url;
+        try {
           if (isNetworkUrl(videoUrl)) {
             // Use cache manager to return cached file or download and cache it.
-            try {
-              final cachedFile = await IONCacheManager.networkVideos.getSingleFile(videoUrl);
-              videoPath = cachedFile.path;
-            } catch (e, stacktrace) {
-              Logger.error(
-                e,
-                stackTrace: stacktrace,
-                message: 'extractVideoFramesFromEntity, error',
-              );
-              videoPath = null;
+            final cachedFile = await IONCacheManager.networkVideos.getSingleFile(videoUrl);
+            final videoPath = cachedFile.path;
+
+            // If we have a local path, try to extract frames
+            final file = File(videoPath);
+            if (file.existsSync()) {
+              final extractedFrames = await ref.read(extractVideoFramesProvider(videoPath).future);
+              frames.addAll(extractedFrames);
             }
           }
-
-          // If we have a local path, try to extract frames
-          if (videoPath != null) {
-            try {
-              final file = File(videoPath);
-              if (file.existsSync()) {
-                final extractedFrames =
-                    await ref.read(extractVideoFramesProvider(videoPath).future);
-
-                // Add MIME type prefix to each frame (video frames are JPEG image thumbnails)
-                final framesWithMimeType =
-                    extractedFrames.map((frame) => 'data:image/webp;base64,$frame').toList();
-                frames.addAll(framesWithMimeType);
-              }
-            } catch (error, stackTrace) {
-              Logger.error(
-                error,
-                stackTrace: stackTrace,
-                message: 'Error extracting video frames from entity',
-              );
-              // Silently fail - video frame extraction is optional
-            }
-          }
+        } catch (error, stackTrace) {
+          Logger.error(
+            error,
+            stackTrace: stackTrace,
+            message: 'Error extracting video frames from entity',
+          );
+          // Silently fail - video frame extraction is optional
         }
       }
     }

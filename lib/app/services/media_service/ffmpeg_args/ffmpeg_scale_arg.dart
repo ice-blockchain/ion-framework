@@ -32,6 +32,10 @@ enum FfmpegScaleArg {
     name: '480p',
     resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(480\,iw)):h=if(gt(ih\,iw)\,min(480\,ih)\,-2)',
   ),
+  p512(
+    name: '512p',
+    resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(512\,iw)):h=if(gt(ih\,iw)\,min(512\,ih)\,-2)',
+  ),
   p720(
     name: '720p',
     resolution: r'scale=w=if(gt(ih\,iw)\,-2\,min(720\,iw)):h=if(gt(ih\,iw)\,min(720\,ih)\,-2)',
