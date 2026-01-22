@@ -9,8 +9,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_transformation.dart';
+import 'package:ion/app/features/tokenized_communities/hooks/use_chart_visible_y_range.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/hooks/use_chart_gradient.dart';
 import 'package:ion/app/utils/string.dart';
@@ -27,7 +27,6 @@ class TokenAreaLineChart extends HookConsumerWidget {
   final ChartTimeRange selectedRange;
   final bool isLoading;
 
-  static const _debounceDelay = Duration(milliseconds: 150);
   static const _scrollAnimationDuration = Duration(milliseconds: 250);
   static const _longPressDuration = Duration(milliseconds: 300);
   static const _moveThreshold =
@@ -36,22 +35,6 @@ class TokenAreaLineChart extends HookConsumerWidget {
   double _calculateReservedSize(double maxY, TextStyle style) {
     const chartAnnotationPadding = 10.0;
     return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding.s;
-  }
-
-  /// Converts pixel coordinates to data coordinates based on transformation matrix.
-  ({double startX, double endX}) _calculateVisibleDataRange(
-    Matrix4 matrix,
-    double drawableWidth,
-    double maxX,
-  ) {
-    final scaleX = matrix.storage[0];
-    final translateX = matrix.storage[12];
-    final dataPerPixel = maxX / drawableWidth;
-
-    final startX = ((-translateX / scaleX) * dataPerPixel).clamp(0.0, maxX);
-    final endX = (((-translateX + drawableWidth) / scaleX) * dataPerPixel).clamp(0.0, maxX);
-
-    return (startX: startX, endX: endX);
   }
 
   @override
@@ -79,11 +62,15 @@ class TokenAreaLineChart extends HookConsumerWidget {
       reservedSize: reservedSize,
     );
 
-    final debounceTimerRef = useRef<Timer?>(null);
-
-    final visibleYRange = useState<({double minY, double maxY})?>(null);
-
-    final isScrollTriggered = useRef(false);
+    // Visible Y range calculation
+    final visibleYRangeData = useChartVisibleYRange(
+      isLoading: isLoading,
+      chartKey: transformation.chartKey,
+      transformationController: transformation.transformationController,
+      reservedSize: reservedSize,
+      calcData: calcData,
+      candles: candles,
+    );
 
     final previousTouchedSpotIndex = useRef<int?>(null);
 
@@ -93,103 +80,23 @@ class TokenAreaLineChart extends HookConsumerWidget {
 
     useEffect(() => () => longPressTimer.value?.cancel(), const []);
 
-    void calculateVisibleYRange() {
-      if (isLoading) return;
-
-      final ctx = transformation.chartKey.currentContext;
-      if (ctx == null) return;
-      final box = ctx.findRenderObject() as RenderBox?;
-      if (box == null || !box.hasSize) return;
-
-      // Get current scroll position and zoom level
-      final matrix = transformation.transformationController.value;
-      final scaleX = matrix.storage[0];
-      final drawableWidth = box.size.width - reservedSize;
-      if (drawableWidth <= 0 || calcData.maxX <= 0 || scaleX <= 0) return;
-
-      // Find which data points are visible on screen (convert scroll position to data indices)
-      final visibleRange = _calculateVisibleDataRange(matrix, drawableWidth, calcData.maxX);
-      final startIndex = visibleRange.startX.floor();
-      final endIndex = visibleRange.endX.ceil().clamp(0, candles.length - 1);
-
-      // Get only the chart points that are currently visible
-      final visibleSpots = calcData.spots.where((spot) {
-        final idx = spot.x.toInt();
-        return idx >= startIndex && idx <= endIndex;
-      }).toList();
-      if (visibleSpots.isEmpty) {
-        visibleYRange.value = null;
-        return;
-      }
-
-      // Find min/max Y values from visible points and add padding
-      final minY = visibleSpots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
-      final maxY = visibleSpots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
-      final newYRange = calculatePaddedYRange(minY, maxY);
-
-      // Update Y-axis range only if it actually changed
-      final currentRange = visibleYRange.value;
-      if (currentRange == null ||
-          currentRange.minY != newYRange.minY ||
-          currentRange.maxY != newYRange.maxY) {
-        visibleYRange.value = newYRange;
-      }
-    }
-
-    // Listen to scroll/pan and update Y range (debounced)
-    useEffect(
-      () {
-        void onTransformationChanged() {
-          debounceTimerRef.value?.cancel();
-          debounceTimerRef.value = Timer(_debounceDelay, () {
-            isScrollTriggered.value = true;
-            calculateVisibleYRange();
-          });
-        }
-
-        transformation.transformationController.addListener(onTransformationChanged);
-
-        return () {
-          debounceTimerRef.value?.cancel();
-          debounceTimerRef.value = null;
-          transformation.transformationController.removeListener(onTransformationChanged);
-        };
-      },
-      [transformation.transformationController, calcData, candles, reservedSize],
-    );
-
-    // Calculate Y range when data loads
-    useEffect(
-      () {
-        isScrollTriggered.value = false; // Data change, not scroll - no animation
-
-        if (!isLoading) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            calculateVisibleYRange();
-          });
-        }
-
-        return null;
-      },
-      [calcData, candles, isLoading],
-    );
-
     final lineColor = isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
     final canInteract = !isLoading;
     final tooltipEnabled = canInteract && isTooltipMode.value;
 
-    final displayMinY = visibleYRange.value?.minY ?? calcData.chartMinY;
-    final displayMaxY = visibleYRange.value?.maxY ?? calcData.chartMaxY;
+    final displayMinY = visibleYRangeData.visibleYRange.value?.minY ?? calcData.chartMinY;
+    final displayMaxY = visibleYRangeData.visibleYRange.value?.maxY ?? calcData.chartMaxY;
 
     final gradient = useChartGradient(
       chartMaxY: calcData.chartMaxY,
       displayMinY: displayMinY,
       displayMaxY: displayMaxY,
-      hasVisibleRange: visibleYRange.value != null,
+      hasVisibleRange: visibleYRangeData.visibleYRange.value != null,
     );
 
     // Only animate Y-axis changes triggered by scroll, not by data load
-    final duration = isScrollTriggered.value ? _scrollAnimationDuration : Duration.zero;
+    final duration =
+        visibleYRangeData.isScrollTriggered.value ? _scrollAnimationDuration : Duration.zero;
 
     // Handle touch events for haptic feedback when moving tooltip between data points
     void handleChartTouch(FlTouchEvent event, BaseTouchResponse? response) {
