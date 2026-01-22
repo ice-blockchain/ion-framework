@@ -1,0 +1,75 @@
+// SPDX-License-Identifier: ice License 1.0
+
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
+import 'package:ion/app/features/tokenized_communities/utils/prefix_x_token_ticker.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'chart_title_provider.r.g.dart';
+
+// For profile tokens: Returns "@nickname (ticker)" where:
+//   - nickname comes from the profile this token represents (resolved from externalAddress)
+//   - ticker is lowercase
+// For Twitter tokens: Returns "$ticker"
+// For content tokens: Returns ticker as is from BE
+@riverpod
+Future<String?> chartTitle(
+  Ref ref, {
+  required String externalAddress,
+  required bool isRTL,
+}) async {
+  final tokenInfo = await ref.watch(tokenMarketInfoProvider(externalAddress).future);
+  if (tokenInfo == null) {
+    return null;
+  }
+
+  final ticker = tokenInfo.marketData.ticker ?? '';
+
+  if (tokenInfo.source.isTwitter) {
+    return prefixXTokenTicker(ticker);
+  }
+
+  if (tokenInfo.type == CommunityTokenType.profile) {
+    final profileExternalAddress = tokenInfo.addresses.ionConnect;
+    if (profileExternalAddress == null) {
+      return null;
+    }
+
+    final profilePubkey = MasterPubkeyResolver.resolve(profileExternalAddress);
+
+    try {
+      final userData = await ref.watch(userPreviewDataProvider(profilePubkey).future);
+      final profileNickname = userData?.data.name;
+
+      if (profileNickname == null || profileNickname.isEmpty) {
+        return null;
+      }
+
+      final tickerLower = ticker.toLowerCase();
+      final usernameLower = profileNickname.toLowerCase();
+      final usernamePart = isRTL ? '$usernameLower@' : '@$usernameLower';
+
+      return tickerLower.isNotEmpty
+          ? (isRTL ? '($tickerLower) $usernamePart' : '$usernamePart ($tickerLower)')
+          : usernamePart;
+    } on UserRelaysNotFoundException catch (_) {
+      // User has no relays configured - this is expected, return null to fallback to ticker
+      return null;
+    } catch (e, st) {
+      Logger.error(
+        e,
+        stackTrace: st,
+        message: 'Error normalizing chart title - Exception: ${e.runtimeType}, Message: $e',
+      );
+      return null;
+    }
+  }
+
+  // Content token: ticker as is from BE
+  return ticker;
+}
