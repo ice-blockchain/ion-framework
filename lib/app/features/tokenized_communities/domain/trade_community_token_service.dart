@@ -55,7 +55,9 @@ class TradeCommunityTokenService {
 
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
-    final firstBuy = _isFirstBuy(existingTokenAddress);
+    final hasFirstBuyDefinition = ionConnectService.hasFirstBuyDefinition(externalAddress);
+    final firstBuyByAddress = _isFirstBuy(existingTokenAddress);
+    final firstBuy = firstBuyByAddress || !hasFirstBuyDefinition;
     final toTokenBytes = _buildBuyToTokenBytes(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,

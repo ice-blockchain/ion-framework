@@ -268,6 +268,21 @@ class CommunityTokenIonConnectService {
     }
   }
 
+  bool hasFirstBuyDefinition(String externalAddress) {
+    final eventReference = TokenDefinitionReference.buildEventReference(
+      externalAddress: externalAddress,
+      type: CommunityTokenDefinitionIonType.firstBuyAction,
+    );
+    final cacheKey = eventReference.toString();
+
+    final entity = _ionConnectCache.ref.read(
+      ionConnectCacheProvider.select(
+        cacheSelector<TokenDefinitionReferenceEntity>(cacheKey),
+      ),
+    );
+    return entity != null;
+  }
+
   /// Caches TokenDefinitionReferenceEntity to indicate that an event has
   /// a token (it is created on the first buy from any user).
   Future<void> _cacheTokenDefinitionFirstBuyReference({
