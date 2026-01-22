@@ -3,6 +3,7 @@
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/suggested_token_details.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
@@ -21,6 +22,9 @@ Future<FatAddressV2Data> fatAddressData(
   required String externalAddress,
   required ExternalAddressType externalAddressType,
   EventReference? eventReference,
+
+  /// Suggested token details for creation of the contentToken from token info API
+  SuggestedTokenDetails? suggestedDetails,
 }) async {
   final externalTypePrefix = externalAddressType.prefix;
 
@@ -39,6 +43,7 @@ Future<FatAddressV2Data> fatAddressData(
     externalAddress: externalAddress,
     externalTypePrefix: externalTypePrefix,
     eventReference: eventReference,
+    suggestedDetails: suggestedDetails,
   );
 }
 
@@ -95,6 +100,7 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
   required String externalAddress,
   required String externalTypePrefix,
   required EventReference? eventReference,
+  required SuggestedTokenDetails? suggestedDetails,
 }) async {
   final masterPubkey =
       MasterPubkeyResolver.resolve(externalAddress, eventReference: eventReference);
@@ -148,8 +154,8 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
 
   tokens.add(
     FatAddressV2TokenRecord(
-      name: masterPubkey,
-      symbol: externalAddress,
+      name: suggestedDetails?.name ?? masterPubkey,
+      symbol: suggestedDetails?.ticker ?? externalAddress,
       externalAddress: externalAddress,
       externalType: _externalTypeByte(externalTypePrefix),
     ),

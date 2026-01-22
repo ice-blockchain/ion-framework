@@ -66,6 +66,16 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
           (file.mimeType == ImageCompressionType.webp.mimeType ||
               file.path.toLowerCase().endsWith('.webp'));
       if (isWebP) {
+        final shouldScale = settings.scaleResolution != FfmpegScaleArg.p1080Width;
+        if (shouldScale) {
+          final fileWithMime =
+              file.copyWith(mimeType: file.mimeType ?? ImageCompressionType.webp.mimeType);
+          return scaleImage(
+            fileWithMime,
+            scaleResolution: settings.scaleResolution,
+            quality: settings.quality,
+          );
+        }
         if (file.width == null || file.height == null) {
           final imageDimensions = await getImageDimension(path: file.path);
           return file.copyWith(

@@ -231,4 +231,10 @@ class IonCommunityTokensService {
   }) {
     return _userHoldingsRepository.getUserHoldings(holder: holder, limit: limit, offset: offset);
   }
+
+  Future<SuggestCreationDetailsResponse?> suggestCreationDetails(
+    SuggestCreationDetailsRequest request,
+  ) {
+    return _tokenInfoRepository.suggestCreationDetails(request);
+  }
 }

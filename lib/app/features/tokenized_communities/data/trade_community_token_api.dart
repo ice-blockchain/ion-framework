@@ -87,4 +87,18 @@ class TradeCommunityTokenApi {
       return null;
     }
   }
+
+  /// Suggests token creation details (ticker, name, picture) based on content and creator info
+  ///
+  /// Uses endpoint POST /v1/community-tokens/suggest-creation-details
+  /// Returns SuggestCreationDetailsResponse if successful, otherwise null
+  Future<SuggestCreationDetailsResponse?> suggestCreationDetails(
+    SuggestCreationDetailsRequest request,
+  ) async {
+    try {
+      return await _analyticsClient.communityTokens.suggestCreationDetails(request);
+    } catch (e) {
+      return null;
+    }
+  }
 }

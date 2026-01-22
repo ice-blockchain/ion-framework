@@ -15,6 +15,7 @@ class WalletItemIconWidget extends StatelessWidget {
     this.imageUrl,
     this.color,
     this.showPlaceholder = false,
+    this.placeholder,
     super.key,
   });
 
@@ -22,14 +23,15 @@ class WalletItemIconWidget extends StatelessWidget {
   final WalletItemIconType type;
   final Color? color;
   final bool showPlaceholder;
+  final Widget? placeholder;
 
   @override
   Widget build(BuildContext context) {
     if (imageUrl.isEmpty) {
       if (showPlaceholder) {
-        return Assets.svg.walletEmptyicon.icon(
+        return _WalletItemIconPlaceholder(
           size: type.size,
-          color: color,
+          placeholder: placeholder,
         );
       }
 
@@ -53,9 +55,15 @@ class WalletItemIconWidget extends StatelessWidget {
               width: iconSize,
               height: iconSize,
               colorFilter: colorFilter,
-              errorBuilder: (_, __, ___) => Assets.svg.walletEmptyicon.icon(size: iconSize),
+              errorBuilder: (_, __, ___) => _WalletItemIconPlaceholder(
+                size: iconSize,
+                placeholder: placeholder,
+              ),
               placeholderBuilder: (context) {
-                return Assets.svg.walletEmptyicon.icon(size: iconSize);
+                return _WalletItemIconPlaceholder(
+                  size: iconSize,
+                  placeholder: placeholder,
+                );
               },
             ),
           )
@@ -63,7 +71,10 @@ class WalletItemIconWidget extends StatelessWidget {
             imageUrl: imageUrl!,
             width: iconSize,
             height: iconSize,
-            errorWidget: (_, __, ___) => Assets.svg.walletEmptyicon.icon(size: iconSize),
+            errorWidget: (_, __, ___) => _WalletItemIconPlaceholder(
+              size: iconSize,
+              placeholder: placeholder,
+            ),
             borderRadius: borderRadius,
             cacheManager: IONCacheManager.preCachePictures,
             imageBuilder: colorFilter != null
@@ -80,5 +91,24 @@ class WalletItemIconWidget extends StatelessWidget {
                     )
                 : null,
           );
+  }
+}
+
+class _WalletItemIconPlaceholder extends StatelessWidget {
+  const _WalletItemIconPlaceholder({
+    required this.size,
+    required this.placeholder,
+  });
+
+  final double size;
+  final Widget? placeholder;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = placeholder ?? Assets.svg.walletEmptyicon.icon(size: size);
+    return SizedBox.square(
+      dimension: size,
+      child: Center(child: fallback),
+    );
   }
 }

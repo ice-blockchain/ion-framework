@@ -7,3 +7,5 @@ export 'market_data.f.dart';
 export 'patch.dart';
 export 'position.f.dart';
 export 'pricing_response.f.dart';
+export 'suggest_creation_details_request.f.dart';
+export 'suggest_creation_details_response.f.dart';

@@ -131,7 +131,7 @@ dependencies:
   ion_token_analytics:
     path: packages/ion_token_analytics
   isolate_manager: ^6.1.0
-  json_annotation: ^4.8.1
+  json_annotation: ^4.9.0
   lottie: ^3.1.0
   markdown: ^7.3.0
   markdown_quill:

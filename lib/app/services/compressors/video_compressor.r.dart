@@ -263,6 +263,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     MediaFile videoFile, {
     String? thumb,
     String? timestamp,
+    ImageCompressionSettings? imageSettings,
   }) async {
     try {
       var thumbPath = thumb;
@@ -299,6 +300,7 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
 
       final compressedImage = await imageCompressor.compress(
         MediaFile(path: thumbPath),
+        settings: imageSettings ?? const ImageCompressionSettings(),
       );
 
       return compressedImage;
