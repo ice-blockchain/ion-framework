@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:flutter/services.dart';
 
 /// Class representing the Appodeal Consent Form logic for IAB TCFv2 and Google UMP.
