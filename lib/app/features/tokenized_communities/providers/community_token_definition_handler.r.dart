@@ -53,6 +53,9 @@ class CommunityTokenDefinitionHandler extends GlobalSubscriptionEventHandler {
         )
         when originalEventMasterPubkey == currentUserMasterPubkey &&
             !(localStorage.getBool(localStorageKey) ?? false)) {
+      // Wait in a case user bought his own token and passkeys dialog haven't been
+      // closed yet, safe to do cause we can have random network delays as well
+      await Future<void>.delayed(const Duration(seconds: 5));
       uiEventQueueCallback(entity.toEventReference());
       await localStorage.setBool(key: localStorageKey, value: true);
     }

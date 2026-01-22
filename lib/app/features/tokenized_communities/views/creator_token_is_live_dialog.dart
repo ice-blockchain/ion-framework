@@ -91,7 +91,7 @@ class _ContentState extends HookConsumerWidget {
           start: 0,
           end: 0,
           child: Assets.images.tokenizedCommunities.creatorMonetizationLiveRays
-              .iconWithDimensions(width: 461.s, height: 461.s),
+              .iconWithDimensions(width: 500.s, height: 500.s),
         ),
         PositionedDirectional(
           end: 8,
@@ -100,25 +100,56 @@ class _ContentState extends HookConsumerWidget {
         ScreenSideOffset.medium(
           child: Column(
             children: [
-              SizedBox(height: 30.0.s),
-              CustomPaint(
-                painter: GradientBorderPainter(
-                  strokeWidth: 2.0.s,
-                  cornerRadius: 26.0.s,
-                  gradient: storyBorderGradients[3],
-                  backgroundColor: context.theme.appColors.forest.withAlpha(125),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(18.0.s),
-                  child: Avatar(
-                    size: 64.0.s,
-                    fit: BoxFit.cover,
-                    imageUrl: avatarUrl,
-                    borderRadius: BorderRadius.all(Radius.circular(16.0.s)),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Padding(
+                    padding:
+                        EdgeInsets.only(top: 30.0.s, bottom: 16.0.s, left: 8.0.s, right: 8.0.s),
+                    child: Column(
+                      children: [
+                        CustomPaint(
+                          painter: GradientBorderPainter(
+                            strokeWidth: 2.0.s,
+                            cornerRadius: 26.0.s,
+                            gradient: storyBorderGradients[3],
+                            backgroundColor: context.theme.appColors.forest.withAlpha(125),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(18.0.s),
+                            child: Avatar(
+                              size: 64.0.s,
+                              fit: BoxFit.cover,
+                              imageUrl: avatarUrl,
+                              borderRadius: BorderRadius.all(Radius.circular(16.0.s)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  PositionedDirectional(
+                    bottom: 4.0.s,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.0.s,
+                        vertical: 2.0.s,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.theme.appColors.success,
+                        borderRadius: BorderRadius.circular(16.0.s),
+                      ),
+                      child: Text(
+                        context.i18n.wallet_share_token_creator_live_status,
+                        style: context.theme.appTextThemes.body2.copyWith(
+                          color: context.theme.appColors.primaryBackground,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 8.0.s),
               UserNameTile(
                 showProfileTokenPrice: true,
                 profileMode: ProfileMode.dark,
