@@ -104,8 +104,12 @@ class _ContentState extends HookConsumerWidget {
                 alignment: Alignment.center,
                 children: [
                   Padding(
-                    padding:
-                        EdgeInsets.only(top: 30.0.s, bottom: 16.0.s, left: 8.0.s, right: 8.0.s),
+                    padding: EdgeInsetsDirectional.only(
+                      top: 30.0.s,
+                      bottom: 16.0.s,
+                      start: 8.0.s,
+                      end: 8.0.s,
+                    ),
                     child: Column(
                       children: [
                         CustomPaint(
