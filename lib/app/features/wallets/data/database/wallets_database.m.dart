@@ -38,7 +38,9 @@ WalletsDatabase walletsDatabase(Ref ref) {
   }
 
   final appGroup = Platform.isIOS
-      ? ref.watch(envProvider.notifier).get<String>(EnvVariable.FOUNDATION_APP_GROUP)
+      ? ref
+          .watch(envProvider.notifier)
+          .get<String>(EnvVariable.FOUNDATION_APP_GROUP)
       : null;
   final database = WalletsDatabase(pubkey, appGroupId: appGroup);
 
@@ -73,7 +75,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -83,7 +85,8 @@ class WalletsDatabase extends _$WalletsDatabase {
       return driftDatabase(
         name: databaseName,
         native: DriftNativeOptions(
-          setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
+          setup: (database) =>
+              database.execute(DatabaseConstants.journalModeWAL),
         ),
       );
     }
@@ -91,8 +94,8 @@ class WalletsDatabase extends _$WalletsDatabase {
     return driftDatabase(
       name: databaseName,
       native: DriftNativeOptions(
-        databasePath: () async =>
-            getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroupId),
+        databasePath: () async => getSharedDatabasePath(
+            databaseName: databaseName, appGroupId: appGroupId),
         shareAcrossIsolates: true,
         setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
       ),
@@ -111,11 +114,13 @@ class WalletsDatabase extends _$WalletsDatabase {
           await m.addColumn(schema.networksTable, schema.networksTable.tier);
         },
         from3To4: (m, schema) async {
-          await m.dropColumn(schema.transactionsTable, 'balance_before_transfer');
+          await m.dropColumn(
+              schema.transactionsTable, 'balance_before_transfer');
         },
         from4To5: (m, schema) async {
           await m.dropColumn(schema.fundsRequestsTable, 'is_pending');
-          await m.addColumn(schema.fundsRequestsTable, schema.fundsRequestsTable.transactionId);
+          await m.addColumn(schema.fundsRequestsTable,
+              schema.fundsRequestsTable.transactionId);
         },
         from5To6: (m, schema) async {
           await m.alterTable(
@@ -151,7 +156,8 @@ class WalletsDatabase extends _$WalletsDatabase {
             columnName: 'event_id',
           );
           if (!columnExists) {
-            await m.addColumn(schema.transactionsTableV2, schema.transactionsTableV2.eventId);
+            await m.addColumn(
+                schema.transactionsTableV2, schema.transactionsTableV2.eventId);
           }
         },
         from8To9: (Migrator m, Schema9 schema) async {
@@ -191,7 +197,8 @@ class WalletsDatabase extends _$WalletsDatabase {
             columnName: 'external_hash',
           );
           if (!isExternalHashColumnExists) {
-            await m.addColumn(schema.transactionsTableV2, schema.transactionsTableV2.externalHash);
+            await m.addColumn(schema.transactionsTableV2,
+                schema.transactionsTableV2.externalHash);
           }
         },
         from12To13: (m, schema) async {
@@ -211,7 +218,8 @@ class WalletsDatabase extends _$WalletsDatabase {
             columnName: 'deleted',
           );
           if (!columnExists) {
-            await m.addColumn(schema.fundsRequestsTable, schema.fundsRequestsTable.deleted);
+            await m.addColumn(
+                schema.fundsRequestsTable, schema.fundsRequestsTable.deleted);
           }
         },
         from14To15: (m, schema) async {
@@ -224,7 +232,8 @@ class WalletsDatabase extends _$WalletsDatabase {
           );
 
           if (!columnExists) {
-            await m.addColumn(schema.transactionsTableV2, schema.transactionsTableV2.nftIdentifier);
+            await m.addColumn(schema.transactionsTableV2,
+                schema.transactionsTableV2.nftIdentifier);
           }
         },
         from16To17: (m, schema) async {
@@ -244,7 +253,8 @@ class WalletsDatabase extends _$WalletsDatabase {
             columnName: 'memo',
           );
           if (!columnExists) {
-            await m.addColumn(schema.transactionsTableV2, schema.transactionsTableV2.memo);
+            await m.addColumn(
+                schema.transactionsTableV2, schema.transactionsTableV2.memo);
           }
         },
         from19To20: (Migrator m, Schema20 schema) async {
@@ -263,7 +273,8 @@ class WalletsDatabase extends _$WalletsDatabase {
           // Clear all transactions to fix duplication issues.
           // Transactions will be re-synced with improved deduplication logic.
           await customStatement('DELETE FROM transactions_table_v2');
-          await customStatement('DELETE FROM transaction_visibility_status_table');
+          await customStatement(
+              'DELETE FROM transaction_visibility_status_table');
         },
         from21To22: (m, schema) async {
           // Recreate transactions table with correct primary key (tx_hash, wallet_view_id, type) with isSwap column.
@@ -321,11 +332,16 @@ class WalletsDatabase extends _$WalletsDatabase {
             );
           }
         },
+        from24To25: (Migrator m, Schema25 schema) async {
+          await m.createTable(schema.swapTransactionsTable);
+          await m.dropColumn(schema.transactionsTableV2, 'is_swap');
+        },
       ),
     );
   }
 
-  Future<bool> isColumnExists({required String tableName, required String columnName}) async {
+  Future<bool> isColumnExists(
+      {required String tableName, required String columnName}) async {
     final rows = await customSelect('PRAGMA table_info($tableName)').get();
     return rows.any((row) => row.data['name'] == columnName);
   }
