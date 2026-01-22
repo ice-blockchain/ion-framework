@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "Your transaction will revert if the price changes more than the slippage percentage",
   "wallet_swap_slippage_settings_label": "Slippage",
   "wallet_swap_slippage_settings_title": "Slippage settings",
-  "wallet_swapped_coins": "Swap complete",
+  "wallet_swapped_coins": "Swap",
   "wallet_swapping_coins": "Swapping...",
   "wallet_title": "Wallet",
   "wallet_transaction_details": "Details",

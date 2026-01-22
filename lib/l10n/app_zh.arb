@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "如果价格变化超过滑点百分比，您的交易将被回退",
   "wallet_swap_slippage_settings_label": "滑点",
   "wallet_swap_slippage_settings_title": "滑点设置",
-  "wallet_swapped_coins": "交换完成",
+  "wallet_swapped_coins": "交换",
   "wallet_swapping_coins": "正在交换...",
   "wallet_title": "钱包",
   "wallet_transaction_details": "详情",

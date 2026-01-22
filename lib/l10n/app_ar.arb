@@ -1183,7 +1183,7 @@
   "wallet_swap_slippage_settings_description": "سيتم إلغاء معاملتك إذا تغير السعر أكثر من نسبة الانزلاق السعري",
   "wallet_swap_slippage_settings_label": "الانزلاق السعري",
   "wallet_swap_slippage_settings_title": "إعدادات الانزلاق السعري",
-  "wallet_swapped_coins": "اكتمل التبديل",
+  "wallet_swapped_coins": "تبديل",
   "wallet_swapping_coins": "جاري التبديل...",
   "wallet_title": "المحفظة",
   "wallet_transaction_details": "التفاصيل",
