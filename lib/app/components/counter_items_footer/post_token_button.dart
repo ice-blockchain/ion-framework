@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/token_creation_not_available_modal/token_creation_not_available_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -41,6 +42,43 @@ class PostTokenButton extends ConsumerWidget {
     if (entity == null) {
       return _TokenButtonPlaceholder(padding: padding);
     }
+
+    final quotedEventReference = switch (entity) {
+      ModifiablePostEntity() => entity.data.quotedEvent?.eventReference,
+      PostEntity() => entity.data.quotedEvent?.eventReference,
+      _ => null,
+    };
+
+    if (quotedEventReference != null) {
+      final quotedEntity = ref
+          .watch(ionConnectEntityWithCountersProvider(eventReference: quotedEventReference))
+          .valueOrNull;
+
+      if (quotedEntity is CommunityTokenDefinitionEntity) {
+        final externalAddress = quotedEntity.data.externalAddress;
+        return _TokenButton(
+          padding: padding,
+          onTap: () =>
+              TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
+          child: _MarketCap(externalAddress: externalAddress),
+        );
+      }
+      if (quotedEntity is CommunityTokenActionEntity) {
+        final tokenDefinition = ref
+            .watch(ionConnectEntityProvider(eventReference: quotedEntity.data.definitionReference))
+            .valueOrNull as CommunityTokenDefinitionEntity?;
+        if (tokenDefinition != null) {
+          final externalAddress = tokenDefinition.data.externalAddress;
+          return _TokenButton(
+            padding: padding,
+            onTap: () =>
+                TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
+            child: _MarketCap(externalAddress: externalAddress),
+          );
+        }
+      }
+    }
+
     return switch (entity) {
       CommunityTokenDefinitionEntity() => _TokenDefinitionButton(entity: entity, padding: padding),
       CommunityTokenActionEntity() => _TokenActionButton(entity: entity, padding: padding),
