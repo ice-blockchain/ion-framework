@@ -4,21 +4,26 @@ import 'dart:async';
 
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-typedef PricingIdentifierResolver = Future<String> Function();
+typedef PricingIdentifierResolver = Future<PricingIdentifierResolution> Function();
 
 class TradeCommunityTokenQuoteRequest {
   TradeCommunityTokenQuoteRequest({
     required this.externalAddress,
+    required this.externalAddressType,
     required this.mode,
     required this.amount,
     required this.amountDecimals,
     required this.pricingIdentifierResolver,
+    required this.paymentTokenAddress,
   });
 
   final String externalAddress;
+  final ExternalAddressType externalAddressType;
   final CommunityTokenTradeMode mode;
 
   /// User-entered amount in human units.
@@ -28,6 +33,7 @@ class TradeCommunityTokenQuoteRequest {
   final int amountDecimals;
 
   final PricingIdentifierResolver pricingIdentifierResolver;
+  final String paymentTokenAddress;
 }
 
 typedef TradeCommunityTokenServiceResolver = Future<TradeCommunityTokenService> Function();
@@ -151,13 +157,17 @@ class TradeCommunityTokenQuoteController {
 
       final apiAmount = toBlockchainUnits(request.amount, request.amountDecimals).toString();
 
-      final pricingIdentifier = await request.pricingIdentifierResolver();
+      final resolution = await request.pricingIdentifierResolver();
       if (currentRequestId != _requestId) return;
 
       final pricing = await service.getQuote(
-        pricingIdentifier: pricingIdentifier,
+        externalAddress: request.externalAddress,
+        externalAddressType: request.externalAddressType,
+        pricingIdentifier: resolution.pricingIdentifier,
         mode: request.mode,
         amount: apiAmount,
+        paymentTokenAddress: request.paymentTokenAddress,
+        fatAddressData: resolution.fatAddressData,
       );
 
       if (currentRequestId != _requestId) return;

@@ -2,71 +2,100 @@
 
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
 import 'package:ion/app/services/logger/logger.dart';
 
 typedef TokenExistsResolver = Future<bool> Function();
-typedef FatAddressHexResolver = Future<String> Function();
+typedef FatAddressDataResolver = Future<FatAddressV2Data> Function();
+
+class PricingIdentifierResolution {
+  const PricingIdentifierResolution({
+    required this.pricingIdentifier,
+    required this.fatAddressData,
+  });
+
+  final String pricingIdentifier;
+  final FatAddressV2Data? fatAddressData;
+}
 
 class CommunityTokenPricingIdentifierResolver {
   CommunityTokenPricingIdentifierResolver({
     required this.externalAddress,
     required this.externalAddressType,
     required this.tokenExistsResolver,
-    required this.fatAddressHexResolver,
+    required this.fatAddressDataResolver,
   });
 
   final String externalAddress;
   final ExternalAddressType externalAddressType;
   final TokenExistsResolver tokenExistsResolver;
-  final FatAddressHexResolver fatAddressHexResolver;
+  final FatAddressDataResolver fatAddressDataResolver;
 
-  String? _cachedBuyPricingIdentifierHex;
-  Future<String>? _buyPricingIdentifierHexInFlight;
+  PricingIdentifierResolution? _cachedBuyResolution;
+  Future<PricingIdentifierResolution>? _buyResolutionInFlight;
 
-  Future<String> resolve(CommunityTokenTradeMode mode) async {
+  Future<PricingIdentifierResolution> resolve(CommunityTokenTradeMode mode) async {
     if (mode == CommunityTokenTradeMode.sell) {
-      return externalAddress;
+      return PricingIdentifierResolution(
+        pricingIdentifier: externalAddress,
+        fatAddressData: null,
+      );
     }
 
     final tokenExists = await tokenExistsResolver();
     if (tokenExists) {
-      return externalAddress;
+      return PricingIdentifierResolution(
+        pricingIdentifier: externalAddress,
+        fatAddressData: null,
+      );
     }
 
-    final cached = _cachedBuyPricingIdentifierHex;
-    if (cached != null && cached.isNotEmpty) {
+    final cached = _cachedBuyResolution;
+    if (cached != null && cached.pricingIdentifier.isNotEmpty) {
       return cached;
     }
 
-    return _loadAndCacheBuyPricingIdentifierHex();
+    return _loadAndCacheBuyResolution();
   }
 
-  Future<String> _loadAndCacheBuyPricingIdentifierHex() async {
-    final inFlight = _buyPricingIdentifierHexInFlight;
+  Future<PricingIdentifierResolution> _loadAndCacheBuyResolution() async {
+    final inFlight = _buyResolutionInFlight;
     if (inFlight != null) {
       return inFlight;
     }
 
-    _buyPricingIdentifierHexInFlight = _computeAndCacheBuyPricingIdentifierHex();
-    return _buyPricingIdentifierHexInFlight!;
+    _buyResolutionInFlight = _computeAndCacheBuyResolution();
+    return _buyResolutionInFlight!;
   }
 
-  Future<String> _computeAndCacheBuyPricingIdentifierHex() async {
+  Future<PricingIdentifierResolution> _computeAndCacheBuyResolution() async {
     try {
-      final hex = await fatAddressHexResolver();
+      final fatAddressData = await fatAddressDataResolver();
+      final hex = fatAddressData.toHex();
       if (hex.isNotEmpty) {
-        _cachedBuyPricingIdentifierHex = hex;
+        final resolution = PricingIdentifierResolution(
+          pricingIdentifier: hex,
+          fatAddressData: fatAddressData,
+        );
+        _cachedBuyResolution = resolution;
+        return resolution;
       }
-      return hex;
+      return const PricingIdentifierResolution(
+        pricingIdentifier: '',
+        fatAddressData: null,
+      );
     } catch (error, stackTrace) {
       Logger.error(
         error,
         stackTrace: stackTrace,
         message: 'Failed to resolve pricing identifier (fat-address hex)',
       );
-      return '';
+      return const PricingIdentifierResolution(
+        pricingIdentifier: '',
+        fatAddressData: null,
+      );
     } finally {
-      _buyPricingIdentifierHexInFlight = null;
+      _buyResolutionInFlight = null;
     }
   }
 }
