@@ -139,7 +139,7 @@ class TwitterTokenHeader extends StatelessWidget {
               token.source.isTwitter
                   ? prefixXTokenTicker(token.marketData.ticker)
                   : prefixUsername(
-                      username: token.marketData.ticker ?? '',
+                      username: token.marketData.ticker,
                       context: context,
                     ),
               style: context.theme.appTextThemes.caption.copyWith(

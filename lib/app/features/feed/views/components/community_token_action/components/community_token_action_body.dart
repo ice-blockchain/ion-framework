@@ -7,7 +7,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_profile_action_token.dart';
-import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_twitter_token.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
@@ -111,14 +110,9 @@ class CommunityTokenActionBody extends HookConsumerWidget {
               SizedBox(height: padding),
             ],
             if (tokenType != null)
-              if (tokenType == CommunityContentTokenType.twitter)
-                FeedTwitterToken(
-                  hasNotch: showProfileBalance,
-                  externalAddress: externalAddress,
-                  sidePadding: sidePadding,
-                )
-              else if (tokenType == CommunityContentTokenType.profile)
-                FeedProfileActionToken(
+              if (tokenType == CommunityContentTokenType.twitter ||
+                  tokenType == CommunityContentTokenType.profile)
+                FeedLandscapeActionToken(
                   hasNotch: showProfileBalance,
                   sidePadding: sidePadding,
                   externalAddress: externalAddress,
