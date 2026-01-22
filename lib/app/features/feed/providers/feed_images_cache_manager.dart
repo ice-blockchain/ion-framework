@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:ion/app/services/file_cache/limited_concurrent_http_file_service.dart';
+import 'package:ion/app/services/file_cache/ion_http_file_service.dart';
 
 class FeedImagesCacheManager {
   static late final CacheManager instance;
@@ -13,7 +13,7 @@ class FeedImagesCacheManager {
     if (_initialized) return;
     final config = Config(
       key,
-      fileService: LimitedConcurrentHttpFileService(concurrentFetches: maxConcurrentDownloads),
+      fileService: IonHttpFileService(concurrentFetches: maxConcurrentDownloads),
       stalePeriod: const Duration(days: 1),
       maxNrOfCacheObjects: 1000,
     );
