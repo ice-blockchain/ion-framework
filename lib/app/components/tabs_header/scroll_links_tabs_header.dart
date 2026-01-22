@@ -39,25 +39,9 @@ class ScrollLinksTabsHeader extends HookConsumerWidget {
       [activeIndex, tabController],
     );
 
-    // Handle tab change listener - notify parent when user taps a tab
-    useEffect(
-      () {
-        void handleTabChange() {
-          if (!tabController.indexIsChanging && tabController.index != activeIndex) {
-            onTabTapped?.call(tabController.index);
-          }
-        }
-
-        tabController.addListener(handleTabChange);
-        return () {
-          tabController.removeListener(handleTabChange);
-        };
-      },
-      [tabController, activeIndex, onTabTapped],
-    );
-
     return TabBar(
       controller: tabController,
+      onTap: onTabTapped,
       padding: EdgeInsets.symmetric(
         horizontal: 6.0.s,
       ),
