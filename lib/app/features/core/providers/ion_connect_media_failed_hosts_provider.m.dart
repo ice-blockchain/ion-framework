@@ -92,6 +92,7 @@ class FailedMediaHosts extends _$FailedMediaHosts {
     }
   }
 
+  /// Each failed host has expiration time to reduce the impact of possible false negative occurrences.
   static const _expirationDuration = Duration(days: 3);
 
   static const _persistanceKey = 'failed_media_hosts_persistance_key';
