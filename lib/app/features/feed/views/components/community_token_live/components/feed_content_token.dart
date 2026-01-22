@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
@@ -13,6 +14,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -135,9 +137,13 @@ class ContentTokenHeader extends HookConsumerWidget {
         useMemoized<(MediaAttachment? mediaAttachment, String? content)>(
       () {
         if (entity is ModifiablePostEntity) {
-          return (entity.data.primaryMedia, entity.data.textContent.trim());
+          final parsed = parseMediaContent(data: entity.data);
+          final text = Document.fromDelta(parsed.content).toPlainText().trim();
+          return (entity.data.primaryMedia, text);
         } else if (entity is PostEntity) {
-          return (entity.data.primaryMedia, entity.data.content.trim());
+          final parsed = parseMediaContent(data: entity.data);
+          final text = Document.fromDelta(parsed.content).toPlainText().trim();
+          return (entity.data.primaryMedia, text);
         } else if (entity is ArticleEntity) {
           final headerMedia =
               entity.data.media.entries.firstWhereOrNull((t) => t.value.url == entity.data.image);
