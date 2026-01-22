@@ -141,8 +141,9 @@ class ContentTokenHeader extends HookConsumerWidget {
       mediaAttachment = entity.data.primaryMedia;
       content = ref.watch(parsedMediaPlainTextProvider(entity.data)).trim();
     } else if (entity is ArticleEntity) {
-      mediaAttachment =
-          entity.data.media.entries.firstWhereOrNull((t) => t.value.url == entity.data.image)?.value;
+      mediaAttachment = entity.data.media.entries
+          .firstWhereOrNull((t) => t.value.url == entity.data.image)
+          ?.value;
       content = entity.data.title?.trim();
     }
 
