@@ -111,44 +111,44 @@ class SwapDetailsContent extends ConsumerWidget {
       ],
     );
   }
-}
 
-({CoinsGroup? coins, NetworkData? network, String amount}) _extractSwapSideData(
-  TransactionDetails? transaction,
-  ExpectedSwapData? expectedData,
-) {
-  if (transaction != null) {
-    final coinData = transaction.assetData.mapOrNull(coin: (coin) => coin);
-    if (coinData != null) {
-      return (
-        coins: coinData.coinsGroup,
-        network: transaction.network,
-        amount: coinData.amount.formatMax6 ?? '0',
-      );
+  ({CoinsGroup? coins, NetworkData? network, String amount}) _extractSwapSideData(
+    TransactionDetails? transaction,
+    ExpectedSwapData? expectedData,
+  ) {
+    if (transaction != null) {
+      final coinData = transaction.assetData.mapOrNull(coin: (coin) => coin);
+      if (coinData != null) {
+        return (
+          coins: coinData.coinsGroup,
+          network: transaction.network,
+          amount: coinData.amount.formatMax6 ?? '0',
+        );
+      }
     }
+
+    if (expectedData != null) {
+      final amount = _formatExpectedAmount(expectedData);
+      return (coins: expectedData.coinsGroup, network: expectedData.network, amount: amount);
+    }
+
+    return (coins: null, network: null, amount: '0');
   }
 
-  if (expectedData != null) {
-    final amount = _formatExpectedAmount(expectedData);
-    return (coins: expectedData.coinsGroup, network: expectedData.network, amount: amount);
-  }
-
-  return (coins: null, network: null, amount: '0');
-}
-
-String _formatExpectedAmount(ExpectedSwapData expectedData) {
-  try {
-    final coin = expectedData.coinsGroup.coins
-        .where((c) => c.coin.network.id == expectedData.network.id)
-        .firstOrNull;
-    if (coin == null) return '0';
-    final decimals = coin.coin.decimals;
-    final bigAmount = BigInt.parse(expectedData.amount);
-    final divisor = BigInt.from(10).pow(decimals);
-    final doubleAmount = bigAmount / divisor;
-    return doubleAmount.formatMax6 ?? '0';
-  } catch (e) {
-    return '0';
+  String _formatExpectedAmount(ExpectedSwapData expectedData) {
+    try {
+      final coin = expectedData.coinsGroup.coins
+          .where((c) => c.coin.network.id == expectedData.network.id)
+          .firstOrNull;
+      if (coin == null) return '0';
+      final decimals = coin.coin.decimals;
+      final bigAmount = BigInt.parse(expectedData.amount);
+      final divisor = BigInt.from(10).pow(decimals);
+      final doubleAmount = bigAmount / divisor;
+      return doubleAmount.formatMax6 ?? '0';
+    } catch (e) {
+      return '0';
+    }
   }
 }
 
