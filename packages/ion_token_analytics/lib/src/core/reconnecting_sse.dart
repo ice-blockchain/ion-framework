@@ -62,152 +62,156 @@ class ReconnectingSse<T> {
   }
 
   void _initialize() {
-    // Declare attemptReconnection variable first so listenToSubscription can reference it
-    late Future<void> Function(Object?, StackTrace?) attemptReconnection;
+    // Start listening to the initial subscription
+    _listenToSubscription(_initialSubscription);
+  }
 
-    void listenToSubscription(Http2Subscription<T> sub) {
-      // Cancel previous listener if exists
-      _currentListener?.cancel();
+  void _listenToSubscription(Http2Subscription<T> sub) {
+    // Cancel previous listener if exists
+    _currentListener?.cancel();
 
-      _currentListener = sub.stream.listen(
-        (data) {
-          if (!_controller.isClosed && !_isClosed) {
-            if (_reconnectAttempts > 0) {
-              _logger?.log(
-                '[ReconnectingSse] Reconnection successful after $_reconnectAttempts attempt(s) for path: $_path',
-              );
-            }
-            _controller.add(data);
-            _reconnectAttempts = 0; // Reset on successful data
+    _currentListener = sub.stream.listen(
+      (data) {
+        if (!_controller.isClosed && !_isClosed) {
+          if (_reconnectAttempts > 0) {
+            _logger?.log(
+              '[ReconnectingSse] Reconnection successful after $_reconnectAttempts attempt(s) for path: $_path',
+            );
           }
-        },
-        onError: (Object error, StackTrace stackTrace) async {
-          if (_controller.isClosed || _isClosed) return;
+          _controller.add(data);
+          _reconnectAttempts = 0; // Reset on successful data
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) async {
+        if (_controller.isClosed || _isClosed) return;
 
-          final text = error.toString();
-          final isNil = error is FormatException && text.contains('<nil>');
+        final text = error.toString();
+        final isNil = error is FormatException && text.contains('<nil>');
 
-          if (isNil) {
-            _logger?.log('[ReconnectingSse] Received <nil> marker on SSE stream for path: $_path');
-            // Handle <nil> marker
-            if (<String, dynamic>{} is T) {
-              _controller.add(<String, dynamic>{} as T);
-              return;
-            }
-            if (<dynamic, dynamic>{} is T) {
-              _controller.add(<dynamic, dynamic>{} as T);
-              return;
-            }
+        if (isNil) {
+          _logger?.log('[ReconnectingSse] Received <nil> marker on SSE stream for path: $_path');
+          // Handle <nil> marker
+          if (<String, dynamic>{} is T) {
+            _controller.add(<String, dynamic>{} as T);
             return;
           }
-
-          _logger?.log('[ReconnectingSse] Connection error on SSE stream for path: $_path: $error');
-          _logger?.log('[ReconnectingSse] Stack trace for path: $_path: $stackTrace');
-
-          if (!_isReconnecting) {
-            await attemptReconnection(error, stackTrace);
-          } else {
-            _logger?.log(
-              '[ReconnectingSse] Reconnection already in progress, skipping duplicate attempt for path: $_path',
-            );
+          if (<dynamic, dynamic>{} is T) {
+            _controller.add(<dynamic, dynamic>{} as T);
+            return;
           }
-        },
-        onDone: () {
-          _logger?.log('[ReconnectingSse] SSE stream closed (onDone) for path: $_path');
-          if (!_controller.isClosed && !_isClosed && !_isReconnecting) {
-            // Stream completed unexpectedly - attempt reconnection
-            _logger?.log(
-              '[ReconnectingSse] Stream completed unexpectedly, attempting reconnection for path: $_path',
-            );
-            // Trigger reconnection asynchronously to avoid blocking
-            Future.microtask(
-              () => attemptReconnection(
-                Exception('SSE stream closed unexpectedly'),
-                StackTrace.current,
-              ),
-            );
-          } else if (_isReconnecting) {
-            _logger?.log(
-              '[ReconnectingSse] Reconnection already in progress, skipping onDone reconnection for path: $_path',
-            );
-          }
-        },
-        cancelOnError: false,
-      );
-    }
-
-    // Implement attemptReconnection after listenToSubscription is declared
-    attemptReconnection = (Object? error, StackTrace? stackTrace) async {
-      if (_controller.isClosed || _isClosed) return;
-
-      // Prevent concurrent reconnection attempts
-      if (_isReconnecting) {
-        _logger?.log(
-          '[ReconnectingSse] Reconnection already in progress, skipping duplicate attempt for path: $_path',
-        );
-        return;
-      }
-
-      _isReconnecting = true;
-      _reconnectAttempts++;
-      _logger?.log(
-        '[ReconnectingSse] Attempting reconnection $_reconnectAttempts for path: $_path',
-      );
-
-      try {
-        // Close the old subscription
-        _logger?.log('[ReconnectingSse] Closing old subscription for path: $_path');
-        try {
-          await _currentSubscription.close();
-        } catch (closeError) {
-          _logger?.log(
-            '[ReconnectingSse] Error closing old subscription (ignored) for path: $_path: $closeError',
-          );
-        }
-
-        // Wait before retrying using exponential backoff (capped at maxRetryDelayMs)
-        final delayMs = math.min(
-          _maxRetryDelayMs,
-          (200 * math.pow(2, _reconnectAttempts - 1)).toInt(),
-        );
-        _logger?.log(
-          '[ReconnectingSse] Waiting ${delayMs}ms before retry (exp backoff, attempt $_reconnectAttempts) for path: $_path',
-        );
-        await Future<void>.delayed(Duration(milliseconds: delayMs));
-
-        if (_controller.isClosed || _isClosed) {
-          _isReconnecting = false;
           return;
         }
 
-        // Create a new subscription
-        _logger?.log('[ReconnectingSse] Creating new SSE subscription for path: $_path');
-        final newSub = await _createSubscription();
+        _logger?.log('[ReconnectingSse] Connection error on SSE stream for path: $_path: $error');
+        _logger?.log('[ReconnectingSse] Stack trace for path: $_path: $stackTrace');
 
-        _currentSubscription = newSub;
+        if (!_isReconnecting) {
+          _attemptReconnection(error, stackTrace);
+        } else {
+          _logger?.log(
+            '[ReconnectingSse] Reconnection already in progress, skipping duplicate attempt for path: $_path',
+          );
+        }
+      },
+      onDone: () {
+        _logger?.log('[ReconnectingSse] SSE stream closed (onDone) for path: $_path');
+        if (!_controller.isClosed && !_isClosed && !_isReconnecting) {
+          // Stream completed unexpectedly - attempt reconnection
+          _logger?.log(
+            '[ReconnectingSse] Stream completed unexpectedly, attempting reconnection for path: $_path',
+          );
+          // Trigger reconnection asynchronously to avoid blocking
+          Future.microtask(
+            () => _attemptReconnection(
+              Exception('SSE stream closed unexpectedly'),
+              StackTrace.current,
+            ),
+          );
+        } else if (_isReconnecting) {
+          _logger?.log(
+            '[ReconnectingSse] Reconnection already in progress, skipping onDone reconnection for path: $_path',
+          );
+        }
+      },
+      cancelOnError: false,
+    );
+  }
+
+  /// Attempts reconnection using an iterative loop instead of recursion.
+  /// This prevents stack overflow from accumulating frames during unlimited retries.
+  void _attemptReconnection(Object? error, StackTrace? stackTrace) {
+    // Use Future.microtask to ensure this runs asynchronously and doesn't block
+    Future.microtask(() async {
+      // Use a loop instead of recursion to avoid stack accumulation
+      while (!_controller.isClosed && !_isClosed) {
+        // Prevent concurrent reconnection attempts
+        if (_isReconnecting) {
+          _logger?.log(
+            '[ReconnectingSse] Reconnection already in progress, skipping duplicate attempt for path: $_path',
+          );
+          return;
+        }
+
+        _isReconnecting = true;
+        _reconnectAttempts++;
         _logger?.log(
-          '[ReconnectingSse] New subscription created successfully, resuming stream for path: $_path',
+          '[ReconnectingSse] Attempting reconnection $_reconnectAttempts for path: $_path',
         );
 
-        // Listen to the new subscription
-        listenToSubscription(newSub);
-        // Note: Do NOT reset _reconnectAttempts here - it will be reset in onData when first data arrives
-        // This ensures the success log appears when data arrives after reconnection
-        _isReconnecting = false; // Clear flag after successful reconnection
-      } catch (reconnectError) {
-        _logger?.log(
-          '[ReconnectingSse] Reconnection attempt $_reconnectAttempts failed for path: $_path: $reconnectError',
-        );
-        // Retry recursively with exponential backoff
-        _logger?.log(
-          '[ReconnectingSse] Will retry with exponential backoff (current attempt: $_reconnectAttempts) for path: $_path',
-        );
-        _isReconnecting = false; // Clear flag before recursive call
-        await attemptReconnection(reconnectError, StackTrace.current);
+        try {
+          // Close the old subscription
+          _logger?.log('[ReconnectingSse] Closing old subscription for path: $_path');
+          try {
+            await _currentSubscription.close();
+          } catch (closeError) {
+            _logger?.log(
+              '[ReconnectingSse] Error closing old subscription (ignored) for path: $_path: $closeError',
+            );
+          }
+
+          // Wait before retrying using exponential backoff (capped at maxRetryDelayMs)
+          final delayMs = math.min(
+            _maxRetryDelayMs,
+            (200 * math.pow(2, _reconnectAttempts - 1)).toInt(),
+          );
+          _logger?.log(
+            '[ReconnectingSse] Waiting ${delayMs}ms before retry (exp backoff, attempt $_reconnectAttempts) for path: $_path',
+          );
+          await Future<void>.delayed(Duration(milliseconds: delayMs));
+
+          if (_controller.isClosed || _isClosed) {
+            _isReconnecting = false;
+            return;
+          }
+
+          // Create a new subscription
+          _logger?.log('[ReconnectingSse] Creating new SSE subscription for path: $_path');
+          final newSub = await _createSubscription();
+
+          _currentSubscription = newSub;
+          _logger?.log(
+            '[ReconnectingSse] New subscription created successfully, resuming stream for path: $_path',
+          );
+
+          // Listen to the new subscription - this will handle future errors via _attemptReconnection
+          _listenToSubscription(newSub);
+          // Note: Do NOT reset _reconnectAttempts here - it will be reset in onData when first data arrives
+          // This ensures the success log appears when data arrives after reconnection
+          _isReconnecting = false; // Clear flag after successful reconnection
+
+          // Successfully reconnected, exit the loop
+          return;
+        } catch (reconnectError) {
+          _logger?.log(
+            '[ReconnectingSse] Reconnection attempt $_reconnectAttempts failed for path: $_path: $reconnectError',
+          );
+          _logger?.log(
+            '[ReconnectingSse] Will retry with exponential backoff (current attempt: $_reconnectAttempts) for path: $_path',
+          );
+          _isReconnecting = false; // Clear flag before next iteration
+          // Loop will continue and retry
+        }
       }
-    };
-
-    // Start listening to the initial subscription
-    listenToSubscription(_initialSubscription);
+    });
   }
 }
