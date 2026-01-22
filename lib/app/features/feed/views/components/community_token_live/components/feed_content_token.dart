@@ -191,12 +191,14 @@ class ContentTokenHeader extends HookConsumerWidget {
                       );
                     }).toList(),
                     height: layoutConfig.containerSize.height * 1.1.s, // extra space for dots
-                    dotsActiveSize: 5.s,
-                    dotsSize: 3.s,
-                    dotsSpacing: 2.s,
-                    dotsActiveHeight: 5.s,
-                    dotsPosition: -2.s,
-                    dotsColor: context.theme.appColors.tertiaryText,
+                    dotsConfig: CarouselDotsConfig(
+                      activeSize: 5.s,
+                      size: 3.s,
+                      spacing: 2.s,
+                      activeHeight: 5.s,
+                      position: -2.s,
+                      color: context.theme.appColors.tertiaryText,
+                    ),
                   )
                 else
                   TokenAvatar(
