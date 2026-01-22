@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:flutter/material.dart';
 import 'package:ion_ads/src/appodeal/appodeal_platform_arguments.dart';
 import 'package:ion_ads/src/appodeal/native_ad/native_color_apis.dart';
