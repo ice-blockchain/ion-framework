@@ -10,9 +10,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_24h_change_candles_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_price_change_percent_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
@@ -56,7 +56,7 @@ class Chart extends HookConsumerWidget {
       ),
     );
 
-    final changePercent24h = ref.watch(token24hChangePercentProvider(externalAddress));
+    final changePercent = ref.watch(tokenPriceChangePercentProvider(externalAddress));
 
     // Cache the last successfully loaded candles to show during loading
     final cachedCandles = useRef<List<ChartCandle>?>(null);
@@ -80,7 +80,7 @@ class Chart extends HookConsumerWidget {
           price: price,
           label: label,
           createdAtOfToken: createdAtOfToken,
-          changePercent: changePercent24h,
+          changePercent: changePercent,
           candles: chartDisplayData.candlesToShow,
           isLoading: false,
           selectedRange: selectedRange.value,
@@ -92,7 +92,7 @@ class Chart extends HookConsumerWidget {
           price: price,
           label: label,
           createdAtOfToken: createdAtOfToken,
-          changePercent: changePercent24h,
+          changePercent: changePercent,
           candles: chartDisplayData.candlesToShow,
           isLoading: false,
           selectedRange: selectedRange.value,
@@ -105,7 +105,7 @@ class Chart extends HookConsumerWidget {
           price: price,
           label: label,
           createdAtOfToken: createdAtOfToken,
-          changePercent: changePercent24h,
+          changePercent: changePercent,
           candles: cachedCandles.value,
           isLoading: true,
           selectedRange: selectedRange.value,

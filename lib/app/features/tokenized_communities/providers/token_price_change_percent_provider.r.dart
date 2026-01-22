@@ -5,14 +5,13 @@ import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_can
 import 'package:ion/app/features/tokenized_communities/utils/price_change_calculator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'token_24h_change_candles_provider.r.g.dart';
+part 'token_price_change_percent_provider.r.g.dart';
 
-// This provider calculates the 24-hour price change percentage.
-// Uses the existing tokenOhlcvCandlesProvider with 1h interval to get realtime updates.
-// The calculation finds the price at DateTime.now() - 24 hours (or older if not available)
-// and compares it with the latest price.
+// Provider that calculates the price change percentage.
+// For now uses 1h candles to calculate 24h change for realtime updates.
+// Can be easily adjusted later if needed.
 @riverpod
-double token24hChangePercent(
+double tokenPriceChangePercent(
   Ref ref,
   String externalAddress,
 ) {
@@ -21,7 +20,10 @@ double token24hChangePercent(
   );
 
   return candlesAsync.when(
-    data: calculate24hPriceChangePercent,
+    data: (candles) => calculatePriceChangePercentFromNow(
+      candles,
+      const Duration(hours: 24),
+    ),
     loading: () => 0.0,
     error: (_, __) => 0.0,
   );
