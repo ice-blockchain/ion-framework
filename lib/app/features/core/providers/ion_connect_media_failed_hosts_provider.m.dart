@@ -51,7 +51,7 @@ class FailedMediaHosts extends _$FailedMediaHosts {
 
         final hosts = stored
             .map((item) => FailedMediaHost.fromJson(json.decode(item) as Map<String, dynamic>))
-            .where((failedHost) => failedHost.expiresAt?.isBefore(now) ?? true)
+            .where((failedHost) => failedHost.expiresAt?.isAfter(now) ?? true)
             .toSet();
 
         return hosts;

@@ -50,12 +50,20 @@ class IonConnectMediaUrl extends _$IonConnectMediaUrl {
   }
 }
 
+/// Resolves the CDN URL for a given ION Connect media URL.
+///
+/// If the CDN host is marked as failed, it returns the original URL.
 @riverpod
 String ionConnectCdnUrl(Ref ref, String url) {
   final config = ref.watch(feedConfigProvider).valueOrNull;
+  final failedMediaHosts = ref.watch(failedMediaHostsProvider);
   if (config == null) return url;
   try {
     final cdnBase = Uri.parse(config.cdnBaseUrl);
+    final cdnHost = cdnBase.host;
+    if (failedMediaHosts.contains(FailedMediaHost(host: cdnHost))) {
+      return url;
+    }
     final filePath = Uri.parse(url).pathSegments.last;
     return cdnBase.replace(pathSegments: [...cdnBase.pathSegments, filePath]).toString();
   } catch (error, stackTrace) {
