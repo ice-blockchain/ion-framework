@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/features/core/providers/ion_connect_media_failed_hosts_provider.m.dart';
 import 'package:ion/app/features/core/providers/relay_proxy_domains_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/utils/url.dart';
@@ -16,9 +17,6 @@ class IonConnectMediaUrlFallback extends _$IonConnectMediaUrlFallback {
   @override
   Map<String, String> build() => {};
 
-  /// A map of pubkeys to failed assets hosts
-  final Map<String, Set<String>> _failedHosts = {};
-
   /// A map of pubkeys to Futures with identity pubkey relays (extra fallback)
   ///
   /// Storing Future instead of the result to avoid fetching the same relays multiple times
@@ -34,9 +32,9 @@ class IonConnectMediaUrlFallback extends _$IonConnectMediaUrlFallback {
 
     // Add the current asset URL host to the failed hosts to avoid retrying
     // the same host in the future.
-    _failedHosts
-        .putIfAbsent(authorPubkey, () => {})
-        .add(Uri.parse(currentFallbackUrl ?? initialAssetUrl).host);
+    ref.read(failedMediaHostsProvider.notifier).addFailedHost(
+          Uri.parse(currentFallbackUrl ?? initialAssetUrl).host,
+        );
 
     // First trying to get a fallback URL from the cached user relays.
     // If that fails, we try to get the fresh relays from the identity.
@@ -88,7 +86,7 @@ class IonConnectMediaUrlFallback extends _$IonConnectMediaUrlFallback {
     final normalizedPort =
         initialUri.hasPort ? (initialUri.port == 4443 ? 443 : initialUri.port) : null;
 
-    final failed = _failedHosts[authorPubkey] ?? <String>{};
+    final failed = ref.read(failedMediaHostsProvider);
 
     // Iterate relays in their provided order. For each relay, expand it into
     // ordered connect candidates (preferred proxy -> direct -> remaining proxies)
@@ -108,7 +106,7 @@ class IonConnectMediaUrlFallback extends _$IonConnectMediaUrlFallback {
       for (final candidate in candidates) {
         final host = candidate.host;
         if (host.isEmpty) continue;
-        if (failed.contains(host)) continue;
+        if (failed.contains(FailedMediaHost(host: host))) continue;
 
         return initialUri.replace(host: host, port: normalizedPort).toString();
       }
