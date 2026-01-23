@@ -6,8 +6,8 @@ import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 class IonSwapTxIdentifier extends SwapTransactionIdentifier {
   static const _bridgeMultisigAddress = 'Uf8PSnTugXPqSS9HgrEWdrU1yOoy2wH4qCaqsZhCaV2HSIEw';
 
-  /// ION message fee (in nanotons, 1 ION = 1_000_000_000 nanotons).
-  /// Reference: https://docs.ton.org/foundations/fees
+  /// It's always 60960000 as we always send same length message
+  /// as it mention here https://github.com/ice-blockchain/bridge/blob/ion-mainnet/documentation/integration-flow.md#4-direction-b-ion---wion-on-bsc
   static final BigInt _ionMessageFee = BigInt.from(60960000); // 0.06096 ION
 
   /// ION bridge fee (in nanotons).
