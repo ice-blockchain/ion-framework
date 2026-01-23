@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "Fiyat kayma yüzdesinden fazla değişirse işleminiz geri alınır",
   "wallet_swap_slippage_settings_label": "Kayma",
   "wallet_swap_slippage_settings_title": "Kayma ayarları",
-  "wallet_swapped_coins": "Değiştirme tamamlandı",
+  "wallet_swapped_coins": "Takas",
   "wallet_swapping_coins": "Değiştiriliyor...",
   "wallet_title": "Cüzdan",
   "wallet_transaction_details": "Detaylar",

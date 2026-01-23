@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "Транзакцията ще бъде отменена, ако цената се промени повече от процента на slippage",
   "wallet_swap_slippage_settings_label": "Slippage",
   "wallet_swap_slippage_settings_title": "Настройки на slippage",
-  "wallet_swapped_coins": "Обменът е завършен",
+  "wallet_swapped_coins": "Обмен",
   "wallet_swapping_coins": "Обмен...",
   "wallet_title": "Портфейл",
   "wallet_transaction_details": "Детайли",

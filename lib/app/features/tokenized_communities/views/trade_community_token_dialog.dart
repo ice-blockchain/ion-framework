@@ -17,6 +17,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provid
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_trade_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/external_address_type_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
@@ -118,11 +119,16 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             return;
           }
           if (context.mounted) {
+            final tokenInfo =
+                ref.read(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
+            final buyTokenName =
+                tokenInfo?.marketData.ticker ?? state.communityTokenCoinsGroup?.abbreviation;
+
             _showErrorMessage(
               messageNotificationNotifier,
               context,
               state.selectedPaymentToken?.abbreviation,
-              state.communityTokenCoinsGroup?.abbreviation,
+              buyTokenName,
             );
           }
         },
@@ -131,11 +137,16 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         communityTokenTradeNotifierProvider(params),
         (_) {
           if (context.mounted) {
+            final tokenInfo =
+                ref.read(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
+            final buyTokenName =
+                tokenInfo?.marketData.ticker ?? state.communityTokenCoinsGroup?.abbreviation;
+
             _showSuccessMessage(
               messageNotificationNotifier,
               context,
               state.selectedPaymentToken?.abbreviation,
-              state.communityTokenCoinsGroup?.abbreviation,
+              buyTokenName,
             );
             ref.invalidate(walletViewsDataNotifierProvider);
             Navigator.of(context).pop();

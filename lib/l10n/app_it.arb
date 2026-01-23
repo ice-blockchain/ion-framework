@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "La transazione verrà annullata se il prezzo cambia oltre la percentuale di slippage",
   "wallet_swap_slippage_settings_label": "Slippage",
   "wallet_swap_slippage_settings_title": "Impostazioni slippage",
-  "wallet_swapped_coins": "Scambio completato",
+  "wallet_swapped_coins": "Scambio",
   "wallet_swapping_coins": "Scambio in corso...",
   "wallet_title": "Portafoglio",
   "wallet_transaction_details": "Dettagli",
