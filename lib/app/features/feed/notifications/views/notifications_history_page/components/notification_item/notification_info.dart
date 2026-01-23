@@ -138,6 +138,8 @@ class NotificationInfo extends HookConsumerWidget {
         ref.context.i18n.notifications_comment,
       ModifiablePostEntity() => ref.context.i18n.notifications_post,
       ArticleEntity() => ref.context.i18n.common_article,
+      CommunityTokenDefinitionEntity() =>
+        ref.context.i18n.tokenized_community_token_creator.toLowerCase(),
       _ => '',
     };
   }
