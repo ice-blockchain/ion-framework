@@ -534,11 +534,13 @@ class _TokenChart extends HookConsumerWidget {
 
     final price = Decimal.parse(tokenInfo.marketData.priceUSD.toStringAsFixed(4));
     final chartLabel = chartTitleAsync.valueOrNull;
+    final ticker = tokenInfo.marketData.ticker ?? '';
 
     return Chart(
       externalAddress: externalAddress,
       price: price,
-      label: chartLabel ?? '',
+      // fallback to ticker if chart label is not available
+      label: chartLabel ?? ticker,
     );
   }
 }
