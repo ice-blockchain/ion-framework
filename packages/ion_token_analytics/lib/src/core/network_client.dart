@@ -2,17 +2,22 @@
 
 import 'dart:async';
 
+import 'package:ion_token_analytics/src/core/logger.dart';
+import 'package:ion_token_analytics/src/core/reconnecting_sse.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 
 class NetworkClient {
-  NetworkClient.fromBaseUrl(String baseUrl, {required String? authToken})
+  NetworkClient.fromBaseUrl(String baseUrl, {required String? authToken, AnalyticsLogger? logger})
     : _client = Http2Client.fromBaseUrl(baseUrl),
-      _authToken = authToken;
+      _authToken = authToken,
+      _logger = logger;
 
   final Http2Client _client;
 
   final String? _authToken;
+
+  final AnalyticsLogger? _logger;
 
   static const Duration _defaultTimeout = Duration(seconds: 30);
 
@@ -111,7 +116,7 @@ class NetworkClient {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
   }) async {
-    final subscription = await _client.subscribeSse<T>(
+    final initialSubscription = await _client.subscribeSse<T>(
       path,
       queryParameters: _buildQueryParameters(queryParameters),
       headers: _addAuthorizationHeader(headers),
@@ -125,33 +130,20 @@ class NetworkClient {
     // We intercept that error and convert it into an empty map event for
     // map-typed subscriptions. Downstream repositories can
     // interpret an empty map as the EOSE marker.
-    final stream = subscription.stream.transform(
-      StreamTransformer<T, T>.fromHandlers(
-        handleData: (data, sink) => sink.add(data),
-        handleError: (error, stackTrace, sink) {
-          final text = error.toString();
-          final isNil = error is FormatException && text.contains('<nil>');
-
-          if (isNil) {
-            if (<String, dynamic>{} is T) {
-              sink.add(<String, dynamic>{} as T);
-              return;
-            }
-            if (<dynamic, dynamic>{} is T) {
-              sink.add(<dynamic, dynamic>{} as T);
-              return;
-            }
-
-            // If the subscription type isn't map-like/list-like, just swallow the marker.
-            return;
-          }
-
-          sink.addError(error, stackTrace);
-        },
+    //
+    // Also handles automatic reconnection on connection errors during stream processing.
+    final reconnectingSse = ReconnectingSse<T>(
+      initialSubscription: initialSubscription,
+      createSubscription: () => _client.subscribeSse<T>(
+        path,
+        queryParameters: _buildQueryParameters(queryParameters),
+        headers: _addAuthorizationHeader(headers),
       ),
+      path: path,
+      logger: _logger,
     );
 
-    return NetworkSubscription<T>(stream: stream, close: subscription.close);
+    return NetworkSubscription<T>(stream: reconnectingSse.stream, close: reconnectingSse.close);
   }
 
   Future<void> dispose() {
