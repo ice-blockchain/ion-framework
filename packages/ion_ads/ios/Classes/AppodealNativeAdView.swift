@@ -37,7 +37,6 @@ final class AppodealNativeAdView: NSObject, FlutterPlatformView {
         self.containerView = UIView(frame: frame)
         super.init()
 
-        logToFlutter("Initializing with frame: \(frame.debugDescription)")
         loadAndPrepareAd()
     }
 
@@ -141,13 +140,18 @@ extension AppodealNativeAdView: APDNativeAdQueueDelegate, APDNativeAdPresentatio
 
         let ads = adQueue.getNativeAds(ofCount: adQueue.currentAdCount)
         if !ads.isEmpty {
-            logToFlutter("Successfully retrieved 1 ad from the queue.")
+            logToFlutter("Successfully retrieved 1 ad from the queue count: \(count).")
             nativeArray.append(contentsOf: ads)
             // Now that the ad data is available, create and display the view on the main thread.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.setupAdView()
             }
+            nativeAdChannel.invokeMethod("onNativeLoaded", arguments: count)
         }
+    }
+
+    func adQueue(_ adQueue: APDNativeAdQueue, failedWithError error: Error) {
+        print("onNativeFailedToLoad: \(error)")
     }
 
     func adQueueDidFail(toLoadAd adQueue: APDNativeAdQueue) {

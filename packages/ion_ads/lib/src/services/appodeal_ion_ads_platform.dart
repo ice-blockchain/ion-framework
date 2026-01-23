@@ -16,7 +16,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
 
   bool _hasConsent = false;
 
-  final AdInsertionHelper _insertionHelper = AdInsertionHelper(baseInterval: 3, randomDelta: 5);
+  final AdInsertionHelper _insertionHelper = AdInsertionHelper(baseInterval: 3, randomDelta: 7);
 
   @override
   Future<void> initialize({
@@ -155,7 +155,10 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
         _isNativeLoaded = false;
       },
       onNativeShown: () => log('onNativeShown'),
-      onNativeShowFailed: () => log('onNativeShowFailed'),
+      onNativeShowFailed: () {
+        log('onNativeShowFailed');
+        _isNativeLoaded = false;
+      },
       onNativeClicked: () => log('onNativeClicked'),
       onNativeExpired: () {
         log('onNativeExpired');
