@@ -25,7 +25,8 @@ enum TokenTypeFilter {
     return switch (this) {
       TokenTypeFilter.all => true,
       TokenTypeFilter.general => tokenType == null,
-      TokenTypeFilter.creator => tokenType == CommunityTokenType.profile,
+      TokenTypeFilter.creator =>
+        tokenType == CommunityTokenType.profile && tokenSource.isIonConnect,
       TokenTypeFilter.content => tokenType != null &&
           tokenSource.isIonConnect &&
           (tokenType == CommunityTokenType.post ||

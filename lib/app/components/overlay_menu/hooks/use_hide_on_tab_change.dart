@@ -10,8 +10,13 @@ void useHideOnTabChange(
   BuildContext context,
   OverlayPortalController overlayPortalController,
 ) {
-  final mainTabNavigationContainer =
-      useMemoized(() => MainTabNavigationContainer.maybeOf(context), [context]);
+  final mainTabNavigationContainer = useMemoized(
+    () =>
+        context
+            .getElementForInheritedWidgetOfExactType<MainTabNavigationContainer>()
+            ?.widget as MainTabNavigationContainer?,
+    [context],
+  );
   final tabPressStream = mainTabNavigationContainer?.tabPressStream;
 
   useEffect(
