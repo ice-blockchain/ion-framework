@@ -6,11 +6,17 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart' as user_model;
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
 import 'package:ion/app/features/user/providers/update_user_metadata_notifier.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 
 class EditSubmitButton extends ConsumerWidget {
   const EditSubmitButton({
@@ -22,7 +28,7 @@ class EditSubmitButton extends ConsumerWidget {
 
   final bool hasChanges;
 
-  final ObjectRef<UserMetadata> draftRef;
+  final ObjectRef<user_model.UserMetadata> draftRef;
 
   final GlobalKey<FormState> formKey;
 
@@ -30,6 +36,8 @@ class EditSubmitButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading =
         ref.watch(updateUserMetadataNotifierProvider.select((state) => state.isLoading));
+
+    final userMetadata = ref.watch(userMetadataProvider(ref.read(currentPubkeySelectorProvider)!));
 
     return Button(
       disabled: !hasChanges || isLoading,
@@ -47,9 +55,16 @@ class EditSubmitButton extends ConsumerWidget {
           final bannerFile = ref
               .read(imageProcessorNotifierProvider(ImageProcessingType.banner))
               .whenOrNull(processed: (file) => file);
-          await ref
-              .read(updateUserMetadataNotifierProvider.notifier)
-              .publish(draftRef.value, avatar: avatarFile, banner: bannerFile);
+
+          await _publishChanges(
+            context: context,
+            ref: ref,
+            draft: draftRef.value,
+            currentUserMetadata: userMetadata.valueOrNull,
+            avatarFile: avatarFile,
+            bannerFile: bannerFile,
+          );
+
           if (context.mounted && !ref.read(updateUserMetadataNotifierProvider).hasError) {
             context.maybePop();
           }
@@ -58,5 +73,52 @@ class EditSubmitButton extends ConsumerWidget {
       label: Text(context.i18n.profile_save),
       mainAxisSize: MainAxisSize.max,
     );
+  }
+
+  Future<void> _publishChanges({
+    required BuildContext context,
+    required WidgetRef ref,
+    required user_model.UserMetadata draft,
+    required user_model.UserMetadataEntity? currentUserMetadata,
+    MediaFile? avatarFile,
+    MediaFile? bannerFile,
+  }) async {
+    final nameOrNicknameChanged = draft.name != currentUserMetadata?.data.name ||
+        draft.displayName != currentUserMetadata?.data.displayName;
+
+    if (nameOrNicknameChanged) {
+      final hasCreatorToken = ref
+          .watch(
+            ionConnectEntityHasTokenProvider(
+              eventReference:
+                  draft.toReplaceableEventReference(ref.read(currentPubkeySelectorProvider)!),
+            ),
+          )
+          .valueOrNull
+          .falseOrValue;
+
+      if (hasCreatorToken) {
+        await guardPasskeyDialog(
+          context,
+          (child) => RiverpodVerifyIdentityRequestBuilder<void, GenerateSignatureResponse>(
+            provider: updateUserMetadataNotifierProvider,
+            requestWithVerifyIdentity: (onVerifyIdentity) async {
+              await ref.read(updateUserMetadataNotifierProvider.notifier).publishWithVerifyIdentity(
+                    draft,
+                    avatar: avatarFile,
+                    banner: bannerFile,
+                    onVerifyIdentity: onVerifyIdentity,
+                  );
+            },
+            identityKeyName: ref.read(currentIdentityKeyNameSelectorProvider),
+            child: child,
+          ),
+        );
+        return;
+      }
+    }
+    await ref
+        .read(updateUserMetadataNotifierProvider.notifier)
+        .publish(draft, avatar: avatarFile, banner: bannerFile);
   }
 }

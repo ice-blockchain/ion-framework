@@ -126,6 +126,20 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
     });
   }
 
+  Future<void> publishWithVerifyIdentity(
+    UserMetadata userMetadata, {
+    required OnVerifyIdentity<GenerateSignatureResponse> onVerifyIdentity,
+    MediaFile? avatar,
+    MediaFile? banner,
+  }) async {
+    await ref.read(ionConnectNotifierProvider.notifier).buildEventFromTagsAndSignWithMasterKey(
+      tags: const [],
+      kind: UserMetadataEntity.kind,
+      onVerifyIdentity: onVerifyIdentity,
+    );
+    await publish(userMetadata, avatar: avatar, banner: banner);
+  }
+
   Future<void> publishWallets(WalletAddressPrivacyOption option) async {
     Map<String, String>? wallets;
     if (option == WalletAddressPrivacyOption.public) {
