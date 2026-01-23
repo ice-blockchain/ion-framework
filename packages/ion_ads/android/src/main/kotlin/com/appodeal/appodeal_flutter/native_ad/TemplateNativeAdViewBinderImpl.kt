@@ -1,11 +1,16 @@
 package com.appodeal.appodeal_flutter.native_ad
 
 import android.app.Activity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
 import com.appodeal.ads.nativead.NativeAdView
 import com.appodeal.ads.nativead.NativeAdViewNewsFeed
 import com.appodeal.appodeal_flutter.R
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import com.appodeal.ads.nativead.NativeMediaView
 import com.appodeal.ads.nativead.Position
 import com.appodeal.appodeal_flutter.apdLog
 
@@ -114,6 +119,21 @@ internal class TemplateNativeAdViewBinderImpl : NativeAdViewBinder {
         // set adActionButtonConfig config
         val callToActionViewId = R.id.native_custom_cta
         val nativeMediaViewId = R.id.native_media_wrapper
+
+        nativeAdView.mediaView?.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
+            override fun onChildViewAdded(parent: View?, child: View?) {
+                child?.let { mediaChild ->
+                    // Force the internal view (Video/Image) to fill the parent
+                    val params = mediaChild.layoutParams as FrameLayout.LayoutParams
+                    params.width = FrameLayout.LayoutParams.MATCH_PARENT
+                    params.height = FrameLayout.LayoutParams.MATCH_PARENT
+                    mediaChild.layoutParams = params
+                }
+            }
+
+            override fun onChildViewRemoved(parent: View?, child: View?) {}
+        })
+
 
         // Clear existing horizontal constraints to avoid conflicts
         constraintSet.clear(callToActionViewId, ConstraintSet.START)

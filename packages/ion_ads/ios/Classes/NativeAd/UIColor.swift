@@ -114,7 +114,7 @@ enum AppFonts {
     }
 
     static let header = UIFont(name: "NotoSans-Medium", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .medium)
-    static let primaryLabel = UIFont(name: "NotoSans-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .regular)
+    static let primaryLabel = UIFont(name: "NotoSans-Regular", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .regular)
     
     static let secondaryLabel = UIFont(name: "NotoSans-SemiBold", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
     

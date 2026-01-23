@@ -588,8 +588,8 @@ class Appodeal {
   /// [onNativeClicked] Called when Native Ad was clicked.
   /// [onNativeExpired] Called when Native Ad was expired by time.
   static void setNativeCallbacks({
-    void Function()? onNativeLoaded,
-    void Function()? onNativeFailedToLoad,
+    void Function(String message)? onNativeLoaded,
+    void Function(String? message)? onNativeFailedToLoad,
     void Function()? onNativeShown,
     void Function()? onNativeShowFailed,
     void Function()? onNativeClicked,
@@ -599,10 +599,10 @@ class Appodeal {
     _nativeChannel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'onNativeLoaded':
-          onNativeLoaded?.call();
+          onNativeLoaded?.call(call.arguments?.toString() ?? '');
           break;
         case 'onNativeFailedToLoad':
-          onNativeFailedToLoad?.call();
+          onNativeFailedToLoad?.call(call.arguments?.toString() ?? '');
           break;
         case 'onNativeShown':
           onNativeShown?.call();

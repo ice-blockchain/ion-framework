@@ -41,10 +41,13 @@
     <uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE" />
     <uses-permission android:name="com.huawei.android.launcher.permission.READ_SETTINGS" />
     <uses-permission android:name="com.huawei.android.launcher.permission.WRITE_SETTINGS" />
-    
+
+    <!-- Required for Android 13 (API 33) and higher for Ads/Analytics -->
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="replace" />
+
     <!-- Revoke AD_ID permission because AppsFlyer adds it by default, but we do not use it -->
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID"
-        tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" tools:node="remove" />
 
