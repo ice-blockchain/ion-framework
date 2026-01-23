@@ -35,16 +35,16 @@ internal class AppodealNativeAdView(activity: Activity, arguments: HashMap<*, *>
             apdLog("AppodealNativeAdView#adView-lazy-nativeAdOptions: $nativeAdOptions")
             val templateNativeAdViewBinder = templateNativeAdViewBinder
             val adView = templateNativeAdViewBinder.bind(activity, nativeAdOptions)
-            apdLog("AppodealNativeAdView#adView-lazy-nativeAdView: $adView")
 
             val ratingBar = adView.findViewById<RatingBar>(R.id.native_custom_rating)
             val descriptionView = adView.findViewById<TextView>(R.id.native_custom_description)
+            apdLog("AppodealNativeAdView#adView-lazy rating: ${nativeAd.rating}, ratingBar:$ratingBar, descriptionView:$descriptionView")
             if (nativeAd.rating > 0) {
                 ratingBar?.visibility = View.VISIBLE
-                descriptionView?.visibility = View.GONE
+                descriptionView?.visibility = View.INVISIBLE
                 ratingBar?.rating = nativeAd.rating
             } else {
-                ratingBar?.visibility = View.INVISIBLE
+                ratingBar?.visibility = View.GONE
                 descriptionView?.visibility = View.VISIBLE
             }
 
