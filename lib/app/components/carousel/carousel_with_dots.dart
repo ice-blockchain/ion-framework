@@ -91,7 +91,8 @@ class CarouselWithDots extends HookWidget {
     final dotsActiveHeight = dotsConfig?.activeHeight ?? 9.0;
     final effectiveDotsCount = dotsConfig?.count ?? items.length;
     final effectiveDotsColor = dotsConfig?.color ?? context.theme.appColors.onTertiaryFill;
-    final effectiveDotsActiveColor = dotsConfig?.activeColor ?? context.theme.appColors.primaryAccent;
+    final effectiveDotsActiveColor =
+        dotsConfig?.activeColor ?? context.theme.appColors.primaryAccent;
     final dotsShape = dotsConfig?.shape;
     final dotsActiveShape = dotsConfig?.activeShape;
     final dotsDecorator = dotsConfig?.decorator;
