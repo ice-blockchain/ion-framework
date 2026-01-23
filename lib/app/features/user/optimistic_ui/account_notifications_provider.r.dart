@@ -78,7 +78,7 @@ OptimisticOperationManager<AccountNotificationsOption> accountNotificationsManag
 ) {
   keepAliveWhenAuthenticated(ref);
 
-  final strategy = ref.watch(accountNotificationsSyncStrategyProvider);
+  final strategy = ref.watch(accountNotificationsSyncStrategyNotifierProvider);
   final localEnabled = ref.watch(envProvider.notifier).get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED);
 
   final manager = OptimisticOperationManager<AccountNotificationsOption>(
