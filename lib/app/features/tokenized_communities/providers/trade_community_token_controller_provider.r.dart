@@ -237,13 +237,13 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     final userData = pubkey == null ? null : ref.read(userPreviewDataProvider(pubkey)).valueOrNull;
 
     String? tokenTitle;
-    String? tokenTicker;
+    String tokenTicker;
     String? communityAvatar;
 
     if (state.shouldWaitSuggestedDetails) {
       final suggestedDetails = state.suggestedDetails;
       tokenTitle = suggestedDetails?.name.trim() ?? '';
-      tokenTicker = suggestedDetails?.ticker.trim();
+      tokenTicker = suggestedDetails?.ticker.trim() ?? '';
       communityAvatar = suggestedDetails?.picture.trim();
     } else {
       tokenTitle = tokenInfo?.title ??
@@ -260,7 +260,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       communityTokenBalance: balance,
       communityTokenCoinsGroup: _buildInterimCommunityTokenGroup(
         tokenTitle: tokenTitle,
-        tokenTicker: tokenTicker ?? '',
+        tokenTicker: tokenTicker,
         communityAvatar: communityAvatar,
       ),
     );
@@ -274,7 +274,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       communityTokenCoinsGroup: _buildFinalCommunityTokenGroup(
         derivedCoinsGroup: derivedCoinsGroup,
         tokenTitle: tokenTitle,
-        tokenTicker: tokenTicker ?? '',
+        tokenTicker: tokenTicker,
         communityAvatar: communityAvatar,
       ),
     );
