@@ -25,9 +25,16 @@ T useWatchWhenVisible<T>({
   final context = useContext();
   final router = GoRouter.maybeOf(context);
 
-  // Track route path reactively
-  final fullPath = useState(router?.state.fullPath);
+  // Track initial route path (captured when hook is created)
   final fullPathRef = useRef(router?.state.fullPath);
+
+  // Track isCurrentRoute in state to only rebuild when it changes
+  final isCurrentRouteState = useState(context.isCurrentRoute);
+  final isCurrentRouteRef = useRef(context.isCurrentRoute);
+
+  // Track matched location
+  final matchedLocation = useState(router?.state.matchedLocation);
+  final initialMatchedLocation = useRef(router?.state.matchedLocation);
 
   // Cache for last value when route is inactive
   final lastValueRef = useRef<T?>(null);
@@ -38,9 +45,9 @@ T useWatchWhenVisible<T>({
       if (router == null) return null;
 
       void listener() {
-        final newFullPath = router.state.fullPath;
-        if (fullPath.value != newFullPath) {
-          fullPath.value = newFullPath;
+        final newMatchedLocation = router.state.matchedLocation;
+        if (matchedLocation.value != newMatchedLocation) {
+          matchedLocation.value = newMatchedLocation;
         }
       }
 
@@ -52,26 +59,39 @@ T useWatchWhenVisible<T>({
     [router],
   );
 
-  // Calculate if route is active - recalculate on every build
-  // Check if:
-  // 1. The route path matches (we're on the same route)
-  // 2. The route is current (not behind another route)
-  // 3. The matched location matches (for tab navigation, this ensures we're on the right tab)
-  final currentRoutePath = router?.state.fullPath;
-  final currentMatchedLocation = router?.state.matchedLocation;
-  final initialMatchedLocation = useRef(router?.state.matchedLocation);
-  final isCurrentRoute = context.isCurrentRoute;
+  // Check if isCurrentRoute changed and update state only when necessary
+  // Check synchronously during build, use current value for calculation
+  final currentIsCurrentRoute = context.isCurrentRoute;
 
+  // Update state only when value changes (triggers rebuild for next build cycle)
+  useEffect(
+    () {
+      if (isCurrentRouteRef.value != currentIsCurrentRoute) {
+        isCurrentRouteRef.value = currentIsCurrentRoute;
+        if (isCurrentRouteState.value != currentIsCurrentRoute) {
+          isCurrentRouteState.value = currentIsCurrentRoute;
+        }
+      }
+      return null;
+    },
+    [currentIsCurrentRoute],
+  );
+
+  // Use current value for calculation (most up-to-date), state will be updated for next cycle
+  final isCurrentRouteForCalculation = currentIsCurrentRoute;
+
+  // Calculate if route is active - only recalculates when tracked values change
   final bool isRouteActive;
   if (router == null) {
     isRouteActive = true;
   } else {
+    final currentRoutePath = router.state.fullPath;
     isRouteActive = fullPathRef.value == currentRoutePath &&
-        isCurrentRoute &&
-        (initialMatchedLocation.value == currentMatchedLocation ||
-            (currentMatchedLocation != null &&
+        isCurrentRouteForCalculation &&
+        (initialMatchedLocation.value == matchedLocation.value ||
+            (matchedLocation.value != null &&
                 initialMatchedLocation.value != null &&
-                currentMatchedLocation.startsWith(initialMatchedLocation.value!)));
+                matchedLocation.value!.startsWith(initialMatchedLocation.value!)));
   }
 
   // Conditionally watch provider based on route activation
