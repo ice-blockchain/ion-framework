@@ -18,7 +18,7 @@ import 'package:ion/generated/assets.gen.dart';
 class FeedPostsList extends HookConsumerWidget {
   const FeedPostsList({super.key});
 
-  static const int startAdOffset = 3;
+  static const int startAdOffset = 5;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,10 +68,14 @@ class FeedPostsList extends HookConsumerWidget {
       final adIndices =
           ionAdClient.computeInsertionIndices(initialListItems.length, startOffset: startAdOffset);
       for (final index in adIndices) {
-        initialListItems.insert(
-          index,
-          IonEntityListItem.custom(child: _CustomNativeAd(key: ValueKey(index))),
-        );
+        try {
+          initialListItems.insert(
+            index,
+            IonEntityListItem.custom(child: _CustomNativeAd(key: ValueKey(index))),
+          );
+        } on Object catch (_) {
+          // Ignore all errors
+        }
       }
     }
 
