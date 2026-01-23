@@ -556,6 +556,9 @@ class _SharePostCheckbox extends StatelessWidget {
         label: context.i18n.wallet_swap_confirmation_automatically_share_post_about_trade,
         onChanged: onChanged,
         mainAxisAlignment: MainAxisAlignment.start,
+        textStyle: context.theme.appTextThemes.body2.copyWith(
+          color: context.theme.appColors.sharkText,
+        ),
       ),
     );
   }
