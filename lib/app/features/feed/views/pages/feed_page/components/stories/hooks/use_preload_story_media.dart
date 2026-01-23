@@ -80,25 +80,50 @@ Future<void> preloadStoryMedia({
 
   if (media.mediaType == MediaType.image) {
     final cacheManager = ref.read(storyImageCacheManagerProvider);
-    final resolvedUrl = ref.read(ionConnectMediaUrlProvider(media.url));
 
-    try {
-      await cacheManager.getSingleFile(resolvedUrl);
+    Future<void> precacheResolved(String url) async {
+      await cacheManager.getSingleFile(url);
       if (!context.mounted) return;
 
       final imageProvider = CachedNetworkImageProvider(
-        resolvedUrl,
+        url,
         cacheManager: cacheManager,
-        cacheKey: IONCacheManager.getCacheKeyFromIonUrl(resolvedUrl),
+        cacheKey: IONCacheManager.getCacheKeyFromIonUrl(url),
       );
 
       await precacheImage(imageProvider, context);
+    }
+
+    var resolvedUrl = ref.read(ionConnectMediaUrlProvider(media.url));
+
+    try {
+      await precacheResolved(resolvedUrl);
     } catch (e, stackTrace) {
       Logger.error(
         e,
         stackTrace: stackTrace,
         message: 'Failed to precache story image: $resolvedUrl',
       );
+
+      // Advance the media URL fallback chain (CDN -> original -> relay host -> ...)
+      // and retry precache once.
+      final didFallback = await ref
+          .read(ionConnectMediaUrlProvider(media.url).notifier)
+          .generateFallback(authorPubkey: story.masterPubkey);
+
+      if (!didFallback || !context.mounted) return;
+
+      resolvedUrl = ref.read(ionConnectMediaUrlProvider(media.url));
+
+      try {
+        await precacheResolved(resolvedUrl);
+      } catch (e, stackTrace) {
+        Logger.error(
+          e,
+          stackTrace: stackTrace,
+          message: 'Failed to precache story image after fallback: $resolvedUrl',
+        );
+      }
     }
     return;
   }
