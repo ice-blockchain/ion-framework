@@ -37,8 +37,6 @@ class EditSubmitButton extends ConsumerWidget {
     final isLoading =
         ref.watch(updateUserMetadataNotifierProvider.select((state) => state.isLoading));
 
-    final userMetadata = ref.watch(userMetadataProvider(ref.read(currentPubkeySelectorProvider)!));
-
     return Button(
       disabled: !hasChanges || isLoading,
       type: hasChanges ? ButtonType.primary : ButtonType.disabled,
@@ -56,16 +54,17 @@ class EditSubmitButton extends ConsumerWidget {
               .read(imageProcessorNotifierProvider(ImageProcessingType.banner))
               .whenOrNull(processed: (file) => file);
 
-          await _publishChanges(
+          final isPublished = await _publishChanges(
             context: context,
             ref: ref,
             draft: draftRef.value,
-            currentUserMetadata: userMetadata.valueOrNull,
             avatarFile: avatarFile,
             bannerFile: bannerFile,
           );
 
-          if (context.mounted && !ref.read(updateUserMetadataNotifierProvider).hasError) {
+          if (context.mounted &&
+              !ref.read(updateUserMetadataNotifierProvider).hasError &&
+              isPublished) {
             context.maybePop();
           }
         }
@@ -75,23 +74,26 @@ class EditSubmitButton extends ConsumerWidget {
     );
   }
 
-  Future<void> _publishChanges({
+  Future<bool> _publishChanges({
     required BuildContext context,
     required WidgetRef ref,
     required user_model.UserMetadata draft,
-    required user_model.UserMetadataEntity? currentUserMetadata,
     MediaFile? avatarFile,
     MediaFile? bannerFile,
   }) async {
-    final nameOrNicknameChanged = draft.name != currentUserMetadata?.data.name ||
-        draft.displayName != currentUserMetadata?.data.displayName;
+    final currentUserMetadata = ref.read(currentUserMetadataProvider).valueOrNull;
+    if (currentUserMetadata == null) {
+      return false;
+    }
+
+    final nameOrNicknameChanged = draft.name != currentUserMetadata.data.name ||
+        draft.displayName != currentUserMetadata.data.displayName;
 
     if (nameOrNicknameChanged) {
       final hasCreatorToken = ref
-          .watch(
+          .read(
             ionConnectEntityHasTokenProvider(
-              eventReference:
-                  draft.toReplaceableEventReference(ref.read(currentPubkeySelectorProvider)!),
+              eventReference: currentUserMetadata.toEventReference(),
             ),
           )
           .valueOrNull
@@ -114,11 +116,14 @@ class EditSubmitButton extends ConsumerWidget {
             child: child,
           ),
         );
-        return;
+
+        return true;
       }
     }
     await ref
         .read(updateUserMetadataNotifierProvider.notifier)
         .publish(draft, avatar: avatarFile, banner: bannerFile);
+
+    return true;
   }
 }
