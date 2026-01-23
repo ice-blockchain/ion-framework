@@ -322,8 +322,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
           final service = await ref.read(tradeCommunityTokenServiceProvider.future);
           contractAddress = await withRetry<String>(
             ({Object? error}) async {
-              final freshTokenInfo =
-                  await service.repository.fetchTokenInfoFresh(params.externalAddress);
+              final freshTokenInfo = await service.fetchTokenInfoFresh(params.externalAddress);
               final tokenAddress = freshTokenInfo?.addresses.blockchain;
               if (tokenAddress == null || tokenAddress.isEmpty) {
                 throw TokenAddressNotFoundException(params.externalAddress);
@@ -362,7 +361,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     // For first buy (existingTokenAddress is null/empty), we should proceed with import.
     final shouldSkip = existingTokenAddress != null &&
         existingTokenAddress.isNotEmpty &&
-        existingTokenAddress != contractAddress;
+        existingTokenAddress.toLowerCase() != contractAddress.toLowerCase();
 
     if (shouldSkip) {
       return;

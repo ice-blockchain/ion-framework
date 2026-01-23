@@ -168,6 +168,10 @@ class TradeCommunityTokenService {
     );
   }
 
+  Future<CommunityToken?> fetchTokenInfoFresh(String externalAddress) async {
+    return repository.fetchTokenInfoFresh(externalAddress);
+  }
+
   Future<TransactionResult> _performSwap({
     required String externalAddress,
     required String fromTokenAddress,
