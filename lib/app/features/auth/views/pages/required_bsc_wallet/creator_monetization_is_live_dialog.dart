@@ -45,8 +45,11 @@ class CreatorMonetizationIsLiveDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final avatarUrl = ref.watch(currentUserMetadataProvider).value?.data.avatarUrl;
+    final imageColors = useImageColors(avatarUrl);
+
     return ProfileGradientBackground(
-      colors: useAvatarFallbackColors,
+      colors: imageColors ?? useAvatarFallbackColors,
       disableDarkGradient: false,
       child: const _ContentState(),
     );
