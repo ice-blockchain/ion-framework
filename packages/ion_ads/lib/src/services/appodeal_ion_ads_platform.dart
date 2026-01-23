@@ -30,8 +30,11 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     _hasConsent = hasConsent;
     Appodeal.setTesting(testMode);
     Appodeal.setLogLevel(verbose ? Appodeal.LogLevelVerbose : Appodeal.LogLevelNone);
+    Appodeal.setAutoCache(AppodealAdType.Interstitial, false);
+    Appodeal.setAutoCache(AppodealAdType.MREC, false);
+    Appodeal.setAutoCache(AppodealAdType.Banner, false);
+    Appodeal.setAutoCache(AppodealAdType.RewardedVideo, false);
     Appodeal.setAutoCache(AppodealAdType.NativeAd, true);
-    Appodeal.setUseSafeArea(true);
 
     if (hasConsent) {
       await Appodeal.consentForm.load(
@@ -49,10 +52,12 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
       },
     );
 
+    _setupAppodealCallbacks();
+
     await Appodeal.initialize(
       appKey: Platform.isAndroid ? androidAppKey : iosAppKey,
       adTypes: nativeOnly
-          ? [AppodealAdType.Banner, AppodealAdType.NativeAd]
+          ? [AppodealAdType.NativeAd]
           : [
               AppodealAdType.RewardedVideo,
               AppodealAdType.Interstitial,
@@ -68,8 +73,6 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
         _initialized = true;
       },
     );
-
-    _setupAppodealCallbacks();
   }
 
   void _setupAppodealCallbacks() {
@@ -143,12 +146,12 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     );
 
     Appodeal.setNativeCallbacks(
-      onNativeLoaded: () async {
-        log('onNativeLoaded');
+      onNativeLoaded: (message) async {
+        log('onNativeLoaded message:$message');
         await _checkAdAvailability();
       },
-      onNativeFailedToLoad: () {
-        log('onNativeFailedToLoad');
+      onNativeFailedToLoad: (message) {
+        log('onNativeFailedToLoad :$message');
         _isNativeLoaded = false;
       },
       onNativeShown: () => log('onNativeShown'),
