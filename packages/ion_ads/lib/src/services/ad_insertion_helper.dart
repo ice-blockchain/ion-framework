@@ -7,25 +7,39 @@ class AdInsertionHelper {
 
   final int baseInterval; // e.g., X
   final int randomDelta; // e.g., Y
+  final rng = Random(DateTime.now().millisecondsSinceEpoch);
+  final adIndices = <int>[];
 
   /// Returns indices where ads should be inserted for a list of [contentCount].
   /// Ensures spacing of roughly X ± Y between ads.
   List<int> computeInsertionIndices(int contentCount, {int startOffset = 0}) {
-    final indices = <int>[];
-    if (contentCount <= 0 || baseInterval <= 0) return indices;
+    if (contentCount <= 0 || baseInterval <= 0) return adIndices;
 
-    final rng = Random(baseInterval);
+    try {
+      final nextAdIndex =
+          (startOffset + rng.nextInt(randomDelta) - rng.nextInt(startOffset) / 2).toInt();
+      var maxIndex = contentCount + adIndices.length;
+      if (adIndices.isNotEmpty && adIndices.last >= maxIndex) {
+        adIndices.clear();
+        maxIndex = contentCount;
+      }
 
-    // Initial position: It is okay for the first ad to be at index 1.
-    final next = max(1, startOffset + rng.nextInt(randomDelta));
-    var cursor = next;
-    while (cursor < contentCount) {
-      indices.add(cursor);
+      var cursor = adIndices.isEmpty ? nextAdIndex : adIndices.last + nextAdIndex;
+      while (cursor < maxIndex) {
+        adIndices.add(cursor);
 
-      // Subsequent gaps: Enforce a minimum of 2 to prevent adjacent ads (e.g., 20, 21).
-      final gap = max(2, startOffset + rng.nextInt(randomDelta));
-      cursor += gap;
+        final nextOffset = rng.nextInt(startOffset + 1);
+        final gap = nextOffset + rng.nextInt(randomDelta);
+        cursor += max(baseInterval, gap);
+      }
+
+      print('computeInsertionIndices :$adIndices');
+    } on Object catch (e) {
+      print('computeInsertionIndices error: $e');
+
+      adIndices.clear();
     }
-    return indices;
+
+    return adIndices;
   }
 }
