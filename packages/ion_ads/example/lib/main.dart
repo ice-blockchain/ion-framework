@@ -67,10 +67,10 @@ Future<void> _initializeAppodeal() async {
     // Replace with your actual Appodeal app key from https://app.appodeal.com/
     appKey: _exampleAppodealKey,
     adTypes: [
-      //AppodealAdType.RewardedVideo,
+      AppodealAdType.RewardedVideo,
       AppodealAdType.Interstitial,
       AppodealAdType.Banner,
-      //AppodealAdType.MREC,
+      AppodealAdType.MREC,
       AppodealAdType.NativeAd,
     ],
     onInitializationFinished: (errors) {
@@ -172,11 +172,11 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     Appodeal.setNativeCallbacks(
-      onNativeLoaded: () {
-        log('NativeCallback: onNativeLoaded');
+      onNativeLoaded: (message) {
+        log('NativeCallback: onNativeLoaded count :$message');
         setState(() => _isNativeLoaded = true);
       },
-      onNativeFailedToLoad: () => log('NativeCallback: onNativeFailedToLoad'),
+      onNativeFailedToLoad: (message) => log('NativeCallback: onNativeFailedToLoad : $message'),
       onNativeShown: () => log('NativeCallback: onNativeShown'),
       onNativeShowFailed: () => log('NativeCallback: onNativeShowFailed'),
       onNativeClicked: () => log('NativeCallback: onNativeClicked'),

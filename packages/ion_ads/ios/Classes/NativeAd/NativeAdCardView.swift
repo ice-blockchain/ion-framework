@@ -79,7 +79,6 @@ final class NativeAdCardView: UIView {
 
             descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -2),
             descriptionTextLabel.leadingAnchor.constraint(equalTo: titleTextLabel.leadingAnchor),
-            descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
 
             // 3. Adjust layout to make space for the rating view
             starRatingView.topAnchor.constraint(equalTo: descriptionTextLabel.bottomAnchor, constant: 4),
@@ -133,6 +132,8 @@ final class NativeAdCardView: UIView {
                 
                 cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: 0),
                 cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 10.0/16.0),
+                titleTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
+                descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8)
             ])
         case .bottom:
             constraints.append(contentsOf: [
@@ -142,6 +143,9 @@ final class NativeAdCardView: UIView {
                 
                 cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: callToActionView.topAnchor, constant: -padding),
                 cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 9.0/16.0),
+                
+                titleTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: 0),
+                descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: 0)
             ])
         }
 

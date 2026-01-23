@@ -8,7 +8,7 @@ final class AppodealNative {
     
     private lazy var settings: APDNativeAdSettings = {
         let adSettings = APDNativeAdSettings.default()
-        adSettings.autocacheMask = [.icon, .media]
+        //adSettings.autocacheMask = [.icon, .media]
         adSettings.type = .auto
 
         return adSettings
@@ -18,7 +18,7 @@ final class AppodealNative {
         sdk: nil,
         settings: settings,
         delegate: adListener,
-        autocache: true
+        autocache: false
     )
     
     private lazy var nativeArray: [APDNativeAd] = []
@@ -58,12 +58,18 @@ final class AppodealNative {
         }
         
         func adQueueAdIsAvailable(_ adQueue: APDNativeAdQueue, ofCount count: UInt) {
-            adChannel.invokeMethod("onNativeLoaded", arguments: nil)
-            print("The value is \(adQueue.currentAdCount)")
+            adChannel.invokeMethod("onNativeLoaded", arguments: count)
+            print("0\(adQueue.currentAdCount)")
         }
         
         func adQueue(_ adQueue: APDNativeAdQueue, failedWithError error: Error) {
-            adChannel.invokeMethod("onNativeFailedToLoad", arguments: nil)
+            print("onNativeFailedToLoad: \(error)")
+            let errorDetails: [String: Any] = [
+                "errorCode": (error as NSError).code,
+                "message": error.localizedDescription
+            ]
+
+            adChannel.invokeMethod("onNativeFailedToLoad", arguments: errorDetails)
         }
         
         func nativeAdWillLogImpression(_ nativeAd: APDNativeAd) {
