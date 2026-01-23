@@ -21,6 +21,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trade_row.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -126,7 +127,7 @@ class _CreatorTokenIsLiveLabel extends StatelessWidget {
   }
 }
 
-class _TwitterTokenUserInfo extends ConsumerWidget {
+class _TwitterTokenUserInfo extends HookConsumerWidget {
   const _TwitterTokenUserInfo({
     required this.entity,
   });
@@ -135,7 +136,9 @@ class _TwitterTokenUserInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(entity.data.externalAddress)).valueOrNull;
+    final tokenInfo = useWatchWhenVisible(
+      watcher: () => ref.watch(tokenMarketInfoProvider(entity.data.externalAddress)).valueOrNull,
+    );
 
     if (tokenInfo == null) {
       return const SizedBox.shrink();

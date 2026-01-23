@@ -14,10 +14,11 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_deta
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_user_info.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class ProfileDetails extends ConsumerWidget {
+class ProfileDetails extends HookConsumerWidget {
   const ProfileDetails({
     required this.pubkey,
     this.profileMode = ProfileMode.light,
@@ -37,14 +38,19 @@ class ProfileDetails extends ConsumerWidget {
 
     final hasBscWallet = (userMetadata.valueOrNull?.hasBscWallet).falseOrValue;
 
-    final tokenInfo = profileMode == ProfileMode.dark
-        ? eventReference != null && hasBscWallet
-            ? ref.watch(
-                tokenMarketInfoIfAvailableProvider(eventReference),
-              )
-            : null
-        : null;
-    final token = tokenInfo?.valueOrNull;
+    // Always call hook unconditionally (required by Flutter hooks rules)
+    // The watcher handles conditional logic internally
+    final tokenInfo = useWatchWhenVisible<AsyncValue<CommunityToken?>>(
+      watcher: () {
+        if (profileMode == ProfileMode.dark && eventReference != null && hasBscWallet) {
+          return ref.watch(
+            tokenMarketInfoIfAvailableProvider(eventReference),
+          );
+        }
+        return const AsyncData<CommunityToken?>(null);
+      },
+    );
+    final token = tokenInfo.valueOrNull;
 
     return ScreenSideOffset.small(
       child: Column(

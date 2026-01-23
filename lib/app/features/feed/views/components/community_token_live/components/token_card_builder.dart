@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TokenCardBuilder extends HookConsumerWidget {
@@ -21,14 +22,16 @@ class TokenCardBuilder extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.watch(
-          tokenMarketInfoProvider(externalAddress).select((value) {
-            final token = value.valueOrNull;
-            if (token != null) {
-              ListCachedObjects.updateObject<CommunityToken>(context, token);
-            }
-            return token;
-          }),
+    final token = useWatchWhenVisible(
+          watcher: () => ref.watch(
+            tokenMarketInfoProvider(externalAddress).select((value) {
+              final token = value.valueOrNull;
+              if (token != null) {
+                ListCachedObjects.updateObject<CommunityToken>(context, token);
+              }
+              return token;
+            }),
+          ),
         ) ??
         ListCachedObjects.maybeObjectOf<CommunityToken>(context, externalAddress);
 

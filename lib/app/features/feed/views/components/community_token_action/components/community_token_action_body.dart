@@ -21,6 +21,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_balance.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_chart.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_hodl.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 
 class CommunityTokenActionBody extends HookConsumerWidget {
   const CommunityTokenActionBody({
@@ -62,8 +63,9 @@ class CommunityTokenActionBody extends HookConsumerWidget {
     }
 
     final externalAddress = definitionEntity.data.externalAddress;
-
-    final tokenMarketInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenMarketInfo = useWatchWhenVisible(
+      watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
+    );
 
     final topContainerHeight = 52.0.s;
     final padding = 16.0.s;

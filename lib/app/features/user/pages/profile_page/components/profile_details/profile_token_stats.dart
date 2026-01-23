@@ -15,13 +15,14 @@ import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class ProfileTokenStats extends ConsumerWidget {
+class ProfileTokenStats extends HookConsumerWidget {
   const ProfileTokenStats({
     this.eventReference,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
@@ -40,8 +41,10 @@ class ProfileTokenStats extends ConsumerWidget {
     if (eventReference == null) {
       return const SizedBox.shrink();
     }
-    final tokenInfo = ref.watch(
-      tokenMarketInfoIfAvailableProvider(eventReference!),
+    final tokenInfo = useWatchWhenVisible(
+      watcher: () => ref.watch(
+        tokenMarketInfoIfAvailableProvider(eventReference!),
+      ),
     );
 
     if (!tokenInfo.hasValue) {
