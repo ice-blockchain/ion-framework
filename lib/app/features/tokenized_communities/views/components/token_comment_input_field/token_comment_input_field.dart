@@ -25,6 +25,7 @@ import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_i
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_italic_button.dart';
 import 'package:ion/app/features/feed/views/components/toolbar_buttons/toolbar_poll_button.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/features/nsfw/hooks/use_nsfw_validation.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tooltip/hooks/use_show_tooltip_overlay.dart';
@@ -57,6 +58,11 @@ class TokenCommentInputField extends HookConsumerWidget {
     final attachedMediaNotifier = useState(<MediaFile>[]);
     final attachedMediaLinksNotifier = useState<Map<String, MediaAttachment>>({});
     final scrollController = useScrollController();
+
+    useNsfwValidation(
+      mediaFiles: attachedMediaNotifier.value,
+      ref: ref,
+    );
 
     final showTooltipOverlay = useShowTooltipOverlay(
       targetKey: inputContainerKey.value,
