@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "Сделка будет отменена, если цена изменится больше указанного процента проскальзывания",
   "wallet_swap_slippage_settings_label": "Проскальзывание",
   "wallet_swap_slippage_settings_title": "Настройки проскальзывания",
-  "wallet_swapped_coins": "Обменять",
+  "wallet_swapped_coins": "Обмен",
   "wallet_swapping_coins": "Обмен...",
   "wallet_title": "Кошелёк",
   "wallet_transaction_details": "Детали",

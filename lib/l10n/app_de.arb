@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "Ihre Transaktion wird rückgängig gemacht, wenn sich der Preis mehr als der Slippage-Prozentsatz ändert",
   "wallet_swap_slippage_settings_label": "Slippage",
   "wallet_swap_slippage_settings_title": "Slippage-Einstellungen",
-  "wallet_swapped_coins": "Tauschen",
+  "wallet_swapped_coins": "Tausch",
   "wallet_swapping_coins": "Tausche...",
   "wallet_title": "Wallet",
   "wallet_transaction_details": "Details",

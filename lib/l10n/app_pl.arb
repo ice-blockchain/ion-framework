@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "Transakcja zostanie cofnięta, jeśli cena zmieni się bardziej niż procent poślizgu",
   "wallet_swap_slippage_settings_label": "Poślizg",
   "wallet_swap_slippage_settings_title": "Ustawienia poślizgu",
-  "wallet_swapped_coins": "Zamień",
+  "wallet_swapped_coins": "Wymiana",
   "wallet_swapping_coins": "Wymiana...",
   "wallet_title": "Portfel",
   "wallet_transaction_details": "Szczegóły",

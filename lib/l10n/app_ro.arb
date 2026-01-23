@@ -1170,7 +1170,7 @@
   "wallet_swap_slippage_settings_description": "Tranzacția va fi anulată dacă prețul se schimbă mai mult decât procentul de slippage",
   "wallet_swap_slippage_settings_label": "Slippage",
   "wallet_swap_slippage_settings_title": "Setări slippage",
-  "wallet_swapped_coins": "Schimbă",
+  "wallet_swapped_coins": "Schimb",
   "wallet_swapping_coins": "Se schimbă...",
   "wallet_title": "Portofel",
   "wallet_transaction_details": "Detalii",
