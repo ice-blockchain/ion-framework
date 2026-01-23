@@ -3,6 +3,7 @@
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/services/file_cache/ion_http_file_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'story_image_loading_provider.r.g.dart';
@@ -28,6 +29,7 @@ BaseCacheManager storyImageCacheManager(Ref ref) {
       _kStoryCacheKey,
       stalePeriod: Duration(hours: expirationHours),
       maxNrOfCacheObjects: 100,
+      fileService: IonHttpFileService(),
     ),
   );
 }
