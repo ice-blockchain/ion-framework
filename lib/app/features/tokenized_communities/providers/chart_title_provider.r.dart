@@ -14,7 +14,6 @@ part 'chart_title_provider.r.g.dart';
 // For profile tokens: Returns "@nickname (ticker)" where:
 //   - nickname comes from the profile this token represents (resolved from externalAddress)
 //   - ticker is lowercase
-// For Twitter tokens: Returns "$ticker"
 // For content tokens: Returns ticker as is from BE
 @riverpod
 Future<String?> chartTitle(
