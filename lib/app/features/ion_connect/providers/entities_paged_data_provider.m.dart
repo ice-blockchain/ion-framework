@@ -251,8 +251,9 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
           }
         }
       } on SubscriptionNotFoundException catch (e, stackTrace) {
-        // keep state when relay closes early
+        // TODO: Investigate why this is happening and handle it gracefully
         Logger.error(e, stackTrace: stackTrace, message: 'SubscriptionNotFoundException');
+        // keep state when relay closes early
       }
       return DataSourceFetchResult(
         entry: MapEntry(
