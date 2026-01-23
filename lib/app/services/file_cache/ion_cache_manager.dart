@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:file/file.dart' hide FileSystem;
 import 'package:file/local.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:ion/app/services/file_cache/ion_http_file_service.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -17,7 +20,7 @@ class IONCacheManager {
       stalePeriod: const Duration(days: 60),
       repo: JsonCacheInfoRepository(databaseName: key),
       fileSystem: IONFileSystem(key),
-      fileService: HttpFileService(),
+      fileService: IonHttpFileService(),
     ),
   );
 
@@ -26,6 +29,7 @@ class IONCacheManager {
       'ionNetworkImageCache',
       maxNrOfCacheObjects: 1000,
       stalePeriod: const Duration(days: 60),
+      fileService: IonHttpFileService(),
     ),
   );
 
@@ -34,6 +38,7 @@ class IONCacheManager {
       'ionConnectNetworkImageCacheKey',
       maxNrOfCacheObjects: 1000,
       stalePeriod: const Duration(days: 1),
+      fileService: IonHttpFileService(),
     ),
   );
 
@@ -42,6 +47,7 @@ class IONCacheManager {
       'networkVideosCacheKey',
       maxNrOfCacheObjects: 100,
       stalePeriod: const Duration(days: 1),
+      fileService: IonHttpFileService(),
     ),
   );
 
@@ -50,6 +56,7 @@ class IONCacheManager {
       'preCachePicturesCacheKey',
       maxNrOfCacheObjects: 1000,
       stalePeriod: const Duration(days: 60),
+      fileService: IonHttpFileService(),
     ),
   );
 

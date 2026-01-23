@@ -79,6 +79,7 @@ class IonNetworkImage extends HookWidget {
               maxWidth: memCacheWidth,
               maxHeight: memCacheHeight,
               cacheKey: cacheKey,
+              cacheManager: cacheManager,
             ),
             fit: fit,
           ),

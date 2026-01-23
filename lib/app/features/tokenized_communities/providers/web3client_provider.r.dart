@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/core/providers/rpc_proxy_domains_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/services/bsc_rpc_failover_http_client.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:ion/app/utils/url.dart';
@@ -65,7 +66,8 @@ class BscRpcUrlPreference extends _$BscRpcUrlPreference {
 List<Uri> bscRpcUris(Ref ref) {
   final env = ref.watch(envProvider.notifier);
   final urlsRaw = env.get<String>(EnvVariable.CRYPTOCURRENCIES_BSC_RPC_URLS);
-  return parseUrlsString(urlsRaw);
+  final rpcProxyUris = ref.read(rpcProxyConnectUrisProvider);
+  return [...parseUrlsString(urlsRaw), ...rpcProxyUris];
 }
 
 @riverpod
