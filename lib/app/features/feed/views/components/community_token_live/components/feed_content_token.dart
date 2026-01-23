@@ -13,6 +13,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -131,23 +132,20 @@ class ContentTokenHeader extends HookConsumerWidget {
 
     final isVerified = ref.watch(isUserVerifiedProvider(eventReference.masterPubkey));
 
-    final (mediaAttachment, content) =
-        useMemoized<(MediaAttachment? mediaAttachment, String? content)>(
-      () {
-        if (entity is ModifiablePostEntity) {
-          return (entity.data.primaryMedia, entity.data.textContent.trim());
-        } else if (entity is PostEntity) {
-          return (entity.data.primaryMedia, entity.data.content.trim());
-        } else if (entity is ArticleEntity) {
-          final headerMedia =
-              entity.data.media.entries.firstWhereOrNull((t) => t.value.url == entity.data.image);
-
-          return (headerMedia?.value, entity.data.title?.trim());
-        }
-        return (null, null);
-      },
-      [entity],
-    );
+    MediaAttachment? mediaAttachment;
+    String? content;
+    if (entity is ModifiablePostEntity) {
+      mediaAttachment = entity.data.primaryMedia;
+      content = ref.watch(parsedMediaPlainTextProvider(entity.data)).trim();
+    } else if (entity is PostEntity) {
+      mediaAttachment = entity.data.primaryMedia;
+      content = ref.watch(parsedMediaPlainTextProvider(entity.data)).trim();
+    } else if (entity is ArticleEntity) {
+      mediaAttachment = entity.data.media.entries
+          .firstWhereOrNull((t) => t.value.url == entity.data.image)
+          ?.value;
+      content = entity.data.title?.trim();
+    }
 
     final layoutConfig = useMemoized<_MediaLayoutConfig>(
       () {
