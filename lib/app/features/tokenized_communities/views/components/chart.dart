@@ -53,6 +53,7 @@ class Chart extends HookConsumerWidget {
         candles: candlesAsync.valueOrNull ?? const [],
         price: price,
         selectedRange: selectedRange.value,
+        tokenCreatedAt: DateTime.parse(createdAtOfToken),
       ),
     );
 
