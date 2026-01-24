@@ -66,7 +66,7 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
 }
 
 // Builds flat candles for empty state (all candles at same price).
-// Creates candles respecting token creation, with max ~35 candles.
+// Creates candles respecting token creation, with max 35 candles.
 // For young tokens: starts from creation. For old tokens: starts from 35 intervals back.
 List<ChartCandle> _buildFlatCandles(
   Decimal price,
