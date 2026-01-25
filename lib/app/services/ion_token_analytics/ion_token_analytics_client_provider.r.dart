@@ -2,15 +2,18 @@
 
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
+import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/auth_event.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/services/ion_token_analytics/token_analytics_logger.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -24,13 +27,38 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
 
   final authToken = await ref.watch(tokenAnalyticsAuthTokenProvider);
 
-  return IonTokenAnalyticsClient.create(
+  final client = await IonTokenAnalyticsClient.create(
     options: IonTokenAnalyticsClientOptions(
       baseUrl: baseUrl,
       authToken: authToken,
       logger: TokenAnalyticsLogger(),
     ),
   );
+
+  // Listen to app lifecycle changes and dispose client when backgrounded.
+  // This prevents "Bad file descriptor" errors that occur when the OS closes
+  // the socket while the app is in the background.
+  ref
+    ..listen<AppLifecycleState>(appLifecycleProvider, (previous, next) {
+      if (next != AppLifecycleState.resumed && previous == AppLifecycleState.resumed) {
+        Logger.log(
+          '[IonTokenAnalyticsClient] App backgrounded, disposing client',
+        );
+        client.dispose();
+        // Invalidate this provider so a fresh client is created when the app resumes
+        ref.invalidateSelf();
+      }
+    })
+
+    // Ensure cleanup when provider is disposed
+    ..onDispose(() {
+      Logger.log(
+        '[IonTokenAnalyticsClient] Provider disposed, disposing client',
+      );
+      client.dispose();
+    });
+
+  return client;
 }
 
 @riverpod

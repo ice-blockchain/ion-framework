@@ -110,18 +110,59 @@ class Http2Connection {
 
     try {
       await _transport?.terminate();
+    } catch (_) {
+      // Socket may already be closed by OS (e.g., app backgrounded)
     } finally {
       _transport = null;
     }
 
     try {
       await _socket?.close();
+    } catch (_) {
+      // Socket may already be closed by OS (e.g., app backgrounded)
     } finally {
       _socket = null;
     }
 
     _updateStatus(const ConnectionStatusDisconnected());
   }
+
+  /// Forces disconnection immediately, useful when the socket was closed
+  /// externally (e.g., app backgrounded by OS).
+  ///
+  /// Unlike [disconnect], this method:
+  /// - Does not check current status before disconnecting
+  /// - Silently ignores all errors during cleanup
+  /// - Always transitions to disconnected state
+  ///
+  /// Use this when you detect a stale connection (e.g., SocketException with
+  /// errno 9 "Bad file descriptor").
+  Future<void> forceDisconnect() async {
+    // Immediately mark as disconnected so any pending operations fail fast
+    _updateStatus(const ConnectionStatusDisconnected());
+
+    // Best-effort cleanup - socket may already be closed by OS
+    try {
+      await _transport?.terminate();
+    } catch (_) {
+      // Ignore - socket may be in invalid state
+    }
+    _transport = null;
+
+    try {
+      await _socket?.close();
+    } catch (_) {
+      // Ignore - socket may be in invalid state
+    }
+    _socket = null;
+  }
+
+  /// Returns true if the connection appears to be active.
+  ///
+  /// Note: This only checks the connection status, not whether the underlying
+  /// socket is still valid. The socket could have been closed by the OS
+  /// (e.g., when the app was backgrounded) without updating this status.
+  bool get isActive => _currentStatus is ConnectionStatusConnected;
 
   /// Closes the connection and releases all resources.
   ///

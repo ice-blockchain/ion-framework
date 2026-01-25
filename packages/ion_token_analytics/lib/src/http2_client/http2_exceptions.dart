@@ -114,3 +114,42 @@ class WebSocketDecompressionException extends Http2ClientException {
   const WebSocketDecompressionException(dynamic error)
     : super('Failed to decompress WebSocket message: $error');
 }
+
+/// Exception thrown when the HTTP/2 connection has become stale.
+///
+/// This typically occurs when:
+/// - The app was backgrounded and the OS closed the socket
+/// - The network connection was interrupted
+/// - A SocketException with errno 9 "Bad file descriptor" was received
+/// - An HTTP/2 GOAWAY frame with error code 10 was received
+///
+/// When this exception is caught, callers should:
+/// 1. Call `forceDisconnect()` on the client to clean up the stale connection
+/// 2. Retry the operation after a delay (with exponential backoff)
+class Http2StaleConnectionException extends Http2ClientException {
+  const Http2StaleConnectionException(this.originalError)
+    : super('HTTP/2 connection is stale (socket closed by OS or network interruption)');
+
+  /// The original error that indicated the connection was stale.
+  final Object originalError;
+
+  /// Checks if an error indicates a stale connection.
+  ///
+  /// Returns true if the error is a SocketException with errno 9 (Bad file descriptor)
+  /// or an HTTP/2 connection error with errorCode 10 (ENHANCE_YOUR_CALM / connection forcefully terminated).
+  static bool isStaleConnectionError(Object error) {
+    final errorString = error.toString();
+
+    // Check for "Bad file descriptor" (errno = 9)
+    if (errorString.contains('Bad file descriptor') || errorString.contains('errno = 9')) {
+      return true;
+    }
+
+    // Check for HTTP/2 GOAWAY with errorCode 10
+    if (errorString.contains('forcefully terminated') || errorString.contains('errorCode: 10')) {
+      return true;
+    }
+
+    return false;
+  }
+}

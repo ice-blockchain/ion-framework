@@ -124,6 +124,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       return fetchedCount;
     } catch (e, st) {
       Logger.error(e, stackTrace: st, message: 'Error loading more trades');
+      await _handleConnectionError(e);
       return 0;
     }
   }
@@ -165,6 +166,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       });
     } catch (e, st) {
       Logger.error(e, stackTrace: st, message: 'Error loading initial trades');
+      await _handleConnectionError(e);
     }
   }
 
@@ -189,7 +191,9 @@ class TokenLatestTrades extends _$TokenLatestTrades {
             // We want newest at the top. If the backend ever sends a mixed order,
             // sorting ascending + inserting at index 0 preserves correct ordering.
             final sorted = List<LatestTrade>.of(updates)
-              ..sort((a, b) => _createdAtAsc(a.position.createdAt, b.position.createdAt));
+              ..sort(
+                (a, b) => _createdAtAsc(a.position.createdAt, b.position.createdAt),
+              );
 
             for (final trade in sorted) {
               final key = _tradeKey(trade);
@@ -211,7 +215,12 @@ class TokenLatestTrades extends _$TokenLatestTrades {
         }
       } catch (e, st) {
         // Don’t fail the provider; keep showing the last known trades.
-        Logger.error(e, stackTrace: st, message: 'Latest trades subscription failed; reconnecting');
+        Logger.error(
+          e,
+          stackTrace: st,
+          message: 'Latest trades subscription failed; reconnecting',
+        );
+        await _handleConnectionError(e);
       } finally {
         try {
           await _activeSubscription?.close();
@@ -234,6 +243,20 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     controller.add(List<LatestTrade>.unmodifiable(_currentTrades));
   }
 
+  Future<void> _handleConnectionError(Object error) async {
+    if (_disposed) return;
+
+    if (error is Http2StaleConnectionException ||
+        Http2StaleConnectionException.isStaleConnectionError(error)) {
+      try {
+        final client = await _clientFuture;
+        await client.forceDisconnect();
+      } catch (_) {
+        // Ignore secondary errors while forcing disconnect
+      }
+    }
+  }
+
   String _tradeKey(LatestTrade trade) {
     // `createdAt` + ionConnect address + type + amount gives a stable-enough id and
     // protects against rare same-timestamp collisions.
@@ -253,6 +276,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
   }
 
   void _sortTrades() {
-    _currentTrades.sort((a, b) => _createdAtAsc(b.position.createdAt, a.position.createdAt));
+    _currentTrades.sort(
+      (a, b) => _createdAtAsc(b.position.createdAt, a.position.createdAt),
+    );
   }
 }

@@ -150,6 +150,14 @@ class NetworkClient {
     return _client.dispose();
   }
 
+  /// Forces the underlying HTTP/2 client to drop the current connection.
+  ///
+  /// Use this when the connection is suspected to be stale (e.g., after
+  /// backgrounding) to ensure the next request/subscription reconnects.
+  Future<void> forceDisconnect() {
+    return _client.forceDisconnect();
+  }
+
   /// Builds a map of query parameters suitable for HTTP requests.
   ///
   /// Converts the input [queryParameters] map into a string-based map where:
