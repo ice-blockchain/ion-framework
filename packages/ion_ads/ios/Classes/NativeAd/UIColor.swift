@@ -29,7 +29,7 @@ extension UIColor {
         static let text = UIColor(hex: "#0E0E0E") ?? UIColor.darkText // UIColor(named: "StackTextColor")
         static let cardBackground = UIColor(hex: "#F5F7FF")!
         static let onTertiaryBackground = UIColor(hex: "#5A5E66")!
-        
+
         static var tableBackground: UIColor {
             if #available(iOS 13, *) {
                 return .secondarySystemBackground
@@ -92,6 +92,24 @@ extension UIColor {
     }
 }
 
+enum DesignSystem {
+    enum Spacing {
+        static let extraSmall: CGFloat = 2
+        static let small: CGFloat = 4
+        static let medium: CGFloat = 8
+        static let large: CGFloat = 16
+        static let screenEdge: CGFloat = 16
+    }
+
+    enum Dimensions {
+        static let iconLarge: CGFloat = 40
+        static let iconMedium: CGFloat = 33
+        static let iconPadding: CGFloat = 12
+        static let actionButtonWidth: CGFloat = 100
+        static let adBadgeWidth: CGFloat = 27
+        static let adBadgeHeight: CGFloat = 18
+    }
+}
 
 enum AppFonts {
     static func loadFonts() {

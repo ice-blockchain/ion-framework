@@ -87,40 +87,40 @@ final class NativeAdStoryView: UIView {
             mediaContainer.bottomAnchor.constraint(equalTo: bottomAnchor),
 
             // --- Bottom Container ---
-            bottomContainerView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            bottomContainerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            bottomContainerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            bottomContainerView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: DesignSystem.Spacing.screenEdge),
+            bottomContainerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -DesignSystem.Spacing.screenEdge),
+            bottomContainerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -DesignSystem.Dimensions.iconPadding),
             // No fixed height, let content dictate it + padding
 
             // --- Icon ---
-            iconImageView.topAnchor.constraint(equalTo: bottomContainerView.topAnchor, constant: 12),
-            iconImageView.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor, constant: 12),
-            iconImageView.widthAnchor.constraint(equalToConstant: 40),
-            iconImageView.heightAnchor.constraint(equalToConstant: 40),
+            iconImageView.topAnchor.constraint(equalTo: bottomContainerView.topAnchor, constant: DesignSystem.Dimensions.iconPadding),
+            iconImageView.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor, constant: DesignSystem.Dimensions.iconPadding),
+            iconImageView.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.iconLarge),
+            iconImageView.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.iconLarge),
             // Constrain bottom of container to be at least below icon + padding
-            bottomContainerView.bottomAnchor.constraint(greaterThanOrEqualTo: iconImageView.bottomAnchor, constant: 12),
+            bottomContainerView.bottomAnchor.constraint(greaterThanOrEqualTo: iconImageView.bottomAnchor, constant: DesignSystem.Dimensions.iconPadding),
 
             // --- Title ---
-            titleTextLabel.topAnchor.constraint(equalTo: iconImageView.topAnchor),
-            titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 12),
-            titleTextLabel.trailingAnchor.constraint(equalTo: callToActionView.leadingAnchor, constant: -8),
+            titleTextLabel.topAnchor.constraint(equalTo: iconImageView.topAnchor, constant: DesignSystem.Spacing.extraSmall),
+            titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: DesignSystem.Dimensions.iconPadding),
+            titleTextLabel.trailingAnchor.constraint(equalTo: callToActionView.leadingAnchor, constant: -DesignSystem.Spacing.small),
 
             // --- Description ---
-            descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: 2),
+            descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: DesignSystem.Spacing.extraSmall),
             descriptionTextLabel.leadingAnchor.constraint(equalTo: titleTextLabel.leadingAnchor),
             descriptionTextLabel.trailingAnchor.constraint(equalTo: titleTextLabel.trailingAnchor),
 
             // --- Star Rating ---
-            starRatingView.topAnchor.constraint(equalTo: descriptionTextLabel.bottomAnchor, constant: 4),
+            starRatingView.topAnchor.constraint(equalTo: descriptionTextLabel.bottomAnchor, constant: DesignSystem.Spacing.small),
             starRatingView.leadingAnchor.constraint(equalTo: descriptionTextLabel.leadingAnchor),
             // Ensure bottom container wraps this content
-            bottomContainerView.bottomAnchor.constraint(greaterThanOrEqualTo: descriptionTextLabel.bottomAnchor, constant: 12),
+            bottomContainerView.bottomAnchor.constraint(greaterThanOrEqualTo: descriptionTextLabel.bottomAnchor, constant: DesignSystem.Dimensions.iconPadding),
 
             // --- Call to Action Button ---
             callToActionView.centerYAnchor.constraint(equalTo: bottomContainerView.centerYAnchor), // Center vertically in the panel
-            callToActionView.trailingAnchor.constraint(equalTo: bottomContainerView.trailingAnchor, constant: -12),
-            callToActionView.widthAnchor.constraint(equalToConstant: 100),
-            callToActionView.heightAnchor.constraint(equalToConstant: 36)
+            callToActionView.trailingAnchor.constraint(equalTo: bottomContainerView.trailingAnchor, constant: -DesignSystem.Dimensions.iconPadding),
+            callToActionView.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.actionButtonWidth),
+            callToActionView.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.iconLarge)
         ])
 
         setupAdChoiceConstraints()
@@ -134,14 +134,13 @@ final class NativeAdStoryView: UIView {
         }
     
         var constraints: [NSLayoutConstraint] = [
-            adChoiceContainer.widthAnchor.constraint(equalToConstant: 18),
-            adChoiceContainer.heightAnchor.constraint(equalToConstant: 18),
-            adTag.widthAnchor.constraint(equalToConstant: 27),
-            adTag.heightAnchor.constraint(equalToConstant: 18)
+            adChoiceContainer.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight),
+            adChoiceContainer.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight),
+            adTag.widthAnchor.constraint(equalToConstant:  DesignSystem.Dimensions.adBadgeWidth),
+            adTag.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight)
         ]
 
         let padding: CGFloat = 18.0
-        let margin: CGFloat = 8.0
 
         switch adChoicePosition {
         case .startTop:
@@ -149,7 +148,7 @@ final class NativeAdStoryView: UIView {
                 adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding + adChoiceMargin),
                 adChoiceContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
                 adTag.topAnchor.constraint(equalTo: topAnchor, constant: padding + adChoiceMargin),
-                adTag.leadingAnchor.constraint(equalTo: adChoiceContainer.trailingAnchor, constant: margin)
+                adTag.leadingAnchor.constraint(equalTo: adChoiceContainer.trailingAnchor, constant: DesignSystem.Spacing.medium)
             ])
         case .startBottom:
             constraints.append(contentsOf: [
@@ -164,7 +163,7 @@ final class NativeAdStoryView: UIView {
 
                 // Ad Choice Icon to the left of the adTag
                 adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding + adChoiceMargin),
-                adChoiceContainer.trailingAnchor.constraint(equalTo: adTag.leadingAnchor, constant: -margin)
+                adChoiceContainer.trailingAnchor.constraint(equalTo: adTag.leadingAnchor, constant: -DesignSystem.Spacing.medium)
             ])
         case .endBottom:
             constraints.append(contentsOf: [
