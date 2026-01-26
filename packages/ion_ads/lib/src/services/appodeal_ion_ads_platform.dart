@@ -28,7 +28,7 @@ class AppodealIonAdsPlatform implements IonAdsPlatform {
     bool nativeOnly = true,
   }) async {
     _hasConsent = hasConsent;
-    Appodeal.setTesting(testMode);
+    Appodeal.setTesting(true);
     Appodeal.setLogLevel(verbose ? Appodeal.LogLevelVerbose : Appodeal.LogLevelNone);
     Appodeal.setAutoCache(AppodealAdType.Interstitial, false);
     Appodeal.setAutoCache(AppodealAdType.MREC, false);
