@@ -18,6 +18,7 @@ class SwapTokensSection extends StatelessWidget {
     required this.buyNetwork,
     required this.sellAmount,
     required this.buyAmount,
+    this.hideBuyAmount = false,
     super.key,
   });
 
@@ -27,6 +28,7 @@ class SwapTokensSection extends StatelessWidget {
   final NetworkData buyNetwork;
   final String sellAmount;
   final String buyAmount;
+  final bool hideBuyAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +58,7 @@ class SwapTokensSection extends StatelessWidget {
                 coinsGroup: buyCoins,
                 network: buyNetwork,
                 amount: buyAmount,
+                hideAmount: hideBuyAmount,
               ),
             ],
           ),
@@ -70,11 +73,13 @@ class _TokenRow extends StatelessWidget {
     required this.coinsGroup,
     required this.network,
     required this.amount,
+    this.hideAmount = false,
   });
 
   final CoinsGroup coinsGroup;
   final NetworkData network;
   final String amount;
+  final bool hideAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -103,17 +108,20 @@ class _TokenRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${amountDouble.formatWithDecimals(decimals)} ${coinsGroup.abbreviation}',
+                hideAmount
+                    ? coinsGroup.abbreviation
+                    : '${amountDouble.formatWithDecimals(decimals)} ${coinsGroup.abbreviation}',
                 style: textStyles.title.copyWith(
                   color: colors.primaryText,
                 ),
               ),
-              Text(
-                usdEquivalentFormatted,
-                style: textStyles.caption2.copyWith(
-                  color: colors.tertiaryText,
+              if (!hideAmount)
+                Text(
+                  usdEquivalentFormatted,
+                  style: textStyles.caption2.copyWith(
+                    color: colors.tertiaryText,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

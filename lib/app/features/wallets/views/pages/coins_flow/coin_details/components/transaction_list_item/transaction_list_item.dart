@@ -9,6 +9,7 @@ import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_transaction_data.f.dart';
+import 'package:ion/app/features/wallets/model/swap_status.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
@@ -52,7 +53,7 @@ class TransactionListItem extends ConsumerWidget {
     return ListItem(
       onTap: onTap,
       title: Text(
-        transactionData.origin.isSwap
+        transactionData.origin.swapStatus != null
             ? context.i18n.wallet_swap
             : transactionData.transactionType.getDisplayName(context),
       ),
@@ -73,8 +74,14 @@ class TransactionListItem extends ConsumerWidget {
       backgroundColor: context.theme.appColors.tertiaryBackground,
       leading: TransactionListItemLeadingIcon(
         type: transactionData.transactionType,
-        status: transactionData.origin.status,
-        isSwap: transactionData.origin.isSwap,
+        status: transactionData.origin.swapStatus != null
+            ? switch (transactionData.origin.swapStatus!) {
+                SwapStatus.pending => TransactionStatus.broadcasted,
+                SwapStatus.succeeded => TransactionStatus.confirmed,
+                SwapStatus.failed => TransactionStatus.failed,
+              }
+            : transactionData.origin.status,
+        isSwap: transactionData.origin.swapStatus != null,
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,

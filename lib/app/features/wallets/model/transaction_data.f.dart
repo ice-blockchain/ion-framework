@@ -3,6 +3,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
+import 'package:ion/app/features/wallets/model/swap_status.dart';
 import 'package:ion/app/features/wallets/model/transaction_crypto_asset.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
@@ -30,6 +31,6 @@ class TransactionData with _$TransactionData {
     String? userPubkey,
     String? memo,
     String? eventId,
-    @Default(false) bool isSwap,
+    SwapStatus? swapStatus,
   }) = _TransactionData;
 }
