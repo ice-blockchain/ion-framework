@@ -72,18 +72,18 @@ final class NativeAdArticleView: UIView {
             mediaContainer.topAnchor.constraint(equalTo: topAnchor),
             mediaContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
             mediaContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
-            mediaContainer.heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.56), // Adjust ratio
+            //mediaContainer.heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.56), // Adjust ratio
 
             // Overlays on Media
             adTag.topAnchor.constraint(equalTo: mediaContainer.topAnchor, constant: 6),
             adTag.leadingAnchor.constraint(equalTo: mediaContainer.leadingAnchor, constant: 6),
-            adTag.widthAnchor.constraint(equalToConstant: 27),
-            adTag.heightAnchor.constraint(equalToConstant: 18),
+            adTag.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeWidth),
+            adTag.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight),
 
             adChoiceContainer.topAnchor.constraint(equalTo: mediaContainer.topAnchor, constant: 6),
             adChoiceContainer.trailingAnchor.constraint(equalTo: mediaContainer.trailingAnchor, constant: -6),
-            adChoiceContainer.widthAnchor.constraint(equalToConstant: 18),
-            adChoiceContainer.heightAnchor.constraint(equalToConstant: 18),
+            adChoiceContainer.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight),
+            adChoiceContainer.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight),
 
             // Bottom Panel
             bottomPanel.topAnchor.constraint(equalTo: mediaContainer.bottomAnchor),
@@ -93,30 +93,30 @@ final class NativeAdArticleView: UIView {
             bottomPanel.heightAnchor.constraint(greaterThanOrEqualToConstant: 54),
 
             // Icon
-            iconImageView.leadingAnchor.constraint(equalTo: bottomPanel.leadingAnchor, constant: 12),
+            iconImageView.leadingAnchor.constraint(equalTo: bottomPanel.leadingAnchor, constant: DesignSystem.Dimensions.iconPadding),
             iconImageView.centerYAnchor.constraint(equalTo: bottomPanel.centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 33),
-            iconImageView.heightAnchor.constraint(equalToConstant: 33),
+            iconImageView.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.iconMedium),
+            iconImageView.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.iconMedium),
 
             // Title
-            titleTextLabel.topAnchor.constraint(equalTo: iconImageView.topAnchor, constant: 0),
-            titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
-            titleTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
+            titleTextLabel.topAnchor.constraint(equalTo: iconImageView.topAnchor, constant: -2),
+            titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: DesignSystem.Spacing.medium),
+            titleTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -DesignSystem.Spacing.medium),
             
             // --- Description ---
-            descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -2),
+            descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -DesignSystem.Spacing.extraSmall),
             descriptionTextLabel.leadingAnchor.constraint(equalTo: titleTextLabel.leadingAnchor),
-            descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
+            descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -DesignSystem.Spacing.medium),
 
             // Stars
-            starRatingView.bottomAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -2),
+            starRatingView.bottomAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -DesignSystem.Spacing.extraSmall),
             starRatingView.leadingAnchor.constraint(equalTo: titleTextLabel.leadingAnchor),
 
             // Button
-            callToActionView.trailingAnchor.constraint(equalTo: bottomPanel.trailingAnchor, constant: -12),
+            callToActionView.trailingAnchor.constraint(equalTo: bottomPanel.trailingAnchor, constant: -DesignSystem.Dimensions.iconPadding),
             callToActionView.centerYAnchor.constraint(equalTo: bottomPanel.centerYAnchor),
             callToActionView.widthAnchor.constraint(equalToConstant: 90),
-            callToActionView.heightAnchor.constraint(equalToConstant: 33)
+            callToActionView.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.iconMedium)
         ])
     }
 }

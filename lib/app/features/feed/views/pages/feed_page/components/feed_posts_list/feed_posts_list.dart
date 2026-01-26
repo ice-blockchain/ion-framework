@@ -106,12 +106,17 @@ class _CustomNativeAd extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       key: key,
-      height: 298,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: AppodealNativeAd(
-        options: NativeAdOptions.contentStreamOptions(),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: 230, maxHeight: 246),
+        child: AspectRatio(
+          aspectRatio: 16 / 10,
+          child: AppodealNativeAd(
+            options: NativeAdOptions.contentStreamOptions(),
+          ),
+        ),
       ),
     );
   }

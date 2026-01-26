@@ -30,10 +30,13 @@ class TextEditorAdBuilder extends EmbedBuilder {
     EmbedContext embedContext,
   ) {
     return Container(
-      height: 280,
+      constraints: const BoxConstraints(maxHeight: 280, minHeight: 266),
       padding: const EdgeInsets.symmetric(vertical: 16),
-      child: AppodealNativeAd(
-        options: NativeAdOptions.customOptions(nativeAdType: NativeAdType.article),
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: AppodealNativeAd(
+          options: NativeAdOptions.customOptions(nativeAdType: NativeAdType.article),
+        ),
       ),
     );
   }

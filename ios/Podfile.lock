@@ -1024,6 +1024,7 @@ SPEC REPOS:
     - APDMyTargetAdapter
     - APDUnityAdapter
     - APDVungleAdapter
+    - AppAuth
     - AppCheckCore
     - AppLovinMediationAmazonAdMarketplaceAdapter
     - AppLovinMediationBidMachineAdapter
@@ -1045,7 +1046,9 @@ SPEC REPOS:
     - AppLovinMediationVerveAdapter
     - AppLovinMediationVungleAdapter
     - AppLovinMediationYandexAdapter
+    - AppLovinSDK
     - AppMetricaAdSupport
+    - AppMetricaCore
     - AppMetricaCoreExtension
     - AppMetricaCoreUtils
     - AppMetricaEncodingUtils
@@ -1063,8 +1066,11 @@ SPEC REPOS:
     - AppMetricaStorageUtils
     - AppMetricaSynchronization
     - Appodeal
+    - AppsFlyerFramework
     - ATOM-Standalone
+    - BidMachine
     - BidMachineIronSourceCustomAdapter
+    - Bidon
     - BidonAdapterAmazon
     - BidonAdapterAppLovin
     - BidonAdapterBidMachine
@@ -1095,6 +1101,7 @@ SPEC REPOS:
     - FBAudienceNetwork
     - FBSDKCoreKit
     - FBSDKCoreKit_Basics
+    - Firebase
     - FirebaseAnalytics
     - FirebaseCore
     - FirebaseCoreInternal
@@ -1105,7 +1112,10 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleSignIn
+    - GoogleUserMessagingPlatform
+    - GoogleUtilities
     - GTMAppAuth
+    - GTMSessionFetcher
     - HyBid
     - InMobiSDK
     - IronSourceAdMobAdapter
@@ -1120,6 +1130,7 @@ SPEC REPOS:
     - IronSourceMolocoAdapter
     - IronSourceMyTargetAdapter
     - IronSourcePangleAdapter
+    - IronSourceSDK
     - IronSourceUnityAdsAdapter
     - IronSourceVerveAdapter
     - IronSourceVungleAdapter
@@ -1140,6 +1151,7 @@ SPEC REPOS:
     - Sentry
     - sqlite3
     - StackConsentManager
+    - StackModules
     - SwiftyGif
     - TaurusxAdsSDK
     - TensorFlowLiteC
@@ -1164,19 +1176,6 @@ SPEC REPOS:
     - BNBSdkApi
     - BNBSdkCore
     - BNBSkin
-  trunk:
-    - AppAuth
-    - AppLovinSDK
-    - AppMetricaCore
-    - AppsFlyerFramework
-    - BidMachine
-    - Bidon
-    - Firebase
-    - GoogleUserMessagingPlatform
-    - GoogleUtilities
-    - GTMSessionFetcher
-    - IronSourceSDK
-    - StackModules
 
 EXTERNAL SOURCES:
   app_badge_plus:
@@ -1512,6 +1511,6 @@ SPEC CHECKSUMS:
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   YandexMobileAds: 9f5355c2faffc575004ca2b267625a323686a368
 
-PODFILE CHECKSUM: 12ba4e81020a853db00cfab03810c8342accd853
+PODFILE CHECKSUM: 2618edcdd52ff5f3b2704334abeec596fb4a4aa7
 
 COCOAPODS: 1.16.2
