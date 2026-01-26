@@ -8,8 +8,8 @@ import 'package:ion/app/services/media_service/media_service.m.dart';
 
 void useNsfwValidation({
   required List<MediaFile> mediaFiles,
-  required MediaFile? videoFile,
   required WidgetRef ref,
+  MediaFile? videoFile,
 }) {
   final mediaSignature = mediaFiles.map((f) => f.path).join(',');
 
