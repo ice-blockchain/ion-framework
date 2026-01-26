@@ -23,6 +23,7 @@ import 'package:ion/app/features/user/pages/profile_page/components/tabs/holding
 import 'package:ion/app/features/user/providers/tab_data_source_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -78,7 +79,9 @@ class TabEntitiesList extends HookConsumerWidget {
     final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
     final externalAddress = userMetadata?.toEventReference().toString();
     final token = externalAddress != null
-        ? ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull
+        ? useWatchWhenVisible(
+            watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
+          )
         : null;
     final hasPosition = token?.marketData.position != null;
 
