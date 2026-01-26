@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/coin_usd_amount.dart';
@@ -46,12 +47,25 @@ class Balance extends ConsumerWidget {
             padding: EdgeInsetsDirectional.only(bottom: 20.0.s, top: 11.0.s),
             child: BalanceActions(
               onSwap: () {
-                ref.read(swapCoinsControllerProvider.notifier).initSellCoin(
-                      coin: coinsGroup,
-                      network: currentNetwork,
-                    );
+                // Check if this is a tokenized community token
+                final coin = coinsGroup.coins.firstOrNull?.coin;
+                final externalAddress = coin?.tokenizedCommunityExternalAddress;
 
-                SwapCoinsRoute().push<void>(context);
+                if (externalAddress != null) {
+                  // Open TC swap dialog
+                  TradeCommunityTokenRoute(
+                    externalAddress: externalAddress,
+                    initialMode: CommunityTokenTradeMode.sell,
+                  ).push<void>(context);
+                } else {
+                  // Open general swap dialog
+                  ref.read(swapCoinsControllerProvider.notifier).initSellCoin(
+                        coin: coinsGroup,
+                        network: currentNetwork,
+                      );
+
+                  SwapCoinsRoute().push<void>(context);
+                }
               },
               onReceive: () {
                 final network = ref

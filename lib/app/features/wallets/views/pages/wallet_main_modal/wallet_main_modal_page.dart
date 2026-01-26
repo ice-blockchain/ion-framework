@@ -11,6 +11,7 @@ import 'package:ion/app/extensions/extensions.dart';
 // import 'package:ion/app/features/core/model/feature_flags.dart';
 // import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
@@ -115,7 +116,27 @@ class WalletMainModalPage extends HookConsumerWidget {
     final skipNetworkRoute = networkId != null && walletId != null;
 
     if (type == WalletMainModalListItem.swap) {
-      // Initialize swap state and open swap flow
+      // Check if this is a tokenized community token
+      if (symbolGroup != null) {
+        final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+        final coinsGroup =
+            walletView?.coinGroups.firstWhereOrNull((e) => e.symbolGroup == symbolGroup);
+        final coin = coinsGroup?.coins.firstOrNull?.coin;
+        final externalAddress = coin?.tokenizedCommunityExternalAddress;
+
+        if (externalAddress != null) {
+          // Open TC swap dialog
+          context.pushReplacement(
+            TradeCommunityTokenRoute(
+              externalAddress: externalAddress,
+              initialMode: CommunityTokenTradeMode.sell,
+            ).location,
+          );
+          return;
+        }
+      }
+
+      // Initialize swap state and open general swap flow
       ref.read(swapCoinsControllerProvider.notifier).initSellCoin(
             coin: null,
             network: null,
