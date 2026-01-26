@@ -86,8 +86,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     ).watch();
   }
 
-  SimpleSelectStatement<$SwapTransactionsTableTable, SwapTransactions>
-      _buildSwapsQuery({
+  SimpleSelectStatement<$SwapTransactionsTableTable, SwapTransactions> _buildSwapsQuery({
     List<String?> fromTxHashes = const [],
     List<String?> toTxHashes = const [],
     List<String> fromWalletAddresses = const [],
@@ -180,8 +179,7 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     }
 
     if (status != null) {
-      rowsAffected += await (update(swapTransactionsTable)
-            ..where((t) => t.swapId.equals(swapId)))
+      rowsAffected += await (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
           .write(SwapTransactionsTableCompanion(status: Value(status.name)));
     }
 
