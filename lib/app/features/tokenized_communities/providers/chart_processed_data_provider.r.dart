@@ -27,17 +27,20 @@ ChartProcessedData chartProcessedData(
   required List<OhlcvCandle> candles,
   required Decimal price,
   required ChartTimeRange selectedRange,
+  required DateTime tokenCreatedAt,
 }) {
   final chartCandles = _mapOhlcvToChartCandles(candles);
   final isEmpty = chartCandles.isEmpty;
 
   final normalizedCandles =
-      chartCandles.length > 1 ? normalizeCandles(chartCandles, selectedRange) : chartCandles;
+      chartCandles.isNotEmpty ? normalizeCandles(chartCandles, selectedRange) : chartCandles;
 
   final candlesToShow = isEmpty
-      ? _buildFlatCandles(price, selectedRange)
+      ? _buildFlatCandles(price, selectedRange, tokenCreatedAt)
+      // Edge case: If normalization still returns 1 candle (typically when candle is at "now"),
+      // expand to 2 candles for proper visualization
       : normalizedCandles.length == 1
-          ? _expandSingleCandleToFlatLine(normalizedCandles.first, selectedRange)
+          ? _expandSingleCandleToFlatLine(normalizedCandles.first, tokenCreatedAt)
           : normalizedCandles;
 
   return ChartProcessedData(
@@ -63,45 +66,137 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
 }
 
 // Builds flat candles for empty state (all candles at same price).
-List<ChartCandle> _buildFlatCandles(Decimal price, ChartTimeRange selectedRange) {
+// Creates candles respecting token creation, with max 35 candles.
+// For young tokens: starts from creation. For old tokens: starts from 35 intervals back.
+List<ChartCandle> _buildFlatCandles(
+  Decimal price,
+  ChartTimeRange selectedRange,
+  DateTime tokenCreatedAt,
+) {
   final now = DateTime.now();
   final interval = selectedRange.duration;
-  const count = 35;
+  const maxCount = 35;
   final value = double.tryParse(price.toString()) ?? 0;
 
-  return List<ChartCandle>.generate(count, (index) {
-    final date = now.subtract(interval * (count - index));
-    return ChartCandle(
-      open: value,
-      high: value,
-      low: value,
-      close: value,
-      price: price,
-      date: date,
+  // Start from the later of: tokenCreatedAt OR (now - maxCount * interval)
+  final earliestAllowed = now.subtract(interval * maxCount);
+  final startDate = tokenCreatedAt.isAfter(earliestAllowed) ? tokenCreatedAt : earliestAllowed;
+
+  final candles = <ChartCandle>[];
+
+  // Fill from startDate to "now"
+  var fillDate = startDate;
+  while (!fillDate.isAfter(now)) {
+    candles.add(
+      ChartCandle(
+        open: value,
+        high: value,
+        low: value,
+        close: value,
+        price: price,
+        date: fillDate,
+      ),
     );
-  });
+    fillDate = fillDate.add(interval);
+  }
+
+  // Ensure minimum 2 candles (for very young tokens where startDate ≈ now)
+  if (candles.length < 2) {
+    if (candles.length == 1) {
+      // Add candle at "now" if different from first
+      if (candles.first.date != now) {
+        candles.add(
+          ChartCandle(
+            open: value,
+            high: value,
+            low: value,
+            close: value,
+            price: price,
+            date: now,
+          ),
+        );
+      } else {
+        // First candle is at "now", add one at startDate
+        candles.insert(
+          0,
+          ChartCandle(
+            open: value,
+            high: value,
+            low: value,
+            close: value,
+            price: price,
+            date: startDate,
+          ),
+        );
+      }
+    } else {
+      // No candles (Edge case, added for safety)
+      candles
+        ..add(
+          ChartCandle(
+            open: value,
+            high: value,
+            low: value,
+            close: value,
+            price: price,
+            date: startDate,
+          ),
+        )
+        ..add(
+          ChartCandle(
+            open: value,
+            high: value,
+            low: value,
+            close: value,
+            price: price,
+            date: now,
+          ),
+        );
+    }
+  }
+
+  return candles;
 }
 
 // Expands a single candle into a flat line for better visualization.
+// Creates 2 candles: [candle, now] to ensure we don't go before token creation.
 List<ChartCandle> _expandSingleCandleToFlatLine(
   ChartCandle candle,
-  ChartTimeRange range,
+  DateTime tokenCreatedAt,
 ) {
-  final timeSpan = range.duration;
-  const count = 2;
+  final now = DateTime.now();
   final price = candle.close;
+  final priceDecimal = Decimal.parse(price.toStringAsFixed(4));
 
-  return List<ChartCandle>.generate(count, (index) {
-    final progress = index / (count - 1);
-    final date = candle.date.subtract(timeSpan * (1 - progress));
+  // If candle is already at "now" (or very close), expand backward to tokenCreatedAt
+  // Otherwise expand forward to "now"
+  final candleIsAtNow = now.difference(candle.date).abs() < const Duration(seconds: 1);
 
-    return ChartCandle(
+  if (candleIsAtNow) {
+    // Candle is at "now", expand backward to tokenCreatedAt
+    return [
+      ChartCandle(
+        open: price,
+        high: price,
+        low: price,
+        close: price,
+        price: priceDecimal,
+        date: tokenCreatedAt,
+      ),
+      candle,
+    ];
+  }
+
+  // Normal case: expand forward to "now"
+  return [
+    candle,
+    ChartCandle(
       open: price,
       high: price,
       low: price,
       close: price,
-      price: Decimal.parse(price.toStringAsFixed(4)),
-      date: date,
-    );
-  });
+      price: priceDecimal,
+      date: now,
+    ),
+  ];
 }
