@@ -56,10 +56,14 @@ class CoinUsdAmount extends HookConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                displayOrder == BalanceDisplayOrder.coinUsd ? coinText : usdText,
-                style: context.theme.appTextThemes.headline1.copyWith(
-                  color: context.theme.appColors.primaryText,
+              Flexible(
+                child: Text(
+                  displayOrder == BalanceDisplayOrder.coinUsd ? coinText : usdText,
+                  style: context.theme.appTextThemes.headline1.copyWith(
+                    color: context.theme.appColors.primaryText,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
               SizedBox(

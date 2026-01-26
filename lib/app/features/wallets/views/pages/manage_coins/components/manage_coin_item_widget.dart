@@ -30,7 +30,11 @@ class ManageCoinItemWidget extends ConsumerWidget {
       title: Text(coinsGroup.name),
       subtitle: Text(coinsGroup.abbreviation),
       backgroundColor: context.theme.appColors.tertiaryBackground,
-      leading: CoinIconWidget(imageUrl: coinsGroup.iconUrl, type: WalletItemIconType.big()),
+      leading: CoinIconWidget(
+        imageUrl: coinsGroup.iconUrl,
+        showPlaceholder: true,
+        type: WalletItemIconType.big(),
+      ),
       trailing: isSelected
           ? Assets.svg.iconBlockCheckboxOn.icon()
           : Assets.svg.iconBlockCheckboxOff.icon(),

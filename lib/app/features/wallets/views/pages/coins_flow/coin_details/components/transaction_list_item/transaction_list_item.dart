@@ -83,22 +83,29 @@ class TransactionListItem extends ConsumerWidget {
             : transactionData.origin.status,
         isSwap: transactionData.origin.swapStatus != null,
       ),
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            '${transactionData.transactionType.sign} $amountText ${coinData.abbreviation}',
-            style: context.theme.appTextThemes.body.copyWith(
-              color: _getTextColor(context),
+      trailing: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 150.s),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${transactionData.transactionType.sign} $amountText ${coinData.abbreviation}',
+              style: context.theme.appTextThemes.body.copyWith(
+                color: _getTextColor(context),
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              textAlign: TextAlign.end,
             ),
-          ),
-          Text(
-            usdText,
-            style: context.theme.appTextThemes.caption3.copyWith(
-              color: context.theme.appColors.secondaryText,
+            Text(
+              usdText,
+              style: context.theme.appTextThemes.caption3.copyWith(
+                color: context.theme.appColors.secondaryText,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
