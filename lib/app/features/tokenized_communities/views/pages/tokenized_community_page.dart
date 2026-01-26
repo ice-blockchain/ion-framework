@@ -289,6 +289,13 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                         color: context.theme.appColors.onPrimaryAccent,
                       ),
                     ),
+                    if (tokenInfo?.creator.verified.falseOrValue ?? false)
+                      Padding(
+                        padding: EdgeInsetsDirectional.only(start: 5.0.s),
+                        child: Assets.svg.iconBadgeVerify.icon(
+                          size: 16.s,
+                        ),
+                      ),
                   ],
                 ),
                 Text(
