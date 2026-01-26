@@ -16,7 +16,6 @@ class TransactionsTable extends Table {
   TextColumn get receiverWalletAddress => text().nullable()();
   TextColumn get walletViewId => text()();
   TextColumn get externalHash => text().nullable()();
-  BoolColumn get isSwap => boolean().withDefault(const Constant(false))();
 
   // Fields, that will be available from ion service
   TextColumn get id => text().nullable()();

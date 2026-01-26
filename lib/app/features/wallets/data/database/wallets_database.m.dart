@@ -17,6 +17,7 @@ import 'package:ion/app/features/wallets/data/database/tables/duration_type.dart
 import 'package:ion/app/features/wallets/data/database/tables/funds_requests_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/networks_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/nfts_table.d.dart';
+import 'package:ion/app/features/wallets/data/database/tables/swap_transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
@@ -58,6 +59,7 @@ WalletsDatabase walletsDatabase(Ref ref) {
     CryptoWalletsTable,
     FundsRequestsTable,
     NftsTable,
+    SwapTransactionsTable,
   ],
 )
 class WalletsDatabase extends _$WalletsDatabase {
@@ -70,7 +72,11 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
+<<<<<<< HEAD
   int get schemaVersion => 22;
+=======
+  int get schemaVersion => 25;
+>>>>>>> 82619936e (feat(swap): display cross chain swaps in transaction history (#3166))
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -267,6 +273,64 @@ class WalletsDatabase extends _$WalletsDatabase {
           await m.deleteTable(schema.transactionsTableV2.actualTableName);
           await m.createTable(schema.transactionsTableV2);
         },
+<<<<<<< HEAD
+=======
+        from22To23: (m, schema) async {
+          final columnExists = await isColumnExists(
+            tableName: schema.coinsTable.actualTableName,
+            columnName: 'is_creator_token',
+          );
+          if (!columnExists) {
+            await m.alterTable(
+              TableMigration(
+                schema.coinsTable,
+                columnTransformer: {
+                  schema.coinsTable.isCreatorToken: const Constant(false),
+                },
+                newColumns: [schema.coinsTable.isCreatorToken],
+              ),
+            );
+          }
+        },
+        from23To24: (Migrator m, Schema24 schema) async {
+          // Remove deprecated is_creator_token column if present
+          final isCreatorTokenExists = await isColumnExists(
+            tableName: schema.coinsTable.actualTableName,
+            columnName: 'is_creator_token',
+          );
+          if (isCreatorTokenExists) {
+            await m.dropColumn(schema.coinsTable, 'is_creator_token');
+          }
+
+          // Add tokenized_community_external_address column if missing
+          final tokenizedCommunityExternalAddressExists = await isColumnExists(
+            tableName: schema.coinsTable.actualTableName,
+            columnName: 'tokenized_community_external_address',
+          );
+          if (!tokenizedCommunityExternalAddressExists) {
+            await m.addColumn(
+              schema.coinsTable,
+              schema.coinsTable.tokenizedCommunityExternalAddress,
+            );
+          }
+
+          // Add tokenized_community_token_type column if missing
+          final tokenizedCommunityTokenTypeExists = await isColumnExists(
+            tableName: schema.coinsTable.actualTableName,
+            columnName: 'tokenized_community_token_type',
+          );
+          if (!tokenizedCommunityTokenTypeExists) {
+            await m.addColumn(
+              schema.coinsTable,
+              schema.coinsTable.tokenizedCommunityTokenType,
+            );
+          }
+        },
+        from24To25: (Migrator m, Schema25 schema) async {
+          await m.createTable(schema.swapTransactionsTable);
+          await m.dropColumn(schema.transactionsTableV2, 'is_swap');
+        },
+>>>>>>> 82619936e (feat(swap): display cross chain swaps in transaction history (#3166))
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
@@ -336,7 +337,14 @@ class SwapCoinsController extends _$SwapCoinsController {
   }) async {
     try {
       state = state.copyWith(isSwapLoading: true);
-      final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
+      final (
+        :swapQuoteInfo,
+        :swapCoinParameters,
+        :sellNetwork,
+        :buyNetwork,
+        :sellCoin,
+        :buyCoin,
+      ) = await _getData();
       final swapController = await ref.read(ionSwapClientProvider.future);
 
       await swapController.swapCoins(
@@ -354,6 +362,17 @@ class SwapCoinsController extends _$SwapCoinsController {
               onSwapError();
               return;
             }
+
+            final swapsRepository = await ref.read(swapsRepositoryProvider.future);
+            await _saveSwapRecord(
+              swapsRepository: swapsRepository,
+              swapCoinParameters: swapCoinParameters,
+              swapQuoteInfo: swapQuoteInfo,
+              sellNetwork: sellNetwork,
+              buyNetwork: buyNetwork,
+              sellCoin: sellCoin,
+              buyCoin: buyCoin,
+            );
 
             await _sendCoinCallback(
               depositAddress: depositAddress,
@@ -610,7 +629,8 @@ class SwapCoinsController extends _$SwapCoinsController {
   }
 
   Future<bool> getIsIonBscSwap() async {
-    final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
+    final (:swapCoinParameters, :swapQuoteInfo, :sellNetwork, :buyNetwork, :sellCoin, :buyCoin) =
+        await _getData();
 
     final swapController = await ref.read(ionSwapClientProvider.future);
     return swapController.isIonBscSwap(swapCoinParameters);
@@ -623,7 +643,14 @@ class SwapCoinsController extends _$SwapCoinsController {
     required VoidCallback onSwapStart,
   }) async {
     final swapController = await ref.read(ionSwapClientProvider.future);
-    final (:swapQuoteInfo, :swapCoinParameters, :sellNetwork, :sellCoin) = await _getData();
+    final (
+      :swapQuoteInfo,
+      :swapCoinParameters,
+      :sellNetwork,
+      :buyNetwork,
+      :sellCoin,
+      :buyCoin,
+    ) = await _getData();
     final sellAddress = swapCoinParameters.userSellAddress;
 
     if (sellAddress == null) {
@@ -653,13 +680,25 @@ class SwapCoinsController extends _$SwapCoinsController {
     try {
       onSwapStart();
 
-      await swapController.swapCoins(
+      final txHash = await swapController.swapCoins(
         swapCoinData: swapCoinParameters,
         sendCoinCallback: ({required String depositAddress, required num amount}) async {
           // DO NOTHING HERE
         },
         swapQuoteInfo: swapQuoteInfo,
         ionSwapRequest: ionSwapRequest,
+      );
+
+      final swapsRepository = await ref.read(swapsRepositoryProvider.future);
+      await _saveSwapRecord(
+        swapsRepository: swapsRepository,
+        swapCoinParameters: swapCoinParameters,
+        swapQuoteInfo: swapQuoteInfo,
+        sellNetwork: sellNetwork,
+        buyNetwork: buyNetwork,
+        sellCoin: sellCoin,
+        buyCoin: buyCoin,
+        fromTxHash: txHash,
       );
 
       onSwapSuccess();
@@ -683,7 +722,9 @@ class SwapCoinsController extends _$SwapCoinsController {
         SwapQuoteInfo? swapQuoteInfo,
         SwapCoinParameters swapCoinParameters,
         NetworkData sellNetwork,
+        NetworkData buyNetwork,
         CoinInWalletData sellCoin,
+        CoinInWalletData buyCoin,
       })> _getData() async {
     final sellNetwork = state.sellNetwork;
     final buyNetwork = state.buyNetwork;
@@ -700,9 +741,14 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
 
     final sellCoin = await _getCoinWalletDataAndSyncIfNeeded(sellCoinGroup, sellNetwork);
+    final buyCoin = await _getCoinWalletDataAndSyncIfNeeded(buyCoinGroup, buyNetwork);
 
     if (sellCoin == null) {
       throw Exception('Sell coin is required');
+    }
+
+    if (buyCoin == null) {
+      throw Exception('Buy coin is required');
     }
 
     if (amount <= 0) {
@@ -726,7 +772,9 @@ class SwapCoinsController extends _$SwapCoinsController {
       swapQuoteInfo: swapQuoteInfo,
       swapCoinParameters: swapCoinParameters,
       sellNetwork: sellNetwork,
+      buyNetwork: buyNetwork,
       sellCoin: sellCoin,
+      buyCoin: buyCoin,
     );
   }
 
@@ -746,6 +794,41 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
 
     return sellCoin.amount < amount;
+  }
+
+  Future<void> _saveSwapRecord({
+    required SwapsRepository swapsRepository,
+    required SwapCoinParameters swapCoinParameters,
+    required SwapQuoteInfo? swapQuoteInfo,
+    required NetworkData sellNetwork,
+    required NetworkData buyNetwork,
+    required CoinInWalletData sellCoin,
+    required CoinInWalletData buyCoin,
+    String? fromTxHash,
+  }) async {
+    final sellAmount = double.tryParse(swapCoinParameters.amount) ?? 0;
+    final rate = swapQuoteInfo?.priceForSellTokenInBuyToken ?? 1.0;
+    final expectedReceiveAmount = sellAmount * rate;
+
+    final sellDecimals = sellCoin.coin.decimals;
+    final buyDecimals = buyCoin.coin.decimals;
+    final rawSellAmount =
+        (sellAmount * BigInt.from(10).pow(sellDecimals).toDouble()).toStringAsFixed(0);
+    final rawBuyAmount =
+        (expectedReceiveAmount * BigInt.from(10).pow(buyDecimals).toDouble()).toStringAsFixed(0);
+
+    await swapsRepository.saveSwap(
+      fromTxHash: fromTxHash,
+      fromWalletAddress: swapCoinParameters.userSellAddress!,
+      toWalletAddress: swapCoinParameters.userBuyAddress!,
+      fromNetworkId: sellNetwork.id,
+      toNetworkId: buyNetwork.id,
+      amount: rawSellAmount,
+      toAmount: rawBuyAmount,
+      fromCoinId: sellCoin.coin.id,
+      toCoinId: buyCoin.coin.id,
+      exchangeRate: rate,
+    );
   }
 }
 

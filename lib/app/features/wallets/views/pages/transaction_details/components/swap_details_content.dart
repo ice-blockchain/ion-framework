@@ -8,8 +8,7 @@ import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
-import 'package:ion/app/features/wallets/model/transaction_type.dart';
-import 'package:ion/app/features/wallets/providers/transaction_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/swap_display_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/components/actions_section.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/transaction_details.dart';
@@ -28,14 +27,8 @@ class SwapDetailsContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final secondTransactionAsync = ref.watch(
-      transactionNotifierProvider(
-        walletViewId: selectedTransaction.walletViewId,
-        txHash: selectedTransaction.txHash,
-        type: selectedTransaction.type == TransactionType.receive
-            ? TransactionType.send
-            : TransactionType.receive,
-      ),
+    final swapDisplayAsync = ref.watch(
+      swapDisplayDataProvider(selectedTransaction.txHash),
     );
 
     final assetAbbreviation =
@@ -44,42 +37,39 @@ class SwapDetailsContent extends ConsumerWidget {
         (selectedTransaction.status != TransactionStatus.confirmed &&
             selectedTransaction.status != TransactionStatus.failed);
 
+    final loader = [
+      const SliverToBoxAdapter(
+        child: _SwapDetailsCardSkeleton(),
+      ),
+      SliverToBoxAdapter(
+        child: SizedBox(height: 20.s),
+      ),
+    ];
+
     return CustomScrollView(
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        ...secondTransactionAsync.when(
+        ...swapDisplayAsync.when(
           skipLoadingOnReload: true,
-          data: (secondTransaction) {
-            final isSellFirst = selectedTransaction.type == TransactionType.send;
-            final sellTransaction = isSellFirst ? selectedTransaction : secondTransaction;
-            final buyTransaction = isSellFirst ? secondTransaction : selectedTransaction;
-
-            final sellCoinData = sellTransaction.assetData.mapOrNull(coin: (coin) => coin)!;
-            final buyCoinData = buyTransaction.assetData.mapOrNull(coin: (coin) => coin)!;
-
-            final sellCoins = sellCoinData.coinsGroup;
-            final buyCoins = buyCoinData.coinsGroup;
-            final sellNetwork = sellTransaction.network;
-            final buyNetwork = buyTransaction.network;
-
-            final sellAmount = sellCoinData.amount.formatMax6 ?? '0';
-            final buyAmount = buyCoinData.amount.formatMax6 ?? '0';
+          data: (swapDisplayData) {
+            if (swapDisplayData == null) return loader;
 
             return [
               SliverToBoxAdapter(
                 child: SwapDetailsCard(
-                  sellCoins: sellCoins,
-                  sellNetwork: sellNetwork,
-                  buyCoins: buyCoins,
-                  buyNetwork: buyNetwork,
-                  sellAmount: sellAmount,
-                  buyAmount: buyAmount,
+                  sellCoins: swapDisplayData.sellData.coins,
+                  sellNetwork: swapDisplayData.sellData.network,
+                  buyCoins: swapDisplayData.buyData.coins,
+                  buyNetwork: swapDisplayData.buyData.network,
+                  sellAmount: swapDisplayData.sellData.amount,
+                  buyAmount: swapDisplayData.buyData.amount,
                   swapType: SwapQuoteInfoType.bridge,
-                  priceForSellTokenInBuyToken: 1,
-                  sellCoinAbbreviation: sellCoins.abbreviation,
-                  buyCoinAbbreviation: buyCoins.abbreviation,
+                  priceForSellTokenInBuyToken: swapDisplayData.exchangeRate,
+                  sellCoinAbbreviation: swapDisplayData.sellData.coins.abbreviation,
+                  buyCoinAbbreviation: swapDisplayData.buyData.coins.abbreviation,
                   slippage: null,
+                  hideBuyAmount: swapDisplayData.hideBuyAmount,
                 ),
               ),
               SliverToBoxAdapter(
@@ -87,22 +77,8 @@ class SwapDetailsContent extends ConsumerWidget {
               ),
             ];
           },
-          loading: () => [
-            const SliverToBoxAdapter(
-              child: _SwapDetailsCardSkeleton(),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(height: 20.s),
-            ),
-          ],
-          error: (error, stack) => [
-            const SliverToBoxAdapter(
-              child: _SwapDetailsCardSkeleton(),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(height: 20.s),
-            ),
-          ],
+          loading: () => loader,
+          error: (error, stack) => loader,
         ),
         SliverToBoxAdapter(
           child: ScreenSideOffset.small(
