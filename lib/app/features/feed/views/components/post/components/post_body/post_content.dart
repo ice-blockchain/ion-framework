@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -46,60 +47,123 @@ class PostContent extends HookConsumerWidget {
     final isExpanded = ref.watch(expandedPostsStateProvider).contains(entity.id);
 
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final truncResult = maxLines != null && !isExpanded
-            ? _truncateForMaxLines(
-                currentContent,
-                context.theme.appTextThemes.body2,
-                constraints.maxWidth,
-                maxLines!,
-                MediaQuery.textScalerOf(context),
-              )
-            : _TruncationResult(delta: currentContent, hasOverflow: false);
+      builder: (context, constraints) => _PostContentWithCache(
+        content: currentContent,
+        entity: entity,
+        isExpanded: isExpanded,
+        maxLines: maxLines,
+        maxWidth: constraints.maxWidth,
+        accentTheme: accentTheme,
+        isTextSelectable: isTextSelectable,
+        plainInlineStyles: plainInlineStyles,
+      ),
+    );
+  }
 
-        final hasOverflow = truncResult.hasOverflow;
-        final displayDelta = hasOverflow ? truncResult.delta : currentContent;
+  Delta? _getContent(WidgetRef ref) {
+    final postData = switch (entity) {
+      final ModifiablePostEntity post => post.data,
+      final PostEntity post => post.data,
+      _ => null,
+    };
 
-        return AnimatedSize(
-          duration: 300.ms,
-          curve: Curves.easeInOut,
-          alignment: Alignment.topCenter,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextEditorPreview(
-                key: ValueKey(isExpanded),
-                scrollable: false,
-                content: displayDelta,
-                customStyles: accentTheme
-                    ? textEditorStyles(
-                        context,
-                        color: context.theme.appColors.onPrimaryAccent,
-                      )
-                    : null,
-                enableInteractiveSelection: isTextSelectable,
-                tagsColor: accentTheme ? context.theme.appColors.anakiwa : null,
-                ignoreInlineBoldItalic: plainInlineStyles,
-              ),
-              if (hasOverflow && maxLines != null)
-                GestureDetector(
-                  onTap: () => ref.read(expandedPostsStateProvider.notifier).expand(entity),
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.only(top: 4.0.s),
-                    child: Text(
-                      context.i18n.common_show_more,
-                      style: context.theme.appTextThemes.body2.copyWith(
-                        color: accentTheme
-                            ? context.theme.appColors.onPrimaryAccent
-                            : context.theme.appColors.primaryAccent,
-                      ),
-                    ),
+    if (postData is! EntityDataWithMediaContent) {
+      return null;
+    }
+
+    final result = ref.watch(parsedMediaWithMentionsProvider(postData));
+    return result.content;
+  }
+}
+
+class _TruncationResult {
+  _TruncationResult({required this.delta, required this.hasOverflow});
+
+  final Delta delta;
+  final bool hasOverflow;
+}
+
+class _PostContentWithCache extends HookConsumerWidget {
+  const _PostContentWithCache({
+    required this.content,
+    required this.entity,
+    required this.isExpanded,
+    required this.maxLines,
+    required this.maxWidth,
+    required this.accentTheme,
+    required this.isTextSelectable,
+    required this.plainInlineStyles,
+  });
+
+  final Delta content;
+  final IonConnectEntity entity;
+  final bool isExpanded;
+  final int? maxLines;
+  final double maxWidth;
+  final bool accentTheme;
+  final bool isTextSelectable;
+  final bool plainInlineStyles;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Cache the truncation result using useMemoized
+    final truncResult = useMemoized(
+      () {
+        if (maxLines != null && !isExpanded) {
+          return _truncateForMaxLines(
+            content,
+            context.theme.appTextThemes.body2,
+            maxWidth,
+            maxLines!,
+            MediaQuery.textScalerOf(context),
+          );
+        }
+        return _TruncationResult(delta: content, hasOverflow: false);
+      },
+      [content, maxWidth, maxLines, isExpanded],
+    );
+
+    final hasOverflow = truncResult.hasOverflow;
+    final displayDelta = hasOverflow ? truncResult.delta : content;
+
+    return AnimatedSize(
+      duration: 300.ms,
+      curve: Curves.easeInOut,
+      alignment: Alignment.topCenter,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextEditorPreview(
+            key: ValueKey(isExpanded),
+            scrollable: false,
+            content: displayDelta,
+            customStyles: accentTheme
+                ? textEditorStyles(
+                    context,
+                    color: context.theme.appColors.onPrimaryAccent,
+                  )
+                : null,
+            enableInteractiveSelection: isTextSelectable,
+            tagsColor: accentTheme ? context.theme.appColors.anakiwa : null,
+            ignoreInlineBoldItalic: plainInlineStyles,
+          ),
+          if (hasOverflow && maxLines != null)
+            GestureDetector(
+              onTap: () => ref.read(expandedPostsStateProvider.notifier).expand(entity),
+              child: Padding(
+                padding: EdgeInsetsDirectional.only(top: 4.0.s),
+                child: Text(
+                  context.i18n.common_show_more,
+                  style: context.theme.appTextThemes.body2.copyWith(
+                    color: accentTheme
+                        ? context.theme.appColors.onPrimaryAccent
+                        : context.theme.appColors.primaryAccent,
                   ),
                 ),
-            ],
-          ),
-        );
-      },
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -151,26 +215,4 @@ class PostContent extends HookConsumerWidget {
 
     return _TruncationResult(delta: truncated, hasOverflow: true);
   }
-
-  Delta? _getContent(WidgetRef ref) {
-    final postData = switch (entity) {
-      final ModifiablePostEntity post => post.data,
-      final PostEntity post => post.data,
-      _ => null,
-    };
-
-    if (postData is! EntityDataWithMediaContent) {
-      return null;
-    }
-
-    final result = ref.watch(parsedMediaWithMentionsProvider(postData));
-    return result.content;
-  }
-}
-
-class _TruncationResult {
-  _TruncationResult({required this.delta, required this.hasOverflow});
-
-  final Delta delta;
-  final bool hasOverflow;
 }
