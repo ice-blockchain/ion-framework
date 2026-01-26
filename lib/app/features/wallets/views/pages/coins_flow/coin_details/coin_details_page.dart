@@ -87,7 +87,13 @@ class CoinDetailsPage extends HookConsumerWidget {
           children: [
             CoinIconWidget(imageUrl: coinsGroup.iconUrl, type: WalletItemIconType.medium()),
             SizedBox(width: 6.0.s),
-            Text(coinsGroup.name),
+            Flexible(
+              child: Text(
+                coinsGroup.name,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
             if (containsTier2Network) ...[
               SizedBox(width: 2.0.s),
               const InfoBlockButton(
