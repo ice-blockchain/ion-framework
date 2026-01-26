@@ -29,6 +29,7 @@ class TradeCommunityTokenApi {
       cacheStrategy: AppConfigCacheStrategy.localStorage,
       parser: (data) => data.trim(),
       checkVersion: true,
+      refreshInterval: Duration.zero,
     );
     if (abi.isEmpty) {
       throw StateError(
@@ -44,6 +45,7 @@ class TradeCommunityTokenApi {
       cacheStrategy: AppConfigCacheStrategy.localStorage,
       parser: (data) => data.trim(),
       checkVersion: true,
+      refreshInterval: Duration.zero,
     );
     if (address.isEmpty) {
       throw StateError(
@@ -61,6 +63,7 @@ class TradeCommunityTokenApi {
           .map((e) => SupportedSwapTokenConfigDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       checkVersion: true,
+      refreshInterval: Duration.zero,
     );
   }
 
