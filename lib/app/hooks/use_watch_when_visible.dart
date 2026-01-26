@@ -28,26 +28,34 @@ T useWatchWhenVisible<T>({
   // Track initial route path (captured when hook is created)
   final fullPathRef = useRef(router?.state.fullPath);
 
-  // Track isCurrentRoute in state to only rebuild when it changes
-  final isCurrentRouteState = useState(context.isCurrentRoute);
-  final isCurrentRouteRef = useRef(context.isCurrentRoute);
-
-  // Track matched location
-  final matchedLocation = useState(router?.state.matchedLocation);
+  final matchedLocationRef = useRef(router?.state.matchedLocation);
   final initialMatchedLocation = useRef(router?.state.matchedLocation);
 
-  // Cache for last value when route is inactive
   final lastValueRef = useRef<T?>(null);
 
-  // Listen to route changes - this will trigger rebuilds when route changes
+  final isRouteActiveState = useState<bool>(true);
+
   useEffect(
     () {
       if (router == null) return null;
 
       void listener() {
         final newMatchedLocation = router.state.matchedLocation;
-        if (matchedLocation.value != newMatchedLocation) {
-          matchedLocation.value = newMatchedLocation;
+        final currentRoutePath = router.state.fullPath;
+        final isCurrentRoute = context.isCurrentRoute;
+
+        matchedLocationRef.value = newMatchedLocation;
+
+        // Calculate new route active status
+        final newIsRouteActive = fullPathRef.value == currentRoutePath &&
+            isCurrentRoute &&
+            (initialMatchedLocation.value == newMatchedLocation ||
+                (initialMatchedLocation.value != null &&
+                    newMatchedLocation.startsWith(initialMatchedLocation.value!)));
+
+        // Only update state (trigger rebuild) when route activation status actually changes
+        if (isRouteActiveState.value != newIsRouteActive) {
+          isRouteActiveState.value = newIsRouteActive;
         }
       }
 
@@ -59,45 +67,10 @@ T useWatchWhenVisible<T>({
     [router],
   );
 
-  // Check if isCurrentRoute changed and update state only when necessary
-  // Check synchronously during build, use current value for calculation
-  final currentIsCurrentRoute = context.isCurrentRoute;
-
-  // Update state only when value changes (triggers rebuild for next build cycle)
-  useEffect(
-    () {
-      if (isCurrentRouteRef.value != currentIsCurrentRoute) {
-        isCurrentRouteRef.value = currentIsCurrentRoute;
-        if (isCurrentRouteState.value != currentIsCurrentRoute) {
-          isCurrentRouteState.value = currentIsCurrentRoute;
-        }
-      }
-      return null;
-    },
-    [currentIsCurrentRoute],
-  );
-
-  // Use current value for calculation (most up-to-date), state will be updated for next cycle
-  final isCurrentRouteForCalculation = currentIsCurrentRoute;
-
-  // Calculate if route is active - only recalculates when tracked values change
-  final bool isRouteActive;
-  if (router == null) {
-    isRouteActive = true;
-  } else {
-    final currentRoutePath = router.state.fullPath;
-    isRouteActive = fullPathRef.value == currentRoutePath &&
-        isCurrentRouteForCalculation &&
-        (initialMatchedLocation.value == matchedLocation.value ||
-            (matchedLocation.value != null &&
-                initialMatchedLocation.value != null &&
-                matchedLocation.value!.startsWith(initialMatchedLocation.value!)));
-  }
-
   // Conditionally watch provider based on route activation
   // Only call watcher when route is active to prevent watching when inactive
   T? currentValue;
-  if (isRouteActive) {
+  if (isRouteActiveState.value) {
     // Watch when active - keeps provider alive and subscription active
     currentValue = watcher();
     // Update cache with latest value
@@ -106,7 +79,5 @@ T useWatchWhenVisible<T>({
     // Route is inactive - use cached value (don't call watcher)
     currentValue = lastValueRef.value;
   }
-
-  // Return current value when route is active, cached value when inactive
   return currentValue as T;
 }
