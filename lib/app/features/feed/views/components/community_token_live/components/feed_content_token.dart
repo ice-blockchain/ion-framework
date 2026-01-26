@@ -13,11 +13,11 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
@@ -126,7 +126,8 @@ class ContentTokenHeader extends HookConsumerWidget {
 
     final eventReference = (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference;
 
-    final entity = ref.watch(ionConnectEntityProvider(eventReference: eventReference)).valueOrNull;
+    final entity =
+        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
 
     final owner = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
 
