@@ -53,9 +53,10 @@ class TradeCommunityTokenService {
       throw const TokenOperationProtectedException();
     }
 
-    final tokenInfo = await repository.fetchTokenInfo(externalAddress);
+    final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
     final firstBuy = _isFirstBuy(existingTokenAddress);
+    final hasUserPosition = _hasUserPosition(tokenInfo);
     final toTokenBytes = _buildBuyToTokenBytes(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
@@ -86,6 +87,7 @@ class TradeCommunityTokenService {
           _trySendBuyEvents(
             externalAddress: externalAddress,
             firstBuy: firstBuy,
+            hasUserPosition: hasUserPosition,
             transaction: transaction,
             pricing: expectedPricing,
             amountIn: amountIn,
@@ -230,6 +232,7 @@ class TradeCommunityTokenService {
   Future<void> _trySendBuyEvents({
     required String externalAddress,
     required bool firstBuy,
+    required bool hasUserPosition,
     required TransactionResult transaction,
     required PricingResponse pricing,
     required BigInt amountIn,
@@ -283,6 +286,7 @@ class TradeCommunityTokenService {
       await ionConnectService.sendBuyActionEvents(
         externalAddress: externalAddress,
         network: walletNetwork,
+        hasUserPosition: hasUserPosition,
         bondingCurveAddress: bondingCurveAddress,
         tokenAddress: tokenAddress,
         transactionAddress: txHash,
@@ -358,6 +362,8 @@ class TradeCommunityTokenService {
     final status = transaction['status']?.toString() ?? '';
     return status.toLowerCase() == 'broadcasted';
   }
+
+  bool _hasUserPosition(CommunityToken? tokenInfo) => tokenInfo?.marketData.position != null;
 
   bool _isFirstBuy(String? tokenAddress) => tokenAddress == null || tokenAddress.isEmpty;
 

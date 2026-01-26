@@ -109,6 +109,7 @@ class CommunityTokenIonConnectService {
   Future<void> sendBuyActionEvents({
     required String externalAddress,
     required String network,
+    required bool hasUserPosition,
     required String bondingCurveAddress,
     required String tokenAddress,
     required String transactionAddress,
@@ -123,6 +124,7 @@ class CommunityTokenIonConnectService {
       communityTokenDefinition: communityTokenDefinition,
       type: CommunityTokenActionType.buy,
       network: network,
+      hasUserPosition: hasUserPosition,
       bondingCurveAddress: bondingCurveAddress,
       tokenAddress: tokenAddress,
       transactionAddress: transactionAddress,
@@ -153,6 +155,7 @@ class CommunityTokenIonConnectService {
     final communityTokenAction = await _buildCommunityTokenAction(
       communityTokenDefinition: communityTokenDefinition,
       type: CommunityTokenActionType.sell,
+      hasUserPosition: true, // User always has a position when selling
       network: network,
       bondingCurveAddress: bondingCurveAddress,
       tokenAddress: tokenAddress,
@@ -202,6 +205,7 @@ class CommunityTokenIonConnectService {
     required CommunityTokenDefinitionEntity communityTokenDefinition,
     required CommunityTokenActionType type,
     required String network,
+    required bool hasUserPosition,
     required String bondingCurveAddress,
     required String tokenAddress,
     required String transactionAddress,
@@ -220,6 +224,7 @@ class CommunityTokenIonConnectService {
     return CommunityTokenActionData.fromData(
       definitionReference: communityTokenDefinition.toEventReference(),
       network: network,
+      hasUserPosition: hasUserPosition,
       bondingCurveAddress: bondingCurveAddress,
       tokenAddress: tokenAddress,
       transactionAddress: transactionAddress,
