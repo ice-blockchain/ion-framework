@@ -110,16 +110,12 @@ class Http2Connection {
 
     try {
       await _transport?.terminate();
-    } catch (_) {
-      // Socket may already be closed by OS (e.g., app backgrounded)
     } finally {
       _transport = null;
     }
 
     try {
       await _socket?.close();
-    } catch (_) {
-      // Socket may already be closed by OS (e.g., app backgrounded)
     } finally {
       _socket = null;
     }
