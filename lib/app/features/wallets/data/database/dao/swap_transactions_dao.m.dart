@@ -58,19 +58,14 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     List<SwapStatus> statuses = const [],
     int limit = 100,
   }) async {
-    final query = select(swapTransactionsTable)
-      ..where(
-        (t) => _buildWhereClause(
-          t,
-          fromTxHashes: fromTxHashes,
-          toTxHashes: toTxHashes,
-          fromWalletAddresses: fromWalletAddresses,
-          toWalletAddresses: toWalletAddresses,
-          statuses: statuses,
-        ),
-      )
-      ..limit(limit);
-    return query.get();
+    return _buildSwapsQuery(
+      fromTxHashes: fromTxHashes,
+      toTxHashes: toTxHashes,
+      fromWalletAddresses: fromWalletAddresses,
+      toWalletAddresses: toWalletAddresses,
+      statuses: statuses,
+      limit: limit,
+    ).get();
   }
 
   Stream<List<SwapTransactions>> watchSwaps({
@@ -81,7 +76,26 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     List<SwapStatus> statuses = const [],
     int limit = 100,
   }) {
-    final query = select(swapTransactionsTable)
+    return _buildSwapsQuery(
+      fromTxHashes: fromTxHashes,
+      toTxHashes: toTxHashes,
+      fromWalletAddresses: fromWalletAddresses,
+      toWalletAddresses: toWalletAddresses,
+      statuses: statuses,
+      limit: limit,
+    ).watch();
+  }
+
+  SimpleSelectStatement<$SwapTransactionsTableTable, SwapTransactions>
+      _buildSwapsQuery({
+    List<String?> fromTxHashes = const [],
+    List<String?> toTxHashes = const [],
+    List<String> fromWalletAddresses = const [],
+    List<String> toWalletAddresses = const [],
+    List<SwapStatus> statuses = const [],
+    int limit = 100,
+  }) {
+    return select(swapTransactionsTable)
       ..where(
         (t) => _buildWhereClause(
           t,
@@ -92,8 +106,8 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
           statuses: statuses,
         ),
       )
+      ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
       ..limit(limit);
-    return query.watch();
   }
 
   Expression<bool> _buildWhereClause(
