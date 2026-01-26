@@ -97,6 +97,8 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         : null;
     final amounts = tags[TransactionAmount.tagName]?.map(TransactionAmount.fromTag).toList();
     final relatedPubkey = tags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).firstOrNull;
+    final relatedHashtags =
+        tags[RelatedHashtag.tagName]?.map(RelatedHashtag.fromTag).toList() ?? [];
 
     if (eventReference == null ||
         network == null ||
@@ -119,20 +121,44 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       transactionAddress: transactionAddress,
       type: type,
       amounts: amounts,
-      relatedHashtags: _buildRelatedHashtags(),
+      relatedHashtags: relatedHashtags,
       relatedPubkey: relatedPubkey,
     );
   }
 
   factory CommunityTokenActionData.fromData({
+    /// Reference to the Community Token Definition event
     required EventReference definitionReference,
+
+    /// Label / Name of the blockchain
     required String network,
+
+    /// If the user already has a position in the token.
+    ///
+    /// It is used to mark the buy event, which is later used to calculate the HODL statistics.
+    /// There might be multiple such buys for a user, e.g. if they bought, fully sold, and bought again.
+    /// In this case the HODL resets.
+    required bool hasUserPosition,
+
+    /// Address of the bonding curve smart contract on the blockchain
     required String bondingCurveAddress,
+
+    /// Address of the community token on the blockchain
     required String tokenAddress,
+
+    /// Address of the specific transaction for that community token on the blockchain
     required String transactionAddress,
+
+    /// Type of the transaction (buy/sell)
     required CommunityTokenActionType type,
+
+    /// Amount in base currency (e.g. ETH)
     required TransactionAmount amountBase,
+
+    /// Amount in quote currency (e.g. TOKEN)
     required TransactionAmount amountQuote,
+
+    /// Amount in USD
     required TransactionAmount amountUsd,
   }) {
     if (amountUsd.currency != TransactionAmount.usdCurrency) {
@@ -150,7 +176,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       transactionAddress: transactionAddress,
       type: type,
       amounts: [amountBase, amountQuote, amountUsd],
-      relatedHashtags: _buildRelatedHashtags(),
+      relatedHashtags: _buildRelatedHashtags(hasUserPosition: hasUserPosition, type: type),
       relatedPubkey: RelatedPubkey(value: definitionReference.masterPubkey),
     );
   }
@@ -185,10 +211,15 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     return amounts.firstWhereOrNull((amount) => amount.currency == currency);
   }
 
-  static List<RelatedHashtag> _buildRelatedHashtags() {
+  static List<RelatedHashtag> _buildRelatedHashtags({
+    required bool hasUserPosition,
+    required CommunityTokenActionType type,
+  }) {
     return [
       const RelatedHashtag(value: communityTokenTopic),
       const RelatedHashtag(value: communityTokenActionTopic),
+      if (type == CommunityTokenActionType.buy && !hasUserPosition)
+        const RelatedHashtag(value: communityTokenPositionResetTopic),
     ];
   }
 }
