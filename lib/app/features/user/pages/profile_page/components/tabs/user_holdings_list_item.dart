@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
@@ -125,9 +126,12 @@ class UserHoldingsListItem extends ConsumerWidget {
                 ],
               ),
             ),
-            TokenPriceLabel(
-              text: '\$${MarketDataFormatter.formatCompactNumber(position.amountUSD)}',
-            ),
+            if (position.amountUSD != null)
+              TokenPriceLabel(
+                text: '\$${MarketDataFormatter.formatCompactNumber(position.amountUSD!)}',
+              )
+            else
+              ContainerSkeleton(width: 45.0.s, height: 20.0.s),
           ],
         ),
       ),

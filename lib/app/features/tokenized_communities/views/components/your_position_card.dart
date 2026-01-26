@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
@@ -77,7 +78,7 @@ class YourPositionCard extends HookConsumerWidget {
                           ],
                         ),
                         const Spacer(),
-                        _AmountDetails(position: position),
+                        _AmountDetails(position: position, avatarColors: avatarColors),
                       ],
                     ),
                   ),
@@ -152,13 +153,17 @@ class _ProfitDetails extends StatelessWidget {
 class _AmountDetails extends StatelessWidget {
   const _AmountDetails({
     required this.position,
+    required this.avatarColors,
   });
 
   final Position position;
+  final ({Color first, Color second})? avatarColors;
 
   @override
   Widget build(BuildContext context) {
-    final displayAmountUSD = position.amountUSD < _minDisplayUSD && position.amountUSD != 0
+    final displayAmountUSD = (position.amountUSD != null &&
+            position.amountUSD != 0 &&
+            position.amountUSD! < _minDisplayUSD)
         ? _minDisplayUSD
         : position.amountUSD;
 
@@ -188,11 +193,18 @@ class _AmountDetails extends StatelessWidget {
               color: context.theme.appColors.onPrimaryAccent,
             ),
             SizedBox(width: 1.s),
-            Text(
-              formatUSD(displayAmountUSD),
-              style: context.theme.appTextThemes.body2
-                  .copyWith(color: context.theme.appColors.onPrimaryAccent),
-            ),
+            if (displayAmountUSD == null)
+              Text(
+                formatUSD(displayAmountUSD!),
+                style: context.theme.appTextThemes.body2
+                    .copyWith(color: context.theme.appColors.onPrimaryAccent),
+              )
+            else
+              ContainerSkeleton(
+                width: 45.0.s,
+                height: 20.0.s,
+                skeletonBaseColor: avatarColors?.first.withValues(alpha: 10),
+              ),
           ],
         ),
       ],
