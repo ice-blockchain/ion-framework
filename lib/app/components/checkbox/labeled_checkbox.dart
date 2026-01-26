@@ -29,8 +29,8 @@ class LabeledCheckbox extends StatelessWidget {
         mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
         children: [
           (isChecked ? Assets.svg.iconBlockCheckboxOn : Assets.svg.iconBlockCheckboxOff)
-              .icon(size: 20.0.s),
-          SizedBox(width: 6.0.s),
+              .icon(size: 18.0.s),
+          SizedBox(width: 5.0.s),
           Text(
             label,
             style: textStyle,
