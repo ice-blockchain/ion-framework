@@ -21,12 +21,12 @@ import 'package:ion/app/features/feed/views/components/community_token_live/comp
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/trading_stats_formatted.dart';
+import 'package:ion/app/features/tokenized_communities/providers/chart_title_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_latest_trades_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/prefix_x_token_ticker.dart';
 import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart_stats.dart';
@@ -39,10 +39,7 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/compo
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_card.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
-import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion/l10n/i10n.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 enum TokenizedCommunityTabType implements TabType {
   chart,
@@ -429,40 +426,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
   }
 }
 
-// For creator tokens: Returns "@nickname (ticker)" where ticker is lowercase.
-// For content tokens: Returns ticker as is from BE
-String? _normalizeChartTitle({
-  required CommunityToken token,
-  required BuildContext context,
-}) {
-  final ticker = token.marketData.ticker ?? '';
-
-  if (token.source.isTwitter) {
-    return prefixXTokenTicker(ticker);
-  }
-
-  if (token.type == CommunityTokenType.profile) {
-    // Creator token: @nickname (ticker) in lowercase
-    final nickname = token.creator.name;
-    if (nickname == null || nickname.isEmpty) {
-      return null;
-    }
-
-    final tickerLower = ticker.toLowerCase();
-    final usernamePart = prefixUsername(username: nickname.toLowerCase(), context: context);
-    final rtl = isRTL(context);
-
-    if (tickerLower.isNotEmpty) {
-      return rtl ? '($tickerLower) $usernamePart' : '$usernamePart ($tickerLower)';
-    }
-
-    return usernamePart;
-  }
-
-  // Content token: ticker as is from BE
-  return ticker;
-}
-
 EventReference? _useTradeEventReference({
   required String externalAddress,
   required CommunityTokenDefinitionEntity? tokenDefinition,
@@ -561,16 +524,23 @@ class _TokenChart extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final price = Decimal.parse(tokenInfo.marketData.priceUSD.toStringAsFixed(4));
-    final chartLabel = _normalizeChartTitle(
-      token: tokenInfo,
-      context: context,
+    final isRTL = Directionality.of(context) == TextDirection.rtl;
+    final chartTitleAsync = ref.watch(
+      chartTitleProvider(
+        externalAddress: externalAddress,
+        isRTL: isRTL,
+      ),
     );
+
+    final price = Decimal.parse(tokenInfo.marketData.priceUSD.toStringAsFixed(4));
+    final chartLabel = chartTitleAsync.valueOrNull;
+    final ticker = tokenInfo.marketData.ticker ?? '';
 
     return Chart(
       externalAddress: externalAddress,
       price: price,
-      label: chartLabel ?? '',
+      // fallback to ticker if chart label is not available
+      label: chartLabel ?? ticker,
     );
   }
 }
