@@ -53,38 +53,59 @@ class PushSubscriptionEntity
   static const int kind = 31751;
 }
 
+abstract class PushSubscriptionData implements ReplaceableEntityData, EventSerializable {
+  const PushSubscriptionData();
+
+  factory PushSubscriptionData.fromEventMessage(EventMessage eventMessage) {
+    final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
+
+    final filters = (jsonDecode(eventMessage.content) as List<dynamic>)
+        .map<RequestFilter>(
+          (filterJson) => RequestFilter.fromJson(filterJson as Map<String, dynamic>),
+        )
+        .toList();
+    final dTag = tags[ReplaceableEventIdentifier.tagName]!
+        .map(ReplaceableEventIdentifier.fromTag)
+        .first
+        .value;
+
+    if (tags.containsKey(RelatedToken.tagName)) {
+      return PushSubscriptionOwnData(
+        deviceId: dTag,
+        platform:
+            tags[PushSubscriptionPlatform.tagName]!.map(PushSubscriptionPlatform.fromTag).first,
+        relay: tags[RelatedRelay.tagName]!.map(RelatedRelay.fromTag).first,
+        fcmToken: tags[RelatedToken.tagName]!.map(RelatedToken.fromTag).first,
+        filters: filters,
+      );
+    } else {
+      return PushSubscriptionExternalData(
+        externalUserMasterPubkey: dTag,
+        relays: tags[RelatedRelay.tagName]!.map(RelatedRelay.fromTag).toList(),
+        filters: filters,
+      );
+    }
+  }
+
+  List<RequestFilter> get filters;
+}
+
+/// Base push subscription data - it contains filters for ALL events
+/// the user wants to receive, along with device data required
+/// to register a device for push notifications.
+///
+/// This event is published to the own user relay.
 @freezed
-class PushSubscriptionData
-    with _$PushSubscriptionData
-    implements EventSerializable, ReplaceableEntityData {
-  const factory PushSubscriptionData({
+class PushSubscriptionOwnData with _$PushSubscriptionOwnData implements PushSubscriptionData {
+  const factory PushSubscriptionOwnData({
     required String deviceId,
     required PushSubscriptionPlatform platform,
     required RelatedRelay relay,
     required RelatedToken fcmToken,
     required List<RequestFilter> filters,
-  }) = _PushSubscriptionData;
+  }) = _PushSubscriptionOwnData;
 
-  const PushSubscriptionData._();
-
-  factory PushSubscriptionData.fromEventMessage(EventMessage eventMessage) {
-    final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
-
-    return PushSubscriptionData(
-      deviceId: tags[ReplaceableEventIdentifier.tagName]!
-          .map(ReplaceableEventIdentifier.fromTag)
-          .first
-          .value,
-      platform: tags[PushSubscriptionPlatform.tagName]!.map(PushSubscriptionPlatform.fromTag).first,
-      relay: tags[RelatedRelay.tagName]!.map(RelatedRelay.fromTag).first,
-      fcmToken: tags[RelatedToken.tagName]!.map(RelatedToken.fromTag).first,
-      filters: (jsonDecode(eventMessage.content) as List<dynamic>)
-          .map<RequestFilter>(
-            (filterJson) => RequestFilter.fromJson(filterJson as Map<String, dynamic>),
-          )
-          .toList(),
-    );
-  }
+  const PushSubscriptionOwnData._();
 
   @override
   FutureOr<EventMessage> toEventMessage(
@@ -113,6 +134,55 @@ class PushSubscriptionData
       kind: PushSubscriptionEntity.kind,
       masterPubkey: pubkey,
       dTag: deviceId,
+    );
+  }
+}
+
+/// Push subscription data for external accounts - it contains
+/// filters only for the events that user wants to be notified about
+/// from a specific external user.
+///
+/// It doesn't contain fcm token or platform info, as those are already
+/// registered via the own push subscription event.
+/// It has to have multiple relay tags, one for each relay the current user has.
+/// This event is published to the relays of the external user, wrapped with 21750.
+@freezed
+class PushSubscriptionExternalData
+    with _$PushSubscriptionExternalData
+    implements PushSubscriptionData {
+  const factory PushSubscriptionExternalData({
+    required String externalUserMasterPubkey,
+    required List<RequestFilter> filters,
+    required List<RelatedRelay> relays,
+  }) = _PushSubscriptionExternalData;
+
+  const PushSubscriptionExternalData._();
+
+  @override
+  FutureOr<EventMessage> toEventMessage(
+    EventSigner signer, {
+    List<List<String>> tags = const [],
+    int? createdAt,
+  }) {
+    return EventMessage.fromData(
+      signer: signer,
+      createdAt: createdAt,
+      kind: PushSubscriptionEntity.kind,
+      content: jsonEncode(filters),
+      tags: [
+        ...tags,
+        [ReplaceableEventIdentifier.tagName, externalUserMasterPubkey],
+        ...relays.map((relay) => relay.toTag()),
+      ],
+    );
+  }
+
+  @override
+  ReplaceableEventReference toReplaceableEventReference(String pubkey) {
+    return ReplaceableEventReference(
+      kind: PushSubscriptionEntity.kind,
+      masterPubkey: pubkey,
+      dTag: externalUserMasterPubkey,
     );
   }
 }

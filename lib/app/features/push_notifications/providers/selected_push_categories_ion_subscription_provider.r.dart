@@ -34,7 +34,7 @@ part 'selected_push_categories_ion_subscription_provider.r.g.dart';
 @Riverpod(keepAlive: true)
 class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonSubscription {
   @override
-  Future<PushSubscriptionData?> build() async {
+  Future<PushSubscriptionOwnData?> build() async {
     final relaysFirebaseConfig = await ref.watch(relayFirebaseAppConfigProvider.future);
     final fcmConfigured = await ref.watch(configureFirebaseMessagingProvider.future);
 
@@ -48,7 +48,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       return null;
     }
 
-    return PushSubscriptionData(
+    return PushSubscriptionOwnData(
       deviceId: await ref.watch(deviceIdServiceProvider).get(),
       platform: PushSubscriptionPlatform.forPlatform(),
       relay: RelatedRelay(url: relaysFirebaseConfig.relayUrl),
