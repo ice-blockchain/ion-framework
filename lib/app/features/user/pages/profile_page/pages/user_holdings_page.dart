@@ -67,15 +67,15 @@ class UserHoldingsPage extends HookConsumerWidget {
                       final isLast = index == accumulatedHoldings.value.length - 1;
                       final bottomPadding = isLast ? 32.s : 7.s;
 
-                      return Padding(
-                        padding: EdgeInsetsDirectional.only(
-                          top: topPadding,
-                          bottom: bottomPadding,
-                          start: 16.s,
-                          end: 16.s,
-                        ),
-                        child: UserHoldingsListItem(token: accumulatedHoldings.value[index]),
+                      final padding = EdgeInsetsDirectional.only(
+                        top: topPadding,
+                        bottom: bottomPadding,
+                        start: 16.s,
+                        end: 16.s,
                       );
+
+                      return UserHoldingsListItem(
+                          token: accumulatedHoldings.value[index], padding: padding);
                     },
                   ),
                 if (isLoadingMore.value)

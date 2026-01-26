@@ -10,7 +10,7 @@ _$PositionImpl _$$PositionImplFromJson(Map<String, dynamic> json) =>
     _$PositionImpl(
       rank: (json['rank'] as num).toInt(),
       amount: json['amount'] as String,
-      amountUSD: (json['amountUSD'] as num).toDouble(),
+      amountUSD: (json['amountUSD'] as num?)?.toDouble() ?? 0,
       pnl: (json['pnl'] as num?)?.toDouble() ?? 0,
       pnlPercentage: (json['pnlPercentage'] as num?)?.toDouble() ?? 0,
     );

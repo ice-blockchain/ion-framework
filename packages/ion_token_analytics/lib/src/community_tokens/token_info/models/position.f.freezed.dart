@@ -171,7 +171,7 @@ class _$PositionImpl extends _Position {
   const _$PositionImpl({
     required this.rank,
     required this.amount,
-    required this.amountUSD,
+    this.amountUSD = 0,
     this.pnl = 0,
     this.pnlPercentage = 0,
   }) : super._();
@@ -184,6 +184,7 @@ class _$PositionImpl extends _Position {
   @override
   final String amount;
   @override
+  @JsonKey()
   final double amountUSD;
   @override
   @JsonKey()
@@ -234,7 +235,7 @@ abstract class _Position extends Position {
   const factory _Position({
     required final int rank,
     required final String amount,
-    required final double amountUSD,
+    final double amountUSD,
     final double pnl,
     final double pnlPercentage,
   }) = _$PositionImpl;
