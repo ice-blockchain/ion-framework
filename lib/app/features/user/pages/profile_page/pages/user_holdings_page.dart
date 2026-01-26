@@ -75,7 +75,9 @@ class UserHoldingsPage extends HookConsumerWidget {
                       );
 
                       return UserHoldingsListItem(
-                          token: accumulatedHoldings.value[index], padding: padding);
+                        token: accumulatedHoldings.value[index],
+                        padding: padding,
+                      );
                     },
                   ),
                 if (isLoadingMore.value)
