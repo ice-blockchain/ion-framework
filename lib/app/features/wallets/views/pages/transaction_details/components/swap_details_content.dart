@@ -6,12 +6,9 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/wallets/model/coins_group.f.dart';
-import 'package:ion/app/features/wallets/model/expected_swap_data.f.dart';
-import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
-import 'package:ion/app/features/wallets/providers/swap_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/swap_display_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/components/actions_section.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/transaction_details.dart';
@@ -30,7 +27,9 @@ class SwapDetailsContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final swapAsync = ref.watch(swapDetailsProvider(selectedTransaction.txHash));
+    final swapDisplayAsync = ref.watch(
+      swapDisplayDataProvider(selectedTransaction.txHash),
+    );
 
     final assetAbbreviation =
         selectedTransaction.assetData.mapOrNull(coin: (coin) => coin.coinsGroup)?.abbreviation;
@@ -51,36 +50,26 @@ class SwapDetailsContent extends ConsumerWidget {
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        ...swapAsync.when(
+        ...swapDisplayAsync.when(
           skipLoadingOnReload: true,
-          data: (swap) {
-            if (swap == null) return loader;
-
-            final sellData = _extractSwapSideData(swap.fromTransaction, swap.expectedSellData);
-            final buyData = _extractSwapSideData(swap.toTransaction, swap.expectedBuyData);
-
-            if (sellData.coins == null ||
-                sellData.network == null ||
-                buyData.coins == null ||
-                buyData.network == null) {
-              return loader;
-            }
+          data: (swapDisplayData) {
+            if (swapDisplayData == null) return loader;
 
             return [
               SliverToBoxAdapter(
                 child: SwapDetailsCard(
-                  sellCoins: sellData.coins!,
-                  sellNetwork: sellData.network!,
-                  buyCoins: buyData.coins!,
-                  buyNetwork: buyData.network!,
-                  sellAmount: sellData.amount,
-                  buyAmount: buyData.amount,
+                  sellCoins: swapDisplayData.sellData.coins,
+                  sellNetwork: swapDisplayData.sellData.network,
+                  buyCoins: swapDisplayData.buyData.coins,
+                  buyNetwork: swapDisplayData.buyData.network,
+                  sellAmount: swapDisplayData.sellData.amount,
+                  buyAmount: swapDisplayData.buyData.amount,
                   swapType: SwapQuoteInfoType.bridge,
-                  priceForSellTokenInBuyToken: swap.exchangeRate,
-                  sellCoinAbbreviation: sellData.coins!.abbreviation,
-                  buyCoinAbbreviation: buyData.coins!.abbreviation,
+                  priceForSellTokenInBuyToken: swapDisplayData.exchangeRate,
+                  sellCoinAbbreviation: swapDisplayData.sellData.coins.abbreviation,
+                  buyCoinAbbreviation: swapDisplayData.buyData.coins.abbreviation,
                   slippage: null,
-                  hideBuyAmount: swap.toTransaction == null,
+                  hideBuyAmount: swapDisplayData.hideBuyAmount,
                 ),
               ),
               SliverToBoxAdapter(
@@ -110,45 +99,6 @@ class SwapDetailsContent extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  ({CoinsGroup? coins, NetworkData? network, String amount}) _extractSwapSideData(
-    TransactionDetails? transaction,
-    ExpectedSwapData? expectedData,
-  ) {
-    if (transaction != null) {
-      final coinData = transaction.assetData.mapOrNull(coin: (coin) => coin);
-      if (coinData != null) {
-        return (
-          coins: coinData.coinsGroup,
-          network: transaction.network,
-          amount: coinData.amount.formatMax6 ?? '0',
-        );
-      }
-    }
-
-    if (expectedData != null) {
-      final amount = _formatExpectedAmount(expectedData);
-      return (coins: expectedData.coinsGroup, network: expectedData.network, amount: amount);
-    }
-
-    return (coins: null, network: null, amount: '0');
-  }
-
-  String _formatExpectedAmount(ExpectedSwapData expectedData) {
-    try {
-      final coin = expectedData.coinsGroup.coins
-          .where((c) => c.coin.network.id == expectedData.network.id)
-          .firstOrNull;
-      if (coin == null) return '0';
-      final decimals = coin.coin.decimals;
-      final bigAmount = BigInt.parse(expectedData.amount);
-      final divisor = BigInt.from(10).pow(decimals);
-      final doubleAmount = bigAmount / divisor;
-      return doubleAmount.formatMax6 ?? '0';
-    } catch (e) {
-      return '0';
-    }
   }
 }
 
