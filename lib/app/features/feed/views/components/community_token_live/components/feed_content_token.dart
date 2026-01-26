@@ -210,7 +210,7 @@ class ContentTokenHeader extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 16.0.s),
+                  SizedBox(height: 20.0.s),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
