@@ -165,21 +165,27 @@ class SwapTransactionsDao extends DatabaseAccessor<WalletsDatabase>
     String? toTxHash,
     SwapStatus? status,
   }) async {
-    final currentSwap = await (select(swapTransactionsTable)..where((t) => t.swapId.equals(swapId)))
-        .getSingleOrNull();
+    var rowsAffected = 0;
 
-    if (currentSwap == null) return 0;
+    if (fromTxHash != null) {
+      rowsAffected += await (update(swapTransactionsTable)
+            ..where((t) => t.swapId.equals(swapId) & t.fromTxHash.isNull()))
+          .write(SwapTransactionsTableCompanion(fromTxHash: Value(fromTxHash)));
+    }
 
-    final companion = SwapTransactionsTableCompanion(
-      fromTxHash: fromTxHash != null && currentSwap.fromTxHash == null
-          ? Value(fromTxHash)
-          : const Value.absent(),
-      toTxHash:
-          toTxHash != null && currentSwap.toTxHash == null ? Value(toTxHash) : const Value.absent(),
-      status: status != null ? Value(status.name) : const Value.absent(),
-    );
+    if (toTxHash != null) {
+      rowsAffected += await (update(swapTransactionsTable)
+            ..where((t) => t.swapId.equals(swapId) & t.toTxHash.isNull()))
+          .write(SwapTransactionsTableCompanion(toTxHash: Value(toTxHash)));
+    }
 
-    return (update(swapTransactionsTable)..where((t) => t.swapId.equals(swapId))).write(companion);
+    if (status != null) {
+      rowsAffected += await (update(swapTransactionsTable)
+            ..where((t) => t.swapId.equals(swapId)))
+          .write(SwapTransactionsTableCompanion(status: Value(status.name)));
+    }
+
+    return rowsAffected;
   }
 
   Future<List<SwapTransactions>> getPendingSwapsOlderThan(DateTime cutoff) async {
