@@ -555,14 +555,13 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     } else {
       final transferredAmount = transaction.transferredAmount ?? '0';
       final transferredCoin = CoinData.fromDB(transactionCoin, domainNetwork);
+      final amount = fromBlockchainUnits(transferredAmount, transferredCoin.decimals);
+      final amountUSD = transaction.transferredAmountUsd ?? (amount * transferredCoin.priceUSD);
 
       cryptoAsset = TransactionCryptoAsset.coin(
         coin: transferredCoin,
-        amount: fromBlockchainUnits(
-          transferredAmount,
-          transferredCoin.decimals,
-        ),
-        amountUSD: transaction.transferredAmountUsd ?? 0.0,
+        amount: amount,
+        amountUSD: amountUSD,
         rawAmount: transferredAmount,
       );
     }
