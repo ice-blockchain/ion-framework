@@ -193,9 +193,9 @@ class _AmountDetails extends StatelessWidget {
               color: context.theme.appColors.onPrimaryAccent,
             ),
             SizedBox(width: 1.s),
-            if (displayAmountUSD == null)
+            if (displayAmountUSD != null)
               Text(
-                formatUSD(displayAmountUSD!),
+                formatUSD(displayAmountUSD),
                 style: context.theme.appTextThemes.body2
                     .copyWith(color: context.theme.appColors.onPrimaryAccent),
               )
