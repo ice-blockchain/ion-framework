@@ -70,7 +70,7 @@ class TransactionDetailsPage extends HookConsumerWidget {
             title: Text(
               transactionAsync.maybeWhen(
                 data: (transaction) {
-                  return transaction.isSwap
+                  return transaction.swapStatus != null
                       ? context.i18n.wallet_swap
                       : context.i18n.transaction_details_title;
                 },
@@ -82,7 +82,7 @@ class TransactionDetailsPage extends HookConsumerWidget {
           Flexible(
             child: transactionAsync.when(
               skipLoadingOnReload: true,
-              data: (transactionData) => transactionData.isSwap
+              data: (transactionData) => transactionData.swapStatus != null
                   ? SwapDetailsContent(
                       selectedTransaction: transactionData,
                       onViewOnExplorer: () => onViewOnExplorer(transactionData),

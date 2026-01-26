@@ -39,7 +39,9 @@ class SwapService {
   final IonSwapService _ionSwapService;
   final IonToBscBridgeService _ionToBscBridgeService;
 
-  Future<void> swapCoins({
+  /// Returns the transaction hash of the swap transaction if it's exists
+  /// For now only [IonSwapService] and [IonBscToIonBridgeService] are supported
+  Future<String?> swapCoins({
     required SwapCoinParameters swapCoinData,
     required SendCoinCallback sendCoinCallback,
     SwapQuoteInfo? swapQuoteInfo,
@@ -55,7 +57,7 @@ class SwapService {
           swapCoinData: swapCoinData,
           request: ionSwapRequest,
         );
-        return;
+        return null;
       }
 
       if (_ionBscToIonBridgeService.isSupportedPair(swapCoinData)) {
@@ -63,11 +65,11 @@ class SwapService {
           throw const IonSwapException('Ion swap request is required for on-chain bridge');
         }
 
-        await _ionBscToIonBridgeService.bridgeToIon(
+        final txHash = await _ionBscToIonBridgeService.bridgeToIon(
           swapCoinData: swapCoinData,
           request: ionSwapRequest,
         );
-        return;
+        return txHash;
       }
 
       if (isIonBscSwap(swapCoinData)) {
@@ -75,11 +77,11 @@ class SwapService {
           throw const IonSwapException('Ion swap request is required for on-chain swap');
         }
 
-        await _ionSwapService.swapCoins(
+        final txHash = await _ionSwapService.swapCoins(
           swapCoinData: swapCoinData,
           request: ionSwapRequest,
         );
-        return;
+        return txHash;
       }
 
       if (swapQuoteInfo == null) {
@@ -92,7 +94,7 @@ class SwapService {
           sendCoinCallback: sendCoinCallback,
           swapQuoteInfo: swapQuoteInfo,
         );
-        return;
+        return null;
       }
 
       if (swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id) {
@@ -102,7 +104,7 @@ class SwapService {
         );
 
         final isSuccessSwap = txData != null;
-        if (isSuccessSwap) return;
+        if (isSuccessSwap) return null;
       }
 
       await _cexService.tryToCexSwap(
@@ -115,6 +117,8 @@ class SwapService {
         'Failed to swap coins: $e',
       );
     }
+
+    return null;
   }
 
   Future<SwapQuoteInfo> getSwapQuote({

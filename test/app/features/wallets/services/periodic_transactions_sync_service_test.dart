@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/transactions/failed_transfer_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/periodic_transactions_sync_service.r.dart';
@@ -20,25 +21,36 @@ class MockTransactionsRepository extends Mock implements TransactionsRepository 
 
 class MockFailedTransferService extends Mock implements FailedTransferService {}
 
+class MockSwapsRepository extends Mock implements SwapsRepository {}
+
 void main() {
   late MockSyncTransactionsService mockSyncTransactionsService;
   late MockTransactionsRepository mockTransactionsRepository;
   late MockFailedTransferService mockFailedTransferService;
+  late MockSwapsRepository mockSwapsRepository;
   late PeriodicTransactionsSyncService service;
 
   setUpAll(() {
     registerFallbackValue(<String>[]);
     registerFallbackValue(<TransactionStatus>[]);
+    registerFallbackValue(<String?>[]);
   });
 
   setUp(() {
     mockSyncTransactionsService = MockSyncTransactionsService();
     mockTransactionsRepository = MockTransactionsRepository();
     mockFailedTransferService = MockFailedTransferService();
+    mockSwapsRepository = MockSwapsRepository();
+
+    when(
+      () => mockSwapsRepository.getIncompleteSwaps(limit: any(named: 'limit')),
+    ).thenAnswer((_) async => []);
+
     service = PeriodicTransactionsSyncService(
       mockSyncTransactionsService,
       mockTransactionsRepository,
       mockFailedTransferService,
+      mockSwapsRepository,
       initialSyncDelay: const Duration(microseconds: 10),
     );
   });
