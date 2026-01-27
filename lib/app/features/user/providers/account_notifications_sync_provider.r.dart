@@ -4,9 +4,6 @@ import 'dart:async';
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/account_notification_sync_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/content_repository.r.dart';
@@ -14,9 +11,6 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
-import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
-import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
@@ -311,51 +305,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
       return null;
     }
 
-    return switch (contentType) {
-      UserNotificationsType.videos => RequestFilter(
-          kinds: const [
-            PostEntity.kind,
-            ModifiablePostEntity.kind,
-          ],
-          search: VideosSearchExtension(contain: true).query,
-          authors: users,
-          limit: 100,
-        ),
-      UserNotificationsType.stories => RequestFilter(
-          kinds: const [
-            PostEntity.kind,
-            ModifiablePostEntity.kind,
-          ],
-          search: ExpirationSearchExtension(expiration: true).query,
-          authors: users,
-          limit: 100,
-        ),
-      UserNotificationsType.articles => RequestFilter(
-          kinds: const [
-            ArticleEntity.kind,
-          ],
-          authors: users,
-          limit: 100,
-        ),
-      UserNotificationsType.posts => RequestFilter(
-          kinds: const [
-            PostEntity.kind,
-            ModifiablePostEntity.kind,
-          ],
-          search: SearchExtensions([
-            ExpirationSearchExtension(expiration: false),
-            VideosSearchExtension(contain: false),
-            TagMarkerSearchExtension(
-              tagName: RelatedReplaceableEvent.tagName,
-              marker: RelatedEventMarker.reply.name,
-              negative: true,
-            ),
-          ]).toString(),
-          authors: users,
-          limit: 100,
-        ),
-      UserNotificationsType.none => throw ArgumentError('Cannot build filter for none type'),
-    };
+    return contentType.toRequestFilter(authors: users, limit: 100);
   }
 
   Future<void> _processNotificationEvent(
