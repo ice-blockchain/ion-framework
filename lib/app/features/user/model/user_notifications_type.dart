@@ -2,6 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/build_context.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
+import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
+import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 enum UserNotificationsType {
@@ -10,6 +17,19 @@ enum UserNotificationsType {
   posts,
   videos,
   articles;
+
+  factory UserNotificationsType.fromFilter(RequestFilter filter) {
+    if (filter.kinds?.contains(ArticleEntity.kind) ?? false) {
+      return UserNotificationsType.articles;
+    } else if (filter.search?.contains(ExpirationSearchExtension(expiration: true).query) ??
+        false) {
+      return UserNotificationsType.stories;
+    } else if (filter.search?.contains(VideosSearchExtension(contain: true).query) ?? false) {
+      return UserNotificationsType.videos;
+    } else {
+      return UserNotificationsType.posts;
+    }
+  }
 
   String get iconAsset {
     return switch (this) {
@@ -34,6 +54,59 @@ enum UserNotificationsType {
       case UserNotificationsType.articles:
         return context.i18n.profile_articles;
     }
+  }
+
+  RequestFilter toRequestFilter({required List<String> authors, int? limit}) {
+    return switch (this) {
+      UserNotificationsType.videos => RequestFilter(
+          kinds: const [
+            PostEntity.kind,
+            ModifiablePostEntity.kind,
+          ],
+          search: VideosSearchExtension(contain: true).query,
+          authors: authors,
+          limit: limit,
+        ),
+      UserNotificationsType.stories => RequestFilter(
+          kinds: const [
+            PostEntity.kind,
+            ModifiablePostEntity.kind,
+          ],
+          search: ExpirationSearchExtension(expiration: true).query,
+          authors: authors,
+          limit: limit,
+        ),
+      UserNotificationsType.articles => RequestFilter(
+          kinds: const [
+            ArticleEntity.kind,
+          ],
+          authors: authors,
+          limit: limit,
+        ),
+      UserNotificationsType.posts => RequestFilter(
+          kinds: const [
+            PostEntity.kind,
+            ModifiablePostEntity.kind,
+          ],
+          search: SearchExtensions([
+            ExpirationSearchExtension(expiration: false),
+            VideosSearchExtension(contain: false),
+            TagMarkerSearchExtension(
+              tagName: RelatedReplaceableEvent.tagName,
+              marker: RelatedEventMarker.reply.name,
+              negative: true,
+            ),
+            TagMarkerSearchExtension(
+              tagName: RelatedImmutableEvent.tagName,
+              marker: RelatedEventMarker.reply.name,
+              negative: true,
+            ),
+          ]).toString(),
+          authors: authors,
+          limit: limit,
+        ),
+      UserNotificationsType.none => throw ArgumentError('Cannot build filter for none type'),
+    };
   }
 
   static Set<UserNotificationsType> toggleNotificationType(
