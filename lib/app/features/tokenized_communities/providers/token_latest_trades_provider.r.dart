@@ -124,7 +124,6 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       return fetchedCount;
     } catch (e, st) {
       Logger.error(e, stackTrace: st, message: 'Error loading more trades');
-      await _handleConnectionError(e);
       return 0;
     }
   }
@@ -166,7 +165,6 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       });
     } catch (e, st) {
       Logger.error(e, stackTrace: st, message: 'Error loading initial trades');
-      await _handleConnectionError(e);
     }
   }
 
@@ -220,7 +218,6 @@ class TokenLatestTrades extends _$TokenLatestTrades {
           stackTrace: st,
           message: 'Latest trades subscription failed; reconnecting',
         );
-        await _handleConnectionError(e);
       } finally {
         try {
           await _activeSubscription?.close();
@@ -246,26 +243,6 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     final controller = _controller;
     if (controller == null || controller.isClosed) return;
     controller.add(List<LatestTrade>.unmodifiable(_currentTrades));
-  }
-
-  Future<void> _handleConnectionError(Object error) async {
-    if (_disposed) return;
-
-    if (error is Http2StaleConnectionException ||
-        Http2StaleConnectionException.isStaleConnectionError(error)) {
-      try {
-        final client = await _clientFuture;
-        await client.forceDisconnect();
-      } catch (e, st) {
-        // Ignore and log secondary errors while forcing disconnect
-        Logger.error(
-          e,
-          stackTrace: st,
-          message:
-              '[TokenLatestTrades] Failed to force disconnect client in _handleConnectionError',
-        );
-      }
-    }
   }
 
   String _tradeKey(LatestTrade trade) {

@@ -193,7 +193,6 @@ class TokenTopHolders extends _$TokenTopHolders {
           stackTrace: st,
           message: 'Top holders subscription failed; reconnecting',
         );
-        await _handleConnectionError(e);
       } finally {
         try {
           await _activeSubscription?.close();
@@ -267,24 +266,5 @@ class TokenTopHolders extends _$TokenTopHolders {
         h.position.holder?.addresses?.twitter ??
         h.position.holder?.addresses?.blockchain ??
         h.position.holder?.name;
-  }
-
-  Future<void> _handleConnectionError(Object error) async {
-    if (_disposed) return;
-
-    if (error is Http2StaleConnectionException ||
-        Http2StaleConnectionException.isStaleConnectionError(error)) {
-      try {
-        final client = await _clientFuture;
-        await client.forceDisconnect();
-      } catch (e, st) {
-        // Ignore and log secondary errors while forcing disconnect
-        Logger.error(
-          e,
-          stackTrace: st,
-          message: '[TokenTopHolders] Failed to force disconnect client in _handleConnectionError',
-        );
-      }
-    }
   }
 }
