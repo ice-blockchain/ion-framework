@@ -14,4 +14,5 @@ export 'src/community_tokens/trading_stats/models/models.dart';
 export 'src/community_tokens/user_holdings/models/models.dart';
 export 'src/core/logger.dart';
 export 'src/core/network_client.dart' show NetworkSubscription;
+export 'src/http2_client/http2_exceptions.dart' show Http2StaleConnectionException;
 export 'src/ion_token_analytics.dart';

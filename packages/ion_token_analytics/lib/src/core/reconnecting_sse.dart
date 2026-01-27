@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:ion_token_analytics/src/core/logger.dart';
+import 'package:ion_token_analytics/src/http2_client/http2_exceptions.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_subscription.dart';
 
 /// Manages a reconnecting SSE stream that automatically retries on connection errors.
@@ -13,16 +14,19 @@ import 'package:ion_token_analytics/src/http2_client/models/http2_subscription.d
 /// - <nil> marker handling for Go-based SSE endpoints
 /// - Concurrent reconnection attempt prevention
 /// - Stream lifecycle management
+/// - Stale connection detection and automatic force disconnect
 class ReconnectingSse<T> {
   ReconnectingSse({
     required Http2Subscription<T> initialSubscription,
     required Future<Http2Subscription<T>> Function() createSubscription,
     required String path,
     AnalyticsLogger? logger,
+    Future<void> Function()? onStaleConnection,
   }) : _initialSubscription = initialSubscription,
        _createSubscription = createSubscription,
        _path = path,
-       _logger = logger {
+       _logger = logger,
+       _onStaleConnection = onStaleConnection {
     _currentSubscription = _initialSubscription;
     _initialize();
   }
@@ -31,6 +35,7 @@ class ReconnectingSse<T> {
   final Future<Http2Subscription<T>> Function() _createSubscription;
   final String _path;
   final AnalyticsLogger? _logger;
+  final Future<void> Function()? _onStaleConnection;
 
   final _controller = StreamController<T>.broadcast();
   late Http2Subscription<T> _currentSubscription;
@@ -107,6 +112,9 @@ class ReconnectingSse<T> {
 
         _logger?.log('[ReconnectingSse] Connection error on SSE stream for path: $_path: $error');
         _logger?.log('[ReconnectingSse] Stack trace for path: $_path: $stackTrace');
+
+        // Handle stale connection errors by forcing disconnect before reconnection
+        await _handleStaleConnectionIfNeeded(error);
 
         if (!_isReconnecting) {
           unawaited(_attemptReconnection());
@@ -201,8 +209,39 @@ class ReconnectingSse<T> {
         _logger?.log(
           '[ReconnectingSse] Will retry with exponential backoff (current attempt: $_reconnectAttempts) for path: $_path',
         );
+
+        // Handle stale connection errors during reconnection
+        await _handleStaleConnectionIfNeeded(reconnectError);
+
         _isReconnecting = false; // Clear flag before next iteration
         // Loop will continue and retry
+      }
+    }
+  }
+
+  /// Handles stale connection errors by forcing disconnect if needed.
+  ///
+  /// This is called when a connection error occurs, either during normal
+  /// stream processing or during reconnection attempts. If the error indicates
+  /// a stale connection (e.g., "Bad file descriptor" from OS closing the socket),
+  /// we force disconnect the client to ensure a clean state for the next attempt.
+  Future<void> _handleStaleConnectionIfNeeded(Object error) async {
+    if (_onStaleConnection == null) return;
+
+    final isStale =
+        error is Http2StaleConnectionException ||
+        Http2StaleConnectionException.isStaleConnectionError(error);
+
+    if (isStale) {
+      _logger?.log(
+        '[ReconnectingSse] Detected stale connection, forcing disconnect for path: $_path',
+      );
+      try {
+        await _onStaleConnection();
+      } catch (e) {
+        _logger?.log(
+          '[ReconnectingSse] Error during force disconnect (ignored) for path: $_path: $e',
+        );
       }
     }
   }

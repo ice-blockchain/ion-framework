@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:http2/http2.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
+import 'package:ion_token_analytics/src/http2_client/http2_exceptions.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_web_socket.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_connection_status.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
@@ -86,69 +87,71 @@ class Http2Client {
     Map<String, String>? queryParameters,
     Http2RequestOptions? options,
   }) async {
-    if (_disposed) {
-      throw StateError('Cannot make request on disposed Http2Client');
-    }
-    await _ensureConnection();
-    _activeStreams++;
+    return _wrapWithStaleConnectionHandling(() async {
+      if (_disposed) {
+        throw StateError('Cannot make request on disposed Http2Client');
+      }
+      await _ensureConnection();
+      _activeStreams++;
 
-    try {
-      final opts = options ?? Http2RequestOptions();
+      try {
+        final opts = options ?? Http2RequestOptions();
 
-      // Build the full path with query parameters
-      final uri = Uri(
-        path: path.startsWith('/') ? path : '/$path',
-        queryParameters: queryParameters,
-      );
-      final fullPath = uri.toString();
+        // Build the full path with query parameters
+        final uri = Uri(
+          path: path.startsWith('/') ? path : '/$path',
+          queryParameters: queryParameters,
+        );
+        final fullPath = uri.toString();
 
-      // Build request headers
-      final requestHeaders = [
-        Header.ascii(':method', opts.method.toUpperCase()),
-        Header.ascii(':scheme', scheme),
-        Header.ascii(':path', fullPath),
-        Header.ascii(':authority', host),
-      ];
+        // Build request headers
+        final requestHeaders = [
+          Header.ascii(':method', opts.method.toUpperCase()),
+          Header.ascii(':scheme', scheme),
+          Header.ascii(':path', fullPath),
+          Header.ascii(':authority', host),
+        ];
 
-      // Add custom headers
-      if (opts.headers != null) {
-        for (final entry in opts.headers!.entries) {
-          requestHeaders.add(Header.ascii(entry.key.toLowerCase(), entry.value));
+        // Add custom headers
+        if (opts.headers != null) {
+          for (final entry in opts.headers!.entries) {
+            requestHeaders.add(Header.ascii(entry.key.toLowerCase(), entry.value));
+          }
         }
+
+        // Add content-type and encode data if provided
+        Uint8List? bodyData;
+        if (data != null) {
+          final jsonData = jsonEncode(data);
+          bodyData = Uint8List.fromList(utf8.encode(jsonData));
+          requestHeaders
+            ..add(Header.ascii('content-type', 'application/json'))
+            ..add(Header.ascii('content-length', bodyData.length.toString()));
+        }
+
+        // Make the request
+        final stream = _connection.transport!.makeRequest(requestHeaders);
+
+        // Send body if present
+        if (bodyData != null) {
+          stream.sendData(bodyData, endStream: true);
+        } else {
+          stream.sendData(Uint8List(0), endStream: true);
+        }
+
+        // Wait for response with optional timeout
+        // The response future will complete once the stream is fully read
+        final responseFuture = _readResponse<T>(stream);
+        final response = opts.timeout != null
+            ? await responseFuture.timeout(opts.timeout!)
+            : await responseFuture;
+
+        return response;
+      } finally {
+        _activeStreams--;
+        await _maybeCloseConnection();
       }
-
-      // Add content-type and encode data if provided
-      Uint8List? bodyData;
-      if (data != null) {
-        final jsonData = jsonEncode(data);
-        bodyData = Uint8List.fromList(utf8.encode(jsonData));
-        requestHeaders
-          ..add(Header.ascii('content-type', 'application/json'))
-          ..add(Header.ascii('content-length', bodyData.length.toString()));
-      }
-
-      // Make the request
-      final stream = _connection.transport!.makeRequest(requestHeaders);
-
-      // Send body if present
-      if (bodyData != null) {
-        stream.sendData(bodyData, endStream: true);
-      } else {
-        stream.sendData(Uint8List(0), endStream: true);
-      }
-
-      // Wait for response with optional timeout
-      // The response future will complete once the stream is fully read
-      final responseFuture = _readResponse<T>(stream);
-      final response = opts.timeout != null
-          ? await responseFuture.timeout(opts.timeout!)
-          : await responseFuture;
-
-      return response;
-    } finally {
-      _activeStreams--;
-      await _maybeCloseConnection();
-    }
+    });
   }
 
   /// Creates a WebSocket subscription over HTTP/2.
@@ -182,85 +185,85 @@ class Http2Client {
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
   }) async {
-    if (_disposed) {
-      throw StateError('Cannot create subscription on disposed Http2Client');
-    }
-    await _ensureConnection();
-    _activeStreams++;
+    return _wrapWithStaleConnectionHandling(() async {
+      if (_disposed) {
+        throw StateError('Cannot create subscription on disposed Http2Client');
+      }
+      await _ensureConnection();
+      _activeStreams++;
 
-    try {
-      final ws = await Http2WebSocket.fromHttp2Connection(
-        _connection,
-        path: path,
-        queryParameters: queryParameters,
-        headers: headers,
-      );
+      try {
+        final ws = await Http2WebSocket.fromHttp2Connection(
+          _connection,
+          path: path,
+          queryParameters: queryParameters,
+          headers: headers,
+        );
 
-      final controller = StreamController<T>.broadcast();
-      var isClosed = false;
+        final controller = StreamController<T>.broadcast();
+        var isClosed = false;
 
-      final streamSubscription = ws.stream.listen(
-        (message) {
-          if (controller.isClosed) return;
+        final streamSubscription = ws.stream.listen(
+          (message) {
+            if (controller.isClosed) return;
 
-          if (message.type == WebSocketMessageType.text) {
-            if (T == String) {
-              controller.add(message.data as T);
-            } else {
-              try {
-                final parsed = jsonDecode(message.data as String);
-                controller.add(parsed as T);
-              } catch (e) {
-                controller.addError(e);
+            if (message.type == WebSocketMessageType.text) {
+              if (T == String) {
+                controller.add(message.data as T);
+              } else {
+                try {
+                  final parsed = jsonDecode(message.data as String);
+                  controller.add(parsed as T);
+                } catch (e) {
+                  _addStreamError(controller, e, StackTrace.current);
+                }
+              }
+            } else if (message.type == WebSocketMessageType.binary) {
+              if (message.data is T) {
+                controller.add(message.data as T);
               }
             }
-          } else if (message.type == WebSocketMessageType.binary) {
-            if (message.data is T) {
-              controller.add(message.data as T);
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            _addStreamError(controller, error, stackTrace);
+          },
+          onDone: () async {
+            if (!isClosed) {
+              isClosed = true;
+              if (!controller.isClosed) {
+                await controller.close();
+              }
+              _activeStreams--;
+              await _maybeCloseConnection();
             }
-          }
-        },
-        onError: (Object error, StackTrace stackTrace) {
+          },
+        );
+
+        // Manual close method
+        Future<void> close() async {
+          if (isClosed) return;
+          isClosed = true;
+
+          // Close the WebSocket connection first
+          ws.close();
+
+          await streamSubscription.cancel();
+
           if (!controller.isClosed) {
-            controller.addError(error, stackTrace);
+            await controller.close();
           }
-        },
-        onDone: () async {
-          if (!isClosed) {
-            isClosed = true;
-            if (!controller.isClosed) {
-              await controller.close();
-            }
-            _activeStreams--;
-            await _maybeCloseConnection();
-          }
-        },
-      );
 
-      // Manual close method
-      Future<void> close() async {
-        if (isClosed) return;
-        isClosed = true;
-
-        // Close the WebSocket connection first
-        ws.close();
-
-        await streamSubscription.cancel();
-
-        if (!controller.isClosed) {
-          await controller.close();
+          _activeStreams--;
+          await _maybeCloseConnection();
         }
 
+        return Http2Subscription<T>(stream: controller.stream, close: close);
+      } catch (e) {
         _activeStreams--;
         await _maybeCloseConnection();
+        rethrow;
       }
-
-      return Http2Subscription<T>(stream: controller.stream, close: close);
-    } catch (e) {
-      _activeStreams--;
-      await _maybeCloseConnection();
-      rethrow;
-    }
+    });
   }
 
   /// Creates a Server-Sent Events (SSE) subscription over HTTP/2.
@@ -277,114 +280,118 @@ class Http2Client {
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
   }) async {
-    if (_disposed) {
-      throw StateError('Cannot create subscription on disposed Http2Client');
-    }
-    await _ensureConnection();
-    _activeStreams++;
-
-    try {
-      // Build the full path with query parameters
-      final uri = Uri(
-        path: path.startsWith('/') ? path : '/$path',
-        queryParameters: queryParameters,
-      );
-      final fullPath = uri.toString();
-
-      // Build request headers
-      final requestHeaders = [
-        Header.ascii(':method', 'GET'),
-        Header.ascii(':scheme', scheme),
-        Header.ascii(':path', fullPath),
-        Header.ascii(':authority', host),
-        Header.ascii('accept', 'text/event-stream'),
-        Header.ascii('cache-control', 'no-cache'),
-      ];
-
-      // Add custom headers
-      if (headers != null) {
-        for (final entry in headers.entries) {
-          requestHeaders.add(Header.ascii(entry.key.toLowerCase(), entry.value));
-        }
+    return _wrapWithStaleConnectionHandling(() async {
+      if (_disposed) {
+        throw StateError('Cannot create subscription on disposed Http2Client');
       }
+      await _ensureConnection();
+      _activeStreams++;
 
-      // Make the request
-      final stream = _connection.transport!.makeRequest(requestHeaders)
-        ..sendData(Uint8List(0), endStream: true);
+      try {
+        // Build the full path with query parameters
+        final uri = Uri(
+          path: path.startsWith('/') ? path : '/$path',
+          queryParameters: queryParameters,
+        );
+        final fullPath = uri.toString();
 
-      final controller = StreamController<T>.broadcast();
-      var isClosed = false;
+        // Build request headers
+        final requestHeaders = [
+          Header.ascii(':method', 'GET'),
+          Header.ascii(':scheme', scheme),
+          Header.ascii(':path', fullPath),
+          Header.ascii(':authority', host),
+          Header.ascii('accept', 'text/event-stream'),
+          Header.ascii('cache-control', 'no-cache'),
+        ];
 
-      // SSE parsing state
-      var buffer = '';
-
-      final streamSubscription = stream.incomingMessages.listen(
-        (message) {
-          if (controller.isClosed) return;
-
-          if (message is DataStreamMessage) {
-            final chunk = utf8.decode(message.bytes);
-            buffer += chunk;
-
-            while (buffer.contains('\n\n')) {
-              final index = buffer.indexOf('\n\n');
-              final eventString = buffer.substring(0, index);
-              buffer = buffer.substring(index + 2);
-
-              _processSseEvent<T>(eventString, controller);
-            }
-          } else if (message is HeadersStreamMessage) {
-            // Check status code?
-            final headers = _parseHeaders(message.headers);
-            final status = headers[':status'];
-            if (status != null && status != '200') {
-              controller.addError(Exception('SSE connection failed with status $status'));
-            }
+        // Add custom headers
+        if (headers != null) {
+          for (final entry in headers.entries) {
+            requestHeaders.add(Header.ascii(entry.key.toLowerCase(), entry.value));
           }
-        },
-        onError: (Object error, StackTrace stackTrace) {
-          if (!controller.isClosed) {
-            controller.addError(error, stackTrace);
-          }
-        },
-        onDone: () async {
-          if (!isClosed) {
-            isClosed = true;
-            if (!controller.isClosed) {
-              await controller.close();
-            }
-            _activeStreams--;
-            await _maybeCloseConnection();
-          }
-        },
-      );
-
-      // Manual close method
-      Future<void> close() async {
-        if (isClosed) return;
-        isClosed = true;
-
-        // Cancel the stream subscription (this might not close the server side immediately)
-        await streamSubscription.cancel();
-
-        // We can't easily "close" an HTTP/2 stream from client side other than RST_STREAM
-        // but the transport doesn't expose that easily.
-        // For now, we rely on cancelling the listener.
-
-        if (!controller.isClosed) {
-          await controller.close();
         }
 
+        // Make the request
+        final stream = _connection.transport!.makeRequest(requestHeaders)
+          ..sendData(Uint8List(0), endStream: true);
+
+        final controller = StreamController<T>.broadcast();
+        var isClosed = false;
+
+        // SSE parsing state
+        var buffer = '';
+
+        final streamSubscription = stream.incomingMessages.listen(
+          (message) {
+            if (controller.isClosed) return;
+
+            if (message is DataStreamMessage) {
+              final chunk = utf8.decode(message.bytes);
+              buffer += chunk;
+
+              while (buffer.contains('\n\n')) {
+                final index = buffer.indexOf('\n\n');
+                final eventString = buffer.substring(0, index);
+                buffer = buffer.substring(index + 2);
+
+                _processSseEvent<T>(eventString, controller);
+              }
+            } else if (message is HeadersStreamMessage) {
+              // Check status code?
+              final headers = _parseHeaders(message.headers);
+              final status = headers[':status'];
+              if (status != null && status != '200') {
+                _addStreamError(
+                  controller,
+                  Exception('SSE connection failed with status $status'),
+                  StackTrace.current,
+                );
+              }
+            }
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            _addStreamError(controller, error, stackTrace);
+          },
+          onDone: () async {
+            if (!isClosed) {
+              isClosed = true;
+              if (!controller.isClosed) {
+                await controller.close();
+              }
+              _activeStreams--;
+              await _maybeCloseConnection();
+            }
+          },
+        );
+
+        // Manual close method
+        Future<void> close() async {
+          if (isClosed) return;
+          isClosed = true;
+
+          // Cancel the stream subscription (this might not close the server side immediately)
+          await streamSubscription.cancel();
+
+          // We can't easily "close" an HTTP/2 stream from client side other than RST_STREAM
+          // but the transport doesn't expose that easily.
+          // For now, we rely on cancelling the listener.
+
+          if (!controller.isClosed) {
+            await controller.close();
+          }
+
+          _activeStreams--;
+          await _maybeCloseConnection();
+        }
+
+        return Http2Subscription<T>(stream: controller.stream, close: close);
+      } catch (e) {
         _activeStreams--;
         await _maybeCloseConnection();
+        rethrow;
       }
-
-      return Http2Subscription<T>(stream: controller.stream, close: close);
-    } catch (e) {
-      _activeStreams--;
-      await _maybeCloseConnection();
-      rethrow;
-    }
+    });
   }
 
   void _processSseEvent<T>(String eventString, StreamController<T> controller) {
@@ -482,7 +489,11 @@ class Http2Client {
       },
       onError: (Object error, StackTrace stackTrace) {
         if (!completer.isCompleted) {
-          completer.completeError(error, stackTrace);
+          if (Http2StaleConnectionException.isStaleConnectionError(error)) {
+            completer.completeError(Http2StaleConnectionException(error), stackTrace);
+          } else {
+            completer.completeError(error, stackTrace);
+          }
         }
       },
       onDone: () {
@@ -550,12 +561,58 @@ class Http2Client {
     return result;
   }
 
+  /// Forces disconnection of the underlying HTTP/2 connection.
+  ///
+  /// Use this when you detect that the connection has become stale
+  /// (e.g., after receiving a SocketException with errno 9 "Bad file descriptor",
+  /// or when the app transitions from background to foreground).
+  ///
+  /// After calling this method:
+  /// - All active streams are considered invalid
+  /// - The next request/subscription will establish a new connection
+  /// - The client is NOT disposed and can still be used
+  Future<void> forceDisconnect() async {
+    // Clear the connection future to allow reconnection
+    _connectionFuture = null;
+
+    // Reset active streams counter since they're all invalid now
+    _activeStreams = 0;
+
+    // Force disconnect the underlying connection
+    await _connection.forceDisconnect();
+  }
+
   /// Disposes the client and its underlying connection.
   ///
   /// After calling this method, no new requests or subscriptions can be made.
   /// Any active operations will continue until completion.
   Future<void> dispose() async {
     _disposed = true;
+    _connectionFuture = null;
     await _connection.dispose();
+  }
+
+  Future<T> _wrapWithStaleConnectionHandling<T>(Future<T> Function() action) async {
+    try {
+      return await action();
+    } catch (e) {
+      if (Http2StaleConnectionException.isStaleConnectionError(e)) {
+        await forceDisconnect();
+        throw Http2StaleConnectionException(e);
+      }
+      rethrow;
+    }
+  }
+
+  void _addStreamError<T>(StreamController<T> controller, Object error, StackTrace stackTrace) {
+    if (controller.isClosed) return;
+
+    if (Http2StaleConnectionException.isStaleConnectionError(error)) {
+      unawaited(forceDisconnect());
+      controller.addError(Http2StaleConnectionException(error), stackTrace);
+      return;
+    }
+
+    controller.addError(error, stackTrace);
   }
 }

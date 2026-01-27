@@ -131,7 +131,8 @@ class NetworkClient {
     // map-typed subscriptions. Downstream repositories can
     // interpret an empty map as the EOSE marker.
     //
-    // Also handles automatic reconnection on connection errors during stream processing.
+    // Also handles automatic reconnection on connection errors during stream processing,
+    // including stale connection detection (e.g., "Bad file descriptor" after app backgrounding).
     final reconnectingSse = ReconnectingSse<T>(
       initialSubscription: initialSubscription,
       createSubscription: () => _client.subscribeSse<T>(
@@ -141,6 +142,7 @@ class NetworkClient {
       ),
       path: path,
       logger: _logger,
+      onStaleConnection: _client.forceDisconnect,
     );
 
     return NetworkSubscription<T>(stream: reconnectingSse.stream, close: reconnectingSse.close);
@@ -148,6 +150,14 @@ class NetworkClient {
 
   Future<void> dispose() {
     return _client.dispose();
+  }
+
+  /// Forces the underlying HTTP/2 client to drop the current connection.
+  ///
+  /// Use this when the connection is suspected to be stale (e.g., after
+  /// backgrounding) to ensure the next request/subscription reconnects.
+  Future<void> forceDisconnect() {
+    return _client.forceDisconnect();
   }
 
   /// Builds a map of query parameters suitable for HTTP requests.

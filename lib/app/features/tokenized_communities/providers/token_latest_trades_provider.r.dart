@@ -189,7 +189,9 @@ class TokenLatestTrades extends _$TokenLatestTrades {
             // We want newest at the top. If the backend ever sends a mixed order,
             // sorting ascending + inserting at index 0 preserves correct ordering.
             final sorted = List<LatestTrade>.of(updates)
-              ..sort((a, b) => _createdAtAsc(a.position.createdAt, b.position.createdAt));
+              ..sort(
+                (a, b) => _createdAtAsc(a.position.createdAt, b.position.createdAt),
+              );
 
             for (final trade in sorted) {
               final key = _tradeKey(trade);
@@ -211,12 +213,21 @@ class TokenLatestTrades extends _$TokenLatestTrades {
         }
       } catch (e, st) {
         // Don’t fail the provider; keep showing the last known trades.
-        Logger.error(e, stackTrace: st, message: 'Latest trades subscription failed; reconnecting');
+        Logger.error(
+          e,
+          stackTrace: st,
+          message: 'Latest trades subscription failed; reconnecting',
+        );
       } finally {
         try {
           await _activeSubscription?.close();
-        } catch (_) {
-          // ignore
+        } catch (e, st) {
+          // ignore and log error
+          Logger.error(
+            e,
+            stackTrace: st,
+            message: '[TokenLatestTrades] Failed to close subscription in _runSse finally block',
+          );
         }
         _activeSubscription = null;
       }
@@ -253,6 +264,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
   }
 
   void _sortTrades() {
-    _currentTrades.sort((a, b) => _createdAtAsc(b.position.createdAt, a.position.createdAt));
+    _currentTrades.sort(
+      (a, b) => _createdAtAsc(b.position.createdAt, a.position.createdAt),
+    );
   }
 }

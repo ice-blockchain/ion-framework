@@ -62,8 +62,13 @@ class TokenTopHolders extends _$TokenTopHolders {
       }
       try {
         _activeSubscription?.close();
-      } catch (_) {
-        // ignore
+      } catch (e, st) {
+        // ignore and log error
+        Logger.error(
+          e,
+          stackTrace: st,
+          message: '[TokenTopHolders] Failed to close subscription during dispose',
+        );
       }
       _activeSubscription = null;
       controller.close();
@@ -126,8 +131,13 @@ class TokenTopHolders extends _$TokenTopHolders {
 
     try {
       _activeSubscription?.close();
-    } catch (_) {
-      // ignore
+    } catch (e, st) {
+      // ignore and log error
+      Logger.error(
+        e,
+        stackTrace: st,
+        message: '[TokenTopHolders] Failed to close subscription during restart',
+      );
     }
     _activeSubscription = null;
     // _runSse loop will reconnect automatically.
@@ -178,12 +188,21 @@ class TokenTopHolders extends _$TokenTopHolders {
           _marker.complete();
         }
 
-        Logger.error(e, stackTrace: st, message: 'Top holders subscription failed; reconnecting');
+        Logger.error(
+          e,
+          stackTrace: st,
+          message: 'Top holders subscription failed; reconnecting',
+        );
       } finally {
         try {
           await _activeSubscription?.close();
-        } catch (_) {
-          // ignore
+        } catch (e, st) {
+          // ignore and log error
+          Logger.error(
+            e,
+            stackTrace: st,
+            message: '[TokenTopHolders] Failed to close subscription in _runSse finally block',
+          );
         }
         _activeSubscription = null;
       }
