@@ -74,7 +74,6 @@ final class NativeAdCardView: UIView {
             iconImageView.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.iconMedium),
             iconImageView.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.iconMedium),
 
-            titleTextLabel.topAnchor.constraint(equalTo: topAnchor, constant: -4),
             titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
 
             descriptionTextLabel.topAnchor.constraint(equalTo: titleTextLabel.bottomAnchor, constant: -2),
@@ -129,8 +128,9 @@ final class NativeAdCardView: UIView {
                 callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
                 
                 cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: 0),
-                //cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 10.0/16.0),
+                cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 9/16.0),
                 titleTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8),
+                titleTextLabel.topAnchor.constraint(equalTo: topAnchor, constant: -2),
                 descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: callToActionView.leadingAnchor, constant: -8)
             ])
         case .bottom:
@@ -140,9 +140,10 @@ final class NativeAdCardView: UIView {
                 callToActionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
                 
                 cardBackgroundView.bottomAnchor.constraint(lessThanOrEqualTo: callToActionView.topAnchor, constant: -DesignSystem.Spacing.medium),
-                //cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 9.0/16.0),
+                cardBackgroundView.heightAnchor.constraint(equalTo: cardBackgroundView.widthAnchor, multiplier: 9/16.0),
                 
                 titleTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: 0),
+                titleTextLabel.topAnchor.constraint(equalTo: topAnchor, constant: 2),
                 descriptionTextLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: 0)
             ])
         }
