@@ -69,27 +69,32 @@ class _CreateUpdateRequestBuilder {
     final symbolGroups = <String>{};
     final walletViewItems = <WalletViewCoinData>[];
 
-    final networkWithWallet = <String, List<Wallet>>{};
-    for (final wallet in userWallets) {
-      final network = wallet.network;
-      networkWithWallet.putIfAbsent(network, () => []).add(wallet);
+    // 1. Build existing bindings from wallet view
+    final existingBindings = <String, String?>{};
+    if (walletView != null) {
+      for (final group in walletView.coinGroups) {
+        for (final coinInWallet in group.coins) {
+          existingBindings[coinInWallet.coin.id] = coinInWallet.walletId;
+        }
+      }
     }
 
+    // 2. Get wallets connected to this wallet view, grouped by network
+    final networkWithWallets = _getConnectedWalletsByNetwork(
+      userWallets: userWallets,
+      mainUserWallet: mainUserWallet,
+      walletView: walletView,
+    );
+
+    // 3. Process each coin
     for (final coin in coins) {
-      final walletViewId = walletView?.id;
-      final coinNetworkId = coin.network.id;
-      final walletsInNetwork = networkWithWallet[coinNetworkId];
-      final isMainWalletView = walletView?.isMainWalletView ?? false;
-
-      final walletId = _resolveWalletIdForCoin(
-        mainUserWallet: mainUserWallet,
-        coinNetworkId: coinNetworkId,
-        walletsInNetwork: walletsInNetwork,
-        walletViewId: walletViewId,
-        isMainWalletView: isMainWalletView,
-      );
-
       symbolGroups.add(coin.symbolGroup);
+
+      // Reuse existing binding, or resolve wallet for new coins
+      final walletId = existingBindings.containsKey(coin.id)
+          ? existingBindings[coin.id]
+          : networkWithWallets[coin.network.id]?.firstOrNull?.id;
+
       walletViewItems.add(
         WalletViewCoinData(
           coinId: coin.id,
@@ -101,30 +106,35 @@ class _CreateUpdateRequestBuilder {
     return (symbolGroups, walletViewItems);
   }
 
-  String? _resolveWalletIdForCoin({
+  Map<String, List<Wallet>> _getConnectedWalletsByNetwork({
+    required List<Wallet> userWallets,
     required Wallet mainUserWallet,
-    required String coinNetworkId,
-    required List<Wallet>? walletsInNetwork,
-    required String? walletViewId,
-    required bool isMainWalletView,
+    required WalletViewData? walletView,
   }) {
-    // No wallets found for this network: only safe fallback is main wallet if it matches the network.
-    if (walletsInNetwork == null || walletsInNetwork.isEmpty) {
-      return mainUserWallet.network == coinNetworkId ? mainUserWallet.id : null;
-    }
+    final connectedWalletIds =
+        walletView?.coins.map((c) => c.walletId).nonNulls.toSet() ?? <String>{};
 
-    final matched = walletsInNetwork.firstWhereOrNull((wallet) {
+    final walletViewId = walletView?.id;
+    final isMainWalletView = walletView?.isMainWalletView ?? false;
+
+    final connectedWallets = userWallets.where((wallet) {
+      if (connectedWalletIds.contains(wallet.id)) return true;
+
       if (isMainWalletView) {
         final isAutoCreatedMainWallet =
             wallet.name != null && wallet.name!.toLowerCase().contains('main');
-
         return wallet.id == mainUserWallet.id ||
             wallet.name == walletViewId ||
             isAutoCreatedMainWallet;
       }
       return wallet.name == walletViewId;
-    });
+    }).toList();
 
-    return matched?.id;
+    final networkWithWallets = <String, List<Wallet>>{};
+    for (final wallet in connectedWallets) {
+      networkWithWallets.putIfAbsent(wallet.network, () => []).add(wallet);
+    }
+
+    return networkWithWallets;
   }
 }
