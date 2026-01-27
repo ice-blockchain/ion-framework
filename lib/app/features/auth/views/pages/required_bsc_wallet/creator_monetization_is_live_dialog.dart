@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
@@ -44,8 +45,11 @@ class CreatorMonetizationIsLiveDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final avatarUrl = ref.watch(currentUserMetadataProvider).value?.data.avatarUrl;
+    final imageColors = useImageColors(avatarUrl);
+
     return ProfileGradientBackground(
-      colors: useAvatarFallbackColors,
+      colors: imageColors ?? useAvatarFallbackColors,
       disableDarkGradient: false,
       child: const _ContentState(),
     );
@@ -65,7 +69,7 @@ class _ContentState extends ConsumerWidget {
     );
 
     return Stack(
-      alignment: Alignment.topCenter,
+      alignment: Alignment.center,
       children: [
         Transform.scale(
           scale: 1.5,
