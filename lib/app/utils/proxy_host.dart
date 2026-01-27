@@ -23,22 +23,8 @@ String buildRelayProxyHostForIp({
   return '$normalizedIp.$domain';
 }
 
-/// Builds a proxied hostname for BSC RPC access.
-///
-/// The resulting host is:
-/// `bsc-rpc.<domain>`
-///
-/// This mirrors the RPC proxy URL format used across the app.
-String buildBscRpcProxyHost({
-  required String domain,
-}) {
-  final normalized = domain.trim();
-  return 'bsc-rpc.$normalized';
-}
-
 Uri buildBscRpcProxyUri({
   required String domain,
 }) {
-  final host = buildBscRpcProxyHost(domain: domain);
-  return Uri(scheme: 'https', host: host, port: 8545);
+  return Uri(scheme: 'https', host: domain);
 }
