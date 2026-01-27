@@ -35,26 +35,30 @@ class TokenCreatorTile extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TokenAvatar(
-                imageUrl: creator.avatar,
-                containerSize: Size.square(30.s),
-                imageSize: Size.square(30.s),
-                innerBorderRadius: 10.s,
-                outerBorderRadius: 10.s,
-                borderWidth: 0,
-              ),
-              SizedBox(width: 8.0.s),
-              _CreatorDetails(
-                name: creator.display.emptyOrValue,
-                handle: creator.name.emptyOrValue,
-                verified: creator.verified.falseOrValue,
-                nameColor: nameColor,
-                handleColor: handleColor,
-              ),
-            ],
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TokenAvatar(
+                  imageUrl: creator.avatar,
+                  containerSize: Size.square(30.s),
+                  imageSize: Size.square(30.s),
+                  innerBorderRadius: 10.s,
+                  outerBorderRadius: 10.s,
+                  borderWidth: 0,
+                ),
+                SizedBox(width: 8.0.s),
+                Flexible(
+                  child: _CreatorDetails(
+                    name: creator.display.emptyOrValue,
+                    handle: creator.name.emptyOrValue,
+                    verified: creator.verified.falseOrValue,
+                    nameColor: nameColor,
+                    handleColor: handleColor,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -86,12 +90,16 @@ class _CreatorDetails extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              name,
-              style: texts.subtitle3.copyWith(
-                color: nameColor ?? colors.primaryText,
+            Flexible(
+              child: Text(
+                name,
+                style: texts.subtitle3.copyWith(
+                  color: nameColor ?? colors.primaryText,
+                ),
+                strutStyle: const StrutStyle(forceStrutHeight: true),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              strutStyle: const StrutStyle(forceStrutHeight: true),
             ),
             if (verified) ...[
               SizedBox(width: 4.0.s),
@@ -102,6 +110,8 @@ class _CreatorDetails extends StatelessWidget {
         Text(
           prefixUsername(username: handle, context: context),
           style: texts.caption.copyWith(color: handleColor ?? colors.quaternaryText),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
