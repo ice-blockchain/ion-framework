@@ -90,22 +90,22 @@ class EditSubmitButton extends ConsumerWidget {
         draft.displayName != currentUserMetadata.data.displayName;
 
     if (nameOrNicknameChanged) {
-      final hasCreatorToken = ref
-          .read(
-            ionConnectEntityHasTokenProvider(
-              eventReference: currentUserMetadata.toEventReference(),
-            ),
-          )
-          .valueOrNull
-          .falseOrValue;
 
-      if (hasCreatorToken) {
+      final hasCreatorToken = await ref.read(
+        ionConnectEntityHasTokenProvider(
+          eventReference: currentUserMetadata.toEventReference(),
+        ).future,
+      );
+
+      if (hasCreatorToken && context.mounted) {
         await guardPasskeyDialog(
           context,
           (child) => RiverpodUserActionSignerRequestBuilder(
             provider: updateUserMetadataNotifierProvider,
             request: (UserActionSignerNew signer) async {
-              await ref.read(updateUserMetadataNotifierProvider.notifier).publishWithUserActionSigner(
+              await ref
+                  .read(updateUserMetadataNotifierProvider.notifier)
+                  .publishWithUserActionSigner(
                     draft,
                     avatar: avatarFile,
                     banner: bannerFile,

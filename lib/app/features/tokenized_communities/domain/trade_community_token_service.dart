@@ -18,7 +18,6 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
-import 'package:ion/app/utils/hex_encoding.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -190,31 +189,41 @@ class TradeCommunityTokenService {
   Future<TransactionResult> updateTokenMetadata({
     required String externalAddress,
     required String walletId,
+    required String walletAddress,
     required UserActionSignerNew userActionSigner,
-    required FatAddressV2Data fatAddressData,
+    required String newName,
+    required String newSymbol,
   }) async {
     final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
     final tokenAddress = _extractTokenAddress(tokenInfo);
-    final tokenIdentifier = tokenAddress != null && tokenAddress.isNotEmpty
-        ? _getBytesFromAddress(tokenAddress)
-        : fatAddressData.toBytes();
+    if (tokenAddress == null || tokenAddress.isEmpty) {
+      return {'status': 'skipped'};
+    }
 
-    final metadataBytes = fatAddressData.toBytes();
-    final metadataString = bytesToHex(metadataBytes);
+    final metadataOwner = await repository.fetchTokenMetadataOwner(tokenAddress);
+    if (!_sameAddress(metadataOwner, walletAddress)) {
+      return {'status': 'skipped'};
+    }
+
+    final currentName = await repository.fetchTokenName(tokenAddress);
+    final currentSymbol = await repository.fetchTokenSymbol(tokenAddress);
+    if (currentName == newName && currentSymbol == newSymbol) {
+      return {'status': 'skipped'};
+    }
 
     final updateOperation = await repository.buildUpdateMetadataUserOperation(
-      tokenIdentifier: tokenIdentifier,
-      metadataBytes: metadataBytes,
-      metadataString: metadataString,
       tokenAddress: tokenAddress,
+      newName: newName,
+      newSymbol: newSymbol,
     );
 
-    return repository.signAndBroadcastUserOperations(
+    final result = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: [updateOperation],
       feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
       userActionSigner: userActionSigner,
     );
+    return result;
   }
 
   Future<TransactionResult> _performSwap({
@@ -409,6 +418,11 @@ class TradeCommunityTokenService {
   bool _hasUserPosition(CommunityToken? tokenInfo) => tokenInfo?.marketData.position != null;
 
   bool _isFirstBuy(String? tokenAddress) => tokenAddress == null || tokenAddress.isEmpty;
+
+  bool _sameAddress(String? left, String? right) {
+    if (left == null || right == null) return false;
+    return left.toLowerCase() == right.toLowerCase();
+  }
 
   String? _extractTokenAddress(CommunityToken? tokenInfo) => tokenInfo?.addresses.blockchain;
 

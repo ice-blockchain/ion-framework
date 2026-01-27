@@ -17,6 +17,7 @@ class EvmContractProviders {
 
   final Map<String, BondingCurveContract> _bondingCurveCache = {};
   List<dynamic>? _erc20Abi;
+  List<dynamic>? _tokenMetadataAbi;
 
   Future<BondingCurveContract> loadBondingCurveContract({
     required String abiJson,
@@ -43,6 +44,14 @@ class EvmContractProviders {
     }
     _erc20Abi = jsonDecode(_standardErc20Abi) as List<dynamic>;
     return _erc20Abi!;
+  }
+
+  Future<List<dynamic>> loadTokenMetadataAbi() async {
+    if (_tokenMetadataAbi != null) {
+      return _tokenMetadataAbi!;
+    }
+    _tokenMetadataAbi = jsonDecode(_tokenMetadataAbiJson) as List<dynamic>;
+    return _tokenMetadataAbi!;
   }
 }
 
@@ -74,6 +83,42 @@ const _standardErc20Abi = '''
     "stateMutability": "view",
     "inputs": [],
     "outputs": [{"name": "", "type": "uint8"}]
+  }
+]
+''';
+
+const _tokenMetadataAbiJson = '''
+[
+  {
+    "name": "getMetadataOwner",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "address"}]
+  },
+  {
+    "name": "name",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "string"}]
+  },
+  {
+    "name": "symbol",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "string"}]
+  },
+  {
+    "name": "updateMetadata",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {"name": "newName", "type": "string"},
+      {"name": "newSymbol", "type": "string"}
+    ],
+    "outputs": []
   }
 ]
 ''';
