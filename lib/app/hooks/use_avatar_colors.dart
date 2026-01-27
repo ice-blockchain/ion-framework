@@ -19,6 +19,9 @@ final Map<String, AvatarColors> _avatarColorsCache = {};
 
 /// Hook to extract two colors from the user's avatar using PaletteGenerator
 /// Returns null colors while loading, then returns extracted colors
+const int _avatarPaletteTargetPixels = 96;
+const Size _avatarPaletteTargetSize = Size(96, 96);
+const int _avatarPaletteMaxColorCount = 10;
 AvatarColors? useImageColors(String? avatarUrl, {bool enabled = true}) {
   final paletteState = useState<PaletteGenerator?>(null);
   final isLoadingState = useState<bool>(false);
@@ -43,10 +46,15 @@ AvatarColors? useImageColors(String? avatarUrl, {bool enabled = true}) {
 
       Future<void> extractColors() async {
         try {
-          final imageProvider = NetworkImage(avatarUrl);
+          final imageProvider = ResizeImage(
+            NetworkImage(avatarUrl),
+            width: _avatarPaletteTargetPixels,
+            height: _avatarPaletteTargetPixels,
+          );
           final palette = await PaletteGenerator.fromImageProvider(
             imageProvider,
-            maximumColorCount: 20,
+            maximumColorCount: _avatarPaletteMaxColorCount,
+            size: _avatarPaletteTargetSize,
           );
           if (isMounted) {
             paletteState.value = palette;
