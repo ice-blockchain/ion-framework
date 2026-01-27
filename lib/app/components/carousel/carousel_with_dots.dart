@@ -6,6 +6,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
+class CarouselDotsConfig {
+  const CarouselDotsConfig({
+    this.count,
+    this.spacing = 8.0,
+    this.size = 9.0,
+    this.activeSize = 18.0,
+    this.activeHeight = 9.0,
+    this.color,
+    this.activeColor,
+    this.shape,
+    this.activeShape,
+    this.decorator,
+    this.position,
+  });
+
+  final int? count;
+  final double spacing;
+  final double size;
+  final double activeSize;
+  final double activeHeight;
+  final Color? color;
+  final Color? activeColor;
+  final ShapeBorder? shape;
+  final ShapeBorder? activeShape;
+  final DotsDecorator? decorator;
+  final double? position;
+}
+
 class CarouselWithDots extends HookWidget {
   const CarouselWithDots({
     required this.items,
@@ -26,16 +54,7 @@ class CarouselWithDots extends HookWidget {
     this.clipBehavior = Clip.none,
     this.scrollDirection = Axis.horizontal,
     this.onPageChanged,
-    this.dotsCount,
-    this.dotsSpacing = 8.0,
-    this.dotsSize = 9.0,
-    this.dotsActiveSize = 18.0,
-    this.dotsActiveHeight = 9.0,
-    this.dotsColor,
-    this.dotsActiveColor,
-    this.dotsShape,
-    this.dotsActiveShape,
-    this.dotsDecorator,
+    this.dotsConfig,
     super.key,
   });
 
@@ -58,26 +77,26 @@ class CarouselWithDots extends HookWidget {
   final Axis scrollDirection;
   final void Function(int index, CarouselPageChangedReason reason)? onPageChanged;
 
-  // Dots indicator properties
-  final int? dotsCount;
-  final double dotsSpacing;
-  final double dotsSize;
-  final double dotsActiveSize;
-  final double dotsActiveHeight;
-  final Color? dotsColor;
-  final Color? dotsActiveColor;
-  final ShapeBorder? dotsShape;
-  final ShapeBorder? dotsActiveShape;
-  final DotsDecorator? dotsDecorator;
+  // Dots indicator configuration
+  final CarouselDotsConfig? dotsConfig;
 
   @override
   Widget build(BuildContext context) {
     final currentPage = useState(initialPage);
     final carouselController = useMemoized(CarouselSliderController.new);
 
-    final effectiveDotsCount = dotsCount ?? items.length;
-    final effectiveDotsColor = dotsColor ?? context.theme.appColors.onTertiaryFill;
-    final effectiveDotsActiveColor = dotsActiveColor ?? context.theme.appColors.primaryAccent;
+    final dotsSpacing = dotsConfig?.spacing ?? 8.0;
+    final dotsSize = dotsConfig?.size ?? 9.0;
+    final dotsActiveSize = dotsConfig?.activeSize ?? 18.0;
+    final dotsActiveHeight = dotsConfig?.activeHeight ?? 9.0;
+    final effectiveDotsCount = dotsConfig?.count ?? items.length;
+    final effectiveDotsColor = dotsConfig?.color ?? context.theme.appColors.onTertiaryFill;
+    final effectiveDotsActiveColor =
+        dotsConfig?.activeColor ?? context.theme.appColors.primaryAccent;
+    final dotsShape = dotsConfig?.shape;
+    final dotsActiveShape = dotsConfig?.activeShape;
+    final dotsDecorator = dotsConfig?.decorator;
+    final dotsPosition = dotsConfig?.position;
 
     final defaultDotsDecorator = DotsDecorator(
       size: Size.square(dotsSize.s),
@@ -123,7 +142,7 @@ class CarouselWithDots extends HookWidget {
         ),
         if (effectiveDotsCount > 1)
           PositionedDirectional(
-            bottom: 8.s,
+            bottom: dotsPosition ?? 8.0.s,
             child: DotsIndicator(
               dotsCount: effectiveDotsCount,
               position: currentPage.value,

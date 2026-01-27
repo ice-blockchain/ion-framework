@@ -99,10 +99,12 @@ class WalletCarousel extends StatelessWidget {
         ],
         autoPlay: true,
         enlargeCenterPage: true,
-        dotsSpacing: 4.s,
-        dotsSize: 3.s,
-        dotsActiveSize: 12.s,
-        dotsActiveHeight: 3.s,
+        dotsConfig: CarouselDotsConfig(
+          spacing: 4.s,
+          size: 3.s,
+          activeSize: 12.s,
+          activeHeight: 3.s,
+        ),
       ),
     );
   }

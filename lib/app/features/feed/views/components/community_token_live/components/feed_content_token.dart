@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/carousel/carousel_with_dots.dart';
 import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
@@ -148,11 +149,14 @@ class ContentTokenHeader extends HookConsumerWidget {
       content = entity.data.title?.trim();
     }
 
-    final layoutConfig = useMemoized<_MediaLayoutConfig>(
-      () {
-        return _MediaLayoutConfig.fromAspectRatio(mediaAttachment?.aspectRatio);
+    final visualMedias = useMemoized<List<MediaAttachment>?>(
+      () => switch (entity) {
+        ModifiablePostEntity(:final data) => data.visualMedias,
+        PostEntity(:final data) => data.visualMedias,
+        ArticleEntity(:final data) => data.visualMedias,
+        _ => null,
       },
-      [mediaAttachment?.aspectRatio],
+      [entity],
     );
 
     return Column(
@@ -165,14 +169,12 @@ class ContentTokenHeader extends HookConsumerWidget {
             child: Stack(
               alignment: AlignmentDirectional.center,
               children: [
-                TokenAvatar(
-                  imageSize: layoutConfig.imageSize,
-                  containerSize: layoutConfig.containerSize,
-                  outerBorderRadius: layoutConfig.outerBorderRadius,
-                  innerBorderRadius: layoutConfig.innerBorderRadius,
-                  imageUrl: mediaAttachment?.thumb ?? mediaAttachment?.url,
-                  borderWidth: layoutConfig.borderWidth,
-                ),
+                if (type == CommunityContentTokenType.postImage &&
+                    visualMedias != null &&
+                    visualMedias.length > 1)
+                  _TokenAvatarCarousel(visualMedias: visualMedias)
+                else
+                  _EffectiveTokenAvatar(mediaAttachment: mediaAttachment),
                 if (type == CommunityContentTokenType.postVideo)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12.s),
@@ -565,6 +567,68 @@ class _Skeleton extends StatelessWidget {
           ),
           SizedBox(height: showBuyButton ? 34.0.s : 12.0.s),
         ],
+      ),
+    );
+  }
+}
+
+class _EffectiveTokenAvatar extends StatelessWidget {
+  const _EffectiveTokenAvatar({
+    this.mediaAttachment,
+  });
+
+  final MediaAttachment? mediaAttachment;
+
+  @override
+  Widget build(BuildContext context) {
+    final layoutConfig = _MediaLayoutConfig.fromAspectRatio(mediaAttachment?.aspectRatio);
+    return TokenAvatar(
+      imageSize: layoutConfig.imageSize,
+      containerSize: layoutConfig.containerSize,
+      outerBorderRadius: layoutConfig.outerBorderRadius,
+      innerBorderRadius: layoutConfig.innerBorderRadius,
+      imageUrl: mediaAttachment?.thumb ?? mediaAttachment?.url,
+      borderWidth: layoutConfig.borderWidth,
+    );
+  }
+}
+
+class _TokenAvatarCarousel extends StatelessWidget {
+  const _TokenAvatarCarousel({
+    required this.visualMedias,
+  });
+
+  final List<MediaAttachment> visualMedias;
+
+  @override
+  Widget build(BuildContext context) {
+    final layoutConfigs =
+        visualMedias.map((media) => _MediaLayoutConfig.fromAspectRatio(media.aspectRatio)).toList();
+
+    final maxHeight =
+        layoutConfigs.map((config) => config.containerSize.height).reduce((a, b) => a > b ? a : b);
+
+    return CarouselWithDots(
+      items: visualMedias.asMap().entries.map((entry) {
+        final index = entry.key;
+        final media = entry.value;
+        return TokenAvatar(
+          imageSize: layoutConfigs[index].imageSize,
+          containerSize: layoutConfigs[index].containerSize,
+          outerBorderRadius: layoutConfigs[index].outerBorderRadius,
+          innerBorderRadius: layoutConfigs[index].innerBorderRadius,
+          imageUrl: media.thumb ?? media.url,
+          borderWidth: layoutConfigs[index].borderWidth,
+        );
+      }).toList(),
+      height: maxHeight * 1.1.s, // extra space for dots
+      dotsConfig: CarouselDotsConfig(
+        activeSize: 5.s,
+        size: 3.s,
+        spacing: 2.s,
+        activeHeight: 5.s,
+        position: -2.s,
+        color: context.theme.appColors.tertiaryText,
       ),
     );
   }
