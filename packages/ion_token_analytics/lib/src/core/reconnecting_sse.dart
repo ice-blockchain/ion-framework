@@ -228,7 +228,8 @@ class ReconnectingSse<T> {
   Future<void> _handleStaleConnectionIfNeeded(Object error) async {
     if (_onStaleConnection == null) return;
 
-    final isStale = error is Http2StaleConnectionException ||
+    final isStale =
+        error is Http2StaleConnectionException ||
         Http2StaleConnectionException.isStaleConnectionError(error);
 
     if (isStale) {
