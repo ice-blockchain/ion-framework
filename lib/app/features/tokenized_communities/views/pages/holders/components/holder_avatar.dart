@@ -15,20 +15,25 @@ class HolderAvatar extends HookWidget {
     this.imageUrl,
     this.seed,
     this.isXUser = false,
+    this.isIonConnectUser = false,
   });
 
   final String? imageUrl;
   final String? seed;
   final bool isXUser;
+  final bool isIonConnectUser;
 
   @override
   Widget build(BuildContext context) {
     final size = 30.0.s;
     final borderRadius = BorderRadius.circular(10.0.s);
+
     final emptyIcon = useMemoized(
       () => ClipRRect(
         borderRadius: borderRadius,
-        child: isXUser ? getRandomDefaultAvatar(seed).icon(size: size) : DefaultAvatar(size: size),
+        child: isXUser || !isIonConnectUser
+            ? getRandomDefaultAvatar(seed).icon(size: size)
+            : DefaultAvatar(size: size),
       ),
       [seed],
     );
@@ -51,13 +56,15 @@ class HolderAvatar extends HookWidget {
       );
     }
 
-    return IonNetworkImage(
+    return ClipRRect(
       borderRadius: borderRadius,
-      imageUrl: imageUrl!,
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
-      errorWidget: (context, url, error) => emptyIcon,
+      child: IonNetworkImage(
+        imageUrl: imageUrl!,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorWidget: (context, url, error) => emptyIcon,
+      ),
     );
   }
 }

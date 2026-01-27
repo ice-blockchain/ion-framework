@@ -76,22 +76,25 @@ class TopHolderTile extends StatelessWidget {
     final creatorAddress = holder.creator.addresses?.ionConnect;
     final isCreator = creatorAddress != null && holderAddress == creatorAddress;
 
+    final holderName = holder.position.holder?.name;
+    final holderDisplay = holder.position.holder?.display;
+    final holderBlockchainAddress = holder.position.holder?.addresses?.blockchain;
+
     return HolderTile(
       rank: holder.position.rank,
       amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: holder.position.holder?.display ??
+      displayName: holderDisplay ??
           shortenAddress(
-            holder.position.holder?.addresses?.ionConnect ??
-                holder.position.holder?.addresses?.twitter ??
-                '',
+            holderBlockchainAddress ?? '',
           ),
-      username: '@${holder.position.holder?.name}',
+      username: holderName == null ? null : '@$holderName',
       supplyShare: holder.position.supplyShare,
       verified: holder.position.holder?.verified ?? false,
       isCreator: isCreator,
       avatarUrl: holder.position.holder?.avatar,
       holderAddress: holderAddress,
       isXUser: isXUser,
+      isIonConnectUser: holder.position.holder?.addresses?.ionConnect != null,
     );
   }
 }
@@ -110,6 +113,7 @@ class HolderTile extends StatelessWidget {
     this.isXUser = false,
     this.badgeType = RankBadgeType.regular,
     this.address,
+    this.isIonConnectUser = false,
     super.key,
   });
 
@@ -125,6 +129,7 @@ class HolderTile extends StatelessWidget {
   final bool isXUser;
   final RankBadgeType badgeType;
   final String? address;
+  final bool isIonConnectUser;
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +157,7 @@ class HolderTile extends StatelessWidget {
                   imageUrl: avatarUrl,
                   seed: displayName,
                   isXUser: isXUser,
+                  isIonConnectUser: isIonConnectUser,
                 ),
                 SizedBox(width: 8.0.s),
                 Expanded(
@@ -296,11 +302,7 @@ class _NameAndAmount extends StatelessWidget {
           ],
         ),
         Text(
-          address != null
-              ? shortenAddress(address!)
-              : handle != null
-                  ? '$handle • $amountText'
-                  : amountText,
+          handle != null ? '$handle • $amountText' : amountText,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: texts.caption.copyWith(color: colors.quaternaryText),

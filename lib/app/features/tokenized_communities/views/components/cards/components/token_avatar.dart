@@ -83,7 +83,7 @@ class TokenAvatar extends HookWidget {
           borderRadius: BorderRadius.circular(innerBorderRadius),
           child: Builder(
             builder: (context) {
-              if (imageUrl == null) {
+              if (imageUrl == null || imageUrl!.isEmpty) {
                 return DefaultAvatar(size: imageSize.width);
               }
               return IonNetworkImage(
