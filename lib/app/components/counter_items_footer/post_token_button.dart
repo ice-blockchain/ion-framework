@@ -105,17 +105,20 @@ class _TokenDefinitionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final route = switch (entity.data) {
-      CommunityTokenDefinitionIon(:final eventReference) =>
-        TokenizedCommunityRoute(externalAddress: eventReference.toString()),
-      CommunityTokenDefinitionExternal(:final externalId) =>
-        TokenizedCommunityRoute(externalAddress: externalId),
+    final externalAddress = switch (entity.data) {
+      CommunityTokenDefinitionIon(:final eventReference) => eventReference.toString(),
+      CommunityTokenDefinitionExternal(:final externalId) => externalId,
       _ => null,
     };
+
+    if (externalAddress == null) {
+      return _TokenButtonPlaceholder(padding: padding);
+    }
+
     return _TokenButton(
       padding: padding,
-      onTap: route == null ? null : () => route.push<void>(context),
-      child: const _RocketIcon(),
+      onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
+      child: _MarketCap(externalAddress: externalAddress),
     );
   }
 }
@@ -129,25 +132,20 @@ class _TokenActionButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenDefinition = ref
-        .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
+        .watch(
+            ionConnectEntityWithCountersProvider(eventReference: entity.data.definitionReference))
         .valueOrNull as CommunityTokenDefinitionEntity?;
 
     if (tokenDefinition == null) {
       return _TokenButtonPlaceholder(padding: padding);
     }
 
-    final route = switch (tokenDefinition.data) {
-      CommunityTokenDefinitionIon(:final eventReference) =>
-        TokenizedCommunityRoute(externalAddress: eventReference.toString()),
-      CommunityTokenDefinitionExternal(:final externalId) =>
-        TokenizedCommunityRoute(externalAddress: externalId),
-      _ => null,
-    };
+    final externalAddress = tokenDefinition.data.externalAddress;
 
     return _TokenButton(
       padding: padding,
-      onTap: route == null ? null : () => route.push<void>(context),
-      child: const _RocketIcon(),
+      onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
+      child: _MarketCap(externalAddress: externalAddress),
     );
   }
 }
@@ -298,14 +296,16 @@ class _RocketIcon extends StatelessWidget {
 class _MarketCap extends ConsumerWidget {
   const _MarketCap({required this.externalAddress});
 
-  final String externalAddress;
+  final String? externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenInfo = externalAddress == null
+        ? null
+        : ref.watch(tokenMarketInfoProvider(externalAddress!)).valueOrNull;
 
     if (tokenInfo == null) {
-      return const _RocketIcon();
+      return const SizedBox.shrink();
     }
 
     return Row(
