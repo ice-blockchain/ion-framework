@@ -53,10 +53,10 @@ class HoldingsList extends ConsumerWidget {
                       final index = entry.key;
                       final token = entry.value;
                       final isLast = index == holdings.length - 1;
-                      return Padding(
-                        padding: EdgeInsetsDirectional.only(bottom: isLast ? 0.0 : 14.0.s),
-                        child: UserHoldingsListItem(token: token),
-                      );
+
+                      final padding = EdgeInsetsDirectional.only(bottom: isLast ? 0.0 : 14.0.s);
+
+                      return UserHoldingsListItem(token: token, padding: padding);
                     },
                   ),
                   SizedBox(height: 16.0.s),

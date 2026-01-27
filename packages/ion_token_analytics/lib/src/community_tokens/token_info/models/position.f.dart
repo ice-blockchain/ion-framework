@@ -10,7 +10,7 @@ class Position with _$Position implements PositionBase {
   const factory Position({
     required int rank,
     required String amount,
-    required double amountUSD,
+    double? amountUSD,
     @Default(0) double pnl,
     @Default(0) double pnlPercentage,
   }) = _Position;

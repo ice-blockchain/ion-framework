@@ -23,7 +23,7 @@ Position _$PositionFromJson(Map<String, dynamic> json) {
 mixin _$Position {
   int get rank => throw _privateConstructorUsedError;
   String get amount => throw _privateConstructorUsedError;
-  double get amountUSD => throw _privateConstructorUsedError;
+  double? get amountUSD => throw _privateConstructorUsedError;
   double get pnl => throw _privateConstructorUsedError;
   double get pnlPercentage => throw _privateConstructorUsedError;
 
@@ -45,7 +45,7 @@ abstract class $PositionCopyWith<$Res> {
   $Res call({
     int rank,
     String amount,
-    double amountUSD,
+    double? amountUSD,
     double pnl,
     double pnlPercentage,
   });
@@ -68,7 +68,7 @@ class _$PositionCopyWithImpl<$Res, $Val extends Position>
   $Res call({
     Object? rank = null,
     Object? amount = null,
-    Object? amountUSD = null,
+    Object? amountUSD = freezed,
     Object? pnl = null,
     Object? pnlPercentage = null,
   }) {
@@ -82,10 +82,10 @@ class _$PositionCopyWithImpl<$Res, $Val extends Position>
                 ? _value.amount
                 : amount // ignore: cast_nullable_to_non_nullable
                       as String,
-            amountUSD: null == amountUSD
+            amountUSD: freezed == amountUSD
                 ? _value.amountUSD
                 : amountUSD // ignore: cast_nullable_to_non_nullable
-                      as double,
+                      as double?,
             pnl: null == pnl
                 ? _value.pnl
                 : pnl // ignore: cast_nullable_to_non_nullable
@@ -112,7 +112,7 @@ abstract class _$$PositionImplCopyWith<$Res>
   $Res call({
     int rank,
     String amount,
-    double amountUSD,
+    double? amountUSD,
     double pnl,
     double pnlPercentage,
   });
@@ -134,7 +134,7 @@ class __$$PositionImplCopyWithImpl<$Res>
   $Res call({
     Object? rank = null,
     Object? amount = null,
-    Object? amountUSD = null,
+    Object? amountUSD = freezed,
     Object? pnl = null,
     Object? pnlPercentage = null,
   }) {
@@ -148,10 +148,10 @@ class __$$PositionImplCopyWithImpl<$Res>
             ? _value.amount
             : amount // ignore: cast_nullable_to_non_nullable
                   as String,
-        amountUSD: null == amountUSD
+        amountUSD: freezed == amountUSD
             ? _value.amountUSD
             : amountUSD // ignore: cast_nullable_to_non_nullable
-                  as double,
+                  as double?,
         pnl: null == pnl
             ? _value.pnl
             : pnl // ignore: cast_nullable_to_non_nullable
@@ -171,7 +171,7 @@ class _$PositionImpl extends _Position {
   const _$PositionImpl({
     required this.rank,
     required this.amount,
-    required this.amountUSD,
+    this.amountUSD,
     this.pnl = 0,
     this.pnlPercentage = 0,
   }) : super._();
@@ -184,7 +184,7 @@ class _$PositionImpl extends _Position {
   @override
   final String amount;
   @override
-  final double amountUSD;
+  final double? amountUSD;
   @override
   @JsonKey()
   final double pnl;
@@ -234,7 +234,7 @@ abstract class _Position extends Position {
   const factory _Position({
     required final int rank,
     required final String amount,
-    required final double amountUSD,
+    final double? amountUSD,
     final double pnl,
     final double pnlPercentage,
   }) = _$PositionImpl;
@@ -248,7 +248,7 @@ abstract class _Position extends Position {
   @override
   String get amount;
   @override
-  double get amountUSD;
+  double? get amountUSD;
   @override
   double get pnl;
   @override
