@@ -133,7 +133,8 @@ class _TokenActionButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenDefinition = ref
         .watch(
-            ionConnectEntityWithCountersProvider(eventReference: entity.data.definitionReference))
+          ionConnectEntityWithCountersProvider(eventReference: entity.data.definitionReference),
+        )
         .valueOrNull as CommunityTokenDefinitionEntity?;
 
     if (tokenDefinition == null) {
