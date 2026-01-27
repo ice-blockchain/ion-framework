@@ -102,14 +102,14 @@ class EditSubmitButton extends ConsumerWidget {
       if (hasCreatorToken) {
         await guardPasskeyDialog(
           context,
-          (child) => RiverpodVerifyIdentityRequestBuilder<void, GenerateSignatureResponse>(
+          (child) => RiverpodUserActionSignerRequestBuilder(
             provider: updateUserMetadataNotifierProvider,
-            requestWithVerifyIdentity: (onVerifyIdentity) async {
-              await ref.read(updateUserMetadataNotifierProvider.notifier).publishWithVerifyIdentity(
+            request: (UserActionSignerNew signer) async {
+              await ref.read(updateUserMetadataNotifierProvider.notifier).publishWithUserActionSigner(
                     draft,
                     avatar: avatarFile,
                     banner: bannerFile,
-                    onVerifyIdentity: onVerifyIdentity,
+                    userActionSigner: signer,
                   );
             },
             identityKeyName: ref.read(currentIdentityKeyNameSelectorProvider),

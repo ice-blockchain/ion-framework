@@ -18,6 +18,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion/app/utils/hex_encoding.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -184,6 +185,36 @@ class TradeCommunityTokenService {
 
   Future<CommunityToken?> fetchTokenInfoFresh(String externalAddress) async {
     return repository.fetchTokenInfoFresh(externalAddress);
+  }
+
+  Future<TransactionResult> updateTokenMetadata({
+    required String externalAddress,
+    required String walletId,
+    required UserActionSignerNew userActionSigner,
+    required FatAddressV2Data fatAddressData,
+  }) async {
+    final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+    final tokenAddress = _extractTokenAddress(tokenInfo);
+    final tokenIdentifier = tokenAddress != null && tokenAddress.isNotEmpty
+        ? _getBytesFromAddress(tokenAddress)
+        : fatAddressData.toBytes();
+
+    final metadataBytes = fatAddressData.toBytes();
+    final metadataString = bytesToHex(metadataBytes);
+
+    final updateOperation = await repository.buildUpdateMetadataUserOperation(
+      tokenIdentifier: tokenIdentifier,
+      metadataBytes: metadataBytes,
+      metadataString: metadataString,
+      tokenAddress: tokenAddress,
+    );
+
+    return repository.signAndBroadcastUserOperations(
+      walletId: walletId,
+      userOperations: [updateOperation],
+      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
+      userActionSigner: userActionSigner,
+    );
   }
 
   Future<TransactionResult> _performSwap({

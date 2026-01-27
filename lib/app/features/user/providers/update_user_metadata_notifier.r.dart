@@ -8,12 +8,18 @@ import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/settings/model/privacy_options.dart';
+import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart' hide UserMetadata;
 import 'package:ion/app/features/user/providers/user_social_profile_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/ffmpeg_args/ffmpeg_scale_arg.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/url.dart';
@@ -138,6 +144,105 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
       onVerifyIdentity: onVerifyIdentity,
     );
     await publish(userMetadata, avatar: avatar, banner: banner);
+  }
+
+  Future<void> publishWithUserActionSigner(
+    UserMetadata userMetadata, {
+    required UserActionSignerNew userActionSigner,
+    MediaFile? avatar,
+    MediaFile? banner,
+  }) async {
+    await _tryUpdateCreatorTokenMetadata(
+      userMetadata: userMetadata,
+      userActionSigner: userActionSigner,
+    );
+    await publish(userMetadata, avatar: avatar, banner: banner);
+  }
+
+  Future<void> _tryUpdateCreatorTokenMetadata({
+    required UserMetadata userMetadata,
+    required UserActionSignerNew userActionSigner,
+  }) async {
+    try {
+      final currentMetadata = await ref.read(currentUserMetadataProvider.future);
+      if (currentMetadata == null) return;
+
+      final externalAddress = currentMetadata.externalAddress;
+      if (externalAddress == null || externalAddress.isEmpty) return;
+
+      final fatAddressData = await _buildUpdatedCreatorFatAddressData(
+        currentMetadata: currentMetadata,
+        userMetadata: userMetadata,
+        externalAddress: externalAddress,
+      );
+      if (fatAddressData == null) return;
+
+      final wallets = await ref.read(mainCryptoWalletsProvider.future);
+      final bscWallet = CreatorTokenUtils.findBscWallet(wallets);
+      if (bscWallet == null || bscWallet.id.isEmpty) return;
+
+      final service = await ref.read(tradeCommunityTokenServiceProvider.future);
+      await service.updateTokenMetadata(
+        externalAddress: externalAddress,
+        walletId: bscWallet.id,
+        userActionSigner: userActionSigner,
+        fatAddressData: fatAddressData,
+      );
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to update creator token metadata',
+      );
+    }
+  }
+
+  Future<FatAddressV2Data?> _buildUpdatedCreatorFatAddressData({
+    required UserMetadataEntity currentMetadata,
+    required UserMetadata userMetadata,
+    required String externalAddress,
+  }) async {
+    FatAddressV2Data? fatAddressData;
+    try {
+      fatAddressData = await ref.read(
+        fatAddressDataProvider(
+          externalAddress: externalAddress,
+          externalAddressType: const ExternalAddressType.ionConnectUser(),
+          eventReference: currentMetadata.toEventReference(),
+        ).future,
+      );
+    } catch (_) {
+      fatAddressData = null;
+    }
+    if (fatAddressData == null || fatAddressData.tokens.isEmpty) {
+      return null;
+    }
+
+    final username = userMetadata.name.trim();
+    final displayName = userMetadata.trimmedDisplayName.trim();
+    final fallbackPubkey = currentMetadata.masterPubkey.isNotEmpty
+        ? currentMetadata.masterPubkey
+        : currentMetadata.pubkey;
+    final symbol = username.isNotEmpty ? username : fallbackPubkey;
+    final name = displayName.isNotEmpty ? displayName : symbol;
+
+    final token = fatAddressData.tokens.first;
+    final updatedToken = FatAddressV2TokenRecord(
+      name: name,
+      symbol: symbol,
+      externalAddress: token.externalAddress,
+      externalType: token.externalType,
+      bondingAddress: token.bondingAddress,
+      bondingBegin: token.bondingBegin,
+      bondingEnd: token.bondingEnd,
+      bondingSupply: token.bondingSupply,
+    );
+
+    return FatAddressV2Data(
+      tokens: [updatedToken],
+      creatorAddress: fatAddressData.creatorAddress,
+      affiliateAddress: fatAddressData.affiliateAddress,
+    );
   }
 
   Future<void> publishWallets(WalletAddressPrivacyOption option) async {

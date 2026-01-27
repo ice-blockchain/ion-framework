@@ -80,6 +80,41 @@ class EvmTxBuilder {
     );
   }
 
+  Future<EvmTransaction> encodeUpdateMetadata({
+    required List<int> tokenIdentifier,
+    required Uint8List metadataBytes,
+    required String metadataString,
+    required String bondingCurveAbi,
+    required String bondingCurveAddress,
+    String? tokenAddress,
+  }) async {
+    final contract = await _ensureBondingCurveContract(
+      abi: bondingCurveAbi,
+      address: bondingCurveAddress,
+    );
+
+    final deployedContract = DeployedContract(
+      ContractAbi.fromJson(jsonEncode(contract.abi), 'BondingCurve'),
+      EthereumAddress.fromHex(contract.address),
+    );
+
+    final updateFunction = _findUpdateMetadataFunction(deployedContract);
+    final params = _buildUpdateMetadataParams(
+      updateFunction.parameters,
+      tokenIdentifier: tokenIdentifier,
+      metadataBytes: metadataBytes,
+      metadataString: metadataString,
+      tokenAddress: tokenAddress,
+    );
+    final data = updateFunction.encodeCall(params);
+
+    return _wrapTransaction(
+      to: bondingCurveAddress,
+      data: bytesToHex(data),
+      value: BigInt.zero,
+    );
+  }
+
   Future<BigInt> quote({
     required List<int> fromTokenIdentifier,
     required List<int> toTokenIdentifier,
@@ -184,6 +219,71 @@ class EvmTxBuilder {
         .join('; ');
     throw StateError(
       'Function "$name" with $parameterCount params not found. Candidates: $signatures',
+    );
+  }
+
+  ContractFunction _findUpdateMetadataFunction(DeployedContract deployedContract) {
+    final candidates = deployedContract.findFunctionsByName('updateMetadata');
+    if (candidates.isEmpty) {
+      throw StateError('Function "updateMetadata" not found in bonding curve ABI.');
+    }
+    return candidates.firstWhereOrNull(
+          (func) => func.parameters.length <= 2,
+        ) ??
+        candidates.first;
+  }
+
+  List<dynamic> _buildUpdateMetadataParams(
+    List<FunctionParameter<dynamic>> parameters, {
+    required List<int> tokenIdentifier,
+    required Uint8List metadataBytes,
+    required String metadataString,
+    String? tokenAddress,
+  }) {
+    final params = <dynamic>[];
+    for (var i = 0; i < parameters.length; i++) {
+      final param = parameters[i];
+      final paramName = param.name.toLowerCase();
+      final isMetadataParam = paramName.contains('metadata');
+      final useMetadata = parameters.length == 1 || isMetadataParam || i == 1;
+
+      params.add(
+        _resolveUpdateMetadataParam(
+          param: param,
+          useMetadata: useMetadata,
+          tokenIdentifier: tokenIdentifier,
+          metadataBytes: metadataBytes,
+          metadataString: metadataString,
+          tokenAddress: tokenAddress,
+        ),
+      );
+    }
+    return params;
+  }
+
+  dynamic _resolveUpdateMetadataParam({
+    required FunctionParameter<dynamic> param,
+    required bool useMetadata,
+    required List<int> tokenIdentifier,
+    required Uint8List metadataBytes,
+    required String metadataString,
+    String? tokenAddress,
+  }) {
+    final typeName = param.type.name;
+    if (typeName == 'address') {
+      if (tokenAddress == null || tokenAddress.isEmpty) {
+        throw StateError('Token address is required for updateMetadata.');
+      }
+      return EthereumAddress.fromHex(tokenAddress);
+    }
+    if (typeName == 'string') {
+      return useMetadata ? metadataString : bytesToHex(tokenIdentifier);
+    }
+    if (typeName.startsWith('bytes')) {
+      return useMetadata ? metadataBytes : Uint8List.fromList(tokenIdentifier);
+    }
+    throw StateError(
+      'Unsupported updateMetadata param "${param.name}" of type "$typeName".',
     );
   }
 }

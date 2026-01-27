@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:typed_data';
+
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
@@ -102,6 +104,25 @@ class TradeCommunityTokenRepository {
     );
 
     return _toUserOperation(swapTx);
+  }
+
+  Future<EvmUserOperation> buildUpdateMetadataUserOperation({
+    required List<int> tokenIdentifier,
+    required Uint8List metadataBytes,
+    required String metadataString,
+    String? tokenAddress,
+  }) async {
+    await _ensureConfigLoaded();
+    final updateTx = await txBuilder.encodeUpdateMetadata(
+      tokenIdentifier: tokenIdentifier,
+      metadataBytes: metadataBytes,
+      metadataString: metadataString,
+      bondingCurveAbi: _cachedAbi!,
+      bondingCurveAddress: _cachedAddress!,
+      tokenAddress: tokenAddress,
+    );
+
+    return _toUserOperation(updateTx);
   }
 
   Future<TransactionResult> signAndBroadcastUserOperations({
