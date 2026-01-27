@@ -94,7 +94,6 @@ class NetworkClient {
     final statusCode = response.statusCode ?? 0;
     if (!statusCode.isSuccessStatusCode) {
       //TODO: add custom exceptions with codes
-
       throw Exception('Request failed with status ${response.statusCode}: $path');
     }
 
