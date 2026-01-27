@@ -84,9 +84,9 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
       return;
     }
 
-    final updatedUsers =
-        shouldIncludeUser ? {...currentUsersSet, externalUserMasterPubkey} : {...currentUsersSet}
-          ..remove(externalUserMasterPubkey);
+    final updatedUsers = shouldIncludeUser
+        ? {...currentUsersSet, externalUserMasterPubkey}
+        : currentUsersSet.where((userPubkey) => userPubkey != externalUserMasterPubkey);
 
     await _sendUpdatedAccountNotificationSetData(
       notificationSetType: notificationSetType,
@@ -105,6 +105,7 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
       dTag: externalUserMasterPubkey,
     );
 
+    // The notification types the current user is subscribed to receive from the external user
     final currentExternalSubscriptionEntity = await ref
         .read(ionConnectEntityProvider(eventReference: externalPushSubscriptionReference).future);
 
@@ -116,8 +117,8 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
     final notificationType = notificationSetType.toUserNotificationType();
 
     if (shouldIncludeUser) {
-      final contains =
-          currentExternalFilters.map(UserNotificationsType.fromFilter).contains(notificationType);
+      final contains = currentExternalFilters
+          .any((filter) => UserNotificationsType.fromFilter(filter) == notificationType);
       if (contains) {
         return;
       }
@@ -131,6 +132,10 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
         filters: updatedFilters,
       );
     } else {
+      if (currentExternalFilters.isEmpty) {
+        return;
+      }
+
       final updatedFilters = currentExternalFilters.where((filter) {
         final type = UserNotificationsType.fromFilter(filter);
         return type != notificationType;
