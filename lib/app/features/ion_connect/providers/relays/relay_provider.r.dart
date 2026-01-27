@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/providers/mixins/relay_active_mixin.dart';
@@ -44,7 +45,9 @@ class Relay extends _$Relay
           return relay;
         } catch (e, st) {
           // If we are stuck in an auth-required loop, consider this connect URL unusable and retry.
-          if (!anonymous && RelayAuthService.isRelayAuthError(e)) {
+          if (RelayAuthService.isRelayAuthError(e) ||
+              e is TimeoutException ||
+              e is SocketException) {
             final connectUrl = relay.connectUrl;
             final added = dislikedConnectUrlsNotifier.add(connectUrl);
 
