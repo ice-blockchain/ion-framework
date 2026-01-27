@@ -17,7 +17,6 @@ import 'package:ion/generated/assets.gen.dart';
 
 class FeedPostsList extends HookConsumerWidget {
   const FeedPostsList({super.key});
-
   static const int startAdOffset = 5;
 
   @override
@@ -109,13 +108,10 @@ class _CustomNativeAd extends StatelessWidget {
     return Padding(
       key: key,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: 230, maxHeight: 246),
-        child: AspectRatio(
-          aspectRatio: 16 / 10,
-          child: AppodealNativeAd(
-            options: NativeAdOptions.contentStreamOptions(),
-          ),
+      child: SizedBox(
+        height: 246.0.s,
+        child: AppodealNativeAd(
+          options: NativeAdOptions.contentStreamOptions(),
         ),
       ),
     );
