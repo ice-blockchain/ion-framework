@@ -101,7 +101,7 @@ final class NativeAdStoryView: UIView {
             bottomContainerView.bottomAnchor.constraint(greaterThanOrEqualTo: iconImageView.bottomAnchor, constant: DesignSystem.Dimensions.iconPadding),
 
             // --- Title ---
-            titleTextLabel.topAnchor.constraint(equalTo: iconImageView.topAnchor, constant: DesignSystem.Spacing.extraSmall),
+            titleTextLabel.topAnchor.constraint(equalTo: iconImageView.topAnchor, constant: -DesignSystem.Spacing.extraSmall),
             titleTextLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: DesignSystem.Dimensions.iconPadding),
             titleTextLabel.trailingAnchor.constraint(equalTo: callToActionView.leadingAnchor, constant: -DesignSystem.Spacing.small),
 

@@ -314,17 +314,14 @@ class _AdItem extends StatelessWidget {
     return Stack(
       children: [
         const Positioned.fill(child: Center(child: IONLoadingIndicatorThemed())),
-        Container(
+        SizedBox(
           width: 246,
-          constraints: const BoxConstraints(maxHeight: 232, minHeight: 210),
-          child: AspectRatio(
-            aspectRatio: 16 / 13,
-            child: AppodealNativeAd(
-              options: NativeAdOptions.customOptions(
-                nativeAdType: NativeAdType.contentStream,
-                adActionButtonConfig: AdActionButtonConfig(
-                  position: AdActionPosition.bottom,
-                ),
+          height: 222,
+          child: AppodealNativeAd(
+            options: NativeAdOptions.customOptions(
+              nativeAdType: NativeAdType.contentStream,
+              adActionButtonConfig: AdActionButtonConfig(
+                position: AdActionPosition.bottom,
               ),
             ),
           ),

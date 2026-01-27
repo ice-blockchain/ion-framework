@@ -72,15 +72,15 @@ final class NativeAdArticleView: UIView {
             mediaContainer.topAnchor.constraint(equalTo: topAnchor),
             mediaContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
             mediaContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
-            //mediaContainer.heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.56), // Adjust ratio
+            mediaContainer.heightAnchor.constraint(equalTo: widthAnchor, multiplier: 8.4/16.0),
 
             // Overlays on Media
-            adTag.topAnchor.constraint(equalTo: mediaContainer.topAnchor, constant: 6),
+            adTag.topAnchor.constraint(equalTo: topAnchor, constant: 6),
             adTag.leadingAnchor.constraint(equalTo: mediaContainer.leadingAnchor, constant: 6),
             adTag.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeWidth),
             adTag.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight),
 
-            adChoiceContainer.topAnchor.constraint(equalTo: mediaContainer.topAnchor, constant: 6),
+            adChoiceContainer.topAnchor.constraint(equalTo: topAnchor, constant: 6),
             adChoiceContainer.trailingAnchor.constraint(equalTo: mediaContainer.trailingAnchor, constant: -6),
             adChoiceContainer.widthAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight),
             adChoiceContainer.heightAnchor.constraint(equalToConstant: DesignSystem.Dimensions.adBadgeHeight),
