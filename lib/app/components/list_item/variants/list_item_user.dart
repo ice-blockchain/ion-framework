@@ -38,9 +38,11 @@ class _ListItemUser extends ListItem {
           constraints: constraints ?? const BoxConstraints(),
           title: Row(
             children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.only(top: 4),
-                child: Flexible(child: title),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(top: 4),
+                  child: title,
+                ),
               ),
               if (iceBadge)
                 Padding(
