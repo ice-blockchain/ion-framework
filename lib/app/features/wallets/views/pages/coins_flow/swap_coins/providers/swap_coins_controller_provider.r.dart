@@ -376,7 +376,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       sellNetwork: sellNetwork,
       buyCoinGroup: buyCoin,
       buyNetwork: buyNetwork,
-      amount: 200,
+      amount: amount,
       slippage: state.slippage.toString(),
     );
 
