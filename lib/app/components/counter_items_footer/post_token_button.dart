@@ -8,7 +8,6 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/feed/views/pages/token_creation_not_available_modal/token_creation_not_available_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
@@ -163,29 +162,12 @@ class _QuotedTokenButton extends ConsumerWidget {
         .watch(ionConnectEntityWithCountersProvider(eventReference: quotedEventReference))
         .valueOrNull;
 
-    if (quotedEntity == null) {
-      return _TokenButtonPlaceholder(padding: padding);
-    }
-
-    final tokenDefinition = switch (quotedEntity) {
-      CommunityTokenDefinitionEntity() => quotedEntity,
-      CommunityTokenActionEntity() => ref
-          .watch(ionConnectEntityProvider(eventReference: quotedEntity.data.definitionReference))
-          .valueOrNull as CommunityTokenDefinitionEntity?,
-      _ => null,
+    return switch (quotedEntity) {
+      CommunityTokenDefinitionEntity() =>
+        _TokenDefinitionButton(entity: quotedEntity, padding: padding),
+      CommunityTokenActionEntity() => _TokenActionButton(entity: quotedEntity, padding: padding),
+      _ => _TokenButtonPlaceholder(padding: padding),
     };
-
-    if (tokenDefinition == null) {
-      return _TokenButtonPlaceholder(padding: padding);
-    }
-
-    final externalAddress = tokenDefinition.data.externalAddress;
-
-    return _TokenButton(
-      padding: padding,
-      onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
-      child: _MarketCap(externalAddress: externalAddress),
-    );
   }
 }
 
@@ -301,9 +283,7 @@ class _MarketCap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = externalAddress == null
-        ? null
-        : ref.watch(tokenMarketInfoProvider(externalAddress!)).valueOrNull;
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress!)).valueOrNull;
 
     if (tokenInfo == null) {
       return const SizedBox.shrink();
