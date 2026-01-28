@@ -8,7 +8,6 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/feed/views/pages/token_creation_not_available_modal/token_creation_not_available_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
@@ -41,9 +40,15 @@ class PostTokenButton extends ConsumerWidget {
     if (entity == null) {
       return _TokenButtonPlaceholder(padding: padding);
     }
+
     return switch (entity) {
       CommunityTokenDefinitionEntity() => _TokenDefinitionButton(entity: entity, padding: padding),
       CommunityTokenActionEntity() => _TokenActionButton(entity: entity, padding: padding),
+      ModifiablePostEntity(data: ModifiablePostData(quotedEvent: final quotedEvent))
+          when quotedEvent != null &&
+              [CommunityTokenDefinitionEntity.kind, CommunityTokenActionEntity.kind]
+                  .contains(quotedEvent.eventReference.kind) =>
+        _QuotedTokenButton(quotedEventReference: quotedEvent.eventReference, padding: padding),
       _ => _ContentEntityButton(entity: entity, padding: padding),
     };
   }
@@ -99,17 +104,20 @@ class _TokenDefinitionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final route = switch (entity.data) {
-      CommunityTokenDefinitionIon(:final eventReference) =>
-        TokenizedCommunityRoute(externalAddress: eventReference.toString()),
-      CommunityTokenDefinitionExternal(:final externalId) =>
-        TokenizedCommunityRoute(externalAddress: externalId),
+    final externalAddress = switch (entity.data) {
+      CommunityTokenDefinitionIon(:final eventReference) => eventReference.toString(),
+      CommunityTokenDefinitionExternal(:final externalId) => externalId,
       _ => null,
     };
+
+    if (externalAddress == null) {
+      return _TokenButtonPlaceholder(padding: padding);
+    }
+
     return _TokenButton(
       padding: padding,
-      onTap: route == null ? null : () => route.push<void>(context),
-      child: const _RocketIcon(),
+      onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
+      child: _MarketCap(externalAddress: externalAddress),
     );
   }
 }
@@ -123,26 +131,43 @@ class _TokenActionButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenDefinition = ref
-        .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
+        .watch(
+          ionConnectEntityWithCountersProvider(eventReference: entity.data.definitionReference),
+        )
         .valueOrNull as CommunityTokenDefinitionEntity?;
 
     if (tokenDefinition == null) {
       return _TokenButtonPlaceholder(padding: padding);
     }
 
-    final route = switch (tokenDefinition.data) {
-      CommunityTokenDefinitionIon(:final eventReference) =>
-        TokenizedCommunityRoute(externalAddress: eventReference.toString()),
-      CommunityTokenDefinitionExternal(:final externalId) =>
-        TokenizedCommunityRoute(externalAddress: externalId),
-      _ => null,
-    };
+    final externalAddress = tokenDefinition.data.externalAddress;
 
     return _TokenButton(
       padding: padding,
-      onTap: route == null ? null : () => route.push<void>(context),
-      child: const _RocketIcon(),
+      onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
+      child: _MarketCap(externalAddress: externalAddress),
     );
+  }
+}
+
+class _QuotedTokenButton extends ConsumerWidget {
+  const _QuotedTokenButton({required this.quotedEventReference, this.padding});
+
+  final EventReference quotedEventReference;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final quotedEntity = ref
+        .watch(ionConnectEntityWithCountersProvider(eventReference: quotedEventReference))
+        .valueOrNull;
+
+    return switch (quotedEntity) {
+      CommunityTokenDefinitionEntity() =>
+        _TokenDefinitionButton(entity: quotedEntity, padding: padding),
+      CommunityTokenActionEntity() => _TokenActionButton(entity: quotedEntity, padding: padding),
+      _ => _TokenButtonPlaceholder(padding: padding),
+    };
   }
 }
 
@@ -261,7 +286,7 @@ class _MarketCap extends ConsumerWidget {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
 
     if (tokenInfo == null) {
-      return const _RocketIcon();
+      return SizedBox(width: 24.0.s);
     }
 
     return Row(
