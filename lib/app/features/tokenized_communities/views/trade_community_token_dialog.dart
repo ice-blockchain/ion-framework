@@ -206,7 +206,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                     Expanded(
                       child: Text(
                         buttonError.value!,
-                        style: context.theme.appTextThemes.body2.copyWith(),
+                        style: context.theme.appTextThemes.body2,
                       ),
                     ),
                   ],
