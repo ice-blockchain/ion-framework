@@ -8,19 +8,26 @@ import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
+import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/models/token_type_filter.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_actions.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/components/balance/balance_visibility_action.dart';
+import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/filtered_coins_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/wallet_coins_filter_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/providers/wallet_page_loader_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/wallet_page/tab_type.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/num.dart';
 
 class Balance extends ConsumerWidget {
-  const Balance({required this.tab, super.key});
+  const Balance({
+    required this.tab,
+    super.key,
+  });
 
   final WalletTabType tab;
 
@@ -32,7 +39,9 @@ class Balance extends ConsumerWidget {
 
     final currentWallet =
         ref.watch(currentWalletViewDataProvider.select((state) => state.valueOrNull));
-    final walletBalance = currentWallet?.usdBalance;
+    final filteredBalance =
+        tab == WalletTabType.coins ? ref.watch(filteredCoinsBalanceProvider) : null;
+    final walletBalance = filteredBalance ?? currentWallet?.usdBalance;
 
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
     final hitSlop = 5.0.s;
@@ -66,6 +75,34 @@ class Balance extends ConsumerWidget {
             child: BalanceActions(
               isLoading: shouldShowLoader,
               onSwap: () {
+                // Only apply filter logic when coins tab is active
+                if (tab == WalletTabType.coins) {
+                  final selectedFilter = ref.read(walletCoinsFilterNotifierProvider);
+
+                  // Creator tokens, Content tokens, and X tokens → open TC swap
+                  if (selectedFilter == TokenTypeFilter.creator ||
+                      selectedFilter == TokenTypeFilter.content ||
+                      selectedFilter == TokenTypeFilter.x) {
+                    final filteredGroups = ref.read(filteredCoinsProvider);
+                    final externalAddress = filteredGroups
+                        ?.expand((group) => group.coins)
+                        .map((coinInWallet) => coinInWallet.coin.tokenizedCommunityExternalAddress)
+                        .whereType<String>()
+                        .firstOrNull;
+
+                    if (externalAddress != null) {
+                      // Open TC swap dialog
+                      TradeCommunityTokenRoute(
+                        externalAddress: externalAddress,
+                        initialMode: CommunityTokenTradeMode.sell,
+                      ).push<void>(context);
+                      return;
+                    }
+                  }
+                  // All tokens and General tokens → open general swap
+                }
+
+                // Open general swap dialog
                 ref.read(swapCoinsControllerProvider.notifier).initSellCoin(
                       coin: null,
                       network: null,

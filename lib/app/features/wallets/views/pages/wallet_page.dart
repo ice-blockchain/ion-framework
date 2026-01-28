@@ -82,7 +82,9 @@ class WalletPage extends HookConsumerWidget {
           sliverAppBar: CollapsingAppBar(
             height: Balance.height,
             bottomOffset: 0,
-            child: Balance(tab: activeTab.value),
+            child: Balance(
+              tab: activeTab.value,
+            ),
           ),
           slivers: [
             SliverToBoxAdapter(
