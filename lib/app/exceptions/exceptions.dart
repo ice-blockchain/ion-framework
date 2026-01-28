@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:video_player/video_player.dart';
 
 sealed class IONException implements Exception {
@@ -813,4 +814,9 @@ class ShareUrlNotFoundException extends IONException {
 
 class NSFWProcessingException extends IONException {
   NSFWProcessingException() : super(10146, 'Can not process NSFW media file');
+}
+
+class TokenMarketDataNotValidException extends IONException {
+  TokenMarketDataNotValidException(CommunityToken token)
+      : super(10147, 'Token market data is not valid: $token');
 }

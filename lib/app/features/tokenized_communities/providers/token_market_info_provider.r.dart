@@ -3,10 +3,12 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -19,8 +21,7 @@ Stream<CommunityToken?> tokenMarketInfo(
 ) async* {
   // Read cache once at startup (don't watch to avoid restarting stream on cache updates)
   final cachedToken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
-
-  if (cachedToken != null) {
+  if (_isValidToken(cachedToken, ref)) {
     yield cachedToken;
   }
 
@@ -29,59 +30,47 @@ Stream<CommunityToken?> tokenMarketInfo(
   // 1. Fetch initial data via REST
   final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
 
-  if (currentToken != null) {
-    unawaited(
-      ref
-          .read(cachedTokenMarketInfoNotifierProvider(externalAddress).notifier)
-          .cacheToken(currentToken),
-    );
+  if (_isValidToken(currentToken, ref)) {
+    yield currentToken;
   }
-
-  yield currentToken ?? cachedToken;
 
   // 2. Subscribe to real-time updates
   final subscription = await client.communityTokens.subscribeToTokenInfo(externalAddress);
 
-  try {
-    if (subscription == null) {
-      return;
-    }
+  if (subscription == null) return;
 
-    var mutableToken = currentToken;
+  var activeTokenState = currentToken;
+
+  try {
     await for (final update in subscription.stream) {
       if (update is CommunityToken) {
-        mutableToken = update;
-      } else if (update is CommunityTokenPatch) {
-        if (mutableToken == null) {
-          continue;
-        } else {
-          mutableToken = mutableToken.merge(update);
-        }
+        activeTokenState = update;
+      } else if (update is CommunityTokenPatch && activeTokenState != null) {
+        activeTokenState = activeTokenState.merge(update);
+      } else {
+        continue;
       }
-      unawaited(
-        ref
-            .read(cachedTokenMarketInfoNotifierProvider(externalAddress).notifier)
-            .cacheToken(mutableToken!),
-      );
-      yield mutableToken;
+
+      if (_isValidToken(activeTokenState, ref)) {
+        yield activeTokenState;
+      }
     }
-  } catch (e) {
-    return;
+  } catch (e, stackTrace) {
+    unawaited(SentryService.logException(e, stackTrace: stackTrace));
   } finally {
-    await subscription?.close();
+    await subscription.close();
   }
 }
 
-// Guarded wrapper that checks if entity has a token before delegating to tokenMarketInfoProvider.
 @riverpod
 AsyncValue<CommunityToken?> tokenMarketInfoIfAvailable(
   Ref ref,
   EventReference eventReference,
 ) {
-  final hasTokenAsync = ref.watch(
-    ionConnectEntityHasTokenProvider(eventReference: eventReference),
+  final hasToken = ref.watch(
+    ionConnectEntityHasTokenProvider(eventReference: eventReference)
+        .select((value) => value.valueOrNull ?? false),
   );
-  final hasToken = hasTokenAsync.valueOrNull ?? false;
 
   if (!hasToken) {
     return const AsyncData(null);
@@ -99,6 +88,29 @@ class CachedTokenMarketInfoNotifier extends _$CachedTokenMarketInfoNotifier {
   }
 
   Future<void> cacheToken(CommunityToken token) async {
-    state = token;
+    // Equality check to prevent redundant state updates
+    if (state != token) {
+      state = token;
+    }
   }
+}
+
+bool _isValidToken(CommunityToken? token, Ref ref) {
+  if (token == null) return false;
+
+  if (!token.isMarketValid) {
+    unawaited(SentryService.logException(TokenMarketDataNotValidException(token)));
+    return false;
+  }
+
+  unawaited(
+    ref
+        .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
+        .cacheToken(token),
+  );
+  return true;
+}
+
+extension on CommunityToken {
+  bool get isMarketValid => marketData.priceUSD > 0 && marketData.marketCap > 0;
 }
