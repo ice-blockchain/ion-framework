@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/utils/formatters.dart';
+import 'package:ion/app/utils/address.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 class CryptoWalletSwitcher extends HookWidget {
