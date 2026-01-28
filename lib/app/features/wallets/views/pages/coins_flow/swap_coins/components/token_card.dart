@@ -365,7 +365,7 @@ class _TokenCardContent extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  coinsGroup!.abbreviation,
+                                  coinsGroup!.name,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                   style: textStyles.body.copyWith(
@@ -417,7 +417,7 @@ class _TokenCardContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      coinsGroup!.abbreviation,
+                      coinsGroup!.name,
                       style: textStyles.body.copyWith(
                         color: colors.primaryText,
                       ),
@@ -587,9 +587,7 @@ class _TokenCardFooter extends StatelessWidget {
                     final decimals = coinForNetwork?.coin.decimals ?? SwapConstants.defaultDecimals;
 
                     return Text(
-                      maxValue != null
-                          ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup?.abbreviation ?? ''}'
-                          : '0.00',
+                      '${maxValue != null ? maxValue.formatWithDecimals(decimals) : 0.00} ${coinsGroup?.abbreviation ?? ''}',
                       style: textStyles.caption2.copyWith(
                         color: isError ? colors.attentionRed : colors.tertiaryText,
                       ),

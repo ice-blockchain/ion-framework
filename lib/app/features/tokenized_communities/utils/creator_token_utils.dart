@@ -40,7 +40,7 @@ class CreatorTokenUtils {
       name: token.title,
       network: network,
       priceUSD: token.marketData.priceUSD,
-      abbreviation: token.title,
+      abbreviation: token.marketData.ticker ?? '',
       symbolGroup: token.title,
       syncFrequency: const Duration(hours: 1),
     );
@@ -56,7 +56,7 @@ class CreatorTokenUtils {
       name: token.title,
       iconUrl: token.imageUrl ?? '',
       symbolGroup: token.title,
-      abbreviation: token.title,
+      abbreviation: token.marketData.ticker ?? '',
       coins: [coinInWallet],
       totalAmount: balance,
       totalBalanceUSD: balance * token.marketData.priceUSD,
