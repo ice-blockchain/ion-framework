@@ -75,6 +75,18 @@ class EvmTxBuilder {
     return result.first as BigInt;
   }
 
+  EvmTransaction wrapTransaction({
+    required String to,
+    required String data,
+    required BigInt value,
+  }) {
+    return _wrapTransaction(
+      to: to,
+      data: data,
+      value: value,
+    );
+  }
+
   EvmTransaction _wrapTransaction({
     required String to,
     required String data,

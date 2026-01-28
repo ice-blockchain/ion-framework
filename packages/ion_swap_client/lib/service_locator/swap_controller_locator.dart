@@ -82,6 +82,7 @@ class SwapControllerLocator {
       ),
       bridgeService: BridgeService(
         relayApiRepository: relayApiRepository,
+        ionIdentityTransactionApi: ionIdentityTransactionApi,
       ),
     );
 
