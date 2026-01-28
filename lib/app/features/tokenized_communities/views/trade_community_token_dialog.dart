@@ -193,14 +193,33 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                     : () {},
               ),
             SizedBox(height: 29.0.s),
-            _SharePostCheckbox(
-              value: state.shouldSendEvents,
-              onChanged: (value) => controller.setShouldSendEvents(send: value),
-            ),
+            if (buttonError.value != null)
+              Padding(
+                padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s),
+                child: Row(
+                  children: [
+                    Assets.svg.iconBlockInformation.icon(
+                      color: context.theme.appColors.tertiaryText,
+                      size: 16.0.s,
+                    ),
+                    SizedBox(width: 5.0.s),
+                    Expanded(
+                      child: Text(
+                        buttonError.value!,
+                        style: context.theme.appTextThemes.body2,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              _SharePostCheckbox(
+                value: state.shouldSendEvents,
+                onChanged: (value) => controller.setShouldSendEvents(send: value),
+              ),
             SizedBox(height: 16.0.s),
             ContinueButton(
-              error: buttonError.value,
-              isEnabled: _isContinueButtonEnabled(state),
+              isEnabled: _isContinueButtonEnabled(state) && buttonError.value == null,
               onPressed: () => _handleButtonPress(
                 context,
                 ref,
