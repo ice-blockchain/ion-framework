@@ -820,3 +820,11 @@ class TokenMarketDataNotValidException extends IONException {
   TokenMarketDataNotValidException(CommunityToken token)
       : super(10147, 'Token market data is not valid: $token');
 }
+
+class UpdateWalletViewRequestNoWalletViewException extends IONException {
+  UpdateWalletViewRequestNoWalletViewException()
+      : super(
+          10148,
+          'To build request from coins list wallet view should be provided',
+        );
+}
