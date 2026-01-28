@@ -20,12 +20,16 @@ class _CreateUpdateRequestBuilder {
       throw UpdateWalletViewRequestNoUserWalletsException();
     }
 
+    if (coinsList != null && walletView == null) {
+      throw UpdateWalletViewRequestNoWalletViewException();
+    }
+
     final (symbolGroups, items) = switch (coinsList) {
       final List<CoinData> coins => _getRequestDataFromCoinsList(
           coins,
           mainUserWallet!,
           userWallets!,
-          walletView,
+          walletView!,
         ),
       null when walletView != null => _getRequestDataFromWalletView(walletView),
       _ => (const <String>{}, const <WalletViewCoinData>[]),
@@ -64,18 +68,16 @@ class _CreateUpdateRequestBuilder {
     List<CoinData> coins,
     Wallet mainUserWallet,
     List<Wallet> userWallets,
-    WalletViewData? walletView,
+    WalletViewData walletView,
   ) {
     final symbolGroups = <String>{};
     final walletViewItems = <WalletViewCoinData>[];
 
     // Build existing bindings from wallet view
     final existingBindings = <String, String?>{};
-    if (walletView != null) {
-      for (final group in walletView.coinGroups) {
-        for (final coinInWallet in group.coins) {
-          existingBindings[coinInWallet.coin.id] = coinInWallet.walletId;
-        }
+    for (final group in walletView.coinGroups) {
+      for (final coinInWallet in group.coins) {
+        existingBindings[coinInWallet.coin.id] = coinInWallet.walletId;
       }
     }
 
@@ -109,13 +111,13 @@ class _CreateUpdateRequestBuilder {
   Map<String, List<Wallet>> _getConnectedWalletsByNetwork({
     required List<Wallet> userWallets,
     required Wallet mainUserWallet,
-    required WalletViewData? walletView,
+    required WalletViewData walletView,
   }) {
     final connectedWalletIds =
-        walletView?.coins.map((c) => c.walletId).nonNulls.toSet() ?? <String>{};
+        walletView.coins.map((c) => c.walletId).nonNulls.toSet();
 
-    final walletViewId = walletView?.id;
-    final isMainWalletView = walletView?.isMainWalletView ?? false;
+    final walletViewId = walletView.id;
+    final isMainWalletView = walletView.isMainWalletView;
 
     final connectedWallets = userWallets.where((wallet) {
       if (connectedWalletIds.contains(wallet.id)) return true;
