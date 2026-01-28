@@ -19,18 +19,22 @@ Stream<CommunityToken?> tokenMarketInfo(
   Ref ref,
   String externalAddress,
 ) async* {
+  // Read cache once at startup (don't watch to avoid restarting stream on cache updates)
   final cachedToken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
   if (_isValidToken(cachedToken, ref)) {
     yield cachedToken;
   }
 
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
+
+  // 1. Fetch initial data via REST
   final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
 
   if (_isValidToken(currentToken, ref)) {
     yield currentToken;
   }
 
+  // 2. Subscribe to real-time updates
   final subscription = await client.communityTokens.subscribeToTokenInfo(externalAddress);
 
   if (subscription == null) return;
