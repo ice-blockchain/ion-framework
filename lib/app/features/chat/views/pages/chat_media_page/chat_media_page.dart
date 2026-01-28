@@ -210,7 +210,7 @@ class _MediaBottomOverlay extends ConsumerWidget {
                           ),
                         ),
                         subtitle: Text(
-                          prefixUsername(
+                          withPrefix(
                             input: userMetadata.data.name,
                             textDirection: Directionality.of(context),
                           ),

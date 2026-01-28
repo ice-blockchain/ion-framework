@@ -31,7 +31,7 @@ class ReplyAuthorHeader extends ConsumerWidget {
         BadgesUserListItem(
           title: Text(currentUserMetadata.data.trimmedDisplayName),
           subtitle: Text(
-            prefixUsername(
+            withPrefix(
               input: currentUserMetadata.data.name,
               textDirection: Directionality.of(context),
             ),

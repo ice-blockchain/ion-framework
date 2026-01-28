@@ -42,7 +42,7 @@ class SelectableUserListItem extends ConsumerWidget {
         masterPubkey: masterPubkey,
         title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
         subtitle: Text(
-          prefixUsername(
+          withPrefix(
             input: username,
             textDirection: Directionality.of(context),
           ),

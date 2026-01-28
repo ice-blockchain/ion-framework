@@ -49,7 +49,7 @@ class OneToOneMessagingHeader extends ConsumerWidget {
     final receiverDisplayName = metadata?.data.trimmedDisplayName;
 
     final subtitle = Text(
-      prefixUsername(
+      withPrefix(
         input: receiverName,
         textDirection: Directionality.of(context),
       ),

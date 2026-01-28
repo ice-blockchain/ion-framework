@@ -164,7 +164,7 @@ class _ProfileSummary extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          prefixUsername(
+          withPrefix(
             input: userMetadata.data.name,
             textDirection: Directionality.of(context),
           ),

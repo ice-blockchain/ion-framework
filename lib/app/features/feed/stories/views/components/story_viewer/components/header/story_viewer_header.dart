@@ -91,7 +91,7 @@ class StoryViewerHeader extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      prefixUsername(
+                      withPrefix(
                         input: username,
                         textDirection: Directionality.of(context),
                       ),

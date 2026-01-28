@@ -52,10 +52,10 @@ Future<String?> chartTitle(
 
       final tickerLower = ticker.toLowerCase();
       final usernameLower = profileNickname.toLowerCase();
-      final usernamePart = prefixUsername(input: usernameLower, textDirection: textDirection);
+      final usernamePart = withPrefix(input: usernameLower, textDirection: textDirection);
 
       return tickerLower.isNotEmpty
-          ? prefixUsername(
+          ? withPrefix(
               input: usernameLower,
               textDirection: textDirection,
               separator: ' ',
@@ -73,7 +73,7 @@ Future<String?> chartTitle(
   }
 
   // Content token with $ prefix
-  return prefixUsername(
+  return withPrefix(
     input: ticker,
     prefix: r'$',
     textDirection: textDirection,

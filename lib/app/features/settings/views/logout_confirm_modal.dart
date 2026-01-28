@@ -20,7 +20,7 @@ class ConfirmLogoutModal extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPreviewData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
-    final username = prefixUsername(
+    final username = withPrefix(
       input: userPreviewData!.data.name,
       textDirection: Directionality.of(context),
     );

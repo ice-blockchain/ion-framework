@@ -38,7 +38,7 @@ class CreatorListItem extends ConsumerWidget {
     return ScreenSideOffset.small(
       child: BadgesUserListItem(
         title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
-        subtitle: Text(prefixUsername(input: username, textDirection: Directionality.of(context))),
+        subtitle: Text(withPrefix(input: username, textDirection: Directionality.of(context))),
         masterPubkey: masterPubkey,
         backgroundColor: context.theme.appColors.tertiaryBackground,
         contentPadding: EdgeInsets.all(12.0.s),

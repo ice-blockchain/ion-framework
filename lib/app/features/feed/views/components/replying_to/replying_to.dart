@@ -23,7 +23,7 @@ class ReplyingTo extends StatelessWidget {
         style: textStyles.caption.copyWith(color: colors.sheetLine),
         children: [
           TextSpan(
-            text: ' ${prefixUsername(
+            text: ' ${withPrefix(
               input: name,
               textDirection: Directionality.of(context),
             )}',

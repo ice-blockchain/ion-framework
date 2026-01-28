@@ -68,7 +68,7 @@ class FriendsListItem extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(14.0.s),
                   ),
                   Text(
-                    prefixUsername(
+                    withPrefix(
                       input: userPreviewData.data.name,
                       textDirection: Directionality.of(context),
                     ),

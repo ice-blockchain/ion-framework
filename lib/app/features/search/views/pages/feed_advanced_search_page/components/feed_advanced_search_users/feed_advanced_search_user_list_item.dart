@@ -60,7 +60,7 @@ class FeedAdvancedSearchUserListItem extends HookConsumerWidget {
             BadgesUserListItem(
               title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
               subtitle: Text(
-                prefixUsername(
+                withPrefix(
                   input: name,
                   textDirection: Directionality.of(context),
                 ),

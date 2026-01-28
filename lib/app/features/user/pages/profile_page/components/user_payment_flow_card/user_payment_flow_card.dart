@@ -36,7 +36,7 @@ class UserPaymentFlowCard extends ConsumerWidget {
             strutStyle: const StrutStyle(forceStrutHeight: true),
           ),
           subtitle: Text(
-            prefixUsername(
+            withPrefix(
               input: userPreviewData.data.name,
               textDirection: Directionality.of(context),
             ),

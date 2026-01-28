@@ -166,7 +166,7 @@ class TokenHeaderLandscape extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6.0.s),
                           ),
                           child: Text(
-                            prefixUsername(
+                            withPrefix(
                               input: token.marketData.ticker,
                               textDirection: Directionality.of(context),
                             ),

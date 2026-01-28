@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-String prefixUsername({
+String withPrefix({
   required String? input,
   required TextDirection textDirection,
   String separator = '',

@@ -32,7 +32,7 @@ class BlockedUserListItem extends ConsumerWidget {
       title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
       trailing: BlockUserButton(masterPubkey: pubkey),
       subtitle: Text(
-        prefixUsername(
+        withPrefix(
           input: username,
           textDirection: Directionality.of(context),
         ),

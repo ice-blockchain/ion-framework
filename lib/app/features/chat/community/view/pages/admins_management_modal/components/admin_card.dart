@@ -50,7 +50,7 @@ class AdminCard extends ConsumerWidget {
           },
           title: Text(userMetadata.data.trimmedDisplayName),
           subtitle: Text(
-            prefixUsername(
+            withPrefix(
               input: userMetadata.data.name,
               textDirection: Directionality.of(context),
             ),

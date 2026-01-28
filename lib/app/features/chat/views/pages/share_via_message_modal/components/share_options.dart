@@ -59,7 +59,7 @@ class ShareOptions extends HookConsumerWidget {
       shareOptionsDataProvider(
         eventReference,
         userPreviewData?.data,
-        prefixUsername(
+        withPrefix(
           input: userPreviewData?.data.name,
           textDirection: Directionality.of(context),
         ),

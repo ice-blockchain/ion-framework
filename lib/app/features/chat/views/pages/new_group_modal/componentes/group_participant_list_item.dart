@@ -31,7 +31,7 @@ class GroupParticipantsListItem extends ConsumerWidget {
         return BadgesUserListItem(
           title: Text(userPreviewData.data.trimmedDisplayName),
           subtitle: Text(
-            prefixUsername(
+            withPrefix(
               input: userPreviewData.data.name,
               textDirection: Directionality.of(context),
             ),

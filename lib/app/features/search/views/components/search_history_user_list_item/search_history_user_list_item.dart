@@ -79,7 +79,7 @@ class _UserListItem extends StatelessWidget {
                 ),
               ),
               Text(
-                prefixUsername(
+                withPrefix(
                   input: userPreviewData.data.name,
                   textDirection: Directionality.of(context),
                 ),

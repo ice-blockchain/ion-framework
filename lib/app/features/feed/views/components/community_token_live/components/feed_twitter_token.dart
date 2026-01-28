@@ -143,7 +143,7 @@ class TwitterTokenHeader extends StatelessWidget {
             Text(
               token.source.isTwitter
                   ? prefixXTokenTicker(token.marketData.ticker)
-                  : prefixUsername(
+                  : withPrefix(
                       input: token.marketData.ticker,
                       textDirection: Directionality.of(context),
                     ),

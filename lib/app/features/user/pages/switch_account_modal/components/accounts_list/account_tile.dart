@@ -52,7 +52,7 @@ class SwitchAccountModalTile extends HookConsumerWidget {
         strutStyle: const StrutStyle(forceStrutHeight: true),
       ),
       subtitle: Text(
-        prefixUsername(
+        withPrefix(
           input: userPreview.data.name,
           textDirection: Directionality.of(context),
         ),

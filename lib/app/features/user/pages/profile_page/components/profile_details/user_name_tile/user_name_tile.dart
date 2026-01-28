@@ -41,7 +41,7 @@ class UserNameTile extends ConsumerWidget {
     }
 
     final nichnameWidget = Text(
-      prefixUsername(
+      withPrefix(
         input: (!isNicknameProven)
             ? '${userPreviewData.data.name} ${context.i18n.nickname_not_owned_suffix}'
             : userPreviewData.data.name,

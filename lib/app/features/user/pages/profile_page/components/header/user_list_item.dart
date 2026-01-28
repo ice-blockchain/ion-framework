@@ -41,7 +41,7 @@ class UseListItem extends ConsumerWidget {
         style: textStyle,
       ),
       subtitle: Text(
-        prefixUsername(
+        withPrefix(
           input: username,
           textDirection: Directionality.of(context),
         ),

@@ -132,7 +132,7 @@ class TwitterTokenHeader extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        prefixUsername(
+                        withPrefix(
                           input: token.marketData.ticker ?? '',
                           textDirection: Directionality.of(context),
                         ),

@@ -109,7 +109,7 @@ class _UserInfo extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              prefixUsername(
+              withPrefix(
                 input: username,
                 textDirection: Directionality.of(context),
               ),

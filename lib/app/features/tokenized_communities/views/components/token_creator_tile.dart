@@ -108,7 +108,7 @@ class _CreatorDetails extends StatelessWidget {
           ],
         ),
         Text(
-          prefixUsername(
+          withPrefix(
             input: handle,
             textDirection: Directionality.of(context),
           ),

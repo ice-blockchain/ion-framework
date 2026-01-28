@@ -41,7 +41,7 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
           child: BadgesUserListItem(
             title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
             subtitle: Text(
-              prefixUsername(
+              withPrefix(
                 input: username,
                 textDirection: Directionality.of(context),
               ),

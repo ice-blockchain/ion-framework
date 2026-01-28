@@ -78,7 +78,7 @@ class ChatSearchResultListItem extends HookConsumerWidget {
                   ),
                 )
               : Text(
-                  prefixUsername(
+                  withPrefix(
                     input: username,
                     textDirection: Directionality.of(context),
                   ),

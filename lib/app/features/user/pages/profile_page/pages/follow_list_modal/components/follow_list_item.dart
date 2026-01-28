@@ -58,7 +58,7 @@ class FollowListItem extends ConsumerWidget {
         subtitle: SizedBox(
           height: 16.0.s,
           child: Text(
-            prefixUsername(
+            withPrefix(
               input: username,
               textDirection: Directionality.of(context),
             ),
