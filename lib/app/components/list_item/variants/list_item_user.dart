@@ -39,7 +39,7 @@ class _ListItemUser extends ListItem {
           title: Row(
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsetsDirectional.only(top: 4),
                 child: Flexible(child: title),
               ),
               if (iceBadge)
