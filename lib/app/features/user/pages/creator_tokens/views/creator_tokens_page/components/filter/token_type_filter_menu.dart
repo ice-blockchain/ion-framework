@@ -31,11 +31,12 @@ class TokenTypeFilterMenu extends ConsumerWidget {
           separator: const HorizontalSeparator(),
           children: [
             for (final filter in TokenTypeFilter.values)
-              _TokenTypeFilterItem(
-                filter: filter,
-                isSelected: selectedFilter == filter,
-                closeMenu: closeMenu,
-              ),
+              if (filter != TokenTypeFilter.general)
+                _TokenTypeFilterItem(
+                  filter: filter,
+                  isSelected: selectedFilter == filter,
+                  closeMenu: closeMenu,
+                ),
           ],
         ),
       ),
