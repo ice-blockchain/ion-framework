@@ -814,3 +814,11 @@ class ShareUrlNotFoundException extends IONException {
 class NSFWProcessingException extends IONException {
   NSFWProcessingException() : super(10146, 'Can not process NSFW media file');
 }
+
+class UpdateWalletViewRequestNoWalletViewException extends IONException {
+  UpdateWalletViewRequestNoWalletViewException()
+      : super(
+          10147,
+          'To build request from coins list wallet view should be provided',
+        );
+}
