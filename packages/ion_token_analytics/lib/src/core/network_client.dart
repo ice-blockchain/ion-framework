@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:ion_token_analytics/src/core/extensions/http_status_code.dart';
 import 'package:ion_token_analytics/src/core/logger.dart';
 import 'package:ion_token_analytics/src/core/reconnecting_sse.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
@@ -48,7 +49,8 @@ class NetworkClient {
       ),
     );
 
-    if (response.statusCode != 200) {
+    final statusCode = response.statusCode ?? 0;
+    if (!statusCode.isSuccessStatusCode) {
       //TODO: add custom exceptions with codes
       throw Exception('Request failed with status ${response.statusCode}: $path');
     }
@@ -89,7 +91,8 @@ class NetworkClient {
       ),
     );
 
-    if (response.statusCode != 200) {
+    final statusCode = response.statusCode ?? 0;
+    if (!statusCode.isSuccessStatusCode) {
       //TODO: add custom exceptions with codes
       throw Exception('Request failed with status ${response.statusCode}: $path');
     }

@@ -352,10 +352,13 @@ class _TokenCardContent extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (isCoinNameLoading)
-                          SkeletonBox(
-                            width: 100.0.s,
-                            height: 16.0.s,
-                            baseColor: colors.attentionBlock,
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 0.905.s),
+                            child: SkeletonBox(
+                              width: 100.0.s,
+                              height: 16.0.s,
+                              baseColor: colors.attentionBlock,
+                            ),
                           )
                         else
                           Row(

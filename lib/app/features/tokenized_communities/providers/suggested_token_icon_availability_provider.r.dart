@@ -22,6 +22,8 @@ Stream<bool> suggestedTokenIconAvailability(
     isDisposed = true;
   });
   final deadline = DateTime.now().add(const Duration(minutes: 2));
+
+  var isFirstDelay = true;
   while (!isDisposed && DateTime.now().isBefore(deadline)) {
     final isAvailable = await _checkSuggestedTokenIconAvailable(url);
     if (isAvailable) {
@@ -29,7 +31,9 @@ Stream<bool> suggestedTokenIconAvailability(
       return;
     }
     yield false;
-    await Future<void>.delayed(const Duration(seconds: 1));
+    final delay = isFirstDelay ? const Duration(seconds: 10) : const Duration(seconds: 1);
+    isFirstDelay = false;
+    await Future<void>.delayed(delay);
   }
 }
 
