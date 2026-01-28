@@ -16,7 +16,7 @@ class StoryHeaderGradient extends StatelessWidget {
         height: 120.0.s,
         decoration: BoxDecoration(
           gradient: RadialGradient(
-            center: Alignment.topRight,
+            center: AlignmentDirectional.topEnd,
             radius: 1.1,
             // end: Alignment.bottomCenter,
             colors: [
