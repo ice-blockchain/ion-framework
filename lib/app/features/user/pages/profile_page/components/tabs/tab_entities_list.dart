@@ -123,7 +123,10 @@ class TabEntitiesList extends HookConsumerWidget {
           EmptyState(
             type: type,
             isCurrentUserProfile: pubkey == ref.watch(currentPubkeySelectorProvider),
-            username: prefixUsername(username: userPreviewData?.data.name, context: context),
+            username: prefixUsername(
+              input: userPreviewData?.data.name,
+              textDirection: Directionality.of(context),
+            ),
           )
         else
           builder != null

@@ -30,7 +30,7 @@ class ReplyAuthorHeader extends ConsumerWidget {
       children: [
         BadgesUserListItem(
           title: Text(currentUserMetadata.data.trimmedDisplayName),
-          subtitle: Text(prefixUsername(username: currentUserMetadata.data.name, context: context)),
+          subtitle: Text(prefixUsername(input: currentUserMetadata.data.name,       textDirection: Directionality.of(context),)),
           masterPubkey: currentUserMetadata.masterPubkey,
         ),
         SizedBox(height: 6.0.s),

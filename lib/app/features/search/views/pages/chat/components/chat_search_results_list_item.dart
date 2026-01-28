@@ -78,7 +78,10 @@ class ChatSearchResultListItem extends HookConsumerWidget {
                   ),
                 )
               : Text(
-                  prefixUsername(username: username, context: context),
+                  prefixUsername(
+                    input: username,
+                    textDirection: Directionality.of(context),
+                  ),
                   style: context.theme.appTextThemes.body2.copyWith(
                     color: context.theme.appColors.onTertiaryBackground,
                   ),

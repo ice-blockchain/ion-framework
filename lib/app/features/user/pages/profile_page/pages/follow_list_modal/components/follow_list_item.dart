@@ -57,7 +57,10 @@ class FollowListItem extends ConsumerWidget {
         trailing: FollowUserButton(pubkey: pubkey, follower: follower),
         subtitle: SizedBox(
           height: 16.0.s,
-          child: Text(prefixUsername(username: username, context: context)),
+          child: Text(prefixUsername(
+            input: username,
+            textDirection: Directionality.of(context),
+          )),
         ),
         masterPubkey: pubkey,
         onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),

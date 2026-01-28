@@ -36,7 +36,10 @@ class ContactItem extends StatelessWidget {
           ContactItemName(userPreviewData: userPreviewData),
           SizedBox(height: 4.0.s),
           Text(
-            prefixUsername(username: userPreviewData.data.name, context: context),
+            prefixUsername(
+              input: userPreviewData.data.name,
+              textDirection: Directionality.of(context),
+            ),
             style: context.theme.appTextThemes.caption
                 .copyWith(color: context.theme.appColors.tertiaryText),
           ),

@@ -108,7 +108,10 @@ class _CreatorDetails extends StatelessWidget {
           ],
         ),
         Text(
-          prefixUsername(username: handle, context: context),
+          prefixUsername(
+            input: handle,
+            textDirection: Directionality.of(context),
+          ),
           style: texts.caption.copyWith(color: handleColor ?? colors.quaternaryText),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

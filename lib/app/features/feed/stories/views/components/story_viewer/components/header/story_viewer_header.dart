@@ -91,7 +91,10 @@ class StoryViewerHeader extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      prefixUsername(username: username, context: context),
+                      prefixUsername(
+                        input: username,
+                        textDirection: Directionality.of(context),
+                      ),
                       style: textThemes.caption.copyWith(
                         color: onPrimaryAccent,
                         shadows: shadow,

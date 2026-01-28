@@ -142,8 +142,8 @@ class ProfileTokenHeader extends ConsumerWidget {
           children: [
             Text(
               prefixUsername(
-                username: token.marketData.ticker ?? '',
-                context: context,
+                input: token.marketData.ticker ?? '',
+                textDirection: Directionality.of(context),
               ),
               style: context.theme.appTextThemes.caption.copyWith(
                 color: context.theme.appColors.attentionBlock,

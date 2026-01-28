@@ -79,7 +79,10 @@ class _UserListItem extends StatelessWidget {
                 ),
               ),
               Text(
-                prefixUsername(username: userPreviewData.data.name, context: context),
+                prefixUsername(
+                  input: userPreviewData.data.name,
+                  textDirection: Directionality.of(context),
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: context.theme.appTextThemes.caption3.copyWith(

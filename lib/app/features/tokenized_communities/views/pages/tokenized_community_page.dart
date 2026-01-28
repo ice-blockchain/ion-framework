@@ -531,11 +531,10 @@ class _TokenChart extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final isRTL = Directionality.of(context) == TextDirection.rtl;
     final chartTitleAsync = ref.watch(
       chartTitleProvider(
         externalAddress: externalAddress,
-        isRTL: isRTL,
+        textDirection: Directionality.of(context),
       ),
     );
 
