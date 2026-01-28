@@ -32,11 +32,7 @@ class AdInsertionHelper {
         final gap = nextOffset + rng.nextInt(randomDelta);
         cursor += max(baseInterval, gap);
       }
-
-      print('computeInsertionIndices :$adIndices');
-    } on Object catch (e) {
-      print('computeInsertionIndices error: $e');
-
+    } on Object catch (_) {
       adIndices.clear();
     }
 
