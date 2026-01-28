@@ -210,7 +210,10 @@ class _MediaBottomOverlay extends ConsumerWidget {
                           ),
                         ),
                         subtitle: Text(
-                          prefixUsername(input: userMetadata.data.name,       textDirection: Directionality.of(context),),
+                          prefixUsername(
+                            input: userMetadata.data.name,
+                            textDirection: Directionality.of(context),
+                          ),
                           style: context.theme.appTextThemes.caption.copyWith(
                             color: context.theme.appColors.onPrimaryAccent,
                           ),
