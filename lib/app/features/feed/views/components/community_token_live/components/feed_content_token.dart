@@ -11,6 +11,7 @@ import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -18,6 +19,7 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/feed/providers/parsed_media_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
@@ -127,10 +129,19 @@ class ContentTokenHeader extends HookConsumerWidget {
 
     final eventReference = (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference;
 
-    final entity =
-        ref.watch(ionConnectEntityWithCountersProvider(eventReference: eventReference)).valueOrNull;
+    final entity = ref.watch(
+          ionConnectEntityWithCountersProvider(eventReference: eventReference).select((value) {
+            final entity = value.valueOrNull;
+            if (entity != null) {
+              ListCachedObjects.updateObject<IonConnectEntity>(context, entity);
+            }
+            return entity;
+          }),
+        ) ??
+        ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     final owner = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
+   
 
     final isVerified = ref.watch(isUserVerifiedProvider(eventReference.masterPubkey));
 
