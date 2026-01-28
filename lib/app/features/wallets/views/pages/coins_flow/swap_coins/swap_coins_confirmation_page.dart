@@ -144,9 +144,9 @@ class _SwapButton extends ConsumerWidget {
         onPressed: () async {
           final notifier = ref.read(swapCoinsControllerProvider.notifier);
 
-          final isIonBscSwap = await notifier.getIsIonBscSwap();
+          final isSignSwap = await notifier.getIsSignSwap();
 
-          if (isIonBscSwap) {
+          if (isSignSwap) {
             if (context.mounted) {
               await guardPasskeyDialog(
                 context,
@@ -180,48 +180,59 @@ class _SwapButton extends ConsumerWidget {
             return;
           }
 
-          await notifier.swapCoins(
-            onVerifyIdentitySwapCallback: (sendAssetFormData) async {
-              await guardPasskeyDialog(
-                ref.context,
-                (child) {
-                  return RiverpodVerifyIdentityRequestBuilder(
-                    provider: sendCoinsNotifierProvider,
-                    requestWithVerifyIdentity: (
-                      OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
-                    ) async {
-                      await ref.read(sendCoinsNotifierProvider.notifier).send(
-                            onVerifyIdentity,
-                            form: sendAssetFormData,
+          if (context.mounted) {
+            await guardPasskeyDialog(
+              context,
+              (child) => RiverpodUserActionSignerRequestBuilder(
+                provider: swapCoinsWithIonBscSwapProvider,
+                request: (signer) async {
+                  await notifier.swapCoins(
+                    onVerifyIdentitySwapCallback: (sendAssetFormData) async {
+                      await guardPasskeyDialog(
+                        ref.context,
+                        (child) {
+                          return RiverpodVerifyIdentityRequestBuilder(
+                            provider: sendCoinsNotifierProvider,
+                            requestWithVerifyIdentity: (
+                              OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
+                            ) async {
+                              await ref.read(sendCoinsNotifierProvider.notifier).send(
+                                    onVerifyIdentity,
+                                    form: sendAssetFormData,
+                                  );
+                            },
+                            child: child,
                           );
+                        },
+                      );
                     },
-                    child: child,
+                    onSwapError: () {
+                      _showErrorMessage(
+                        messageNotificationNotifier,
+                        context,
+                        swapCoinsData,
+                      );
+                    },
+                    onSwapSuccess: () {
+                      _showSuccessMessage(
+                        messageNotificationNotifier,
+                        context,
+                        swapCoinsData,
+                      );
+                    },
+                    onSwapStart: () {
+                      _showStartMessage(
+                        messageNotificationNotifier,
+                        context,
+                        swapCoinsData,
+                      );
+                    },
                   );
                 },
-              );
-            },
-            onSwapError: () {
-              _showErrorMessage(
-                messageNotificationNotifier,
-                context,
-                swapCoinsData,
-              );
-            },
-            onSwapSuccess: () {
-              _showSuccessMessage(
-                messageNotificationNotifier,
-                context,
-                swapCoinsData,
-              );
-            },
-            onSwapStart: () {
-              _showStartMessage(
-                messageNotificationNotifier,
-                context,
-                swapCoinsData,
-              );
-            },
-          );
+                child: child,
+              ),
+            );
+          }
         },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,

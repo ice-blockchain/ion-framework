@@ -39,6 +39,17 @@ class EvmTxBuilder {
     );
   }
 
+  Future<EvmTransaction> encodeApproveTransaction({
+    required String data,
+    required String token,
+  }) async {
+    return _wrapTransaction(
+      to: token,
+      data: data,
+      value: BigInt.zero,
+    );
+  }
+
   Future<BigInt> allowance({
     required String token,
     required String owner,
