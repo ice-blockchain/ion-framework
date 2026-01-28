@@ -90,7 +90,6 @@ class EditSubmitButton extends ConsumerWidget {
         draft.displayName != currentUserMetadata.data.displayName;
 
     if (nameOrNicknameChanged) {
-
       final hasCreatorToken = await ref.read(
         ionConnectEntityHasTokenProvider(
           eventReference: currentUserMetadata.toEventReference(),

@@ -257,5 +257,4 @@ class EvmTxBuilder {
       'Function "$name" with $parameterCount params not found. Candidates: $signatures',
     );
   }
-
 }
