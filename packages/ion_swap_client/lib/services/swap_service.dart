@@ -71,23 +71,23 @@ class SwapService {
       }
 
       if (swapCoinData.isBridge) {
-        await _bridgeService.tryToBridge(
+        final txHash = await _bridgeService.tryToBridge(
           swapCoinData: swapCoinData,
+          ionSwapRequest: ionSwapRequest,
           swapQuoteInfo: swapQuoteInfo,
         );
-        return null;
+        return txHash;
       }
 
       if (swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id) {
-        final txData = await _okxService.tryToSwapDex(
+        final txHash = await _okxService.tryToSwapDex(
           swapCoinData: swapCoinData,
           swapQuoteInfo: swapQuoteInfo,
           wallet: ionSwapRequest.wallet,
           userActionSigner: ionSwapRequest.userActionSigner,
         );
 
-        final isSuccessSwap = txData != null;
-        if (isSuccessSwap) return null;
+        return txHash;
       }
 
       await _cexService.tryToCexSwap(
@@ -98,6 +98,7 @@ class SwapService {
     } on Exception catch (e) {
       throw IonSwapException(
         'Failed to swap coins: $e',
+        e,
       );
     }
 
