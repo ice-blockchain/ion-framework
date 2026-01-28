@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
-import 'package:ion/app/features/tokenized_communities/utils/prefix_x_token_ticker.dart';
+
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/username.dart';
@@ -31,7 +31,11 @@ Future<String?> chartTitle(
   final ticker = tokenInfo.marketData.ticker ?? '';
 
   if (tokenInfo.source.isTwitter) {
-    return prefixXTokenTicker(ticker);
+    return withPrefix(
+      input: ticker,
+      prefix: r'$',
+      textDirection: textDirection,
+    );
   }
 
   if (tokenInfo.type == CommunityTokenType.profile) {
@@ -56,10 +60,10 @@ Future<String?> chartTitle(
 
       return tickerLower.isNotEmpty
           ? withPrefix(
-              input: usernameLower,
+              input: '($tickerLower)',
               textDirection: textDirection,
               separator: ' ',
-              prefix: '($tickerLower)',
+              prefix: usernamePart,
             )
           : usernamePart;
     } catch (e, st) {
