@@ -69,7 +69,7 @@ class MessagingHeader extends ConsumerWidget {
                               ),
                             ),
                             if (isVerified) ...[
-                              SizedBox(width: 3.0.s),
+                              SizedBox(width: 2.0.s),
                               Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
                             ],
                           ],

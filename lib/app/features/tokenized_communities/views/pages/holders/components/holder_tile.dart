@@ -287,15 +287,15 @@ class _NameAndAmount extends StatelessWidget {
               ),
             ),
             if (verified) ...[
-              SizedBox(width: 4.0.s),
+              SizedBox(width: 2.0.s),
               Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
             ],
             if (isCreator) ...[
-              SizedBox(width: 4.0.s),
+              SizedBox(width: 2.0.s),
               Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
             ],
             if (isXUser) ...[
-              SizedBox(width: 4.0.s),
+              SizedBox(width: 2.0.s),
               Assets.svg.iconBadgeXlogo.icon(size: 16.0.s),
             ],
             SizedBox(width: 8.0.s),

@@ -145,7 +145,7 @@ class TokenHeaderLandscape extends StatelessWidget {
                             ),
                             if (token.creator.verified.falseOrValue)
                               Padding(
-                                padding: EdgeInsetsDirectional.only(start: 5.0.s),
+                                padding: EdgeInsetsDirectional.only(start: 2.0.s),
                                 child: Assets.svg.iconBadgeVerify.icon(
                                   size: 16.s,
                                 ),

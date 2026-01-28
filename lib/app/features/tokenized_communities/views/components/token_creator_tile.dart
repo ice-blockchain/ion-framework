@@ -102,7 +102,7 @@ class _CreatorDetails extends StatelessWidget {
               ),
             ),
             if (verified) ...[
-              SizedBox(width: 4.0.s),
+              SizedBox(width: 2.0.s),
               Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
             ],
           ],

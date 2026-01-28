@@ -291,7 +291,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                     ),
                     if (tokenInfo?.creator.verified.falseOrValue ?? false)
                       Padding(
-                        padding: EdgeInsetsDirectional.only(start: 5.0.s),
+                        padding: EdgeInsetsDirectional.only(start: 2.0.s),
                         child: Assets.svg.iconBadgeVerify.icon(
                           size: 16.s,
                         ),

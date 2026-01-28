@@ -38,15 +38,18 @@ class _ListItemUser extends ListItem {
           constraints: constraints ?? const BoxConstraints(),
           title: Row(
             children: [
-              Flexible(child: title),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Flexible(child: title),
+              ),
               if (iceBadge)
                 Padding(
-                  padding: EdgeInsetsDirectional.only(start: 4.0.s),
+                  padding: EdgeInsetsDirectional.only(start: 2.0.s),
                   child: Assets.svg.iconBadgeIcelogo.icon(size: defaultBadgeSize),
                 ),
               if (verifiedBadge)
                 Padding(
-                  padding: EdgeInsetsDirectional.only(start: 4.0.s),
+                  padding: EdgeInsetsDirectional.only(start: 2.0.s),
                   child: Assets.svg.iconBadgeVerify.icon(size: defaultBadgeSize),
                 ),
             ],

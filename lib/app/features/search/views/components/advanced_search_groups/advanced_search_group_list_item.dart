@@ -114,12 +114,12 @@ class GroupHeader extends StatelessWidget {
         ),
         if (isVerified)
           Padding(
-            padding: EdgeInsetsDirectional.only(start: 4.0.s),
+            padding: EdgeInsetsDirectional.only(start: 2.0.s),
             child: Assets.svg.iconBadgeIcelogo.icon(size: 16.0.s),
           ),
         if (isION)
           Padding(
-            padding: EdgeInsetsDirectional.only(start: 4.0.s),
+            padding: EdgeInsetsDirectional.only(start: 2.0.s),
             child: Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
           ),
       ],
