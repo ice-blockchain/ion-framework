@@ -239,6 +239,15 @@ abstract class AppEnv {
 
   @EnviedField(varName: 'DEFAULT_SWAP_PERCENT_FEE')
   static final String defaultSwapPercentFee = _AppEnv.defaultSwapPercentFee;
+
+  @EnviedField(varName: 'AD_APP_KEY_ANDROID')
+  static final String adAppKeyAndroid = _AppEnv.adAppKeyAndroid;
+
+  @EnviedField(varName: 'AD_APP_KEY_IOS')
+  static final String adAppKeyIos = _AppEnv.adAppKeyIos;
+
+  @EnviedField(varName: 'ADMOB_ID_ANDROID')
+  static final String admobIdAndroid = _AppEnv.admobIdAndroid;
 }
 
 enum EnvVariable {
@@ -309,6 +318,9 @@ enum EnvVariable {
   OKX_SWAP_FEE_ADDRESS_BNB,
   RELAY_SWAP_FEE_ADDRESS,
   DEFAULT_SWAP_PERCENT_FEE,
+  AD_APP_KEY_ANDROID,
+  AD_APP_KEY_IOS,
+  ADMOB_ID_ANDROID,
 }
 
 @Riverpod(keepAlive: true)
@@ -433,6 +445,9 @@ class Env extends _$Env {
       EnvVariable.OKX_SWAP_FEE_ADDRESS_BNB => AppEnv.okxSwapFeeAddressBnb as T,
       EnvVariable.RELAY_SWAP_FEE_ADDRESS => AppEnv.relaySwapFeeAddress as T,
       EnvVariable.DEFAULT_SWAP_PERCENT_FEE => AppEnv.defaultSwapPercentFee as T,
+      EnvVariable.AD_APP_KEY_ANDROID => AppEnv.adAppKeyAndroid as T,
+      EnvVariable.AD_APP_KEY_IOS => AppEnv.adAppKeyIos as T,
+      EnvVariable.ADMOB_ID_ANDROID => AppEnv.admobIdAndroid as T,
     };
   }
 }
