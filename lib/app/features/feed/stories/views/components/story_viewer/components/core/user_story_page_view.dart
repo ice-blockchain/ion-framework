@@ -78,7 +78,7 @@ class UserStoryPageView extends HookConsumerWidget {
           storiesLength: stories.length,
           onSeenAll: () => handleUserExit(onNextUser),
         ),
-        child: currentStory.id.endsWith('_ad')
+        child: currentStory.id.endsWith(UserStories.adKeySuffix)
             ? AdStoryViewer(key: Key(currentStory.id), storyId: currentStory.id)
             : StoryContent(
                 key: Key(currentStory.id),
