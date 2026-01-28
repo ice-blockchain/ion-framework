@@ -286,7 +286,7 @@ class _MarketCap extends ConsumerWidget {
     final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
 
     if (tokenInfo == null) {
-      return const SizedBox.shrink();
+      return SizedBox(width: 24.0.s);
     }
 
     return Row(
