@@ -142,11 +142,14 @@ Future<MoneyDisplayData?> transactionDisplayData(
   Ref ref,
   EventMessage eventMessage,
 ) async {
-  // Try to extract 1756 (WalletAssetEntity) from "payment-sent" tag
-  final walletAssetEvent = _eventFromTag(
-    eventMessage,
-    ReplaceablePrivateDirectMessageData.paymentSentTagName,
-  );
+  // Using eventMessage as is if this is unencrypted WalletAssetEntity.
+  // Try to extract 1756 (WalletAssetEntity) from "payment-sent" tag otherwise.
+  final walletAssetEvent = eventMessage.kind == WalletAssetEntity.kind
+      ? eventMessage
+      : _eventFromTag(
+          eventMessage,
+          ReplaceablePrivateDirectMessageData.paymentSentTagName,
+        );
   if (walletAssetEvent != null) {
     final walletAssetEntity = WalletAssetEntity.fromEventMessage(walletAssetEvent);
 
