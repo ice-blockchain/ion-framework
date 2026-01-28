@@ -279,11 +279,11 @@ class _RocketIcon extends StatelessWidget {
 class _MarketCap extends ConsumerWidget {
   const _MarketCap({required this.externalAddress});
 
-  final String? externalAddress;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress!)).valueOrNull;
+    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
 
     if (tokenInfo == null) {
       return const SizedBox.shrink();
