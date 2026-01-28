@@ -99,9 +99,15 @@ class SwapService {
       }
 
       if (swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id) {
+        if (ionSwapRequest == null) {
+          throw const IonSwapException('Ion swap request is required for ION → BSC bridge');
+        }
+
         final txData = await _okxService.tryToSwapDex(
           swapCoinData: swapCoinData,
           swapQuoteInfo: swapQuoteInfo,
+          wallet: ionSwapRequest.wallet,
+          userActionSigner: ionSwapRequest.userActionSigner,
         );
 
         final isSuccessSwap = txData != null;
@@ -206,5 +212,9 @@ class SwapService {
     return _ionSwapService.isSupportedPair(swapCoinData) ||
         _ionBscToIonBridgeService.isSupportedPair(swapCoinData) ||
         _ionToBscBridgeService.isSupportedPair(swapCoinData);
+  }
+
+  bool isSameNetworkSwap(SwapCoinParameters swapCoinData) {
+    return swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id;
   }
 }

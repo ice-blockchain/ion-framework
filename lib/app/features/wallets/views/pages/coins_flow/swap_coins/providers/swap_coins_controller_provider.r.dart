@@ -580,7 +580,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     Wallet wallet,
     UserActionSignerNew userActionSigner,
   ) async {
-    final isIonBscSwap = await getIsIonBscSwap();
+    final isIonBscSwap = await getIsSignSwap();
 
     if (isIonBscSwap) {
       final identityClient = await ref.read(ionIdentityClientProvider.future);
@@ -649,12 +649,13 @@ class SwapCoinsController extends _$SwapCoinsController {
     return IonSwapException(exception.toString());
   }
 
-  Future<bool> getIsIonBscSwap() async {
+  Future<bool> getIsSignSwap() async {
     final (:swapCoinParameters, :swapQuoteInfo, :sellNetwork, :buyNetwork, :sellCoin, :buyCoin) =
         await _getData();
 
     final swapController = await ref.read(ionSwapClientProvider.future);
-    return swapController.isIonBscSwap(swapCoinParameters);
+    return swapController.isIonBscSwap(swapCoinParameters) ||
+        swapController.isSameNetworkSwap(swapCoinParameters);
   }
 
   Future<void> swapCoinsWithIonBscSwap({
