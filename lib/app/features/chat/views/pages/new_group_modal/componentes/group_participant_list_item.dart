@@ -31,7 +31,10 @@ class GroupParticipantsListItem extends ConsumerWidget {
         return BadgesUserListItem(
           title: Text(userPreviewData.data.trimmedDisplayName),
           subtitle: Text(
-            prefixUsername(username: userPreviewData.data.name, context: context),
+            prefixUsername(
+              input: userPreviewData.data.name,
+              textDirection: Directionality.of(context),
+            ),
             style: context.theme.appTextThemes.caption.copyWith(
               color: context.theme.appColors.sheetLine,
             ),

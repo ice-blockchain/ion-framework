@@ -41,7 +41,10 @@ class UseListItem extends ConsumerWidget {
         style: textStyle,
       ),
       subtitle: Text(
-        prefixUsername(username: username, context: context),
+        prefixUsername(
+          input: username,
+          textDirection: Directionality.of(context),
+        ),
         style: textStyle,
       ),
       leading: StoryColoredProfileAvatar(

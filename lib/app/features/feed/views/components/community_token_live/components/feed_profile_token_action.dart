@@ -133,8 +133,8 @@ class TwitterTokenHeader extends StatelessWidget {
                     children: [
                       Text(
                         prefixUsername(
-                          username: token.marketData.ticker ?? '',
-                          context: context,
+                          input: token.marketData.ticker ?? '',
+                          textDirection: Directionality.of(context),
                         ),
                         style: context.theme.appTextThemes.caption2.copyWith(
                           color: context.theme.appColors.attentionBlock,

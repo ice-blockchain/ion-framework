@@ -72,7 +72,10 @@ class UserInfo extends HookConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                prefixUsername(username: username, context: context),
+                prefixUsername(
+                  input: username,
+                  textDirection: Directionality.of(context),
+                ),
                 style: tStyle,
               ),
               if (createdAt != null && username.isNotEmpty) ...[

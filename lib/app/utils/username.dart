@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:ion/l10n/i10n.dart';
 
 String prefixUsername({
-  required String? username,
-  required BuildContext context,
+  required String? input,
+  required TextDirection textDirection,
+  String separator = '',
+  String prefix = '@',
 }) {
-  final rtl = isRTL(context);
-  final lUsername = username ?? '';
+  final rtl = textDirection == TextDirection.rtl;
+  final lUsername = input ?? '';
 
   if (lUsername.isNotEmpty) {
-    return rtl ? '$lUsername@' : '@$lUsername';
+    return rtl ? '$lUsername$separator$prefix' : '$prefix$separator$lUsername';
   } else {
     return lUsername;
   }
