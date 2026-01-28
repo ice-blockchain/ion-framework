@@ -45,7 +45,7 @@ class UserNameTile extends ConsumerWidget {
         input: (!isNicknameProven)
             ? '${userPreviewData.data.name} ${context.i18n.nickname_not_owned_suffix}'
             : userPreviewData.data.name,
-                textDirection: Directionality.of(context),
+        textDirection: Directionality.of(context),
       ),
       style: context.theme.appTextThemes.caption.copyWith(
         color: profileMode == ProfileMode.dark
