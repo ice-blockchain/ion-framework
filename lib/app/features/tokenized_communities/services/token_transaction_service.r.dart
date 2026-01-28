@@ -56,7 +56,7 @@ class TokenTransactionService {
       final network = await _getNetwork(wallet.network);
       if (network == null) return;
 
-      final tokenInfo = _ref.read(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+      final tokenInfo = await _ref.read(tokenMarketInfoProvider(externalAddress).future);
       final tokenData = await _resolveTokenCoin(
         externalAddress: externalAddress,
         tokenInfo: tokenInfo,
