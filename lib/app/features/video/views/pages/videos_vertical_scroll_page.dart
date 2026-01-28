@@ -8,19 +8,15 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_button.dart';
-import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/status_bar/status_bar_color_wrapper.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/quick_page_swiper/quick_page_swiper.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/own_post_menu_bottom_sheet.dart';
-import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
+import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/content_bottom_sheet_menu.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -76,7 +72,6 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final primaryTextColor = appColors.primaryText;
     final onPrimaryAccentColor = appColors.onPrimaryAccent;
     final secondaryBackgroundColor = appColors.secondaryBackground;
-    final rightPadding = 6.0.s;
     final animationDuration = 100.ms;
 
     final ionConnectEntity =
@@ -137,19 +132,15 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
     final userPageController = usePageController(initialPage: initialPage);
     final currentEventReference = useState<EventReference>(eventReference);
 
-    final isOwnedByCurrentUser =
-        ref.watch(isCurrentUserSelectorProvider(currentEventReference.value.masterPubkey));
-
-    final menuCloseSignal = useMemoized(OverlayMenuCloseSignal.new);
-    useEffect(() => menuCloseSignal.dispose, [menuCloseSignal]);
+    final currentEntity = ref
+        .watch(
+          ionConnectEntityWithCountersProvider(eventReference: currentEventReference.value),
+        )
+        .valueOrNull;
 
     useEffect(
       () {
         void listener() {
-          if (userPageController.offset != 0) {
-            menuCloseSignal.trigger();
-          }
-
           if (userPageController.offset < -150 ||
               (userPageController.offset > userPageController.position.maxScrollExtent + 150)) {
             if (context.canPop() && !hasMore && context.mounted) {
@@ -247,28 +238,15 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
           actions: isAdVisible.value
               ? null
               : [
-                  Padding(
-                    padding: EdgeInsetsDirectional.only(end: rightPadding),
-                    child: isOwnedByCurrentUser
-                        ? BottomSheetMenuButton(
-                            showShadow: true,
-                            iconColor: secondaryBackgroundColor,
-                            menuBuilder: (context) => OwnPostMenuBottomSheet(
-                              eventReference: currentEventReference.value,
-                              onDelete: () {
-                                if (context.canPop() && context.mounted) {
-                                  context.pop();
-                                }
-                              },
-                            ),
-                          )
-                        : BottomSheetMenuButton(
-                            showShadow: true,
-                            iconColor: secondaryBackgroundColor,
-                            menuBuilder: (context) => PostMenuBottomSheet(
-                              eventReference: currentEventReference.value,
-                            ),
-                          ),
+                  ContentBottomSheetMenu.forAppBar(
+                    eventReference: currentEventReference.value,
+                    entity: currentEntity,
+                    iconColor: secondaryBackgroundColor,
+                    onDelete: () {
+                      if (context.canPop() && context.mounted) {
+                        context.pop();
+                      }
+                    },
                   ),
                 ],
         ),
