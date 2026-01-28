@@ -141,6 +141,8 @@ class IonConnectPushDataPayload {
         return PushNotificationType.mention;
       }
       return _getReplyNotificationType(entity, currentPubkey, getRelatedEntity);
+    } else if (entity is WalletAssetEntity) {
+      return PushNotificationType.paymentReceived;
     }
 
     return null;
