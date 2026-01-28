@@ -14,7 +14,7 @@ part 'chart_title_provider.r.g.dart';
 // For profile tokens: Returns "@nickname (ticker)" where:
 //   - nickname comes from the profile this token represents (resolved from externalAddress)
 //   - ticker is lowercase
-// For content tokens: Returns ticker as is from BE
+// For content tokens: Returns ticker with $ prefix
 @riverpod
 Future<String?> chartTitle(
   Ref ref, {
@@ -65,6 +65,6 @@ Future<String?> chartTitle(
     }
   }
 
-  // Content token: ticker as is from BE
-  return ticker;
+  // Content token with $ prefix
+  return '\$$ticker';
 }

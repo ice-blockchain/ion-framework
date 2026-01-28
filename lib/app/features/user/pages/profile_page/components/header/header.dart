@@ -8,14 +8,14 @@ import 'package:ion/app/features/user/pages/profile_page/components/header/user_
 
 class Header extends ConsumerWidget {
   const Header({
-    required this.pubkey,
+    required this.masterPubkey,
     required this.opacity,
     required this.showBackButton,
     this.textColor,
     super.key,
   });
 
-  final String pubkey;
+  final String masterPubkey;
   final double opacity;
   final bool showBackButton;
   final Color? textColor;
@@ -27,7 +27,7 @@ class Header extends ConsumerWidget {
         if (!showBackButton) SizedBox(width: 16.0.s),
         Expanded(
           child: UseListItem(
-            pubkey: pubkey,
+            masterPubkey: masterPubkey,
             minHeight: HeaderAction.buttonSize,
             textColor: textColor,
           ),

@@ -64,7 +64,7 @@ class _TrailingTextWithIcon extends StatelessWidget {
             Flexible(
               child: Text(
                 value!,
-                style: context.theme.appTextThemes.caption3,
+                style: context.theme.appTextThemes.caption3.copyWith(height: 1),
               ),
             ),
         ],
