@@ -69,7 +69,7 @@ class _CreateUpdateRequestBuilder {
     final symbolGroups = <String>{};
     final walletViewItems = <WalletViewCoinData>[];
 
-    // 1. Build existing bindings from wallet view
+    // Build existing bindings from wallet view
     final existingBindings = <String, String?>{};
     if (walletView != null) {
       for (final group in walletView.coinGroups) {
@@ -79,14 +79,14 @@ class _CreateUpdateRequestBuilder {
       }
     }
 
-    // 2. Get wallets connected to this wallet view, grouped by network
+    // Get wallets connected to this wallet view, grouped by network
     final networkWithWallets = _getConnectedWalletsByNetwork(
       userWallets: userWallets,
       mainUserWallet: mainUserWallet,
       walletView: walletView,
     );
 
-    // 3. Process each coin
+    // Process each coin
     for (final coin in coins) {
       symbolGroups.add(coin.symbolGroup);
 
