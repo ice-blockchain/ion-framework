@@ -203,6 +203,15 @@ abstract class AppEnv {
 
   @EnviedField(varName: 'RPC_PROXY_DOMAINS')
   static final String rpcProxyDomains = _AppEnv.rpcProxyDomains;
+
+  @EnviedField(varName: 'AD_APP_KEY_ANDROID')
+  static final String adAppKeyAndroid = _AppEnv.adAppKeyAndroid;
+
+  @EnviedField(varName: 'AD_APP_KEY_IOS')
+  static final String adAppKeyIos = _AppEnv.adAppKeyIos;
+
+  @EnviedField(varName: 'ADMOB_ID_ANDROID')
+  static final String admobIdAndroid = _AppEnv.admobIdAndroid;
 }
 
 enum EnvVariable {
@@ -261,7 +270,10 @@ enum EnvVariable {
   CRYPTOCURRENCIES_ION_TRADE_URL,
   CRYPTOCURRENCIES_ION_JRPC_URL,
   RELAY_PROXY_DOMAINS,
-  RPC_PROXY_DOMAINS
+  RPC_PROXY_DOMAINS,
+  AD_APP_KEY_ANDROID,
+  AD_APP_KEY_IOS,
+  ADMOB_ID_ANDROID
 }
 
 @Riverpod(keepAlive: true)
@@ -375,6 +387,9 @@ class Env extends _$Env {
       EnvVariable.CRYPTOCURRENCIES_ION_JRPC_URL => AppEnv.cryptocurrenciesIonJrpcUrl as T,
       EnvVariable.RELAY_PROXY_DOMAINS => AppEnv.relayProxyDomains as T,
       EnvVariable.RPC_PROXY_DOMAINS => AppEnv.rpcProxyDomains as T,
+      EnvVariable.AD_APP_KEY_ANDROID => AppEnv.adAppKeyAndroid as T,
+      EnvVariable.AD_APP_KEY_IOS => AppEnv.adAppKeyIos as T,
+      EnvVariable.ADMOB_ID_ANDROID => AppEnv.admobIdAndroid as T,
     };
   }
 }
