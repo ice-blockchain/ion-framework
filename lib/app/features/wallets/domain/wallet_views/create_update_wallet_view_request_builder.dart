@@ -113,8 +113,7 @@ class _CreateUpdateRequestBuilder {
     required Wallet mainUserWallet,
     required WalletViewData walletView,
   }) {
-    final connectedWalletIds =
-        walletView.coins.map((c) => c.walletId).nonNulls.toSet();
+    final connectedWalletIds = walletView.coins.map((c) => c.walletId).nonNulls.toSet();
 
     final walletViewId = walletView.id;
     final isMainWalletView = walletView.isMainWalletView;
