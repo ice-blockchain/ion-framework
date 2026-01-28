@@ -237,11 +237,13 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     final userData = pubkey == null ? null : ref.read(userPreviewDataProvider(pubkey)).valueOrNull;
 
     String? tokenTitle;
+    String tokenTicker;
     String? communityAvatar;
 
     if (state.shouldWaitSuggestedDetails) {
       final suggestedDetails = state.suggestedDetails;
       tokenTitle = suggestedDetails?.name.trim() ?? '';
+      tokenTicker = suggestedDetails?.ticker.trim() ?? '';
       communityAvatar = suggestedDetails?.picture.trim();
     } else {
       tokenTitle = tokenInfo?.title ??
@@ -250,12 +252,15 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
           pubkey ??
           externalAddress;
 
+      tokenTicker = tokenInfo?.marketData.ticker ?? '';
+
       communityAvatar = tokenInfo?.imageUrl ?? userData?.data.avatarUrl;
     }
     final interimState = state.copyWith(
       communityTokenBalance: balance,
       communityTokenCoinsGroup: _buildInterimCommunityTokenGroup(
         tokenTitle: tokenTitle,
+        tokenTicker: tokenTicker,
         communityAvatar: communityAvatar,
       ),
     );
@@ -269,6 +274,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       communityTokenCoinsGroup: _buildFinalCommunityTokenGroup(
         derivedCoinsGroup: derivedCoinsGroup,
         tokenTitle: tokenTitle,
+        tokenTicker: tokenTicker,
         communityAvatar: communityAvatar,
       ),
     );
@@ -572,20 +578,21 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
   CoinsGroup _buildInterimCommunityTokenGroup({
     required String tokenTitle,
+    required String tokenTicker,
     required String? communityAvatar,
   }) {
     final existingGroup = state.communityTokenCoinsGroup;
     return existingGroup?.copyWith(
           name: tokenTitle,
           iconUrl: communityAvatar ?? existingGroup.iconUrl,
-          symbolGroup: tokenTitle,
-          abbreviation: tokenTitle,
+          symbolGroup: tokenTicker,
+          abbreviation: tokenTicker,
         ) ??
         CoinsGroup(
           name: tokenTitle,
           iconUrl: communityAvatar,
-          symbolGroup: tokenTitle,
-          abbreviation: tokenTitle,
+          symbolGroup: tokenTicker,
+          abbreviation: tokenTicker,
           coins: const [],
         );
   }
@@ -593,13 +600,14 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   CoinsGroup _buildFinalCommunityTokenGroup({
     required CoinsGroup derivedCoinsGroup,
     required String tokenTitle,
+    required String tokenTicker,
     required String? communityAvatar,
   }) {
     return derivedCoinsGroup.copyWith(
       name: tokenTitle,
       iconUrl: communityAvatar ?? derivedCoinsGroup.iconUrl,
-      symbolGroup: tokenTitle,
-      abbreviation: tokenTitle,
+      symbolGroup: tokenTicker,
+      abbreviation: tokenTicker,
     );
   }
 }
