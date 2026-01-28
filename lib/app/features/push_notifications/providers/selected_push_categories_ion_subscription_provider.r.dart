@@ -78,9 +78,9 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
         .expand<RequestFilter>((filters) => filters)
         .toList();
 
-    final messageFilter = _buildFilterForMessages(selectedPushCategories);
-    if (messageFilter != null) {
-      filters.add(messageFilter);
+    final encryptedFilter = _buildFilterForEncryptedEvents(selectedPushCategories);
+    if (encryptedFilter != null) {
+      filters.add(encryptedFilter);
     }
 
     return filters;
@@ -92,6 +92,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       PushNotificationCategory.reposts => _buildFilterForReposts(),
       PushNotificationCategory.likes => _buildFilterForLikes(),
       PushNotificationCategory.newFollowers => _buildFilterForNewFollowers(),
+      PushNotificationCategory.messagePaymentReceived => _buildFilterForPaymentReceived(),
       _ => null,
     };
   }
@@ -171,7 +172,9 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     ];
   }
 
-  RequestFilter? _buildFilterForMessages(List<PushNotificationCategory> categories) {
+  /// Handling encrypted categories all together since they are combined
+  /// into a single filter (they all are encrypted with gift wraps).
+  RequestFilter? _buildFilterForEncryptedEvents(List<PushNotificationCategory> categories) {
     final messageCategories = [
       PushNotificationCategory.directMessages,
       PushNotificationCategory.messagePaymentRequest,
@@ -213,5 +216,24 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
         '#p': [currentUserPubkey],
       },
     );
+  }
+
+  /// Alongside the encrypted [WalletAssetEntity.kind] events, we also need to listen for
+  /// unencrypted ones.
+  ///
+  /// Encrypted ones are produced when transaction is made from within the app.
+  /// Unencrypted ones are produced by BE when transaction is made from
+  ///   outside of the app (e.g., from an external wallet).
+  List<RequestFilter> _buildFilterForPaymentReceived() {
+    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+    return [
+      RequestFilter(
+        kinds: const [WalletAssetEntity.kind],
+        tags: {
+          '#p': [currentUserPubkey],
+        },
+      ),
+    ];
   }
 }
