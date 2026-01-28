@@ -12,11 +12,6 @@ import 'package:ion_swap_client/services/ion_bsc_to_ion_bridge_service.dart';
 import 'package:ion_swap_client/services/ion_swap_service.dart';
 import 'package:ion_swap_client/services/ion_to_bsc_bridge_service.dart';
 
-typedef SendCoinCallback = Future<void> Function({
-  required String depositAddress,
-  required num amount,
-});
-
 class SwapService {
   SwapService({
     required DexService okxService,
@@ -43,16 +38,11 @@ class SwapService {
   /// For now only [IonSwapService] and [IonBscToIonBridgeService] are supported
   Future<String?> swapCoins({
     required SwapCoinParameters swapCoinData,
-    required SendCoinCallback sendCoinCallback,
+    required IonSwapRequest ionSwapRequest,
     SwapQuoteInfo? swapQuoteInfo,
-    IonSwapRequest? ionSwapRequest,
   }) async {
     try {
       if (_ionToBscBridgeService.isSupportedPair(swapCoinData)) {
-        if (ionSwapRequest == null) {
-          throw const IonSwapException('Ion swap request is required for ION → BSC bridge');
-        }
-
         await _ionToBscBridgeService.bridgeToBsc(
           swapCoinData: swapCoinData,
           request: ionSwapRequest,
@@ -61,10 +51,6 @@ class SwapService {
       }
 
       if (_ionBscToIonBridgeService.isSupportedPair(swapCoinData)) {
-        if (ionSwapRequest == null) {
-          throw const IonSwapException('Ion swap request is required for on-chain bridge');
-        }
-
         final txHash = await _ionBscToIonBridgeService.bridgeToIon(
           swapCoinData: swapCoinData,
           request: ionSwapRequest,
@@ -73,10 +59,6 @@ class SwapService {
       }
 
       if (isIonBscSwap(swapCoinData)) {
-        if (ionSwapRequest == null) {
-          throw const IonSwapException('Ion swap request is required for on-chain swap');
-        }
-
         final txHash = await _ionSwapService.swapCoins(
           swapCoinData: swapCoinData,
           request: ionSwapRequest,
@@ -91,17 +73,12 @@ class SwapService {
       if (swapCoinData.isBridge) {
         await _bridgeService.tryToBridge(
           swapCoinData: swapCoinData,
-          sendCoinCallback: sendCoinCallback,
           swapQuoteInfo: swapQuoteInfo,
         );
         return null;
       }
 
       if (swapCoinData.sellCoin.network.id == swapCoinData.buyCoin.network.id) {
-        if (ionSwapRequest == null) {
-          throw const IonSwapException('Ion swap request is required for ION → BSC bridge');
-        }
-
         final txData = await _okxService.tryToSwapDex(
           swapCoinData: swapCoinData,
           swapQuoteInfo: swapQuoteInfo,
@@ -115,8 +92,8 @@ class SwapService {
 
       await _cexService.tryToCexSwap(
         swapCoinData: swapCoinData,
-        sendCoinCallback: sendCoinCallback,
         swapQuoteInfo: swapQuoteInfo,
+        ionSwapRequest: ionSwapRequest,
       );
     } on Exception catch (e) {
       throw IonSwapException(

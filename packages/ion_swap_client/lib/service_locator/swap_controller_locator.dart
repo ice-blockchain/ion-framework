@@ -78,6 +78,7 @@ class SwapControllerLocator {
         letsExchangeRepository: letsExchangeRepository,
         exolixRepository: exolixRepository,
         config: config,
+        ionIdentityTransactionApi: ionIdentityTransactionApi,
       ),
       bridgeService: BridgeService(
         relayApiRepository: relayApiRepository,

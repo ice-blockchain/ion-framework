@@ -12,7 +12,6 @@ import 'package:ion/app/components/message_notification/providers/message_notifi
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
-import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/swap_disabled_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_coins_message_info.dart';
@@ -20,7 +19,6 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/provi
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_identity_client/ion_identity.dart';
 
 class SwapCoinsConfirmationPage extends HookConsumerWidget {
   const SwapCoinsConfirmationPage({super.key});
@@ -142,97 +140,33 @@ class _SwapButton extends ConsumerWidget {
       child: Button(
         disabled: isDisabled,
         onPressed: () async {
-          final notifier = ref.read(swapCoinsControllerProvider.notifier);
-
-          final isSignSwap = await notifier.getIsSignSwap();
-
-          if (isSignSwap) {
-            if (context.mounted) {
-              await guardPasskeyDialog(
-                context,
-                (child) => RiverpodUserActionSignerRequestBuilder(
-                  provider: swapCoinsWithIonBscSwapProvider,
-                  request: (signer) async {
-                    await ref.read(swapCoinsWithIonBscSwapProvider.notifier).run(
-                          userActionSigner: signer,
-                          onSwapSuccess: () {
-                            _showSuccessMessage(
-                              messageNotificationNotifier,
-                              context,
-                              swapCoinsData,
-                            );
-                          },
-                          onSwapError: () {
-                            _showErrorMessage(
-                              messageNotificationNotifier,
-                              context,
-                              swapCoinsData,
-                            );
-                          },
-                          onSwapStart: () {},
+          await guardPasskeyDialog(
+            context,
+            (child) => RiverpodUserActionSignerRequestBuilder(
+              provider: swapCoinsWithIonBscSwapProvider,
+              request: (signer) async {
+                await ref.read(swapCoinsWithIonBscSwapProvider.notifier).run(
+                      userActionSigner: signer,
+                      onSwapSuccess: () {
+                        _showSuccessMessage(
+                          messageNotificationNotifier,
+                          context,
+                          swapCoinsData,
                         );
-                  },
-                  child: child,
-                ),
-              );
-            }
-
-            return;
-          }
-
-          if (context.mounted) {
-            await guardPasskeyDialog(
-              context,
-              (child) => RiverpodUserActionSignerRequestBuilder(
-                provider: swapCoinsWithIonBscSwapProvider,
-                request: (signer) async {
-                  await notifier.swapCoins(
-                    onVerifyIdentitySwapCallback: (sendAssetFormData) async {
-                      await guardPasskeyDialog(
-                        ref.context,
-                        (child) {
-                          return RiverpodVerifyIdentityRequestBuilder(
-                            provider: sendCoinsNotifierProvider,
-                            requestWithVerifyIdentity: (
-                              OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
-                            ) async {
-                              await ref.read(sendCoinsNotifierProvider.notifier).send(
-                                    onVerifyIdentity,
-                                    form: sendAssetFormData,
-                                  );
-                            },
-                            child: child,
-                          );
-                        },
-                      );
-                    },
-                    onSwapError: () {
-                      _showErrorMessage(
-                        messageNotificationNotifier,
-                        context,
-                        swapCoinsData,
-                      );
-                    },
-                    onSwapSuccess: () {
-                      _showSuccessMessage(
-                        messageNotificationNotifier,
-                        context,
-                        swapCoinsData,
-                      );
-                    },
-                    onSwapStart: () {
-                      _showStartMessage(
-                        messageNotificationNotifier,
-                        context,
-                        swapCoinsData,
-                      );
-                    },
-                  );
-                },
-                child: child,
-              ),
-            );
-          }
+                      },
+                      onSwapError: () {
+                        _showErrorMessage(
+                          messageNotificationNotifier,
+                          context,
+                          swapCoinsData,
+                        );
+                      },
+                      onSwapStart: () {},
+                    );
+              },
+              child: child,
+            ),
+          );
         },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,
@@ -252,26 +186,6 @@ class _SwapButton extends ConsumerWidget {
             horizontal: 109.0.s,
             vertical: 16.0.s,
           ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showStartMessage(
-    MessageNotificationNotifier messageNotificationNotifier,
-    BuildContext context,
-    SwapCoinData swapCoinsData,
-  ) async {
-    final colors = context.theme.appColors;
-
-    unawaited(
-      _showMessage(
-        swapCoinsData: swapCoinsData,
-        messageNotificationNotifier,
-        message: context.i18n.wallet_swapping_coins,
-        icon: Assets.svg.iconSwap.icon(
-          color: colors.secondaryBackground,
-          size: 24.0.s,
         ),
       ),
     );
