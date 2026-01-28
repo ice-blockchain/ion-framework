@@ -99,6 +99,7 @@ class PostDetailsPage extends HookConsumerWidget {
                               ),
                             ModifiablePostEntity() || PostEntity() => _TokenNavigationWrapper(
                                 eventReference: eventReference,
+                                entity: entity,
                                 child: Post(
                                   eventReference: eventReference,
                                   timeFormat: TimestampFormat.detailed,
@@ -160,6 +161,13 @@ class _TokenNavigationWrapper extends ConsumerWidget {
             .watch(ionConnectEntityProvider(eventReference: tokenAction.data.definitionReference))
             .valueOrNull as CommunityTokenDefinitionEntity?;
         externalAddress = tokenDefinition?.data.externalAddress;
+      case ModifiablePostEntity(data: ModifiablePostData(quotedEvent: final quotedEvent))
+          when quotedEvent != null &&
+              quotedEvent.eventReference.kind == CommunityTokenDefinitionEntity.kind:
+        final quotedTokenDef = ref
+            .watch(ionConnectEntityProvider(eventReference: quotedEvent.eventReference))
+            .valueOrNull as CommunityTokenDefinitionEntity?;
+        externalAddress = quotedTokenDef?.data.externalAddress;
       default:
         if (eventReference != null) {
           final hasToken = ref
