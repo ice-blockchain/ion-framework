@@ -141,7 +141,6 @@ class ContentTokenHeader extends HookConsumerWidget {
         ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
     final owner = ref.watch(userMetadataProvider(eventReference.masterPubkey)).valueOrNull;
-   
 
     final isVerified = ref.watch(isUserVerifiedProvider(eventReference.masterPubkey));
 
