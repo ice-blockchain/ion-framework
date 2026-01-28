@@ -16,6 +16,8 @@ part 'user_stories_provider.r.g.dart';
 
 @riverpod
 class UserStories extends _$UserStories {
+  static const String adKeySuffix = '_ad';
+
   @override
   Iterable<ModifiablePostEntity>? build(String pubkey) {
     final dataSources = ref.watch(userStoriesDataSourceProvider(pubkey: pubkey));
@@ -40,7 +42,7 @@ class UserStories extends _$UserStories {
       for (final index in addIndexes) {
         data.insert(
           index,
-          data[index].copyWith(id: '${data[index].id}_ad'),
+          data[index].copyWith(id: '${data[index].id}$adKeySuffix'),
         );
       }
       Logger.log('addIndexes :$addIndexes, final data size: ${data.length}');
