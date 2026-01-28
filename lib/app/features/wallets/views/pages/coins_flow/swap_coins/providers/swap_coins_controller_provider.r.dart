@@ -6,9 +6,9 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
+import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
-import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/send_asset_form_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
@@ -17,6 +17,7 @@ import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/utils/wallet_asset_utils.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
@@ -338,133 +339,6 @@ class SwapCoinsController extends _$SwapCoinsController {
     return network.displayName;
   }
 
-  Future<void> swapCoins({
-    required OnVerifyIdentitySwapCallback onVerifyIdentitySwapCallback,
-    required VoidCallback onSwapSuccess,
-    required VoidCallback onSwapError,
-    required VoidCallback onSwapStart,
-  }) async {
-    try {
-      state = state.copyWith(isSwapLoading: true);
-      final (
-        :swapQuoteInfo,
-        :swapCoinParameters,
-        :sellNetwork,
-        :buyNetwork,
-        :sellCoin,
-        :buyCoin,
-      ) = await _getData();
-      final swapController = await ref.read(ionSwapClientProvider.future);
-
-      await swapController.swapCoins(
-        swapQuoteInfo: swapQuoteInfo,
-        swapCoinData: swapCoinParameters,
-        sendCoinCallback: ({
-          required String depositAddress,
-          required num amount,
-        }) async {
-          try {
-            onSwapStart();
-
-            final sellAddress = swapCoinParameters.userSellAddress;
-            if (sellAddress == null) {
-              onSwapError();
-              return;
-            }
-
-            final swapsRepository = await ref.read(swapsRepositoryProvider.future);
-            await _saveSwapRecord(
-              swapsRepository: swapsRepository,
-              swapCoinParameters: swapCoinParameters,
-              swapQuoteInfo: swapQuoteInfo,
-              sellNetwork: sellNetwork,
-              buyNetwork: buyNetwork,
-              sellCoin: sellCoin,
-              buyCoin: buyCoin,
-            );
-
-            await _sendCoinCallback(
-              depositAddress: depositAddress,
-              amount: amount,
-              onVerifyIdentitySwapCallback: onVerifyIdentitySwapCallback,
-              memo: sellNetwork.isMemoSupported ? 'Online' : null,
-              sellAddress: sellAddress,
-              sellNetwork: sellNetwork,
-              sellCoinInWallet: sellCoin,
-            );
-
-            onSwapSuccess();
-          } catch (e) {
-            onSwapError();
-            rethrow;
-          }
-        },
-      );
-    } on Exception catch (e, stackTrace) {
-      onSwapError();
-
-      await SentryService.logException(
-        e,
-        stackTrace: stackTrace,
-        tag: 'swap_coins_failure',
-      );
-
-      rethrow;
-    } finally {
-      state = state.copyWith(isSwapLoading: false);
-    }
-  }
-
-  /// Used to send coins to address in cases where
-  /// we need to send coins by ourselves to blockchain
-  Future<void> _sendCoinCallback({
-    required String sellAddress,
-    required CoinInWalletData sellCoinInWallet,
-    required NetworkData sellNetwork,
-    required String depositAddress,
-    required num amount,
-    required OnVerifyIdentitySwapCallback onVerifyIdentitySwapCallback,
-    required String? memo,
-  }) async {
-    final walletView = await ref.read(walletViewByAddressProvider(sellAddress).future);
-
-    final wallets = await ref.read(
-      walletViewCryptoWalletsProvider(walletViewId: walletView?.id).future,
-    );
-
-    final senderWallet = wallets.firstWhereOrNull(
-      (wallet) => wallet.network == sellNetwork.id,
-    );
-
-    final networkFeeInfo = await ref.read(
-      networkFeeProvider(
-        walletId: senderWallet?.id,
-        network: sellNetwork,
-        transferredCoin: sellCoinInWallet.coin,
-      ).future,
-    );
-
-    await onVerifyIdentitySwapCallback(
-      SendAssetFormData(
-        arrivalDateTime: DateTime.now().microsecondsSinceEpoch,
-        receiverAddress: depositAddress,
-        assetData: CryptoAssetToSendData.coin(
-          coinsGroup: state.sellCoin!,
-          amount: amount.toDouble(),
-          associatedAssetWithSelectedOption: networkFeeInfo?.sendableAsset,
-          selectedOption: sellCoinInWallet,
-        ),
-        memo: memo,
-        walletView: walletView,
-        network: sellNetwork,
-        networkFeeOptions: networkFeeInfo?.networkFeeOptions ?? [],
-        selectedNetworkFeeOption: networkFeeInfo?.networkFeeOptions.firstOrNull,
-        networkNativeToken: networkFeeInfo?.networkNativeToken,
-        senderWallet: senderWallet,
-      ),
-    );
-  }
-
   void _debouncedGetQuotes() {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), _getQuotes);
@@ -502,7 +376,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       sellNetwork: sellNetwork,
       buyCoinGroup: buyCoin,
       buyNetwork: buyNetwork,
-      amount: amount,
+      amount: 200,
       slippage: state.slippage.toString(),
     );
 
@@ -575,23 +449,46 @@ class SwapCoinsController extends _$SwapCoinsController {
     return BigInt.tryParse(nativeAsset.balance);
   }
 
-  Future<IonSwapRequest?> _buildIonSwapRequest(
+  Future<IonSwapRequest> _buildIonSwapRequest(
     SwapCoinParameters swapCoinParameters,
     Wallet wallet,
     UserActionSignerNew userActionSigner,
   ) async {
-    final isIonBscSwap = await getIsSignSwap();
+    final sellCoin = state.sellCoin;
+    final sellNetwork = state.sellNetwork;
+    if (sellCoin == null || sellNetwork == null) {
+      throw Exception('Sell coin is required');
+    }
+    final coinData = await _findCoinData(
+      coinsGroup: sellCoin,
+      network: sellNetwork,
+    );
 
-    if (isIonBscSwap) {
-      final identityClient = await ref.read(ionIdentityClientProvider.future);
-      return IonSwapRequest(
-        identityClient: identityClient,
-        wallet: wallet,
-        userActionSigner: userActionSigner,
-      );
+    final identityClient = await ref.read(ionIdentityClientProvider.future);
+    final client = await ref.read(ionIdentityClientProvider.future);
+    final walletAssets = await client.wallets.getWalletAssets(wallet.id);
+    final asset = getAssociatedWalletAsset(walletAssets.assets, coinData);
+
+    return IonSwapRequest(
+      identityClient: identityClient,
+      wallet: wallet,
+      userActionSigner: userActionSigner,
+      sendableAsset: asset,
+    );
+  }
+
+  Future<CoinData?> _findCoinData({
+    required CoinsGroup coinsGroup,
+    required NetworkData network,
+  }) async {
+    var coin = coinsGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == network.id);
+    if (coin == null) {
+      final coinsList =
+          await ref.read(syncedCoinsBySymbolGroupProvider(coinsGroup.symbolGroup).future);
+      coin = coinsList.firstWhereOrNull((coin) => coin.coin.network.id == network.id);
     }
 
-    return null;
+    return coin?.coin;
   }
 
   ({double? minAmount, String minAmountStr}) _getMinAmountFromQuote(SwapQuoteInfo quoteInfo) {
@@ -649,16 +546,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     return IonSwapException(exception.toString());
   }
 
-  Future<bool> getIsSignSwap() async {
-    final (:swapCoinParameters, :swapQuoteInfo, :sellNetwork, :buyNetwork, :sellCoin, :buyCoin) =
-        await _getData();
-
-    final swapController = await ref.read(ionSwapClientProvider.future);
-    return swapController.isIonBscSwap(swapCoinParameters) ||
-        swapController.isSameNetworkSwap(swapCoinParameters);
-  }
-
-  Future<void> swapCoinsWithIonBscSwap({
+  Future<void> swapCoins({
     required UserActionSignerNew userActionSigner,
     required VoidCallback onSwapSuccess,
     required VoidCallback onSwapError,
@@ -704,9 +592,6 @@ class SwapCoinsController extends _$SwapCoinsController {
 
       final txHash = await swapController.swapCoins(
         swapCoinData: swapCoinParameters,
-        sendCoinCallback: ({required String depositAddress, required num amount}) async {
-          // DO NOTHING HERE
-        },
         swapQuoteInfo: swapQuoteInfo,
         ionSwapRequest: ionSwapRequest,
       );
@@ -865,7 +750,7 @@ class SwapCoinsWithIonBscSwap extends _$SwapCoinsWithIonBscSwap {
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await ref.read(swapCoinsControllerProvider.notifier).swapCoinsWithIonBscSwap(
+      await ref.read(swapCoinsControllerProvider.notifier).swapCoins(
             userActionSigner: userActionSigner,
             onSwapSuccess: onSwapSuccess,
             onSwapError: onSwapError,

@@ -13,7 +13,6 @@ import 'package:ion/app/components/restricted_region_unavailable_sheet.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
-import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/swap_disabled_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_coins_message_info.dart';
@@ -22,7 +21,6 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:ion_identity_client/ion_identity.dart';
 
 class SwapCoinsConfirmationPage extends HookConsumerWidget {
   const SwapCoinsConfirmationPage({super.key});
@@ -222,7 +220,6 @@ class _SwapButton extends ConsumerWidget {
     } on RestrictedRegionException {
       if (!context.mounted) return;
       await showSimpleBottomSheet<void>(
-        context: context,
         isDismissible: false,
         child: RestrictedRegionUnavailableSheet(
           onClose: () {
@@ -370,8 +367,6 @@ class _SwapButton extends ConsumerWidget {
       context.maybePop();
     }
   }
-
-  Future<void> _showErrorMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
     SwapCoinData swapCoinsData,

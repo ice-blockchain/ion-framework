@@ -8,7 +8,6 @@ import 'package:ion_swap_client/models/relay_quote.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
-import 'package:ion_swap_client/services/swap_service.dart';
 import 'package:ion_swap_client/utils/crypto_amount_converter.dart';
 
 class BridgeService {
@@ -20,7 +19,6 @@ class BridgeService {
 
   Future<void> tryToBridge({
     required SwapCoinParameters swapCoinData,
-    required SendCoinCallback sendCoinCallback,
     required SwapQuoteInfo swapQuoteInfo,
   }) async {
     if (swapQuoteInfo.source == SwapQuoteInfoSource.relay) {
@@ -36,10 +34,7 @@ class BridgeService {
         throw const IonSwapException('Relay: Deposit step is required');
       }
 
-      await sendCoinCallback(
-        depositAddress: depositStep.data.to,
-        amount: num.parse(relayDepositAmount),
-      );
+      // TODO(ice-erebus): Implement broadcast
     }
   }
 

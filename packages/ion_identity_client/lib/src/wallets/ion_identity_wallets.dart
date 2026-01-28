@@ -218,6 +218,17 @@ class IONIdentityWallets {
         onVerifyIdentity: onVerifyIdentity,
       );
 
+  Future<Map<String, dynamic>> makeTransferWithSigner(
+    Wallet wallet,
+    Transfer request,
+    UserActionSignerNew signer,
+  ) =>
+      _makeTransferService.makeTransferWithSigner(
+        wallet: wallet,
+        request: request,
+        signer: signer,
+      );
+
   /// Signs and broadcasts an EVM transaction or user operations.
   ///
   /// Supports both standard transactions (hex or JSON format) and fee-sponsored

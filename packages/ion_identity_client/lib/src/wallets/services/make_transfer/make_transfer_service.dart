@@ -49,4 +49,20 @@ class MakeTransferService {
       ),
     );
   }
+
+  Future<Map<String, dynamic>> makeTransferWithSigner({
+    required Wallet wallet,
+    required Transfer request,
+    required UserActionSignerNew signer,
+  }) async {
+    final signingRequest = _makeTransferDataSource.buildTransferSigningRequest(
+      wallet: wallet,
+      transfer: request,
+    );
+
+    return signer.sign(
+      signingRequest,
+      (response) => response,
+    );
+  }
 }
