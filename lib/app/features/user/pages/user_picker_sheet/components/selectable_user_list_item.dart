@@ -41,10 +41,12 @@ class SelectableUserListItem extends ConsumerWidget {
       child: BadgesUserListItem(
         masterPubkey: masterPubkey,
         title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
-        subtitle: Text(prefixUsername(
-          input: username,
-          textDirection: Directionality.of(context),
-        )),
+        subtitle: Text(
+          prefixUsername(
+            input: username,
+            textDirection: Directionality.of(context),
+          ),
+        ),
         contentPadding: EdgeInsets.symmetric(
           vertical: 8.0.s,
           horizontal: ScreenSideOffset.defaultSmallMargin,
