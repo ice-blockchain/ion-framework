@@ -49,8 +49,12 @@ class AdminCard extends ConsumerWidget {
             );
           },
           title: Text(userMetadata.data.trimmedDisplayName),
-          subtitle: Text(prefixUsername(
-              input: userMetadata.data.name, textDirection: Directionality.of(context))),
+          subtitle: Text(
+            prefixUsername(
+              input: userMetadata.data.name,
+              textDirection: Directionality.of(context),
+            ),
+          ),
           masterPubkey: pubkey,
           contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 8.0.s),
           backgroundColor: context.theme.appColors.tertiaryBackground,

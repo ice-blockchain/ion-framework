@@ -59,10 +59,12 @@ class FeedAdvancedSearchUserListItem extends HookConsumerWidget {
             SizedBox(height: 12.0.s),
             BadgesUserListItem(
               title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
-              subtitle: Text(prefixUsername(
-                input: name,
-                textDirection: Directionality.of(context),
-              )),
+              subtitle: Text(
+                prefixUsername(
+                  input: name,
+                  textDirection: Directionality.of(context),
+                ),
+              ),
               masterPubkey: masterPubkey,
               trailing: FollowUserButton(pubkey: masterPubkey),
             ),

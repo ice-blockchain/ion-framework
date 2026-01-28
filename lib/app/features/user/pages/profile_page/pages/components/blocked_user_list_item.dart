@@ -31,10 +31,12 @@ class BlockedUserListItem extends ConsumerWidget {
     return BadgesUserListItem(
       title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
       trailing: BlockUserButton(masterPubkey: pubkey),
-      subtitle: Text(prefixUsername(
-        input: username,
-        textDirection: Directionality.of(context),
-      )),
+      subtitle: Text(
+        prefixUsername(
+          input: username,
+          textDirection: Directionality.of(context),
+        ),
+      ),
       masterPubkey: pubkey,
     );
   }
