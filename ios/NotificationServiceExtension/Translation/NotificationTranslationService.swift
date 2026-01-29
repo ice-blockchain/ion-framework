@@ -171,6 +171,14 @@ class NotificationTranslationService {
                 return translations.replyComment
             case .mention:
                 return translations.mention
+            case .accountPost:
+                return translations.accountPost
+            case .accountArticle:
+                return translations.accountArticle
+            case .accountVideo:
+                return translations.accountVideo
+            case .accountStory:
+                return translations.accountStory
             case .repost:
                 return translations.repost
             case .repostArticle:

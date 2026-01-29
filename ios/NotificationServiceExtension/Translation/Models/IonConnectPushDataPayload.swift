@@ -199,31 +199,16 @@ class IonConnectPushDataPayload: Decodable {
 
         if entity is GenericRepostEntity || entity is RepostEntity {
             return getRepostNotificationType(entity: entity, keysStorage: keysStorage)
-        } else if (entity as? ModifiablePostEntity)?.data.quotedEvent != nil ||
-                  (entity as? PostEntity)?.data.quotedEvent != nil {
-            return getQuoteNotificationType(entity: entity, keysStorage: keysStorage)
         } else if entity is ModifiablePostEntity || entity is PostEntity {
-            let currentUserMention = ReplaceableEventReference(
-                masterPubkey: currentPubkey,
-                kind: UserMetadataEntity.kind
-            ).encode()
-
-            let content: String? = {
-                switch entity {
-                case let e as ModifiablePostEntity:
-                    return e.data.content
-                case let e as PostEntity:
-                    return e.data.content
-                default:
-                    return nil
-                }
-            }()
-
-            if let content = content, content.contains(currentUserMention) {
+            if isQuotePost(entity: entity) {
+                return getQuoteNotificationType(entity: entity, keysStorage: keysStorage)
+            } else if isUserMentioned(masterPubkey: currentPubkey, entity: entity) {
                 return .mention
+            } else if isReplyPost(entity: entity) {
+                return getReplyNotificationType(entity: entity, keysStorage: keysStorage)
+            } else {
+                return getAccountNotificationType(entity: entity)
             }
-                
-            return getReplyNotificationType(entity: entity, keysStorage: keysStorage)
         } else if let reactionEntity = entity as? ReactionEntity {
             return getLikeNotificationType(entity: reactionEntity, keysStorage: keysStorage)
         } else if entity is FollowListEntity {
@@ -275,6 +260,40 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         return nil
+    }
+
+    private func isUserMentioned(masterPubkey: String, entity: IonConnectEntity) -> Bool {
+        let currentUserMention = ReplaceableEventReference(
+            masterPubkey: masterPubkey,
+            kind: UserMetadataEntity.kind
+        ).encode()
+
+        let content: String? = {
+            switch entity {
+            case let e as ModifiablePostEntity:
+                return e.data.content
+            case let e as PostEntity:
+                return e.data.content
+            default:
+                return nil
+            }
+        }()
+
+        if let content = content, content.contains(currentUserMention) {
+            return true
+        }
+
+        return false
+    }
+
+    private func isQuotePost(entity: IonConnectEntity) -> Bool {
+        return (entity as? ModifiablePostEntity)?.data.quotedEvent != nil ||
+               (entity as? PostEntity)?.data.quotedEvent != nil
+    }
+
+    private func isReplyPost(entity: IonConnectEntity) -> Bool {
+        return (entity as? ModifiablePostEntity)?.data.parentEvent != nil ||
+               (entity as? PostEntity)?.data.parentEvent != nil
     }
 
     func placeholders(type: PushNotificationType) -> [String: String] {
@@ -670,6 +689,29 @@ class IonConnectPushDataPayload: Decodable {
         return .chatMultiMediaMessage
     }
 
+    private func getAccountNotificationType(entity: IonConnectEntity) -> PushNotificationType? {
+        switch entity {
+        case let modifiablePost as ModifiablePostEntity:
+            if modifiablePost.data.expiration != nil {
+                return .accountStory
+            } else if modifiablePost.data.hasVideo {
+                return .accountVideo
+            } else {
+                return .accountPost
+            }
+        case let post as PostEntity:
+            if post.data.expiration != nil {
+                return .accountStory
+            } else if post.data.hasVideo {
+                return .accountVideo
+            } else {
+                return .accountPost
+            }
+        default:
+            return nil
+        }
+    }
+
     private func getUserMetadata(pubkey: String) -> UserMetadataEntity? {
         let delegationEvent = relevantEvents.first { event in
             return event.kind == UserDelegationEntity.kind
@@ -709,6 +751,10 @@ enum PushNotificationType: String, Decodable {
     case replyArticle
     case replyComment
     case mention
+    case accountPost
+    case accountArticle
+    case accountVideo
+    case accountStory
     case repost
     case repostArticle
     case repostComment
