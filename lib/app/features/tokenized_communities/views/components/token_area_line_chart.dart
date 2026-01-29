@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/hooks/use_adjusted_chart_max_x.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_gradient.dart';
+import 'package:ion/app/features/tokenized_communities/hooks/use_chart_max_x_with_padding.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_transformation.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_visible_y_range.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
@@ -86,7 +86,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
         visibleYRangeData.isScrollTriggered.value ? _scrollAnimationDuration : Duration.zero;
 
     // Calculate adjusted maxX with padding for the endpoint dot
-    final adjustedMaxX = useAdjustedChartMaxX(
+    final adjustedMaxX = useChartMaxXWithPadding(
       chartKey: transformation.chartKey,
       isPositioned: transformation.isPositioned,
       reservedSize: reservedSize,

@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
-// Returns the X-axis end value to pass to the chart so the last dot isn't clipped.
-// The chart accepts [minX, maxX]; we extend maxX by a small amount (in X units)
-// so there is empty space to the right of the last point. Uses RenderBox for
-// exact pixel→X conversion so the gap is consistent regardless of data count.
-double useAdjustedChartMaxX({
+/// Returns the X-axis end value to pass to the chart so the last dot isn't clipped.
+/// The chart accepts [minX, maxX]; we extend maxX by a small amount (in X units)
+/// so there is empty space to the right of the last point. Uses RenderBox for
+/// exact pixel→X conversion so the gap is consistent regardless of data count.
+double useChartMaxXWithPadding({
   required GlobalKey chartKey,
   required ValueNotifier<bool> isPositioned,
   required double reservedSize,
