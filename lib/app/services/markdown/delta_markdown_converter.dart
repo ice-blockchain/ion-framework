@@ -376,6 +376,7 @@ abstract class DeltaMarkdownConverter {
     var replacement = content;
     final hasBold = attributes.containsKey('bold');
     final hasItalic = attributes.containsKey('italic');
+    final skipInlineStyles = hasLink || hasMention;
 
     // Handle mentions first (format: [@username](encoded_ref))
     // Use originalContent for the display text (e.g., @username)
@@ -385,28 +386,51 @@ abstract class DeltaMarkdownConverter {
     }
 
     // Apply formatting in order: code, bold, italic, strike, underline, link
-    if (attributes.containsKey('code')) {
-      replacement = '`$replacement`';
-    }
+    if (!skipInlineStyles) {
+      if (attributes.containsKey('code')) {
+        replacement = '`$replacement`';
+      }
 
-    // Handle bold and italic together (must be before individual checks)
-    if (hasBold && hasItalic) {
-      replacement = '***$replacement***';
-    } else if (hasBold) {
-      replacement = '**$replacement**';
-    } else if (hasItalic) {
-      replacement = '*$replacement*';
-    }
+      // Handle bold and italic together (must be before individual checks)
+      if (hasBold && hasItalic) {
+        replacement = '***$replacement***';
+      } else if (hasBold) {
+        replacement = '**$replacement**';
+      } else if (hasItalic) {
+        replacement = '*$replacement*';
+      }
 
-    if (attributes.containsKey('strike')) {
-      replacement = '~~$replacement~~';
-    }
-    if (attributes.containsKey('underline')) {
-      replacement = '<u>$replacement</u>';
+      if (attributes.containsKey('strike')) {
+        replacement = '~~$replacement~~';
+      }
+      if (attributes.containsKey('underline')) {
+        replacement = '<u>$replacement</u>';
+      }
     }
     if (hasLink) {
       final link = attributes['link'] ?? '';
-      replacement = '[$replacement]($link)';
+      replacement = '[$originalContent]($link)';
+    }
+
+    if (skipInlineStyles) {
+      if (attributes.containsKey('code')) {
+        replacement = '`$replacement`';
+      }
+
+      // Handle bold and italic together (must be before individual checks)
+      if (hasBold && hasItalic) {
+        replacement = '***$replacement***';
+      } else if (hasBold) {
+        replacement = '**$replacement**';
+      } else if (hasItalic) {
+        replacement = '*$replacement*';
+      }
+      if (attributes.containsKey('strike')) {
+        replacement = '~~$replacement~~';
+      }
+      if (attributes.containsKey('underline')) {
+        replacement = '<u>$replacement</u>';
+      }
     }
 
     if (replacement != content) {
