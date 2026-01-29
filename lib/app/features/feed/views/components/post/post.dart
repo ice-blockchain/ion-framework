@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/counter_items_footer/counter_items_footer.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
@@ -343,30 +342,19 @@ final class _FramedEvent extends HookConsumerWidget {
       );
     }
 
-    // FIXME: we shouldn't memoize widgets
-    final repliedEntity = useMemoized(
-      () {
-        switch (entity) {
-          case ModifiablePostEntity() || PostEntity():
-            return postWidget;
-          case ArticleEntity():
-            return articleWidget;
-          case CommunityTokenDefinitionEntity():
-            return CommunityTokenLiveBody(
-              entity: entity,
-              sidePadding: isParent ? null : 0,
-            );
-          case CommunityTokenActionEntity():
-            return CommunityTokenActionBody(
-              entity: entity,
-              sidePadding: 0,
-            );
-          default:
-            return const SizedBox.shrink();
-        }
-      },
-      [entity],
-    );
+    final repliedEntity = switch (entity) {
+      ModifiablePostEntity() || PostEntity() => postWidget,
+      ArticleEntity() => articleWidget,
+      CommunityTokenDefinitionEntity() => CommunityTokenLiveBody(
+          entity: entity,
+          sidePadding: isParent ? null : 0,
+        ),
+      CommunityTokenActionEntity() => CommunityTokenActionBody(
+          entity: entity,
+          sidePadding: 0,
+        ),
+      _ => const SizedBox.shrink()
+    };
 
     return deletedEntity ?? repliedEntity;
   }

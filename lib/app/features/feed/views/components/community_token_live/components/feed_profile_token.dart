@@ -85,9 +85,7 @@ class ProfileTokenHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final creatorPubkey = MasterPubkeyResolver.resolve(
-      externalAddress,
-    );
+    final creatorPubkey = MasterPubkeyResolver.resolve(externalAddress);
 
     final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(creatorPubkey));
 
