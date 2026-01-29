@@ -4,24 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:ion_ads/src/config/theme_data.dart';
 
 class CallToActionButton extends StatelessWidget {
-  const CallToActionButton({required this.child, super.key});
+  const CallToActionButton({required this.child, required this.onPressed, super.key});
 
   final Widget child;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final spacing = theme.adsSpacing;
 
     return FilledButton(
-      onPressed: () {},
+      onPressed: onPressed,
       style: FilledButton.styleFrom(
         backgroundColor: theme.adsColors.primaryAccent,
         textStyle: theme.textOnPrimary.body,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10), // Set the radius here
+          borderRadius: BorderRadius.circular(spacing.borderRadiusDefault),
         ),
-        minimumSize: const Size(0, 30),
-        padding: const EdgeInsetsGeometry.symmetric(horizontal: 20),
+        minimumSize: Size(0, spacing.iconSizeDefault),
+        padding: EdgeInsets.symmetric(horizontal: spacing.paddingInnerHorizontal),
       ),
       child: child,
     );

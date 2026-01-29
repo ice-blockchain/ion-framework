@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ion_ads/src/config/ads_colors.dart';
 import 'package:ion_ads/src/config/ads_text_themes.dart';
+import 'package:ion_ads/src/config/theme_paddings.dart';
 
 extension AppThemeExtension on ThemeData {
   /// Usage example: Theme.of(context).adsColors;
@@ -29,4 +30,10 @@ extension AdsTextColorExtension on BuildContext {
   AdsColorsExtension get colors => theme.adsColors;
 
   AdsTextThemesExtension get textPrimary => theme.textPrimary;
+}
+
+extension AdsThemeData on ThemeData {
+  /// Provides easy access to ad-specific spacing and sizing constants.
+  AdsSpacingExtension get adsSpacing =>
+      extension<AdsSpacingExtension>() ?? AdsSpacingExtension.defaultSpacing();
 }

@@ -15,27 +15,31 @@ class NativeAdCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final spacing = theme.adsSpacing;
 
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(spacing.marginContainer),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              MediaAssetImage(path: ad.mediaAssets?.icon, width: 32, height: 32),
-              const SizedBox(width: 8),
+              MediaAssetImage(
+                path: ad.mediaAssets?.icon,
+                width: spacing.iconSizeDefault,
+                height: spacing.iconSizeDefault,
+              ),
+              SizedBox(width: spacing.spacingM),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    //Text(ad.title, style: theme.textPrimary.subtitle2),
                     Text(ad.body, style: theme.textPrimary.subtitle3),
                     if (ad.rating != null && ad.rating! > 0)
                       StarRating(
-                        rating: 4,
+                        rating: ad.rating!,
                         color: theme.adsColors.onTertiaryBackground,
-                        size: 12,
+                        size: spacing.starRatingSize,
                       )
                     else
                       const SizedBox.shrink(),
@@ -44,13 +48,16 @@ class NativeAdCard extends StatelessWidget {
               ),
               Align(
                 alignment: Alignment.centerLeft,
-                child: CallToActionButton(child: Text(ad.callToAction)),
+                child: CallToActionButton(
+                  onPressed: null,
+                  child: Text(ad.callToAction),
+                ),
               ),
             ],
           ),
           if (ad.mediaAssets?.mainImage != null) ...[
-            const SizedBox(height: 10),
-            MainImageWithAdChoices(ad: ad),
+            SizedBox(height: spacing.spacingM),
+            SizedBox(height: spacing.borderRadiusDefault),
           ],
         ],
       ),

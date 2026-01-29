@@ -15,11 +15,12 @@ class NativeArticleAd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final spacing = theme.adsSpacing;
 
     return Container(
-      margin: const EdgeInsets.all(12),
+      margin: EdgeInsets.all(spacing.marginContainer),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(spacing.borderRadiusDefault),
         border: Border.all(color: theme.adsColors.onTertiaryFill),
       ),
       child: Column(
@@ -29,11 +30,18 @@ class NativeArticleAd extends StatelessWidget {
             MainImageWithAdChoices(ad: ad),
           ],
           Padding(
-            padding: const EdgeInsetsGeometry.symmetric(horizontal: 12, vertical: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: spacing.paddingInnerHorizontal,
+              vertical: spacing.paddingInnerVertical,
+            ),
             child: Row(
               children: [
-                MediaAssetImage(path: ad.mediaAssets?.icon, width: 32, height: 32),
-                const SizedBox(width: 8),
+                MediaAssetImage(
+                  path: ad.mediaAssets?.icon,
+                  width: spacing.iconSizeDefault,
+                  height: spacing.iconSizeDefault,
+                ),
+                SizedBox(width: spacing.spacingM),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,17 +54,20 @@ class NativeArticleAd extends StatelessWidget {
                       ),
                       if (ad.rating != null && ad.rating! > 0)
                         StarRating(
-                          rating: 2,
+                          rating: ad.rating!,
                           color: theme.adsColors.onTertiaryBackground,
-                          size: 12,
+                          size: spacing.starRatingSize,
                         )
                       else
                         const SizedBox.shrink(),
                     ],
                   ),
                 ),
-                const SizedBox(width: 4),
-                CallToActionButton(child: Text(ad.callToAction)),
+                SizedBox(width: spacing.spacingS),
+                CallToActionButton(
+                  onPressed: null,
+                  child: Text(ad.callToAction),
+                ),
               ],
             ),
           ),
