@@ -20,12 +20,16 @@ class _CreateUpdateRequestBuilder {
       throw UpdateWalletViewRequestNoUserWalletsException();
     }
 
+    if (coinsList != null && walletView == null) {
+      throw UpdateWalletViewRequestNoWalletViewException();
+    }
+
     final (symbolGroups, items) = switch (coinsList) {
       final List<CoinData> coins => _getRequestDataFromCoinsList(
           coins,
           mainUserWallet!,
           userWallets!,
-          walletView,
+          walletView!,
         ),
       null when walletView != null => _getRequestDataFromWalletView(walletView),
       _ => (const <String>{}, const <WalletViewCoinData>[]),
@@ -64,18 +68,29 @@ class _CreateUpdateRequestBuilder {
     List<CoinData> coins,
     Wallet mainUserWallet,
     List<Wallet> userWallets,
-    WalletViewData? walletView,
+    WalletViewData walletView,
   ) {
     final symbolGroups = <String>{};
     final walletViewItems = <WalletViewCoinData>[];
 
-    final networkWithWallet = <String, List<Wallet>>{};
-    for (final wallet in userWallets) {
-      final network = wallet.network;
-      networkWithWallet.putIfAbsent(network, () => []).add(wallet);
+    // Build existing bindings from wallet view
+    final existingBindings = <String, String?>{};
+    for (final group in walletView.coinGroups) {
+      for (final coinInWallet in group.coins) {
+        existingBindings[coinInWallet.coin.id] = coinInWallet.walletId;
+      }
     }
 
+    // Get wallets connected to this wallet view, grouped by network
+    final networkWithWallets = _getConnectedWalletsByNetwork(
+      userWallets: userWallets,
+      mainUserWallet: mainUserWallet,
+      walletView: walletView,
+    );
+
+    // Process each coin
     for (final coin in coins) {
+<<<<<<< HEAD
       final walletViewId = walletView?.id;
       final mainWalletId = mainUserWallet.id;
       final wallets = networkWithWallet[coin.network.id];
@@ -87,7 +102,15 @@ class _CreateUpdateRequestBuilder {
             : wallet.name == walletViewId;
       })?.id;
 
+=======
+>>>>>>> bb2d7dfb9 (fix: wallet id resolution in wallet view updates (#3201))
       symbolGroups.add(coin.symbolGroup);
+
+      // Reuse existing binding, or resolve wallet for new coins
+      final walletId = existingBindings.containsKey(coin.id)
+          ? existingBindings[coin.id]
+          : networkWithWallets[coin.network.id]?.firstOrNull?.id;
+
       walletViewItems.add(
         WalletViewCoinData(
           coinId: coin.id,
@@ -98,4 +121,38 @@ class _CreateUpdateRequestBuilder {
 
     return (symbolGroups, walletViewItems);
   }
+<<<<<<< HEAD
+=======
+
+  Map<String, List<Wallet>> _getConnectedWalletsByNetwork({
+    required List<Wallet> userWallets,
+    required Wallet mainUserWallet,
+    required WalletViewData walletView,
+  }) {
+    final connectedWalletIds = walletView.coins.map((c) => c.walletId).nonNulls.toSet();
+
+    final walletViewId = walletView.id;
+    final isMainWalletView = walletView.isMainWalletView;
+
+    final connectedWallets = userWallets.where((wallet) {
+      if (connectedWalletIds.contains(wallet.id)) return true;
+
+      if (isMainWalletView) {
+        final isAutoCreatedMainWallet =
+            wallet.name != null && wallet.name!.toLowerCase().contains('main');
+        return wallet.id == mainUserWallet.id ||
+            wallet.name == walletViewId ||
+            isAutoCreatedMainWallet;
+      }
+      return wallet.name == walletViewId;
+    }).toList();
+
+    final networkWithWallets = <String, List<Wallet>>{};
+    for (final wallet in connectedWallets) {
+      networkWithWallets.putIfAbsent(wallet.network, () => []).add(wallet);
+    }
+
+    return networkWithWallets;
+  }
+>>>>>>> bb2d7dfb9 (fix: wallet id resolution in wallet view updates (#3201))
 }
