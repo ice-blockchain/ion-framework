@@ -1,6 +1,7 @@
 import os
 import requests
 import google.generativeai as genai
+import sys
 
 # Configure Gemini
 # Get your key from: https://aistudio.google.com/app/apikey
@@ -11,6 +12,12 @@ PR_NUMBER = os.getenv("PR_NUMBER")
 
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY is missing")
+
+# Check if PR_NUMBER is set (Critical for manual runs)
+if not PR_NUMBER:
+    print("Error: PR_NUMBER environment variable is missing.")
+    print("If running manually, please provide the Pull Request number in the workflow input.")
+    sys.exit(1)
 
 genai.configure(api_key=GEMINI_API_KEY)
 
