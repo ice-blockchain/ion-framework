@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/components/verify_identity/passkey_dialog_state.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
@@ -28,7 +29,8 @@ class CommunityTokenDefinitionHandler extends GlobalSubscriptionEventHandler {
   final LocalStorage localStorage;
   final IonConnectCache ionConnectCache;
   final String? currentUserMasterPubkey;
-  final void Function(ReplaceableEventReference tokenDefinitionEventReference) uiEventQueueCallback;
+  final Future<void> Function(ReplaceableEventReference tokenDefinitionEventReference)
+      uiEventQueueCallback;
 
   String get localStorageKey => 'creator_token_is_live_dialog_shown_$currentUserMasterPubkey';
 
@@ -53,10 +55,11 @@ class CommunityTokenDefinitionHandler extends GlobalSubscriptionEventHandler {
         )
         when originalEventMasterPubkey == currentUserMasterPubkey &&
             !(localStorage.getBool(localStorageKey) ?? false)) {
-      // Wait in a case user bought his own token and passkeys dialog haven't been
-      // closed yet, safe to do cause we can have random network delays as well
-      await Future<void>.delayed(const Duration(seconds: 5));
-      uiEventQueueCallback(entity.toEventReference());
+      // Wait for passkey dialog to be dismissed if it's currently shown
+      await GlobalPasskeyDialogState.waitForDismissal();
+      // Delay for a short period to ensure that toast message is not overlapping with dialog
+      await Future<void>.delayed(const Duration(seconds: 3));
+      await uiEventQueueCallback(entity.toEventReference());
       await localStorage.setBool(key: localStorageKey, value: true);
     }
 
@@ -70,7 +73,7 @@ CommunityTokenDefinitionHandler communityTokenDefinitionHandler(Ref ref) {
   final cache = ref.watch(ionConnectCacheProvider.notifier);
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
 
-  void uiEventQueueCallback(ReplaceableEventReference tokenDefinitionEventReference) {
+  Future<void> uiEventQueueCallback(ReplaceableEventReference tokenDefinitionEventReference) async {
     ref
         .read(uiEventQueueNotifierProvider.notifier)
         .emit(CreatorTokenIsLiveDialogEvent(tokenDefinitionEventReference));
