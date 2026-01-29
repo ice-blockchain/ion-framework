@@ -33,7 +33,11 @@ ThemeData _buildLightTheme() {
     splashColor: Colors.transparent,
     highlightColor: Colors.transparent,
     splashFactory: NoSplash.splashFactory,
-    extensions: <ThemeExtension<dynamic>>[colors, textThemes],
+    extensions: <ThemeExtension<dynamic>>[
+      colors,
+      textThemes,
+      AdsSpacingExtension.defaultSpacing(),
+    ],
     cupertinoOverrideTheme: const CupertinoThemeData().copyWith(
       primaryColor: colors.primaryAccent,
     ),

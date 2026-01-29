@@ -14,26 +14,31 @@ class NativeChatAd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final spacing = theme.adsSpacing;
 
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(spacing.marginContainer),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              MediaAssetImage(path: ad.mediaAssets?.icon, width: 30, height: 30),
-              const SizedBox(width: 8),
+              MediaAssetImage(
+                path: ad.mediaAssets?.icon,
+                width: spacing.iconSizeDefault,
+                height: spacing.iconSizeDefault,
+              ),
+              SizedBox(width: spacing.spacingM),
               Expanded(
                 child: Row(
                   children: [
                     Text(ad.title, style: theme.textPrimary.subtitle3),
-                    const SizedBox(width: 6),
+                    SizedBox(width: spacing.paddingInnerVertical),
                     if (ad.rating != null && ad.rating! > 0)
                       StarRating(
-                        rating: 4,
+                        rating: ad.rating!,
                         color: theme.adsColors.onTertiaryBackground,
-                        size: 12,
+                        size: spacing.starRatingSize,
                       )
                     else
                       const SizedBox.shrink(),
@@ -43,21 +48,20 @@ class NativeChatAd extends StatelessWidget {
             ],
           ),
           if (ad.mediaAssets?.mainImage != null) ...[
-            const SizedBox(height: 10),
-            MainImageWithAdChoices(ad: ad),
+            SizedBox(height: spacing.borderRadiusDefault),
           ],
-          const SizedBox(height: 8),
+          SizedBox(height: spacing.iconSizeDefault),
           if (ad.callToAction.isNotEmpty)
             SizedBox(
-              height: 30,
+              height: spacing.spacingM,
               child: FilledButton(
-                onPressed: () {},
+                onPressed: null,
                 style: FilledButton.styleFrom(
                   backgroundColor: theme.adsColors.primaryAccent,
                   textStyle: theme.textOnPrimary.body,
                   minimumSize: const Size(double.maxFinite, 0),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(spacing.borderRadiusDefault),
                   ),
                 ),
                 child: Text(ad.callToAction),
