@@ -15,7 +15,7 @@ double useChartMaxXWithPadding({
   required double maxX,
   required int candleCount,
 }) {
-  // Fixed pixel padding for the endpoint dot (radius + stroke + margin)
+  // Right padding: 4px dot gap + 6px reserved (chart) = 10px total
   final dotPaddingPixels = 4.0.s;
   const maxPointsPerScreen = 35;
 

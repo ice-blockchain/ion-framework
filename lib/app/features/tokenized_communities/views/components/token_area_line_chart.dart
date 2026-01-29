@@ -29,7 +29,8 @@ class TokenAreaLineChart extends HookConsumerWidget {
   static const _scrollAnimationDuration = Duration(milliseconds: 250);
 
   double _calculateReservedSize(double maxY, TextStyle style) {
-    const chartAnnotationPadding = 10.0;
+    // Right padding: 4px dot gap + 6px reserved = 10px total
+    const chartAnnotationPadding = 6.0;
     return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding.s;
   }
 
