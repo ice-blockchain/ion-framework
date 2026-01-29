@@ -18,16 +18,16 @@ command:
 
 scripts:
   pub_get:
-    exec: asdf exec flutter pub get
+    exec: flutter pub get
   analyze:
-    exec: asdf exec flutter analyze && asdf exec dart run custom_lint
+    exec: flutter analyze && dart run custom_lint
   test:
-    exec: asdf exec flutter test
+    exec: flutter test
   build_runner:
-    exec: asdf exec flutter pub run build_runner build --delete-conflicting-outputs
+    exec: flutter pub run build_runner build --delete-conflicting-outputs
     concurrency: 4
   build_runner_watch:
-    exec: asdf exec flutter pub run build_runner watch --delete-conflicting-outputs
+    exec: flutter pub run build_runner watch --delete-conflicting-outputs
   generate_code:
     run: ./scripts/generate_code.sh
   generate_locales:
