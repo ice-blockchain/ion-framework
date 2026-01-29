@@ -14,9 +14,6 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Reverted to Gemini 1.5 Flash for better free tier stability
-model = genai.GenerativeModel("gemini-1.5-flash")
-
 def get_pr_diff():
     """Fetches the diff of the Pull Request from GitHub."""
     headers = {
@@ -41,7 +38,47 @@ def post_comment(comment):
     response = requests.post(url, json=payload, headers=headers)
     response.raise_for_status()
 
+def get_model():
+    """Tries to find a working model and prints available ones for debugging."""
+    print("Listing available models...")
+    available_models = []
+    try:
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                available_models.append(m.name)
+                print(f" - {m.name}")
+    except Exception as e:
+        print(f"Warning: Could not list models: {e}")
+
+    # Priority list of models to try
+    # gemini-1.5-flash is standard, but sometimes requires -latest or -001
+    candidates = [
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-latest",
+        "gemini-1.5-flash",
+        "gemini-pro"
+    ]
+
+    for candidate in candidates:
+        try:
+            print(f"Attempting to use model: {candidate}")
+            model = genai.GenerativeModel(candidate)
+            # Test the model with a tiny prompt to ensure it works (avoids 404 later)
+            model.generate_content("test")
+            print(f"Success! Using {candidate}")
+            return model
+        except Exception as e:
+            print(f"Failed to initialize {candidate}: {e}")
+
+    raise RuntimeError("No working Gemini models found. Check the logs for the list of available models.")
+
 def review_code():
+    try:
+        model = get_model()
+    except Exception as e:
+        print(f"Error selecting model: {e}")
+        return
+
     print(f"Fetching diff for PR #{PR_NUMBER} in {REPO_NAME}...")
     diff_text = get_pr_diff()
 
@@ -53,7 +90,7 @@ def review_code():
     if len(diff_text) > 100000:
         diff_text = diff_text[:100000] + "\n...(truncated due to size limit)"
 
-    print("Sending diff to Gemini 1.5 Flash for review...")
+    print("Sending diff to Gemini for review...")
 
     prompt = f"""
     Act as a Senior Software Engineer. Review the following code changes (git diff) for a Pull Request.
@@ -73,11 +110,11 @@ def review_code():
         response = model.generate_content(prompt)
         review_text = response.text
     except Exception as e:
-        print(f"Error generating review with Gemini 1.5 Flash: {e}")
+        print(f"Error generating review: {e}")
         return
 
     print("Posting review to GitHub...")
-    post_comment(f"## 🤖 Gemini 1.5 Flash Code Review\n\n{review_text}")
+    post_comment(f"## 🤖 Gemini AI Code Review\n\n{review_text}")
     print("Done!")
 
 if __name__ == "__main__":
