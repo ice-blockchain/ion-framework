@@ -124,6 +124,7 @@ class NetworkClient {
       queryParameters: _buildQueryParameters(queryParameters),
       headers: _addAuthorizationHeader(headers),
     );
+    _logger?.log('[NetworkClient] Opening initial SSE subscription: $path');
 
     // Some SSE endpoints use a marker event with `Data: nil` (Go), which may be
     // delivered as a literal `<nil>` string. If the SSE decoder attempts to

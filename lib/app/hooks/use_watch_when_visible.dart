@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/build_context.dart';
 
-/// Hook that watches a provider only when the route is active.
+/// Hook that watches a provider only when the route is active and the app is in the foreground.
 ///
-/// When the route is not active (navigated away or behind another route),
-/// returns the last known value. This prevents unnecessary provider subscriptions
-/// when the route is not visible.
+/// When the route is not active (navigated away or behind another route) or the app
+/// is in the background, returns the last known value. This prevents unnecessary provider
+/// subscriptions when the route is not visible or the app is backgrounded.
 ///
 /// The provider will be disposed (and its subscription closed) when not watched,
-/// and recreated when the route becomes active again.
+/// and recreated when the route becomes active again and the app is in the foreground.
 ///
 /// Example:
 /// ```dart
@@ -25,6 +26,9 @@ T useWatchWhenVisible<T>({
   final context = useContext();
   final router = GoRouter.maybeOf(context);
 
+  // Track app lifecycle state
+  final appLifecycleState = useState<AppLifecycleState>(AppLifecycleState.resumed);
+
   // Track initial route path (captured when hook is created)
   final fullPathRef = useRef(router?.state.fullPath);
 
@@ -34,6 +38,11 @@ T useWatchWhenVisible<T>({
   final lastValueRef = useRef<T?>(null);
 
   final isRouteActiveState = useState<bool>(true);
+
+  // Listen to app lifecycle changes
+  useOnAppLifecycleStateChange((previous, current) {
+    appLifecycleState.value = current;
+  });
 
   useEffect(
     () {
@@ -67,16 +76,19 @@ T useWatchWhenVisible<T>({
     [router],
   );
 
-  // Conditionally watch provider based on route activation
-  // Only call watcher when route is active to prevent watching when inactive
+  // Conditionally watch provider based on route activation and app lifecycle
+  // Only call watcher when route is active AND app is in foreground
+  final isAppInForeground = appLifecycleState.value == AppLifecycleState.resumed;
+  final shouldWatch = isRouteActiveState.value && isAppInForeground;
+
   T? currentValue;
-  if (isRouteActiveState.value) {
-    // Watch when active - keeps provider alive and subscription active
+  if (shouldWatch) {
+    // Watch when active and in foreground - keeps provider alive and subscription active
     currentValue = watcher();
     // Update cache with latest value
     lastValueRef.value = currentValue;
   } else {
-    // Route is inactive - use cached value (don't call watcher)
+    // Route is inactive or app is backgrounded - use cached value (don't call watcher)
     currentValue = lastValueRef.value;
   }
   return currentValue as T;

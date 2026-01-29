@@ -93,6 +93,19 @@ class ReconnectingSse<T> {
       onError: (Object error, StackTrace stackTrace) async {
         if (_controller.isClosed || _isClosed) return;
 
+        // If client was disposed, close stream gracefully so provider can restart
+        // The provider watches the client provider, so it will restart when client changes
+        if (error is Http2ClientDisposedException) {
+          _logger?.log(
+            '[ReconnectingSse] Client disposed error detected, closing stream gracefully for path: $_path',
+          );
+          _isClosed = true;
+          if (!_controller.isClosed) {
+            await _controller.close();
+          }
+          return;
+        }
+
         final text = error.toString();
         final isNil = error is FormatException && text.contains('<nil>');
 
@@ -187,7 +200,24 @@ class ReconnectingSse<T> {
 
         // Create a new subscription
         _logger?.log('[ReconnectingSse] Creating new SSE subscription for path: $_path');
-        final newSub = await _createSubscription();
+        Http2Subscription<T> newSub;
+        try {
+          newSub = await _createSubscription();
+        } catch (e) {
+          // If we get disposed exception, close stream gracefully so provider can restart
+          if (e is Http2ClientDisposedException) {
+            _logger?.log(
+              '[ReconnectingSse] Client was disposed during reconnection, closing stream gracefully for path: $_path',
+            );
+            _isReconnecting = false;
+            _isClosed = true;
+            if (!_controller.isClosed) {
+              await _controller.close();
+            }
+            return; // Exit reconnection loop
+          }
+          rethrow;
+        }
 
         _logger?.log(
           '[ReconnectingSse] New subscription created successfully, resuming stream for path: $_path',
@@ -206,6 +236,21 @@ class ReconnectingSse<T> {
         _logger?.log(
           '[ReconnectingSse] Reconnection attempt $_reconnectAttempts failed for path: $_path: $reconnectError',
         );
+
+        // If the client was disposed, close stream gracefully so provider can restart
+        // The provider watches the client provider, so it will restart when client changes
+        if (reconnectError is Http2ClientDisposedException) {
+          _logger?.log(
+            '[ReconnectingSse] Client was disposed, closing stream gracefully for path: $_path',
+          );
+          _isReconnecting = false;
+          _isClosed = true;
+          if (!_controller.isClosed) {
+            await _controller.close();
+          }
+          return; // Exit reconnection loop
+        }
+
         _logger?.log(
           '[ReconnectingSse] Will retry with exponential backoff (current attempt: $_reconnectAttempts) for path: $_path',
         );
