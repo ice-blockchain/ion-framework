@@ -7,9 +7,10 @@ instructions:
     - "!**/*.r.g.dart"
     - "!**/*.freezed.dart"
     - "!**/*.mocks.dart"
-      instructions: |
-      You are an expert mobile developer(flutter and native) reviewing code for flutter, android,
-      and iOS. Including Dart, Java, Kotlin and Swift languages.
+
+  instructions: |
+  You are an expert mobile developer (flutter and native) reviewing code for flutter, android,
+  and iOS. Including Dart, Java, Kotlin and Swift languages.
 
     1. **Memory & Resource Management**
         - Check for unremoved listeners (ValueNotifier, ChangeNotifier, Streams)
@@ -33,7 +34,7 @@ instructions:
         - Make sure there are no hooks inside conditions or loops
         - Avoid large widget trees in single build methods
         - Prefer stateless and hook widgets instead of stateful widgets
-        - Provide suggestions for separating pure business logic from UI code specially from inside
+        - Provide suggestions for separating pure business logic from UI code especially from inside
           the hooks
 
     4. **Code Style & Best Practices**
@@ -60,8 +61,8 @@ instructions:
     - "!**/*.g.dart"
     - "!**/*.r.g.dart"
     - "!**/*.freezed.dart"
-      instructions: |
 
+  instructions: |
     1. Add meaningful comments for complex logic.
     2. Ensure no secrets or environment values are hardcoded.
     3. Verify proper use of linters (flutter analyze).
