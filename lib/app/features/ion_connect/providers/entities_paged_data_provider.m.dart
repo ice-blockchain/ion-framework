@@ -220,41 +220,36 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
       // Where each placeholder *would* be inserted in visible list
       final pendingInserts = <EventReference, int>{};
 
-      try {
-        await for (final entity in entitiesStream) {
-          final alreadyHas = state?.data.items?.contains(entity) ?? false;
-          // Update pagination params
-          if (pagedFilter(entity) && !alreadyHas) {
-            lastEventTime = entity.createdAt.toDateTime;
-          }
-
-          // Update pending inserts
-          if (entity is EventsMetadataEntity &&
-              (dataSource.missingEventsFilter?.call(entity) ?? true)) {
-            final ref = entity.data.metadataEventReference;
-            if (ref != null && !pendingInserts.containsKey(ref)) {
-              pendingInserts[ref] = cursor;
-            }
-            missingEvents.add(entity);
-          }
-
-          // Update state
-          if (dataSource.entityFilter(entity) && !alreadyHas) {
-            visible.add(entity);
-            cursor = visible.length;
-            state = state?.copyWith(
-              data: Paged.loading(
-                visible.toSet(),
-                pagination: state!.data.pagination,
-              ),
-            );
-          }
+      await for (final entity in entitiesStream) {
+        final alreadyHas = state?.data.items?.contains(entity) ?? false;
+        // Update pagination params
+        if (pagedFilter(entity) && !alreadyHas) {
+          lastEventTime = entity.createdAt.toDateTime;
         }
-      } on SubscriptionNotFoundException catch (e, stackTrace) {
-        // TODO: Investigate why this is happening and handle it gracefully
-        Logger.error(e, stackTrace: stackTrace, message: 'SubscriptionNotFoundException');
-        // keep state when relay closes early
+
+        // Update pending inserts
+        if (entity is EventsMetadataEntity &&
+            (dataSource.missingEventsFilter?.call(entity) ?? true)) {
+          final ref = entity.data.metadataEventReference;
+          if (ref != null && !pendingInserts.containsKey(ref)) {
+            pendingInserts[ref] = cursor;
+          }
+          missingEvents.add(entity);
+        }
+
+        // Update state
+        if (dataSource.entityFilter(entity) && !alreadyHas) {
+          visible.add(entity);
+          cursor = visible.length;
+          state = state?.copyWith(
+            data: Paged.loading(
+              visible.toSet(),
+              pagination: state!.data.pagination,
+            ),
+          );
+        }
       }
+
       return DataSourceFetchResult(
         entry: MapEntry(
           dataSource.actionSource,

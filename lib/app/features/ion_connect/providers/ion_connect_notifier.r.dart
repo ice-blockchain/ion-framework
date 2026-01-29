@@ -350,7 +350,13 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       );
     } catch (e) {
       Logger.error(e, message: '[SESSION-ERROR] Session $sessionId failed: $e');
-      rethrow;
+      // In some cases BE sends both `EOSE` and `CLOSED` events in quick succession, when all stored events are returned.
+      // FE reacts to the `EOSE` and attempts to send `CLOSE`, but since `nostr_dart` removes the subscription from its list
+      // when it receives CLOSED from the BE, a `SubscriptionNotFoundException` is thrown.
+      // In this case, the exception can be safely ignored.
+      if (e is! SubscriptionNotFoundException) {
+        rethrow;
+      }
     } finally {
       stopwatch.stop();
       Logger.log(
