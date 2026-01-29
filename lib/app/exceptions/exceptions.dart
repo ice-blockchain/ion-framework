@@ -828,3 +828,11 @@ class UpdateWalletViewRequestNoWalletViewException extends IONException {
           'To build request from coins list wallet view should be provided',
         );
 }
+
+class CreatorTokenMetadataUpdateException extends IONException {
+  CreatorTokenMetadataUpdateException(String externalAddress)
+      : super(
+          10149,
+          'Failed to update creator token metadata for external address: $externalAddress',
+        );
+}
