@@ -93,7 +93,7 @@ class TradeCommunityTokenService {
         if (firstBuy)
           // First-buy events are always sent, regardless of [shouldSendEvents].
           _sendFirstBuyEvents(externalAddress: externalAddress),
-        if (!hasProfileToken && firstBuy)
+        if (externalAddressType.isContentToken && firstBuy && !hasProfileToken)
           _sendFirstBuyEvents(externalAddress: profileEventReference.toString()),
         if (shouldSendEvents)
           _trySendBuyEvents(
@@ -238,7 +238,6 @@ class TradeCommunityTokenService {
   Future<void> _sendFirstBuyEvents({
     required String externalAddress,
   }) async {
-    // ionConnectEntityHasToken
     return ionConnectService.sendFirstBuyEvents(externalAddress: externalAddress);
   }
 
