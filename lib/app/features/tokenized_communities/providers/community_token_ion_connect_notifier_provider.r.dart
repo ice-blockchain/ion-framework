@@ -15,6 +15,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/models/entities/token_definition_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
@@ -34,6 +35,7 @@ class CommunityTokenIonConnectService {
     required AppsFlyerDeepLinkService appsflyerDeepLinkService,
     required IONIdentityClient ionIdentityClient,
     required Future<String?> Function(EventReference eventReference) getEventShareUrl,
+    required Future<bool> Function(EventReference eventReference) ionConnectEntityHasToken,
   })  : _ionConnectNotifier = ionConnectNotifier,
         _ionConnectCache = ionConnectCache,
         _communityTokenDefinitionRepository = communityTokenDefinitionRepository,
@@ -41,7 +43,8 @@ class CommunityTokenIonConnectService {
         _isCurrentUserSelector = isCurrentUserSelector,
         _appsflyerDeepLinkService = appsflyerDeepLinkService,
         _ionIdentityClient = ionIdentityClient,
-        _getEventShareUrl = getEventShareUrl;
+        _getEventShareUrl = getEventShareUrl,
+        _ionConnectEntityHasToken = ionConnectEntityHasToken;
 
   final IonConnectNotifier _ionConnectNotifier;
 
@@ -58,6 +61,12 @@ class CommunityTokenIonConnectService {
   final IONIdentityClient _ionIdentityClient;
 
   final Future<String?> Function(EventReference eventReference) _getEventShareUrl;
+
+  final Future<bool> Function(EventReference eventReference) _ionConnectEntityHasToken;
+
+  Future<bool> ionConnectEntityHasToken(EventReference eventReference) async {
+    return _ionConnectEntityHasToken(eventReference);
+  }
 
   Future<void> sendFirstBuyEvents({
     required String externalAddress,
@@ -304,6 +313,10 @@ Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref)
     return ref.read(eventShareUrlProvider(eventReference).future);
   }
 
+  Future<bool> ionConnectEntityHasToken(EventReference eventReference) async {
+    return ref.read(ionConnectEntityHasTokenProvider(eventReference: eventReference).future);
+  }
+
   return CommunityTokenIonConnectService(
     ionConnectNotifier: ionConnectNotifier,
     ionConnectCache: ionConnectCache,
@@ -313,5 +326,6 @@ Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref)
     appsflyerDeepLinkService: appsflyerDeepLinkService,
     ionIdentityClient: ionIdentityClient,
     getEventShareUrl: getEventShareUrl,
+    ionConnectEntityHasToken: ionConnectEntityHasToken,
   );
 }
