@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
@@ -12,6 +13,8 @@ import 'package:ion/app/features/tokenized_communities/services/token_operation_
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
+import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
@@ -79,10 +82,19 @@ class TradeCommunityTokenService {
     );
 
     if (_isBroadcasted(transaction)) {
+      final masterPubkey = MasterPubkeyResolver.resolve(externalAddress);
+
+      final profileEventReference =
+          ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind);
+
+      final hasProfileToken =
+          await ionConnectService.ionConnectEntityHasToken(profileEventReference);
       await Future.wait([
         if (firstBuy)
           // First-buy events are always sent, regardless of [shouldSendEvents].
           _sendFirstBuyEvents(externalAddress: externalAddress),
+        if (externalAddressType.isContentToken && firstBuy && !hasProfileToken)
+          _sendFirstBuyEvents(externalAddress: profileEventReference.toString()),
         if (shouldSendEvents)
           _trySendBuyEvents(
             externalAddress: externalAddress,
