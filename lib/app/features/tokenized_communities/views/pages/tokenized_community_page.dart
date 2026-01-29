@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/components/layouts/collapsing_header_layout.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
 import 'package:ion/app/components/separated/separator.dart';
@@ -281,22 +282,21 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      tokenInfo?.title ?? '',
-                      style: context.theme.appTextThemes.subtitle3.copyWith(
-                        color: context.theme.appColors.onPrimaryAccent,
-                      ),
-                    ),
-                    if (tokenInfo?.creator.verified.falseOrValue ?? false)
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(start: 2.0.s),
-                        child: Assets.svg.iconBadgeVerify.icon(
-                          size: 16.s,
-                        ),
-                      ),
-                  ],
+                InlineBadgeText(
+                  titleSpan: TextSpan(text: tokenInfo?.title ?? ''),
+                  badges: (tokenInfo?.creator.verified.falseOrValue ?? false)
+                      ? [
+                          Assets.svg.iconBadgeVerify.icon(
+                            size: 16.s,
+                          ),
+                        ]
+                      : const <Widget>[],
+                  gap: 2.0.s,
+                  style: context.theme.appTextThemes.subtitle3.copyWith(
+                    color: context.theme.appColors.onPrimaryAccent,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   tokenInfo?.marketData.ticker ?? '',

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
@@ -23,16 +24,15 @@ class ContactItemName extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Flexible(
-          child: Text(
-            userPreviewData.data.trimmedDisplayName,
+          child: InlineBadgeText(
+            titleSpan: TextSpan(text: userPreviewData.data.trimmedDisplayName),
+            badges: isVerified
+                ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)]
+                : const <Widget>[],
+            gap: 2.0.s,
             style: context.theme.appTextThemes.title,
           ),
         ),
-        if (isVerified)
-          Padding(
-            padding: EdgeInsetsDirectional.only(start: 2.0.s),
-            child: Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-          ),
       ],
     );
   }

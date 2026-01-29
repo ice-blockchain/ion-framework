@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
@@ -47,6 +49,15 @@ class UserInfo extends HookConsumerWidget {
     );
 
     void openProfile() => ProfileNavigationUtils.navigateToProfile(context, pubkey: pubkey);
+    final titleTap = useMemoized(TapGestureRecognizer.new);
+
+    useEffect(
+      () {
+        titleTap.onTap = openProfile;
+        return titleTap.dispose;
+      },
+      [titleTap, openProfile],
+    );
 
     final tStyle = accentTheme
         ? (textStyle ??
@@ -58,14 +69,12 @@ class UserInfo extends HookConsumerWidget {
     return Padding(
       padding: padding ?? EdgeInsets.zero,
       child: BadgesUserListItem(
-        title: GestureDetector(
-          onTap: openProfile,
-          child: Text(
-            displayName,
-            style: tStyle,
-            strutStyle: const StrutStyle(forceStrutHeight: true),
-          ),
+        titleSpan: TextSpan(
+          text: displayName,
+          style: tStyle,
+          recognizer: titleTap,
         ),
+        titleStrutStyle: const StrutStyle(forceStrutHeight: true),
         subtitle: GestureDetector(
           onTap: openProfile,
           child: Row(

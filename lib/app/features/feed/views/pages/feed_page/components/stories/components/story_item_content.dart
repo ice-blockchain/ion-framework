@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_colored_border.dart';
@@ -79,19 +80,19 @@ class StoryItemContent extends HookConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Flexible(
-                    child: Text(
-                      name,
+                    child: InlineBadgeText(
+                      titleSpan: TextSpan(text: name),
+                      badges: isUserVerified
+                          ? [Assets.svg.iconBadgeVerify.icon(size: 12.0.s)]
+                          : const <Widget>[],
+                      gap: 2.0.s,
                       style: context.theme.appTextThemes.caption3.copyWith(
                         color: context.theme.appColors.primaryText,
                       ),
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
-                  if (isUserVerified)
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(start: 2.0.s),
-                      child: Assets.svg.iconBadgeVerify.icon(size: 12.0.s),
-                    ),
                 ],
               ),
             ),

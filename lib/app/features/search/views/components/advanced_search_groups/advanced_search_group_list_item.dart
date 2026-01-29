@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -106,23 +107,16 @@ class GroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          displayName,
-          style: context.theme.appTextThemes.subtitle3,
-        ),
-        if (isVerified)
-          Padding(
-            padding: EdgeInsetsDirectional.only(start: 2.0.s),
-            child: Assets.svg.iconBadgeIcelogo.icon(size: 16.0.s),
-          ),
-        if (isION)
-          Padding(
-            padding: EdgeInsetsDirectional.only(start: 2.0.s),
-            child: Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-          ),
+    return InlineBadgeText(
+      titleSpan: TextSpan(text: displayName),
+      badges: [
+        if (isVerified) Assets.svg.iconBadgeIcelogo.icon(size: 16.0.s),
+        if (isION) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
       ],
+      gap: 2.0.s,
+      style: context.theme.appTextThemes.subtitle3,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

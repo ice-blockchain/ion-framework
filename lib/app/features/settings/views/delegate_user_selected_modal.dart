@@ -101,13 +101,13 @@ class _UserInfo extends ConsumerWidget {
       child: Center(
         child: IntrinsicWidth(
           child: BadgesUserListItem(
-            title: Text(
-              displayName,
-              strutStyle: const StrutStyle(forceStrutHeight: true),
+            titleSpan: TextSpan(
+              text: displayName,
               style: TextStyle(
                 color: context.theme.appColors.primaryText,
               ),
             ),
+            titleStrutStyle: const StrutStyle(forceStrutHeight: true),
             subtitle: Text(
               withPrefix(
                 input: username,

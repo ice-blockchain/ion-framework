@@ -155,8 +155,8 @@ class _ProfileSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return IntrinsicHeight(
       child: BadgesUserListItem(
-        title: Text(
-          userMetadata.data.trimmedDisplayName,
+        titleSpan: TextSpan(
+          text: userMetadata.data.trimmedDisplayName,
           style: context.theme.appTextThemes.subtitle3.copyWith(
             color: isMe
                 ? context.theme.appColors.onPrimaryAccent

@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -167,28 +168,20 @@ class RecentChatTile extends HookConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Expanded(
-                                child: Row(
-                                  children: <Widget>[
-                                    Flexible(
-                                      child: Text(
-                                        name,
-                                        style: context.theme.appTextThemes.subtitle3.copyWith(
-                                          color: context.theme.appColors.primaryText,
-                                        ),
-                                        maxLines: 1,
-                                      ),
-                                    ),
+                                child: InlineBadgeText(
+                                  titleSpan: TextSpan(text: name),
+                                  badges: [
                                     if (isVerified)
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.only(start: 2.0.s),
-                                        child: Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-                                      ),
+                                      Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
                                     if (isMuted)
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.only(start: 2.0.s),
-                                        child: Assets.svg.iconChannelfillMute.icon(size: 16.0.s),
-                                      ),
+                                      Assets.svg.iconChannelfillMute.icon(size: 16.0.s),
                                   ],
+                                  gap: 2.0.s,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.theme.appTextThemes.subtitle3.copyWith(
+                                    color: context.theme.appColors.primaryText,
+                                  ),
                                 ),
                               ),
                               ChatTimestamp(lastMessageAt),

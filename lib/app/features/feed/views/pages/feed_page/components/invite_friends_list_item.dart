@@ -32,8 +32,8 @@ class InviteFriendsListItem extends StatelessWidget {
               color: context.theme.appColors.primaryText,
             ),
           ),
-          title: Text(
-            context.i18n.feed_invite_friends_title,
+          titleSpan: TextSpan(
+            text: context.i18n.feed_invite_friends_title,
             style: context.theme.appTextThemes.subtitle3.copyWith(
               color: context.theme.appColors.primaryText,
             ),

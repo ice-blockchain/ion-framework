@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
@@ -134,8 +135,16 @@ class TokenHeaderLandscape extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Flexible(
-                              child: Text(
-                                token.title,
+                              child: InlineBadgeText(
+                                titleSpan: TextSpan(text: token.title),
+                                badges: token.creator.verified.falseOrValue
+                                    ? [
+                                        Assets.svg.iconBadgeVerify.icon(
+                                          size: 16.s,
+                                        ),
+                                      ]
+                                    : const <Widget>[],
+                                gap: 2.0.s,
                                 style: context.theme.appTextThemes.subtitle3.copyWith(
                                   color: context.theme.appColors.secondaryBackground,
                                 ),
@@ -143,13 +152,6 @@ class TokenHeaderLandscape extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (token.creator.verified.falseOrValue)
-                              Padding(
-                                padding: EdgeInsetsDirectional.only(start: 2.0.s),
-                                child: Assets.svg.iconBadgeVerify.icon(
-                                  size: 16.s,
-                                ),
-                              ),
                           ],
                         ),
                         SizedBox(

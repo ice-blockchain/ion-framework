@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/views/components/message_items/messages_context_menu/messages_context_menu.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -61,17 +62,17 @@ class MessagingHeader extends ConsumerWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                name,
+                              child: InlineBadgeText(
+                                titleSpan: TextSpan(text: name),
+                                badges: isVerified
+                                    ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)]
+                                    : const <Widget>[],
+                                gap: 2.0.s,
                                 style: context.theme.appTextThemes.subtitle3,
-                                overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (isVerified) ...[
-                              SizedBox(width: 2.0.s),
-                              Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-                            ],
                           ],
                         ),
                         SizedBox(height: 1.0.s),

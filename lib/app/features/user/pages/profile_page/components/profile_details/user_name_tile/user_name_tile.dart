@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_price.dart';
@@ -61,9 +62,15 @@ class UserNameTile extends ConsumerWidget {
           mainAxisAlignment: mainAxisAlignment,
           children: [
             Flexible(
-              child: Text(
+              child: InlineBadgeText(
+                titleSpan: TextSpan(text: userPreviewData.data.trimmedDisplayName),
+                badges: isUserVerified
+                    ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)]
+                    : const <Widget>[],
+                gap: 2.0.s,
                 textAlign: isDecoratedNichname ? TextAlign.left : TextAlign.center,
-                userPreviewData.data.trimmedDisplayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: context.theme.appTextThemes.subtitle.copyWith(
                   color: profileMode == ProfileMode.dark
                       ? context.theme.appColors.secondaryBackground
@@ -71,11 +78,6 @@ class UserNameTile extends ConsumerWidget {
                 ),
               ),
             ),
-            if (isUserVerified)
-              Padding(
-                padding: EdgeInsetsDirectional.only(start: 2.0.s),
-                child: Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-              ),
           ],
         ),
         SizedBox(height: 3.0.s),
