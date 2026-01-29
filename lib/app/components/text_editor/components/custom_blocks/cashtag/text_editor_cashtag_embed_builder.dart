@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/cashtag_inline_widget.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/models/cashtag_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/services/cashtag_insertion_service.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/common/quill_embed_text_scale_fix.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 
 const String cashtagEmbedKey = 'cashtag';
@@ -59,12 +60,7 @@ class TextEditorCashtagEmbedBuilder extends EmbedBuilder {
         }
 
         final canClose = showClose && !embedContext.readOnly;
-        final mq = MediaQuery.of(context);
-        return MediaQuery(
-          // To make embedded mention text follow the same scale that the surrounding rich text
-          // have to set textScaleFactor cause it is used by embedded quill widgets to text scaling
-          // ignore: deprecated_member_use
-          data: mq.copyWith(textScaleFactor: 1),
+        return QuillEmbedTextScaler(
           child: CashtagInlineWidget(
             symbolGroup: embedData.symbolGroup,
             marketCap: marketCap,
