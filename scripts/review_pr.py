@@ -13,7 +13,9 @@ if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY is missing")
 
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash")
+
+# Reverted to Gemini 1.5 Flash for better free tier stability
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 def get_pr_diff():
     """Fetches the diff of the Pull Request from GitHub."""
@@ -51,7 +53,7 @@ def review_code():
     if len(diff_text) > 100000:
         diff_text = diff_text[:100000] + "\n...(truncated due to size limit)"
 
-    print("Sending diff to Gemini for review...")
+    print("Sending diff to Gemini 1.5 Flash for review...")
 
     prompt = f"""
     Act as a Senior Software Engineer. Review the following code changes (git diff) for a Pull Request.
@@ -67,11 +69,15 @@ def review_code():
     {diff_text}
     """
 
-    response = model.generate_content(prompt)
-    review_text = response.text
+    try:
+        response = model.generate_content(prompt)
+        review_text = response.text
+    except Exception as e:
+        print(f"Error generating review with Gemini 1.5 Flash: {e}")
+        return
 
     print("Posting review to GitHub...")
-    post_comment(f"## 🤖 Gemini AI Code Review\n\n{review_text}")
+    post_comment(f"## 🤖 Gemini 1.5 Flash Code Review\n\n{review_text}")
     print("Done!")
 
 if __name__ == "__main__":
