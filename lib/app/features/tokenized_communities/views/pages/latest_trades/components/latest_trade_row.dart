@@ -78,6 +78,7 @@ class LatestTradeRow extends StatelessWidget {
                 imageUrl: trade.position.holder.avatar,
                 seed: name,
                 isXUser: isXUser,
+                isIonConnectUser: trade.position.holder.addresses?.ionConnect != null,
               ),
               SizedBox(width: 8.0.s),
               Expanded(
