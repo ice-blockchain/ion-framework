@@ -8,6 +8,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'relay_proxy_domains_provider.r.g.dart';
 
+Uri _normalizeLogicalRelayUri(Uri logicalUri) {
+  // Some relays are configured with :4443; normalize to :443.
+  return (logicalUri.hasPort && logicalUri.port == 4443)
+      ? logicalUri.replace(port: 443)
+      : logicalUri;
+}
+
 /// Proxy domains used to reach Nostr relays when direct IP connectivity is
 /// unavailable or unreliable.
 @riverpod
@@ -22,15 +29,26 @@ List<String> relayProxyDomains(Ref ref) {
 /// The logical relay URL is expected to be an IP-based websocket URL like:
 /// `wss://192.168.1.1:4443`.
 ///
-/// Candidates are returned in the following order:
-/// 1) Preferred proxy URI (if saved for this logical relay)
-/// 2) The original logical relay URI (direct IP)
-/// 3) Remaining proxy URIs built as `wss://<sha256(ip)[0:16]>.domain:443`
+/// [includeProxies] controls what candidates are returned:
+/// - `true` (default):
+///   1) The original logical relay URI (direct IP)
+///   2) Preferred proxy URI (if saved for this logical relay)
+///   3) Remaining proxy URIs built as `wss://<sha256(ip)[0:16]>.domain:443`
+/// - `false`:
+///   Returns only the normalized direct URI.
 @riverpod
-List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
+List<Uri> relayConnectUris(
+  Ref ref,
+  String logicalRelayUrl, {
+  bool includeProxies = true,
+}) {
   final logicalUri = Uri.parse(logicalRelayUrl);
-  final normalizedLogicalUri =
-      (logicalUri.hasPort && logicalUri.port == 4443) ? logicalUri.replace(port: 443) : logicalUri;
+  final normalizedLogicalUri = _normalizeLogicalRelayUri(logicalUri);
+
+  if (!includeProxies) {
+    return <Uri>[normalizedLogicalUri];
+  }
+
   final ip = logicalUri.host;
 
   // If we can't extract an IP/host, fall back to the original URI only.
@@ -47,15 +65,13 @@ List<Uri> relayConnectUris(Ref ref, String logicalRelayUrl) {
         port: normalizedLogicalUri.hasPort ? normalizedLogicalUri.port : null,
       );
 
-  final candidates = <Uri>[];
+  // Always try direct first; proxies are fallback candidates.
+  final candidates = <Uri>[normalizedLogicalUri];
 
   final preferred = preferredDomain?.trim();
   if (preferred != null && preferred.isNotEmpty) {
     candidates.add(proxyUriForDomain(preferred));
   }
-
-  // Then try direct IP.
-  candidates.add(normalizedLogicalUri);
 
   // Then try the rest of proxy domains.
   for (final domain in domains) {

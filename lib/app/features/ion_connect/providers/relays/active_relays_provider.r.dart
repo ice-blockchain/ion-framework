@@ -27,7 +27,24 @@ class ActiveRelays extends _$ActiveRelays {
 
   void invalidateAll() {
     for (final url in state) {
-      ref.invalidate(relayProvider(url));
+      // Relay provider is keyed by `(url, anonymous, allowProxy)`.
+      // Invalidate all key variants for the active logical relay URL.
+      for (final anonymous in [false, true]) {
+        ref
+          ..invalidate(
+            relayProvider(
+              url,
+              anonymous: anonymous,
+              allowProxy: false,
+            ),
+          )
+          ..invalidate(
+            relayProvider(
+              url,
+              anonymous: anonymous,
+            ),
+          );
+      }
     }
   }
 

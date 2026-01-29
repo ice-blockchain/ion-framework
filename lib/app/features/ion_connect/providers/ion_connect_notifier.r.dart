@@ -24,6 +24,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/long_living_subscription_relay_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_auth_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relay_disliked_connect_urls_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
@@ -116,10 +117,11 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               error ?? '',
               message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
             );
-            Logger.log(
-              '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
+            _dislikeRelayAndResetConnectUrls(
+              sessionId: sessionId,
+              relayUrl: triedRelayUrl,
+              dislikedRelaysUrls: dislikedRelaysUrls,
             );
-            dislikedRelaysUrls.add(triedRelayUrl);
             if (UserRelaysManager.isRelayReadOnlyError(error)) {
               await ref
                   .read(userRelaysManagerProvider.notifier)
@@ -335,10 +337,11 @@ class IonConnectNotifier extends _$IonConnectNotifier {
                 error ?? '',
                 message: '[SESSION-ERROR] Session $sessionId - $triedRelayUrl failed: $error',
               );
-              Logger.log(
-                '[SESSION-DISLIKE] Session $sessionId - $triedRelayUrl added to disliked relays',
+              _dislikeRelayAndResetConnectUrls(
+                sessionId: sessionId,
+                relayUrl: triedRelayUrl,
+                dislikedRelaysUrls: dislikedRelaysUrls,
               );
-              dislikedRelaysUrls.add(triedRelayUrl);
             } else {
               authFailedRelays.add(triedRelayUrl);
             }
@@ -580,5 +583,20 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       final ClosedMessage closedMessage => !closedMessage.message.startsWith('processed'),
       _ => false,
     };
+  }
+
+  void _dislikeRelayAndResetConnectUrls({
+    required String sessionId,
+    required String relayUrl,
+    required Set<String> dislikedRelaysUrls,
+  }) {
+    final wasAdded = dislikedRelaysUrls.add(relayUrl);
+    Logger.log(
+      '[SESSION-DISLIKE] Session $sessionId - $relayUrl ${wasAdded ? 'added to disliked relays' : 'already in disliked relays'}',
+    );
+    ref.read(relayDislikedConnectUrlsProvider(relayUrl).notifier).reset();
+    Logger.log(
+      '[SESSION-DISLIKE] Session $sessionId - $relayUrl connect URL dislikes reset',
+    );
   }
 }

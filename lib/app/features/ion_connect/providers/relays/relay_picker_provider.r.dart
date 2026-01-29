@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/relay_proxy_domains_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart' hide requestEvents;
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/disliked_relay_urls_collection.f.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/active_relays_provider.r.dart';
+import 'package:ion/app/features/ion_connect/providers/relays/relay_disliked_connect_urls_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_provider.r.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
@@ -27,6 +31,185 @@ enum ActionType { read, write }
 class RelayPicker extends _$RelayPicker {
   @override
   FutureOr<void> build() {}
+
+  static const Duration _directConnectTimeout = Duration(seconds: 20);
+  static const Duration _activeDirectPrecheckTimeout = Duration(seconds: 5);
+  static const Duration _directProbeCacheTtl = Duration(seconds: 10);
+  final Map<String, ({String? winnerUrl, DateTime checkedAt})> _directProbeCache = {};
+  final Map<String, Future<String?>> _inFlightDirectProbes = {};
+
+  /// Phase 1: connection-only probe in direct-only mode.
+  ///
+  /// Uses [createRelay] with `allowProxy: false` to validate direct reachability.
+  /// Probe relays are closed immediately; this phase does not authenticate.
+  Future<String?> _pickDirectRelayUrlFromPool(
+    List<String> relayPool, {
+    required String sessionPrefix,
+  }) async {
+    if (relayPool.isEmpty) return null;
+
+    // Prefer an already-active relay first.
+    final activeUrl = _getFirstActiveRelayUrl(relayPool);
+    final orderedPool = activeUrl != null
+        ? <String>[activeUrl, ...relayPool.where((u) => u != activeUrl)]
+        : relayPool;
+
+    final probeKey = orderedPool.join('|');
+    final now = DateTime.now();
+    final cachedProbe = _directProbeCache[probeKey];
+    if (cachedProbe != null && now.difference(cachedProbe.checkedAt) < _directProbeCacheTtl) {
+      return cachedProbe.winnerUrl;
+    }
+
+    final inFlightProbe = _inFlightDirectProbes[probeKey];
+    if (inFlightProbe != null) {
+      return inFlightProbe;
+    }
+
+    if (activeUrl != null) {
+      final activePrecheckError = await _tryDirectSocketReachability(
+        activeUrl,
+        timeout: _activeDirectPrecheckTimeout,
+      );
+
+      if (activePrecheckError == null) {
+        _directProbeCache[probeKey] = (
+          winnerUrl: activeUrl,
+          checkedAt: DateTime.now(),
+        );
+        return activeUrl;
+      }
+
+      Logger.log(
+        '$sessionPrefix[RELAY] Active direct pre-check failed: $activeUrl; $activePrecheckError',
+      );
+    }
+
+    final probeFuture = _probeDirectRelayUrlFromOrderedPool(
+      orderedPool,
+      sessionPrefix: sessionPrefix,
+    ).then((winnerUrl) {
+      _directProbeCache[probeKey] = (
+        winnerUrl: winnerUrl,
+        checkedAt: DateTime.now(),
+      );
+      return winnerUrl;
+    }).whenComplete(() {
+      _inFlightDirectProbes.remove(probeKey);
+    });
+
+    _inFlightDirectProbes[probeKey] = probeFuture;
+    return probeFuture;
+  }
+
+  /// Lightweight direct-only reachability probe without createRelay side effects.
+  ///
+  /// This avoids mutating reachability stats, triggering internet checks, and
+  /// failover telemetry during picker probing.
+  Future<Object?> _tryDirectSocketReachability(
+    String relayUrl, {
+    required Duration timeout,
+  }) async {
+    final directConnectUri =
+        ref.read(relayConnectUrisProvider(relayUrl, includeProxies: false)).first;
+    final socket = WebSocket(directConnectUri, timeout: timeout);
+    final relay = IonConnectRelay(
+      url: relayUrl,
+      connectUrl: directConnectUri.toString(),
+      socket: socket,
+    );
+
+    try {
+      final connectionState = await socket.connection.firstWhere(
+        (state) => state is Connected || state is Reconnected || state is Disconnected,
+      );
+
+      if (connectionState is Disconnected) {
+        return connectionState.error ?? Exception('Relay disconnected during direct probe');
+      }
+
+      return null;
+    } catch (e) {
+      return e;
+    } finally {
+      relay.close();
+    }
+  }
+
+  Future<String?> _probeDirectRelayUrlFromOrderedPool(
+    List<String> orderedPool, {
+    required String sessionPrefix,
+  }) async {
+    final winnerCompleter = Completer<String?>();
+    var pending = 0;
+
+    // Probe all direct relays in parallel.
+    for (final url in orderedPool) {
+      pending++;
+      unawaited(() async {
+        final directProbeError = await _tryDirectSocketReachability(
+          url,
+          timeout: _directConnectTimeout,
+        );
+        if (directProbeError == null) {
+          if (!winnerCompleter.isCompleted) {
+            winnerCompleter.complete(url);
+          }
+        } else {
+          Logger.log(
+            '$sessionPrefix[RELAY] Direct relay connect failed: $url; $directProbeError',
+          );
+        }
+        pending--;
+        if (pending == 0 && !winnerCompleter.isCompleted) {
+          winnerCompleter.complete(null);
+        }
+      }());
+    }
+
+    return winnerCompleter.future.timeout(
+      _directConnectTimeout,
+      onTimeout: () {
+        return null;
+      },
+    );
+  }
+
+  /// Returns a relay from a pool using the new two-phase strategy:
+  /// 1) try all relays directly (no proxies) in pool order
+  /// 2) if none connect directly, fall back to the existing behavior using [relayProvider]
+  Future<IonConnectRelay> _getRelayFromPool(
+    List<String> relayPool, {
+    required bool anonymous,
+    required String sessionPrefix,
+    required String fallbackRelayUrl,
+  }) async {
+    final directRelayUrl = await _pickDirectRelayUrlFromPool(
+      relayPool,
+      sessionPrefix: sessionPrefix,
+    );
+
+    if (directRelayUrl != null) {
+      // Build a real relay (including auth) only for the direct winner.
+      return await ref.read(
+        relayProvider(
+          directRelayUrl,
+          anonymous: anonymous,
+          allowProxy: false,
+        ).future,
+      );
+    }
+
+    Logger.warning(
+      '$sessionPrefix[RELAY] No direct relays reachable in pool. Falling back to proxy-enabled strategy with relay: $fallbackRelayUrl',
+    );
+    return await ref.read(
+      relayProvider(
+        fallbackRelayUrl,
+        anonymous: anonymous,
+      ).future,
+    );
+  }
 
   Future<Map<IonConnectRelay, Set<String>>> getActionSourceRelays(
     ActionSource actionSource, {
@@ -77,13 +260,17 @@ class RelayPicker extends _$RelayPicker {
       );
     }
 
-    final chosenRelayUrl =
+    final fallbackRelayUrl =
         _getFirstActiveRelayUrl(filteredWriteRelayUrls) ?? filteredWriteRelayUrls.random!;
-    Logger.log(
-      '$sessionPrefix[RELAY] Write relay selected: $chosenRelayUrl from pool: $filteredWriteRelayUrls, disliked: ${dislikedUrls.urls}',
+    final chosenRelay = await _getRelayFromPool(
+      filteredWriteRelayUrls,
+      anonymous: actionSource.anonymous,
+      sessionPrefix: sessionPrefix,
+      fallbackRelayUrl: fallbackRelayUrl,
     );
-    final chosenRelay =
-        await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+    Logger.log(
+      '$sessionPrefix[RELAY] Write relay selected: ${chosenRelay.url} from pool: $filteredWriteRelayUrls, disliked: ${dislikedUrls.urls}',
+    );
     return {chosenRelay: {}};
   }
 
@@ -114,12 +301,16 @@ class RelayPicker extends _$RelayPicker {
           throw FailedToPickUserRelay('Current user relay pool is empty.');
         }
 
-        final chosenRelayUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.first;
-        Logger.log(
-          '$sessionPrefix[RELAY] Current user read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        final fallbackRelayUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.first;
+        final chosenRelay = await _getRelayFromPool(
+          relayPool,
+          anonymous: actionSource.anonymous,
+          sessionPrefix: sessionPrefix,
+          fallbackRelayUrl: fallbackRelayUrl,
         );
-        final chosenRelay =
-            await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+        Logger.log(
+          '$sessionPrefix[RELAY] Current user read relay selected: ${chosenRelay.url} from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        );
         return {
           chosenRelay: {},
         };
@@ -148,13 +339,17 @@ class RelayPicker extends _$RelayPicker {
           throw FailedToPickUserRelay('User ${actionSource.pubkey} relay pool is empty.');
         }
 
-        final chosenRelayUrl =
+        final fallbackRelayUrl =
             _getFirstActiveRelayUrl(relayPool) ?? await _selectRelayUrlForOtherUser(relayPool);
-        Logger.log(
-          '$sessionPrefix[RELAY] User read relay selected: $chosenRelayUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        final chosenRelay = await _getRelayFromPool(
+          relayPool,
+          anonymous: actionSource.anonymous,
+          sessionPrefix: sessionPrefix,
+          fallbackRelayUrl: fallbackRelayUrl,
         );
-        final chosenRelay =
-            await ref.read(relayProvider(chosenRelayUrl, anonymous: actionSource.anonymous).future);
+        Logger.log(
+          '$sessionPrefix[RELAY] User read relay selected: ${chosenRelay.url} from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        );
         return {chosenRelay: {}};
 
       case ActionSourceIndexers():
@@ -173,18 +368,20 @@ class RelayPicker extends _$RelayPicker {
           throw FailedToPickIndexerRelay();
         }
 
-        final chosenIndexerUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.random!;
-        Logger.log(
-          '$sessionPrefix[RELAY] Indexer relay selected: $chosenIndexerUrl from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        final fallbackRelayUrl = _getFirstActiveRelayUrl(relayPool) ?? relayPool.random!;
+        final chosenRelay = await _getRelayFromPool(
+          relayPool,
+          anonymous: actionSource.anonymous,
+          sessionPrefix: sessionPrefix,
+          fallbackRelayUrl: fallbackRelayUrl,
         );
-        final chosenRelay = await ref
-            .read(relayProvider(chosenIndexerUrl, anonymous: actionSource.anonymous).future);
+        Logger.log(
+          '$sessionPrefix[RELAY] Indexer relay selected: ${chosenRelay.url} from pool: $relayPool, disliked: ${dislikedUrls.urls}',
+        );
         return {chosenRelay: {}};
 
       case ActionSourceRelayUrl():
-        Logger.log(
-          '$sessionPrefix[RELAY] Direct relay URL selected: ${actionSource.url}',
-        );
+        _allowDirectConnectUrlRetry(actionSource.url);
         final chosenRelay = await ref
             .read(relayProvider(actionSource.url, anonymous: actionSource.anonymous).future);
         return {chosenRelay: {}};
@@ -197,6 +394,7 @@ class RelayPicker extends _$RelayPicker {
             );
 
         final relayFutures = relays.entries.map((userRelayEntry) async {
+          _allowDirectConnectUrlRetry(userRelayEntry.key);
           final ionConnectRelay = await ref
               .read(relayProvider(userRelayEntry.key, anonymous: actionSource.anonymous).future);
           return MapEntry(ionConnectRelay, userRelayEntry.value.toSet());
@@ -246,6 +444,18 @@ class RelayPicker extends _$RelayPicker {
     DislikedRelayUrlsCollection dislikedRelaysUrls,
   ) {
     return relayUrls.toSet().difference(dislikedRelaysUrls.urls).toList();
+  }
+
+  /// Allows one fresh direct attempt by removing only the normalized direct
+  /// connect URL from the per-relay disliked connect URL set.
+  void _allowDirectConnectUrlRetry(String logicalRelayUrl) {
+    final directConnectUrl = ref
+        .read(
+          relayConnectUrisProvider(logicalRelayUrl, includeProxies: false),
+        )
+        .first
+        .toString();
+    ref.read(relayDislikedConnectUrlsProvider(logicalRelayUrl).notifier).remove(directConnectUrl);
   }
 
   /// Returns the first found active relay url for the given relay url list.
