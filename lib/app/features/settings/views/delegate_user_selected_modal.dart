@@ -109,7 +109,10 @@ class _UserInfo extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              prefixUsername(username: username, context: context),
+              withPrefix(
+                input: username,
+                textDirection: Directionality.of(context),
+              ),
               style: TextStyle(
                 color: context.theme.appColors.tertiaryText,
               ),

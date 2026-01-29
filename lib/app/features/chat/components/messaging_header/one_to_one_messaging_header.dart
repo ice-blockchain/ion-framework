@@ -49,9 +49,9 @@ class OneToOneMessagingHeader extends ConsumerWidget {
     final receiverDisplayName = metadata?.data.trimmedDisplayName;
 
     final subtitle = Text(
-      prefixUsername(
-        context: context,
-        username: receiverName,
+      withPrefix(
+        input: receiverName,
+        textDirection: Directionality.of(context),
       ),
       style: context.theme.appTextThemes.caption.copyWith(
         color: context.theme.appColors.quaternaryText,

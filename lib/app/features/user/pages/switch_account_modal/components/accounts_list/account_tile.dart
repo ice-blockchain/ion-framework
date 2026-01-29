@@ -52,7 +52,10 @@ class SwitchAccountModalTile extends HookConsumerWidget {
         strutStyle: const StrutStyle(forceStrutHeight: true),
       ),
       subtitle: Text(
-        prefixUsername(username: userPreview.data.name, context: context),
+        withPrefix(
+          input: userPreview.data.name,
+          textDirection: Directionality.of(context),
+        ),
       ),
       masterPubkey: masterPubkey,
       trailing: isCurrentUser ? Assets.svg.iconBlockCheckboxOn.icon() : null,

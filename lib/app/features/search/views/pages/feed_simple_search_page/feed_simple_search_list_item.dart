@@ -40,7 +40,12 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
         child: ScreenSideOffset.small(
           child: BadgesUserListItem(
             title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
-            subtitle: Text(prefixUsername(username: username, context: context)),
+            subtitle: Text(
+              withPrefix(
+                input: username,
+                textDirection: Directionality.of(context),
+              ),
+            ),
             masterPubkey: masterPubkey,
             trailing: marketCap != null ? MarketCapBadge(marketCap: marketCap) : null,
           ),

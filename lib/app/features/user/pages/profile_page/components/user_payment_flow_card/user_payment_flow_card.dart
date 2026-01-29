@@ -35,7 +35,12 @@ class UserPaymentFlowCard extends ConsumerWidget {
             userPreviewData.data.trimmedDisplayName,
             strutStyle: const StrutStyle(forceStrutHeight: true),
           ),
-          subtitle: Text(prefixUsername(username: userPreviewData.data.name, context: context)),
+          subtitle: Text(
+            withPrefix(
+              input: userPreviewData.data.name,
+              textDirection: Directionality.of(context),
+            ),
+          ),
           masterPubkey: pubkey,
           contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 8.0.s),
           border: Border.all(

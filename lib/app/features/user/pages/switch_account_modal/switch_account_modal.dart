@@ -68,7 +68,10 @@ class SwitchAccountModal extends HookConsumerWidget {
                 ModalActionButton(
                   icon: Assets.svg.iconMenuLogout.icon(size: 24.0.s),
                   label: context.i18n.profile_log_out(
-                    prefixUsername(username: userMetadataValue?.data.name, context: context),
+                    withPrefix(
+                      input: userMetadataValue?.data.name,
+                      textDirection: Directionality.of(context),
+                    ),
                   ),
                   onTap: () => ConfirmLogoutRoute(pubkey: currentPubkey).push<void>(context),
                 ),

@@ -54,7 +54,12 @@ class ParentEntity extends ConsumerWidget {
         SizedBox(height: 6.0.s),
         BadgesUserListItem(
           title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
-          subtitle: Text(prefixUsername(username: username, context: context)),
+          subtitle: Text(
+            withPrefix(
+              input: username,
+              textDirection: Directionality.of(context),
+            ),
+          ),
           masterPubkey: eventReference.masterPubkey,
           trailing: BottomSheetMenuButton(
             menuBuilder: (context) => PostMenuBottomSheet(

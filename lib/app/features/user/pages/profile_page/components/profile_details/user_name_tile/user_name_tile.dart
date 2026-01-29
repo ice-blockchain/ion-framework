@@ -41,11 +41,11 @@ class UserNameTile extends ConsumerWidget {
     }
 
     final nichnameWidget = Text(
-      prefixUsername(
-        username: (!isNicknameProven)
+      withPrefix(
+        input: (!isNicknameProven)
             ? '${userPreviewData.data.name} ${context.i18n.nickname_not_owned_suffix}'
             : userPreviewData.data.name,
-        context: context,
+        textDirection: Directionality.of(context),
       ),
       style: context.theme.appTextThemes.caption.copyWith(
         color: profileMode == ProfileMode.dark

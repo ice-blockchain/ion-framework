@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
-import 'package:ion/app/features/tokenized_communities/utils/prefix_x_token_ticker.dart';
+
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/username.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -19,7 +21,7 @@ part 'chart_title_provider.r.g.dart';
 Future<String?> chartTitle(
   Ref ref, {
   required String externalAddress,
-  required bool isRTL,
+  required TextDirection textDirection,
 }) async {
   final tokenInfo = await ref.watch(tokenMarketInfoProvider(externalAddress).future);
   if (tokenInfo == null) {
@@ -29,7 +31,11 @@ Future<String?> chartTitle(
   final ticker = tokenInfo.marketData.ticker ?? '';
 
   if (tokenInfo.source.isTwitter) {
-    return prefixXTokenTicker(ticker);
+    return withPrefix(
+      input: ticker,
+      prefix: r'$',
+      textDirection: textDirection,
+    );
   }
 
   if (tokenInfo.type == CommunityTokenType.profile) {
@@ -50,10 +56,15 @@ Future<String?> chartTitle(
 
       final tickerLower = ticker.toLowerCase();
       final usernameLower = profileNickname.toLowerCase();
-      final usernamePart = isRTL ? '$usernameLower@' : '@$usernameLower';
+      final usernamePart = withPrefix(input: usernameLower, textDirection: textDirection);
 
       return tickerLower.isNotEmpty
-          ? (isRTL ? '($tickerLower) $usernamePart' : '$usernamePart ($tickerLower)')
+          ? withPrefix(
+              input: '($tickerLower)',
+              textDirection: textDirection,
+              separator: ' ',
+              prefix: usernamePart,
+            )
           : usernamePart;
     } catch (e, st) {
       Logger.error(
@@ -66,5 +77,9 @@ Future<String?> chartTitle(
   }
 
   // Content token with $ prefix
-  return '\$$ticker';
+  return withPrefix(
+    input: ticker,
+    prefix: r'$',
+    textDirection: textDirection,
+  );
 }

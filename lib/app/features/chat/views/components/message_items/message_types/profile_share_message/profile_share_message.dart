@@ -164,7 +164,10 @@ class _ProfileSummary extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          prefixUsername(username: userMetadata.data.name, context: context),
+          withPrefix(
+            input: userMetadata.data.name,
+            textDirection: Directionality.of(context),
+          ),
           style: context.theme.appTextThemes.body2.copyWith(
             color: isMe
                 ? context.theme.appColors.onPrimaryAccent
