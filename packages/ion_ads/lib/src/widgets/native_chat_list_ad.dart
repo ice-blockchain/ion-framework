@@ -16,25 +16,34 @@ class NativeChatListAd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final spacing = theme.adsSpacing;
 
     return ListTile(
-      leading: MediaAssetImage(path: ad.mediaAssets?.icon, width: 48, height: 48),
+      leading: MediaAssetImage(
+        path: ad.mediaAssets?.icon,
+        width: spacing.iconSizeLarge,
+        height: spacing.iconSizeLarge,
+      ),
       title: Text(ad.body, style: theme.textPrimary.subtitle3),
       subtitle: Row(
         children: [
           AttributionTextContainer(text: ad.attributionText),
-          const SizedBox(width: 4),
+          SizedBox(width: spacing.spacingS),
           const AdChoicesContainer(),
-          const SizedBox(width: 4),
-          StarRating(
-            rating: 4,
-            color: theme.adsColors.onTertiaryBackground,
-            size: 12,
-          ),
+          SizedBox(width: spacing.spacingS),
+          if (ad.rating != null && ad.rating! > 0)
+            StarRating(
+              rating: ad.rating!,
+              color: theme.adsColors.onTertiaryBackground,
+              size: spacing.starRatingSize,
+            )
+          else
+            const SizedBox.shrink(),
         ],
       ),
       contentPadding: EdgeInsets.zero,
       trailing: CallToActionButton(
+        onPressed: null,
         child: Icon(Icons.download_outlined, color: theme.adsColors.onPrimaryAccent),
       ),
     );
