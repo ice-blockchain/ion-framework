@@ -15,6 +15,7 @@ import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifie
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/keyboard/keyboard.dart';
+import 'package:ion/app/utils/scroll_visibility.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -44,8 +45,12 @@ class TopicsButton extends HookConsumerWidget {
         selectedSubcategoriesKeys.map((key) => availableSubcategories[key]).nonNulls.toList();
 
     useOnInit(
-      () {
+      () async {
         if (!topicsTooltipVisible || !context.mounted) return;
+        final targetContext = topicsButtonKey.value.currentContext;
+        if (targetContext == null || !targetContext.mounted) return;
+        await ensureContextVisible(targetContext);
+        if (!context.mounted) return;
         ShowCaseWidget.of(context).startShowCase(
           [topicsButtonKey.value],
         );
