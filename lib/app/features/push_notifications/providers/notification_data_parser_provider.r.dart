@@ -194,6 +194,22 @@ class NotificationDataParser {
             await translator.translate((t) => t.mention?.title),
             await translator.translate((t) => t.mention?.body)
           ),
+        PushNotificationType.accountPost => (
+            await translator.translate((t) => t.accountPost?.title),
+            await translator.translate((t) => t.accountPost?.body)
+          ),
+        PushNotificationType.accountArticle => (
+            await translator.translate((t) => t.accountArticle?.title),
+            await translator.translate((t) => t.accountArticle?.body)
+          ),
+        PushNotificationType.accountVideo => (
+            await translator.translate((t) => t.accountVideo?.title),
+            await translator.translate((t) => t.accountVideo?.body)
+          ),
+        PushNotificationType.accountStory => (
+            await translator.translate((t) => t.accountStory?.title),
+            await translator.translate((t) => t.accountStory?.body)
+          ),
         PushNotificationType.repost => (
             await translator.translate((t) => t.repost?.title),
             await translator.translate((t) => t.repost?.body)

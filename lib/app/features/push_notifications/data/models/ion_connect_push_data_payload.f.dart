@@ -117,9 +117,6 @@ class IonConnectPushDataPayload {
 
     if (entity is GenericRepostEntity || entity is RepostEntity) {
       return _getRepostNotificationType(entity, getRelatedEntity);
-    } else if ((entity is ModifiablePostEntity && entity.data.quotedEvent != null) ||
-        (entity is PostEntity && entity.data.quotedEvent != null)) {
-      return _getQuoteNotificationType(entity, getRelatedEntity);
     } else if (entity is ReactionEntity) {
       return _getLikeNotificationType(entity, getRelatedEntity);
     } else if (entity is IonConnectGiftWrapEntity) {
@@ -127,23 +124,46 @@ class IonConnectPushDataPayload {
     } else if (entity is FollowListEntity) {
       return PushNotificationType.follower;
     } else if (entity is ModifiablePostEntity || entity is PostEntity) {
-      final currentUserMention =
-          ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind)
-              .encode();
-
-      final content = switch (entity) {
-        ModifiablePostEntity() => entity.data.content,
-        PostEntity() => entity.data.content,
-        _ => null
-      };
-
-      if (content?.contains(currentUserMention) ?? false) {
+      if (isQuotePost(entity)) {
+        return _getQuoteNotificationType(entity, getRelatedEntity);
+      } else if (isUserMentioned(masterPubkey: currentPubkey, entity: entity)) {
         return PushNotificationType.mention;
+      } else if (isReplyPost(entity)) {
+        return _getReplyNotificationType(entity, currentPubkey, getRelatedEntity);
+      } else {
+        return _getAccountNotificationType(entity);
       }
-      return _getReplyNotificationType(entity, currentPubkey, getRelatedEntity);
     }
 
     return null;
+  }
+
+  bool isUserMentioned({required String masterPubkey, required IonConnectEntity entity}) {
+    final currentUserMention =
+        ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind)
+            .encode();
+
+    final content = switch (entity) {
+      ModifiablePostEntity() => entity.data.content,
+      PostEntity() => entity.data.content,
+      _ => null
+    };
+
+    if (content != null && content.contains(currentUserMention)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool isQuotePost(IonConnectEntity entity) {
+    return (entity is ModifiablePostEntity && entity.data.quotedEvent != null) ||
+        (entity is PostEntity && entity.data.quotedEvent != null);
+  }
+
+  bool isReplyPost(IonConnectEntity entity) {
+    return (entity is ModifiablePostEntity && entity.data.parentEvent != null) ||
+        (entity is PostEntity && entity.data.parentEvent != null);
   }
 
   Future<PushNotificationType> _getRepostNotificationType(
@@ -332,6 +352,24 @@ class IonConnectPushDataPayload {
     }
 
     return PushNotificationType.chatMultiMediaMessage;
+  }
+
+  PushNotificationType? _getAccountNotificationType(
+    IonConnectEntity entity,
+  ) {
+    return switch (entity) {
+      ModifiablePostEntity(data: final postData) => switch (postData) {
+          _ when postData.expiration != null => PushNotificationType.accountStory,
+          _ when postData.hasVideo => PushNotificationType.accountVideo,
+          _ => PushNotificationType.accountPost,
+        },
+      PostEntity(data: final postData) => switch (postData) {
+          _ when postData.expiration != null => PushNotificationType.accountStory,
+          _ when postData.hasVideo => PushNotificationType.accountVideo,
+          _ => PushNotificationType.accountPost,
+        },
+      _ => null,
+    };
   }
 
   Future<Map<String, String>> placeholders(
@@ -571,6 +609,10 @@ enum PushNotificationType {
   replyArticle,
   replyComment,
   mention,
+  accountPost,
+  accountArticle,
+  accountVideo,
+  accountStory,
   repost,
   repostArticle,
   repostComment,
