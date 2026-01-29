@@ -14,8 +14,9 @@ part 'ion_connect_relays_ranker.r.g.dart';
 @riverpod
 IonConnectRelaysRanker ionConnectRelaysRanker(Ref ref) {
   return IonConnectRelaysRanker(
-    /// Using provider instead of the underlying repository to cache the result for the future use
-    /// Using GET nip-11 data instead of HEAD to make sure the relay is available.
+    /// Returns nip-11 data for the given relay URL.
+    ///
+    /// Using provider instead of the underlying repository to cache the result for the future use.
     getRelayInfo: ({required String relayUrl}) async =>
         ref.refresh(relayInfoProvider(relayUrl).future),
   );
@@ -70,7 +71,20 @@ final class IonConnectRelaysRanker {
     final stopWatch = Stopwatch()..start();
     try {
       const timeout = Duration(seconds: 30);
-      await getRelayInfo(relayUrl: relayUrl).timeout(timeout);
+      final relayInfo = await getRelayInfo(relayUrl: relayUrl).timeout(timeout);
+      if (relayInfo case RelayInfo(:final systemStatuses?)) {
+        // Do not check sendingPushNotifications system intentionally
+        final requiredSystems = [
+          systemStatuses.publishingEvents,
+          systemStatuses.subscribingForEvents,
+          systemStatuses.dvm,
+          systemStatuses.uploadingFiles,
+          systemStatuses.readingFiles,
+        ];
+        if (requiredSystems.any((status) => status != RelaySystemStatus.up)) {
+          return RankedRelay.unreachable(url: relayUrl);
+        }
+      }
       return RankedRelay(url: relayUrl, latency: stopWatch.elapsedMilliseconds);
     } catch (e) {
       return RankedRelay.unreachable(url: relayUrl);

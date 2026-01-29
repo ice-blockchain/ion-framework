@@ -23,7 +23,7 @@ class RelayInfo with _$RelayInfo {
     @JsonKey(name: 'fcm_android_configs') List<FirebaseConfig>? firebaseAndroidConfigs,
     @JsonKey(name: 'fcm_ios_configs') List<FirebaseConfig>? firebaseIosConfigs,
     @JsonKey(name: 'fcm_web_configs') List<FirebaseConfig>? firebaseWebConfigs,
-    @JsonKey(name: 'system_status') List<RelaySystemStatuses>? systemStatuses,
+    @JsonKey(name: 'system_status') RelaySystemStatuses? systemStatuses,
   }) = _RelayInfo;
 
   const RelayInfo._();
