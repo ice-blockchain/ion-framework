@@ -23,6 +23,7 @@ class RelayInfo with _$RelayInfo {
     @JsonKey(name: 'fcm_android_configs') List<FirebaseConfig>? firebaseAndroidConfigs,
     @JsonKey(name: 'fcm_ios_configs') List<FirebaseConfig>? firebaseIosConfigs,
     @JsonKey(name: 'fcm_web_configs') List<FirebaseConfig>? firebaseWebConfigs,
+    @JsonKey(name: 'system_status') List<RelaySystemStatuses>? systemStatuses,
   }) = _RelayInfo;
 
   const RelayInfo._();
@@ -53,4 +54,27 @@ class FirebaseConfig with _$FirebaseConfig {
   }) = _RelayFirebaseConfig;
 
   factory FirebaseConfig.fromJson(Map<String, dynamic> json) => _$FirebaseConfigFromJson(json);
+}
+
+@freezed
+class RelaySystemStatuses with _$RelaySystemStatuses {
+  const factory RelaySystemStatuses({
+    @JsonKey(name: 'publishing_events') required RelaySystemStatus publishingEvents,
+    @JsonKey(name: 'subscribing_for_events') required RelaySystemStatus subscribingForEvents,
+    required RelaySystemStatus dvm,
+    @JsonKey(name: 'uploading_files') required RelaySystemStatus uploadingFiles,
+    @JsonKey(name: 'reading_files') required RelaySystemStatus readingFiles,
+    @JsonKey(name: 'sending_push_notifications')
+    required RelaySystemStatus sendingPushNotifications,
+  }) = _RelaySystemStatuses;
+
+  factory RelaySystemStatuses.fromJson(Map<String, dynamic> json) =>
+      _$RelaySystemStatusesFromJson(json);
+}
+
+@JsonEnum(fieldRename: FieldRename.screamingSnake)
+enum RelaySystemStatus {
+  up,
+  down,
+  maintenance,
 }
