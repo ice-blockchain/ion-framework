@@ -37,6 +37,10 @@ mixin _$NativeTokenTransfer {
   @JsonKey(includeIfNull: false)
   String? get memo => throw _privateConstructorUsedError;
 
+  /// If True, pay to create the associated token account of the recipient if it doesn't exist. Defaults to False.
+  @JsonKey(includeIfNull: false)
+  bool? get createDestinationAccount => throw _privateConstructorUsedError;
+
   /// Serializes this NativeTokenTransfer to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -58,7 +62,8 @@ abstract class $NativeTokenTransferCopyWith<$Res> {
       String amount,
       String kind,
       @JsonKey(includeIfNull: false) TransferPriority? priority,
-      @JsonKey(includeIfNull: false) String? memo});
+      @JsonKey(includeIfNull: false) String? memo,
+      @JsonKey(includeIfNull: false) bool? createDestinationAccount});
 }
 
 /// @nodoc
@@ -81,6 +86,7 @@ class _$NativeTokenTransferCopyWithImpl<$Res, $Val extends NativeTokenTransfer>
     Object? kind = null,
     Object? priority = freezed,
     Object? memo = freezed,
+    Object? createDestinationAccount = freezed,
   }) {
     return _then(_value.copyWith(
       to: null == to
@@ -103,6 +109,10 @@ class _$NativeTokenTransferCopyWithImpl<$Res, $Val extends NativeTokenTransfer>
           ? _value.memo
           : memo // ignore: cast_nullable_to_non_nullable
               as String?,
+      createDestinationAccount: freezed == createDestinationAccount
+          ? _value.createDestinationAccount
+          : createDestinationAccount // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ) as $Val);
   }
 }
@@ -120,7 +130,8 @@ abstract class _$$NativeTokenTransferImplCopyWith<$Res>
       String amount,
       String kind,
       @JsonKey(includeIfNull: false) TransferPriority? priority,
-      @JsonKey(includeIfNull: false) String? memo});
+      @JsonKey(includeIfNull: false) String? memo,
+      @JsonKey(includeIfNull: false) bool? createDestinationAccount});
 }
 
 /// @nodoc
@@ -141,6 +152,7 @@ class __$$NativeTokenTransferImplCopyWithImpl<$Res>
     Object? kind = null,
     Object? priority = freezed,
     Object? memo = freezed,
+    Object? createDestinationAccount = freezed,
   }) {
     return _then(_$NativeTokenTransferImpl(
       to: null == to
@@ -163,6 +175,10 @@ class __$$NativeTokenTransferImplCopyWithImpl<$Res>
           ? _value.memo
           : memo // ignore: cast_nullable_to_non_nullable
               as String?,
+      createDestinationAccount: freezed == createDestinationAccount
+          ? _value.createDestinationAccount
+          : createDestinationAccount // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ));
   }
 }
@@ -175,7 +191,8 @@ class _$NativeTokenTransferImpl implements _NativeTokenTransfer {
       required this.amount,
       this.kind = 'Native',
       @JsonKey(includeIfNull: false) this.priority,
-      @JsonKey(includeIfNull: false) this.memo});
+      @JsonKey(includeIfNull: false) this.memo,
+      @JsonKey(includeIfNull: false) this.createDestinationAccount});
 
   factory _$NativeTokenTransferImpl.fromJson(Map<String, dynamic> json) =>
       _$$NativeTokenTransferImplFromJson(json);
@@ -203,9 +220,14 @@ class _$NativeTokenTransferImpl implements _NativeTokenTransfer {
   @JsonKey(includeIfNull: false)
   final String? memo;
 
+  /// If True, pay to create the associated token account of the recipient if it doesn't exist. Defaults to False.
+  @override
+  @JsonKey(includeIfNull: false)
+  final bool? createDestinationAccount;
+
   @override
   String toString() {
-    return 'NativeTokenTransfer(to: $to, amount: $amount, kind: $kind, priority: $priority, memo: $memo)';
+    return 'NativeTokenTransfer(to: $to, amount: $amount, kind: $kind, priority: $priority, memo: $memo, createDestinationAccount: $createDestinationAccount)';
   }
 
   @override
@@ -218,13 +240,16 @@ class _$NativeTokenTransferImpl implements _NativeTokenTransfer {
             (identical(other.kind, kind) || other.kind == kind) &&
             (identical(other.priority, priority) ||
                 other.priority == priority) &&
-            (identical(other.memo, memo) || other.memo == memo));
+            (identical(other.memo, memo) || other.memo == memo) &&
+            (identical(
+                    other.createDestinationAccount, createDestinationAccount) ||
+                other.createDestinationAccount == createDestinationAccount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, to, amount, kind, priority, memo);
+  int get hashCode => Object.hash(
+      runtimeType, to, amount, kind, priority, memo, createDestinationAccount);
 
   /// Create a copy of NativeTokenTransfer
   /// with the given fields replaced by the non-null parameter values.
@@ -245,12 +270,13 @@ class _$NativeTokenTransferImpl implements _NativeTokenTransfer {
 
 abstract class _NativeTokenTransfer implements NativeTokenTransfer {
   const factory _NativeTokenTransfer(
-          {required final String to,
-          required final String amount,
-          final String kind,
-          @JsonKey(includeIfNull: false) final TransferPriority? priority,
-          @JsonKey(includeIfNull: false) final String? memo}) =
-      _$NativeTokenTransferImpl;
+      {required final String to,
+      required final String amount,
+      final String kind,
+      @JsonKey(includeIfNull: false) final TransferPriority? priority,
+      @JsonKey(includeIfNull: false) final String? memo,
+      @JsonKey(includeIfNull: false)
+      final bool? createDestinationAccount}) = _$NativeTokenTransferImpl;
 
   factory _NativeTokenTransfer.fromJson(Map<String, dynamic> json) =
       _$NativeTokenTransferImpl.fromJson;
@@ -276,6 +302,11 @@ abstract class _NativeTokenTransfer implements NativeTokenTransfer {
   @override
   @JsonKey(includeIfNull: false)
   String? get memo;
+
+  /// If True, pay to create the associated token account of the recipient if it doesn't exist. Defaults to False.
+  @override
+  @JsonKey(includeIfNull: false)
+  bool? get createDestinationAccount;
 
   /// Create a copy of NativeTokenTransfer
   /// with the given fields replaced by the non-null parameter values.
@@ -1611,6 +1642,10 @@ mixin _$Sep41Transfer {
   @JsonKey(includeIfNull: false)
   String? get memo => throw _privateConstructorUsedError;
 
+  /// If True, pay to create the associated token account of the recipient if it doesn't exist. Defaults to False.
+  @JsonKey(includeIfNull: false)
+  bool? get createDestinationAccount => throw _privateConstructorUsedError;
+
   /// Serializes this Sep41Transfer to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -1633,7 +1668,8 @@ abstract class $Sep41TransferCopyWith<$Res> {
       String to,
       String amount,
       String kind,
-      @JsonKey(includeIfNull: false) String? memo});
+      @JsonKey(includeIfNull: false) String? memo,
+      @JsonKey(includeIfNull: false) bool? createDestinationAccount});
 }
 
 /// @nodoc
@@ -1657,6 +1693,7 @@ class _$Sep41TransferCopyWithImpl<$Res, $Val extends Sep41Transfer>
     Object? amount = null,
     Object? kind = null,
     Object? memo = freezed,
+    Object? createDestinationAccount = freezed,
   }) {
     return _then(_value.copyWith(
       issuer: null == issuer
@@ -1683,6 +1720,10 @@ class _$Sep41TransferCopyWithImpl<$Res, $Val extends Sep41Transfer>
           ? _value.memo
           : memo // ignore: cast_nullable_to_non_nullable
               as String?,
+      createDestinationAccount: freezed == createDestinationAccount
+          ? _value.createDestinationAccount
+          : createDestinationAccount // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ) as $Val);
   }
 }
@@ -1701,7 +1742,8 @@ abstract class _$$Sep41TransferImplCopyWith<$Res>
       String to,
       String amount,
       String kind,
-      @JsonKey(includeIfNull: false) String? memo});
+      @JsonKey(includeIfNull: false) String? memo,
+      @JsonKey(includeIfNull: false) bool? createDestinationAccount});
 }
 
 /// @nodoc
@@ -1723,6 +1765,7 @@ class __$$Sep41TransferImplCopyWithImpl<$Res>
     Object? amount = null,
     Object? kind = null,
     Object? memo = freezed,
+    Object? createDestinationAccount = freezed,
   }) {
     return _then(_$Sep41TransferImpl(
       issuer: null == issuer
@@ -1749,6 +1792,10 @@ class __$$Sep41TransferImplCopyWithImpl<$Res>
           ? _value.memo
           : memo // ignore: cast_nullable_to_non_nullable
               as String?,
+      createDestinationAccount: freezed == createDestinationAccount
+          ? _value.createDestinationAccount
+          : createDestinationAccount // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ));
   }
 }
@@ -1762,7 +1809,8 @@ class _$Sep41TransferImpl implements _Sep41Transfer {
       required this.to,
       required this.amount,
       this.kind = 'Sep41',
-      @JsonKey(includeIfNull: false) this.memo});
+      @JsonKey(includeIfNull: false) this.memo,
+      @JsonKey(includeIfNull: false) this.createDestinationAccount});
 
   factory _$Sep41TransferImpl.fromJson(Map<String, dynamic> json) =>
       _$$Sep41TransferImplFromJson(json);
@@ -1793,9 +1841,14 @@ class _$Sep41TransferImpl implements _Sep41Transfer {
   @JsonKey(includeIfNull: false)
   final String? memo;
 
+  /// If True, pay to create the associated token account of the recipient if it doesn't exist. Defaults to False.
+  @override
+  @JsonKey(includeIfNull: false)
+  final bool? createDestinationAccount;
+
   @override
   String toString() {
-    return 'Sep41Transfer(issuer: $issuer, assetCode: $assetCode, to: $to, amount: $amount, kind: $kind, memo: $memo)';
+    return 'Sep41Transfer(issuer: $issuer, assetCode: $assetCode, to: $to, amount: $amount, kind: $kind, memo: $memo, createDestinationAccount: $createDestinationAccount)';
   }
 
   @override
@@ -1809,13 +1862,16 @@ class _$Sep41TransferImpl implements _Sep41Transfer {
             (identical(other.to, to) || other.to == to) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.kind, kind) || other.kind == kind) &&
-            (identical(other.memo, memo) || other.memo == memo));
+            (identical(other.memo, memo) || other.memo == memo) &&
+            (identical(
+                    other.createDestinationAccount, createDestinationAccount) ||
+                other.createDestinationAccount == createDestinationAccount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, issuer, assetCode, to, amount, kind, memo);
+  int get hashCode => Object.hash(runtimeType, issuer, assetCode, to, amount,
+      kind, memo, createDestinationAccount);
 
   /// Create a copy of Sep41Transfer
   /// with the given fields replaced by the non-null parameter values.
@@ -1840,7 +1896,9 @@ abstract class _Sep41Transfer implements Sep41Transfer {
       required final String to,
       required final String amount,
       final String kind,
-      @JsonKey(includeIfNull: false) final String? memo}) = _$Sep41TransferImpl;
+      @JsonKey(includeIfNull: false) final String? memo,
+      @JsonKey(includeIfNull: false)
+      final bool? createDestinationAccount}) = _$Sep41TransferImpl;
 
   factory _Sep41Transfer.fromJson(Map<String, dynamic> json) =
       _$Sep41TransferImpl.fromJson;
@@ -1869,6 +1927,11 @@ abstract class _Sep41Transfer implements Sep41Transfer {
   @override
   @JsonKey(includeIfNull: false)
   String? get memo;
+
+  /// If True, pay to create the associated token account of the recipient if it doesn't exist. Defaults to False.
+  @override
+  @JsonKey(includeIfNull: false)
+  bool? get createDestinationAccount;
 
   /// Create a copy of Sep41Transfer
   /// with the given fields replaced by the non-null parameter values.
