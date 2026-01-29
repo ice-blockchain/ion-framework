@@ -171,10 +171,8 @@ class RecentChatTile extends HookConsumerWidget {
                                 child: InlineBadgeText(
                                   titleSpan: TextSpan(text: name),
                                   badges: [
-                                    if (isVerified)
-                                      Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-                                    if (isMuted)
-                                      Assets.svg.iconChannelfillMute.icon(size: 16.0.s),
+                                    if (isVerified) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
+                                    if (isMuted) Assets.svg.iconChannelfillMute.icon(size: 16.0.s),
                                   ],
                                   gap: 2.0.s,
                                   maxLines: 1,

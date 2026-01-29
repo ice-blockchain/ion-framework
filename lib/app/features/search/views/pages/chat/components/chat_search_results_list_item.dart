@@ -49,24 +49,24 @@ class ChatSearchResultListItem extends HookConsumerWidget {
               );
             }
           : null,
-        child: ChatPrivacyTooltip(
-          canSendMessage: canSendMessage,
-          child: BadgesUserListItem(
-            contentPadding: EdgeInsets.symmetric(
-              vertical: 8.0.s,
-              horizontal: ScreenSideOffset.defaultSmallMargin,
+      child: ChatPrivacyTooltip(
+        canSendMessage: canSendMessage,
+        child: BadgesUserListItem(
+          contentPadding: EdgeInsets.symmetric(
+            vertical: 8.0.s,
+            horizontal: ScreenSideOffset.defaultSmallMargin,
+          ),
+          masterPubkey: item.masterPubkey,
+          titleSpan: TextSpan(
+            text: displayName,
+            style: context.theme.appTextThemes.subtitle3.copyWith(
+              color: context.theme.appColors.primaryText,
             ),
-            masterPubkey: item.masterPubkey,
-            titleSpan: TextSpan(
-              text: displayName,
-              style: context.theme.appTextThemes.subtitle3.copyWith(
-                color: context.theme.appColors.primaryText,
-              ),
-            ),
-            titleStrutStyle: const StrutStyle(forceStrutHeight: true),
-            constraints: BoxConstraints(minHeight: 48.0.s),
-            subtitle: item.lastMessageContent.isNotEmpty && showLastMessage
-                ? Text(
+          ),
+          titleStrutStyle: const StrutStyle(forceStrutHeight: true),
+          constraints: BoxConstraints(minHeight: 48.0.s),
+          subtitle: item.lastMessageContent.isNotEmpty && showLastMessage
+              ? Text(
                   item.lastMessageContent!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
