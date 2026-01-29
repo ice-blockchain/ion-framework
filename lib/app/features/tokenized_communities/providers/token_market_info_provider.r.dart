@@ -21,7 +21,7 @@ Stream<CommunityToken?> tokenMarketInfo(
 ) async* {
   // Read cache once at startup (don't watch to avoid restarting stream on cache updates)
   final cachedToken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
-  if (_isValidToken(cachedToken, ref)) {
+  if (cachedToken != null && _isValidToken(cachedToken, ref)) {
     yield cachedToken;
   }
 
@@ -30,7 +30,7 @@ Stream<CommunityToken?> tokenMarketInfo(
   // 1. Fetch initial data via REST
   final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
 
-  if (_isValidToken(currentToken, ref)) {
+  if (currentToken == null || _isValidToken(currentToken, ref)) {
     yield currentToken;
   }
 
@@ -95,9 +95,7 @@ class CachedTokenMarketInfoNotifier extends _$CachedTokenMarketInfoNotifier {
   }
 }
 
-bool _isValidToken(CommunityToken? token, Ref ref) {
-  if (token == null) return false;
-
+bool _isValidToken(CommunityToken token, Ref ref) {
   if (!token.isMarketValid) {
     unawaited(SentryService.logException(TokenMarketDataNotValidException(token)));
     return false;
