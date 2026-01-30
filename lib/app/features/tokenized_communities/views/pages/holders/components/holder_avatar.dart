@@ -25,16 +25,41 @@ class HolderAvatar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = 30.0.s;
     final borderRadius = BorderRadius.circular(10.0.s);
 
-    final emptyIcon = useMemoized(
-      () => ClipRRect(
-        borderRadius: borderRadius,
-        child: isXUser || !isIonConnectUser
-            ? getRandomDefaultAvatar(seed).icon(size: size)
-            : DefaultAvatar(size: size),
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: _HolderAvatarImage(
+        imageUrl: imageUrl,
+        seed: seed,
+        isXUser: isXUser,
+        isIonConnectUser: isIonConnectUser,
       ),
+    );
+  }
+}
+
+class _HolderAvatarImage extends HookWidget {
+  const _HolderAvatarImage({
+    this.imageUrl,
+    this.seed,
+    this.isXUser = false,
+    this.isIonConnectUser = false,
+  });
+
+  final String? imageUrl;
+  final String? seed;
+  final bool isXUser;
+  final bool isIonConnectUser;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = 30.0.s;
+
+    final emptyIcon = useMemoized(
+      () => !isXUser && !isIonConnectUser
+          ? getRandomDefaultAvatar(seed).icon(size: size)
+          : DefaultAvatar(size: size),
       [seed],
     );
 
@@ -43,28 +68,22 @@ class HolderAvatar extends HookWidget {
     }
 
     if (imageUrl!.isSvg) {
-      return ClipRRect(
-        borderRadius: borderRadius,
-        child: imageUrl!.isNetworkSvg
-            ? SvgPicture.network(
-                imageUrl!,
-                width: size,
-                height: size,
-                errorBuilder: (context, url, error) => emptyIcon,
-              )
-            : imageUrl!.icon(size: size),
-      );
+      return imageUrl!.isNetworkSvg
+          ? SvgPicture.network(
+              imageUrl!,
+              width: size,
+              height: size,
+              errorBuilder: (context, url, error) => emptyIcon,
+            )
+          : imageUrl!.icon(size: size);
     }
 
-    return ClipRRect(
-      borderRadius: borderRadius,
-      child: IonNetworkImage(
-        imageUrl: imageUrl!,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorWidget: (context, url, error) => emptyIcon,
-      ),
+    return IonNetworkImage(
+      imageUrl: imageUrl!,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      errorWidget: (context, url, error) => emptyIcon,
     );
   }
 }
