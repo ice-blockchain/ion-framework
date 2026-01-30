@@ -56,13 +56,13 @@ class TextEditorCashtagEmbedBuilder extends EmbedBuilder {
         // If market cap isn't available, fall back to rendering as plain text.
         // (Later phases will handle downgrade processing more globally.)
         if (marketCap == null) {
-          return Text(r'$' + embedData.symbolGroup.toUpperCase(), style: embedContext.textStyle);
+          return Text(r'$' + embedData.ticker.toUpperCase(), style: embedContext.textStyle);
         }
 
         final canClose = showClose && !embedContext.readOnly;
         return QuillEmbedTextScaler(
           child: CashtagInlineWidget(
-            symbolGroup: embedData.symbolGroup,
+            ticker: embedData.ticker,
             marketCap: marketCap,
             onClose: canClose
                 ? () => CashtagInsertionService.removeCashtagEmbed(

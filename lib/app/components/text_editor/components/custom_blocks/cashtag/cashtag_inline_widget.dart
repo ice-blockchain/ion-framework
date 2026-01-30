@@ -10,14 +10,14 @@ import 'package:ion/generated/assets.gen.dart';
 // Inline cashtag widget for the editor (badge-style with market cap and close).
 class CashtagInlineWidget extends HookWidget {
   const CashtagInlineWidget({
-    required this.symbolGroup,
+    required this.ticker,
     required this.marketCap,
     this.onClose,
     this.onTap,
     super.key,
   });
 
-  final String symbolGroup;
+  final String ticker;
   final double marketCap;
   final VoidCallback? onClose;
   final VoidCallback? onTap;
@@ -34,7 +34,7 @@ class CashtagInlineWidget extends HookWidget {
         final isBounded = constraints.hasBoundedWidth && constraints.maxWidth.isFinite;
 
         final symbolText = Text(
-          r'$' + symbolGroup.toUpperCase(),
+          r'$' + ticker.toUpperCase(),
           maxLines: 1,
           softWrap: false,
           overflow: TextOverflow.ellipsis,

@@ -115,7 +115,7 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     final tag = _findTagAtCursor(fullText, cursorIndex);
     if (tag.start == _invalidTagStart || tag.tagChar != r'$') return;
 
-    // Use abbreviation (uppercase ticker like "ETH") for display, not symbolGroup
+    // Use abbreviation (uppercase ticker like "ETH") for display.
     final ticker = suggestion.abbreviation.toUpperCase();
     final externalAddress = suggestion.coins.isNotEmpty
         ? suggestion.coins.first.coin.tokenizedCommunityExternalAddress
@@ -138,7 +138,7 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
           tag.start,
           tag.length,
           CashtagEmbedData(
-            symbolGroup: ticker,
+            ticker: ticker,
             externalAddress: externalAddress,
           ),
         );

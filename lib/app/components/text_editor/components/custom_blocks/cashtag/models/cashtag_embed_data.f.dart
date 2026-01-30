@@ -10,7 +10,8 @@ part 'cashtag_embed_data.f.g.dart';
 @freezed
 class CashtagEmbedData with _$CashtagEmbedData {
   const factory CashtagEmbedData({
-    required String symbolGroup,
+    // Ticker symbol (e.g. "ETH"). JSON key kept as 'symbolGroup' for not breaking existing data.
+    @JsonKey(name: 'symbolGroup') required String ticker,
     required String externalAddress,
     String? id, // Unique instance ID for distinguishing duplicate cashtags
   }) = _CashtagEmbedData;

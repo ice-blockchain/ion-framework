@@ -19,7 +19,7 @@ void processCashtagEmbeds(QuillController controller, WidgetRef ref) {
     final delta = controller.document.toDelta();
     final downgrades = <({int position, CashtagEmbedData data})>[];
     final upgrades =
-        <({int position, String symbolGroup, String externalAddress, double marketCap})>[];
+        <({int position, String ticker, String externalAddress, double marketCap})>[];
 
     var currentOffset = 0;
     for (final op in delta.operations) {
@@ -78,7 +78,7 @@ void processCashtagEmbeds(QuillController controller, WidgetRef ref) {
               upgrades.add(
                 (
                   position: currentOffset,
-                  symbolGroup: data.substring(1),
+                  ticker: data.substring(1),
                   externalAddress: externalAddress,
                   marketCap: marketCap,
                 ),
@@ -115,10 +115,10 @@ void processCashtagEmbeds(QuillController controller, WidgetRef ref) {
       for (final upgrade in upgrades.reversed) {
         try {
           final cashtagData = CashtagEmbedData(
-            symbolGroup: upgrade.symbolGroup.toUpperCase(),
+            ticker: upgrade.ticker.toUpperCase(),
             externalAddress: upgrade.externalAddress,
           );
-          final cashtagText = r'$' + upgrade.symbolGroup;
+          final cashtagText = r'$' + upgrade.ticker;
           CashtagInsertionService.upgradeCashtagToEmbed(
             controller,
             upgrade.position,

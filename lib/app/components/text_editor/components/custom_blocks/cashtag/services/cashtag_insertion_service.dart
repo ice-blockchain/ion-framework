@@ -59,7 +59,7 @@ class CashtagInsertionService {
       return;
     }
 
-    final cashtagText = r'$' + cashtagData.symbolGroup;
+    final cashtagText = r'$' + cashtagData.ticker;
 
     // Preserve author's intent:
     // - showMarketCap=true: keep externalAddress in the attribute so it can upgrade back.
@@ -104,7 +104,7 @@ class CashtagInsertionService {
     // Verify text matches before replacing (prevents replacing wrong text if document was edited)
     final documentText = controller.document.toPlainText();
     final textAtPosition = documentText.substring(start, end);
-    if (textAtPosition != r'$' + cashtagData.symbolGroup) {
+    if (textAtPosition != r'$' + cashtagData.ticker) {
       return;
     }
 
