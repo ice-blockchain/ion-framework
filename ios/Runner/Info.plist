@@ -95,8 +95,6 @@
 	<string>This app uses Face ID to securely authenticate your identity for account access.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This identifier will be used to deliver more relevant ads and measure performance.</string>
-	<key>NSCalendarsUsageDescription</key>
-    <string>This identifier will be used to provide personalised advertising experience tailored to you</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(ADMOB_ID)</string>
 	<key>NSUserActivityTypes</key>
@@ -111,11 +109,6 @@
 	<string>Online+</string>
 	<key>FacebookAutoLogAppEventsEnabled</key>
 	<true/>
-	<key>NSAppTransportSecurity</key>
-    <dict>
-      <key>NSAllowsArbitraryLoads</key>
-      <true/>
-    </dict>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Online+ needs location access for analytics and advertising purposes</string>
 	<key>SKAdNetworkItems</key>

@@ -81,7 +81,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
     useOnInit(
       () {
-        if (conversations.isEmpty || !(ionAdClient?.isNativeLoaded ?? false)) return;
+        if (conversations.length < 2 || !(ionAdClient?.isNativeLoaded ?? false)) return;
 
         final rng = Random(conversations.length);
         final adIndex = rng.nextInt(conversations.length - 1);

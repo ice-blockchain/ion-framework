@@ -67,6 +67,7 @@ class ConversationMessages extends _$ConversationMessages {
 
     final updatedTail = _injectAdIfPossible(tail.toList());
 
+    // Merge the ad-injected tail with the older messages, keeping newest-first order.
     final merged = [...updatedTail, ...olderMessages];
     state = AsyncData(merged);
   }
@@ -83,9 +84,11 @@ class ConversationMessages extends _$ConversationMessages {
     final isMe = ref.watch(isCurrentUserSelectorProvider(lastMessageItem.masterPubkey));
     if (isMe) return tail;
 
+    // Construct the ad placeholder message using metadata from the last message.
     final adMessageItem = EventMessage(
+      // Use unique prefixed ID and Pubkey for identification.
       id: '$adIdPrefix${lastMessageItem.createdAt}',
-      content: lastMessageItem.content,
+      content: '',
       createdAt: lastMessageItem.createdAt,
       pubkey: '$adKeyPrefix${lastMessageItem.pubkey}',
       kind: lastMessageItem.kind,
@@ -93,6 +96,7 @@ class ConversationMessages extends _$ConversationMessages {
       sig: lastMessageItem.sig,
     );
 
+    // Inject the ad message at the start of the tail (newest position).
     tail.insert(0, adMessageItem);
     return tail;
   }
