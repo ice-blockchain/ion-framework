@@ -110,4 +110,31 @@ void main() {
     final result = formatAmountCompactFromRaw('123456000', decimals: 6);
     expect(result, '123.45');
   });
+
+  parameterizedGroup('getNumericSign', [
+    (value: 1.0, expected: '+'),
+    (value: 0.5, expected: '+'),
+    (value: 0.01, expected: '+'),
+    (value: 0.001, expected: '+'),
+    (value: -1.0, expected: '-'),
+    (value: -0.5, expected: '-'),
+    (value: -0.02, expected: '-'),
+    (value: -0.015, expected: '-'),
+    (value: -0.01, expected: '-'),
+    (value: 0, expected: ''),
+    (value: 0.0, expected: ''),
+    // Above -0.01 → green (no minus)
+    (value: -0.009, expected: ''),
+    (value: -0.005, expected: ''),
+    (value: -0.001, expected: ''),
+    (value: -0.0001, expected: ''),
+  ], (t) {
+    test(
+      'getNumericSign(${t.value})',
+      () {
+        final result = getNumericSign(t.value);
+        expect(result, t.expected);
+      },
+    );
+  });
 }

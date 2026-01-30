@@ -35,6 +35,7 @@ class UserHoldingsListItem extends ConsumerWidget {
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         ref
             .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
@@ -89,7 +90,7 @@ class UserHoldingsListItem extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${token.title} #${position.rank}',
+                          token.title,
                           style: context.theme.appTextThemes.subtitle3.copyWith(
                             color: context.theme.appColors.primaryText,
                           ),
