@@ -21,6 +21,7 @@ import 'package:ion/app/features/user/model/tab_entity_type.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/empty_state.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/holdings_list.dart';
 import 'package:ion/app/features/user/providers/tab_data_source_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_holdings_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/hooks/use_watch_when_visible.dart';
@@ -162,6 +163,10 @@ class TabEntitiesList extends HookConsumerWidget {
             ref.invalidate(userPostsProvider(pubkey));
           } else if (type == TabEntityType.holdings) {
             ref.invalidate(userHoldingsTabProvider(pubkey));
+            final holderAddress = userMetadata?.toEventReference().toString();
+            if (holderAddress != null) {
+              ref.invalidate(userHoldingsProvider(holderAddress));
+            }
           } else {
             final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
             if (dataSource != null) {

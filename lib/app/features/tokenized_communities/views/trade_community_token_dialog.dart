@@ -11,7 +11,9 @@ import 'package:ion/app/components/message_notification/models/message_notificat
 import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/feed/providers/user_holdings_tab_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
@@ -26,6 +28,8 @@ import 'package:ion/app/features/tokenized_communities/utils/external_address_ex
 import 'package:ion/app/features/tokenized_communities/views/components/suggested_community_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
+import 'package:ion/app/features/user/providers/user_holdings_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
@@ -153,6 +157,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
               communityTokenName,
             );
             ref.invalidate(walletViewsDataNotifierProvider);
+            _invalidateUserHoldings(ref);
             Navigator.of(context).pop();
           }
         },
@@ -423,6 +428,18 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _invalidateUserHoldings(WidgetRef ref) {
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+    if (currentPubkey != null) {
+      ref.invalidate(userHoldingsTabProvider(currentPubkey));
+      final userMetadata = ref.read(userMetadataProvider(currentPubkey)).valueOrNull;
+      final holderAddress = userMetadata?.toEventReference().toString();
+      if (holderAddress != null) {
+        ref.invalidate(userHoldingsProvider(holderAddress));
+      }
+    }
   }
 }
 
