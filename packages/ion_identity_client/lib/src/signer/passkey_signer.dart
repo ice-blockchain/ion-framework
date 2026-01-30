@@ -184,8 +184,7 @@ class PasskeysSigner {
           ),
         ),
       );
-      final fido2Assertion = await PasskeyAuthenticator()
-          .authenticate(
+      final fido2Assertion = await PasskeyAuthenticator().authenticate(
         AuthenticateRequestType(
           preferImmediatelyAvailableCredentials: localCredsOnly,
           relyingPartyId: relyingPartyId,
@@ -195,28 +194,6 @@ class PasskeysSigner {
           allowCredentials: allowCredentials.isEmpty ? null : allowCredentials,
           mediation: MediationType.Required,
         ),
-      )
-
-          /// Races the platform authentication against a Dart-side watchdog timer.
-          ///
-          /// Some Android devices (notably with Samsung Pass / Credential Manager)
-          /// occasionally never resolve the native "authenticate" call when the
-          /// provider UI gets stuck enumerating credentials. The platform timeout
-          /// passed to the API is not always honored; this watchdog ensures we regain
-          /// control in the Dart layer and can surface a predictable error.
-          .timeout(
-        Duration(
-          milliseconds: timeoutMs,
-        ),
-        onTimeout: () async {
-          // Best-effort cancel of the ongoing native Credential Manager / passkey operation.
-          try {
-            await PasskeyAuthenticator().cancelCurrentAuthenticatorOperation();
-          } catch (_) {
-            // ignore: cancellation is best-effort
-          }
-          throw const PasskeyCancelledException('Passkey interrupted by timed out');
-        },
       );
       return AssertionRequestData(
         kind: CredentialKind.Fido2,

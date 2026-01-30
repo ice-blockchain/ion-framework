@@ -25,6 +25,9 @@ class LoginForm extends HookConsumerWidget {
     final identityKeyNameController = useTextEditingController();
     final formKey = useRef(GlobalKey<FormState>());
 
+    final didAutoLoginOnFocus = useRef(false);
+    final lastLoginWasAuto = useState(false);
+
     final authState = ref.watch(authProvider);
     final loginActionState = ref.watch(loginActionNotifierProvider);
 
@@ -42,21 +45,25 @@ class LoginForm extends HookConsumerWidget {
             scrollPadding: EdgeInsetsDirectional.only(bottom: 88.0.s),
             onFocused: (focused) {
               final isIdentityKeyNameEmpty = identityKeyNameController.text.isEmpty;
-              if (!focused || !isIdentityKeyNameEmpty) {
+              if (!focused || !isIdentityKeyNameEmpty || didAutoLoginOnFocus.value) {
                 return;
               }
+
+              didAutoLoginOnFocus.value = true;
+              lastLoginWasAuto.value = true;
               onLogin('');
             },
           ),
           SizedBox(height: 16.0.s),
           Button(
-            disabled: loginActionState.isLoading,
+            disabled: loginActionState.isLoading && !lastLoginWasAuto.value,
             trailingIcon: loginActionState.isLoading ||
                     (authState.valueOrNull?.isAuthenticated).falseOrValue
                 ? const IONLoadingIndicator()
                 : Assets.svg.iconButtonNext.icon(color: context.theme.appColors.onPrimaryAccent),
             onPressed: () {
               if (formKey.value.currentState!.validate()) {
+                lastLoginWasAuto.value = false;
                 onLogin(identityKeyNameController.text);
               }
             },
