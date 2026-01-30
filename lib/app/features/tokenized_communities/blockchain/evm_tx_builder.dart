@@ -80,6 +80,77 @@ class EvmTxBuilder {
     );
   }
 
+  Future<EvmTransaction> encodeUpdateMetadata({
+    required String tokenAddress,
+    required String newName,
+    required String newSymbol,
+    required List<dynamic> tokenAbi,
+  }) async {
+    final deployedContract = DeployedContract(
+      ContractAbi.fromJson(jsonEncode(tokenAbi), 'CommunityToken'),
+      EthereumAddress.fromHex(tokenAddress),
+    );
+    final updateFunction = deployedContract.function('updateMetadata');
+    final data = updateFunction.encodeCall([newName, newSymbol]);
+
+    return _wrapTransaction(
+      to: tokenAddress,
+      data: bytesToHex(data),
+      value: BigInt.zero,
+    );
+  }
+
+  Future<EthereumAddress> getTokenMetadataOwner({
+    required String tokenAddress,
+    required List<dynamic> tokenAbi,
+  }) async {
+    final deployedContract = DeployedContract(
+      ContractAbi.fromJson(jsonEncode(tokenAbi), 'CommunityToken'),
+      EthereumAddress.fromHex(tokenAddress),
+    );
+    final function = deployedContract.function('getMetadataOwner');
+    final result = await web3Client.call(
+      contract: deployedContract,
+      function: function,
+      params: const [],
+    );
+    return result.first as EthereumAddress;
+  }
+
+  Future<String> getTokenName({
+    required String tokenAddress,
+    required List<dynamic> tokenAbi,
+  }) async {
+    final deployedContract = DeployedContract(
+      ContractAbi.fromJson(jsonEncode(tokenAbi), 'CommunityToken'),
+      EthereumAddress.fromHex(tokenAddress),
+    );
+    final function = deployedContract.function('name');
+    final result = await web3Client.call(
+      contract: deployedContract,
+      function: function,
+      params: const [],
+    );
+    return result.first as String;
+  }
+
+  Future<String> getTokenSymbol({
+    required String tokenAddress,
+    required List<dynamic> tokenAbi,
+  }) async {
+    final deployedContract = DeployedContract(
+      ContractAbi.fromJson(jsonEncode(tokenAbi), 'CommunityToken'),
+      EthereumAddress.fromHex(tokenAddress),
+    );
+    final function = deployedContract.function('symbol');
+    final result = await web3Client.call(
+      contract: deployedContract,
+      function: function,
+      params: const [],
+    );
+    return result.first as String;
+  }
+
   Future<BigInt> quote({
     required List<int> fromTokenIdentifier,
     required List<int> toTokenIdentifier,

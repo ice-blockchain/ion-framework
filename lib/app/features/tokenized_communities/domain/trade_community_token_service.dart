@@ -186,6 +186,46 @@ class TradeCommunityTokenService {
     return repository.fetchTokenInfoFresh(externalAddress);
   }
 
+  Future<TransactionResult> updateTokenMetadata({
+    required String externalAddress,
+    required String walletId,
+    required String walletAddress,
+    required UserActionSignerNew userActionSigner,
+    required String newName,
+    required String newSymbol,
+  }) async {
+    final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+    final tokenAddress = _extractTokenAddress(tokenInfo);
+    if (tokenAddress == null || tokenAddress.isEmpty) {
+      return {'status': 'skipped'};
+    }
+
+    final metadataOwner = await repository.fetchTokenMetadataOwner(tokenAddress);
+    if (!_sameAddress(metadataOwner, walletAddress)) {
+      return {'status': 'skipped'};
+    }
+
+    final currentName = await repository.fetchTokenName(tokenAddress);
+    final currentSymbol = await repository.fetchTokenSymbol(tokenAddress);
+    if (currentName == newName && currentSymbol == newSymbol) {
+      return {'status': 'skipped'};
+    }
+
+    final updateOperation = await repository.buildUpdateMetadataUserOperation(
+      tokenAddress: tokenAddress,
+      newName: newName,
+      newSymbol: newSymbol,
+    );
+
+    final result = await repository.signAndBroadcastUserOperations(
+      walletId: walletId,
+      userOperations: [updateOperation],
+      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
+      userActionSigner: userActionSigner,
+    );
+    return result;
+  }
+
   Future<TransactionResult> _performSwap({
     required String externalAddress,
     required String fromTokenAddress,
@@ -378,6 +418,11 @@ class TradeCommunityTokenService {
   bool _hasUserPosition(CommunityToken? tokenInfo) => tokenInfo?.marketData.position != null;
 
   bool _isFirstBuy(String? tokenAddress) => tokenAddress == null || tokenAddress.isEmpty;
+
+  bool _sameAddress(String? left, String? right) {
+    if (left == null || right == null) return false;
+    return left.toLowerCase() == right.toLowerCase();
+  }
 
   String? _extractTokenAddress(CommunityToken? tokenInfo) => tokenInfo?.addresses.blockchain;
 

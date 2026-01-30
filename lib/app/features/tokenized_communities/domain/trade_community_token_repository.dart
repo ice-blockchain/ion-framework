@@ -104,6 +104,47 @@ class TradeCommunityTokenRepository {
     return _toUserOperation(swapTx);
   }
 
+  Future<EvmUserOperation> buildUpdateMetadataUserOperation({
+    required String tokenAddress,
+    required String newName,
+    required String newSymbol,
+  }) async {
+    final tokenAbi = await txBuilder.contracts.loadTokenMetadataAbi();
+    final updateTx = await txBuilder.encodeUpdateMetadata(
+      tokenAddress: tokenAddress,
+      newName: newName,
+      newSymbol: newSymbol,
+      tokenAbi: tokenAbi,
+    );
+
+    return _toUserOperation(updateTx);
+  }
+
+  Future<String> fetchTokenMetadataOwner(String tokenAddress) async {
+    final tokenAbi = await txBuilder.contracts.loadTokenMetadataAbi();
+    final owner = await txBuilder.getTokenMetadataOwner(
+      tokenAddress: tokenAddress,
+      tokenAbi: tokenAbi,
+    );
+    return owner.hex;
+  }
+
+  Future<String> fetchTokenName(String tokenAddress) async {
+    final tokenAbi = await txBuilder.contracts.loadTokenMetadataAbi();
+    return txBuilder.getTokenName(
+      tokenAddress: tokenAddress,
+      tokenAbi: tokenAbi,
+    );
+  }
+
+  Future<String> fetchTokenSymbol(String tokenAddress) async {
+    final tokenAbi = await txBuilder.contracts.loadTokenMetadataAbi();
+    return txBuilder.getTokenSymbol(
+      tokenAddress: tokenAddress,
+      tokenAbi: tokenAbi,
+    );
+  }
+
   Future<TransactionResult> signAndBroadcastUserOperations({
     required String walletId,
     required List<EvmUserOperation> userOperations,
