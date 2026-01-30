@@ -17,6 +17,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/hooks
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_constants.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
+import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/string.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
@@ -584,10 +585,9 @@ class _TokenCardFooter extends StatelessWidget {
                 child: Builder(
                   builder: (context) {
                     final maxValue = coinForNetwork?.amount;
-                    final decimals = coinForNetwork?.coin.decimals ?? SwapConstants.defaultDecimals;
 
                     return Text(
-                      '${maxValue != null ? maxValue.formatWithDecimals(decimals) : 0.00} ${coinsGroup?.abbreviation ?? ''}',
+                      '${formatCrypto(maxValue ?? 0)} ${coinsGroup?.abbreviation ?? ''}',
                       style: textStyles.caption2.copyWith(
                         color: isError ? colors.attentionRed : colors.tertiaryText,
                       ),
