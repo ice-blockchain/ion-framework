@@ -6,7 +6,6 @@ packages:
 
 ignore:
   - "packages/**/example"
-  - "packages/ion_screenshot_detector"
 
 command:
   bootstrap:
