@@ -193,7 +193,7 @@ class PasskeysSigner {
           timeout: timeoutMs,
           userVerification: challenge.userVerification,
           allowCredentials: allowCredentials.isEmpty ? null : allowCredentials,
-          mediation: MediationType.Required,
+          mediation: MediationType.Silent,
         ),
       )
 
