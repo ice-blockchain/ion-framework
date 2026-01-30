@@ -515,6 +515,7 @@ class _TokenCards extends HookConsumerWidget {
                     network: state.targetNetwork,
                     avatarWidget: communityAvatarWidget,
                     showSelectButton: false,
+                    skipAmountFormatting: true,
                     skipValidation: true,
                     enabled: false,
                     showArrow: false,
