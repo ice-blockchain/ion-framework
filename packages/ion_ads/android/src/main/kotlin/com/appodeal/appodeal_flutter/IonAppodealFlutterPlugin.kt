@@ -7,6 +7,7 @@ import com.appodeal.ads.ImageData
 import com.appodeal.ads.MediaAssets
 import com.appodeal.ads.NativeMediaViewContentType
 import com.appodeal.ads.VideoData
+import com.appodeal.ads.ext.BuildConfig
 import com.appodeal.ads.inapp.InAppPurchase
 import com.appodeal.ads.inapp.InAppPurchase.Type
 import com.appodeal.ads.inapp.InAppPurchaseValidateCallback
@@ -560,5 +561,5 @@ private fun List<ServiceError>.toArg(): Map<String, List<String>> {
 }
 
 internal fun apdLog(message: String, any: Any? = null) {
-    if (true) Log.d("AppodealFlutterPlugin", "$message ${any ?: ""}")
+    if (BuildConfig.DEBUG) Log.d("AppodealFlutterPlugin", "$message ${any ?: ""}")
 }
