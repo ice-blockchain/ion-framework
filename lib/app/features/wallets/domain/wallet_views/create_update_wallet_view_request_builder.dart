@@ -90,20 +90,6 @@ class _CreateUpdateRequestBuilder {
 
     // Process each coin
     for (final coin in coins) {
-<<<<<<< HEAD
-      final walletViewId = walletView?.id;
-      final mainWalletId = mainUserWallet.id;
-      final wallets = networkWithWallet[coin.network.id];
-      final isMainWalletView = walletView?.isMainWalletView ?? false;
-
-      final walletId = wallets?.firstWhereOrNull((wallet) {
-        return isMainWalletView
-            ? wallet.name == walletViewId || wallet.id == mainWalletId
-            : wallet.name == walletViewId;
-      })?.id;
-
-=======
->>>>>>> bb2d7dfb9 (fix: wallet id resolution in wallet view updates (#3201))
       symbolGroups.add(coin.symbolGroup);
 
       // Reuse existing binding, or resolve wallet for new coins
@@ -121,8 +107,6 @@ class _CreateUpdateRequestBuilder {
 
     return (symbolGroups, walletViewItems);
   }
-<<<<<<< HEAD
-=======
 
   Map<String, List<Wallet>> _getConnectedWalletsByNetwork({
     required List<Wallet> userWallets,
@@ -154,5 +138,4 @@ class _CreateUpdateRequestBuilder {
 
     return networkWithWallets;
   }
->>>>>>> bb2d7dfb9 (fix: wallet id resolution in wallet view updates (#3201))
 }
