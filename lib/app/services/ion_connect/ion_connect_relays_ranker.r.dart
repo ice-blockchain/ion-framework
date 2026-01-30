@@ -73,15 +73,10 @@ final class IonConnectRelaysRanker {
       const timeout = Duration(seconds: 30);
       final relayInfo = await getRelayInfo(relayUrl: relayUrl).timeout(timeout);
       if (relayInfo case RelayInfo(:final systemStatuses?)) {
-        // Do not check sendingPushNotifications system intentionally
-        final requiredSystems = [
-          systemStatuses.publishingEvents,
-          systemStatuses.subscribingForEvents,
-          systemStatuses.dvm,
-          systemStatuses.uploadingFiles,
-          systemStatuses.readingFiles,
-        ];
-        if (requiredSystems.any((status) => status != RelaySystemStatus.up)) {
+        // TODO: currently relying only on [publishingEvents].
+        // Need to keep several relay lists - one per system and choose relays from a corresponding list
+        // depending on the action (write->publishingEvents, read->subscribingForEvents, ...).
+        if (systemStatuses.publishingEvents != RelaySystemStatus.up) {
           return RankedRelay.unreachable(url: relayUrl);
         }
       }
