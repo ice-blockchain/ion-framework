@@ -515,6 +515,86 @@ Delta restoreMentions(
   return newDelta;
 }
 
+/// Restores cashtag attributes that should display with market cap based on
+/// a cashtag market cap label.
+///
+/// The label is expected to be parsed into:
+///   symbolGroup -> { instanceIndex -> externalAddress }
+///
+/// This function rewrites cashtag segments to set:
+///   CashtagAttribute.attributeKey = externalAddress
+///   CashtagAttribute.showMarketCapKey = true
+/// for the labeled instances.
+Delta restoreCashtagsMarketCap(
+  Delta delta,
+  Map<String, Map<int, String>> symbolGroupInstanceExternalAddress,
+) {
+  if (symbolGroupInstanceExternalAddress.isEmpty) {
+    return delta;
+  }
+
+  final textParser = TextParser.tagsMatchers();
+  final newDelta = Delta();
+  final instanceTracker = <String, int>{}; // per symbolGroup
+
+  for (final op in delta.operations) {
+    if (op.data is Map) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    if (op.data is! String) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    final text = op.data! as String;
+    final segments = textParser.parse(text);
+
+    if (segments.isEmpty) {
+      newDelta.insert(op.data, op.attributes);
+      continue;
+    }
+
+    for (final segment in segments) {
+      if (segment.matcher is CashtagMatcher) {
+        final cashtagText = segment.text;
+        final symbolGroup = cashtagText.startsWith(r'$') ? cashtagText.substring(1) : cashtagText;
+
+        final currentInstance = instanceTracker[symbolGroup] ?? 0;
+        instanceTracker[symbolGroup] = currentInstance + 1;
+
+        final externalAddress = symbolGroupInstanceExternalAddress[symbolGroup]?[currentInstance];
+
+        if (externalAddress != null && externalAddress.trim().isNotEmpty) {
+          newDelta.insert(
+            cashtagText,
+            {
+              ...?op.attributes,
+              CashtagAttribute.attributeKey: externalAddress.trim(),
+              CashtagAttribute.showMarketCapKey: true,
+            },
+          );
+        } else {
+          // Keep as normal cashtag.
+          newDelta.insert(
+            cashtagText,
+            {
+              ...?op.attributes,
+              CashtagAttribute.attributeKey: cashtagText,
+            },
+          );
+        }
+      } else {
+        // Keep other segments as-is.
+        newDelta.insert(segment.text, op.attributes);
+      }
+    }
+  }
+
+  return newDelta;
+}
+
 Delta withFullLinks(Delta delta) {
   final out = Delta();
   for (final op in delta.toList()) {

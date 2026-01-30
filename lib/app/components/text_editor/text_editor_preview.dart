@@ -5,12 +5,14 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/text_editor_cashtag_embed_builder.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_code_block/text_editor_code_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_separator_block/text_editor_separator_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/unknown/text_editor_unknown_embed_builder.dart';
 import 'package:ion/app/components/text_editor/custom_recognizer_builder.dart';
+import 'package:ion/app/components/text_editor/hooks/use_process_cashtag_embeds.dart';
 import 'package:ion/app/components/text_editor/hooks/use_process_mention_embeds.dart';
 import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
@@ -128,6 +130,12 @@ class _QuillFormattedContent extends HookConsumerWidget {
       enabled: convertMentionsToEmbeds,
     );
 
+    useProcessCashtagEmbeds(
+      controller,
+      ref,
+      enabled: convertMentionsToEmbeds,
+    );
+
     final effectiveStyles = useMemoized(
       () {
         if (ignoreInlineBoldItalic) {
@@ -159,6 +167,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
           TextEditorSeparatorBuilder(readOnly: true),
           TextEditorCodeBuilder(readOnly: true),
           if (convertMentionsToEmbeds) const TextEditorMentionEmbedBuilder(showClose: false),
+          if (convertMentionsToEmbeds) const TextEditorCashtagEmbedBuilder(showClose: false),
         ],
         unknownEmbedBuilder: TextEditorUnknownEmbedBuilder(),
         disableClipboard: true,

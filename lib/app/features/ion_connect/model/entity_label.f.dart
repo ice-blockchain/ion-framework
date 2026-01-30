@@ -10,7 +10,8 @@ enum EntityLabelNamespace {
   language('ISO-639-1'),
   color('color'),
   ugcSerial('ugc.serial'),
-  mentionMarketCap('community.token.marketcap.show');
+  mentionMarketCap('community.token.marketcap.show'),
+  cashtagMarketCap('community.token.marketcap.show.cashtag');
 
   const EntityLabelNamespace(this.value);
   final String value;

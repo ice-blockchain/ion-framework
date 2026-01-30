@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/common/quill_embed_text_scale_fix.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/mention_inline_widget.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
@@ -100,13 +101,7 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final marketCap = ref.watch(userTokenMarketCapProvider(pubkey));
-
-    final mq = MediaQuery.of(context);
-    return MediaQuery(
-      // To make embedded mention text follow the same scale that the surrounding rich text
-      // have to set textScaleFactor cause it is used by embedded quill widgets to text scaling
-      // ignore: deprecated_member_use
-      data: mq.copyWith(textScaleFactor: 1),
+    return QuillEmbedTextScaler(
       child: MentionInlineWidget(
         username: username,
         marketCap: marketCap ?? 0,

@@ -61,13 +61,7 @@ Future<Delta> mentionsOverlay(
   final dataWithPubkeys = data as EntityDataWithRelatedPubkeys;
   final relatedPubkeys = dataWithPubkeys.relatedPubkeys;
 
-  if (relatedPubkeys == null || relatedPubkeys.isEmpty) {
-    return baseParsedMedia.content;
-  }
-
-  final usernameToPubkey = <String, String>{};
-
-  // Extract label from data and convert to restore format
+  // Extract labels from data and convert to restore format
   final mentionMarketCapLabel = switch (data) {
     final PostData d => d.mentionMarketCapLabel,
     final ModifiablePostData d => d.mentionMarketCapLabel,
@@ -75,7 +69,26 @@ Future<Delta> mentionsOverlay(
     _ => null,
   };
 
+  final cashtagMarketCapLabel = switch (data) {
+    final PostData d => d.cashtagMarketCapLabel,
+    final ModifiablePostData d => d.cashtagMarketCapLabel,
+    final ArticleData d => d.cashtagMarketCapLabel,
+    _ => null,
+  };
+
   final pubkeyInstanceShowMarketCap = buildInstanceMapFromLabel(mentionMarketCapLabel);
+  final cashtagInstanceExternalAddress =
+      buildCashtagExternalAddressMapFromLabel(cashtagMarketCapLabel);
+
+  // If there are no mentions to restore, still apply cashtag marketcap restoration.
+  if (relatedPubkeys == null || relatedPubkeys.isEmpty) {
+    if (cashtagInstanceExternalAddress.isEmpty) {
+      return baseParsedMedia.content;
+    }
+    return restoreCashtagsMarketCap(baseParsedMedia.content, cashtagInstanceExternalAddress);
+  }
+
+  final usernameToPubkey = <String, String>{};
 
   await Future.wait(
     relatedPubkeys.map((relatedPubkey) async {
@@ -92,16 +105,17 @@ Future<Delta> mentionsOverlay(
     }),
   );
 
-  if (usernameToPubkey.isEmpty) {
-    return baseParsedMedia.content;
-  }
+  final restoredMentionsDelta = usernameToPubkey.isEmpty
+      ? baseParsedMedia.content
+      : restoreMentions(
+          baseParsedMedia.content,
+          usernameToPubkey,
+          pubkeyInstanceShowMarketCap: pubkeyInstanceShowMarketCap,
+        );
 
-  final restoredDelta = restoreMentions(
-    baseParsedMedia.content,
-    usernameToPubkey,
-    pubkeyInstanceShowMarketCap: pubkeyInstanceShowMarketCap,
-  );
-  return processDeltaMatches(restoredDelta);
+  // Ensure matcher attributes exist, then apply per-instance cashtag marketcap restore last.
+  final deltaWithMatches = processDeltaMatches(restoredMentionsDelta);
+  return restoreCashtagsMarketCap(deltaWithMatches, cashtagInstanceExternalAddress);
 }
 
 ({Delta content, List<MediaAttachment> media}) parseMediaContent({

@@ -17,37 +17,46 @@ Future<Delta> articleMentionsRestored(
   required Delta delta,
   List<RelatedPubkey>? relatedPubkeys,
   EntityLabel? mentionMarketCapLabel,
+  EntityLabel? cashtagMarketCapLabel,
 }) async {
-  // If no mentions, return delta as-is
-  if (relatedPubkeys == null || relatedPubkeys.isEmpty) {
+  final cashtagMarketCap = buildCashtagExternalAddressMapFromLabel(cashtagMarketCapLabel);
+
+  // Fast path: no mentions and no cashtag market cap label
+  if ((relatedPubkeys == null || relatedPubkeys.isEmpty) && cashtagMarketCap.isEmpty) {
     return delta;
   }
 
-  // Build username → pubkey map (async lookups)
-  final usernameToPubkey = <String, String>{};
+  var restored = delta;
 
-  // Convert EntityLabel to restore format using shared utility
-  final pubkeyInstanceShowMarketCap = buildInstanceMapFromLabel(mentionMarketCapLabel);
+  // Restore mentions if present
+  if (relatedPubkeys != null && relatedPubkeys.isNotEmpty) {
+    final usernameToPubkey = <String, String>{};
+    final pubkeyInstanceShowMarketCap = buildInstanceMapFromLabel(mentionMarketCapLabel);
 
-  for (final relatedPubkey in relatedPubkeys) {
-    final pubkey = relatedPubkey.value;
-
-    try {
-      final userMetadata = await ref.read(
-        userMetadataProvider(pubkey, network: false).future,
-      );
-      if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
-        usernameToPubkey[userMetadata.data.name] = pubkey;
+    for (final relatedPubkey in relatedPubkeys) {
+      final pubkey = relatedPubkey.value;
+      try {
+        final userMetadata = await ref.read(
+          userMetadataProvider(pubkey, network: false).future,
+        );
+        if (userMetadata != null && userMetadata.data.name.isNotEmpty) {
+          usernameToPubkey[userMetadata.data.name] = pubkey;
+        }
+      } catch (_) {
+        continue;
       }
-    } catch (_) {
-      continue;
     }
+
+    restored = restoreMentions(
+      restored,
+      usernameToPubkey,
+      pubkeyInstanceShowMarketCap: pubkeyInstanceShowMarketCap,
+    );
   }
 
-  // Restore mentions using username lookup
-  return restoreMentions(
-    delta,
-    usernameToPubkey,
-    pubkeyInstanceShowMarketCap: pubkeyInstanceShowMarketCap,
-  );
+  // Ensure hashtag/cashtag attributes are applied, then restore cashtag market cap flags.
+  final withMatches = processDeltaMatches(restored);
+  return cashtagMarketCap.isEmpty
+      ? withMatches
+      : restoreCashtagsMarketCap(withMatches, cashtagMarketCap);
 }

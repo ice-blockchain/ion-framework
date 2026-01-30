@@ -145,6 +145,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         poll: poll,
         language: _buildLanguageLabel(language),
         mentionMarketCapLabel: _buildMentionMarketCapLabel(postContent),
+        cashtagMarketCapLabel: _buildCashtagMarketCapLabel(postContent),
         ugcSerial: ugcSerialLabel,
       );
 
@@ -236,6 +237,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         poll: poll,
         language: _buildLanguageLabel(language),
         mentionMarketCapLabel: _buildMentionMarketCapLabel(postContent),
+        cashtagMarketCapLabel: _buildCashtagMarketCapLabel(postContent),
       );
 
       final originalContentDelta = parseAndConvertDelta(
@@ -288,6 +290,7 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         poll: null,
         language: null,
         mentionMarketCapLabel: null,
+        cashtagMarketCapLabel: null,
         ugcSerial: null,
       );
 
@@ -616,6 +619,33 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       values: values,
       namespace: EntityLabelNamespace.mentionMarketCap,
     );
+  }
+
+  EntityLabel? _buildCashtagMarketCapLabel(Delta content) {
+    final values = <LabelValue>[];
+    final instanceCounters = <String, int>{}; // per symbolGroup
+
+    content.forEachCashtag((symbolGroup, {required bool showMarketCap, String? externalAddress}) {
+      if (!showMarketCap) return;
+      final ext = externalAddress?.trim();
+      if (ext == null || ext.isEmpty) return;
+
+      final instanceIndex = instanceCounters[symbolGroup] ?? 0;
+      instanceCounters[symbolGroup] = instanceIndex + 1;
+
+      values.add(
+        LabelValue(
+          value: symbolGroup,
+          additionalElements: [ext, instanceIndex.toString()],
+        ),
+      );
+    });
+
+    if (values.isEmpty) {
+      return null;
+    }
+
+    return EntityLabel(values: values, namespace: EntityLabelNamespace.cashtagMarketCap);
   }
 
   Set<RelatedPubkey> _buildRelatedPubkeys({

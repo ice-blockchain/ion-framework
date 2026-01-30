@@ -2,12 +2,13 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/wallets/domain/coins/search_coins_service.r.dart';
+import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'cashtag_suggestions_provider.r.g.dart';
 
 @riverpod
-Future<List<String>> cashtagSuggestions(Ref ref, String query) async {
+Future<List<CoinsGroup>> cashtagSuggestions(Ref ref, String query) async {
   if (query.isEmpty || !query.startsWith(r'$')) {
     return [];
   }
@@ -17,7 +18,7 @@ Future<List<String>> cashtagSuggestions(Ref ref, String query) async {
 
   try {
     final coinsGroups = await searchService.search(searchQuery);
-    return coinsGroups.map((group) => group.symbolGroup).take(10).toList();
+    return coinsGroups.take(10).toList();
   } catch (e) {
     return [];
   }

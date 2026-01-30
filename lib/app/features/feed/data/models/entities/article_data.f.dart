@@ -96,6 +96,7 @@ class ArticleData
     EntityEditingEndedAt? editingEndedAt,
     EntityLabel? language,
     EntityLabel? mentionMarketCapLabel,
+    EntityLabel? cashtagMarketCapLabel,
     EntityLabel? ugcSerial,
   }) = _ArticleData;
 
@@ -132,6 +133,10 @@ class ArticleData
         tags,
         namespace: EntityLabelNamespace.mentionMarketCap,
       ),
+      cashtagMarketCapLabel: EntityLabel.fromTags(
+        tags,
+        namespace: EntityLabelNamespace.cashtagMarketCap,
+      ),
       ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
@@ -150,6 +155,7 @@ class ArticleData
     EntityEditingEndedAt? editingEndedAt,
     EntityLabel? language,
     EntityLabel? mentionMarketCapLabel,
+    EntityLabel? cashtagMarketCapLabel,
     EntityLabel? ugcSerial,
     String textContent = '',
   }) {
@@ -174,6 +180,7 @@ class ArticleData
       editingEndedAt: editingEndedAt,
       language: language,
       mentionMarketCapLabel: mentionMarketCapLabel,
+      cashtagMarketCapLabel: cashtagMarketCapLabel,
       ugcSerial: ugcSerial,
     );
   }
@@ -205,6 +212,7 @@ class ArticleData
         if (relatedHashtags != null) ...relatedHashtags!.map((hashtag) => hashtag.toTag()),
         if (relatedPubkeys != null) ...relatedPubkeys!.map((pubkey) => pubkey.toTag()),
         if (mentionMarketCapLabel != null) ...mentionMarketCapLabel!.toTags(),
+        if (cashtagMarketCapLabel != null) ...cashtagMarketCapLabel!.toTags(),
         // Articles don't use rich_text tag - content is 100% markdown
         if (editingEndedAt != null) editingEndedAt!.toTag(),
         if (language != null) ...language!.toTags(),
