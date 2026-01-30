@@ -49,7 +49,7 @@ class TopicsButton extends HookConsumerWidget {
         if (!topicsTooltipVisible || !context.mounted) return;
         final targetContext = topicsButtonKey.value.currentContext;
         if (targetContext == null || !targetContext.mounted) return;
-        await ensureContextVisible(targetContext);
+        await _ensureContextVisible(targetContext);
         if (!context.mounted) return;
         ShowCaseWidget.of(context).startShowCase(
           [topicsButtonKey.value],
@@ -111,5 +111,24 @@ class TopicsButton extends HookConsumerWidget {
   void _onTap(BuildContext context) {
     hideKeyboard(context);
     SelectTopicsRoute(feedType: type).push<void>(context);
+  }
+
+  Future<void> _ensureContextVisible(
+    BuildContext context, {
+    Duration duration = const Duration(milliseconds: 200),
+    Curve curve = Curves.easeInOut,
+    double alignment = 0.0,
+  }) async {
+    if (isContextVisible(context)) return;
+    final renderObject = context.findRenderObject();
+    if (renderObject == null) return;
+
+    await Scrollable.ensureVisible(
+      context,
+      alignment: alignment,
+      duration: duration,
+      curve: curve,
+    );
+    return;
   }
 }
