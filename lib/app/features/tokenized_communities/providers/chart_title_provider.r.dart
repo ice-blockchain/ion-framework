@@ -10,8 +10,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chart_title_provider.r.g.dart';
 
 // For profile/creator tokens: Returns ticker with @ prefix (e.g. "@ticker")
-// For Twitter tokens: Returns ticker with $ prefix
-// For content tokens: Returns ticker with $ prefix
+// For Twitter & contenttokens: Returns ticker with $ prefix
+
 @riverpod
 Future<String?> chartTitle(
   Ref ref, {
