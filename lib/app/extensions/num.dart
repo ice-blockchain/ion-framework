@@ -38,9 +38,10 @@ extension DoubleNullableExtension on double? {
 
   String formatWithDecimals(int decimals) {
     final noNullVal = zeroOrValue;
-    final decimal = Decimal.parse(noNullVal.toString());
-    final formatted = decimal.toStringAsFixed(decimals);
-    return formatted.replaceFirst(RegExp(r'\.?0+$'), '');
+    final d = Decimal.parse(noNullVal.toString());
+    final truncated = d.truncate(scale: decimals);
+    final fixed = truncated.toStringAsFixed(decimals);
+    return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 }
 
