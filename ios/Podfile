@@ -36,76 +36,25 @@ flutter_ios_podfile_setup
 install! 'cocoapods', :warn_for_multiple_pod_sources => false
 
 def appodeal
-   pod 'Appodeal', '3.12.0'
-   pod 'APDAmazonAdapter', '3.12.0.0'
-   pod 'APDAppLovinAdapter', '3.12.0.0'
-   pod 'APDAppLovinMAXAdapter', '3.12.0.0'
-   pod 'APDBidMachineAdapter', '3.12.0.0'
-   pod 'APDBidonAdapter', '3.12.0.0'
-   pod 'APDBigoAdsAdapter', '3.12.0.0'
-   pod 'APDDTExchangeAdapter', '3.12.0.0'
-   pod 'APDGoogleAdMobAdapter', '3.12.0.0'
-   pod 'APDIABAdapter', '3.12.0.0'
-   pod 'APDInMobiAdapter', '3.12.0.0'
-   pod 'APDIronSourceAdapter', '3.12.0.0'
-   pod 'APDLevelPlayAdapter', '3.12.0.0'
-   pod 'APDMetaAudienceNetworkAdapter', '3.12.0.0'
-   pod 'APDMintegralAdapter', '3.12.0.0'
-   pod 'APDMyTargetAdapter', '3.12.0.0'
-   pod 'APDUnityAdapter', '3.12.0.0'
-   pod 'APDVungleAdapter', '3.12.0.0'
-   pod 'AppLovinMediationAmazonAdMarketplaceAdapter', '5.3.2.0'
-   pod 'AppLovinMediationBidMachineAdapter', '3.5.0.0.0'
-   pod 'AppLovinMediationBigoAdsAdapter', '5.0.0.0'
-   pod 'AppLovinMediationByteDanceAdapter', '7.7.0.7.0'
-   pod 'AppLovinMediationChartboostAdapter', '9.10.1.0'
-   pod 'AppLovinMediationFacebookAdapter', '6.20.1.0'
-   pod 'AppLovinMediationFyberAdapter', '8.4.1.0'
-   pod 'AppLovinMediationGoogleAdManagerAdapter', '12.13.0.0'
-   pod 'AppLovinMediationGoogleAdapter', '12.13.0.0'
-   pod 'AppLovinMediationInMobiAdapter', '11.1.0.0'
-   pod 'AppLovinMediationIronSourceAdapter', '9.1.0.0.0'
-   pod 'AppLovinMediationMintegralAdapter', '7.7.9.0.0'
-   pod 'AppLovinMediationMobileFuseAdapter', '1.9.3.0'
-   pod 'AppLovinMediationMolocoAdapter', '4.1.0.0'
-   pod 'AppLovinMediationMyTargetAdapter', '5.36.2.0'
-   pod 'AppLovinMediationPubMaticAdapter', '4.10.0.0'
-   pod 'AppLovinMediationUnityAdsAdapter', '4.16.3.0'
-   pod 'AppLovinMediationVerveAdapter', '3.7.0.0'
-   pod 'AppLovinMediationVungleAdapter', '7.6.2.0'
-   pod 'AppLovinMediationYandexAdapter', '7.17.0.0'
-   pod 'BidMachineIronSourceCustomAdapter', '3.5.0.2'
-   pod 'BidonAdapterAmazon', '5.3.2.0'
-   pod 'BidonAdapterAppLovin', '13.5.1.0'
-   pod 'BidonAdapterBidMachine', '3.5.0.0'
-   pod 'BidonAdapterBigoAds', '5.0.0.0'
-   pod 'BidonAdapterChartboost', '9.10.1.0'
-   pod 'BidonAdapterDTExchange', '8.4.1.0'
-   pod 'BidonAdapterInMobi', '11.1.0.0'
-   pod 'BidonAdapterIronSource', '9.1.0.0.0'
-   pod 'BidonAdapterMetaAudienceNetwork', '6.20.1.0'
-   pod 'BidonAdapterMintegral', '7.7.9.0'
-   pod 'BidonAdapterMobileFuse', '1.9.3.0'
-   pod 'BidonAdapterMoloco', '4.1.0.0'
-   pod 'BidonAdapterMyTarget', '5.36.2.0'
-   pod 'BidonAdapterTaurusX', '1.9.2.0'
-   pod 'BidonAdapterUnityAds', '4.16.3.0'
-   pod 'BidonAdapterVungle', '7.6.2.0'
-   pod 'BidonAdapterYandex', '7.17.0.0'
-   pod 'IronSourceAdMobAdapter', '5.3.0.0'
-   pod 'IronSourceBidMachineAdapter', '5.1.0.0'
-   pod 'IronSourceBigoAdapter', '5.1.0.0'
-   pod 'IronSourceFacebookAdapter', '5.0.0.0'
-   pod 'IronSourceFyberAdapter', '5.2.0.0'
-   pod 'IronSourceInMobiAdapter', '5.3.0.0'
-   pod 'IronSourceMintegralAdapter', '5.1.0.0'
-   pod 'IronSourceMobileFuseAdapter', '5.0.0.0'
-   pod 'IronSourceMolocoAdapter', '5.2.0.0'
-   pod 'IronSourceMyTargetAdapter', '5.3.0.0'
-   pod 'IronSourcePangleAdapter', '5.5.0.0'
-   pod 'IronSourceUnityAdsAdapter', '5.2.0.0'
-   pod 'IronSourceVerveAdapter', '5.1.0.0'
-   pod 'IronSourceVungleAdapter', '5.3.0.0'
+    # Core Appodeal SDK
+    pod 'Appodeal', '3.12.0'
+
+    # Major Networks (Direct Adapters for Appodeal)
+    pod 'APDAmazonAdapter', '3.12.0.0'         # Essential for maximizing Amazon revenue
+    pod 'APDAppLovinMAXAdapter', '3.12.0.0'    # AppLovin MAX integration (critical)
+    pod 'APDGoogleAdMobAdapter', '3.12.0.0'    # Google AdMob/AdManager (critical)
+    pod 'APDMetaAudienceNetworkAdapter', '3.12.0.0' # Meta (Facebook) (critical)
+    pod 'APDInMobiAdapter', '3.12.0.0'         # InMobi (major network)
+
+    # Keep the Bidon core and Bidon adapter for the largest network (AppLovin)
+    pod 'BidonAdapterAppLovin', '13.5.1.0'
+
+    # IronSource/LevelPlay (high-volume)
+    pod 'APDLevelPlayAdapter', '3.12.0.0'
+    # Mintegral (strong APAC/Tier 2 performance)
+    pod 'APDMintegralAdapter', '3.12.0.0'
+    # Vungle (common network)
+    pod 'APDVungleAdapter', '3.12.0.0'
 end
 
 target 'Runner' do
