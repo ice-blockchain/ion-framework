@@ -42,8 +42,40 @@ String formatAmountCompactFromRaw(String raw, {int decimals = 18}) {
     return '0.$shown';
   }
 
-  // Use our truncating compact formatter to avoid rounding up (e.g. 999,928 -> 999K, not 1M).
-  return formatBigIntCompact(whole);
+  // Always show exactly 2 decimals (truncated, no rounding) for amount >= 1,
+  // including when whole < 1000 (e.g. 1.00, 999.92).
+  final thousand = BigInt.from(1000);
+  if (whole < thousand) {
+    final frac2 = ((amount % divisor) * BigInt.from(100)) ~/ divisor;
+    final frac2Str = frac2.toString().padLeft(2, '0');
+    return '$whole.$frac2Str';
+  }
+
+  // Compact form (K, M, …) with always 2 decimals from compact remainder.
+  return _formatAmountCompactWithDecimals(whole);
+}
+
+/// Formats a BigInt >= 1000 into compact form (e.g. 999.92K) with exactly 2 decimals (truncated).
+String _formatAmountCompactWithDecimals(BigInt value) {
+  final isNegative = value.isNegative;
+  var current = value.abs();
+
+  const suffixes = <String>['', 'K', 'M', 'B', 'T', 'Q', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+  final thousand = BigInt.from(1000);
+
+  var tier = 0;
+  var remainder = BigInt.zero;
+  while (current >= thousand && tier < suffixes.length - 1) {
+    remainder = current % thousand;
+    current = current ~/ thousand;
+    tier++;
+  }
+
+  final dec2 = (remainder * BigInt.from(100)) ~/ thousand;
+  final frac2Str = dec2.toString().padLeft(2, '0');
+  final sign = isNegative ? '-' : '';
+  final suffix = suffixes[tier];
+  return '$sign$current.$frac2Str$suffix';
 }
 
 /// Formats a BigInt into a compact representation: 12.3K, 4.5M, 6.7B, etc.
