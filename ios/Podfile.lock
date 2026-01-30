@@ -694,6 +694,10 @@ SPEC CHECKSUMS:
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   external_app_launcher: 3411245965270a74040a3de17e27bd02b8abb905
+  facebook_app_events: cfa07e73912a052992b5f218f79a19a66a99bf1a
+  FBAEMKit: 56a4f5a9607957b547b6458b17a98c5bb2736367
+  FBSDKCoreKit: 54f1240567e16862ab71c53c33dc347db5c524c5
+  FBSDKCoreKit_Basics: eb530cd6a79030dbb11df460aafb2767bcad9028
   ffmpeg_kit_flutter: 03e1c7562aee29a33b03def7b10a2fbc0456c63d
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   file_saver: 6cdbcddd690cb02b0c1a0c225b37cd805c2bf8b6
