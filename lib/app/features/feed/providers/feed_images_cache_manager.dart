@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+// ignore: depend_on_referenced_packages
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:ion/app/services/file_cache/ion_http_file_service.dart';
 
@@ -15,7 +16,7 @@ class FeedImagesCacheManager {
       key,
       fileService: IonHttpFileService(concurrentFetches: maxConcurrentDownloads),
       stalePeriod: const Duration(days: 1),
-      maxNrOfCacheObjects: 1000,
+      maxNrOfCacheObjects: 500,
     );
 
     instance = CacheManager(
