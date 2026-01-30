@@ -8,6 +8,7 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/
 import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/services/cashtag_insertion_service.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/common/quill_embed_text_scale_fix.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 const String cashtagEmbedKey = 'cashtag';
 
@@ -70,6 +71,13 @@ class TextEditorCashtagEmbedBuilder extends EmbedBuilder {
                       embedContext.node,
                     )
                 : null,
+            onTap: canClose
+                ? null
+                : () {
+                    // Navigate to search with the ticker (without $ sign)
+                    FeedAdvancedSearchRoute(query: embedData.ticker.toUpperCase())
+                        .push<void>(context);
+                  },
           ),
         );
       },

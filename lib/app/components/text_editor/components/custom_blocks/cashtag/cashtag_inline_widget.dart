@@ -142,6 +142,7 @@ class CashtagInlineWidget extends HookWidget {
 
     if (onTap != null && onClose == null) {
       return GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: widget,
       );
