@@ -29,6 +29,7 @@ class EditUserButton extends ConsumerWidget {
           color: context.theme.appColors.onPrimaryAccent,
           fontSize: 12.0.s,
         ),
+        textScaler: TextScaler.noScaling,
       ),
       style: OutlinedButton.styleFrom(
         minimumSize: Size(87.0.s, 28.0.s),
