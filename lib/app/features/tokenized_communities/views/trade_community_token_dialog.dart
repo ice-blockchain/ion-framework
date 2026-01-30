@@ -121,14 +121,16 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
           if (context.mounted) {
             final tokenInfo =
                 ref.read(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
-            final buyTokenName =
+            final communityTokenName =
                 tokenInfo?.marketData.ticker ?? state.communityTokenCoinsGroup?.abbreviation;
+            final paymentTokenName = state.selectedPaymentToken?.abbreviation;
 
             _showErrorMessage(
               messageNotificationNotifier,
               context,
-              state.selectedPaymentToken?.abbreviation,
-              buyTokenName,
+              state.mode,
+              paymentTokenName,
+              communityTokenName,
             );
           }
         },
@@ -139,14 +141,16 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
           if (context.mounted) {
             final tokenInfo =
                 ref.read(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
-            final buyTokenName =
+            final communityTokenName =
                 tokenInfo?.marketData.ticker ?? state.communityTokenCoinsGroup?.abbreviation;
+            final paymentTokenName = state.selectedPaymentToken?.abbreviation;
 
             _showSuccessMessage(
               messageNotificationNotifier,
               context,
-              state.selectedPaymentToken?.abbreviation,
-              buyTokenName,
+              state.mode,
+              paymentTokenName,
+              communityTokenName,
             );
             ref.invalidate(walletViewsDataNotifierProvider);
             Navigator.of(context).pop();
@@ -344,10 +348,19 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   void _showSuccessMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
-    String? sellCoinAbbreviation,
-    String? buyCoinAbbreviation,
+    CommunityTokenTradeMode mode,
+    String? paymentTokenName,
+    String? communityTokenName,
   ) {
     final colors = context.theme.appColors;
+
+    // For buy: selling payment token, buying community token
+    // For sell: selling community token, buying payment token
+    final sellCoinAbbreviation =
+        mode == CommunityTokenTradeMode.buy ? paymentTokenName : communityTokenName;
+    final buyCoinAbbreviation =
+        mode == CommunityTokenTradeMode.buy ? communityTokenName : paymentTokenName;
+
     _showMessage(
       messageNotificationNotifier,
       message: context.i18n.wallet_swapped_coins,
@@ -364,10 +377,19 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   void _showErrorMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
-    String? sellCoinAbbreviation,
-    String? buyCoinAbbreviation,
+    CommunityTokenTradeMode mode,
+    String? paymentTokenName,
+    String? communityTokenName,
   ) {
     final colors = context.theme.appColors;
+
+    // For buy: selling payment token, buying community token
+    // For sell: selling community token, buying payment token
+    final sellCoinAbbreviation =
+        mode == CommunityTokenTradeMode.buy ? paymentTokenName : communityTokenName;
+    final buyCoinAbbreviation =
+        mode == CommunityTokenTradeMode.buy ? communityTokenName : paymentTokenName;
+
     _showMessage(
       messageNotificationNotifier,
       message: context.i18n.wallet_swap_failed,
