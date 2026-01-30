@@ -30,8 +30,8 @@ class TokenAreaLineChart extends HookConsumerWidget {
 
   double _calculateReservedSize(double maxY, TextStyle style) {
     // Right padding: 4px dot gap + 6px reserved = 10px total
-    const chartAnnotationPadding = 6.0;
-    return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding.s;
+    final chartAnnotationPadding = 6.0.s;
+    return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding;
   }
 
   @override
