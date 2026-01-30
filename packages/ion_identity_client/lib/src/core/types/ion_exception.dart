@@ -256,7 +256,8 @@ class InvalidSignatureException extends IONIdentityException {
 }
 
 class PasskeyCancelledException extends IONIdentityException {
-  const PasskeyCancelledException() : super('Passkey cancelled by user');
+  const PasskeyCancelledException([String? message])
+      : super(message ?? 'Passkey cancelled by user');
 
   static bool isMatch(Object exception) {
     String? message;

@@ -48,31 +48,6 @@ class PasskeysSigner {
   final PasskeysOptions options;
   final LocalPasskeyCredsStateStorage localPasskeyCredsStateStorage;
 
-  /// Races the platform authentication against a Dart-side watchdog timer.
-  ///
-  /// Some Android devices (notably with Samsung Pass / Credential Manager)
-  /// occasionally never resolve the native "authenticate" call when the
-  /// provider UI gets stuck enumerating credentials. The platform timeout
-  /// passed to the API is not always honored; this watchdog ensures we regain
-  /// control in the Dart layer and can surface a predictable error.
-  Future<T> _withWatchdog<T>({
-    required Future<T> future,
-    required Duration timeout,
-  }) async {
-    try {
-      return await future.timeout(
-        timeout,
-        onTimeout: () {
-          throw TimeoutException(
-            'Passkey signer timed out after ${timeout.inSeconds} seconds',
-          );
-        },
-      );
-    } on TimeoutException catch (e) {
-      throw PasskeyValidationException(e.message ?? 'Passkey signer timed out');
-    }
-  }
-
   /// Registers a user based on the provided [challenge], returning a
   /// [CredentialRequestData] containing the attestation data.
   ///
@@ -160,51 +135,20 @@ class PasskeysSigner {
     required bool localCredsOnly,
   }) async {
     try {
-      final assertion = await sign(
+      return await sign(
         challenge,
         localCredsOnly: localCredsOnly,
       );
-      await _clearCanSuggestStateOnSuccess(username);
-      return assertion;
     } on NoCredentialsAvailableException {
       if (localCredsOnly && username.isNotEmpty) {
-        try {
-          final assertion = await sign(challenge);
-          await _clearCanSuggestStateOnSuccess(username);
-          return assertion;
-        } on NoCredentialsAvailableException {
-          await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
-            username: username,
-            state: LocalPasskeyCredsState.canSuggest,
-          );
-          throw const NoLocalPasskeyCredsFoundIONIdentityException();
-        }
-      }
-
-      if (localCredsOnly) {
         await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
           username: username,
           state: LocalPasskeyCredsState.canSuggest,
         );
       }
       throw const NoLocalPasskeyCredsFoundIONIdentityException();
-    } on PasskeyValidationException catch (e) {
-      // Auto-login with passkey is tried when username is empty (e.g., field focus).
-      // If the backend returns a bad challenge (like empty rpId), just avoid showing an error to the user.
-      if (username.isEmpty && localCredsOnly) {
-        throw NoLocalPasskeyCredsFoundIONIdentityException(e.message);
-      }
-      rethrow;
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
-    }
-  }
-
-  Future<void> _clearCanSuggestStateOnSuccess(String username) async {
-    if (username.isEmpty) return;
-    final state = localPasskeyCredsStateStorage.getLocalPasskeyCredsState(username: username);
-    if (state == LocalPasskeyCredsState.canSuggest) {
-      await localPasskeyCredsStateStorage.removeLocalPasskeyCredsState(username: username);
     }
   }
 
@@ -214,8 +158,8 @@ class PasskeysSigner {
       return direct;
     }
 
-    throw PasskeyValidationException(
-      'Invalid passkey assertion challenge: relying party id (rp.id) is empty',
+    throw const PasskeyCancelledException(
+      'Passkey cancelled due because relying party id (rp.id) is empty',
     );
   }
 
@@ -231,29 +175,48 @@ class PasskeysSigner {
     final relyingPartyId = _resolveRelyingId(challenge);
     final timeoutMs = localCredsOnly == true ? options.timeout : options.otherDeviceTimeout;
     try {
-      final fido2Assertion = await _withWatchdog(
-        future: PasskeyAuthenticator().authenticate(
-          AuthenticateRequestType(
-            preferImmediatelyAvailableCredentials: localCredsOnly,
-            relyingPartyId: relyingPartyId,
-            challenge: challenge.challenge,
-            timeout: timeoutMs,
-            userVerification: challenge.userVerification,
-            allowCredentials: List<CredentialType>.from(
-              challenge.allowCredentials.webauthn.map(
-                (e) => CredentialType(
-                  type: e.type,
-                  id: e.id,
-                  transports: [],
-                ),
-              ),
-            ),
-            mediation: MediationType.Required,
+      final allowCredentials = List<CredentialType>.from(
+        challenge.allowCredentials.webauthn.map(
+          (e) => CredentialType(
+            type: e.type,
+            id: e.id,
+            transports: [],
           ),
         ),
-        timeout: Duration(
+      );
+      final fido2Assertion = await PasskeyAuthenticator()
+          .authenticate(
+        AuthenticateRequestType(
+          preferImmediatelyAvailableCredentials: localCredsOnly,
+          relyingPartyId: relyingPartyId,
+          challenge: challenge.challenge,
+          timeout: timeoutMs,
+          userVerification: challenge.userVerification,
+          allowCredentials: allowCredentials.isEmpty ? null : allowCredentials,
+          mediation: MediationType.Required,
+        ),
+      )
+
+          /// Races the platform authentication against a Dart-side watchdog timer.
+          ///
+          /// Some Android devices (notably with Samsung Pass / Credential Manager)
+          /// occasionally never resolve the native "authenticate" call when the
+          /// provider UI gets stuck enumerating credentials. The platform timeout
+          /// passed to the API is not always honored; this watchdog ensures we regain
+          /// control in the Dart layer and can surface a predictable error.
+          .timeout(
+        Duration(
           milliseconds: timeoutMs,
         ),
+        onTimeout: () async {
+          // Best-effort cancel of the ongoing native Credential Manager / passkey operation.
+          try {
+            await PasskeyAuthenticator().cancelCurrentAuthenticatorOperation();
+          } catch (_) {
+            // ignore: cancellation is best-effort
+          }
+          throw const PasskeyCancelledException('Passkey interrupted by timed out');
+        },
       );
       return AssertionRequestData(
         kind: CredentialKind.Fido2,
@@ -266,6 +229,8 @@ class PasskeysSigner {
         ),
       );
     } on NoCredentialsAvailableException {
+      rethrow;
+    } on PasskeyCancelledException {
       rethrow;
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
