@@ -10,4 +10,6 @@ class SwapConstants {
     maxFeePerGas: BigInt.from(4500000000000),
     maxPriorityFeePerGas: BigInt.from(4500000000000),
   );
+
+  static final BigInt keepAliveReserve = BigInt.from(500000000);
 }

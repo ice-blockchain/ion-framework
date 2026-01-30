@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:typed_data';
+
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
@@ -11,6 +13,7 @@ import 'package:ion_swap_client/utils/bsc_parser.dart';
 import 'package:ion_swap_client/utils/hex_helper.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/numb.dart';
+import 'package:ion_swap_client/utils/swap_constants.dart';
 import 'package:tonutils/tonutils.dart';
 
 /// Bridges native ION on the ION chain to wION on BSC by sending ION to the bridge contract.
@@ -99,6 +102,19 @@ class IonToBscBridgeService {
     final seqno = await openedWallet.getSeqno();
     final builder = beginCell()..storeUint(BigInt.from(walletContract.walletId), 32);
 
+    final walletBalance = await _tonClient.getBalance(walletContract.address);
+    var amountIn = amount;
+
+    if (amount >= walletBalance - SwapConstants.keepAliveReserve) {
+      amountIn = await computeMaxBridgeAmount(
+        walletContract: openedWallet,
+        bridgeAddress: InternalAddress.parse(_ionBridgeContractAddress),
+        payloadText: payloadText,
+        seqno: seqno,
+        keepAliveReserve: SwapConstants.keepAliveReserve,
+      );
+    }
+
     if (seqno == 0) {
       for (var i = 0; i < 32; i++) {
         builder.storeBit(1);
@@ -116,7 +132,7 @@ class IonToBscBridgeService {
     final message = internal(
       to: SiaInternalAddress(bridgeAddress),
       body: ScString(payloadText),
-      value: SbiBigInt(amount),
+      value: SbiBigInt(amountIn),
     );
 
     final cell = builder.storeRef(beginCell().store(storeMessageRelaxed(message))).endCell();
@@ -159,6 +175,60 @@ class IonToBscBridgeService {
     final externalBoc = externalCell.toBoc();
 
     await _tonClient.sendFile(externalBoc);
+  }
+
+  Future<BigInt> computeMaxBridgeAmount({
+    required WalletContractV4R2 walletContract,
+    required InternalAddress bridgeAddress,
+    required String payloadText,
+    required int seqno,
+    required BigInt keepAliveReserve, // e.g. Nano.fromString("0.05")
+  }) async {
+    final balance = await _tonClient.getBalance(walletContract.address);
+
+    // Start with "balance minus reserve" (so estimation has a sane value).
+    var amount = balance > keepAliveReserve ? balance - keepAliveReserve : BigInt.zero;
+
+    // 1-2 iterations is usually enough (fee can slightly vary with message/value).
+    for (var i = 0; i < 2; i++) {
+      // Build the SAME transfer cell you later sign, but with a dummy signature.
+      final transferBuilder = beginCell()..storeUint(BigInt.from(walletContract.walletId), 32);
+      // valid_until + seqno + op + sendmode should match your current logic...
+      // (reuse your existing builder logic here)
+      // then store the internal message with `value: amount`
+
+      final internalMsg = internal(
+        to: SiaInternalAddress(bridgeAddress),
+        body: ScString(payloadText),
+        value: SbiBigInt(amount),
+      );
+
+      final transferCell =
+          transferBuilder.storeRef(beginCell().store(storeMessageRelaxed(internalMsg))).endCell();
+
+      // Dummy 64-byte signature; ignoreSignature=true makes it ok for estimation.
+      final dummySig = Uint8List(64);
+      final extBody =
+          beginCell().storeList(dummySig).storeSlice(transferCell.beginParse()).endCell();
+
+      final initCode = (seqno == 0) ? walletContract.init?.code : null;
+      final initData = (seqno == 0) ? walletContract.init?.data : null;
+
+      final fee = await _tonClient.estimateExternalMessageFee(
+        walletContract.address,
+        body: extBody,
+        initCode: initCode,
+        initData: initData,
+        ignoreSignature: true,
+      );
+
+      final totalFee = BigInt.from(fee.inForwardFee + fee.storageFee + fee.gasFee + fee.forwardFee);
+
+      final next = balance - totalFee - keepAliveReserve;
+      amount = next > BigInt.zero ? next : BigInt.zero;
+    }
+
+    return amount;
   }
 
   bool isSupportedPair(SwapCoinParameters swapCoinData) {
