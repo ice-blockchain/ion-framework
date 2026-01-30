@@ -27,7 +27,7 @@ T useWatchWhenVisible<T>({
   final router = GoRouter.maybeOf(context);
 
   // Track app lifecycle state
-  final appLifecycleState = useState<AppLifecycleState>(AppLifecycleState.resumed);
+  final appLifecycleState = useAppLifecycleState();
 
   // Track initial route path (captured when hook is created)
   final fullPathRef = useRef(router?.state.fullPath);
@@ -38,11 +38,6 @@ T useWatchWhenVisible<T>({
   final lastValueRef = useRef<T?>(null);
 
   final isRouteActiveState = useState<bool>(true);
-
-  // Listen to app lifecycle changes
-  useOnAppLifecycleStateChange((previous, current) {
-    appLifecycleState.value = current;
-  });
 
   useEffect(
     () {
@@ -78,7 +73,7 @@ T useWatchWhenVisible<T>({
 
   // Conditionally watch provider based on route activation and app lifecycle
   // Only call watcher when route is active AND app is in foreground
-  final isAppInForeground = appLifecycleState.value == AppLifecycleState.resumed;
+  final isAppInForeground = appLifecycleState == AppLifecycleState.resumed;
   final shouldWatch = isRouteActiveState.value && isAppInForeground;
 
   T? currentValue;
