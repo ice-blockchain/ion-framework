@@ -34,7 +34,7 @@ class CashtagInlineWidget extends HookWidget {
         final isBounded = constraints.hasBoundedWidth && constraints.maxWidth.isFinite;
 
         final symbolText = Text(
-          r'$' + symbolGroup,
+          r'$' + symbolGroup.toUpperCase(),
           maxLines: 1,
           softWrap: false,
           overflow: TextOverflow.ellipsis,

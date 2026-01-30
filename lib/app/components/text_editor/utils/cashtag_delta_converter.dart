@@ -25,7 +25,7 @@ class CashtagDeltaConverter {
 
       // Only process pure embed ops (length == 1) to avoid capturing adjacent characters.
       if (cashtagData != null && (op.length ?? 1) == 1) {
-        final cashtagText = r'$' + cashtagData.symbolGroup;
+        final cashtagText = r'$' + cashtagData.symbolGroup.toUpperCase();
 
         final mergedAttrs = {
           ...?attrs,
@@ -70,7 +70,7 @@ class CashtagDeltaConverter {
       final cashtagAttr = attrs?[CashtagAttribute.attributeKey];
       if (cashtagAttr is String && data is String && data.startsWith(r'$')) {
         final showMarketCap = attrs?[CashtagAttribute.showMarketCapKey] == true;
-        final symbolGroup = data.substring(1);
+        final symbolGroup = data.substring(1).toUpperCase();
 
         // We store externalAddress in the cashtag attribute value when showMarketCap is enabled.
         final externalAddress =

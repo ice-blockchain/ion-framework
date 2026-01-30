@@ -115,7 +115,7 @@ void processCashtagEmbeds(QuillController controller, WidgetRef ref) {
       for (final upgrade in upgrades.reversed) {
         try {
           final cashtagData = CashtagEmbedData(
-            symbolGroup: upgrade.symbolGroup,
+            symbolGroup: upgrade.symbolGroup.toUpperCase(),
             externalAddress: upgrade.externalAddress,
           );
           final cashtagText = r'$' + upgrade.symbolGroup;
