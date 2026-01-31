@@ -93,7 +93,7 @@ class CollapsingHeaderLayout extends HookWidget {
             child: ColoredBox(
               color: context.theme.appColors.forest,
               child: Padding(
-                padding: EdgeInsets.only(top: dynamicPadding),
+                padding: EdgeInsetsDirectional.only(top: dynamicPadding),
                 child: pinnedHeader,
               ),
             ),
