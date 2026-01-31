@@ -564,8 +564,7 @@ Delta restoreCashtagsMarketCap(
         final currentInstance = instanceTracker[ticker] ?? 0;
         instanceTracker[ticker] = currentInstance + 1;
 
-        final externalAddress =
-            symbolGroupInstanceExternalAddress[ticker]?[currentInstance];
+        final externalAddress = symbolGroupInstanceExternalAddress[ticker]?[currentInstance];
 
         if (externalAddress != null && externalAddress.trim().isNotEmpty) {
           newDelta.insert(

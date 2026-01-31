@@ -18,8 +18,7 @@ void processCashtagEmbeds(QuillController controller, WidgetRef ref) {
   try {
     final delta = controller.document.toDelta();
     final downgrades = <({int position, CashtagEmbedData data})>[];
-    final upgrades =
-        <({int position, String ticker, String externalAddress, double marketCap})>[];
+    final upgrades = <({int position, String ticker, String externalAddress, double marketCap})>[];
 
     var currentOffset = 0;
     for (final op in delta.operations) {
