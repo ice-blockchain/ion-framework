@@ -1,7 +1,4 @@
 // SPDX-License-Identifier: ice License 1.0
-
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/layout/measure_size.dart';
@@ -16,6 +13,7 @@ import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 
 class CollapsingHeaderLayout extends HookWidget {
   const CollapsingHeaderLayout({
@@ -84,13 +82,20 @@ class CollapsingHeaderLayout extends HookWidget {
       ),
     );
 
+    final navBarHeight = NavigationAppBar.screenHeaderHeight + MediaQuery.of(context).padding.top;
+
+    final dynamicPadding = expandedHeaderHeight > 0
+        ? (scrollOffset / expandedHeaderHeight).clamp(0.0, 1.0) * navBarHeight
+        : 0.0;
+
     final pinnedHeaderSliver = pinnedHeader != null
-        ? SliverPersistentHeader(
-            pinned: true,
-            delegate: _PinnedHeaderDelegate(
-              child: pinnedHeader!,
-              scrollOffset: scrollOffset,
-              expandedHeaderHeight: expandedHeaderHeight,
+        ? SliverPinnedHeader(
+            child: ColoredBox(
+              color: context.theme.appColors.forest,
+              child: Padding(
+                padding: EdgeInsets.only(top: dynamicPadding),
+                child: pinnedHeader,
+              ),
             ),
           )
         : null;
@@ -149,7 +154,7 @@ class CollapsingHeaderLayout extends HookWidget {
     slivers.add(SliverToBoxAdapter(child: child));
 
     return CustomScrollView(
-      physics: const ClampingScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       controller: scrollController,
       slivers: slivers,
     );
@@ -256,83 +261,5 @@ class CollapsingHeaderLayout extends HookWidget {
         ),
       ),
     );
-  }
-}
-
-class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _PinnedHeaderDelegate({
-    required this.child,
-    required this.scrollOffset,
-    required this.expandedHeaderHeight,
-  });
-
-  final Widget child;
-  final double scrollOffset;
-  final double expandedHeaderHeight;
-
-  double get _childHeight => _getHeight(child);
-
-  double get _pinnedOffset =>
-      NavigationAppBar.screenHeaderHeight +
-      PlatformDispatcher.instance.views.first.padding.top /
-          PlatformDispatcher.instance.views.first.devicePixelRatio;
-
-  double get _startOffset {
-    // Start transition when expanded header is fully scrolled away
-    // Subtract separator height to account for the separator
-    if (expandedHeaderHeight <= 0) {
-      // Fallback to a reasonable default if not measured yet
-      return 169.0.s;
-    }
-
-    final view = PlatformDispatcher.instance.views.first;
-    final statusBarHeight = view.viewPadding.top / view.devicePixelRatio;
-    return expandedHeaderHeight -
-        NavigationAppBar.screenHeaderHeight +
-        SectionSeparator.defaultHeight -
-        statusBarHeight;
-  }
-
-  double get _currentOffset {
-    if (scrollOffset <= _startOffset) return 0;
-
-    final progress = ((scrollOffset - _startOffset) / _pinnedOffset).clamp(0.0, 1.0);
-
-    return _pinnedOffset * progress;
-  }
-
-  @override
-  double get minExtent => _childHeight + _currentOffset;
-
-  @override
-  double get maxExtent => _childHeight + _currentOffset;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return ColoredBox(
-      color: context.theme.appColors.forest,
-      child: Padding(
-        padding: EdgeInsetsDirectional.only(top: _currentOffset),
-        child: child,
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(_PinnedHeaderDelegate oldDelegate) {
-    return scrollOffset != oldDelegate.scrollOffset ||
-        child != oldDelegate.child ||
-        expandedHeaderHeight != oldDelegate.expandedHeaderHeight;
-  }
-
-  double _getHeight(Widget widget) {
-    if (widget is SizedBox && widget.height != null) {
-      return widget.height!;
-    }
-    return 40.0.s;
   }
 }
