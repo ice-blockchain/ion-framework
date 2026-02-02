@@ -152,9 +152,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
         final statusChanged = existing.status != toInsertRaw.status;
 
-        final fee = statusChanged
-            ? toInsertRaw.fee ?? existing.fee
-            : existing.fee ?? toInsertRaw.fee;
+        final fee =
+            statusChanged ? toInsertRaw.fee ?? existing.fee : existing.fee ?? toInsertRaw.fee;
         final transferredAmount = statusChanged
             ? toInsertRaw.transferredAmount ?? existing.transferredAmount
             : existing.transferredAmount ?? toInsertRaw.transferredAmount;
