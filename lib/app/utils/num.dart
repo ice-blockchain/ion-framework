@@ -134,11 +134,15 @@ String formatCount(int number) {
   }
 }
 
+/// Values above this are green (no minus sign). <= -0.01 show minus/red.
+const double _numericSignGreenThreshold = -0.01;
+
 String getNumericSign(num value) {
+  if (value <= _numericSignGreenThreshold) {
+    return '-';
+  }
   if (value > 0) {
     return '+';
-  } else if (value < 0) {
-    return '-';
   }
   return '';
 }
