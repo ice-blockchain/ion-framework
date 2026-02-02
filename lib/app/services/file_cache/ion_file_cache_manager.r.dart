@@ -3,7 +3,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-// ignore: depend_on_referenced_packages
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/file_cache/ion_cache_manager.dart';

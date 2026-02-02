@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-// ignore: depend_on_referenced_packages
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:ion/app/services/file_cache/ion_http_file_service.dart';
 

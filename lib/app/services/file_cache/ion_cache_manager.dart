@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:file/file.dart' hide FileSystem;
 import 'package:file/local.dart';
-// ignore: depend_on_referenced_packages
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:ion/app/services/file_cache/ion_http_file_service.dart';
 import 'package:ion/app/utils/url.dart';
