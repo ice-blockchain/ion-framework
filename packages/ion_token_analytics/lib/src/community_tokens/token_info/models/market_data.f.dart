@@ -22,7 +22,7 @@ class MarketData with _$MarketData implements MarketDataBase {
     required double volume,
     required int holders,
     required double priceUSD,
-    String? ticker,
+    required String ticker,
     Position? position,
   }) = _MarketData;
 
