@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:ion/app/features/config/data/models/app_config_cache_strategy.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/tokenized_communities/data/models/supported_swap_token_config_dto.f.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class TradeCommunityTokenApi {
@@ -70,8 +71,13 @@ class TradeCommunityTokenApi {
   Future<CommunityToken?> fetchTokenInfo(String externalAddress) async {
     try {
       return await _analyticsClient.communityTokens.getTokenInfo(externalAddress);
-    } catch (e) {
-      return null;
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to fetch token info for externalAddress: $externalAddress',
+      );
+      rethrow;
     }
   }
 
@@ -86,8 +92,14 @@ class TradeCommunityTokenApi {
   Future<PricingResponse?> fetchPricing(String externalAddress, String type, String amount) async {
     try {
       return await _analyticsClient.communityTokens.getPricing(externalAddress, type, amount);
-    } catch (e) {
-      return null;
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message:
+            'Failed to fetch pricing for externalAddress: $externalAddress, type: $type, amount: $amount',
+      );
+      rethrow;
     }
   }
 
@@ -100,8 +112,13 @@ class TradeCommunityTokenApi {
   ) async {
     try {
       return await _analyticsClient.communityTokens.suggestCreationDetails(request);
-    } catch (e) {
-      return null;
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to suggest creation details',
+      );
+      rethrow;
     }
   }
 }

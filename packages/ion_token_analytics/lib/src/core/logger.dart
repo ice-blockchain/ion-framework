@@ -4,4 +4,7 @@
 abstract class AnalyticsLogger {
   /// Logs a message.
   void log(String message);
+
+  /// Logs an error with optional stack trace.
+  void error(String message, {Object? error, StackTrace? stackTrace});
 }

@@ -8,4 +8,13 @@ class TokenAnalyticsLogger implements AnalyticsLogger {
   void log(String message) {
     Logger.log(message);
   }
+
+  @override
+  void error(String message, {Object? error, StackTrace? stackTrace}) {
+    Logger.error(
+      error ?? message,
+      stackTrace: stackTrace,
+      message: error != null ? message : null,
+    );
+  }
 }

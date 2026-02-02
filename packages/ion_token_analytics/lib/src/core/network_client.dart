@@ -10,7 +10,7 @@ import 'package:ion_token_analytics/src/http2_client/models/http2_request_option
 
 class NetworkClient {
   NetworkClient.fromBaseUrl(String baseUrl, {required String? authToken, AnalyticsLogger? logger})
-    : _client = Http2Client.fromBaseUrl(baseUrl),
+    : _client = Http2Client.fromBaseUrl(baseUrl, logger: logger),
       _authToken = authToken,
       _logger = logger;
 
@@ -19,6 +19,8 @@ class NetworkClient {
   final String? _authToken;
 
   final AnalyticsLogger? _logger;
+
+  AnalyticsLogger? get logger => _logger;
 
   static const Duration _defaultTimeout = Duration(seconds: 30);
 

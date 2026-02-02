@@ -115,18 +115,13 @@ Future<SuggestCreationDetailsResponse?> suggestTokenCreationDetails(
   Ref ref,
   SuggestTokenCreationDetailsParams params,
 ) async {
-  try {
-    final api = await ref.watch(tradeCommunityTokenApiProvider.future);
-    final request = SuggestCreationDetailsRequest(
-      content: params.content,
-      creator: params.creator,
-      contentId: params.externalAddress,
-      contentVideoFrames: params.contentVideoFrames,
-    );
+  final api = await ref.watch(tradeCommunityTokenApiProvider.future);
+  final request = SuggestCreationDetailsRequest(
+    content: params.content,
+    creator: params.creator,
+    contentId: params.externalAddress,
+    contentVideoFrames: params.contentVideoFrames,
+  );
 
-    return await api.suggestCreationDetails(request);
-  } catch (e) {
-    // Return null on error - this is a best-effort call
-    return null;
-  }
+  return api.suggestCreationDetails(request);
 }
