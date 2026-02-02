@@ -155,7 +155,6 @@ ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) 
     [modifiedEvent],
   );
 
-
   useEffect(
     () {
       void listener() {
