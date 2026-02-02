@@ -231,10 +231,9 @@ class _ContentEntityButton extends ConsumerWidget {
       isReply: isReply,
       child: _TokenButton(
         padding: padding,
-        child:
-            hasToken
-                ? _MarketCap(externalAddress: eventReference.toString(), color: color)
-                : const _RocketIcon(),
+        child: hasToken
+            ? _MarketCap(externalAddress: eventReference.toString(), color: color)
+            : const _RocketIcon(),
         onTap: () {
           if (hasToken) {
             TokenizedCommunityRoute(
