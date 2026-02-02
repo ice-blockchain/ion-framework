@@ -212,7 +212,13 @@ class Http2Client {
                 controller.add(message.data as T);
               } else {
                 try {
-                  final parsed = jsonDecode(message.data as String);
+                  final data = message.data as String;
+                  // Skip ping/pong keepalive messages
+                  final trimmed = data.trim();
+                  if (trimmed == 'ping' || trimmed == 'pong') {
+                    return; // Ignore keepalive messages
+                  }
+                  final parsed = jsonDecode(data);
                   controller.add(parsed as T);
                 } catch (e) {
                   _addStreamError(controller, e, StackTrace.current);
@@ -416,6 +422,11 @@ class Http2Client {
         controller.add(data as T);
       } else {
         try {
+          // Skip ping/pong keepalive messages
+          final trimmed = data.trim();
+          if (trimmed == 'ping' || trimmed == 'pong') {
+            return; // Ignore keepalive messages
+          }
           final parsed = jsonDecode(data);
           controller.add(parsed as T);
         } catch (e) {
