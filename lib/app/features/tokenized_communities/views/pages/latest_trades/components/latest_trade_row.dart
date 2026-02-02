@@ -151,10 +151,7 @@ class TitleAndMeta extends StatelessWidget {
             if (isCreator) Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
             if (isXUser) Assets.svg.iconBadgeXlogo.icon(size: 16.0.s),
           ],
-          gap: 2.0.s,
           style: texts.subtitle3.copyWith(color: colors.primaryText),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           softWrap: false,
         ),
         Text(

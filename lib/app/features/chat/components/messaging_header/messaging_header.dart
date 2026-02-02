@@ -67,10 +67,7 @@ class MessagingHeader extends ConsumerWidget {
                                 badges: isVerified
                                     ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)]
                                     : const <Widget>[],
-                                gap: 2.0.s,
                                 style: context.theme.appTextThemes.subtitle3,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

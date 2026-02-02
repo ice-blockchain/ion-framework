@@ -113,10 +113,7 @@ class GroupHeader extends StatelessWidget {
         if (isVerified) Assets.svg.iconBadgeIcelogo.icon(size: 16.0.s),
         if (isION) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
       ],
-      gap: 2.0.s,
       style: context.theme.appTextThemes.subtitle3,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
     );
   }
 }

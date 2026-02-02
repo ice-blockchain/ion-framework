@@ -92,13 +92,10 @@ class _CreatorDetails extends StatelessWidget {
         InlineBadgeText(
           titleSpan: TextSpan(text: name),
           badges: verified ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)] : const <Widget>[],
-          gap: 2.0.s,
           style: texts.subtitle3.copyWith(
             color: nameColor ?? colors.primaryText,
           ),
           strutStyle: const StrutStyle(forceStrutHeight: true),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
         Text(
           withPrefix(

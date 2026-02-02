@@ -37,9 +37,6 @@ class _ListItemDApp extends ListItem {
             badges: verifiedBadge
                 ? [Assets.svg.iconBadgeVerify.icon(size: defaultBadgeSize)]
                 : const <Widget>[],
-            gap: 2.0.s,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
           subtitle: subtitle,
         );

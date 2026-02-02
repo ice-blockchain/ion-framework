@@ -67,10 +67,7 @@ class UserNameTile extends ConsumerWidget {
                 badges: isUserVerified
                     ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)]
                     : const <Widget>[],
-                gap: 2.0.s,
                 textAlign: isDecoratedNichname ? TextAlign.left : TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: context.theme.appTextThemes.subtitle.copyWith(
                   color: profileMode == ProfileMode.dark
                       ? context.theme.appColors.secondaryBackground

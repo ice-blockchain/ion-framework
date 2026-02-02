@@ -85,12 +85,9 @@ class StoryItemContent extends HookConsumerWidget {
                       badges: isUserVerified
                           ? [Assets.svg.iconBadgeVerify.icon(size: 12.0.s)]
                           : const <Widget>[],
-                      gap: 2.0.s,
                       style: context.theme.appTextThemes.caption3.copyWith(
                         color: context.theme.appColors.primaryText,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
                   ),
                 ],

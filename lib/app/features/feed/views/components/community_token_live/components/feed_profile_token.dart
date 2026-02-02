@@ -126,12 +126,9 @@ class ProfileTokenHeader extends ConsumerWidget {
                   ),
                 ]
               : const <Widget>[],
-          gap: 2.0.s,
           style: context.theme.appTextThemes.subtitle.copyWith(
             color: context.theme.appColors.secondaryBackground,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
         SizedBox(height: 4.0.s),
         Row(

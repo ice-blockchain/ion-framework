@@ -174,9 +174,6 @@ class RecentChatTile extends HookConsumerWidget {
                                     if (isVerified) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
                                     if (isMuted) Assets.svg.iconChannelfillMute.icon(size: 16.0.s),
                                   ],
-                                  gap: 2.0.s,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                   style: context.theme.appTextThemes.subtitle3.copyWith(
                                     color: context.theme.appColors.primaryText,
                                   ),

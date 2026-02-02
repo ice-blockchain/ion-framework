@@ -102,9 +102,6 @@ class OneToOneMessagingHeader extends ConsumerWidget {
                                 badges: isVerified
                                     ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)]
                                     : const <Widget>[],
-                                gap: 2.0.s,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                                 style: context.theme.appTextThemes.subtitle3,
                               ),
                             ),

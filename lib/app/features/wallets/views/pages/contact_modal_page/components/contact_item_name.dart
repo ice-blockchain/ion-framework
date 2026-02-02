@@ -27,7 +27,6 @@ class ContactItemName extends ConsumerWidget {
           child: InlineBadgeText(
             titleSpan: TextSpan(text: userPreviewData.data.trimmedDisplayName),
             badges: isVerified ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)] : const <Widget>[],
-            gap: 2.0.s,
             style: context.theme.appTextThemes.title,
           ),
         ),

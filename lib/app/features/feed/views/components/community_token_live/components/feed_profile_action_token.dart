@@ -144,12 +144,9 @@ class TokenHeaderLandscape extends StatelessWidget {
                                         ),
                                       ]
                                     : const <Widget>[],
-                                gap: 2.0.s,
                                 style: context.theme.appTextThemes.subtitle3.copyWith(
                                   color: context.theme.appColors.secondaryBackground,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

@@ -136,8 +136,6 @@ class _CarouselCard extends HookConsumerWidget {
                                         ]
                                       : const <Widget>[],
                                   gap: 4.0.s,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                   style: context.theme.appTextThemes.subtitle.copyWith(
                                     color: context.theme.appColors.secondaryBackground,
                                   ),

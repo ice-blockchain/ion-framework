@@ -44,8 +44,6 @@ class _ListItemUser extends ListItem {
               if (verifiedBadge) Assets.svg.iconBadgeVerify.icon(size: defaultBadgeSize),
             ],
             gap: 4.0.s,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             strutStyle: titleStrutStyle,
           ),
           subtitle: Row(
