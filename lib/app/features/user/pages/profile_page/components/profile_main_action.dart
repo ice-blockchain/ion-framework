@@ -6,13 +6,15 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/views/pages/unfollow_user_page.dart';
 import 'package:ion/app/features/optimistic_ui/features/follow/follow_provider.r.dart';
+import 'package:ion/app/features/optimistic_ui/features/follow/hooks/use_follow_notification.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class ProfileMainAction extends ConsumerWidget {
+class ProfileMainAction extends HookConsumerWidget {
   const ProfileMainAction({
     required this.pubkey,
     required this.profileMode,
@@ -30,6 +32,14 @@ class ProfileMainAction extends ConsumerWidget {
 
     final isCurrentUserProfile = ref.watch(isCurrentUserSelectorProvider(pubkey));
     final following = ref.watch(isCurrentUserFollowingSelectorProvider(pubkey));
+    final username = ref.watch(userPreviewDataProvider(pubkey).select(userPreviewNameSelector));
+
+    useFollowNotifications(
+      context,
+      ref,
+      pubkey,
+      username,
+    );
 
     return GestureDetector(
       onTap: () => _handleAction(context, ref, isCurrentUserProfile, following),
