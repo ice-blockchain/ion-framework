@@ -48,6 +48,18 @@ class PasskeysSigner {
   final PasskeysOptions options;
   final LocalPasskeyCredsStateStorage localPasskeyCredsStateStorage;
 
+  /// Best-effort cancellation of the underlying native passkey / Credential Manager operation.
+  ///
+  /// On some Android devices, the native provider UI can get stuck; cancelling the
+  /// in-flight authenticator operation helps dismiss the sheet and restore app responsiveness.
+  Future<void> cancelCurrentAuthenticatorOperation() async {
+    try {
+      await PasskeyAuthenticator().cancelCurrentAuthenticatorOperation();
+    } catch (_) {
+      // ignore: best-effort cancellation
+    }
+  }
+
   /// Registers a user based on the provided [challenge], returning a
   /// [CredentialRequestData] containing the attestation data.
   ///

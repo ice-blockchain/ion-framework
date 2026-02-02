@@ -88,6 +88,10 @@ class IdentitySigner {
     return passkeySigner.checkPasskeyAvailability();
   }
 
+  Future<void> cancelCurrentAuthenticatorOperation() {
+    return passkeySigner.cancelCurrentAuthenticatorOperation();
+  }
+
   Future<void> rejectToUseBiometrics(String username) {
     return passwordSigner.rejectToUseBiometrics(username);
   }

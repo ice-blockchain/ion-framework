@@ -19,10 +19,27 @@ class LoginActionNotifier extends _$LoginActionNotifier {
 
   void cancelAutoPasskeyLogin() {
     final completer = _autoPasskeyLoginCompleter;
+    // If we've ever started an auto-passkey flow, also try to cancel the native
+    // authenticator operation (Credential Manager / Samsung Pass) to avoid UI hangs.
+    final shouldCancelNative = completer != null;
+
     if (completer != null && !completer.isCompleted) {
       completer.complete();
     }
     _autoPasskeyLoginCompleter = null;
+
+    if (shouldCancelNative) {
+      unawaited(_cancelNativePasskeyOperation());
+    }
+  }
+
+  Future<void> _cancelNativePasskeyOperation() async {
+    try {
+      final ionIdentity = await ref.read(ionIdentityProvider.future);
+      await ionIdentity.cancelCurrentAuthenticatorOperation();
+    } catch (_) {
+      // ignore: best-effort cancellation
+    }
   }
 
   Future<void> verifyUserLoginFlow({required String keyName}) async {
@@ -55,6 +72,11 @@ class LoginActionNotifier extends _$LoginActionNotifier {
 
     state = await AsyncValue.guard(() async {
       final ionIdentity = await ref.read(ionIdentityProvider.future);
+      if (isAutoPasskey) {
+        // Ensure we start from a clean slate; on some Android devices a previous
+        // passkey operation can keep the provider UI stuck.
+        await ionIdentity.cancelCurrentAuthenticatorOperation();
+      }
       final twoFATypes = [
         for (final entry in (twoFaTypes ?? {}).entries)
           TwoFaTypeAdapter(entry.key, entry.value).twoFAType,

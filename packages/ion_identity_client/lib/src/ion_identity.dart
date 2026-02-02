@@ -101,6 +101,10 @@ class IONIdentity {
 
   Future<void> isPasskeyAuthAvailable() => _identitySigner.isPasskeyAvailable();
 
+  /// Best-effort cancellation of any in-flight native passkey / Credential Manager operation.
+  Future<void> cancelCurrentAuthenticatorOperation() =>
+      _identitySigner.cancelCurrentAuthenticatorOperation();
+
   final IONIdentityConfig _config;
   final IdentitySigner _identitySigner;
   final TokenStorage _tokenStorage;

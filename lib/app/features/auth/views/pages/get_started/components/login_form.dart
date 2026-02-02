@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -27,6 +28,24 @@ class LoginForm extends HookConsumerWidget {
 
     final authState = ref.watch(authProvider);
     final loginActionState = ref.watch(loginActionNotifierProvider);
+
+    final autoPasskeyLoginTriggered = useState(false);
+    useEffect(
+      () {
+        return () => ref.read(loginActionNotifierProvider.notifier).cancelAutoPasskeyLogin();
+      },
+      const [],
+    );
+
+    useEffect(
+      () {
+        if (!loginActionState.isLoading) {
+          autoPasskeyLoginTriggered.value = false;
+        }
+        return null;
+      },
+      [loginActionState.isLoading],
+    );
 
     useEffect(
       () {
@@ -55,11 +74,42 @@ class LoginForm extends HookConsumerWidget {
             controller: identityKeyNameController,
             scrollPadding: EdgeInsetsDirectional.only(bottom: 88.0.s),
             onFocused: (focused) {
-              final isIdentityKeyNameEmpty = identityKeyNameController.text.isEmpty;
-              if (!focused || !isIdentityKeyNameEmpty) {
+              if (!focused) {
                 return;
               }
-              onLogin('');
+
+              final isIdentityKeyNameEmpty = identityKeyNameController.text.isEmpty;
+
+              // If an auto-passkey login is running and the user taps the field again
+              // (usually to type manually), cancel the native authenticator operation
+              // and allow manual input.
+              if (autoPasskeyLoginTriggered.value && loginActionState.isLoading) {
+                autoPasskeyLoginTriggered.value = false;
+                ref.read(loginActionNotifierProvider.notifier).cancelAutoPasskeyLogin();
+                return;
+              }
+
+              // Only attempt auto-passkey login when the field is empty and no other login is running.
+              if (!isIdentityKeyNameEmpty || loginActionState.isLoading) {
+                return;
+              }
+
+              autoPasskeyLoginTriggered.value = true;
+
+              // Best-effort: remove focus and hide the keyboard before we trigger the
+              // Credential Manager / passkey flow (helps with some Android/Samsung hangs).
+              FocusManager.instance.primaryFocus?.unfocus();
+              SystemChannels.textInput.invokeMethod('TextInput.hide');
+              try {
+                TextInput.finishAutofillContext(shouldSave: false);
+              } catch (_) {
+                // ignore: best-effort
+              }
+
+              Future.microtask(() {
+                if (!context.mounted) return;
+                onLogin('');
+              });
             },
           ),
           SizedBox(height: 16.0.s),
