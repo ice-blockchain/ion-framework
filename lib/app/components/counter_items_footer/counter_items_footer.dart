@@ -63,6 +63,7 @@ class CounterItemsFooter extends HookConsumerWidget {
           child: PostTokenButton(
             eventReference: eventReference,
             padding: itemPadding,
+            color: color,
           ),
         ),
         ShareButton(
