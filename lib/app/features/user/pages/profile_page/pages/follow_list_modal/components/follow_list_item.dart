@@ -51,7 +51,6 @@ class FollowListItem extends ConsumerWidget {
       child: BadgesUserListItem(
         key: ValueKey<String>(pubkey),
         titleSpan: TextSpan(text: displayName),
-        titleStrutStyle: const StrutStyle(forceStrutHeight: true),
         trailing: FollowUserButton(pubkey: pubkey, follower: follower),
         subtitle: SizedBox(
           height: 16.0.s,

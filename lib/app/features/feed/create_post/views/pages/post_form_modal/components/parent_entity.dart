@@ -54,7 +54,6 @@ class ParentEntity extends ConsumerWidget {
         SizedBox(height: 6.0.s),
         BadgesUserListItem(
           titleSpan: TextSpan(text: displayName),
-          titleStrutStyle: const StrutStyle(forceStrutHeight: true),
           subtitle: Text(
             withPrefix(
               input: username,

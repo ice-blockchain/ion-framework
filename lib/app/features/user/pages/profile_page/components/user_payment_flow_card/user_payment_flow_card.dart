@@ -32,7 +32,6 @@ class UserPaymentFlowCard extends ConsumerWidget {
         return BadgesUserListItem(
           onTap: onTap,
           titleSpan: TextSpan(text: userPreviewData.data.trimmedDisplayName),
-          titleStrutStyle: const StrutStyle(forceStrutHeight: true),
           subtitle: Text(
             withPrefix(
               input: userPreviewData.data.name,

@@ -39,7 +39,6 @@ class UseListItem extends ConsumerWidget {
         text: displayName,
         style: textStyle,
       ),
-      titleStrutStyle: const StrutStyle(forceStrutHeight: true),
       subtitle: Text(
         withPrefix(
           input: username,

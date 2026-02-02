@@ -63,7 +63,6 @@ class ChatSearchResultListItem extends HookConsumerWidget {
               color: context.theme.appColors.primaryText,
             ),
           ),
-          titleStrutStyle: const StrutStyle(forceStrutHeight: true),
           constraints: BoxConstraints(minHeight: 48.0.s),
           subtitle: item.lastMessageContent.isNotEmpty && showLastMessage
               ? Text(

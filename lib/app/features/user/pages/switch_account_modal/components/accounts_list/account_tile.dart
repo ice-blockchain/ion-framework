@@ -48,7 +48,6 @@ class SwitchAccountModalTile extends HookConsumerWidget {
       isSelected: isCurrentUser,
       onTap: () => _handleTap(ref),
       titleSpan: TextSpan(text: userPreview.data.trimmedDisplayName),
-      titleStrutStyle: const StrutStyle(forceStrutHeight: true),
       subtitle: Text(
         withPrefix(
           input: userPreview.data.name,

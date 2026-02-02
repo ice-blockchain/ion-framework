@@ -30,7 +30,6 @@ class BlockedUserListItem extends ConsumerWidget {
 
     return BadgesUserListItem(
       titleSpan: TextSpan(text: displayName),
-      titleStrutStyle: const StrutStyle(forceStrutHeight: true),
       trailing: BlockUserButton(masterPubkey: pubkey),
       subtitle: Text(
         withPrefix(

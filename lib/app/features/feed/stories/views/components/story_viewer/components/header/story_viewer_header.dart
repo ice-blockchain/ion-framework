@@ -86,7 +86,6 @@ class StoryViewerHeader extends ConsumerWidget {
                     shadows: shadow,
                   ),
                 ),
-                titleStrutStyle: const StrutStyle(forceStrutHeight: true),
                 subtitle: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

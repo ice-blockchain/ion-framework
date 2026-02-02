@@ -41,7 +41,6 @@ class SelectableUserListItem extends ConsumerWidget {
       child: BadgesUserListItem(
         masterPubkey: masterPubkey,
         titleSpan: TextSpan(text: displayName),
-        titleStrutStyle: const StrutStyle(forceStrutHeight: true),
         subtitle: Text(
           withPrefix(
             input: username,

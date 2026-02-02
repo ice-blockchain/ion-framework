@@ -40,7 +40,6 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
         child: ScreenSideOffset.small(
           child: BadgesUserListItem(
             titleSpan: TextSpan(text: displayName),
-            titleStrutStyle: const StrutStyle(forceStrutHeight: true),
             subtitle: Text(
               withPrefix(
                 input: username,

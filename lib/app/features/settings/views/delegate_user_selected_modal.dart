@@ -107,7 +107,6 @@ class _UserInfo extends ConsumerWidget {
                 color: context.theme.appColors.primaryText,
               ),
             ),
-            titleStrutStyle: const StrutStyle(forceStrutHeight: true),
             subtitle: Text(
               withPrefix(
                 input: username,

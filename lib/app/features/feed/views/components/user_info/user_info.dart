@@ -74,7 +74,6 @@ class UserInfo extends HookConsumerWidget {
           style: tStyle,
           recognizer: titleTap,
         ),
-        titleStrutStyle: const StrutStyle(forceStrutHeight: true),
         subtitle: GestureDetector(
           onTap: openProfile,
           child: Row(

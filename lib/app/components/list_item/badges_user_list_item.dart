@@ -26,7 +26,7 @@ class BadgesUserListItem extends ConsumerWidget {
     this.isSelected = false,
     this.isVerifiedOptimisticOnLoading = false,
     this.avatarSize,
-    this.titleStrutStyle,
+    this.titleStrutStyle = const StrutStyle(forceStrutHeight: true),
     super.key,
   });
 

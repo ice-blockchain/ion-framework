@@ -33,7 +33,6 @@ class MentionItem extends ConsumerWidget {
     return BadgesUserListItem(
       onTap: () => onPress((pubkey: pubkey, username: username)),
       titleSpan: TextSpan(text: displayName),
-      titleStrutStyle: const StrutStyle(forceStrutHeight: true),
       subtitle: Text(withPrefix(input: username, textDirection: Directionality.of(context))),
       masterPubkey: pubkey,
       trailing: marketCap != null ? MarketCapBadge(marketCap: marketCap) : null,
