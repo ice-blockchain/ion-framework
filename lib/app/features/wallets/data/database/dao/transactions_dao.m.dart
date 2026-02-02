@@ -150,19 +150,29 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
         if (existing == null) return toInsertRaw;
 
+        final statusChanged = existing.status != toInsertRaw.status;
+
+        final fee = statusChanged
+            ? toInsertRaw.fee ?? existing.fee
+            : existing.fee ?? toInsertRaw.fee;
+        final transferredAmount = statusChanged
+            ? toInsertRaw.transferredAmount ?? existing.transferredAmount
+            : existing.transferredAmount ?? toInsertRaw.transferredAmount;
+        final transferredAmountUsd = statusChanged
+            ? toInsertRaw.transferredAmountUsd ?? existing.transferredAmountUsd
+            : existing.transferredAmountUsd ?? toInsertRaw.transferredAmountUsd;
+
         return toInsertRaw.copyWith(
           id: Value(existing.id ?? toInsertRaw.id),
           coinId: Value(existing.coinId ?? toInsertRaw.coinId),
-          fee: Value(existing.fee ?? toInsertRaw.fee),
+          fee: Value(fee),
           eventId: Value(existing.eventId ?? toInsertRaw.eventId),
           userPubkey: Value(existing.userPubkey ?? toInsertRaw.userPubkey),
           dateRequested: Value(existing.dateRequested ?? toInsertRaw.dateRequested),
           dateConfirmed: Value(existing.dateConfirmed ?? toInsertRaw.dateConfirmed),
           createdAtInRelay: Value(existing.createdAtInRelay ?? toInsertRaw.createdAtInRelay),
-          transferredAmount: Value(existing.transferredAmount ?? toInsertRaw.transferredAmount),
-          transferredAmountUsd: Value(
-            existing.transferredAmountUsd ?? toInsertRaw.transferredAmountUsd,
-          ),
+          transferredAmount: Value(transferredAmount),
+          transferredAmountUsd: Value(transferredAmountUsd),
           assetContractAddress: Value(
             existing.assetContractAddress ?? toInsertRaw.assetContractAddress,
           ),
