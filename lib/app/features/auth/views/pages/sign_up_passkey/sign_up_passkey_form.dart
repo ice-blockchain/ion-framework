@@ -10,7 +10,7 @@ import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/flows/run_sign_up_then_login.dart';
 import 'package:ion/app/features/auth/providers/auth_flow_action_notifier.r.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/auth/providers/auth_screen_busy_provider.r.dart';
 import 'package:ion/app/features/auth/views/components/identity_key_name_input/identity_key_name_input.dart';
 import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biometrics.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
@@ -27,8 +27,6 @@ class SignUpPasskeyForm extends HookConsumerWidget {
     final formKey = useRef(GlobalKey<FormState>());
 
     final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
-
-    final authState = ref.watch(authProvider);
     final authFlowState = ref.watch(authFlowActionNotifierProvider);
 
     useOnInit(
@@ -45,6 +43,8 @@ class SignUpPasskeyForm extends HookConsumerWidget {
       excludedExceptions: {...excludedPasskeyExceptions, UserAlreadyExistsException},
     );
 
+    final authScreenIsBusy = ref.watch(authScreenBusyProvider);
+
     return Form(
       key: formKey.value,
       child: Column(
@@ -60,26 +60,27 @@ class SignUpPasskeyForm extends HookConsumerWidget {
           ),
           SizedBox(height: 16.0.s),
           Button(
-            disabled: authFlowState.isLoading,
-            trailingIcon:
-                authFlowState.isLoading || (authState.valueOrNull?.isAuthenticated).falseOrValue
-                    ? const IONLoadingIndicator()
-                    : Assets.svg.iconButtonNext.icon(
-                        size: 24.0.s,
-                        color: context.theme.appColors.onPrimaryAccent,
-                      ),
-            onPressed: () async {
-              if (formKey.value.currentState!.validate()) {
-                FocusScope.of(context).unfocus();
-                await runSignUpThenLogin(
-                  context: ref.context,
-                  ref: ref,
-                  identityKeyName: identityKeyNameController.text,
-                  kind: SignUpKind.passkey,
-                  suggestBiometrics: onSuggestToAddBiometrics,
-                );
-              }
-            },
+            disabled: authScreenIsBusy,
+            trailingIcon: authScreenIsBusy
+                ? const IONLoadingIndicator()
+                : Assets.svg.iconButtonNext.icon(
+                    size: 24.0.s,
+                    color: context.theme.appColors.onPrimaryAccent,
+                  ),
+            onPressed: authScreenIsBusy
+                ? null
+                : () async {
+                    if (formKey.value.currentState!.validate()) {
+                      FocusScope.of(context).unfocus();
+                      await runSignUpThenLogin(
+                        context: ref.context,
+                        ref: ref,
+                        identityKeyName: identityKeyNameController.text,
+                        kind: SignUpKind.passkey,
+                        suggestBiometrics: onSuggestToAddBiometrics,
+                      );
+                    }
+                  },
             label: Text(context.i18n.button_continue),
             mainAxisSize: MainAxisSize.max,
           ),
