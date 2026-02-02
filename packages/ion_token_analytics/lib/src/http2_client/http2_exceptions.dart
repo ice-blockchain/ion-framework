@@ -115,6 +115,20 @@ class WebSocketDecompressionException extends Http2ClientException {
     : super('Failed to decompress WebSocket message: $error');
 }
 
+/// Exception thrown when an operation is attempted on a disposed Http2Client.
+///
+/// This occurs when trying to create a subscription or make a request
+/// on a client that has already been disposed (e.g., due to provider rebuild
+/// or app lifecycle changes).
+///
+/// When this exception is caught, callers should:
+/// - Stop attempting reconnection
+/// - Close any associated streams to allow providers to restart
+/// - Create a new client instance if needed
+class Http2ClientDisposedException extends Http2ClientException {
+  const Http2ClientDisposedException() : super('Cannot perform operation on disposed Http2Client');
+}
+
 /// Exception thrown when the HTTP/2 connection has become stale.
 ///
 /// This typically occurs when:

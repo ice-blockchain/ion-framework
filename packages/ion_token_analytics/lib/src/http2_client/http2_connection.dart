@@ -71,7 +71,9 @@ class Http2Connection {
 
   void _updateStatus(ConnectionStatus status) {
     _currentStatus = status;
-    _statusController.add(status);
+    if (!_statusController.isClosed) {
+      _statusController.add(status);
+    }
   }
 
   /// Establishes the HTTP/2 connection.

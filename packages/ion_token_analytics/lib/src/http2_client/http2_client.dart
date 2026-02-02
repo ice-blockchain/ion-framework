@@ -282,7 +282,7 @@ class Http2Client {
   }) async {
     return _wrapWithStaleConnectionHandling(() async {
       if (_disposed) {
-        throw StateError('Cannot create subscription on disposed Http2Client');
+        throw const Http2ClientDisposedException();
       }
       await _ensureConnection();
       _activeStreams++;
