@@ -15,6 +15,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_relay.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_token.f.dart';
+import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_notification_category.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
@@ -23,9 +24,14 @@ import 'package:ion/app/features/push_notifications/providers/configure_firebase
 import 'package:ion/app/features/push_notifications/providers/firebase_messaging_token_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/relay_firebase_app_config_provider.m.dart';
 import 'package:ion/app/features/push_notifications/providers/selected_push_categories_provider.m.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
+import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/services/device_id/device_id.r.dart';
@@ -76,11 +82,11 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   Future<List<RequestFilter>> _getFilters() async {
     final selectedPushCategories = ref.watch(selectedPushCategoriesProvider).enabledCategories;
 
-    final filters = selectedPushCategories
-        .map(_buildFilterForCategory)
-        .nonNulls
-        .expand<RequestFilter>((filters) => filters)
-        .toList();
+    final categoryFilters = await Future.wait(
+      selectedPushCategories.map(_buildFilterForCategory),
+    );
+
+    final filters = categoryFilters.nonNulls.expand<RequestFilter>((filters) => filters).toList();
 
     final messageFilter = _buildFilterForMessages(selectedPushCategories);
     if (messageFilter != null) {
@@ -95,12 +101,17 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     return filters;
   }
 
-  List<RequestFilter>? _buildFilterForCategory(PushNotificationCategory category) {
-    return switch (category) {
+  Future<List<RequestFilter>?> _buildFilterForCategory(PushNotificationCategory category) async {
+    return await switch (category) {
       PushNotificationCategory.mentionsAndReplies => _buildFilterForMentionsAndReplies(),
       PushNotificationCategory.reposts => _buildFilterForReposts(),
       PushNotificationCategory.likes => _buildFilterForLikes(),
       PushNotificationCategory.newFollowers => _buildFilterForNewFollowers(),
+      PushNotificationCategory.creatorToken => _buildFilterForCreatorToken(),
+      PushNotificationCategory.contentToken => _buildFilterForContentToken(),
+      PushNotificationCategory.creatorTokenTrades => _buildFilterForCreatorTokenTrades(),
+      PushNotificationCategory.contentTokenTrades => _buildFilterForContentTokenTrades(),
+      PushNotificationCategory.tokenUpdates => _buildFilterForTokenUpdates(),
       _ => null,
     };
   }
@@ -176,6 +187,87 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
         tags: {
           '#p': [currentUserPubkey],
         },
+      ),
+    ];
+  }
+
+  Future<List<RequestFilter>> _buildFilterForCreatorToken() async {
+    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
+    final currentUserFollowList = await ref.watch(currentUserFollowListProvider.future);
+    if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+    return [
+      RequestFilter(
+        kinds: const [CommunityTokenDefinitionEntity.kind],
+        tags: {
+          '#p': [currentUserPubkey, ...(currentUserFollowList?.masterPubkeys ?? [])],
+          '#k': [UserMetadataEntity.kind.toString()],
+          '#t': const [communityTokenActionTopic],
+        },
+      ),
+    ];
+  }
+
+  Future<List<RequestFilter>> _buildFilterForContentToken() async {
+    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
+    final currentUserFollowList = await ref.watch(currentUserFollowListProvider.future);
+    if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+    return [
+      RequestFilter(
+        kinds: const [CommunityTokenDefinitionEntity.kind],
+        tags: {
+          '#p': [currentUserPubkey, ...(currentUserFollowList?.masterPubkeys ?? [])],
+          '#k': [
+            PostEntity.kind.toString(),
+            ModifiablePostEntity.kind.toString(),
+            ArticleEntity.kind.toString(),
+          ],
+          '#t': const [communityTokenActionTopic],
+        },
+      ),
+    ];
+  }
+
+  Future<List<RequestFilter>> _buildFilterForCreatorTokenTrades() async {
+    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+    return [
+      RequestFilter(
+        kinds: const [CommunityTokenActionEntity.kind],
+        tags: {
+          '#p': [currentUserPubkey],
+          '#k': [UserMetadataEntity.kind.toString()],
+          '#t': const [communityTokenActionTopic],
+          '#tx_type': [CommunityTokenActionType.buy.name],
+        },
+      ),
+    ];
+  }
+
+  Future<List<RequestFilter>> _buildFilterForContentTokenTrades() async {
+    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+    return [
+      RequestFilter(
+        kinds: const [CommunityTokenActionEntity.kind],
+        tags: {
+          '#p': [currentUserPubkey],
+          '#k': [
+            PostEntity.kind.toString(),
+            ModifiablePostEntity.kind.toString(),
+            ArticleEntity.kind.toString(),
+          ],
+          '#t': const [communityTokenActionTopic],
+          '#tx_type': [CommunityTokenActionType.buy.name],
+        },
+      ),
+    ];
+  }
+
+  Future<List<RequestFilter>> _buildFilterForTokenUpdates() async {
+    return [
+      RequestFilter(
+        kinds: const [CommunityTokenActionEntity.kind],
+        search: TokenUpdatesSearchExtension().toString(),
       ),
     ];
   }
