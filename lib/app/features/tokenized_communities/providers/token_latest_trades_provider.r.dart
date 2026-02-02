@@ -17,22 +17,9 @@ class TokenLatestTrades extends _$TokenLatestTrades {
   // Trades we currently expose (newest -> oldest).
   List<LatestTrade> _currentTrades = [];
 
-  // Dedupe key-set across SSE + REST pages.
-  final Set<String> _seenKeys = <String>{};
-
-  // Before the initial REST snapshot loads, we record SSE keys that arrived.
-  // After initial REST returns, we can compute which SSE trades were NOT included
-  // in that snapshot and must shift subsequent REST offsets.
-  final Set<String> _sseKeysBeforeInitial = <String>{};
-
   // REST pagination state.
   int _restOffset = 0;
 
-  // Number of *new* trades received from SSE since the last successful REST request.
-  // This value shifts the REST offset because server-side offsets are from the newest.
-  int _sseShift = 0;
-
-  bool _initialLoaded = false;
   bool _disposed = false;
 
   StreamController<List<LatestTrade>>? _controller;
@@ -52,12 +39,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     _pageSize = limit;
 
     _currentTrades = [];
-    _seenKeys.clear();
-    _sseKeysBeforeInitial.clear();
-
     _restOffset = offset;
-    _sseShift = 0;
-    _initialLoaded = false;
     _disposed = false;
 
     _clientFuture = ref.watch(ionTokenAnalyticsClientProvider.future);
@@ -86,39 +68,17 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
     final client = await _clientFuture;
 
-    // Capture the shift that we are about to account for in this REST request.
-    late int shiftAtRequest;
-    late int requestOffset;
-    await _enqueue(() {
-      shiftAtRequest = _sseShift;
-      requestOffset = _restOffset + shiftAtRequest;
-    });
-
     try {
       final moreTrades = await client.communityTokens.fetchLatestTrades(
         ionConnectAddress: _masterPubkey,
         limit: _pageSize,
-        offset: requestOffset,
+        offset: _restOffset,
       );
       final fetchedCount = moreTrades.length;
 
-      // Even if empty, we have successfully “accounted for” `shiftAtRequest` in the offset.
       await _enqueue(() {
-        for (final trade in moreTrades) {
-          final key = _tradeKey(trade);
-          if (_seenKeys.add(key)) {
-            _currentTrades.add(trade);
-          }
-        }
-
+        _currentTrades.addAll(moreTrades);
         _restOffset += moreTrades.length;
-
-        // We consumed `shiftAtRequest` by including it into `requestOffset`.
-        // Any SSE trades that arrived during the fetch incremented `_sseShift` meanwhile;
-        // keep only those for the next page.
-        _sseShift -= shiftAtRequest;
-        if (_sseShift < 0) _sseShift = 0;
-
         _emit();
       });
       return fetchedCount;
@@ -140,27 +100,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
       );
 
       await _enqueue(() {
-        final initialKeys = <String>{
-          for (final t in initialTrades) _tradeKey(t),
-        };
-
-        // Append REST snapshot after whatever SSE trades we might have already prepended.
-        for (final trade in initialTrades) {
-          final key = _tradeKey(trade);
-          if (_seenKeys.add(key)) {
-            _currentTrades.add(trade);
-          }
-        }
-
-        // Any SSE trades received *before* the snapshot that were NOT included in it
-        // must shift subsequent REST offsets.
-        _sseShift = _sseKeysBeforeInitial.difference(initialKeys).length;
-
-        // REST offset advances by the number of rows we asked for / received from REST,
-        // independent of dedupe.
+        _currentTrades.addAll(initialTrades);
         _restOffset = offset + initialTrades.length;
-
-        _initialLoaded = true;
         _emit();
       });
     } catch (e, st) {
@@ -194,18 +135,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
               );
 
             for (final trade in sorted) {
-              final key = _tradeKey(trade);
-              if (_seenKeys.contains(key)) continue;
-
-              _seenKeys.add(key);
               _currentTrades.insert(0, trade);
-
-              if (!_initialLoaded) {
-                _sseKeysBeforeInitial.add(key);
-              } else {
-                // This is a *new* trade after the last REST request -> shifts pagination.
-                _sseShift += 1;
-              }
             }
 
             _emit();
@@ -243,15 +173,6 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     final controller = _controller;
     if (controller == null || controller.isClosed) return;
     controller.add(List<LatestTrade>.unmodifiable(_currentTrades));
-  }
-
-  String _tradeKey(LatestTrade trade) {
-    // `createdAt` + ionConnect address + type + amount gives a stable-enough id and
-    // protects against rare same-timestamp collisions.
-    return '${trade.position.createdAt}|'
-        '${trade.position.addresses.ionConnect}|'
-        '${trade.position.type}|'
-        '${trade.position.amount}';
   }
 
   int _createdAtAsc(String a, String b) {
