@@ -18,7 +18,7 @@ String formatDouble(
 /// A number format for compact representations, e.g. "1.2M" instead
 /// of "1,200,000".
 String formatDoubleCompact(num value) {
-  return NumberFormat.compact().format(value);
+  return NumberFormat.compact(locale: 'en_US').format(value);
 }
 
 /// Formats a raw integer string that represents a fixed-decimal amount (e.g. wei)
@@ -117,7 +117,8 @@ String formatBigIntCompact(BigInt value) {
 }
 
 String formatToCurrency(double value, [String? symbol]) {
-  return NumberFormat.currency(symbol: symbol ?? r'$', decimalDigits: 2).format(value);
+  return NumberFormat.currency(locale: 'en_US', symbol: symbol ?? r'$', decimalDigits: 2)
+      .format(value);
 }
 
 String formatUSD(double usdAmount) => NumberFormat.currency(
