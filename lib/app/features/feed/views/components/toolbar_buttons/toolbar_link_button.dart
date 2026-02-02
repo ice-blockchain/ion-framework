@@ -51,6 +51,7 @@ class ToolbarLinkButton extends HookWidget {
       enabled: hasNonWhitespaceSelection,
       onPressed: () async {
         final localContext = context;
+        final selectionBeforeDialog = textEditorController.selection;
         String? existingLink;
         final linkAttribute =
             textEditorController.getSelectionStyle().attributes[Attribute.link.key];
@@ -66,6 +67,7 @@ class ToolbarLinkButton extends HookWidget {
         if (!localContext.mounted) return;
 
         if (resultLink != null) {
+          textEditorController.updateSelection(selectionBeforeDialog, ChangeSource.local);
           final url = resultLink.trim();
           final matches = TextParser(matchers: {const UrlMatcher()}).parse(url, onlyMatches: true);
           if (matches.isNotEmpty) {

@@ -8,34 +8,21 @@ void removeBlock(
   QuillController controller,
   Embed node,
 ) {
-  final delta = controller.document.toDelta();
-  var blockIndex = -1;
-  var blockLength = 0;
-  var currentIndex = 0;
-
-  for (final operation in delta.operations) {
-    final length = operation.length ?? 1;
-
-    if (operation.isInsert && operation.data is Map<String, dynamic>) {
-      final data = operation.data! as Map<String, dynamic>;
-      if (data.containsKey('custom')) {
-        blockIndex = currentIndex;
-        blockLength = length;
-        break;
-      }
-    }
-    currentIndex += length;
+  final blockIndex = node.documentOffset;
+  var blockLength = node.length;
+  final plainText = controller.document.toPlainText();
+  final nextIndex = blockIndex + blockLength;
+  if (nextIndex < plainText.length && plainText[nextIndex] == '\n') {
+    blockLength += 1;
   }
 
-  if (blockIndex != -1) {
-    final deleteDelta = Delta()
-      ..retain(blockIndex)
-      ..delete(blockLength);
+  final deleteDelta = Delta()
+    ..retain(blockIndex)
+    ..delete(blockLength);
 
-    controller.compose(
-      deleteDelta,
-      TextSelection.collapsed(offset: blockIndex),
-      ChangeSource.local,
-    );
-  }
+  controller.compose(
+    deleteDelta,
+    TextSelection.collapsed(offset: blockIndex),
+    ChangeSource.local,
+  );
 }
