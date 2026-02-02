@@ -20,10 +20,14 @@ double tokenPriceChangePercent(
   );
 
   return candlesAsync.when(
-    data: (candles) => calculatePriceChangePercentFromNow(
-      candles,
-      const Duration(hours: 24),
-    ),
+    data: (candles) {
+      final percent = calculatePriceChangePercentFromNow(
+        candles,
+        const Duration(hours: 24),
+      );
+      // Round to 2 decimals so tiny float noise doesn't flip the color to red.
+      return (percent * 100).round() / 100;
+    },
     loading: () => 0.0,
     error: (_, __) => 0.0,
   );
