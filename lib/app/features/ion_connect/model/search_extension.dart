@@ -440,3 +440,8 @@ class FollowingListSearchExtension extends IncludeSearchExtension {
   @override
   String get query => 'kind3';
 }
+
+class TokenUpdatesSearchExtension extends SearchExtension {
+  @override
+  final String query = 'include:system_recommendations:community_token_updates';
+}
