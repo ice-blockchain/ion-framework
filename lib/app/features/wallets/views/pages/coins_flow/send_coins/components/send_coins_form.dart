@@ -25,12 +25,12 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/contact_input_switcher.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/memo_input_field.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/features/wallets/views/utils/network_validator.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SendCoinsForm extends HookConsumerWidget {
