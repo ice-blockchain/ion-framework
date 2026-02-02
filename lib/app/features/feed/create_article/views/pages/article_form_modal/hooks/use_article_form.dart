@@ -7,13 +7,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/hooks/use_quill_controller.dart';
 import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
+import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/hooks/use_init_article_who_can_reply.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/providers/mentions/article_mentions_restored_provider.r.dart';
-import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 import 'package:ion/app/services/media_service/image_proccessing_config.dart';
@@ -56,19 +55,7 @@ class ArticleFormState {
 }
 
 ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) {
-  final modifiableEntity = modifiedEvent != null
-      ? ref.watch(ionConnectEntityProvider(eventReference: modifiedEvent)).valueOrNull
-      : null;
-
-  useOnInit(
-    () {
-      if (modifiableEntity is ArticleEntity) {
-        ref.read(selectedWhoCanReplyOptionProvider.notifier).option =
-            modifiableEntity.data.whoCanReplySetting;
-      }
-    },
-    [modifiableEntity],
-  );
+  useInitArticleWhoCanReply(ref, modifiedEvent: modifiedEvent);
 
   final selectedImage = useState<MediaFile?>(null);
   final media = useState<Map<String, MediaAttachment>?>(null);
@@ -118,6 +105,8 @@ ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) 
   useEffect(
     () {
       if (modifiedEvent != null) {
+        final modifiableEntity =
+            ref.read(ionConnectEntityProvider(eventReference: modifiedEvent)).valueOrNull;
         if (modifiableEntity is ArticleEntity) {
           if (modifiableEntity.data.title != null) {
             titleController.text = modifiableEntity.data.title!;
