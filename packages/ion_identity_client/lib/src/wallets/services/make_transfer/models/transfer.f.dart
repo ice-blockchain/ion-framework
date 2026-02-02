@@ -42,6 +42,9 @@ class NativeTokenTransfer with _$NativeTokenTransfer implements Transfer {
 
     /// The memo or destination tag
     @JsonKey(includeIfNull: false) String? memo,
+
+    /// If True, pay to create the associated token account of the recipient if it doesn't exist. Defaults to False.
+    @JsonKey(includeIfNull: false) bool? createDestinationAccount,
   }) = _NativeTokenTransfer;
 
   factory NativeTokenTransfer.fromJson(Map<String, dynamic> json) =>
@@ -175,6 +178,9 @@ class Sep41Transfer with _$Sep41Transfer implements Transfer {
 
     /// The memo
     @JsonKey(includeIfNull: false) String? memo,
+
+    /// If True, pay to create the associated token account of the recipient if it doesn't exist. Defaults to False.
+    @JsonKey(includeIfNull: false) bool? createDestinationAccount,
   }) = _Sep41Transfer;
 
   factory Sep41Transfer.fromJson(Map<String, dynamic> json) => _$Sep41TransferFromJson(json);
