@@ -13,6 +13,7 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/community_token_live_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
+import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -30,6 +31,7 @@ class CommunityTokenLive extends HookConsumerWidget {
     required this.eventReference,
     this.network = false,
     this.headerOffset,
+    this.timeFormat = TimestampFormat.short,
     super.key,
   });
 
@@ -38,6 +40,8 @@ class CommunityTokenLive extends HookConsumerWidget {
   final bool network;
 
   final double? headerOffset;
+
+  final TimestampFormat timeFormat;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -81,12 +85,16 @@ class CommunityTokenLive extends HookConsumerWidget {
         ] else
           SizedBox(height: headerOffset ?? 0),
         if (isTwitterToken)
-          _TwitterTokenUserInfo(entity: entity)
+          _TwitterTokenUserInfo(
+            entity: entity,
+            timeFormat: timeFormat,
+          )
         else
           UserInfo(
             pubkey: eventReference.masterPubkey,
             network: network,
             createdAt: entity.createdAt,
+            timeFormat: timeFormat,
             trailing: isOwnedByCurrentUser
                 ? null
                 : BottomSheetMenuButton(
@@ -130,9 +138,11 @@ class _CreatorTokenIsLiveLabel extends StatelessWidget {
 class _TwitterTokenUserInfo extends HookConsumerWidget {
   const _TwitterTokenUserInfo({
     required this.entity,
+    required this.timeFormat,
   });
 
   final CommunityTokenDefinitionEntity entity;
+  final TimestampFormat timeFormat;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -143,6 +153,19 @@ class _TwitterTokenUserInfo extends HookConsumerWidget {
     if (tokenInfo == null) {
       return const SizedBox.shrink();
     }
+
+    final locale = Localizations.localeOf(context);
+    final timeText = switch (timeFormat) {
+      TimestampFormat.detailed =>
+        formatDetailedTimestamp(entity.createdAt.toDateTime, locale: locale),
+      TimestampFormat.compact =>
+        formatCompactTimestamp(entity.createdAt.toDateTime, locale: locale),
+      TimestampFormat.short => formatShortTimestamp(
+          entity.createdAt.toDateTime,
+          locale: locale,
+          context: context,
+        ),
+    };
     return Padding(
       padding: EdgeInsetsDirectional.only(start: 16.s),
       child: Row(
@@ -163,7 +186,7 @@ class _TwitterTokenUserInfo extends HookConsumerWidget {
                     handle: tokenInfo.marketData.ticker,
                     verified: tokenInfo.creator.verified ?? false,
                     isCreator: true,
-                    meta: formatShortTimestamp(entity.createdAt.toDateTime),
+                    meta: timeText,
                     isXUser: true,
                   ),
                 ),

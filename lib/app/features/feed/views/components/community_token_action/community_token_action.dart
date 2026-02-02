@@ -13,6 +13,7 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/feed/views/components/bottom_sheet_menu/post_menu_bottom_sheet.dart';
 import 'package:ion/app/features/feed/views/components/community_token_action/components/community_token_action_body.dart';
 import 'package:ion/app/features/feed/views/components/post/post_skeleton.dart';
+import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/feed/views/components/user_info/user_info.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -23,6 +24,7 @@ class CommunityTokenAction extends HookConsumerWidget {
     required this.eventReference,
     this.network = false,
     this.headerOffset,
+    this.timeFormat = TimestampFormat.short,
     super.key,
   });
 
@@ -31,6 +33,8 @@ class CommunityTokenAction extends HookConsumerWidget {
   final bool network;
 
   final double? headerOffset;
+
+  final TimestampFormat timeFormat;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -67,6 +71,7 @@ class CommunityTokenAction extends HookConsumerWidget {
           pubkey: eventReference.masterPubkey,
           network: network,
           createdAt: entity.createdAt,
+          timeFormat: timeFormat,
           trailing: isOwnedByCurrentUser
               ? null
               : BottomSheetMenuButton(
