@@ -49,9 +49,7 @@ class SwapCoinsController extends _$SwapCoinsController {
   }) =>
       state = state.copyWith(
         sellCoin: coin ?? _resolveDefaultSellCoin(),
-        sellNetwork: coin != null
-            ? network ?? coin.coins.firstOrNull?.coin.network
-            : network ?? _resolveDefaultSellNetwork(),
+        sellNetwork: _initSellNetwork(coin, network),
         buyCoin: null,
         buyNetwork: null,
         swapQuoteInfo: null,
@@ -217,6 +215,11 @@ class SwapCoinsController extends _$SwapCoinsController {
     }
   }
 
+  NetworkData? _initSellNetwork(CoinsGroup? coin, NetworkData? network) {
+    final sellCoin = coin ?? _resolveDefaultSellCoin();
+    return network ?? _resolveDefaultSellNetwork(sellCoin);
+  }
+
   CoinsGroup? _resolveDefaultSellCoin() {
     final localStorage = ref.read(localStorageProvider);
     final lastSymbolGroup = localStorage.getString(_lastSellCoinKey);
@@ -235,9 +238,11 @@ class SwapCoinsController extends _$SwapCoinsController {
     return maxBy<CoinsGroup, double>(coinGroups, (g) => g.totalAmount);
   }
 
-  NetworkData? _resolveDefaultSellNetwork() {
-    final sellCoin = _resolveDefaultSellCoin();
-    return sellCoin?.coins.firstOrNull?.coin.network;
+  /// Find network with the highest balance
+  NetworkData? _resolveDefaultSellNetwork(CoinsGroup? sellCoin) {
+    if (sellCoin == null) return null;
+
+    return maxBy<CoinInWalletData, double>(sellCoin.coins, (c) => c.amount)?.coin.network;
   }
 
   void _persistLastSellCoin(String symbolGroup) {
