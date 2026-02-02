@@ -23,6 +23,7 @@ class _TransferFactory {
         amount: amount,
         priority: priority,
         memo: memo,
+        createDestinationAccount: true,
       ),
       erc20: (asset) => Erc20Transfer(
         contract: asset.contract!,
@@ -53,6 +54,7 @@ class _TransferFactory {
         assetCode: asset.symbol,
         issuer: asset.issuer,
         memo: memo,
+        createDestinationAccount: true,
       ),
       tep74: (asset) => Tep74Transfer(
         amount: amount,

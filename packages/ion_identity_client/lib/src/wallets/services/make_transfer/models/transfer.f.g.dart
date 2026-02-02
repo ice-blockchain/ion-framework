@@ -15,6 +15,7 @@ _$NativeTokenTransferImpl _$$NativeTokenTransferImplFromJson(
       priority:
           $enumDecodeNullable(_$TransferPriorityEnumMap, json['priority']),
       memo: json['memo'] as String?,
+      createDestinationAccount: json['createDestinationAccount'] as bool?,
     );
 
 Map<String, dynamic> _$$NativeTokenTransferImplToJson(
@@ -25,6 +26,8 @@ Map<String, dynamic> _$$NativeTokenTransferImplToJson(
       'kind': instance.kind,
       if (instance.priority?.toJson() case final value?) 'priority': value,
       if (instance.memo case final value?) 'memo': value,
+      if (instance.createDestinationAccount case final value?)
+        'createDestinationAccount': value,
     };
 
 const _$TransferPriorityEnumMap = {
@@ -136,6 +139,7 @@ _$Sep41TransferImpl _$$Sep41TransferImplFromJson(Map<String, dynamic> json) =>
       amount: json['amount'] as String,
       kind: json['kind'] as String? ?? 'Sep41',
       memo: json['memo'] as String?,
+      createDestinationAccount: json['createDestinationAccount'] as bool?,
     );
 
 Map<String, dynamic> _$$Sep41TransferImplToJson(_$Sep41TransferImpl instance) =>
@@ -146,6 +150,8 @@ Map<String, dynamic> _$$Sep41TransferImplToJson(_$Sep41TransferImpl instance) =>
       'amount': instance.amount,
       'kind': instance.kind,
       if (instance.memo case final value?) 'memo': value,
+      if (instance.createDestinationAccount case final value?)
+        'createDestinationAccount': value,
     };
 
 _$Tep74TransferImpl _$$Tep74TransferImplFromJson(Map<String, dynamic> json) =>
