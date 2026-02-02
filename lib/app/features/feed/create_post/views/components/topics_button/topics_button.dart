@@ -120,8 +120,6 @@ class TopicsButton extends HookConsumerWidget {
     double alignment = 0.0,
   }) async {
     if (isContextVisible(context)) return;
-    final renderObject = context.findRenderObject();
-    if (renderObject == null) return;
 
     await Scrollable.ensureVisible(
       context,
