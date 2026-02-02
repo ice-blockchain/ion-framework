@@ -42,6 +42,7 @@ class TokenCard extends HookConsumerWidget {
     this.isError = false,
     this.isCoinNameLoading = false,
     this.customIconWidget,
+    this.formattedAmount,
     super.key,
   });
 
@@ -62,6 +63,7 @@ class TokenCard extends HookConsumerWidget {
   final ValueChanged<String?>? onValidationError;
   final bool isCoinNameLoading;
   final Widget? customIconWidget;
+  final String? formattedAmount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,6 +75,9 @@ class TokenCard extends HookConsumerWidget {
 
     final enteredAmountUSD = useMemoized<String>(
       () {
+        final override = formattedAmount;
+        if (override != null) return override;
+
         final text = controller?.text.trim() ?? '';
         final amount = parseAmount(text) ?? 0;
         final priceUSD = coinForNetwork?.coin.priceUSD ?? 0.0;
@@ -80,7 +85,7 @@ class TokenCard extends HookConsumerWidget {
 
         return formatToCurrency(usdValue);
       },
-      [controller?.text, coinForNetwork?.coin.priceUSD],
+      [formattedAmount, controller?.text, coinForNetwork?.coin.priceUSD],
     );
 
     useValidateAmount(

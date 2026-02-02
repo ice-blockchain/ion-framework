@@ -26,7 +26,9 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -322,6 +324,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     state = state.copyWith(mode: mode);
     _resetTradeFormOnModeChange();
     _updateDerivedState();
+    _refreshFormattedAmounts();
   }
 
   void toggleMode() {
@@ -335,6 +338,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   void setAmount(double amount) {
     state = state.copyWith(amount: amount);
     _scheduleQuoteUpdates();
+    _refreshFormattedAmounts();
   }
 
   void setAmountByPercentage(int percentage) {
@@ -363,6 +367,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     state = state.copyWith(selectedPaymentToken: token);
     _updateDerivedState();
     _scheduleQuoteUpdates();
+    _refreshFormattedAmounts();
   }
 
   void setSlippage(double slippage) {
@@ -379,6 +384,9 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       amount: 0,
       quotePricing: null,
       isQuoting: false,
+      communityTokenAmountUSDFormatted: null,
+      paymentTokenAmountUSDFormatted: null,
+      paymentTokenQuoteAmountUSDFormatted: null,
     );
   }
 
@@ -418,6 +426,8 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
             targetNetwork: targetNetwork,
           ),
         );
+
+    _refreshFormattedAmounts();
   }
 
   Future<({CoinData? token, CoinsGroup? coinsGroup})> _resolvePaymentContext(
@@ -541,28 +551,17 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     quoteController.schedule(
       request: _buildQuoteRequest(),
       onReset: () {
-        state = state.copyWith(
-          isQuoting: false,
-          quotePricing: null,
-        );
+        _setQuotePricing(null);
       },
       onStart: () => state = state.copyWith(isQuoting: true),
-      onSuccess: (pricing) {
-        state = state.copyWith(
-          quotePricing: pricing,
-          isQuoting: false,
-        );
-      },
+      onSuccess: _setQuotePricing,
       onError: (error, stackTrace) {
         Logger.error(
           error,
           stackTrace: stackTrace,
           message: 'Failed to get quote',
         );
-        state = state.copyWith(
-          quotePricing: null,
-          isQuoting: false,
-        );
+        _setQuotePricing(null);
       },
       onPollError: (error, stackTrace) {
         Logger.error(
@@ -617,6 +616,65 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       throw StateError('CommunityTokenPricingIdentifierResolver is not initialized');
     }
     return resolver.resolve(mode);
+  }
+
+  void _setQuotePricing(PricingResponse? pricing) {
+    final formatted = _computeFormattedAmounts(pricing);
+    state = state.copyWith(
+      quotePricing: pricing,
+      isQuoting: false,
+      communityTokenAmountUSDFormatted: formatted.community,
+      paymentTokenAmountUSDFormatted: formatted.payment,
+      paymentTokenQuoteAmountUSDFormatted: formatted.paymentQuote,
+    );
+  }
+
+  void _refreshFormattedAmounts() {
+    final formatted = _computeFormattedAmounts(state.quotePricing);
+    state = state.copyWith(
+      communityTokenAmountUSDFormatted: formatted.community,
+      paymentTokenAmountUSDFormatted: formatted.payment,
+      paymentTokenQuoteAmountUSDFormatted: formatted.paymentQuote,
+    );
+  }
+
+  ({String? community, String? payment, String? paymentQuote}) _computeFormattedAmounts(
+    PricingResponse? pricing,
+  ) {
+    final community = pricing == null ? null : formatToCurrency(pricing.amountUSD);
+    if (pricing == null) {
+      final zero = formatToCurrency(0);
+      return (community: community, payment: zero, paymentQuote: zero);
+    }
+
+    final paymentTokenPriceUSD = _resolvePaymentTokenPriceUSD(pricing);
+    final payment =
+        paymentTokenPriceUSD == null ? null : formatToCurrency(state.amount * paymentTokenPriceUSD);
+
+    String? paymentQuote;
+    if (paymentTokenPriceUSD != null && state.mode == CommunityTokenTradeMode.sell) {
+      final decimals = state.selectedPaymentToken?.decimals;
+      if (decimals != null) {
+        final quoteAmount = fromBlockchainUnits(pricing.amount, decimals);
+        paymentQuote = formatToCurrency(quoteAmount * paymentTokenPriceUSD);
+      }
+    }
+
+    return (community: community, payment: payment, paymentQuote: paymentQuote);
+  }
+
+  double? _resolvePaymentTokenPriceUSD(PricingResponse? pricing) {
+    if (pricing == null) return null;
+    final token = state.selectedPaymentToken?.abbreviation.toUpperCase();
+    if (token == null) return null;
+
+    final tokenMap = {
+      'ION': pricing.usdPriceION,
+      'TION': pricing.usdPriceION,
+      'BNB': pricing.usdPriceBNB,
+    };
+
+    return tokenMap[token];
   }
 
   CoinsGroup _buildCommunityTokenGroup({
