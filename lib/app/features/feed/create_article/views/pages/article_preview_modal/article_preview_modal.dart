@@ -17,13 +17,16 @@ import 'package:ion/app/features/feed/create_article/providers/draft_article_pro
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/article_preview.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/select_article_topics_item.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/select_article_who_can_reply_item.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
-import 'package:ion/app/features/feed/providers/article_who_can_reply_sync_provider.r.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
+import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
 import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
@@ -68,7 +71,21 @@ class ArticlePreviewModal extends HookConsumerWidget {
       :imageUrl,
       :mediaAttachments,
     ) = ref.watch(draftArticleProvider);
-    final whoCanReply = ref.watch(articleWhoCanReplySyncProvider(modifiedEvent));
+    final modifiableEntity = modifiedEvent != null
+        ? ref.watch(ionConnectEntityProvider(eventReference: modifiedEvent!)).valueOrNull
+        : null;
+
+    useOnInit(
+      () {
+        if (modifiableEntity is ArticleEntity) {
+          ref.read(selectedWhoCanReplyOptionProvider.notifier).option =
+              modifiableEntity.data.whoCanReplySetting;
+        }
+      },
+      [modifiableEntity],
+    );
+
+    final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
     final shownTooltip = useRef(false);
     final isProcessing = useState(false);
