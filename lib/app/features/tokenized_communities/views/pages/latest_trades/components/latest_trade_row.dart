@@ -37,14 +37,8 @@ class LatestTradeRow extends StatelessWidget {
         ? i18n.trade_buy_badge_label
         : i18n.trade_sell_badge_label;
 
-    final holderIonConnectAddress =
-        trade.position.holder.addresses?.ionConnect ?? trade.position.addresses.ionConnect;
-    final creatorIonConnectAddress = trade.creator.addresses?.ionConnect;
-    final holderTwitterAddress = trade.position.holder.addresses?.twitter;
-    final creatorTwitterAddress = trade.creator.addresses?.twitter;
-    final isCreator =
-        (creatorIonConnectAddress != null && holderIonConnectAddress == creatorIonConnectAddress) ||
-            (creatorTwitterAddress != null && holderTwitterAddress == creatorTwitterAddress);
+    final isCreator = trade.isCreator;
+    final holderIonConnectAddress = trade.position.holder.addresses?.ionConnect;
     final isXUser = trade.position.holder.isXUser;
     final username = trade.position.holder.name;
 
@@ -166,5 +160,18 @@ class TitleAndMeta extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+extension LatestTradeExtension on LatestTrade {
+  bool get isCreator {
+    final holderIonConnectAddress = position.holder.addresses?.ionConnect;
+    final creatorIonConnectAddress = creator.addresses?.ionConnect;
+    final holderTwitterAddress = position.holder.addresses?.twitter;
+    final creatorTwitterAddress = creator.addresses?.twitter;
+
+    return (creatorIonConnectAddress != null &&
+            holderIonConnectAddress == creatorIonConnectAddress) ||
+        (creatorTwitterAddress != null && holderTwitterAddress == creatorTwitterAddress);
   }
 }

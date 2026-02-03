@@ -28,12 +28,14 @@ class BondingCurveHolderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HolderTile(
-      rank: holder.position.rank,
-      amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: context.i18n.tokenized_community_bonding_curve,
-      supplyShare: holder.position.supplyShare,
-      avatarUrl: holder.position.holder?.avatar,
-      badgeType: RankBadgeType.bondingCurve,
+      data: HolderTileData(
+        rank: holder.position.rank,
+        amountText: formatAmountCompactFromRaw(holder.position.amount),
+        displayName: context.i18n.tokenized_community_bonding_curve,
+        supplyShare: holder.position.supplyShare,
+        avatarUrl: holder.position.holder?.avatar,
+        badgeType: RankBadgeType.bondingCurve,
+      ),
     );
   }
 }
@@ -51,13 +53,15 @@ class BurningHolderTile extends StatelessWidget {
     final holderAddress = holder.position.holder?.addresses?.ionConnect ?? '';
 
     return HolderTile(
-      rank: holder.position.rank,
-      amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: holder.position.holder?.display ?? context.i18n.tokenized_community_burned,
-      supplyShare: holder.position.supplyShare,
-      avatarUrl: holder.position.holder?.avatar,
-      badgeType: RankBadgeType.burning,
-      address: holderAddress,
+      data: HolderTileData(
+        rank: holder.position.rank,
+        amountText: formatAmountCompactFromRaw(holder.position.amount),
+        displayName: holder.position.holder?.display ?? context.i18n.tokenized_community_burned,
+        supplyShare: holder.position.supplyShare,
+        avatarUrl: holder.position.holder?.avatar,
+        badgeType: RankBadgeType.burning,
+        address: holderAddress,
+      ),
     );
   }
 }
@@ -73,39 +77,36 @@ class TopHolderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isXUser = holder.position.holder?.isXUser ?? false;
-    final holderIonConnectAddress = holder.position.holder?.addresses?.ionConnect;
-    final creatorIonConnectAddress = holder.creator.addresses?.ionConnect;
-    final holderTwitterAddress = holder.position.holder?.addresses?.twitter;
-    final creatorTwitterAddress = holder.creator.addresses?.twitter;
-    final isCreator =
-        (creatorIonConnectAddress != null && holderIonConnectAddress == creatorIonConnectAddress) ||
-            (creatorTwitterAddress != null && holderTwitterAddress == creatorTwitterAddress);
+    final isCreator = holder.isCreator;
+    final holderAddress = holder.position.holder?.addresses?.ionConnect;
 
     final holderName = holder.position.holder?.name;
     final holderDisplay = holder.position.holder?.display;
     final holderBlockchainAddress = holder.position.holder?.addresses?.blockchain;
 
     return HolderTile(
-      rank: holder.position.rank,
-      amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: holderDisplay ??
-          shortenAddress(
-            holderBlockchainAddress ?? '',
-          ),
-      username: holderName == null ? null : '@$holderName',
-      supplyShare: holder.position.supplyShare,
-      verified: holder.position.holder?.verified ?? false,
-      isCreator: isCreator,
-      avatarUrl: holder.position.holder?.avatar,
-      holderAddress: holderIonConnectAddress,
-      isXUser: isXUser,
-      isIonConnectUser: holder.position.holder?.addresses?.ionConnect != null,
+      data: HolderTileData(
+        rank: holder.position.rank,
+        amountText: formatAmountCompactFromRaw(holder.position.amount),
+        displayName: holderDisplay ??
+            shortenAddress(
+              holderBlockchainAddress ?? '',
+            ),
+        username: holderName == null ? null : '@$holderName',
+        supplyShare: holder.position.supplyShare,
+        verified: holder.position.holder?.verified ?? false,
+        isCreator: isCreator,
+        avatarUrl: holder.position.holder?.avatar,
+        holderAddress: holderAddress,
+        isXUser: isXUser,
+        isIonConnectUser: holder.position.holder?.addresses?.ionConnect != null,
+      ),
     );
   }
 }
 
-class HolderTile extends StatelessWidget {
-  const HolderTile({
+class HolderTileData {
+  const HolderTileData({
     required this.rank,
     required this.amountText,
     required this.displayName,
@@ -119,15 +120,13 @@ class HolderTile extends StatelessWidget {
     this.badgeType = RankBadgeType.regular,
     this.address,
     this.isIonConnectUser = false,
-    super.key,
   });
-
   final int rank;
   final String amountText;
   final String displayName;
   final double supplyShare;
-  final bool isCreator;
   final bool verified;
+  final bool isCreator;
   final String? username;
   final String? avatarUrl;
   final String? holderAddress;
@@ -135,6 +134,15 @@ class HolderTile extends StatelessWidget {
   final RankBadgeType badgeType;
   final String? address;
   final bool isIonConnectUser;
+}
+
+class HolderTile extends StatelessWidget {
+  const HolderTile({
+    required this.data,
+    super.key,
+  });
+
+  final HolderTileData data;
 
   @override
   Widget build(BuildContext context) {
@@ -142,12 +150,12 @@ class HolderTile extends StatelessWidget {
     final texts = context.theme.appTextThemes;
 
     return GestureDetector(
-      onTap: isXUser
-          ? () => openUrlInAppBrowser('https://x.com/$username')
-          : holderAddress != null
+      onTap: data.isXUser
+          ? () => openUrlInAppBrowser('https://x.com/${data.username}')
+          : data.holderAddress != null
               ? () => ProfileNavigationUtils.navigateToProfile(
                     context,
-                    pubkey: holderAddress,
+                    pubkey: data.holderAddress,
                   )
               : null,
       child: Row(
@@ -156,24 +164,24 @@ class HolderTile extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                _RankBadge(rank: rank, type: badgeType),
+                _RankBadge(rank: data.rank, type: data.badgeType),
                 SizedBox(width: 12.0.s),
                 HolderAvatar(
-                  imageUrl: avatarUrl,
-                  seed: displayName,
-                  isXUser: isXUser,
-                  isIonConnectUser: isIonConnectUser,
+                  imageUrl: data.avatarUrl,
+                  seed: data.displayName,
+                  isXUser: data.isXUser,
+                  isIonConnectUser: data.isIonConnectUser,
                 ),
                 SizedBox(width: 8.0.s),
                 Expanded(
                   child: _NameAndAmount(
-                    name: displayName,
-                    handle: username,
-                    address: address,
-                    isCreator: isCreator,
-                    verified: verified,
-                    amountText: amountText,
-                    isXUser: isXUser,
+                    name: data.displayName,
+                    handle: data.username,
+                    address: data.address,
+                    isCreator: data.isCreator,
+                    verified: data.verified,
+                    amountText: data.amountText,
+                    isXUser: data.isXUser,
                   ),
                 ),
               ],
@@ -186,7 +194,7 @@ class HolderTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(12.0.s),
             ),
             child: Text(
-              '${formatSupplySharePercent(supplyShare)}%',
+              '${formatSupplySharePercent(data.supplyShare)}%',
               style: texts.caption2
                   .copyWith(color: colors.primaryText, height: 18 / texts.caption2.fontSize!),
             ),
@@ -299,5 +307,18 @@ class _NameAndAmount extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+extension TopHolderMapping on TopHolder {
+  bool get isCreator {
+    final holderIonConnectAddress = position.holder?.addresses?.ionConnect;
+    final creatorIonConnectAddress = creator.addresses?.ionConnect;
+    final holderTwitterAddress = position.holder?.addresses?.twitter;
+    final creatorTwitterAddress = creator.addresses?.twitter;
+
+    return (creatorIonConnectAddress != null &&
+            holderIonConnectAddress == creatorIonConnectAddress) ||
+        (creatorTwitterAddress != null && holderTwitterAddress == creatorTwitterAddress);
   }
 }
