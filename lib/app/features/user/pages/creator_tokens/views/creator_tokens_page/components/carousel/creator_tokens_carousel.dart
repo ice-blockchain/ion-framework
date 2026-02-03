@@ -16,6 +16,7 @@ import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/utils/num.dart';
+import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -149,7 +150,14 @@ class _CarouselCard extends HookConsumerWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  '@${token.marketData.ticker}',
+                                  withPrefix(
+                                    input: '${token.marketData.ticker}',
+                                    textDirection: Directionality.of(context),
+                                    prefix: token.source.isTwitter ||
+                                            token.type != CommunityTokenType.profile
+                                        ? r'$'
+                                        : '@',
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                   style: context.theme.appTextThemes.caption2.copyWith(
                                     color: context.theme.appColors.secondaryBackground,
