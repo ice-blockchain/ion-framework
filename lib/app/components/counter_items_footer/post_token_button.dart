@@ -26,11 +26,13 @@ class PostTokenButton extends ConsumerWidget {
   const PostTokenButton({
     required this.eventReference,
     this.padding,
+    this.color,
     super.key,
   });
 
   final EventReference eventReference;
   final EdgeInsetsGeometry? padding;
+  final Color? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,14 +44,23 @@ class PostTokenButton extends ConsumerWidget {
     }
 
     return switch (entity) {
-      CommunityTokenDefinitionEntity() => _TokenDefinitionButton(entity: entity, padding: padding),
-      CommunityTokenActionEntity() => _TokenActionButton(entity: entity, padding: padding),
+      CommunityTokenDefinitionEntity() =>
+        _TokenDefinitionButton(entity: entity, padding: padding, color: color),
+      CommunityTokenActionEntity() => _TokenActionButton(
+          entity: entity,
+          padding: padding,
+          color: color,
+        ),
       ModifiablePostEntity(data: ModifiablePostData(quotedEvent: final quotedEvent))
           when quotedEvent != null &&
               [CommunityTokenDefinitionEntity.kind, CommunityTokenActionEntity.kind]
                   .contains(quotedEvent.eventReference.kind) =>
-        _QuotedTokenButton(quotedEventReference: quotedEvent.eventReference, padding: padding),
-      _ => _ContentEntityButton(entity: entity, padding: padding),
+        _QuotedTokenButton(
+          quotedEventReference: quotedEvent.eventReference,
+          padding: padding,
+          color: color,
+        ),
+      _ => _ContentEntityButton(entity: entity, padding: padding, color: color),
     };
   }
 }
@@ -97,10 +108,11 @@ class _TokenAvailability extends StatelessWidget {
 }
 
 class _TokenDefinitionButton extends StatelessWidget {
-  const _TokenDefinitionButton({required this.entity, this.padding});
+  const _TokenDefinitionButton({required this.entity, this.padding, this.color});
 
   final CommunityTokenDefinitionEntity entity;
   final EdgeInsetsGeometry? padding;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -117,16 +129,17 @@ class _TokenDefinitionButton extends StatelessWidget {
     return _TokenButton(
       padding: padding,
       onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
-      child: _MarketCap(externalAddress: externalAddress),
+      child: _MarketCap(externalAddress: externalAddress, color: color),
     );
   }
 }
 
 class _TokenActionButton extends ConsumerWidget {
-  const _TokenActionButton({required this.entity, this.padding});
+  const _TokenActionButton({required this.entity, this.padding, this.color});
 
   final CommunityTokenActionEntity entity;
   final EdgeInsetsGeometry? padding;
+  final Color? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -145,16 +158,17 @@ class _TokenActionButton extends ConsumerWidget {
     return _TokenButton(
       padding: padding,
       onTap: () => TokenizedCommunityRoute(externalAddress: externalAddress).push<void>(context),
-      child: _MarketCap(externalAddress: externalAddress),
+      child: _MarketCap(externalAddress: externalAddress, color: color),
     );
   }
 }
 
 class _QuotedTokenButton extends ConsumerWidget {
-  const _QuotedTokenButton({required this.quotedEventReference, this.padding});
+  const _QuotedTokenButton({required this.quotedEventReference, this.padding, this.color});
 
   final EventReference quotedEventReference;
   final EdgeInsetsGeometry? padding;
+  final Color? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -164,18 +178,20 @@ class _QuotedTokenButton extends ConsumerWidget {
 
     return switch (quotedEntity) {
       CommunityTokenDefinitionEntity() =>
-        _TokenDefinitionButton(entity: quotedEntity, padding: padding),
-      CommunityTokenActionEntity() => _TokenActionButton(entity: quotedEntity, padding: padding),
+        _TokenDefinitionButton(entity: quotedEntity, padding: padding, color: color),
+      CommunityTokenActionEntity() =>
+        _TokenActionButton(entity: quotedEntity, padding: padding, color: color),
       _ => _TokenButtonPlaceholder(padding: padding),
     };
   }
 }
 
 class _ContentEntityButton extends ConsumerWidget {
-  const _ContentEntityButton({required this.entity, this.padding});
+  const _ContentEntityButton({required this.entity, this.padding, this.color});
 
   final IonConnectEntity entity;
   final EdgeInsetsGeometry? padding;
+  final Color? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -215,8 +231,9 @@ class _ContentEntityButton extends ConsumerWidget {
       isReply: isReply,
       child: _TokenButton(
         padding: padding,
-        child:
-            hasToken ? _MarketCap(externalAddress: eventReference.toString()) : const _RocketIcon(),
+        child: hasToken
+            ? _MarketCap(externalAddress: eventReference.toString(), color: color)
+            : const _RocketIcon(),
         onTap: () {
           if (hasToken) {
             TokenizedCommunityRoute(
@@ -277,9 +294,10 @@ class _RocketIcon extends StatelessWidget {
 }
 
 class _MarketCap extends ConsumerWidget {
-  const _MarketCap({required this.externalAddress});
+  const _MarketCap({required this.externalAddress, this.color});
 
   final String externalAddress;
+  final Color? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -289,18 +307,20 @@ class _MarketCap extends ConsumerWidget {
       return SizedBox(width: 24.0.s);
     }
 
+    final effectiveColor = color ?? context.theme.appColors.onTertiaryBackground;
+
     return Row(
       children: [
         Assets.svg.iconMemeMarketcap.icon(
           size: 16.0.s,
-          color: context.theme.appColors.onTertiaryBackground,
+          color: effectiveColor,
         ),
         Padding(
           padding: EdgeInsetsDirectional.only(start: 4.0.s),
           child: Text(
             defaultUsdCompact(tokenInfo.marketData.marketCap),
             style: context.theme.appTextThemes.caption2.copyWith(
-              color: context.theme.appColors.onTertiaryBackground,
+              color: effectiveColor,
               height: 1.1,
             ),
           ),
