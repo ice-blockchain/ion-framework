@@ -25,6 +25,7 @@ import 'package:ion/app/features/tokenized_communities/enums/community_token_tra
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
@@ -205,97 +206,104 @@ class ContentTokenHeader extends HookConsumerWidget {
               ],
             ),
           ),
-        Stack(
-          alignment: AlignmentDirectional.bottomCenter,
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12.0.s),
-                color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-              margin: EdgeInsetsDirectional.only(
-                start: 12.0.s,
-                end: 12.0.s,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 20.0.s),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: TokenCreatorTile(
-                          creator: Creator(
-                            avatar: owner?.data.avatarUrl,
-                            display: owner?.data.displayName,
-                            name: owner?.data.name,
-                            verified: isVerified,
+        GestureDetector(
+          onTap: entity != null
+              ? () => PostDetailsRoute(
+                    eventReference: entity.toEventReference().encode(),
+                  ).push<void>(context)
+              : null,
+          child: Stack(
+            alignment: AlignmentDirectional.bottomCenter,
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.0.s),
+                  color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+                margin: EdgeInsetsDirectional.only(
+                  start: 12.0.s,
+                  end: 12.0.s,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20.0.s),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: TokenCreatorTile(
+                            creator: Creator(
+                              avatar: owner?.data.avatarUrl,
+                              display: owner?.data.displayName,
+                              name: owner?.data.name,
+                              verified: isVerified,
+                            ),
+                            creatorMasterPubkey: owner?.masterPubkey,
+                            nameColor: context.theme.appColors.onPrimaryAccent,
+                            handleColor: context.theme.appColors.attentionBlock,
                           ),
-                          creatorMasterPubkey: owner?.masterPubkey,
-                          nameColor: context.theme.appColors.onPrimaryAccent,
-                          handleColor: context.theme.appColors.attentionBlock,
+                        ),
+                        pnl ??
+                            ProfileTokenPrice(
+                              amount: token.marketData.priceUSD,
+                            ),
+                      ],
+                    ),
+                    if (content != null && content.isNotEmpty) ...[
+                      SizedBox(height: 12.0.s),
+                      Text(
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.start,
+                        content,
+                        style: context.theme.appTextThemes.caption2.copyWith(
+                          color: context.theme.appColors.onPrimaryAccent,
                         ),
                       ),
-                      pnl ??
-                          ProfileTokenPrice(
-                            amount: token.marketData.priceUSD,
-                          ),
                     ],
-                  ),
-                  if (content != null && content.isNotEmpty) ...[
-                    SizedBox(height: 12.0.s),
-                    Text(
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.start,
-                      content,
-                      style: context.theme.appTextThemes.caption2.copyWith(
-                        color: context.theme.appColors.onPrimaryAccent,
+                    GradientHorizontalDivider(
+                      margin: EdgeInsetsDirectional.symmetric(
+                        vertical: 14.0.s,
                       ),
                     ),
+                    ProfileTokenStats(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      eventReference:
+                          (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference,
+                    ),
+                    SizedBox(height: showBuyButton ? 24.0.s : 16.s),
                   ],
-                  GradientHorizontalDivider(
-                    margin: EdgeInsetsDirectional.symmetric(
-                      vertical: 14.0.s,
-                    ),
-                  ),
-                  ProfileTokenStats(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    eventReference:
-                        (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference,
-                  ),
-                  SizedBox(height: showBuyButton ? 24.0.s : 16.s),
-                ],
+                ),
               ),
-            ),
-            if (type == CommunityContentTokenType.article)
-              PositionedDirectional(
-                start: 12.s,
-                top: 16.s,
-                bottom: 16.s,
-                child: Container(
-                  width: 4.s,
-                  decoration: BoxDecoration(
-                    color: colors?.first,
-                    borderRadius: BorderRadiusDirectional.only(
-                      topEnd: Radius.circular(12.5.s),
-                      bottomEnd: Radius.circular(12.5.s),
+              if (type == CommunityContentTokenType.article)
+                PositionedDirectional(
+                  start: 12.s,
+                  top: 16.s,
+                  bottom: 16.s,
+                  child: Container(
+                    width: 4.s,
+                    decoration: BoxDecoration(
+                      color: colors?.first,
+                      borderRadius: BorderRadiusDirectional.only(
+                        topEnd: Radius.circular(12.5.s),
+                        bottomEnd: Radius.circular(12.5.s),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            if (showBuyButton)
-              PositionedDirectional(
-                bottom: -11.5.s,
-                child: _BuyButton(
-                  tokenDefinition: tokenDefinition,
-                  eventReference: eventReference,
+              if (showBuyButton)
+                PositionedDirectional(
+                  bottom: -11.5.s,
+                  child: _BuyButton(
+                    tokenDefinition: tokenDefinition,
+                    eventReference: eventReference,
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ],
     );
