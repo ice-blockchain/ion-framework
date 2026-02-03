@@ -228,6 +228,24 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
       final txHash = _requireBroadcastedTxHash(response);
 
+      final tokenTransactionService = ref.read(tokenTransactionServiceProvider);
+      await tokenTransactionService.savePendingTransaction(
+        externalAddress: params.externalAddress,
+        transactionId: response['id']?.toString(),
+        txHash: txHash,
+        wallet: wallet,
+        paymentToken: token,
+        amount: amount,
+        expectedPricing: expectedPricing,
+        paymentCoinsGroup: formState.paymentCoinsGroup,
+        communityTokenCoinsGroup: formState.communityTokenCoinsGroup,
+        isSell: true,
+      );
+
+      ref
+          .read(cachedTokenMarketInfoNotifierProvider(params.externalAddress).notifier)
+          .adjustPositionAfterSell(amount);
+
       unawaited(
         ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
       );
