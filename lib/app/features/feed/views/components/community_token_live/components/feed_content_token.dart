@@ -25,7 +25,6 @@ import 'package:ion/app/features/tokenized_communities/enums/community_token_tra
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_creator_tile.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
