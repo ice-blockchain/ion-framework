@@ -206,11 +206,18 @@ class ContentTokenHeader extends HookConsumerWidget {
             ),
           ),
         GestureDetector(
-          onTap: entity != null
-              ? () => PostDetailsRoute(
-                    eventReference: entity.toEventReference().encode(),
-                  ).push<void>(context)
-              : null,
+          onTap: () {
+            final encodedEventReference = eventReference.encode();
+            if (type == CommunityContentTokenType.article || entity is ArticleEntity) {
+              ArticleDetailsRoute(
+                eventReference: encodedEventReference,
+              ).push<void>(context);
+            } else {
+              PostDetailsRoute(
+                eventReference: encodedEventReference,
+              ).push<void>(context);
+            }
+          },
           child: Stack(
             alignment: AlignmentDirectional.bottomCenter,
             clipBehavior: Clip.none,
