@@ -32,13 +32,13 @@ class LatestTradesCard extends HookConsumerWidget {
     );
 
     final buyTextWidth = useMemoized(
-      () => calculateTextWidth(i18n.trade_buy, badgeTextStyle),
-      [i18n.trade_buy, badgeTextStyle],
+      () => calculateTextWidth(i18n.trade_buy_badge_label, badgeTextStyle),
+      [i18n.trade_buy_badge_label, badgeTextStyle],
     );
 
     final sellTextWidth = useMemoized(
-      () => calculateTextWidth(i18n.trade_sell, badgeTextStyle),
-      [i18n.trade_sell, badgeTextStyle],
+      () => calculateTextWidth(i18n.trade_sell_badge_label, badgeTextStyle),
+      [i18n.trade_sell_badge_label, badgeTextStyle],
     );
     final baseTextWidth = buyTextWidth > sellTextWidth ? buyTextWidth : sellTextWidth;
     final widthBuffer = 2.0.s;
