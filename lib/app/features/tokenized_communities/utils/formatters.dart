@@ -19,7 +19,7 @@ String formatPercent(double p) {
 
 String formatPrice(double price, {String symbol = r'$'}) {
   if (price >= 1) {
-    return NumberFormat.currency(symbol: symbol, decimalDigits: 2).format(price);
+    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 2).format(price);
   }
   // Handle small prices with subscript notation similar to PriceLabelFormatter
   final abs = price.abs();
@@ -28,14 +28,14 @@ String formatPrice(double price, {String symbol = r'$'}) {
   final expStr = abs.toStringAsExponential(12);
   final match = RegExp(r'^(\d(?:\.\d+)?)e([+-]\d+)$').firstMatch(expStr);
   if (match == null) {
-    return NumberFormat.currency(symbol: symbol, decimalDigits: 4).format(price);
+    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 4).format(price);
   }
 
   final mantissaStr = match.group(1)!;
   final exponent = int.parse(match.group(2)!);
 
   if (exponent >= -1) {
-    return NumberFormat.currency(symbol: symbol, decimalDigits: 4).format(price);
+    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 4).format(price);
   }
 
   final digits = mantissaStr.replaceAll('.', '');
@@ -56,11 +56,11 @@ String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
   final absPrice = price.abs();
 
   if (absPrice >= 0.01) {
-    return NumberFormat.currency(symbol: symbol, decimalDigits: 2).format(price);
+    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 2).format(price);
   }
 
   if (absPrice >= 0.001) {
-    return NumberFormat.currency(symbol: symbol, decimalDigits: 3).format(price);
+    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 3).format(price);
   }
 
   if (absPrice == 0) return '${symbol}0.00';
@@ -69,7 +69,7 @@ String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
   final subscriptResult = formatSubscriptNotation(price, symbol);
   if (subscriptResult.isEmpty) {
     // Fallback if subscript formatting fails
-    return NumberFormat.currency(symbol: symbol, decimalDigits: 4).format(price);
+    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 4).format(price);
   }
   return subscriptResult;
 }
