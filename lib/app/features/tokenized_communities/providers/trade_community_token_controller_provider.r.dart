@@ -605,19 +605,18 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }) {
     final existingGroup = state.communityTokenCoinsGroup;
     // Use user name as fallback when ticker is empty (e.g., first buy)
-    final abbreviation = tokenTicker.isNotEmpty ? tokenTicker : tokenTitle;
-    final symbolGroup = tokenTicker.isNotEmpty ? tokenTicker : tokenTitle;
+    final tokenName = tokenTicker.isNotEmpty ? tokenTicker : tokenTitle;
     return existingGroup?.copyWith(
           name: tokenTitle,
           iconUrl: communityAvatar ?? existingGroup.iconUrl,
-          symbolGroup: symbolGroup,
-          abbreviation: abbreviation,
+          symbolGroup: tokenName,
+          abbreviation: tokenName,
         ) ??
         CoinsGroup(
           name: tokenTitle,
           iconUrl: communityAvatar,
-          symbolGroup: symbolGroup,
-          abbreviation: abbreviation,
+          symbolGroup: tokenName,
+          abbreviation: tokenName,
           coins: const [],
         );
   }
@@ -629,13 +628,12 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     required String? communityAvatar,
   }) {
     // Use user name as fallback when ticker is empty (e.g., first buy)
-    final abbreviation = tokenTicker.isNotEmpty ? tokenTicker : tokenTitle;
-    final symbolGroup = tokenTicker.isNotEmpty ? tokenTicker : tokenTitle;
+    final tokenName = tokenTicker.isNotEmpty ? tokenTicker : tokenTitle;
     return derivedCoinsGroup.copyWith(
       name: tokenTitle,
       iconUrl: communityAvatar ?? derivedCoinsGroup.iconUrl,
-      symbolGroup: symbolGroup,
-      abbreviation: abbreviation,
+      symbolGroup: tokenName,
+      abbreviation: tokenName,
     );
   }
 }
