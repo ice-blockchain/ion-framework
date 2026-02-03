@@ -382,6 +382,23 @@ final class _QuotedPost extends ConsumerWidget {
         ) ??
         ListCachedObjects.maybeObjectOf<IonConnectEntity>(context, eventReference);
 
+    final quotedTokenEventReference = switch (postEntity) {
+      ModifiablePostEntity(data: ModifiablePostData(quotedEvent: final quotedEvent))
+          when quotedEvent != null &&
+              [CommunityTokenDefinitionEntity.kind, CommunityTokenActionEntity.kind]
+                  .contains(quotedEvent.eventReference.kind) =>
+        quotedEvent.eventReference,
+      _ => null,
+    };
+
+    if (quotedTokenEventReference != null) {
+      return _FramedEvent(
+        eventReference: quotedTokenEventReference,
+        postWidget: const SizedBox.shrink(),
+        articleWidget: const SizedBox.shrink(),
+      );
+    }
+
     return QuotedEntityFrame.post(
       child: GestureDetector(
         onTap: () {
