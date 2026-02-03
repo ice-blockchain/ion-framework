@@ -96,8 +96,7 @@ class TokenAnalyticsLogger implements AnalyticsLogger {
   void logHttpError(String method, String url, Object error, StackTrace stackTrace) {
     final buffer = StringBuffer()
       ..writeln('HTTP/2 Error')
-      ..writeln('[$method] $url')
-      ..writeln('Error: $error');
+      ..writeln('[$method] $url');
 
     Logger.error(
       error,
