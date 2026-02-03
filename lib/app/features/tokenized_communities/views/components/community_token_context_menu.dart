@@ -10,20 +10,26 @@ import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_explorer_url_utils.dart';
 import 'package:ion/app/features/user/pages/components/header_action/header_action.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class CommunityTokenContextMenu extends HookConsumerWidget {
   const CommunityTokenContextMenu({
     required this.closeSignal,
     required this.tokenDefinitionEntity,
+    required this.externalAddress,
     super.key,
   });
 
   final OverlayMenuCloseSignal closeSignal;
   final CommunityTokenDefinitionEntity? tokenDefinitionEntity;
+  final String externalAddress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,6 +46,15 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
       },
       [closeSignal],
     );
+
+    final tokenAddress = ref
+            .watch(tokenMarketInfoProvider(externalAddress))
+            .valueOrNull
+            ?.addresses
+            .blockchain
+            ?.trim() ??
+        '';
+    final network = ref.watch(bscNetworkDataProvider).valueOrNull;
 
     return OverlayMenu(
       menuBuilder: (closeMenu) {
@@ -62,6 +77,23 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                       .push<void>(context);
                 },
               ),
+              if (tokenAddress.isNotEmpty && network != null) ...[
+                const OverlayMenuItemSeparator(),
+                OverlayMenuItem(
+                  verticalPadding: 12.s,
+                  label: context.i18n.send_nft_token_contract_address,
+                  icon: Assets.svg.iconPopupBscscan
+                      .icon(size: 20.s, color: context.theme.appColors.quaternaryText),
+                  onPressed: () {
+                    final url = TokenExplorerUrlUtils.buildBscscanTokenUrl(
+                      contractAddress: tokenAddress,
+                      isTestnet: network.isTestnet,
+                    );
+                    closeMenu();
+                    openUrlInAppBrowser(url);
+                  },
+                ),
+              ],
               const OverlayMenuItemSeparator(),
               OverlayMenuItem(
                 verticalPadding: 12.s,

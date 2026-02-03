@@ -325,6 +325,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         CommunityTokenContextMenu(
           closeSignal: menuCloseSignal,
           tokenDefinitionEntity: tokenDefinition,
+          externalAddress: externalAddress,
         ),
         SizedBox(width: 16.s),
       ],
