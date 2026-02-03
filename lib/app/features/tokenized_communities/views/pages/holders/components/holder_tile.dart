@@ -73,9 +73,13 @@ class TopHolderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isXUser = holder.position.holder?.isXUser ?? false;
-    final holderAddress = holder.position.holder?.addresses?.ionConnect;
-    final creatorAddress = holder.creator.addresses?.ionConnect;
-    final isCreator = creatorAddress != null && holderAddress == creatorAddress;
+    final holderIonConnectAddress = holder.position.holder?.addresses?.ionConnect;
+    final creatorIonConnectAddress = holder.creator.addresses?.ionConnect;
+    final holderTwitterAddress = holder.position.holder?.addresses?.twitter;
+    final creatorTwitterAddress = holder.creator.addresses?.twitter;
+    final isCreator =
+        (creatorIonConnectAddress != null && holderIonConnectAddress == creatorIonConnectAddress) ||
+            (creatorTwitterAddress != null && holderTwitterAddress == creatorTwitterAddress);
 
     final holderName = holder.position.holder?.name;
     final holderDisplay = holder.position.holder?.display;
@@ -93,7 +97,7 @@ class TopHolderTile extends StatelessWidget {
       verified: holder.position.holder?.verified ?? false,
       isCreator: isCreator,
       avatarUrl: holder.position.holder?.avatar,
-      holderAddress: holderAddress,
+      holderAddress: holderIonConnectAddress,
       isXUser: isXUser,
       isIonConnectUser: holder.position.holder?.addresses?.ionConnect != null,
     );
