@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
@@ -128,6 +129,10 @@ Future<void> deeplinkInitializer(Ref ref) async {
       return PostDetailsRoute(eventReference: encodedEventReference).location;
     }
 
+    if (entity is CommunityTokenActionEntity) {
+      return PostDetailsRoute(eventReference: encodedEventReference).location;
+    }
+
     return null;
   }
 
@@ -234,6 +239,17 @@ Future<void> deeplinkInitializer(Ref ref) async {
             _ => null,
           };
 
+          if (location != null) {
+            ref.read(uiEventQueueNotifierProvider.notifier).emit(
+                  DeeplinkNavigateEvent(location),
+                );
+          }
+        } else {
+          final location = await handlePostDeepLink(
+            eventReference,
+            encodedEventReference,
+            SharedContentType.post,
+          );
           if (location != null) {
             ref.read(uiEventQueueNotifierProvider.notifier).emit(
                   DeeplinkNavigateEvent(location),

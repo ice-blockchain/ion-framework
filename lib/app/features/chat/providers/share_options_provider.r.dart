@@ -11,6 +11,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -74,6 +75,28 @@ ShareOptionsData? shareOptionsData(
     );
   }
 
+  if (entity is CommunityTokenActionEntity) {
+    final definitionEntity = ref
+        .watch(ionConnectEntityProvider(eventReference: entity.data.definitionReference))
+        .valueOrNull as CommunityTokenDefinitionEntity?;
+    if (definitionEntity == null) {
+      return null;
+    }
+    final communityTokenInfo =
+        ref.watch(tokenMarketInfoProvider(definitionEntity.data.externalAddress)).valueOrNull;
+    if (communityTokenInfo == null) {
+      return null;
+    }
+
+    return _getShareOptionsData(
+      entity,
+      userPreviewData,
+      shareAppName,
+      prefixUsername,
+      communityTokenInfo,
+    );
+  }
+
   return _getShareOptionsData(entity, userPreviewData, shareAppName, prefixUsername, null);
 }
 
@@ -84,31 +107,45 @@ ShareOptionsData? _getShareOptionsData(
   String prefixUsername,
   CommunityToken? communityTokenInfo,
 ) {
-  if (entity is CommunityTokenDefinitionEntity) {
-    return ShareOptionsData(
-      imageUrl: communityTokenInfo?.imageUrl,
-      userDisplayName: '',
-      shareAppName: shareAppName,
-      contentType: SharedContentType.communityToken,
-      tickerName: communityTokenInfo?.marketData.ticker,
-      tokenTitle: communityTokenInfo?.title,
-    );
-  }
-
-  if (userPreviewData == null) {
-    return null;
-  }
-  final userDisplayName = '${userPreviewData.displayName} ($prefixUsername)';
+  final userDisplayName =
+      userPreviewData != null ? '${userPreviewData.displayName} ($prefixUsername)' : null;
 
   switch (entity) {
+    case CommunityTokenDefinitionEntity():
+      if (communityTokenInfo == null) {
+        return null;
+      }
+      return ShareOptionsData(
+        imageUrl: communityTokenInfo.imageUrl,
+        userDisplayName: '',
+        shareAppName: shareAppName,
+        contentType: SharedContentType.communityToken,
+        tickerName: communityTokenInfo.marketData.ticker,
+        tokenTitle: communityTokenInfo.title,
+      );
+    case CommunityTokenActionEntity():
+      if (communityTokenInfo == null) {
+        return null;
+      }
+      return ShareOptionsData(
+        imageUrl: communityTokenInfo.imageUrl,
+        userDisplayName: '',
+        shareAppName: shareAppName,
+        contentType: SharedContentType.post,
+        tickerName: communityTokenInfo.marketData.ticker,
+        tokenTitle: communityTokenInfo.title,
+      );
     case ModifiablePostEntity():
+      if (userDisplayName == null) {
+        return null;
+      }
       final content = entity.data.richText?.content ?? entity.data.textContent;
       String? imageUrl;
       if (!entity.isStory) {
         final firstMedia = entity.data.media.values.firstOrNull;
         imageUrl = firstMedia?.image ?? firstMedia?.url;
       } else {
-        imageUrl = userPreviewData.avatarUrl;
+        imageUrl = userPreviewData!.avatarUrl;
       }
 
       final plainTextContent = _convertDeltaToPlainText(content);
@@ -122,6 +159,9 @@ ShareOptionsData? _getShareOptionsData(
         contentType: contentType,
       );
     case ArticleEntity():
+      if (userDisplayName == null) {
+        return null;
+      }
       return ShareOptionsData(
         imageUrl: entity.data.image,
         userDisplayName: userDisplayName,
@@ -131,8 +171,11 @@ ShareOptionsData? _getShareOptionsData(
         articleTitle: entity.data.title,
       );
     case UserMetadataEntity():
+      if (userDisplayName == null) {
+        return null;
+      }
       return ShareOptionsData(
-        imageUrl: userPreviewData.avatarUrl,
+        imageUrl: userPreviewData?.avatarUrl,
         userDisplayName: userDisplayName,
         shareAppName: shareAppName,
         contentType: SharedContentType.profile,
