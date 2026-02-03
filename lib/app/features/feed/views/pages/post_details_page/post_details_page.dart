@@ -89,12 +89,14 @@ class PostDetailsPage extends HookConsumerWidget {
                                 entity: entity,
                                 child: CommunityTokenAction(
                                   eventReference: eventReference,
+                                  timeFormat: TimestampFormat.detailed,
                                 ),
                               ),
                             CommunityTokenDefinitionEntity() => _TokenNavigationWrapper(
                                 entity: entity,
                                 child: CommunityTokenLive(
                                   eventReference: eventReference,
+                                  timeFormat: TimestampFormat.detailed,
                                 ),
                               ),
                             ModifiablePostEntity() || PostEntity() => _TokenNavigationWrapper(
