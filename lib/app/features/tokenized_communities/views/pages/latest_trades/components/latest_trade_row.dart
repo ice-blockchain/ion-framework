@@ -32,7 +32,9 @@ class LatestTradeRow extends StatelessWidget {
     final usdText = formatUSD(trade.position.amountUSD);
 
     final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
-    final badgeText = trade.position.type == TradeType.buy ? i18n.trade_buy : i18n.trade_sell;
+    final badgeText = trade.position.type == TradeType.buy
+        ? i18n.trade_buy_badge_label
+        : i18n.trade_sell_badge_label;
 
     final holderAddress =
         trade.position.holder.addresses?.ionConnect ?? trade.position.addresses.ionConnect;

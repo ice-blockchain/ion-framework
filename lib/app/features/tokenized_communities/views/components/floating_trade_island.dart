@@ -55,7 +55,7 @@ class FloatingTradeIsland extends ConsumerWidget {
             _PillButton(
               color: colors.success,
               leading: Assets.svg.iconButtonReceive.icon(size: 20.s, color: Colors.white),
-              label: i18n.trade_buy,
+              label: i18n.trade_buy_button_label,
               customPainter: _TradeButtonPainter.buy(color: colors.success),
               onTap: () {
                 TradeCommunityTokenRoute(
@@ -70,7 +70,7 @@ class FloatingTradeIsland extends ConsumerWidget {
             _PillButton(
               color: colors.lossRed,
               leading: Assets.svg.iconButtonReceive.icon(size: 20.s, color: Colors.white),
-              label: i18n.trade_sell,
+              label: i18n.trade_sell_button_label,
               customPainter: _TradeButtonPainter.sell(color: colors.lossRed),
               onTap: () {
                 TradeCommunityTokenRoute(
