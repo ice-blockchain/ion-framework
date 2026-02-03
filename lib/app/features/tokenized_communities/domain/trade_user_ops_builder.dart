@@ -10,6 +10,7 @@ import 'package:ion/app/features/tokenized_communities/domain/trade_route_builde
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
+import 'package:ion/app/utils/hex_encoding.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 class TradeUserOpsBuilder {
@@ -171,7 +172,7 @@ class TradeUserOpsBuilder {
       fatAddressData: fatAddressData,
     );
     final swapOp = await _repository.buildSwapUserOperation(
-      fromTokenIdentifier: _support.getBytesFromAddress(fromTokenAddress),
+      fromTokenIdentifier: getBytesFromAddress(fromTokenAddress),
       toTokenIdentifier: toTokenBytes,
       amountIn: quoteStep.amountIn,
       minReturn: quoteStep.minReturn,
@@ -212,7 +213,7 @@ class TradeUserOpsBuilder {
     required FatAddressV2Data? fatAddressData,
   }) async {
     if (step.mode == CommunityTokenTradeMode.sell) {
-      return _support.getBytesFromAddress(toTokenAddress);
+      return getBytesFromAddress(toTokenAddress);
     }
     final tokenAddress = await _resolveOptionalCommunityTokenAddress(
       role: step.toRole,

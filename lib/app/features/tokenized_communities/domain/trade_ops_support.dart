@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:convert';
-
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
+import 'package:ion/app/utils/hex_encoding.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 class TradeOpsSupport {
@@ -68,28 +67,5 @@ class TradeOpsSupport {
       throw StateError('fatAddressData is required for first buy of $externalAddress');
     }
     return fatAddressData.toBytes();
-  }
-
-  List<int> getBytesFromAddress(String address) {
-    if (address.startsWith('0x')) {
-      return _hexToBytes(address);
-    }
-    return utf8.encode(address);
-  }
-
-  List<int> _hexToBytes(String hex) {
-    var hexStr = hex;
-    if (hexStr.startsWith('0x')) {
-      hexStr = hexStr.substring(2);
-    }
-    if (hexStr.length % 2 != 0) {
-      hexStr = '0$hexStr';
-    }
-    final result = <int>[];
-    for (var i = 0; i < hexStr.length; i += 2) {
-      final byte = int.parse(hexStr.substring(i, i + 2), radix: 16);
-      result.add(byte);
-    }
-    return result;
   }
 }

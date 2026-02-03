@@ -575,25 +575,38 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   TradeCommunityTokenQuoteRequest? _buildQuoteRequest() {
-    final token = state.selectedPaymentToken;
-    if (token == null) return null;
+    try {
+      final token = state.selectedPaymentToken;
+      if (token == null) return null;
 
-    final mode = state.mode;
+      final mode = state.mode;
 
-    // Pricing API expects amount in smallest units (wei).
-    final amountDecimals = mode == CommunityTokenTradeMode.sell
-        ? TokenizedCommunitiesConstants.creatorTokenDecimals
-        : token.decimals;
+      // Pricing API expects amount in smallest units (wei).
+      final amountDecimals = mode == CommunityTokenTradeMode.sell
+          ? TokenizedCommunitiesConstants.creatorTokenDecimals
+          : token.decimals;
 
-    return TradeCommunityTokenQuoteRequest(
-      externalAddress: params.externalAddress,
-      externalAddressType: params.externalAddressType,
-      mode: mode,
-      amount: state.amount,
-      amountDecimals: amountDecimals,
-      pricingIdentifierResolver: () => _resolvePricingIdentifier(mode),
-      paymentTokenAddress: resolvePaymentTokenAddress(token),
-    );
+      return TradeCommunityTokenQuoteRequest(
+        externalAddress: params.externalAddress,
+        externalAddressType: params.externalAddressType,
+        mode: mode,
+        amount: state.amount,
+        amountDecimals: amountDecimals,
+        pricingIdentifierResolver: () => _resolvePricingIdentifier(mode),
+        paymentTokenAddress: resolvePaymentTokenAddress(token),
+      );
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to build quote request',
+      );
+      state = state.copyWith(
+        quotePricing: null,
+        isQuoting: false,
+      );
+      return null;
+    }
   }
 
   Future<PricingIdentifierResolution> _resolvePricingIdentifier(
