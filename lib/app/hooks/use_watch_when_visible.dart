@@ -70,9 +70,11 @@ T useWatchWhenVisible<T>({
   );
 
   // Conditionally watch provider based on route activation and app lifecycle
-  // Only call watcher when route is active AND app is in foreground
-  final isAppInForeground = appLifecycleState == AppLifecycleState.resumed;
-  final shouldWatch = isRouteActiveState.value && isAppInForeground;
+  // Only call watcher when route is active AND app is NOT backgrounded.
+  // We consider 'inactive' (e.g. system dialogs) as visible enough to keep watching.
+  final isAppBackgrounded = appLifecycleState == AppLifecycleState.paused ||
+      appLifecycleState == AppLifecycleState.detached;
+  final shouldWatch = isRouteActiveState.value && !isAppBackgrounded;
 
   T? currentValue;
   if (shouldWatch) {

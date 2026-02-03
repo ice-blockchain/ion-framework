@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -7,7 +8,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
+import 'package:ion/app/features/core/extensions/ref_lifecycle_listen_extension.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
@@ -58,9 +59,11 @@ Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
 
   onLogout(ref, cacheService.clearDatabase);
   onUserSwitch(ref, cacheService.clearDatabase);
-  onAppWentToBackground(
-    ref,
-    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
+  ref.listenOnLifecycleTransition(
+    to: AppLifecycleStatus.hidden,
+    onTransition: (_, __) {
+      unawaited(database.customStatement(DatabaseConstants.walCheckpointTruncate));
+    },
   );
 
   return cacheService;
