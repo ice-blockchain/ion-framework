@@ -26,11 +26,11 @@ import 'package:ion/app/features/wallets/views/components/transaction_participan
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/confirmation/transaction_amount_summary.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/components/actions_section.dart';
 import 'package:ion/app/features/wallets/views/pages/transaction_details/components/swap_details_content.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/share/share.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 // for those assets we can't build the explorer url right away and need to wait till confirmed

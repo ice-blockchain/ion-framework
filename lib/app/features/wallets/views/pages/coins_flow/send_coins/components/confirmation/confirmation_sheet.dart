@@ -29,10 +29,10 @@ import 'package:ion/app/features/wallets/views/components/arrival_time/list_item
 import 'package:ion/app/features/wallets/views/components/network_fee/list_item_network_fee.dart';
 import 'package:ion/app/features/wallets/views/components/transaction_participant.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/send_coins/components/confirmation/transaction_amount_summary.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';

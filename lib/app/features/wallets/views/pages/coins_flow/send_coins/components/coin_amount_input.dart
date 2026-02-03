@@ -6,7 +6,7 @@ import 'package:ion/app/components/inputs/text_input/text_input.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_validator.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';
 

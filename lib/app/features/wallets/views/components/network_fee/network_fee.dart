@@ -5,7 +5,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/model/network_fee_option.f.dart';
 import 'package:ion/app/features/wallets/views/components/info_block_button.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 
 class NetworkFeeOptionWidget extends StatelessWidget {

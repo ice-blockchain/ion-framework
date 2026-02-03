@@ -55,17 +55,17 @@ String _formatWithAbbreviation(double value) {
     return '$integerPart${scale.suffix}';
   }
 
-  String processDecimalPart(String decimalPart) {
-    // Truncate to maximum 3 decimal places
-    final truncated = decimalPart.length > 3 ? decimalPart.substring(0, 3) : decimalPart;
-    // Remove trailing zeros
-    return truncated.replaceAll(RegExp(r'0+$'), '');
-  }
-
-  final processedDecimal = processDecimalPart(parts[1]);
+  final processedDecimal = _processDecimalPart(parts[1]);
   return processedDecimal.isEmpty
       ? '$integerPart${scale.suffix}'
       : '$integerPart.$processedDecimal${scale.suffix}';
+}
+
+String _processDecimalPart(String decimalPart) {
+  // Truncate to maximum 3 decimal places
+  final truncated = decimalPart.length > 3 ? decimalPart.substring(0, 3) : decimalPart;
+  // Remove trailing zeros
+  return truncated.replaceAll(RegExp(r'0+$'), '');
 }
 
 String _formatWithSmartTruncation(

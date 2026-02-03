@@ -17,6 +17,7 @@ import 'package:ion/app/features/feed/providers/user_holdings_tab_provider.r.dar
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_trade_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/external_address_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
@@ -490,6 +491,8 @@ class _TokenCards extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bscNetwork = ref.watch(bscNetworkDataProvider).valueOrNull;
+    final network = state.targetNetwork ?? bscNetwork;
     final mode = state.mode;
     const creatorTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
     final amountController = useTextEditingController();
@@ -515,7 +518,7 @@ class _TokenCards extends HookConsumerWidget {
                     type: CoinSwapType.sell,
                     controller: amountController,
                     coinsGroup: state.paymentCoinsGroup,
-                    network: state.targetNetwork,
+                    network: network,
                     onTap: onTokenTap,
                     showArrow: isPaymentTokenSelectable,
                     showSelectButton: isPaymentTokenSelectable,
@@ -529,7 +532,7 @@ class _TokenCards extends HookConsumerWidget {
                     type: CoinSwapType.buy,
                     coinsGroup: state.communityTokenCoinsGroup,
                     controller: quoteController,
-                    network: state.targetNetwork,
+                    network: network,
                     avatarWidget: communityAvatarWidget,
                     showSelectButton: false,
                     skipAmountFormatting: true,
@@ -540,7 +543,7 @@ class _TokenCards extends HookConsumerWidget {
                     customIconWidget: state.shouldWaitSuggestedDetails
                         ? SuggestedCommunityAvatar(
                             pictureUrl: state.suggestedDetails?.picture ?? '',
-                            network: state.targetNetwork,
+                            network: network,
                           )
                         : null,
                     isCoinNameLoading: state.shouldWaitSuggestedDetails &&
@@ -552,7 +555,7 @@ class _TokenCards extends HookConsumerWidget {
                     type: CoinSwapType.sell,
                     controller: amountController,
                     coinsGroup: state.communityTokenCoinsGroup,
-                    network: state.targetNetwork,
+                    network: network,
                     avatarWidget: communityAvatarWidget,
                     showSelectButton: false,
                     onPercentageChanged: controller.setAmountByPercentage,
@@ -564,7 +567,7 @@ class _TokenCards extends HookConsumerWidget {
                     customIconWidget: state.shouldWaitSuggestedDetails
                         ? SuggestedCommunityAvatar(
                             pictureUrl: state.suggestedDetails?.picture ?? '',
-                            network: state.targetNetwork,
+                            network: network,
                           )
                         : null,
                     isCoinNameLoading: state.shouldWaitSuggestedDetails &&
@@ -575,7 +578,7 @@ class _TokenCards extends HookConsumerWidget {
                     type: CoinSwapType.buy,
                     controller: quoteController,
                     coinsGroup: state.paymentCoinsGroup,
-                    network: state.targetNetwork,
+                    network: network,
                     skipValidation: true,
                     enabled: false,
                     onTap: onTokenTap,

@@ -10,6 +10,8 @@ import 'package:ion/app/features/tokenized_communities/providers/fat_address_dat
 import 'package:ion/app/features/tokenized_communities/providers/suggest_token_creation_details_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/suggested_token_details_state.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/trade_config_cache_data.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/trade_config_cache_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/services/trade_community_token_quote_controller.dart';
@@ -49,6 +51,16 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     state = TradeCommunityTokenState(
       isPaymentTokenSelectable: !params.externalAddressType.isContentToken,
     );
+
+    final cached = ref.read(tradeConfigCacheProvider.notifier).get(externalAddress);
+    if (cached != null) {
+      state = state.copyWith(
+        selectedPaymentToken: cached.selectedPaymentToken,
+        paymentCoinsGroup: cached.paymentCoinsGroup,
+        targetWallet: cached.targetWallet,
+        targetNetwork: cached.targetNetwork,
+      );
+    }
 
     _quoteController ??= TradeCommunityTokenQuoteController(
       serviceResolver: () => ref.read(tradeCommunityTokenServiceProvider.future),
@@ -399,6 +411,16 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       targetNetwork: targetNetwork,
       isPaymentTokenSelectable: isSelectable,
     );
+
+    ref.read(tradeConfigCacheProvider.notifier).save(
+          params.externalAddress,
+          TradeConfigCacheData(
+            selectedPaymentToken: paymentToken,
+            paymentCoinsGroup: paymentCoinsGroup,
+            targetWallet: targetWallet,
+            targetNetwork: targetNetwork,
+          ),
+        );
   }
 
   Future<({CoinData? token, CoinsGroup? coinsGroup})> _resolvePaymentContext(

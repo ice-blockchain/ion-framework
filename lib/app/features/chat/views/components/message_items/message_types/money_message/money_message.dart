@@ -25,7 +25,7 @@ import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.da
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 
 part 'components/amount_display.dart';

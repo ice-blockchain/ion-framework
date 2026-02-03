@@ -11,7 +11,7 @@ import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 

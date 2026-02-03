@@ -17,7 +17,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/hooks
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_constants.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/string.dart';
 import 'package:ion/app/utils/text_input_formatters.dart';

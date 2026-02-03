@@ -17,8 +17,8 @@ import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.da
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
-import 'package:ion/app/features/wallets/views/utils/crypto_formatter.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/crypto_formatter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 
