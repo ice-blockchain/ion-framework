@@ -15,7 +15,6 @@ import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifie
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/keyboard/keyboard.dart';
-import 'package:ion/app/utils/scroll_visibility.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -119,14 +118,11 @@ class TopicsButton extends HookConsumerWidget {
     Curve curve = Curves.easeInOut,
     double alignment = 0.0,
   }) async {
-    if (isContextVisible(context)) return;
-
-    await Scrollable.ensureVisible(
+    return Scrollable.ensureVisible(
       context,
       alignment: alignment,
       duration: duration,
       curve: curve,
     );
-    return;
   }
 }
