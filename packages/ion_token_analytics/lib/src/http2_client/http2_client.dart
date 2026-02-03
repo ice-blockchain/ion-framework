@@ -46,6 +46,10 @@ class Http2Client {
     return Http2Client(host, port: port, scheme: scheme);
   }
 
+  /// SSE keepalive message types that should be ignored.
+  static const String _keepalivePing = 'ping';
+  static const String _keepalivePong = 'pong';
+
   /// The server hostname.
   final String host;
 
@@ -212,7 +216,13 @@ class Http2Client {
                 controller.add(message.data as T);
               } else {
                 try {
-                  final parsed = jsonDecode(message.data as String);
+                  final data = message.data as String;
+                  // Skip ping/pong keepalive messages
+                  final trimmed = data.trim();
+                  if (trimmed == _keepalivePing || trimmed == _keepalivePong) {
+                    return; // Ignore keepalive messages
+                  }
+                  final parsed = jsonDecode(data);
                   controller.add(parsed as T);
                 } catch (e) {
                   _addStreamError(controller, e, StackTrace.current);
@@ -416,6 +426,11 @@ class Http2Client {
         controller.add(data as T);
       } else {
         try {
+          // Skip ping/pong keepalive messages
+          final trimmed = data.trim();
+          if (trimmed == _keepalivePing || trimmed == _keepalivePong) {
+            return; // Ignore keepalive messages
+          }
           final parsed = jsonDecode(data);
           controller.add(parsed as T);
         } catch (e) {
