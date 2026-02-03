@@ -17,6 +17,7 @@ import 'package:ion/app/features/tokenized_communities/services/token_import_ser
 import 'package:ion/app/features/tokenized_communities/services/token_transaction_service.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/utils/payment_token_address_resolver.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
@@ -109,7 +110,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         walletId: wallet.id,
         walletAddress: wallet.address!,
         walletNetwork: wallet.network,
-        baseTokenAddress: token.contractAddress,
+        baseTokenAddress: resolvePaymentTokenAddress(token),
         baseTokenTicker: token.abbreviation,
         tokenDecimals: token.decimals,
         expectedPricing: expectedPricing,
@@ -210,11 +211,12 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
       final response = await service.sellCommunityToken(
         externalAddress: params.externalAddress,
+        externalAddressType: params.externalAddressType,
         amountIn: amountIn,
         walletId: wallet.id,
         walletAddress: wallet.address!,
         walletNetwork: wallet.network,
-        paymentTokenAddress: token.contractAddress,
+        paymentTokenAddress: resolvePaymentTokenAddress(token),
         paymentTokenTicker: token.abbreviation,
         paymentTokenDecimals: token.decimals,
         communityTokenAddress: communityTokenAddress,

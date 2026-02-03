@@ -111,7 +111,6 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     final pubkey = eventReference?.masterPubkey ??
         CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(resolvedExternalAddress);
     final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
-    final isPaymentTokenSelectable = state.isPaymentTokenSelectable;
     final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
 
     ref
@@ -193,14 +192,11 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                 state: state,
                 controller: controller,
                 communityAvatarWidget: communityAvatarWidget,
-                isPaymentTokenSelectable: isPaymentTokenSelectable,
-                onTokenTap: isPaymentTokenSelectable
-                    ? () => _showTokenSelectionSheet(
-                          context,
-                          controller,
-                          supportedTokensAsync,
-                        )
-                    : () {},
+                onTokenTap: () => _showTokenSelectionSheet(
+                  context,
+                  controller,
+                  supportedTokensAsync,
+                ),
               ),
             SizedBox(height: 29.0.s),
             if (buttonError.value != null)
@@ -475,7 +471,6 @@ class _TokenCards extends HookConsumerWidget {
     required this.state,
     required this.controller,
     required this.communityAvatarWidget,
-    required this.isPaymentTokenSelectable,
     required this.onTokenTap,
     required this.onValidationError,
     required this.isError,
@@ -484,7 +479,6 @@ class _TokenCards extends HookConsumerWidget {
   final TradeCommunityTokenState state;
   final TradeCommunityTokenController controller;
   final Widget? communityAvatarWidget;
-  final bool isPaymentTokenSelectable;
   final VoidCallback onTokenTap;
   final ValueChanged<String?>? onValidationError;
   final bool isError;
@@ -520,8 +514,6 @@ class _TokenCards extends HookConsumerWidget {
                     coinsGroup: state.paymentCoinsGroup,
                     network: network,
                     onTap: onTokenTap,
-                    showArrow: isPaymentTokenSelectable,
-                    showSelectButton: isPaymentTokenSelectable,
                     onPercentageChanged: controller.setAmountByPercentage,
                     skipAmountFormatting: true,
                     onValidationError: onValidationError,
@@ -582,8 +574,6 @@ class _TokenCards extends HookConsumerWidget {
                     skipValidation: true,
                     enabled: false,
                     onTap: onTokenTap,
-                    showArrow: isPaymentTokenSelectable,
-                    showSelectButton: isPaymentTokenSelectable,
                   ),
                 ],
         ),

@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_quote_builder.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_route_builder.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_user_ops_builder.dart';
+import 'package:ion/app/features/tokenized_communities/domain/transaction_result.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
@@ -22,18 +25,22 @@ import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-typedef TransactionResult = Map<String, dynamic>;
-
 class TradeCommunityTokenService {
   TradeCommunityTokenService({
     required this.repository,
     required this.ionConnectService,
     required this.protectedAccountsService,
+    required this.routeBuilder,
+    required this.quoteBuilder,
+    required this.userOpsBuilder,
   });
 
   final TradeCommunityTokenRepository repository;
   final CommunityTokenIonConnectService ionConnectService;
   final TokenOperationProtectedAccountsService protectedAccountsService;
+  final TradeRouteBuilder routeBuilder;
+  final TradeQuoteBuilder quoteBuilder;
+  final TradeUserOpsBuilder userOpsBuilder;
 
   Future<TransactionResult> buyCommunityToken({
     required String externalAddress,
@@ -51,33 +58,56 @@ class TradeCommunityTokenService {
     FatAddressV2Data? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
-    // Check if this account is protected from token operations
-    if (protectedAccountsService.isProtectedAccountFromExternalAddress(externalAddress)) {
-      throw const TokenOperationProtectedException();
-    }
-
+    _ensureAccountNotProtected(externalAddress);
     final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
     final firstBuy = _isFirstBuy(existingTokenAddress);
     final hasUserPosition = _hasUserPosition(tokenInfo);
-    final toTokenBytes = _buildBuyToTokenBytes(
-      externalAddress: externalAddress,
+    final isCreatorTokenMissingForContentFirstBuy = _isCreatorTokenMissingForContentFirstBuy(
       externalAddressType: externalAddressType,
-      tokenAddress: existingTokenAddress,
+      isFirstBuy: firstBuy,
       fatAddressData: fatAddressData,
     );
 
-    final transaction = await _performSwap(
+    final pricingIdentifier = _resolveBuyPricingIdentifier(
       externalAddress: externalAddress,
-      fromTokenAddress: baseTokenAddress,
-      toTokenBytes: toTokenBytes,
+      tokenInfo: tokenInfo,
+      fatAddressData: fatAddressData,
+    );
+    final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
+      externalAddress: externalAddress,
+      externalAddressType: externalAddressType,
+      paymentTokenAddress: baseTokenAddress,
+    );
+    final route = routeBuilder.build(
+      externalAddress: externalAddress,
+      externalAddressType: externalAddressType,
+      mode: CommunityTokenTradeMode.buy,
+      paymentTokenAddress: baseTokenAddress,
+      paymentTokenRoleOverride: paymentRoleOverride,
+      isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+    );
+    final quote = await quoteBuilder.build(
+      route: route,
+      pricingIdentifier: pricingIdentifier,
       amountIn: amountIn,
-      pricing: expectedPricing,
+      paymentTokenAddress: baseTokenAddress,
       slippagePercent: slippagePercent,
-      walletId: walletId,
+      fatAddressHex: fatAddressData?.toHex(),
+    );
+    final userOps = await userOpsBuilder.buildUserOps(
+      route: route,
+      quote: quote,
       walletAddress: walletAddress,
-      allowanceTokenAddress: baseTokenAddress,
-      tokenDecimals: tokenDecimals,
+      paymentTokenAddress: baseTokenAddress,
+      paymentTokenDecimals: tokenDecimals,
+      communityTokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
+      fatAddressData: fatAddressData,
+    );
+    final transaction = await repository.signAndBroadcastUserOperations(
+      walletId: walletId,
+      userOperations: userOps,
+      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
       userActionSigner: userActionSigner,
     );
 
@@ -117,6 +147,7 @@ class TradeCommunityTokenService {
 
   Future<TransactionResult> sellCommunityToken({
     required String externalAddress,
+    required ExternalAddressType externalAddressType,
     required BigInt amountIn,
     required String walletId,
     required String walletAddress,
@@ -131,25 +162,42 @@ class TradeCommunityTokenService {
     required bool shouldSendEvents,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
-    // Check if this account is protected from token operations
-    if (protectedAccountsService.isProtectedAccountFromExternalAddress(externalAddress)) {
-      throw const TokenOperationProtectedException();
-    }
+    _ensureAccountNotProtected(externalAddress);
+    final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
+      externalAddress: externalAddress,
+      externalAddressType: externalAddressType,
+      paymentTokenAddress: paymentTokenAddress,
+    );
+    final route = routeBuilder.build(
+      externalAddress: externalAddress,
+      externalAddressType: externalAddressType,
+      mode: CommunityTokenTradeMode.sell,
+      paymentTokenAddress: paymentTokenAddress,
+      paymentTokenRoleOverride: paymentRoleOverride,
+    );
 
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
-    final toTokenBytes = _getBytesFromAddress(paymentTokenAddress);
 
-    final transaction = await _performSwap(
-      externalAddress: externalAddress,
-      fromTokenAddress: communityTokenAddress,
-      toTokenBytes: toTokenBytes,
+    final quote = await quoteBuilder.build(
+      route: route,
+      pricingIdentifier: externalAddress,
       amountIn: amountIn,
-      pricing: expectedPricing,
+      paymentTokenAddress: paymentTokenAddress,
       slippagePercent: slippagePercent,
-      walletId: walletId,
+    );
+    final userOps = await userOpsBuilder.buildUserOps(
+      route: route,
+      quote: quote,
       walletAddress: walletAddress,
-      allowanceTokenAddress: communityTokenAddress,
-      tokenDecimals: tokenDecimals,
+      paymentTokenAddress: paymentTokenAddress,
+      paymentTokenDecimals: paymentTokenDecimals,
+      communityTokenDecimals: tokenDecimals,
+      communityTokenAddress: communityTokenAddress,
+    );
+    final transaction = await repository.signAndBroadcastUserOperations(
+      walletId: walletId,
+      userOperations: userOps,
+      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
       userActionSigner: userActionSigner,
     );
 
@@ -171,15 +219,41 @@ class TradeCommunityTokenService {
   }
 
   Future<PricingResponse> getQuote({
+    required String externalAddress,
+    required ExternalAddressType externalAddressType,
     required String pricingIdentifier,
     required CommunityTokenTradeMode mode,
     required String amount,
+    required String paymentTokenAddress,
+    FatAddressV2Data? fatAddressData,
   }) async {
-    return repository.fetchPricing(
-      pricingIdentifier: pricingIdentifier,
-      mode: mode,
-      amount: amount,
+    final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
+      externalAddress: externalAddress,
+      externalAddressType: externalAddressType,
+      paymentTokenAddress: paymentTokenAddress,
     );
+    final isCreatorTokenMissingForContentFirstBuy = _isCreatorTokenMissingForContentFirstBuy(
+      externalAddressType: externalAddressType,
+      isFirstBuy: mode == CommunityTokenTradeMode.buy && fatAddressData != null,
+      fatAddressData: fatAddressData,
+    );
+    final route = routeBuilder.build(
+      externalAddress: externalAddress,
+      externalAddressType: externalAddressType,
+      mode: mode,
+      paymentTokenAddress: paymentTokenAddress,
+      paymentTokenRoleOverride: paymentRoleOverride,
+      isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+    );
+    final quote = await quoteBuilder.build(
+      route: route,
+      pricingIdentifier: pricingIdentifier,
+      amountIn: BigInt.parse(amount),
+      paymentTokenAddress: paymentTokenAddress,
+      slippagePercent: 0,
+      fatAddressHex: _looksLikeHex(pricingIdentifier) ? pricingIdentifier : null,
+    );
+    return quote.finalPricing;
   }
 
   Future<CommunityToken?> fetchTokenInfoFresh(String externalAddress) async {
@@ -226,53 +300,79 @@ class TradeCommunityTokenService {
     return result;
   }
 
-  Future<TransactionResult> _performSwap({
+  void _ensureAccountNotProtected(String externalAddress) {
+    if (protectedAccountsService.isProtectedAccountFromExternalAddress(externalAddress)) {
+      throw const TokenOperationProtectedException();
+    }
+  }
+
+  String _resolveBuyPricingIdentifier({
     required String externalAddress,
-    required String fromTokenAddress,
-    required List<int> toTokenBytes,
-    required BigInt amountIn,
-    required PricingResponse pricing,
-    required double slippagePercent,
-    required String walletId,
-    required String walletAddress,
-    required String allowanceTokenAddress,
-    required int tokenDecimals,
-    required UserActionSignerNew userActionSigner,
+    required CommunityToken? tokenInfo,
+    FatAddressV2Data? fatAddressData,
+  }) {
+    final tokenAddress = tokenInfo?.addresses.blockchain?.trim() ?? '';
+    if (tokenAddress.isNotEmpty) {
+      return externalAddress;
+    }
+    final fatHex = fatAddressData?.toHex() ?? '';
+    if (fatHex.isNotEmpty) {
+      return fatHex;
+    }
+    throw StateError('fatAddressData is required for first buy of $externalAddress');
+  }
+
+  Future<TradeTokenRole?> _resolvePaymentTokenRoleOverride({
+    required String externalAddress,
+    required ExternalAddressType externalAddressType,
+    required String paymentTokenAddress,
   }) async {
-    final fromTokenBytes = _getBytesFromAddress(fromTokenAddress);
+    if (!externalAddressType.isContentToken) {
+      return null;
+    }
+    final creatorExternalAddress =
+        MasterPubkeyResolver.creatorExternalAddressFromExternal(externalAddress);
+    final creatorTokenInfo = await repository.fetchTokenInfo(creatorExternalAddress);
+    final creatorTokenAddress = creatorTokenInfo?.addresses.blockchain?.trim() ?? '';
+    if (creatorTokenAddress.isEmpty) {
+      return null;
+    }
+    if (_sameAddress(creatorTokenAddress, paymentTokenAddress)) {
+      return TradeTokenRole.creator;
+    }
+    return null;
+  }
 
-    final quote = BigInt.parse(pricing.amount);
-
-    final minReturn = _calculateMinReturn(
-      expectedOut: quote,
-      slippagePercent: slippagePercent,
+  bool _isCreatorTokenMissingForContentFirstBuy({
+    required ExternalAddressType externalAddressType,
+    required bool isFirstBuy,
+    required FatAddressV2Data? fatAddressData,
+  }) {
+    if (!externalAddressType.isContentToken || !isFirstBuy) {
+      return false;
+    }
+    if (fatAddressData == null) {
+      return false;
+    }
+    final creatorExternalType = _creatorExternalTypeByte();
+    return fatAddressData.tokens.any(
+      (token) => token.externalType == creatorExternalType,
     );
+  }
 
-    final approvalOperation = await _buildAllowanceApprovalOperationIfNeeded(
-      owner: walletAddress,
-      tokenAddress: allowanceTokenAddress,
-      requiredAmount: amountIn,
-      tokenDecimals: tokenDecimals,
-    );
+  int _creatorExternalTypeByte() {
+    final prefix = const ExternalAddressType.ionConnectUser().prefix;
+    if (prefix.length != 1) {
+      throw StateError('Creator external type prefix must be 1 character.');
+    }
+    return prefix.codeUnitAt(0);
+  }
 
-    final swapOperation = await repository.buildSwapUserOperation(
-      fromTokenIdentifier: fromTokenBytes,
-      toTokenIdentifier: toTokenBytes,
-      amountIn: amountIn,
-      minReturn: minReturn,
-    );
-
-    final userOperations = <EvmUserOperation>[
-      if (approvalOperation != null) approvalOperation,
-      swapOperation,
-    ];
-
-    return repository.signAndBroadcastUserOperations(
-      walletId: walletId,
-      userOperations: userOperations,
-      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
-      userActionSigner: userActionSigner,
-    );
+  bool _looksLikeHex(String value) {
+    final normalized = value.trim();
+    if (!normalized.startsWith('0x')) return false;
+    if (normalized.length < 4) return false;
+    return true;
   }
 
   Future<void> _sendFirstBuyEvents({
@@ -302,8 +402,6 @@ class TradeCommunityTokenService {
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
 
-      // First buy can create token contract, analytics may lag behind.
-      // Retry fetching token address until it's available.
       final tokenAddress = existingTokenAddress ??
           await withRetry<String>(
             ({Object? error}) async {
@@ -425,85 +523,4 @@ class TradeCommunityTokenService {
   }
 
   String? _extractTokenAddress(CommunityToken? tokenInfo) => tokenInfo?.addresses.blockchain;
-
-  List<int> _buildBuyToTokenBytes({
-    required String externalAddress,
-    required ExternalAddressType externalAddressType,
-    required String? tokenAddress,
-    required FatAddressV2Data? fatAddressData,
-  }) {
-    if (tokenAddress != null && tokenAddress.isNotEmpty) {
-      return _getBytesFromAddress(tokenAddress);
-    }
-    if (fatAddressData == null) {
-      throw StateError('fatAddressData is required for first buy of $externalAddress');
-    }
-    return fatAddressData.toBytes();
-  }
-
-  Future<EvmUserOperation?> _buildAllowanceApprovalOperationIfNeeded({
-    required String owner,
-    required String tokenAddress,
-    required BigInt requiredAmount,
-    required int tokenDecimals,
-  }) async {
-    final allowance = await repository.fetchAllowance(
-      owner: owner,
-      tokenAddress: tokenAddress,
-    );
-
-    if (allowance >= requiredAmount) return null;
-
-    final approvalAmount = BigInt.from(10).pow(
-      TokenizedCommunitiesConstants.approvalTrillionMultiplier + tokenDecimals,
-    );
-
-    return repository.buildApproveUserOperation(
-      tokenAddress: tokenAddress,
-      amount: approvalAmount,
-    );
-  }
-
-  List<int> _encodeIdentifier(String identifier) {
-    return utf8.encode(identifier);
-  }
-
-  BigInt _calculateMinReturn({
-    required BigInt expectedOut,
-    required double slippagePercent,
-  }) {
-    final normalized = slippagePercent.clamp(
-      0,
-      TokenizedCommunitiesConstants.maxSlippagePercent,
-    );
-    final slippageBps = (normalized * TokenizedCommunitiesConstants.percentToBasisPointsMultiplier)
-        .round()
-        .clamp(0, TokenizedCommunitiesConstants.basisPointsScale);
-    final multiplier = TokenizedCommunitiesConstants.basisPointsScale - slippageBps;
-    return (expectedOut * BigInt.from(multiplier)) ~/
-        BigInt.from(TokenizedCommunitiesConstants.basisPointsScale);
-  }
-
-  List<int> _hexToBytes(String hex) {
-    var hexStr = hex;
-    if (hexStr.startsWith('0x')) {
-      hexStr = hexStr.substring(2);
-    }
-    if (hexStr.length % 2 != 0) {
-      hexStr = '0$hexStr';
-    }
-    final result = <int>[];
-    for (var i = 0; i < hexStr.length; i += 2) {
-      final byte = int.parse(hexStr.substring(i, i + 2), radix: 16);
-      result.add(byte);
-    }
-    return result;
-  }
-
-  List<int> _getBytesFromAddress(String address) {
-    if (address.startsWith('0x')) {
-      return _hexToBytes(address);
-    }
-    return _encodeIdentifier(address);
-  }
 }

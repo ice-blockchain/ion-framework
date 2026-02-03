@@ -836,3 +836,10 @@ class CreatorTokenMetadataUpdateException extends IONException {
           'Failed to update creator token metadata for external address: $externalAddress',
         );
 }
+
+class LiquidityPoolNotFoundException extends IONException {
+  LiquidityPoolNotFoundException({
+    required String tokenIn,
+    required String tokenOut,
+  }) : super(10150, 'No liquidity pool found for $tokenIn -> $tokenOut');
+}

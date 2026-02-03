@@ -13,12 +13,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'ion_swap_client_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
-Future<SwapService> ionSwapClient(Ref ref) async {
+IONSwapConfig ionSwapConfig(Ref ref) {
   final env = ref.watch(envProvider.notifier);
-
   final logger = Logger.talkerDioLogger;
 
-  final config = IONSwapConfig(
+  return IONSwapConfig(
     okxApiKey: env.get(EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_API_KEY),
     okxSignKey: env.get(EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_SIGN_KEY),
     okxPassphrase: env.get(EnvVariable.CRYPTOCURRENCIES_SWAP_OKX_PASSPHRASE),
@@ -42,7 +41,11 @@ Future<SwapService> ionSwapClient(Ref ref) async {
       if (logger != null) logger,
     ],
   );
+}
 
+@Riverpod(keepAlive: true)
+Future<SwapService> ionSwapClient(Ref ref) async {
+  final config = ref.watch(ionSwapConfigProvider);
   final web3client = ref.watch(web3ClientProvider);
   final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
 

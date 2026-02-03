@@ -5,7 +5,7 @@ import 'package:ion/app/features/tokenized_communities/blockchain/evm_tx_builder
 import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_transaction_api.dart';
 import 'package:ion/app/features/tokenized_communities/data/token_info_cache.dart';
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
-import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
+import 'package:ion/app/features/tokenized_communities/domain/transaction_result.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -62,27 +62,29 @@ class TradeCommunityTokenRepository {
   Future<BigInt> fetchAllowance({
     required String owner,
     required String tokenAddress,
+    String? spender,
   }) async {
     await _ensureConfigLoaded();
     return txBuilder.allowance(
       token: tokenAddress,
       owner: owner,
-      spender: _cachedAddress!,
+      spender: spender ?? _cachedAddress!,
     );
   }
 
   Future<EvmUserOperation> buildApproveUserOperation({
     required String tokenAddress,
     required BigInt amount,
+    String? spender,
   }) async {
     await _ensureConfigLoaded();
     final approvalTx = await txBuilder.encodeApprove(
       token: tokenAddress,
-      spender: _cachedAddress!,
+      spender: spender ?? _cachedAddress!,
       amount: amount,
     );
 
-    return _toUserOperation(approvalTx);
+    return toUserOperation(approvalTx);
   }
 
   Future<EvmUserOperation> buildSwapUserOperation({
@@ -101,7 +103,7 @@ class TradeCommunityTokenRepository {
       bondingCurveAddress: _cachedAddress!,
     );
 
-    return _toUserOperation(swapTx);
+    return toUserOperation(swapTx);
   }
 
   Future<EvmUserOperation> buildUpdateMetadataUserOperation({
@@ -117,7 +119,7 @@ class TradeCommunityTokenRepository {
       tokenAbi: tokenAbi,
     );
 
-    return _toUserOperation(updateTx);
+    return toUserOperation(updateTx);
   }
 
   Future<String> fetchTokenMetadataOwner(String tokenAddress) async {
@@ -161,7 +163,7 @@ class TradeCommunityTokenRepository {
     );
   }
 
-  EvmUserOperation _toUserOperation(EvmTransaction transaction) {
+  EvmUserOperation toUserOperation(EvmTransaction transaction) {
     return EvmUserOperation(
       to: transaction.to,
       data: transaction.data.isNotEmpty ? transaction.data : null,
@@ -171,6 +173,6 @@ class TradeCommunityTokenRepository {
 
   String? _encodeQuantity(BigInt value) {
     if (value == BigInt.zero) return null;
-    return '0x${value.toRadixString(16)}';
+    return value.toString();
   }
 }

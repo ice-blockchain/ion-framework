@@ -235,18 +235,7 @@ class FatAddressV2Codec {
   }
 
   Uint8List _hexToBytes(String hex) {
-    var hexStr = hex.trim();
-    if (hexStr.startsWith('0x')) {
-      hexStr = hexStr.substring(2);
-    }
-    if (hexStr.length % 2 != 0) {
-      hexStr = '0$hexStr';
-    }
-    final out = Uint8List(hexStr.length ~/ 2);
-    for (var i = 0; i < hexStr.length; i += 2) {
-      out[i ~/ 2] = int.parse(hexStr.substring(i, i + 2), radix: 16);
-    }
-    return out;
+    return Uint8List.fromList(hexToBytes(hex));
   }
 
   Uint8List _concat(List<Uint8List> parts) {
