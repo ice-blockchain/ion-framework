@@ -15,6 +15,13 @@ FollowersDao followersDao(Ref ref) => FollowersDao(db: ref.watch(notificationsDa
 class FollowersDao extends DatabaseAccessor<NotificationsDatabase> with _$FollowersDaoMixin {
   FollowersDao({required NotificationsDatabase db}) : super(db);
 
+  // Checks whether a follower with this pubkey already exists in the table
+  Future<bool> exists(String pubkey) async {
+    final row =
+        await (select(followersTable)..where((t) => t.pubkey.equals(pubkey))).getSingleOrNull();
+    return row != null;
+  }
+
   Future<void> insert(Follower follower) async {
     await into(db.followersTable).insert(follower, mode: InsertMode.insertOrReplace);
   }

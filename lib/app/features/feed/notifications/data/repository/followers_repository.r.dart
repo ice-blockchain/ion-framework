@@ -23,6 +23,10 @@ class FollowersRepository implements IonNotificationRepository {
 
   final FollowersDao _followersDao;
 
+  Future<bool> exists(String pubkey) {
+    return _followersDao.exists(pubkey);
+  }
+
   @override
   Future<void> save(IonConnectEntity entity) {
     return _followersDao.insert(
