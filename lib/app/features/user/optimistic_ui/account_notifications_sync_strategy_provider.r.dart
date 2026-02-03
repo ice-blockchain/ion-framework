@@ -36,6 +36,8 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
             notificationSetType: notificationSetType,
             shouldIncludeUser: shouldIncludeUser,
           ),
+          // Updating only external push subscription data as the current user's push subscription
+          // will be synced via SelectedPushCategoriesIonSubscription
           _updateExternalPushSubscriptionData(
             externalUserMasterPubkey: targetUserPubkey,
             notificationSetType: notificationSetType,

@@ -41,6 +41,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'selected_push_categories_ion_subscription_provider.r.g.dart';
 
+/// Provides the current user push subscription based on:
+/// * the selected push notification categories
+/// * the user's followed accounts
+/// * the user's accounts that user wants to receive notifications from
+/// * the user's current device FCM token
 @Riverpod(keepAlive: true)
 class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonSubscription {
   @override
