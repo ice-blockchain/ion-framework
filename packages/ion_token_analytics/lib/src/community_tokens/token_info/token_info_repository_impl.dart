@@ -27,8 +27,13 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
       }
 
       return CommunityToken.fromJson(tokenRawData as Map<String, dynamic>);
-    } catch (e) {
-      return null;
+    } catch (error, stackTrace) {
+      client.logger?.error(
+        'Failed to get token info for externalAddress: $externalAddress',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 
@@ -49,8 +54,13 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
       }
 
       return Position.fromJson(positionRawData as Map<String, dynamic>);
-    } catch (e) {
-      return null;
+    } catch (error, stackTrace) {
+      client.logger?.error(
+        'Failed to get holder position for tokenExternalAddress: $tokenExternalAddress, holderExternalAddress: $holderExternalAddress',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 
@@ -76,8 +86,13 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
         stream: tokenStream,
         close: subscription.close,
       );
-    } catch (e) {
-      return null;
+    } catch (error, stackTrace) {
+      client.logger?.error(
+        'Failed to subscribe to token info for externalAddress: $externalAddress',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 
@@ -90,8 +105,13 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
       );
 
       return PricingResponse.fromJson(pricingRawData);
-    } catch (e) {
-      return null;
+    } catch (error, stackTrace) {
+      client.logger?.error(
+        'Failed to get pricing for externalAddress: $externalAddress, type: $type, amount: $amount',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 
@@ -106,8 +126,13 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
       );
 
       return SuggestCreationDetailsResponse.fromJson(responseData);
-    } catch (e) {
-      return null;
+    } catch (error, stackTrace) {
+      client.logger?.error(
+        'Failed to suggest creation details',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 }

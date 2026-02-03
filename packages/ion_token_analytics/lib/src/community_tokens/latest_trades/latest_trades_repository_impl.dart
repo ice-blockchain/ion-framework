@@ -34,8 +34,13 @@ class LatestTradesRepositoryImpl implements LatestTradesRepository {
           })
           .whereType<LatestTrade>()
           .toList();
-    } catch (e) {
-      return [];
+    } catch (error, stackTrace) {
+      _client.logger?.error(
+        'Failed to fetch latest trades for ionConnectAddress: $ionConnectAddress',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 

@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http2/http2.dart';
+import 'package:ion_token_analytics/src/core/logger.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_connection.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_exceptions.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_web_socket.dart';
@@ -35,15 +36,16 @@ import 'package:ion_token_analytics/src/http2_client/models/http2_web_socket_mes
 /// ```
 class Http2Client {
   /// Creates an HTTP/2 client for the specified host and port.
-  Http2Client(this.host, {this.port = 443, this.scheme = 'https'});
+  Http2Client(this.host, {this.port = 443, this.scheme = 'https', AnalyticsLogger? logger})
+    : _logger = logger;
 
-  factory Http2Client.fromBaseUrl(String baseUrl) {
+  factory Http2Client.fromBaseUrl(String baseUrl, {AnalyticsLogger? logger}) {
     final uri = Uri.parse(baseUrl);
     final scheme = uri.scheme.isEmpty ? 'https' : uri.scheme;
     final host = uri.host;
     final port = uri.hasPort ? uri.port : (scheme == 'https' ? 443 : 80);
 
-    return Http2Client(host, port: port, scheme: scheme);
+    return Http2Client(host, port: port, scheme: scheme, logger: logger);
   }
 
   /// SSE keepalive message types that should be ignored.
@@ -58,6 +60,9 @@ class Http2Client {
 
   /// The connection scheme (http or https).
   final String scheme;
+
+  /// Optional logger for requests and responses.
+  final AnalyticsLogger? _logger;
 
   late final Http2Connection _connection = Http2Connection(host, port: port, scheme: scheme);
   int _activeStreams = 0;
@@ -98,19 +103,20 @@ class Http2Client {
       await _ensureConnection();
       _activeStreams++;
 
+      // Build method and URL for logging (needed in both try and catch blocks)
+      final opts = options ?? Http2RequestOptions();
+      final uri = Uri(
+        path: path.startsWith('/') ? path : '/$path',
+        queryParameters: queryParameters,
+      );
+      final fullPath = uri.toString();
+      final url = '$scheme://$host$fullPath';
+      final method = opts.method.toUpperCase();
+
       try {
-        final opts = options ?? Http2RequestOptions();
-
-        // Build the full path with query parameters
-        final uri = Uri(
-          path: path.startsWith('/') ? path : '/$path',
-          queryParameters: queryParameters,
-        );
-        final fullPath = uri.toString();
-
         // Build request headers
         final requestHeaders = [
-          Header.ascii(':method', opts.method.toUpperCase()),
+          Header.ascii(':method', method),
           Header.ascii(':scheme', scheme),
           Header.ascii(':path', fullPath),
           Header.ascii(':authority', host),
@@ -133,6 +139,9 @@ class Http2Client {
             ..add(Header.ascii('content-length', bodyData.length.toString()));
         }
 
+        // Log request
+        _logger?.logHttpRequest(method, url, data);
+
         // Make the request
         final stream = _connection.transport!.makeRequest(requestHeaders);
 
@@ -150,7 +159,14 @@ class Http2Client {
             ? await responseFuture.timeout(opts.timeout!)
             : await responseFuture;
 
+        // Log response
+        _logger?.logHttpResponse(method, url, response.statusCode, response.data);
+
         return response;
+      } catch (e, stackTrace) {
+        // Log error
+        _logger?.logHttpError(method, url, e, stackTrace);
+        rethrow;
       } finally {
         _activeStreams--;
         await _maybeCloseConnection();
