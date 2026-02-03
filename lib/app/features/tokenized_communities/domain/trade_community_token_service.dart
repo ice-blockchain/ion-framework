@@ -112,18 +112,42 @@ class TradeCommunityTokenService {
     );
 
     if (_isBroadcasted(transaction)) {
-      final masterPubkey = MasterPubkeyResolver.resolve(externalAddress);
+      // We skip master pubkey resolution and profile-related events for external tokens to avoid parsing errors.
+      final isExternalToken = externalAddressType.isXToken;
 
-      final profileEventReference =
-          ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind);
+      String? masterPubkey;
+      ReplaceableEventReference? profileEventReference;
+      var hasProfileToken = false;
 
-      final hasProfileToken =
-          await ionConnectService.ionConnectEntityHasToken(profileEventReference);
+      if (!isExternalToken) {
+        try {
+          // Only resolve master pubkey for Ion Connect tokens (not external/X tokens)
+          masterPubkey = MasterPubkeyResolver.resolve(externalAddress);
+
+          profileEventReference =
+              ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind);
+
+          hasProfileToken = await ionConnectService.ionConnectEntityHasToken(profileEventReference);
+        } catch (error, stackTrace) {
+          Logger.error(
+            error,
+            stackTrace: stackTrace,
+            message:
+                '[TradeCommunityTokenService] Failed to resolve master pubkey or check profile token | externalAddress=$externalAddress',
+          );
+          // Continue without profile events if we can't resolve master pubkey
+        }
+      }
+
       await Future.wait([
         if (firstBuy)
           // First-buy events are always sent, regardless of [shouldSendEvents].
           _sendFirstBuyEvents(externalAddress: externalAddress),
-        if (externalAddressType.isContentToken && firstBuy && !hasProfileToken)
+        if (!isExternalToken &&
+            externalAddressType.isContentToken &&
+            firstBuy &&
+            !hasProfileToken &&
+            profileEventReference != null)
           _sendFirstBuyEvents(externalAddress: profileEventReference.toString()),
         if (shouldSendEvents)
           _trySendBuyEvents(
