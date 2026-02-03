@@ -3,38 +3,60 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:webview_flutter/webview_flutter.dart' as wf;
 
-class WebView extends HookConsumerWidget {
+class WebView extends StatefulHookConsumerWidget {
   const WebView({required this.url, super.key});
 
   final String url;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isLoadingPage = useState<bool>(false);
+  ConsumerState<WebView> createState() => _WebViewState();
+}
 
+class _WebViewState extends ConsumerState<WebView> {
+  late final wf.WebViewController controller;
+  bool _isLoadingPage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLoadingPage = true;
+    controller = wf.WebViewController()
+      ..setNavigationDelegate(
+        wf.NavigationDelegate(
+          onPageStarted: (_) => _setLoading(true),
+          onPageFinished: (_) => _setLoading(false),
+          onWebResourceError: (_) => _setLoading(false),
+        ),
+      )
+      ..loadRequest(
+        Uri.parse(widget.url),
+      );
+  }
+
+  void _setLoading(bool value) {
+    if (mounted && _isLoadingPage != value) {
+      setState(() => _isLoadingPage = value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       children: [
-        InAppWebView(
-          initialUrlRequest: URLRequest(url: WebUri(url)),
+        wf.WebViewWidget(
+          controller: controller,
           gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{
             Factory<VerticalDragGestureRecognizer>(VerticalDragGestureRecognizer.new),
             Factory<HorizontalDragGestureRecognizer>(HorizontalDragGestureRecognizer.new),
             Factory<PanGestureRecognizer>(PanGestureRecognizer.new),
           },
-          onLoadStart: (controller, url) {
-            isLoadingPage.value = true;
-          },
-          onLoadStop: (controller, url) {
-            isLoadingPage.value = false;
-          },
         ),
-        if (isLoadingPage.value)
+        if (_isLoadingPage)
           Center(
             child: IONLoadingIndicator(
               type: IndicatorType.dark,
