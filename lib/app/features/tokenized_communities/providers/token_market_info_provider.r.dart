@@ -29,7 +29,7 @@ Stream<CommunityToken?> tokenMarketInfo(
 
   final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
 
-  // 1. Fetch initial data via REST - this IS new backend data
+  // 1. Fetch initial data via REST
   final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
 
   if (currentToken == null) {
