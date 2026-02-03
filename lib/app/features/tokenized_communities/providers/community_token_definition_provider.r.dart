@@ -73,7 +73,7 @@ class CommunityTokenDefinitionRepository {
         };
       } else {
         tags = {
-          '#a': [creatorEventReference.toString()],
+          '#a': [externalAddress],
           '#!t': [communityTokenActionTopic],
         };
       }
