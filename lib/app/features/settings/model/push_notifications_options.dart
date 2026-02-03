@@ -75,11 +75,11 @@ enum TokenizedCommunityNotificationOption implements SelectableOption, PushNotif
   @override
   Widget getIcon(BuildContext context) {
     final icon = switch (this) {
-      TokenizedCommunityNotificationOption.creatorToken => Assets.svg.iconProfileFeed,
-      TokenizedCommunityNotificationOption.contentToken => Assets.svg.iconFieldNickname,
-      TokenizedCommunityNotificationOption.creatorTokenTrades => Assets.svg.iconFeedRepost,
-      TokenizedCommunityNotificationOption.contentTokenTrades => Assets.svg.iconVideoLikeOff,
-      TokenizedCommunityNotificationOption.tokenUpdates => Assets.svg.iconSearchFollow,
+      TokenizedCommunityNotificationOption.creatorToken => Assets.svg.iconSearchCreatonewrtoken,
+      TokenizedCommunityNotificationOption.contentToken => Assets.svg.iconSearchContenttoken,
+      TokenizedCommunityNotificationOption.creatorTokenTrades => Assets.svg.iconSearchCreatortrades,
+      TokenizedCommunityNotificationOption.contentTokenTrades => Assets.svg.iconSearchContenttrades,
+      TokenizedCommunityNotificationOption.tokenUpdates => Assets.svg.iconTokenupdates,
     };
 
     return icon.icon(color: context.theme.appColors.primaryAccent);
