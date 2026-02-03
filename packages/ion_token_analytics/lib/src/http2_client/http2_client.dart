@@ -68,8 +68,6 @@ class Http2Client {
   int _activeStreams = 0;
   Future<void>? _connectionFuture;
   bool _disposed = false;
-  String? _lastRequestMethod;
-  String? _lastRequestUrl;
 
   /// Gets the current HTTP/2 connection.
   Http2Connection get connection => _connection;
@@ -105,19 +103,20 @@ class Http2Client {
       await _ensureConnection();
       _activeStreams++;
 
+      // Build method and URL for logging (needed in both try and catch blocks)
+      final opts = options ?? Http2RequestOptions();
+      final uri = Uri(
+        path: path.startsWith('/') ? path : '/$path',
+        queryParameters: queryParameters,
+      );
+      final fullPath = uri.toString();
+      final url = '$scheme://$host$fullPath';
+      final method = opts.method.toUpperCase();
+
       try {
-        final opts = options ?? Http2RequestOptions();
-
-        // Build the full path with query parameters
-        final uri = Uri(
-          path: path.startsWith('/') ? path : '/$path',
-          queryParameters: queryParameters,
-        );
-        final fullPath = uri.toString();
-
         // Build request headers
         final requestHeaders = [
-          Header.ascii(':method', opts.method.toUpperCase()),
+          Header.ascii(':method', method),
           Header.ascii(':scheme', scheme),
           Header.ascii(':path', fullPath),
           Header.ascii(':authority', host),
@@ -140,16 +139,8 @@ class Http2Client {
             ..add(Header.ascii('content-length', bodyData.length.toString()));
         }
 
-        // Build full URL for logging
-        final url = '$scheme://$host$fullPath';
-        final method = opts.method.toUpperCase();
-
-        // Store for response logging
-        _lastRequestMethod = method;
-        _lastRequestUrl = url;
-
         // Log request
-        _logRequest(method, url);
+        _logger?.logHttpRequest(method, url, data);
 
         // Make the request
         final stream = _connection.transport!.makeRequest(requestHeaders);
@@ -169,12 +160,12 @@ class Http2Client {
             : await responseFuture;
 
         // Log response
-        _logResponse(response.statusCode, response.headers, response.data);
+        _logger?.logHttpResponse(method, url, response.statusCode, response.data);
 
         return response;
       } catch (e, stackTrace) {
         // Log error
-        _logError(e, stackTrace);
+        _logger?.logHttpError(method, url, e, stackTrace);
         rethrow;
       } finally {
         _activeStreams--;
@@ -654,103 +645,5 @@ class Http2Client {
     }
 
     controller.addError(error, stackTrace);
-  }
-
-  /// Logs HTTP/2 request details.
-  void _logRequest(String method, String url) {
-    if (_logger == null) return;
-
-    final buffer = StringBuffer()..writeln('[http-request] [$method] $url');
-    _logger.log(buffer.toString());
-  }
-
-  /// Logs HTTP/2 response details.
-  void _logResponse<T>(int? statusCode, Map<String, String>? headers, T? data) {
-    if (_logger == null) return;
-
-    final status = statusCode ?? 0;
-    final statusMessage = _getStatusMessage(status);
-
-    var dataString = '';
-    if (data != null) {
-      try {
-        if (data is String) {
-          dataString = data.isEmpty ? '""' : data;
-        } else {
-          dataString = const JsonEncoder.withIndent('  ').convert(data);
-        }
-      } catch (e) {
-        dataString = '[Unable to format response: $e]';
-      }
-    } else {
-      dataString = '""';
-    }
-
-    final method = _lastRequestMethod ?? 'GET';
-    final url = _lastRequestUrl ?? '';
-
-    final buffer = StringBuffer()
-      ..writeln('[http-response] [$method] $url')
-      ..writeln('Status: $status')
-      ..writeln('Message: $statusMessage');
-
-    // Format data with proper indentation (matching Dio format)
-    if (dataString.contains('\n')) {
-      final lines = dataString.split('\n');
-      buffer.writeln('Data: ${lines.first}');
-      for (final line in lines.skip(1)) {
-        buffer.writeln(line);
-      }
-    } else {
-      buffer.writeln('Data: $dataString');
-    }
-
-    _logger.log(buffer.toString());
-  }
-
-  String _getStatusMessage(int statusCode) {
-    switch (statusCode) {
-      case 200:
-        return 'OK';
-      case 201:
-        return 'Created';
-      case 204:
-        return 'No Content';
-      case 400:
-        return 'Bad Request';
-      case 401:
-        return 'Unauthorized';
-      case 403:
-        return 'Forbidden';
-      case 404:
-        return 'Not Found';
-      case 500:
-        return 'Internal Server Error';
-      case 502:
-        return 'Bad Gateway';
-      case 503:
-        return 'Service Unavailable';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  /// Logs HTTP/2 error details.
-  void _logError(Object error, StackTrace stackTrace) {
-    if (_logger == null) return;
-
-    final buffer = StringBuffer()
-      ..writeln('HTTP/2 Error')
-      ..writeln('Error: $error')
-      ..writeln()
-      ..writeln('StackTrace:');
-    final stackLines = stackTrace.toString().split('\n');
-    for (final line in stackLines.take(10)) {
-      buffer.writeln(line);
-    }
-    if (stackLines.length > 10) {
-      buffer.writeln('... (${stackLines.length - 10} more lines)');
-    }
-    _logger.error(buffer.toString(), error: error, stackTrace: stackTrace);
   }
 }
