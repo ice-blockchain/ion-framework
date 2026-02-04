@@ -57,13 +57,13 @@ class TextEditorCashtagEmbedBuilder extends EmbedBuilder {
         // If market cap isn't available, fall back to rendering as plain text.
         // (Later phases will handle downgrade processing more globally.)
         if (marketCap == null) {
-          return Text(r'$' + embedData.ticker.toUpperCase(), style: embedContext.textStyle);
+          return Text(r'$' + embedData.displayTicker, style: embedContext.textStyle);
         }
 
         final canClose = showClose && !embedContext.readOnly;
         return QuillEmbedTextScaler(
           child: CashtagInlineWidget(
-            ticker: embedData.ticker,
+            ticker: embedData.displayTicker,
             marketCap: marketCap,
             onClose: canClose
                 ? () => CashtagInsertionService.removeCashtagEmbed(
@@ -74,8 +74,7 @@ class TextEditorCashtagEmbedBuilder extends EmbedBuilder {
             onTap: canClose
                 ? null
                 : () {
-                    // Navigate to search with the ticker (without $ sign)
-                    FeedAdvancedSearchRoute(query: embedData.ticker.toUpperCase())
+                    FeedAdvancedSearchRoute(query: embedData.displayTicker)
                         .push<void>(context);
                   },
           ),

@@ -25,7 +25,7 @@ class CashtagDeltaConverter {
 
       // Only process pure embed ops (length == 1) to avoid capturing adjacent characters.
       if (cashtagData != null && (op.length ?? 1) == 1) {
-        final cashtagText = r'$' + cashtagData.ticker.toUpperCase();
+        final cashtagText = r'$' + cashtagData.displayTicker;
 
         final mergedAttrs = {
           ...?attrs,

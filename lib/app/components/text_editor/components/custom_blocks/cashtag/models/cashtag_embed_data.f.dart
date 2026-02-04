@@ -16,7 +16,9 @@ class CashtagEmbedData with _$CashtagEmbedData {
     String? id, // Unique instance ID for distinguishing duplicate cashtags
   }) = _CashtagEmbedData;
 
+  factory CashtagEmbedData.fromJson(Map<String, dynamic> json) => _$CashtagEmbedDataFromJson(json);
+
   const CashtagEmbedData._();
 
-  factory CashtagEmbedData.fromJson(Map<String, dynamic> json) => _$CashtagEmbedDataFromJson(json);
+  String get displayTicker => ticker.toUpperCase();
 }
