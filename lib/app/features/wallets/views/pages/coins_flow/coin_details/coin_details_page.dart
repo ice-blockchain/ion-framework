@@ -14,6 +14,7 @@ import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/enums/tokenized_community_token_type.f.dart';
+import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
@@ -94,7 +95,8 @@ class CoinDetailsPage extends HookConsumerWidget {
 
             switch (tokenType) {
               case TokenizedCommunityTokenType.tokenTypeProfile:
-                ProfileRoute(pubkey: externalAddress).push<void>(context);
+                final pubkey = MasterPubkeyResolver.resolve(externalAddress);
+                ProfileRoute(pubkey: pubkey).push<void>(context);
               case TokenizedCommunityTokenType.tokenTypePost:
               case TokenizedCommunityTokenType.tokenTypeArticle:
               case TokenizedCommunityTokenType.tokenTypeVideo:
