@@ -62,6 +62,7 @@ class TradeCommunityTokenService {
     Logger.info(
       '[TradeCommunityTokenService] buyCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
     );
+    _ensureAccountNotProtected(externalAddress);
 
     final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
 
