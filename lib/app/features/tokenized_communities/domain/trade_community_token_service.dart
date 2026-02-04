@@ -68,7 +68,7 @@ class TradeCommunityTokenService {
 
     Logger.info('[TradeCommunityTokenService] Fetched token info');
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
-    final firstBuy = _isFirstBuy(existingTokenAddress);
+    final firstBuy = await _isFirstBuy(externalAddress, externalAddressType);
     final hasUserPosition = _hasUserPosition(tokenInfo);
     Logger.info(
       '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
@@ -181,7 +181,6 @@ class TradeCommunityTokenService {
           _sendFirstBuyEvents(externalAddress: externalAddress),
         if (!isExternalToken &&
             externalAddressType.isContentToken &&
-            firstBuy &&
             !hasProfileToken &&
             profileEventReference != null)
           _sendFirstBuyEvents(externalAddress: profileEventReference.toString()),
@@ -632,12 +631,28 @@ class TradeCommunityTokenService {
 
   bool _hasUserPosition(CommunityToken? tokenInfo) => tokenInfo?.marketData.position != null;
 
-  bool _isFirstBuy(String? tokenAddress) => tokenAddress == null || tokenAddress.isEmpty;
-
   bool _sameAddress(String? left, String? right) {
     if (left == null || right == null) return false;
     return left.toLowerCase() == right.toLowerCase();
   }
 
   String? _extractTokenAddress(CommunityToken? tokenInfo) => tokenInfo?.addresses.blockchain;
+
+  Future<bool> _isFirstBuy(String externalAddress, ExternalAddressType externalAddressType) async {
+    if (externalAddressType.isXToken) {
+      return false;
+    }
+
+    EventReference eventReference;
+
+    try {
+      eventReference = ReplaceableEventReference.fromString(externalAddress);
+    } catch (e) {
+      eventReference = ImmutableEventReference(eventId: externalAddress, masterPubkey: '');
+    }
+
+    final hasFirstBuyDefinitionEvent =
+        await ionConnectService.hasFirstBuyDefinitionEvent(eventReference);
+    return !hasFirstBuyDefinitionEvent;
+  }
 }

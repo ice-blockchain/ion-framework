@@ -36,6 +36,7 @@ class CommunityTokenIonConnectService {
     required IONIdentityClient ionIdentityClient,
     required Future<String?> Function(EventReference eventReference) getEventShareUrl,
     required Future<bool> Function(EventReference eventReference) ionConnectEntityHasToken,
+    required Future<bool> Function(EventReference eventReference) hasFirstBuyDefinitionEvent,
   })  : _ionConnectNotifier = ionConnectNotifier,
         _ionConnectCache = ionConnectCache,
         _communityTokenDefinitionRepository = communityTokenDefinitionRepository,
@@ -44,7 +45,8 @@ class CommunityTokenIonConnectService {
         _appsflyerDeepLinkService = appsflyerDeepLinkService,
         _ionIdentityClient = ionIdentityClient,
         _getEventShareUrl = getEventShareUrl,
-        _ionConnectEntityHasToken = ionConnectEntityHasToken;
+        _ionConnectEntityHasToken = ionConnectEntityHasToken,
+        _hasFirstBuyDefinitionEvent = hasFirstBuyDefinitionEvent;
 
   final IonConnectNotifier _ionConnectNotifier;
 
@@ -64,8 +66,14 @@ class CommunityTokenIonConnectService {
 
   final Future<bool> Function(EventReference eventReference) _ionConnectEntityHasToken;
 
+  final Future<bool> Function(EventReference eventReference) _hasFirstBuyDefinitionEvent;
+
   Future<bool> ionConnectEntityHasToken(EventReference eventReference) async {
     return _ionConnectEntityHasToken(eventReference);
+  }
+
+  Future<bool> hasFirstBuyDefinitionEvent(EventReference eventReference) async {
+    return _hasFirstBuyDefinitionEvent(eventReference);
   }
 
   Future<void> sendFirstBuyEvents({
@@ -317,6 +325,10 @@ Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref)
     return ref.read(ionConnectEntityHasTokenProvider(eventReference: eventReference).future);
   }
 
+  Future<bool> hasFirstBuyDefinitionEvent(EventReference eventReference) async {
+    return ref.read(ionConnectEntityHasTokenProvider(eventReference: eventReference).future);
+  }
+
   return CommunityTokenIonConnectService(
     ionConnectNotifier: ionConnectNotifier,
     ionConnectCache: ionConnectCache,
@@ -327,5 +339,6 @@ Future<CommunityTokenIonConnectService> communityTokenIonConnectService(Ref ref)
     ionIdentityClient: ionIdentityClient,
     getEventShareUrl: getEventShareUrl,
     ionConnectEntityHasToken: ionConnectEntityHasToken,
+    hasFirstBuyDefinitionEvent: hasFirstBuyDefinitionEvent,
   );
 }
