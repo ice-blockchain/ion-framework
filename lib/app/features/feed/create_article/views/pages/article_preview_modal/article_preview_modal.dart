@@ -14,6 +14,7 @@ import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_article/providers/create_article_provider.r.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
+import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/hooks/use_init_article_who_can_reply.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/article_preview.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/select_article_topics_item.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_preview_modal/components/select_article_who_can_reply_item.dart';
@@ -67,6 +68,8 @@ class ArticlePreviewModal extends HookConsumerWidget {
       :imageUrl,
       :mediaAttachments,
     ) = ref.watch(draftArticleProvider);
+    useInitArticleWhoCanReply(ref, modifiedEvent: modifiedEvent);
+
     final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
     final selectedTopics = ref.watch(selectedInterestsNotifierProvider);
     final shownTooltip = useRef(false);

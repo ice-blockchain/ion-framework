@@ -6,6 +6,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/hooks/use_quill_controller.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
+import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/hooks/use_init_article_who_can_reply.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -52,6 +53,8 @@ class ArticleFormState {
 }
 
 ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) {
+  useInitArticleWhoCanReply(ref, modifiedEvent: modifiedEvent);
+
   final selectedImage = useState<MediaFile?>(null);
   final media = useState<Map<String, MediaAttachment>?>(null);
   final selectedImageUrl = useState<String?>(null);
@@ -102,7 +105,6 @@ ArticleFormState useArticleForm(WidgetRef ref, {EventReference? modifiedEvent}) 
       if (modifiedEvent != null) {
         final modifiableEntity =
             ref.read(ionConnectEntityProvider(eventReference: modifiedEvent)).valueOrNull;
-
         if (modifiableEntity is ArticleEntity) {
           if (modifiableEntity.data.title != null) {
             titleController.text = modifiableEntity.data.title!;
