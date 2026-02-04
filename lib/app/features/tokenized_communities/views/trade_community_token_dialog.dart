@@ -45,6 +45,7 @@ import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class TradeCommunityTokenDialog extends HookConsumerWidget {
@@ -123,6 +124,15 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             return;
           }
           if (context.mounted) {
+            Logger.error(
+              error,
+              message: '[TradeCommunityTokenDialog] Swap failed | '
+                  'externalAddress=$resolvedExternalAddress | '
+                  'eventReference=$eventReference | '
+                  'mode=${state.mode} | '
+                  'errorType=${error.runtimeType} | '
+                  'errorMessage=$error',
+            );
             final tokenInfo =
                 ref.read(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
             final communityTokenName =
@@ -312,34 +322,58 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     TradeCommunityTokenControllerParams params,
     CommunityTokenTradeMode mode,
   ) async {
+    Logger.info(
+      '[TradeCommunityTokenDialog] Button pressed | mode=$mode | externalAddress=${params.externalAddress}',
+    );
+
     final state = ref.read(tradeCommunityTokenControllerProvider(params));
 
     if (state.targetWallet == null || state.selectedPaymentToken == null) {
+      Logger.warning(
+        '[TradeCommunityTokenDialog] Missing wallet or token | wallet=${state.targetWallet?.id} | token=${state.selectedPaymentToken?.abbreviation}',
+      );
       return;
     }
 
     final isBuy = mode == CommunityTokenTradeMode.buy;
 
     if (isBuy && !_isBuyContinueButtonEnabled(state)) {
+      Logger.warning(
+        '[TradeCommunityTokenDialog] Buy button not enabled | amount=${state.amount} | quoteReady=${state.quotePricing != null} | isQuoting=${state.isQuoting}',
+      );
       return;
     }
 
     if (!isBuy && !_isSellContinueButtonEnabled(state)) {
+      Logger.warning(
+        '[TradeCommunityTokenDialog] Sell button not enabled | amount=${state.amount} | balance=${state.communityTokenBalance} | quoteReady=${state.quotePricing != null}',
+      );
       return;
     }
+
+    Logger.info(
+      '[TradeCommunityTokenDialog] Starting trade operation | mode=$mode | amount=${state.amount} | token=${state.selectedPaymentToken?.abbreviation} | wallet=${state.targetWallet?.id}',
+    );
 
     await guardPasskeyDialog(
       context,
       (child) => RiverpodUserActionSignerRequestBuilder(
         provider: communityTokenTradeNotifierProvider(params),
         request: (signer) async {
+          Logger.info(
+            '[TradeCommunityTokenDialog] Passkey authenticated, calling trade notifier | mode=$mode',
+          );
           final notifier = ref.read(
             communityTokenTradeNotifierProvider(params).notifier,
           );
           if (mode == CommunityTokenTradeMode.buy) {
+            Logger.info('[TradeCommunityTokenDialog] Calling buy()');
             await notifier.buy(signer);
+            Logger.info('[TradeCommunityTokenDialog] buy() completed');
           } else {
+            Logger.info('[TradeCommunityTokenDialog] Calling sell()');
             await notifier.sell(signer);
+            Logger.info('[TradeCommunityTokenDialog] sell() completed');
           }
         },
         child: child,
