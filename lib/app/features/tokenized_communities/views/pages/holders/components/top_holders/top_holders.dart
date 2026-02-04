@@ -168,7 +168,7 @@ class _TopHolderList extends ConsumerWidget {
               return BurningHolderTile(holder: holder);
             }
 
-            return TopHolderTile(holder: holder);
+            return HolderTile(data: holder.tileData);
           },
           separatorBuilder: (context, index) => SizedBox(height: 4.0.s),
         );
