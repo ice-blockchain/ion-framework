@@ -518,6 +518,7 @@ class _TokenCards extends HookConsumerWidget {
                     skipAmountFormatting: true,
                     onValidationError: onValidationError,
                     isError: isError,
+                    formattedAmount: state.paymentTokenAmountUSDFormatted,
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(
@@ -532,6 +533,7 @@ class _TokenCards extends HookConsumerWidget {
                     enabled: false,
                     showArrow: false,
                     onTap: () {},
+                    formattedAmount: state.communityTokenAmountUSDFormatted,
                     customIconWidget: state.shouldWaitSuggestedDetails
                         ? SuggestedCommunityAvatar(
                             pictureUrl: state.suggestedDetails?.picture ?? '',
@@ -556,6 +558,7 @@ class _TokenCards extends HookConsumerWidget {
                     onValidationError: onValidationError,
                     onTap: () {},
                     isError: isError,
+                    formattedAmount: state.communityTokenAmountUSDFormatted,
                     customIconWidget: state.shouldWaitSuggestedDetails
                         ? SuggestedCommunityAvatar(
                             pictureUrl: state.suggestedDetails?.picture ?? '',
@@ -573,7 +576,9 @@ class _TokenCards extends HookConsumerWidget {
                     network: network,
                     skipValidation: true,
                     enabled: false,
+                    skipAmountFormatting: true,
                     onTap: onTokenTap,
+                    formattedAmount: state.paymentTokenQuoteAmountUSDFormatted,
                   ),
                 ],
         ),
