@@ -85,7 +85,7 @@ class ReplyList extends HookConsumerWidget {
                 framedEventReference: framedEventReference,
               ).push<void>(context),
             ),
-          SliverToBoxAdapter(
+          SliverFillRemaining(
             child: SizedBox(height: 60.0.s),
           ),
         ],
