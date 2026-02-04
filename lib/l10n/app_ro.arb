@@ -908,6 +908,7 @@
   "story_share_sender": "Ai distribuit această poveste",
   "suggestions_empty_description": "Nu am găsit nimic care să se potrivească căutării tale",
   "suggestions_loading_description": "Caută utilizatorul pe care vrei să-l menționezi",
+  "token_contract": "Contract",
   "token_comment_holders_only": "Comentariile sunt disponibile doar pentru deținătorii de tokenuri.",
   "token_stats_holders_description": "Holders represent the number of unique wallets that currently own the token.\n\nA rising number of holders is often a strong indicator of growing adoption, community interest, and broader distribution. While a healthy spread of ownership can contribute to long-term stability, tracking holder evolution over time can reveal increasing confidence and momentum around the project.",
   "token_stats_holders_title": "Holders",

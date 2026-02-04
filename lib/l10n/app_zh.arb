@@ -908,6 +908,7 @@
   "story_share_sender": "您分享了这个故事",
   "suggestions_empty_description": "我们找不到任何与您的搜索匹配的内容",
   "suggestions_loading_description": "搜索您想要提及的用户",
+  "token_contract": "合约",
   "token_comment_holders_only": "评论仅对代币持有者开放。",
   "token_stats_holders_description": "Holders represent the number of unique wallets that currently own the token.\n\nA rising number of holders is often a strong indicator of growing adoption, community interest, and broader distribution. While a healthy spread of ownership can contribute to long-term stability, tracking holder evolution over time can reveal increasing confidence and momentum around the project.",
   "token_stats_holders_title": "Holders",
