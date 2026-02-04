@@ -24,7 +24,6 @@ import 'package:ion/app/features/user/providers/tab_data_source_provider.r.dart'
 import 'package:ion/app/features/user/providers/user_holdings_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
-import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -79,10 +78,11 @@ class TabEntitiesList extends HookConsumerWidget {
 
     final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
     final externalAddress = userMetadata?.toEventReference().toString();
+    // Watch the cached token directly to always get the current value,
+    // avoiding stale data when navigating back from other pages.
+    // The cached provider already holds the adjusted position value.
     final token = externalAddress != null
-        ? useWatchWhenVisible(
-            watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
-          )
+        ? ref.watch(cachedTokenMarketInfoNotifierProvider(externalAddress))
         : null;
     final hasPosition = token?.marketData.position != null;
 

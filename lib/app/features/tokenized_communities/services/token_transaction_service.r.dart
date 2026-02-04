@@ -50,6 +50,8 @@ class TokenTransactionService {
     required double amount,
     required PricingResponse expectedPricing,
     required CoinsGroup? paymentCoinsGroup,
+    CoinsGroup? communityTokenCoinsGroup,
+    bool isSell = false,
   }) async {
     try {
       final walletView = await _ref.read(currentWalletViewDataProvider.future);
@@ -81,8 +83,9 @@ class TokenTransactionService {
         paymentCoinsGroup: paymentCoinsGroup,
         paymentAmount: amount,
         tokenCoin: tokenData.coin,
-        tokenCoinsGroup: tokenData.coinsGroup,
+        tokenCoinsGroup: communityTokenCoinsGroup ?? tokenData.coinsGroup,
         amounts: amounts,
+        isSell: isSell,
       );
 
       await _saveTransactions(transactions);
@@ -90,7 +93,8 @@ class TokenTransactionService {
       Logger.error(
         error,
         stackTrace: stackTrace,
-        message: '[TokenTransactionService] Failed to save pending transaction for token buy',
+        message:
+            '[TokenTransactionService] Failed to save pending transaction for token ${isSell ? 'sell' : 'buy'}',
       );
     }
   }
@@ -472,13 +476,17 @@ class TokenTransactionService {
     );
   }
 
-  // Creates two transactions for a token buy operation:
+  // Creates two transactions for a token trade operation:
+  // For buy (isSell=false):
   // 1. Payment transaction (send) - represents sending the payment token (e.g., USDT, BNB)
   // 2. Token transaction (receive) - represents receiving the token (creator token or content token)
+  // For sell (isSell=true):
+  // 1. Payment transaction (receive) - represents receiving the payment token (e.g., USDT, BNB)
+  // 2. Token transaction (send) - represents sending the token (creator token or content token)
   // Both transactions share the same txHash as they're part of the same blockchain swap transaction.
   // This dual-transaction approach allows the wallet to properly track:
-  // - Outgoing payment token balance
-  // - Incoming token balance
+  // - Outgoing/incoming payment token balance
+  // - Incoming/outgoing token balance
   // - Transaction history filtered by asset type or transaction type (send/receive)
   List<TransactionDetails> _createTransactions({
     required String? transactionId,
@@ -497,6 +505,7 @@ class TokenTransactionService {
       String tokenRawAmount,
       double amountUSD,
     }) amounts,
+    bool isSell = false,
   }) {
     const status = TransactionStatus.broadcasted;
     final dateRequested = DateTime.now();
@@ -513,6 +522,7 @@ class TokenTransactionService {
       amounts: amounts,
       status: status,
       dateRequested: dateRequested,
+      isSell: isSell,
     );
 
     final tokenTransaction = _createTokenTransaction(
@@ -526,6 +536,7 @@ class TokenTransactionService {
       amounts: amounts,
       status: status,
       dateRequested: dateRequested,
+      isSell: isSell,
     );
 
     _logTransactions(
@@ -554,6 +565,7 @@ class TokenTransactionService {
     }) amounts,
     required TransactionStatus status,
     required DateTime dateRequested,
+    bool isSell = false,
   }) {
     final paymentTokenCoinsGroup = paymentCoinsGroup ??
         CoinsGroup(
@@ -587,12 +599,12 @@ class TokenTransactionService {
       id: transactionId,
       txHash: txHash,
       network: network,
-      type: TransactionType.send,
+      type: isSell ? TransactionType.receive : TransactionType.send,
       assetData: paymentAssetData,
       status: status,
       walletViewId: walletView.id,
-      senderAddress: wallet.address,
-      receiverAddress: null,
+      senderAddress: isSell ? null : wallet.address,
+      receiverAddress: isSell ? wallet.address : null,
       walletViewName: walletView.name,
       participantPubkey: null,
       dateRequested: dateRequested,
@@ -620,6 +632,7 @@ class TokenTransactionService {
     }) amounts,
     required TransactionStatus status,
     required DateTime dateRequested,
+    bool isSell = false,
   }) {
     final tokenSelectedOption = tokenCoinsGroup.coins.firstWhereOrNull(
           (coin) => coin.coin.id == tokenCoin.id,
@@ -644,12 +657,12 @@ class TokenTransactionService {
       id: transactionId,
       txHash: txHash,
       network: network,
-      type: TransactionType.receive,
+      type: isSell ? TransactionType.send : TransactionType.receive,
       assetData: tokenAssetData,
       status: status,
       walletViewId: walletView.id,
-      senderAddress: wallet.address,
-      receiverAddress: wallet.address,
+      senderAddress: isSell ? wallet.address : null,
+      receiverAddress: isSell ? null : wallet.address,
       walletViewName: walletView.name,
       participantPubkey: null,
       dateRequested: dateRequested,

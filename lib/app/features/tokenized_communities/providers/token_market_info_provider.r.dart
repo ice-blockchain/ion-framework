@@ -7,6 +7,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -19,9 +20,10 @@ Stream<CommunityToken?> tokenMarketInfo(
   Ref ref,
   String externalAddress,
 ) async* {
-  // Read cache once at startup (don't watch to avoid restarting stream on cache updates)
+  // Read cache once at startup - yield directly without reprocessing
+  // since cache already contains the adjusted value from previous session
   final cachedToken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
-  if (cachedToken != null && _isValidToken(cachedToken, ref)) {
+  if (cachedToken != null && cachedToken.isMarketValid) {
     yield cachedToken;
   }
 
@@ -30,8 +32,13 @@ Stream<CommunityToken?> tokenMarketInfo(
   // 1. Fetch initial data via REST
   final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
 
-  if (currentToken == null || _isValidToken(currentToken, ref)) {
-    yield currentToken;
+  if (currentToken == null) {
+    yield null;
+  } else {
+    final adjusted = _processAndCacheToken(currentToken, ref);
+    if (adjusted != null) {
+      yield adjusted;
+    }
   }
 
   // 2. Subscribe to real-time updates
@@ -51,8 +58,9 @@ Stream<CommunityToken?> tokenMarketInfo(
         continue;
       }
 
-      if (_isValidToken(activeTokenState, ref)) {
-        yield activeTokenState;
+      final adjusted = _processAndCacheToken(activeTokenState, ref);
+      if (adjusted != null) {
+        yield adjusted;
       }
     }
   } catch (e, stackTrace) {
@@ -81,32 +89,98 @@ AsyncValue<CommunityToken?> tokenMarketInfoIfAvailable(
 
 @riverpod
 class CachedTokenMarketInfoNotifier extends _$CachedTokenMarketInfoNotifier {
+  BigInt? _expectedPositionWei;
+
   @override
   CommunityToken? build(String externalAddress) {
     keepAliveWhenAuthenticated(ref);
     return null;
   }
 
-  Future<void> cacheToken(CommunityToken token) async {
-    // Equality check to prevent redundant state updates
-    if (state != token) {
-      state = token;
+  CommunityToken cacheToken(CommunityToken token) {
+    final adjustedToken = _applyExpectedPosition(token);
+    if (state != adjustedToken) {
+      state = adjustedToken;
     }
+    return adjustedToken;
+  }
+
+  void adjustPositionAfterSell(double soldAmount) {
+    final currentToken = state;
+    if (currentToken == null) return;
+
+    final currentPosition = currentToken.marketData.position;
+    if (currentPosition == null) return;
+
+    final currentAmountWei = BigInt.tryParse(currentPosition.amount) ?? BigInt.zero;
+    final soldAmountWei =
+        BigInt.from(soldAmount * TokenizedCommunitiesConstants.weiPerToken.toDouble());
+    final newAmountWei = currentAmountWei - soldAmountWei;
+    final clampedAmountWei = newAmountWei.isNegative ? BigInt.zero : newAmountWei;
+
+    _expectedPositionWei = clampedAmountWei;
+    final newAmountValue = clampedAmountWei / TokenizedCommunitiesConstants.weiPerToken;
+
+    final priceUSD = currentToken.marketData.priceUSD;
+    final newAmountUSD = newAmountValue * priceUSD;
+
+    final adjustedPosition = currentPosition.copyWith(
+      amount: clampedAmountWei.toString(),
+      amountUSD: newAmountUSD,
+    );
+
+    final adjustedMarketData = currentToken.marketData.copyWith(
+      position: adjustedPosition,
+    );
+
+    state = currentToken.copyWith(marketData: adjustedMarketData);
+  }
+
+  void clearPendingAdjustment() {
+    _expectedPositionWei = null;
+  }
+
+  CommunityToken _applyExpectedPosition(CommunityToken token) {
+    if (_expectedPositionWei == null) {
+      return token;
+    }
+
+    final currentPosition = token.marketData.position;
+    if (currentPosition == null) return token;
+
+    final incomingAmountWei = BigInt.tryParse(currentPosition.amount) ?? BigInt.zero;
+
+    if (incomingAmountWei <= _expectedPositionWei!) {
+      _expectedPositionWei = null;
+      return token;
+    }
+
+    final priceUSD = token.marketData.priceUSD;
+    final expectedAmountValue = _expectedPositionWei! / TokenizedCommunitiesConstants.weiPerToken;
+    final newAmountUSD = expectedAmountValue * priceUSD;
+
+    final adjustedPosition = currentPosition.copyWith(
+      amount: _expectedPositionWei!.toString(),
+      amountUSD: newAmountUSD,
+    );
+
+    final adjustedMarketData = token.marketData.copyWith(
+      position: adjustedPosition,
+    );
+
+    return token.copyWith(marketData: adjustedMarketData);
   }
 }
 
-bool _isValidToken(CommunityToken token, Ref ref) {
+CommunityToken? _processAndCacheToken(CommunityToken token, Ref ref) {
   if (!token.isMarketValid) {
     unawaited(SentryService.logException(TokenMarketDataNotValidException(token)));
-    return false;
+    return null;
   }
 
-  unawaited(
-    ref
-        .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
-        .cacheToken(token),
-  );
-  return true;
+  return ref
+      .read(cachedTokenMarketInfoNotifierProvider(token.externalAddress).notifier)
+      .cacheToken(token);
 }
 
 extension on CommunityToken {

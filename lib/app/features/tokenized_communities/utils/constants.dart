@@ -19,4 +19,6 @@ class TokenizedCommunitiesConstants {
 
   static const int quoteDebounceMilliseconds = 500;
   static const int percentageDivisor = 100;
+
+  static final BigInt weiPerToken = BigInt.from(10).pow(creatorTokenDecimals);
 }
