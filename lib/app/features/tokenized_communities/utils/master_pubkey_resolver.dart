@@ -6,6 +6,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 class MasterPubkeyResolver {
   MasterPubkeyResolver._();
 
+  //throws an exception in case if unable to resolve
   static String resolve(String externalAddress, {EventReference? eventReference}) {
     if (eventReference != null) {
       return eventReference.masterPubkey;
