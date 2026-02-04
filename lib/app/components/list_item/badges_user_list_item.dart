@@ -10,7 +10,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 class BadgesUserListItem extends ConsumerWidget {
   const BadgesUserListItem({
     required this.masterPubkey,
-    required this.title,
+    required this.titleSpan,
     required this.subtitle,
     this.leading,
     this.trailing,
@@ -26,11 +26,13 @@ class BadgesUserListItem extends ConsumerWidget {
     this.isSelected = false,
     this.isVerifiedOptimisticOnLoading = false,
     this.avatarSize,
+    this.titleStrutStyle = const StrutStyle(forceStrutHeight: true),
     super.key,
   });
 
   final String masterPubkey;
-  final Widget title;
+  final InlineSpan titleSpan;
+  final StrutStyle? titleStrutStyle;
   final Widget subtitle;
   final Widget? leading;
   final Widget? trailing;
@@ -71,7 +73,8 @@ class BadgesUserListItem extends ConsumerWidget {
 
     return ListItem.user(
       pubkey: masterPubkey,
-      title: title,
+      titleSpan: titleSpan,
+      titleStrutStyle: titleStrutStyle,
       subtitle: isNicknameProven
           ? subtitle
           : Row(

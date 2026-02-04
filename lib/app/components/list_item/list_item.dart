@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -40,7 +41,7 @@ class ListItem extends StatelessWidget {
 
   factory ListItem.user({
     required String pubkey,
-    required Widget title,
+    required InlineSpan titleSpan,
     required Widget subtitle,
     Key? key,
     Widget? leading,
@@ -57,10 +58,11 @@ class ListItem extends StatelessWidget {
     bool iceBadge,
     bool isSelected,
     double? avatarSize,
+    StrutStyle? titleStrutStyle,
   }) = _ListItemUser;
 
   factory ListItem.dapp({
-    required Widget title,
+    required InlineSpan titleSpan,
     required Widget subtitle,
     Key? key,
     Widget? leading,

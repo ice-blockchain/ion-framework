@@ -31,9 +31,8 @@ class UseListItem extends ConsumerWidget {
     );
 
     return BadgesUserListItem(
-      title: Text(
-        displayName,
-        strutStyle: const StrutStyle(forceStrutHeight: true),
+      titleSpan: TextSpan(
+        text: displayName,
         style: textStyle,
       ),
       subtitle: Text(

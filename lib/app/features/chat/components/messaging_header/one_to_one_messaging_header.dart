@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/messages_context_menu/one_to_one_messages_context_menu.dart';
@@ -92,19 +93,18 @@ class OneToOneMessagingHeader extends ConsumerWidget {
                         Row(
                           children: [
                             Flexible(
-                              child: Text(
-                                metadata == null
-                                    ? context.i18n.common_deleted_account
-                                    : receiverDisplayName ?? '',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              child: InlineBadgeText(
+                                titleSpan: TextSpan(
+                                  text: metadata == null
+                                      ? context.i18n.common_deleted_account
+                                      : receiverDisplayName ?? '',
+                                ),
+                                badges: isVerified
+                                    ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)]
+                                    : const <Widget>[],
                                 style: context.theme.appTextThemes.subtitle3,
                               ),
                             ),
-                            if (isVerified) ...[
-                              SizedBox(width: 3.0.s),
-                              Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-                            ],
                           ],
                         ),
                         SizedBox(height: 1.0.s),

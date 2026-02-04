@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -47,26 +48,23 @@ class GridItem extends HookWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      dAppData.title,
-                      style: context.theme.appTextThemes.body.copyWith(
-                        color: context.theme.appColors.primaryText,
-                      ),
-                    ),
-                    if (dAppData.isVerified)
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(start: 4.0.s),
-                        child: IconTheme(
-                          data: IconThemeData(
-                            size: 16.0.s,
-                            color: context.theme.appColors.onTertiaryBackground,
+                InlineBadgeText(
+                  titleSpan: TextSpan(text: dAppData.title),
+                  badges: dAppData.isVerified
+                      ? [
+                          IconTheme(
+                            data: IconThemeData(
+                              size: 16.0.s,
+                              color: context.theme.appColors.onTertiaryBackground,
+                            ),
+                            child: Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
                           ),
-                          child: Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-                        ),
-                      ),
-                  ],
+                        ]
+                      : const <Widget>[],
+                  gap: 4.0.s,
+                  style: context.theme.appTextThemes.body.copyWith(
+                    color: context.theme.appColors.primaryText,
+                  ),
                 ),
                 Text(
                   dAppData.description ?? '',

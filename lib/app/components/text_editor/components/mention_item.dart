@@ -28,7 +28,7 @@ class MentionItem extends ConsumerWidget {
 
     return BadgesUserListItem(
       onTap: () => onPress((pubkey: pubkey, username: username)),
-      title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+      titleSpan: TextSpan(text: displayName),
       subtitle: Text(prefixUsername(username: username, context: context)),
       masterPubkey: pubkey,
     );

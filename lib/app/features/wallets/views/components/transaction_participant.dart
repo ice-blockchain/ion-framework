@@ -32,7 +32,7 @@ class TransactionParticipant extends ConsumerWidget {
         child: Column(
           children: [
             BadgesUserListItem(
-              title: Text(userPreviewData.data.trimmedDisplayName),
+              titleSpan: TextSpan(text: userPreviewData.data.trimmedDisplayName),
               subtitle: Text(userPreviewData.data.name),
               masterPubkey: userPreviewData.masterPubkey,
             ),
