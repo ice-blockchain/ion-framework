@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_gradient.dart';
+import 'package:ion/app/features/tokenized_communities/hooks/use_chart_max_x_with_padding.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_transformation.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_visible_y_range.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
@@ -28,8 +29,9 @@ class TokenAreaLineChart extends HookConsumerWidget {
   static const _scrollAnimationDuration = Duration(milliseconds: 250);
 
   double _calculateReservedSize(double maxY, TextStyle style) {
-    const chartAnnotationPadding = 10.0;
-    return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding.s;
+    // Right padding: 4px dot gap + 6px reserved = 10px total
+    final chartAnnotationPadding = 6.0.s;
+    return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding;
   }
 
   @override
@@ -84,6 +86,15 @@ class TokenAreaLineChart extends HookConsumerWidget {
     final duration =
         visibleYRangeData.isScrollTriggered.value ? _scrollAnimationDuration : Duration.zero;
 
+    // Calculate adjusted maxX with padding for the endpoint dot
+    final adjustedMaxX = useChartMaxXWithPadding(
+      chartKey: transformation.chartKey,
+      isPositioned: transformation.isPositioned,
+      reservedSize: reservedSize,
+      maxX: calcData.maxX,
+      candleCount: candles.length,
+    );
+
     // Hide chart until initial scroll position is set (prevents visible jump)
     return Opacity(
       opacity: transformation.isPositioned.value ? 1.0 : 0.0,
@@ -135,7 +146,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
               minY: displayMinY,
               maxY: displayMaxY,
               minX: 0,
-              maxX: calcData.maxX,
+              maxX: adjustedMaxX,
               borderData: FlBorderData(show: false),
               gridData: const FlGridData(
                 drawHorizontalLine: false,
@@ -233,6 +244,11 @@ class _ChartBottomTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final styles = context.theme.appTextThemes;
     final colors = context.theme.appColors;
+
+    // Chart axis is extended past last point (adjustedMaxX) for dot padding.
+    // fl_chart may place an extra label in that zone; hide it so we don't
+    // show the same label twice. Epsilon 0.01 keeps the label at exactly maxX visible.
+    if (value > calcData.maxX + 0.01) return const SizedBox.shrink();
 
     final i = value.round();
     final text = calcData.indexToLabel[i];
