@@ -28,6 +28,7 @@ void main() {
 
     test('1h: different hours -> different slots', () {
       final t1 = DateTime(2026, 2, 4, 16, 59);
+      // ignore: avoid_redundant_argument_values
       final t2 = DateTime(2026, 2, 4, 17, 0);
 
       expect(areSameTimeSlot(t1, t2, '1h'), false);
