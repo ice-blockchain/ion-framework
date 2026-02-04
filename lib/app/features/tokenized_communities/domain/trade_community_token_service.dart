@@ -87,7 +87,7 @@ class TradeCommunityTokenService {
       fatAddressData: fatAddressData,
     );
     Logger.info(
-        '[TradeCommunityTokenService] Pricing identifier resolved | pricingIdentifier=$pricingIdentifier',
+      '[TradeCommunityTokenService] Pricing identifier resolved | pricingIdentifier=$pricingIdentifier',
     );
     final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
       externalAddress: externalAddress,
@@ -148,7 +148,7 @@ class TradeCommunityTokenService {
 
       if (!isExternalToken) {
         Logger.info(
-            '[TradeCommunityTokenService] Resolving master pubkey and checking profile token',
+          '[TradeCommunityTokenService] Resolving master pubkey and checking profile token',
         );
         try {
           // Only resolve master pubkey for Ion Connect tokens (not external/X tokens)
@@ -483,7 +483,7 @@ class TradeCommunityTokenService {
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
       Logger.info(
-          '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
+        '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
       );
 
       final tokenAddress = existingTokenAddress ??
@@ -500,7 +500,7 @@ class TradeCommunityTokenService {
             retryWhen: (error) => error is TokenAddressNotFoundException,
           );
       Logger.info(
-          '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
+        '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
       );
 
       const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
@@ -574,7 +574,7 @@ class TradeCommunityTokenService {
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
       Logger.info(
-          '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
+        '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
       );
 
       const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;

@@ -101,7 +101,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       Logger.info('[CommunityTokenTradeNotifier] Step 3: Converting amount to blockchain units');
       final amountIn = toBlockchainUnits(amount, token.decimals);
       Logger.info(
-          '[CommunityTokenTradeNotifier] Amount converted | amount=$amount | amountIn=$amountIn | decimals=${token.decimals}',
+        '[CommunityTokenTradeNotifier] Amount converted | amount=$amount | amountIn=$amountIn | decimals=${token.decimals}',
       );
 
       Logger.info('[CommunityTokenTradeNotifier] Step 4: Getting trade service');
@@ -220,7 +220,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       );
 
       Logger.info(
-          '[CommunityTokenTradeNotifier] Buy operation completed successfully | txHash=$txHash',
+        '[CommunityTokenTradeNotifier] Buy operation completed successfully | txHash=$txHash',
       );
       return txHash;
     });
@@ -378,7 +378,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       );
 
       Logger.info(
-          '[CommunityTokenTradeNotifier] Sell operation completed successfully | txHash=$txHash',
+        '[CommunityTokenTradeNotifier] Sell operation completed successfully | txHash=$txHash',
       );
       return txHash;
     });
