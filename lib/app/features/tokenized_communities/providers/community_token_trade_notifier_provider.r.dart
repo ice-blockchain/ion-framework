@@ -35,6 +35,7 @@ typedef CommunityTokenTradeNotifierParams = ({
   EventReference? eventReference,
 });
 
+//TODO cleanup extensive logs after swap becomes stable
 @riverpod
 class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
   static const _firstBuyMetadataSentKey = 'community_token_first_buy';
@@ -46,12 +47,22 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
   FutureOr<String?> build(CommunityTokenTradeNotifierParams params) => null;
 
   Future<void> buy(UserActionSignerNew signer) async {
-    if (state.isLoading) return;
+    Logger.info(
+      '[CommunityTokenTradeNotifier] buy() called | externalAddress=${params.externalAddress} | isLoading=${state.isLoading}',
+    );
+
+    if (state.isLoading) {
+      Logger.warning('[CommunityTokenTradeNotifier] Already loading, skipping buy()');
+      return;
+    }
 
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
+      Logger.info('[CommunityTokenTradeNotifier] Starting buy operation');
+
       // Check if this account is protected from token operations
+      Logger.info('[CommunityTokenTradeNotifier] Step 1: Checking account protection');
       final protectedAccountsService = ref.read(tokenOperationProtectedAccountsServiceProvider);
       final isProtected = params.eventReference != null
           ? protectedAccountsService.isProtectedAccountEvent(params.eventReference!)
@@ -59,16 +70,24 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
               params.externalAddress,
             );
       if (isProtected) {
+        Logger.warning('[CommunityTokenTradeNotifier] Account is protected');
         throw const TokenOperationProtectedException();
       }
-
+      Logger.info('[CommunityTokenTradeNotifier] Step 2: Reading form state');
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
 
       final token = formState.selectedPaymentToken;
       final wallet = formState.targetWallet;
       final amount = formState.amount;
 
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Form state | token=${token?.abbreviation} | wallet=${wallet?.id} | amount=$amount',
+      );
+
       if (token == null || wallet == null || amount <= 0) {
+        Logger.error(
+          '[CommunityTokenTradeNotifier] Invalid form state | token=$token | wallet=$wallet | amount=$amount',
+        );
         throw StateError('Invalid form state: token, wallet, or amount is missing');
       }
 
@@ -79,19 +98,36 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         throw Exception('Wallet address is missing');
       }
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 3: Converting amount to blockchain units');
       final amountIn = toBlockchainUnits(amount, token.decimals);
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Amount converted | amount=$amount | amountIn=$amountIn | decimals=${token.decimals}',
+      );
+
+      Logger.info('[CommunityTokenTradeNotifier] Step 4: Getting trade service');
       final service = await ref.read(tradeCommunityTokenServiceProvider.future);
+      Logger.info('[CommunityTokenTradeNotifier] Trade service obtained');
+
       final expectedPricing = formState.quotePricing;
 
       if (formState.isQuoting || expectedPricing == null) {
+        Logger.error(
+          '[CommunityTokenTradeNotifier] Quote not ready | isQuoting=${formState.isQuoting} | expectedPricing=$expectedPricing',
+        );
         throw StateError('Quote is not ready yet');
       }
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 5: Sending first buy metadata if needed');
       await _sendFirstBuyMetadataIfNeeded();
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 6: Getting token info and fat address data');
       final existingTokenInfo =
           ref.read(tokenMarketInfoProvider(params.externalAddress)).valueOrNull;
       final existingTokenAddress = existingTokenInfo?.addresses.blockchain;
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Token info | existingTokenAddress=$existingTokenAddress',
+      );
+
       final fatAddressData = (existingTokenAddress != null && existingTokenAddress.isNotEmpty)
           ? null
           : await ref.read(
@@ -102,6 +138,21 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
                 suggestedDetails: formState.suggestedDetails,
               ).future,
             );
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Fat address data | hasFatAddressData=${fatAddressData != null}',
+      );
+
+      Logger.info('[CommunityTokenTradeNotifier] Step 7: Calling buyCommunityToken service');
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Buy parameters | '
+        'externalAddress=${params.externalAddress} | '
+        'externalAddressType=${params.externalAddressType} | '
+        'amountIn=$amountIn | '
+        'walletId=${wallet.id} | '
+        'walletAddress=${wallet.address} | '
+        'baseTokenAddress=${token.contractAddress} | '
+        'slippage=${formState.slippage}',
+      );
 
       final response = await service.buyCommunityToken(
         externalAddress: params.externalAddress,
@@ -120,17 +171,27 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         slippagePercent: formState.slippage,
       );
 
-      final txHash = _requireBroadcastedTxHash(response);
+      Logger.info(
+        '[CommunityTokenTradeNotifier] buyCommunityToken response received | response=$response',
+      );
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 8: Validating transaction hash');
+      final txHash = _requireBroadcastedTxHash(response);
+      Logger.info('[CommunityTokenTradeNotifier] Transaction hash validated | txHash=$txHash');
+
+      Logger.info('[CommunityTokenTradeNotifier] Step 9: Importing token and saving transaction');
       try {
         final tokenImportService = ref.read(tokenImportServiceProvider);
+        Logger.info('[CommunityTokenTradeNotifier] Importing token if needed');
         await tokenImportService.importTokenIfNeeded(
           externalAddress: params.externalAddress,
           existingTokenAddress: existingTokenAddress,
           communityTokenCoinsGroup: formState.communityTokenCoinsGroup,
         );
+        Logger.info('[CommunityTokenTradeNotifier] Token import completed');
 
         final tokenTransactionService = ref.read(tokenTransactionServiceProvider);
+        Logger.info('[CommunityTokenTradeNotifier] Saving pending transaction');
         await tokenTransactionService.savePendingTransaction(
           externalAddress: params.externalAddress,
           transactionId: response['id']?.toString(),
@@ -141,14 +202,16 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
           expectedPricing: expectedPricing,
           paymentCoinsGroup: formState.paymentCoinsGroup,
         );
+        Logger.info('[CommunityTokenTradeNotifier] Transaction saved');
       } catch (error, stackTrace) {
         Logger.error(
           error,
           stackTrace: stackTrace,
-          message: '[CommunityTokenTradeNotifier] Failed to import token',
+          message: '[CommunityTokenTradeNotifier] Failed to import token or save transaction',
         );
       }
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 10: Scheduling wallet data sync');
       unawaited(
         Future.delayed(
           _syncWalletDataDelay,
@@ -156,17 +219,30 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         ),
       );
 
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Buy operation completed successfully | txHash=$txHash',
+      );
       return txHash;
     });
   }
 
   Future<void> sell(UserActionSignerNew signer) async {
-    if (state.isLoading) return;
+    Logger.info(
+      '[CommunityTokenTradeNotifier] sell() called | externalAddress=${params.externalAddress} | isLoading=${state.isLoading}',
+    );
+
+    if (state.isLoading) {
+      Logger.warning('[CommunityTokenTradeNotifier] Already loading, skipping sell()');
+      return;
+    }
 
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
+      Logger.info('[CommunityTokenTradeNotifier] Starting sell operation');
+
       // Check if this account is protected from token operations
+      Logger.info('[CommunityTokenTradeNotifier] Step 1: Checking account protection');
       final protectedAccountsService = ref.read(tokenOperationProtectedAccountsServiceProvider);
       final isProtected = params.eventReference != null
           ? protectedAccountsService.isProtectedAccountEvent(params.eventReference!)
@@ -174,16 +250,26 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
               params.externalAddress,
             );
       if (isProtected) {
+        Logger.warning('[CommunityTokenTradeNotifier] Account is protected');
         throw const TokenOperationProtectedException();
       }
+      Logger.info('[CommunityTokenTradeNotifier] Account protection check passed');
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 2: Reading form state');
       final formState = ref.read(tradeCommunityTokenControllerProvider(params));
 
       final token = formState.selectedPaymentToken;
       final wallet = formState.targetWallet;
       final amount = formState.amount;
 
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Form state | token=${token?.abbreviation} | wallet=${wallet?.id} | amount=$amount',
+      );
+
       if (token == null || wallet == null || amount <= 0) {
+        Logger.error(
+          '[CommunityTokenTradeNotifier] Invalid form state | token=$token | wallet=$wallet | amount=$amount',
+        );
         throw StateError('Invalid form state: token, wallet, or amount is missing');
       }
 
@@ -194,20 +280,50 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         throw Exception('Wallet address is missing');
       }
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 3: Getting token info');
       final tokenInfo = ref.read(tokenMarketInfoProvider(params.externalAddress)).valueOrNull;
       final communityTokenAddress = tokenInfo?.addresses.blockchain;
       if (communityTokenAddress == null || communityTokenAddress.isEmpty) {
+        Logger.error(
+          '[CommunityTokenTradeNotifier] Community token contract address is missing | tokenInfo=$tokenInfo',
+        );
         throw StateError('Community token contract address is missing');
       }
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Token info obtained | communityTokenAddress=$communityTokenAddress',
+      );
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 4: Converting amount to blockchain units');
       final amountIn =
           toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Amount converted | amount=$amount | amountIn=$amountIn | decimals=${TokenizedCommunitiesConstants.creatorTokenDecimals}',
+      );
+
+      Logger.info('[CommunityTokenTradeNotifier] Step 5: Getting trade service');
       final service = await ref.read(tradeCommunityTokenServiceProvider.future);
+      Logger.info('[CommunityTokenTradeNotifier] Trade service obtained');
+
       final expectedPricing = formState.quotePricing;
 
       if (formState.isQuoting || expectedPricing == null) {
+        Logger.error(
+          '[CommunityTokenTradeNotifier] Quote not ready | isQuoting=${formState.isQuoting} | expectedPricing=$expectedPricing',
+        );
         throw StateError('Quote is not ready yet');
       }
+      Logger.info('[CommunityTokenTradeNotifier] Quote ready | expectedPricing=$expectedPricing');
+
+      Logger.info('[CommunityTokenTradeNotifier] Step 6: Calling sellCommunityToken service');
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Sell parameters | '
+        'externalAddress=${params.externalAddress} | '
+        'amountIn=$amountIn | '
+        'walletId=${wallet.id} | '
+        'walletAddress=${wallet.address} | '
+        'paymentTokenAddress=${token.contractAddress} | '
+        'communityTokenAddress=$communityTokenAddress',
+      );
 
       final response = await service.sellCommunityToken(
         externalAddress: params.externalAddress,
@@ -226,8 +342,15 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         shouldSendEvents: formState.shouldSendEvents,
       );
 
-      final txHash = _requireBroadcastedTxHash(response);
+      Logger.info(
+        '[CommunityTokenTradeNotifier] sellCommunityToken response received | response=$response',
+      );
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 7: Validating transaction hash');
+      final txHash = _requireBroadcastedTxHash(response);
+      Logger.info('[CommunityTokenTradeNotifier] Transaction hash validated | txHash=$txHash');
+
+      Logger.info('[CommunityTokenTradeNotifier] Step 8: Saving pending transaction');
       final tokenTransactionService = ref.read(tokenTransactionServiceProvider);
       await tokenTransactionService.savePendingTransaction(
         externalAddress: params.externalAddress,
@@ -241,27 +364,47 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         communityTokenCoinsGroup: formState.communityTokenCoinsGroup,
         isSell: true,
       );
+      Logger.info('[CommunityTokenTradeNotifier] Transaction saved');
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 9: Adjusting position after sell');
       ref
           .read(cachedTokenMarketInfoNotifierProvider(params.externalAddress).notifier)
           .adjustPositionAfterSell(amount);
+      Logger.info('[CommunityTokenTradeNotifier] Position adjusted');
 
+      Logger.info('[CommunityTokenTradeNotifier] Step 10: Syncing wallet data');
       unawaited(
         ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
+      );
+
+      Logger.info(
+        '[CommunityTokenTradeNotifier] Sell operation completed successfully | txHash=$txHash',
       );
       return txHash;
     });
   }
 
   String _requireBroadcastedTxHash(Map<String, dynamic> transaction) {
+    Logger.info(
+      '[CommunityTokenTradeNotifier] Validating transaction | transaction=$transaction',
+    );
+
     final status = transaction['status']?.toString() ?? '';
     if (status.isEmpty) {
+      Logger.error(
+        '[CommunityTokenTradeNotifier] Transaction status is missing | transaction=$transaction',
+      );
       throw CommunityTokenTradeTransactionException(
         reason: 'Swap status is missing',
       );
     }
 
+    Logger.info('[CommunityTokenTradeNotifier] Transaction status | status=$status');
+
     if (status.toLowerCase() != _broadcastedStatus) {
+      Logger.error(
+        '[CommunityTokenTradeNotifier] Transaction not broadcasted | status=$status | expected=$_broadcastedStatus',
+      );
       throw CommunityTokenTradeTransactionException(
         reason: 'Swap was not broadcasted',
         status: status,
@@ -270,34 +413,55 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
 
     final txHash = transaction['txHash']?.toString() ?? '';
     if (txHash.isEmpty) {
+      Logger.error(
+        '[CommunityTokenTradeNotifier] Transaction hash is missing | status=$status | transaction=$transaction',
+      );
       throw CommunityTokenTradeTransactionException(
         reason: 'Swap transaction hash is missing',
         status: status,
       );
     }
 
+    Logger.info('[CommunityTokenTradeNotifier] Transaction validated | txHash=$txHash');
     return txHash;
   }
 
   Future<void> _sendFirstBuyMetadataIfNeeded() async {
+    Logger.info('[CommunityTokenTradeNotifier] Checking if first buy metadata needs to be sent');
     try {
       final userPrefsService = ref.read(currentUserPreferencesServiceProvider);
-      if (userPrefsService == null) return;
+      if (userPrefsService == null) {
+        Logger.info('[CommunityTokenTradeNotifier] User prefs service is null, skipping');
+        return;
+      }
 
       final alreadySent = userPrefsService.getValue<bool>(_firstBuyMetadataSentKey) ?? false;
-      if (alreadySent) return;
+      if (alreadySent) {
+        Logger.info('[CommunityTokenTradeNotifier] First buy metadata already sent, skipping');
+        return;
+      }
 
+      Logger.info('[CommunityTokenTradeNotifier] Getting current user metadata');
       final currentMetadata = await ref.read(currentUserMetadataProvider.future);
-      if (currentMetadata == null) return;
+      if (currentMetadata == null) {
+        Logger.info('[CommunityTokenTradeNotifier] Current metadata is null, skipping');
+        return;
+      }
 
+      Logger.info('[CommunityTokenTradeNotifier] Getting BSC network');
       final bscNetwork = await ref.read(bscNetworkDataProvider.future);
 
+      Logger.info('[CommunityTokenTradeNotifier] Getting main crypto wallets');
       final mainWallets = await ref.read(mainCryptoWalletsProvider.future);
       final bscWallet = mainWallets.firstWhereOrNull(
         (wallet) => wallet.network == bscNetwork.id && wallet.address != null,
       );
-      if (bscWallet == null) return;
+      if (bscWallet == null) {
+        Logger.info('[CommunityTokenTradeNotifier] BSC wallet not found, skipping');
+        return;
+      }
 
+      Logger.info('[CommunityTokenTradeNotifier] Updating metadata with BSC wallet');
       final currentWallets = currentMetadata.data.wallets ?? <String, String>{};
       final updatedWallets = Map<String, String>.from(currentWallets);
       if (!updatedWallets.containsKey(bscNetwork.id)) {
@@ -305,9 +469,11 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       }
 
       final updatedMetadata = currentMetadata.data.copyWith(wallets: updatedWallets);
+      Logger.info('[CommunityTokenTradeNotifier] Sending updated metadata');
       await ref.read(ionConnectNotifierProvider.notifier).sendEntitiesData([updatedMetadata]);
 
       await userPrefsService.setValue<bool>(_firstBuyMetadataSentKey, true);
+      Logger.info('[CommunityTokenTradeNotifier] First buy metadata sent successfully');
     } catch (error, stackTrace) {
       Logger.error(
         error,

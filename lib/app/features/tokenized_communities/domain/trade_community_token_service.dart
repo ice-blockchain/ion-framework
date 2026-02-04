@@ -25,6 +25,7 @@ import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
+//TODO cleanup extensive logs after swap becomes stable
 class TradeCommunityTokenService {
   TradeCommunityTokenService({
     required this.repository,
@@ -58,27 +59,43 @@ class TradeCommunityTokenService {
     FatAddressV2Data? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
+    Logger.info(
+      '[TradeCommunityTokenService] buyCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
+    );
     _ensureAccountNotProtected(externalAddress);
+
     final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+
+    Logger.info('[TradeCommunityTokenService] Fetched token info');
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
     final firstBuy = _isFirstBuy(existingTokenAddress);
     final hasUserPosition = _hasUserPosition(tokenInfo);
+    Logger.info(
+      '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
+    );
+
     final isCreatorTokenMissingForContentFirstBuy = _isCreatorTokenMissingForContentFirstBuy(
       externalAddressType: externalAddressType,
       isFirstBuy: firstBuy,
       fatAddressData: fatAddressData,
     );
-
+    Logger.info(
+      '[TradeCommunityTokenService] Resolving pricing identifier | externalAddress=$externalAddress | hasTokenAddress=${tokenInfo?.addresses.blockchain != null} | hasFatAddress=${fatAddressData != null}',
+    );
     final pricingIdentifier = _resolveBuyPricingIdentifier(
       externalAddress: externalAddress,
       tokenInfo: tokenInfo,
       fatAddressData: fatAddressData,
+    );
+    Logger.info(
+      '[TradeCommunityTokenService] Pricing identifier resolved | pricingIdentifier=$pricingIdentifier',
     );
     final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
       paymentTokenAddress: baseTokenAddress,
     );
+    Logger.info('[TradeCommunityTokenService] Building route');
     final route = routeBuilder.build(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
@@ -87,6 +104,9 @@ class TradeCommunityTokenService {
       paymentTokenRoleOverride: paymentRoleOverride,
       isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
     );
+    Logger.info(
+      '[TradeCommunityTokenService] Building quote | pricingIdentifier=$pricingIdentifier | amountIn=$amountIn | slippagePercent=$slippagePercent',
+    );
     final quote = await quoteBuilder.build(
       route: route,
       pricingIdentifier: pricingIdentifier,
@@ -94,6 +114,9 @@ class TradeCommunityTokenService {
       paymentTokenAddress: baseTokenAddress,
       slippagePercent: slippagePercent,
       fatAddressHex: fatAddressData?.toHex(),
+    );
+    Logger.info(
+      '[TradeCommunityTokenService] Building user operations | quoteAmount=${quote.finalPricing.amount} | quoteAmountUSD=${quote.finalPricing.amountUSD}',
     );
     final userOps = await userOpsBuilder.buildUserOps(
       route: route,
@@ -104,11 +127,16 @@ class TradeCommunityTokenService {
       communityTokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
       fatAddressData: fatAddressData,
     );
+    Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
       feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
       userActionSigner: userActionSigner,
+    );
+
+    Logger.info(
+      '[TradeCommunityTokenService] Swap completed | status=${transaction['status']} | isBroadcasted=${_isBroadcasted(transaction)}',
     );
 
     if (_isBroadcasted(transaction)) {
@@ -120,14 +148,18 @@ class TradeCommunityTokenService {
       var hasProfileToken = false;
 
       if (!isExternalToken) {
+        Logger.info(
+          '[TradeCommunityTokenService] Resolving master pubkey and checking profile token',
+        );
         try {
           // Only resolve master pubkey for Ion Connect tokens (not external/X tokens)
           masterPubkey = MasterPubkeyResolver.resolve(externalAddress);
-
           profileEventReference =
               ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind);
-
           hasProfileToken = await ionConnectService.ionConnectEntityHasToken(profileEventReference);
+          Logger.info(
+            '[TradeCommunityTokenService] Master pubkey resolved | masterPubkey=$masterPubkey | hasProfileToken=$hasProfileToken',
+          );
         } catch (error, stackTrace) {
           Logger.error(
             error,
@@ -138,6 +170,10 @@ class TradeCommunityTokenService {
           // Continue without profile events if we can't resolve master pubkey
         }
       }
+
+      Logger.info(
+        '[TradeCommunityTokenService] Sending events | firstBuy=$firstBuy | shouldSendEvents=$shouldSendEvents | isExternalToken=$isExternalToken',
+      );
 
       await Future.wait([
         if (firstBuy)
@@ -166,6 +202,7 @@ class TradeCommunityTokenService {
       ]);
     }
 
+    Logger.info('[TradeCommunityTokenService] buyCommunityToken completed successfully');
     return transaction;
   }
 
@@ -186,12 +223,16 @@ class TradeCommunityTokenService {
     required bool shouldSendEvents,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
+    Logger.info(
+      '[TradeCommunityTokenService] sellCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
+    );
     _ensureAccountNotProtected(externalAddress);
     final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
       paymentTokenAddress: paymentTokenAddress,
     );
+    Logger.info('[TradeCommunityTokenService] Building route');
     final route = routeBuilder.build(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
@@ -200,8 +241,12 @@ class TradeCommunityTokenService {
       paymentTokenRoleOverride: paymentRoleOverride,
     );
 
+    Logger.info('[TradeCommunityTokenService] Fetching token info');
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
 
+    Logger.info(
+      '[TradeCommunityTokenService] Building quote | pricingIdentifier=$externalAddress | amountIn=$amountIn | slippagePercent=$slippagePercent',
+    );
     final quote = await quoteBuilder.build(
       route: route,
       pricingIdentifier: externalAddress,
@@ -209,6 +254,7 @@ class TradeCommunityTokenService {
       paymentTokenAddress: paymentTokenAddress,
       slippagePercent: slippagePercent,
     );
+    Logger.info('[TradeCommunityTokenService] Building user operations');
     final userOps = await userOpsBuilder.buildUserOps(
       route: route,
       quote: quote,
@@ -218,6 +264,7 @@ class TradeCommunityTokenService {
       communityTokenDecimals: tokenDecimals,
       communityTokenAddress: communityTokenAddress,
     );
+    Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
@@ -225,7 +272,12 @@ class TradeCommunityTokenService {
       userActionSigner: userActionSigner,
     );
 
+    Logger.info(
+      '[TradeCommunityTokenService] Swap completed | status=${transaction['status']} | isBroadcasted=${_isBroadcasted(transaction)}',
+    );
+
     if (shouldSendEvents && _isBroadcasted(transaction)) {
+      Logger.info('[TradeCommunityTokenService] Transaction broadcasted, sending sell events');
       await _trySendSellEvents(
         externalAddress: externalAddress,
         transaction: transaction,
@@ -237,8 +289,10 @@ class TradeCommunityTokenService {
         paymentTokenDecimals: paymentTokenDecimals,
         tokenInfo: tokenInfo,
       );
+      Logger.info('[TradeCommunityTokenService] Sell events sent successfully');
     }
 
+    Logger.info('[TradeCommunityTokenService] sellCommunityToken completed successfully');
     return transaction;
   }
 
@@ -418,17 +472,26 @@ class TradeCommunityTokenService {
     required String? existingTokenAddress,
     required CommunityToken? tokenInfo,
   }) async {
+    Logger.info(
+      '[TradeCommunityTokenService] _trySendBuyEvents called | externalAddress=$externalAddress | firstBuy=$firstBuy',
+    );
     try {
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
+        Logger.error('[TradeCommunityTokenService] Transaction hash is missing');
         throw TransactionHashNotFoundException(externalAddress);
       }
+      Logger.info('[TradeCommunityTokenService] Transaction hash extracted | txHash=$txHash');
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
+      Logger.info(
+        '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
+      );
 
       final tokenAddress = existingTokenAddress ??
           await withRetry<String>(
             ({Object? error}) async {
+              Logger.info('[TradeCommunityTokenService] Retrying to fetch token address');
               final tokenAddress =
                   _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
               if (tokenAddress == null || tokenAddress.isEmpty) {
@@ -438,14 +501,19 @@ class TradeCommunityTokenService {
             },
             retryWhen: (error) => error is TokenAddressNotFoundException,
           );
+      Logger.info(
+        '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
+      );
 
       const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
 
       final baseTokenAmountValue = fromBlockchainUnits(amountIn.toString(), tokenDecimals);
-
       final communityTokenAmountValue = fromBlockchainUnits(pricing.amount, communityTokenDecimals);
-
       final usdAmountValue = pricing.amountUSD;
+
+      Logger.info(
+        '[TradeCommunityTokenService] Amounts calculated | baseTokenAmountValue=$baseTokenAmountValue | communityTokenAmountValue=$communityTokenAmountValue | usdAmountValue=$usdAmountValue',
+      );
 
       final amountBase = TransactionAmount(
         value: baseTokenAmountValue,
@@ -456,6 +524,10 @@ class TradeCommunityTokenService {
         currency: externalAddress,
       );
       final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+
+      Logger.info(
+        '[TradeCommunityTokenService] Calling sendBuyActionEvents | externalAddress=$externalAddress | network=$walletNetwork | hasUserPosition=$hasUserPosition | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$tokenAddress | transactionAddress=$txHash',
+      );
 
       await ionConnectService.sendBuyActionEvents(
         externalAddress: externalAddress,
@@ -468,11 +540,13 @@ class TradeCommunityTokenService {
         amountQuote: amountQuote,
         amountUsd: amountUsd,
       );
+
+      Logger.info('[TradeCommunityTokenService] sendBuyActionEvents completed successfully');
     } catch (error, stackTrace) {
       Logger.error(
         error,
         stackTrace: stackTrace,
-        message: 'Failed to send buy events for $externalAddress',
+        message: '[TradeCommunityTokenService] Failed to send buy events for $externalAddress',
       );
       unawaited(SentryService.logException(error, stackTrace: stackTrace));
     }
@@ -489,13 +563,22 @@ class TradeCommunityTokenService {
     required int paymentTokenDecimals,
     required CommunityToken? tokenInfo,
   }) async {
+    Logger.info(
+      '[TradeCommunityTokenService] _trySendSellEvents called | externalAddress=$externalAddress',
+    );
     try {
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
+        Logger.error('[TradeCommunityTokenService] Transaction hash is missing');
         throw TransactionHashNotFoundException(externalAddress);
       }
+      Logger.info('[TradeCommunityTokenService] Transaction hash extracted | txHash=$txHash');
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
+      Logger.info(
+        '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
+      );
+
       const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
 
       final communityTokenAmountValue =
@@ -504,6 +587,10 @@ class TradeCommunityTokenService {
 
       final usdAmountValue = pricing.amountUSD;
 
+      Logger.info(
+        '[TradeCommunityTokenService] Amounts calculated | communityTokenAmountValue=$communityTokenAmountValue | paymentTokenAmountValue=$paymentTokenAmountValue | usdAmountValue=$usdAmountValue',
+      );
+
       final amountBase =
           TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
       final amountQuote = TransactionAmount(
@@ -511,6 +598,10 @@ class TradeCommunityTokenService {
         currency: paymentTokenTicker,
       );
       final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+
+      Logger.info(
+        '[TradeCommunityTokenService] Calling sendSellActionEvents | externalAddress=$externalAddress | network=$walletNetwork | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$communityTokenAddress | transactionAddress=$txHash',
+      );
 
       await ionConnectService.sendSellActionEvents(
         externalAddress: externalAddress,
@@ -522,11 +613,13 @@ class TradeCommunityTokenService {
         amountQuote: amountQuote,
         amountUsd: amountUsd,
       );
+
+      Logger.info('[TradeCommunityTokenService] sendSellActionEvents completed successfully');
     } catch (error, stackTrace) {
       Logger.error(
         error,
         stackTrace: stackTrace,
-        message: 'Failed to send sell events for $externalAddress',
+        message: '[TradeCommunityTokenService] Failed to send sell events for $externalAddress',
       );
       unawaited(SentryService.logException(error, stackTrace: stackTrace));
     }
