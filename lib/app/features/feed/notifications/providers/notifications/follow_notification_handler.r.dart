@@ -27,9 +27,14 @@ class FollowNotificationHandler extends GlobalSubscriptionEventHandler {
   @override
   Future<void> handle(EventMessage eventMessage) async {
     final entity = FollowListEntity.fromEventMessage(eventMessage);
-    final isCurrentUserLastAdded = entity.data.list.lastOrNull?.pubkey == currentMasterPubkey;
+    final isCurrentUserInList =
+        entity.data.list.any((followee) => followee.pubkey == currentMasterPubkey);
 
-    if (isCurrentUserLastAdded) {
+    if (isCurrentUserInList) {
+      final alreadySaved = await followersRepository.exists(entity.masterPubkey);
+      if (alreadySaved) {
+        return;
+      }
       await followersRepository.save(entity);
     }
   }
