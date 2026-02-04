@@ -79,13 +79,12 @@ class StoryViewerHeader extends ConsumerWidget {
                     masterPubkey: currentPost.masterPubkey,
                   ),
                 ),
-                title: Text(
-                  displayName,
+                titleSpan: TextSpan(
+                  text: displayName,
                   style: textThemes.subtitle3.copyWith(
                     color: onPrimaryAccent,
                     shadows: shadow,
                   ),
-                  strutStyle: const StrutStyle(forceStrutHeight: true),
                 ),
                 subtitle: Row(
                   mainAxisSize: MainAxisSize.min,

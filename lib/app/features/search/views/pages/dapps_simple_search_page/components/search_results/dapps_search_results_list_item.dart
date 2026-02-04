@@ -28,7 +28,7 @@ class DAppsSearchResultsListItem extends ConsumerWidget {
             DAppDetailsRoute(dappId: app.identifier).push<void>(context);
           },
           child: ListItem.dapp(
-            title: Text(app.title),
+            titleSpan: TextSpan(text: app.title),
             subtitle: Text(app.description ?? ''),
             profilePictureWidget: Image.asset(
               app.iconImage,

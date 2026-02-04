@@ -57,14 +57,10 @@ class ChatSearchResultListItem extends HookConsumerWidget {
             horizontal: ScreenSideOffset.defaultSmallMargin,
           ),
           masterPubkey: item.masterPubkey,
-          title: Padding(
-            padding: EdgeInsetsDirectional.only(bottom: 2.38.s),
-            child: Text(
-              displayName,
-              style: context.theme.appTextThemes.subtitle3.copyWith(
-                color: context.theme.appColors.primaryText,
-              ),
-              strutStyle: const StrutStyle(forceStrutHeight: true),
+          titleSpan: TextSpan(
+            text: displayName,
+            style: context.theme.appTextThemes.subtitle3.copyWith(
+              color: context.theme.appColors.primaryText,
             ),
           ),
           constraints: BoxConstraints(minHeight: 48.0.s),

@@ -28,7 +28,7 @@ class CreatorTokensListItem extends ConsumerWidget {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       child: BadgesUserListItem(
-        title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+        titleSpan: TextSpan(text: displayName),
         trailing: const _TokenPriceLabel(
           //TODO: replace mock data
           price: 0.14,
