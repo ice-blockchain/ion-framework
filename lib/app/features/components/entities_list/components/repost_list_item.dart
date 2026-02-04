@@ -112,6 +112,7 @@ class RepostListItem extends ConsumerWidget {
                 eventReference: repostEntity.data.eventReference,
                 network: true,
                 headerOffset: 10.0.s,
+                showTokenIsLiveLabel: false,
               ),
             GenericRepostEntity() when repostEntity.data.kind == CommunityTokenActionEntity.kind =>
               CommunityTokenAction(

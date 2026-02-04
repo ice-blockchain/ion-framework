@@ -32,6 +32,7 @@ class CommunityTokenLive extends HookConsumerWidget {
     this.network = false,
     this.headerOffset,
     this.timeFormat = TimestampFormat.short,
+    this.showTokenIsLiveLabel = true,
     super.key,
   });
 
@@ -42,6 +43,8 @@ class CommunityTokenLive extends HookConsumerWidget {
   final double? headerOffset;
 
   final TimestampFormat timeFormat;
+
+  final bool showTokenIsLiveLabel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -77,7 +80,8 @@ class CommunityTokenLive extends HookConsumerWidget {
       children: [
         if (entity.data.kind == UserMetadataEntity.kind &&
             (entity.data as CommunityTokenDefinitionIon).type ==
-                CommunityTokenDefinitionIonType.firstBuyAction) ...[
+                CommunityTokenDefinitionIonType.firstBuyAction &&
+            showTokenIsLiveLabel) ...[
           ScreenSideOffset.small(
             child: const _CreatorTokenIsLiveLabel(),
           ),
