@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/overlay_menu/hooks/use_hide_on_scroll.dart';
@@ -78,10 +79,12 @@ class OverlayMenu extends HookWidget {
         final globalOffset = renderBox.localToGlobal(Offset.zero);
         final screenSize = MediaQuery.sizeOf(context);
         final shouldAlignStart = (globalOffset.dx + menuWidth.value) < screenSize.width;
-        final shouldAlignBelow = (globalOffset.dy + menuHeight.value) < screenSize.height;
+        final bottomNavigationBarHeight = 106.0.s;
+        final shouldAlignBelow =
+            (globalOffset.dy + menuHeight.value) < screenSize.height - bottomNavigationBarHeight;
 
         final offset = Offset(
-          shouldAlignStart ? 6.0.s : renderBox.size.width - 6.0.s,
+          shouldAlignStart ? 0.0 : renderBox.size.width - 16.0.s,
           shouldAlignBelow ? renderBox.size.height + 6.0.s : -6.0.s,
         );
         final anchorAlignment = (shouldAlignBelow
