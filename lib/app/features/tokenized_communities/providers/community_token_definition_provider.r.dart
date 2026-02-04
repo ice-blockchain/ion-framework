@@ -13,7 +13,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.da
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/token_definition_reference.f.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -57,31 +56,23 @@ class CommunityTokenDefinitionRepository {
       throw TokenInfoNotFoundException(externalAddress);
     }
 
-    final EventReference creatorEventReference;
     final Map<String, List<Object?>> tags;
 
     if (tokenInfo.creator.addresses?.ionConnect == null) {
       throw TokenCreatorIonAddressNotFoundException(externalAddress);
+    } else if (tokenInfo.source.isTwitter) {
+      tags = {
+        '#h': [tokenInfo.addresses.twitter],
+      };
     } else {
-      creatorEventReference = ReplaceableEventReference(
-        masterPubkey: tokenInfo.creator.addresses!.ionConnect!,
-        kind: UserMetadataEntity.kind,
-      );
-      if (tokenInfo.source.isTwitter) {
-        tags = {
-          '#h': [tokenInfo.addresses.twitter],
-        };
-      } else {
-        tags = {
-          '#a': [creatorEventReference.toString()],
-          '#!t': [communityTokenActionTopic],
-        };
-      }
+      tags = {
+        '#a': [externalAddress],
+        '#!t': [communityTokenActionTopic],
+      };
     }
 
     return _fetchFromIonConnect(
-      externalAddress: externalAddress,
-      creatorEventReference: creatorEventReference,
+      creatorIonAddress: tokenInfo.creator.addresses!.ionConnect!,
       tags: tags,
     );
   }
@@ -89,12 +80,6 @@ class CommunityTokenDefinitionRepository {
   Future<CommunityTokenDefinitionEntity?> getTokenDefinitionForIonConnectReference(
     EventReference eventReference,
   ) async {
-    final externalAddress = eventReference.toString();
-    final creatorEventReference = ReplaceableEventReference(
-      masterPubkey: eventReference.masterPubkey,
-      kind: UserMetadataEntity.kind,
-    );
-
     final cachedEntity = await _getCachedEntity(externalAddress: eventReference.toString());
 
     if (cachedEntity != null) {
@@ -106,8 +91,7 @@ class CommunityTokenDefinitionRepository {
     }..addEntries([eventReference.toFilterEntry()]);
 
     return _fetchFromIonConnect(
-      externalAddress: externalAddress,
-      creatorEventReference: creatorEventReference,
+      creatorIonAddress: eventReference.masterPubkey,
       tags: tags,
     );
   }
@@ -120,8 +104,7 @@ class CommunityTokenDefinitionRepository {
   }
 
   Future<CommunityTokenDefinitionEntity?> _fetchFromIonConnect({
-    required String externalAddress,
-    required EventReference creatorEventReference,
+    required String creatorIonAddress,
     Map<String, List<Object?>>? tags,
   }) async {
     final search = SearchExtensions([
@@ -134,12 +117,12 @@ class CommunityTokenDefinitionRepository {
             ..addFilter(
               RequestFilter(
                 kinds: const [CommunityTokenDefinitionEntity.kind],
-                authors: [creatorEventReference.masterPubkey],
+                authors: [creatorIonAddress],
                 tags: tags,
                 search: search,
               ),
             ),
-          actionSource: ActionSource.user(creatorEventReference.masterPubkey),
+          actionSource: ActionSource.user(creatorIonAddress),
         )
         .toList();
 
