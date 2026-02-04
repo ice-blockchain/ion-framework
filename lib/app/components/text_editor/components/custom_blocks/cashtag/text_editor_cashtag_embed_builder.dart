@@ -8,6 +8,7 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/
 import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/services/cashtag_insertion_service.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/common/quill_embed_text_scale_fix.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 
 const String cashtagEmbedKey = 'cashtag';
 
@@ -56,13 +57,13 @@ class TextEditorCashtagEmbedBuilder extends EmbedBuilder {
         // If market cap isn't available, fall back to rendering as plain text.
         // (Later phases will handle downgrade processing more globally.)
         if (marketCap == null) {
-          return Text(r'$' + embedData.symbolGroup, style: embedContext.textStyle);
+          return Text(r'$' + embedData.displayTicker, style: embedContext.textStyle);
         }
 
         final canClose = showClose && !embedContext.readOnly;
         return QuillEmbedTextScaler(
           child: CashtagInlineWidget(
-            symbolGroup: embedData.symbolGroup,
+            ticker: embedData.displayTicker,
             marketCap: marketCap,
             onClose: canClose
                 ? () => CashtagInsertionService.removeCashtagEmbed(
@@ -70,6 +71,11 @@ class TextEditorCashtagEmbedBuilder extends EmbedBuilder {
                       embedContext.node,
                     )
                 : null,
+            onTap: canClose
+                ? null
+                : () {
+                    FeedAdvancedSearchRoute(query: embedData.displayTicker).push<void>(context);
+                  },
           ),
         );
       },

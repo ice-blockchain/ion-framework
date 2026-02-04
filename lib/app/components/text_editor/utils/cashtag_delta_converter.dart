@@ -9,8 +9,8 @@ class CashtagDeltaConverter {
   CashtagDeltaConverter._();
 
   // Converts cashtag embeds to text with cashtag attributes for persistence.
-  // Example: {'cashtag': {'symbolGroup': 'fantastic', 'externalAddress': '0:...'}}
-  //   -> '$fantastic' with cashtag attribute + showMarketCap=true.
+  // Example: {'cashtag': {'symbolGroup': 'ETH', 'externalAddress': '0:...'}}
+  //   -> '$ETH' with cashtag attribute + showMarketCap=true.
   static Delta convertEmbedsToAttributes(Delta input) {
     final out = Delta();
     final ops = input.toList();
@@ -25,7 +25,7 @@ class CashtagDeltaConverter {
 
       // Only process pure embed ops (length == 1) to avoid capturing adjacent characters.
       if (cashtagData != null && (op.length ?? 1) == 1) {
-        final cashtagText = r'$' + cashtagData.symbolGroup;
+        final cashtagText = r'$' + cashtagData.displayTicker;
 
         final mergedAttrs = {
           ...?attrs,
@@ -70,7 +70,7 @@ class CashtagDeltaConverter {
       final cashtagAttr = attrs?[CashtagAttribute.attributeKey];
       if (cashtagAttr is String && data is String && data.startsWith(r'$')) {
         final showMarketCap = attrs?[CashtagAttribute.showMarketCapKey] == true;
-        final symbolGroup = data.substring(1);
+        final ticker = data.substring(1).toUpperCase();
 
         // We store externalAddress in the cashtag attribute value when showMarketCap is enabled.
         final externalAddress =
@@ -78,7 +78,7 @@ class CashtagDeltaConverter {
 
         if (showMarketCap && externalAddress != null) {
           final cashtagData = CashtagEmbedData(
-            symbolGroup: symbolGroup,
+            ticker: ticker,
             externalAddress: externalAddress,
             id: DateTime.now().toString(),
           );

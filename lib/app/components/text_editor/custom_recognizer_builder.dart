@@ -12,13 +12,22 @@ GestureRecognizer? customRecognizerBuilder(
   Attribute<dynamic> attribute, {
   bool isEditing = false,
 }) {
-  if (attribute.key == HashtagAttribute.attributeKey ||
-      attribute.key == CashtagAttribute.attributeKey) {
+  if (attribute.key == HashtagAttribute.attributeKey) {
     return TapGestureRecognizer()
       ..onTap = isEditing
           ? null
           : () {
               FeedAdvancedSearchRoute(query: attribute.value as String).push<void>(context);
+            };
+  }
+  if (attribute.key == CashtagAttribute.attributeKey) {
+    return TapGestureRecognizer()
+      ..onTap = isEditing
+          ? null
+          : () {
+              // Remove $ sign and pass pure ticker
+              final ticker = (attribute.value as String).substring(1);
+              FeedAdvancedSearchRoute(query: ticker.toUpperCase()).push<void>(context);
             };
   }
   if (attribute.key == MentionAttribute.attributeKey) {

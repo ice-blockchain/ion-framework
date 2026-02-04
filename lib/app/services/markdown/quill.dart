@@ -519,7 +519,7 @@ Delta restoreMentions(
 /// a cashtag market cap label.
 ///
 /// The label is expected to be parsed into:
-///   symbolGroup -> { instanceIndex -> externalAddress }
+///   ticker -> { instanceIndex -> externalAddress }
 ///
 /// This function rewrites cashtag segments to set:
 ///   CashtagAttribute.attributeKey = externalAddress
@@ -535,7 +535,7 @@ Delta restoreCashtagsMarketCap(
 
   final textParser = TextParser.tagsMatchers();
   final newDelta = Delta();
-  final instanceTracker = <String, int>{}; // per symbolGroup
+  final instanceTracker = <String, int>{};
 
   for (final op in delta.operations) {
     if (op.data is Map) {
@@ -558,17 +558,17 @@ Delta restoreCashtagsMarketCap(
 
     for (final segment in segments) {
       if (segment.matcher is CashtagMatcher) {
-        final cashtagText = segment.text;
-        final symbolGroup = cashtagText.startsWith(r'$') ? cashtagText.substring(1) : cashtagText;
+        // Content has cashtag (e.g. "$ETH"); extract ticker (the part after $) and make it uppercase for safety.
+        final ticker = segment.text.substring(1).toUpperCase();
 
-        final currentInstance = instanceTracker[symbolGroup] ?? 0;
-        instanceTracker[symbolGroup] = currentInstance + 1;
+        final currentInstance = instanceTracker[ticker] ?? 0;
+        instanceTracker[ticker] = currentInstance + 1;
 
-        final externalAddress = symbolGroupInstanceExternalAddress[symbolGroup]?[currentInstance];
+        final externalAddress = symbolGroupInstanceExternalAddress[ticker]?[currentInstance];
 
         if (externalAddress != null && externalAddress.trim().isNotEmpty) {
           newDelta.insert(
-            cashtagText,
+            r'$' + ticker,
             {
               ...?op.attributes,
               CashtagAttribute.attributeKey: externalAddress.trim(),
@@ -576,17 +576,15 @@ Delta restoreCashtagsMarketCap(
             },
           );
         } else {
-          // Keep as normal cashtag.
           newDelta.insert(
-            cashtagText,
+            r'$' + ticker,
             {
               ...?op.attributes,
-              CashtagAttribute.attributeKey: cashtagText,
+              CashtagAttribute.attributeKey: r'$' + ticker,
             },
           );
         }
       } else {
-        // Keep other segments as-is.
         newDelta.insert(segment.text, op.attributes);
       }
     }

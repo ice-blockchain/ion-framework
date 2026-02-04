@@ -115,14 +115,15 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     final tag = _findTagAtCursor(fullText, cursorIndex);
     if (tag.start == _invalidTagStart || tag.tagChar != r'$') return;
 
-    final symbolGroup = suggestion.symbolGroup;
+    // Use abbreviation (uppercase ticker like "ETH") for display.
+    final ticker = suggestion.abbreviation.toUpperCase();
     final externalAddress = suggestion.coins.isNotEmpty
         ? suggestion.coins.first.coin.tokenizedCommunityExternalAddress
         : null;
 
     // Non-tokenized coins: keep existing behavior (plain attributed text insertion).
     if (externalAddress == null || externalAddress.isEmpty) {
-      onSuggestionSelected(symbolGroup);
+      onSuggestionSelected(ticker);
       return;
     }
 
@@ -137,14 +138,14 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
           tag.start,
           tag.length,
           CashtagEmbedData(
-            symbolGroup: symbolGroup,
+            ticker: ticker,
             externalAddress: externalAddress,
           ),
         );
       } else {
         // Insert as plain attributed text; this will not upgrade automatically
         // until we add the showMarketCap persistence + processing loop.
-        onSuggestionSelected(symbolGroup);
+        onSuggestionSelected(ticker);
       }
     } finally {
       controller.addListener(editorListener);

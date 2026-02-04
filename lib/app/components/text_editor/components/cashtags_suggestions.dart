@@ -74,7 +74,7 @@ class _CashtagSuggestionTile extends ConsumerWidget {
                 style: context.theme.appTextThemes.caption.copyWith(
                   color: context.theme.appColors.primaryText,
                 ),
-                child: Text(suggestion.symbolGroup),
+                child: Text(suggestion.abbreviation.toUpperCase()),
               ),
             ),
             if (marketCap != null) MarketCapBadge(marketCap: marketCap),
