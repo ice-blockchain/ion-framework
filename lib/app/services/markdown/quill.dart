@@ -558,8 +558,8 @@ Delta restoreCashtagsMarketCap(
 
     for (final segment in segments) {
       if (segment.matcher is CashtagMatcher) {
-        // Content has cashtag (e.g. "$ETH"); extract ticker (the part after $).
-        final ticker = segment.text.substring(1);
+        // Content has cashtag (e.g. "$ETH"); extract ticker (the part after $) and make it uppercase for safety.
+        final ticker = segment.text.substring(1).toUpperCase();
 
         final currentInstance = instanceTracker[ticker] ?? 0;
         instanceTracker[ticker] = currentInstance + 1;
@@ -568,7 +568,7 @@ Delta restoreCashtagsMarketCap(
 
         if (externalAddress != null && externalAddress.trim().isNotEmpty) {
           newDelta.insert(
-            r'$' + ticker.toUpperCase(),
+            r'$' + ticker,
             {
               ...?op.attributes,
               CashtagAttribute.attributeKey: externalAddress.trim(),
@@ -577,10 +577,10 @@ Delta restoreCashtagsMarketCap(
           );
         } else {
           newDelta.insert(
-            r'$' + ticker.toUpperCase(),
+            r'$' + ticker,
             {
               ...?op.attributes,
-              CashtagAttribute.attributeKey: r'$' + ticker.toUpperCase(),
+              CashtagAttribute.attributeKey: r'$' + ticker,
             },
           );
         }
