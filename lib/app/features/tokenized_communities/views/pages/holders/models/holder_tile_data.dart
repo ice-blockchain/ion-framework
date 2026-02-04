@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
 
 class HolderBasicInfo {
