@@ -11,15 +11,14 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_relay.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_token.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_notification_category.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription_platform.f.dart';
+import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/configure_firebase_messaging_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/firebase_messaging_token_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/relay_firebase_app_config_provider.m.dart';
@@ -30,7 +29,6 @@ import 'package:ion/app/features/tokenized_communities/models/entities/constants
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
@@ -323,44 +321,12 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
 
   /// Builds filters for external user activities (posts, articles, videos, stories)
   Future<List<RequestFilter>?> _buildAccountsFilters() async {
-    final accountNotificationSets = await _getAccountNotificationSets();
+    final accountNotificationSets =
+        await ref.watch(currentUserAccountNotificationSetsProvider.future);
     return [
       for (final AccountNotificationSetEntity(:data) in accountNotificationSets)
         if (data.userPubkeys.isNotEmpty)
           data.type.toUserNotificationType().toRequestFilter(authors: data.userPubkeys),
     ];
-  }
-
-  Future<List<AccountNotificationSetEntity>> _getAccountNotificationSets() async {
-    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    if (currentPubkey == null) {
-      throw UserMasterPubkeyNotFoundException();
-    }
-
-    final fetches = <Future<AccountNotificationSetEntity?>>[];
-    for (final contentType in UserNotificationsType.values) {
-      final setType = AccountNotificationSetType.fromUserNotificationType(contentType);
-      if (setType == null) continue;
-      fetches.add(() async {
-        final accountNotificationSet = await ref.watch(
-          ionConnectEntityProvider(
-            eventReference: ReplaceableEventReference(
-              masterPubkey: currentPubkey,
-              kind: AccountNotificationSetEntity.kind,
-              dTag: setType.dTagName,
-            ),
-          ).future,
-        );
-
-        if (accountNotificationSet is AccountNotificationSetEntity) {
-          return accountNotificationSet;
-        }
-        return null;
-      }());
-    }
-
-    final accountNotificationSets = await Future.wait(fetches);
-
-    return accountNotificationSets.nonNulls.toList();
   }
 }

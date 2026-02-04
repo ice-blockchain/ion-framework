@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -10,7 +11,9 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/related_relay.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
+import 'package:ion/app/features/push_notifications/data/models/push_notification_category.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
+import 'package:ion/app/features/push_notifications/providers/selected_push_categories_provider.m.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
@@ -25,13 +28,16 @@ class AccountsPushSubscriptionService {
     required IonConnectNotifier ionConnectNotifier,
     required Future<IonConnectEntity?> Function({required EventReference eventReference})
         getIonConnectEntity,
+    required Future<List<PushNotificationCategory>> Function() getSelectedPushCategories,
   })  : _currentUserRelays = currentUserRelays,
         _ionConnectNotifier = ionConnectNotifier,
-        _getIonConnectEntity = getIonConnectEntity;
+        _getIonConnectEntity = getIonConnectEntity,
+        _getSelectedPushCategories = getSelectedPushCategories;
 
-  final Future<IonConnectEntity?> Function({
-    required EventReference eventReference,
-  }) _getIonConnectEntity;
+  final Future<IonConnectEntity?> Function({required EventReference eventReference})
+      _getIonConnectEntity;
+
+  final Future<List<PushNotificationCategory>> Function() _getSelectedPushCategories;
 
   final UserRelaysEntity _currentUserRelays;
 
@@ -44,7 +50,9 @@ class AccountsPushSubscriptionService {
     required AccountNotificationSetType notificationSetType,
     required bool shouldIncludeUser,
   }) async {
-    //TODO[push]: check posts category, if not enabled - return right away
+    if (!await _isAccountPushesEnabled()) {
+      return;
+    }
 
     final currentFilters = await _getUserSubscriptionFilters(masterPubkey: masterPubkey);
 
@@ -94,17 +102,22 @@ class AccountsPushSubscriptionService {
     required String masterPubkey,
     required bool following,
   }) async {
-    //TODO[push]: check posts category, if not enabled - return right away
-
-    final currentFilters = await _getUserSubscriptionFilters(masterPubkey: masterPubkey);
-
     // If we unfollow a user, we remove the push subscription entirely
     if (!following) {
+      final currentFilters = await _getUserSubscriptionFilters(masterPubkey: masterPubkey);
       if (currentFilters.isNotEmpty) {
         await _deletePushSubscriptionExternalData(masterPubkey: masterPubkey);
       }
       return;
-    } else {}
+    } else {
+      // User was not followed before, so it can not have a current subscription
+      final filters = [];
+      if (await _isAccountPushesEnabled()) {
+        return;
+      }
+      // IF _isAccountPushesDisabled - get all 30000 sets and check this user there, build filter
+      // check settings categories, build filter
+    }
   }
 
   // call on
@@ -170,12 +183,22 @@ class AccountsPushSubscriptionService {
       dTag: masterPubkey,
     );
   }
+
+  Future<bool> _isAccountPushesEnabled() async {
+    final selectedCategories = await _getSelectedPushCategories();
+    final postsCategory = selectedCategories
+        .firstWhereOrNull((category) => category == PushNotificationCategory.posts);
+    return postsCategory != null;
+  }
 }
 
 @Riverpod(keepAlive: true)
 Future<AccountsPushSubscriptionService> accountsPushSubscriptionService(Ref ref) async {
   Future<IonConnectEntity?> getIonConnectEntity({required EventReference eventReference}) async =>
       ref.read(ionConnectEntityProvider(eventReference: eventReference).future);
+
+  Future<List<PushNotificationCategory>> getSelectedPushCategories() async =>
+      ref.read(selectedPushCategoriesProvider).enabledCategories;
   final currentUserRelays = await ref.watch(currentUserRelaysProvider.future);
   final ionConnectNotifier = ref.watch(ionConnectNotifierProvider.notifier);
   if (currentUserRelays == null) {
@@ -186,5 +209,6 @@ Future<AccountsPushSubscriptionService> accountsPushSubscriptionService(Ref ref)
     currentUserRelays: currentUserRelays,
     ionConnectNotifier: ionConnectNotifier,
     getIonConnectEntity: getIonConnectEntity,
+    getSelectedPushCategories: getSelectedPushCategories,
   );
 }
