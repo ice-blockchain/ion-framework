@@ -78,7 +78,7 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                 const OverlayMenuItemSeparator(),
                 OverlayMenuItem(
                   verticalPadding: 12.s,
-                label: context.i18n.token_contract,
+                  label: context.i18n.token_contract,
                   icon: Assets.svg.iconPopupBscscan
                       .icon(size: 20.s, color: context.theme.appColors.quaternaryText),
                   onPressed: () {
