@@ -169,6 +169,9 @@ abstract class AppEnv {
   @EnviedField(varName: 'CRYPTOCURRENCIES_BSC_RPC_URLS')
   static final String cryptocurrenciesBscRpcUrls = _AppEnv.cryptocurrenciesBscRpcUrls;
 
+  @EnviedField(varName: 'CRYPTOCURRENCIES_BSC_SCAN_HOST')
+  static final String cryptocurrenciesBscScanHost = _AppEnv.cryptocurrenciesBscScanHost;
+
   @EnviedField(varName: 'CRYPTOCURRENCIES_ION_SWAP_CONTRACT_ADDRESS')
   static final String cryptocurrenciesIonSwapContractAddress =
       _AppEnv.cryptocurrenciesIonSwapContractAddress;
