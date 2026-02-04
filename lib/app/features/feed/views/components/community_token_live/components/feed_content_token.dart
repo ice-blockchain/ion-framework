@@ -46,6 +46,7 @@ class FeedContentToken extends StatelessWidget {
     this.showBuyButton = true,
     this.sidePadding,
     this.hasNotch = false,
+    this.enableContentNavigation = false,
     super.key,
   });
 
@@ -56,6 +57,7 @@ class FeedContentToken extends StatelessWidget {
   final double? sidePadding;
   final bool showBuyButton;
   final bool hasNotch;
+  final bool enableContentNavigation;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +93,7 @@ class FeedContentToken extends StatelessWidget {
                         pnl: pnl,
                         externalAddress: externalAddress,
                         showBuyButton: showBuyButton,
+                        enableContentNavigation: enableContentNavigation,
                       ),
                       if (hodl != null) hodl!,
                     ],
@@ -113,6 +116,7 @@ class ContentTokenHeader extends HookConsumerWidget {
     required this.externalAddress,
     this.showBuyButton = true,
     this.pnl,
+    this.enableContentNavigation = false,
     super.key,
   });
 
@@ -122,6 +126,7 @@ class ContentTokenHeader extends HookConsumerWidget {
   final String externalAddress;
   final bool showBuyButton;
   final Widget? pnl;
+  final bool enableContentNavigation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -206,18 +211,20 @@ class ContentTokenHeader extends HookConsumerWidget {
             ),
           ),
         GestureDetector(
-          onTap: () {
-            final encodedEventReference = eventReference.encode();
-            if (type == CommunityContentTokenType.article || entity is ArticleEntity) {
-              ArticleDetailsRoute(
-                eventReference: encodedEventReference,
-              ).push<void>(context);
-            } else {
-              PostDetailsRoute(
-                eventReference: encodedEventReference,
-              ).push<void>(context);
-            }
-          },
+          onTap: enableContentNavigation
+              ? () {
+                  final encodedEventReference = eventReference.encode();
+                  if (type == CommunityContentTokenType.article || entity is ArticleEntity) {
+                    ArticleDetailsRoute(
+                      eventReference: encodedEventReference,
+                    ).push<void>(context);
+                  } else {
+                    PostDetailsRoute(
+                      eventReference: encodedEventReference,
+                    ).push<void>(context);
+                  }
+                }
+              : null,
           child: Stack(
             alignment: AlignmentDirectional.bottomCenter,
             clipBehavior: Clip.none,
