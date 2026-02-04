@@ -129,7 +129,7 @@ class UserHoldingsListItem extends ConsumerWidget {
             ),
             if (position.amountUSD != null)
               TokenPriceLabel(
-                text: '\$${MarketDataFormatter.formatCompactNumber(position.amountUSD!)}',
+                text: '\$${MarketDataFormatter.formatCompactPrice(position.amountUSD!)}',
               )
             else
               ContainerSkeleton(width: 45.0.s, height: 20.0.s),

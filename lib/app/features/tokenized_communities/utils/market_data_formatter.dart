@@ -39,6 +39,23 @@ class MarketDataFormatter {
     return r'$' + formatCompactNumber(volume);
   }
 
+  // Formats a USD price/amount value with compact notation, always showing 2 decimals.
+  // - 123.45 -> 123.45
+  // - 1234.56 -> 1.23K
+  // - 1234567.89 -> 1.23M
+  // - 1234567890.12 -> 1.23B
+  static String formatCompactPrice(num value) {
+    if (value >= 1e9) {
+      return '${(value / 1e9).toStringAsFixed(2)}B';
+    } else if (value >= 1e6) {
+      return '${(value / 1e6).toStringAsFixed(2)}M';
+    } else if (value >= 1e3) {
+      return '${(value / 1e3).toStringAsFixed(2)}K';
+    } else {
+      return value.toStringAsFixed(2);
+    }
+  }
+
   // Formats a USD amount with compact notation for large values or subscript for small values.
   // All values include symbol prefix (default: $).
   // - Zero: "$0" (e.g., "$0")
