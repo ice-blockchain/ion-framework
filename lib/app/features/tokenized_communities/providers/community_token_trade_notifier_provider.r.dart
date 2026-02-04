@@ -35,7 +35,7 @@ typedef CommunityTokenTradeNotifierParams = ({
   EventReference? eventReference,
 });
 
-//todo cleanup extensive logs after swap becomes stable
+//TODO cleanup extensive logs after swap becomes stable
 @riverpod
 class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
   static const _firstBuyMetadataSentKey = 'community_token_first_buy';

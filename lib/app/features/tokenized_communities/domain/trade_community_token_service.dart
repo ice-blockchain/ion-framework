@@ -25,7 +25,7 @@ import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-//todo cleanup extensive logs after swap becomes stable
+//TODO cleanup extensive logs after swap becomes stable
 class TradeCommunityTokenService {
   TradeCommunityTokenService({
     required this.repository,
@@ -226,6 +226,7 @@ class TradeCommunityTokenService {
     Logger.info(
       '[TradeCommunityTokenService] sellCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
     );
+    _ensureAccountNotProtected(externalAddress);
     final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
