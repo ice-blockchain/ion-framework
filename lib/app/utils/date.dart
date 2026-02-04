@@ -239,3 +239,29 @@ String formatCompactHodlSince(DateTime start) {
 bool isSameDay(DateTime date1, DateTime date2) {
   return date1.year == date2.year && date1.month == date2.month && date1.day == date2.day;
 }
+
+/// True if [d1] and [d2] are in the same chart time slot for [interval].
+/// 24h → same day (dd/MM); 1h → same hour (dd/MM H:mm); 15m/5m/1m → same minute bucket.
+bool areSameTimeSlot(DateTime d1, DateTime d2, String interval) {
+  final dayFormat = DateFormat('dd/MM');
+  final timeFormat = DateFormat('dd/MM H:mm');
+
+  String slot(DateTime d) {
+    if (interval == '24h') return dayFormat.format(d);
+    if (interval.endsWith('h')) {
+      final slotTime = DateTime(d.year, d.month, d.day, d.hour);
+      return timeFormat.format(slotTime);
+    }
+    final step = int.tryParse(interval.replaceAll('m', '')) ?? 1;
+    final slotTime = DateTime(
+      d.year,
+      d.month,
+      d.day,
+      d.hour,
+      (d.minute ~/ step) * step,
+    );
+    return timeFormat.format(slotTime);
+  }
+
+  return slot(d1) == slot(d2);
+}
