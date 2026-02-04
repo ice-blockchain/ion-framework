@@ -78,8 +78,8 @@ class HoldersPage extends HookConsumerWidget {
                       return _HoldersListPadding(
                         topPadding: topPadding,
                         bottomPadding: bottomPadding,
-                        child: TopHolderTile(
-                          holder: holder,
+                        child: HolderTile(
+                          data: holder.tileData,
                         ),
                       );
                     },
