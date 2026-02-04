@@ -14,11 +14,13 @@ class CreatorTokensBody extends ConsumerWidget {
   const CreatorTokensBody({
     required this.searchQuery,
     required this.isGlobalSearchVisible,
+    this.tabController,
     super.key,
   });
 
   final String searchQuery;
   final bool isGlobalSearchVisible;
+  final TabController? tabController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,6 +31,7 @@ class CreatorTokensBody extends ConsumerWidget {
       index: searchQuery.isNotEmpty && isGlobalSearchVisible ? 1 : 0,
       children: [
         TabBarView(
+          controller: tabController,
           children: CreatorTokensTabType.values.map(
             (tabType) {
               return CreatorTokensTabContent(

@@ -10,28 +10,25 @@ class TabsHeader extends ConsumerWidget {
   const TabsHeader({
     required this.tabs,
     this.trailing,
+    this.tabController,
     super.key,
   });
 
   final List<TabType> tabs;
   final Widget? trailing;
+  final TabController? tabController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabBar = TabBar(
-      padding: EdgeInsets.symmetric(
-        horizontal: 6.0.s,
-      ),
+      controller: tabController,
+      padding: EdgeInsets.symmetric(horizontal: 6.0.s),
       tabAlignment: TabAlignment.start,
       isScrollable: true,
       labelPadding: EdgeInsets.symmetric(horizontal: 10.0.s),
       labelColor: context.theme.appColors.lightBlue,
       unselectedLabelColor: context.theme.appColors.tertiaryText,
-      tabs: tabs.map((tabType) {
-        return TabsHeaderTab(
-          tabType: tabType,
-        );
-      }).toList(),
+      tabs: tabs.map((tabType) => TabsHeaderTab(tabType: tabType)).toList(),
       indicatorColor: context.theme.appColors.lightBlue,
       dividerHeight: 0,
     );
@@ -43,9 +40,7 @@ class TabsHeader extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: tabBar,
-        ),
+        Expanded(child: tabBar),
         trailing!,
       ],
     );
