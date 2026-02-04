@@ -64,7 +64,9 @@ final class CommentIonNotification extends IonNotification {
       CommentIonNotificationType.reply => isAuthor
           ? context.i18n.notifications_reply(eventTypeLabel)
           : context.i18n.notifications_reply_other_user(eventTypeLabel),
-      CommentIonNotificationType.quote => context.i18n.notifications_share(eventTypeLabel),
+      CommentIonNotificationType.quote => isAuthor
+          ? context.i18n.notifications_share(eventTypeLabel)
+          : context.i18n.notifications_share_other_user(eventTypeLabel),
       CommentIonNotificationType.repost => context.i18n.notifications_repost(eventTypeLabel),
     };
   }

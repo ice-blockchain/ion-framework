@@ -669,6 +669,7 @@
   "notifications_reply_other_user": "[:username] 回复了 {type}",
   "notifications_repost": "[:username] 转发了您的 {type}",
   "notifications_share": "[:username] 分享了您的 {type}",
+  "notifications_share_other_user": "[:username] 分享了 {type}",
   "notifications_title": "通知",
   "notifications_token_launched_article": "[:username] 已[[:purple]]发布[[/:purple]]你的文章代币",
   "notifications_token_launched_creator": "[:username] 已[[:purple]]发布[[/:purple]]你的创作者代币",

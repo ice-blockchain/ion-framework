@@ -669,6 +669,7 @@
   "notifications_reply_other_user": "[:username] {type} yanıtladı",
   "notifications_repost": "[:username] {type} yeniden paylaştı",
   "notifications_share": "[:username] {type} paylaştı",
+  "notifications_share_other_user": "[:username] {type} paylaştı",
   "notifications_title": "Bildirimler",
   "notifications_token_launched_article": "[:username] makalenin tokenını [[:purple]]başlattı[[/:purple]]",
   "notifications_token_launched_creator": "[:username] oluşturucu tokenını [[:purple]]başlattı[[/:purple]]",

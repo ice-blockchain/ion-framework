@@ -669,6 +669,7 @@
   "notifications_reply_other_user": "[:username] ответил на {type}",
   "notifications_repost": "[:username] сделал перепост вашего {type}",
   "notifications_share": "[:username] поделился вашим {type}",
+  "notifications_share_other_user": "[:username] поделился {type}",
   "notifications_title": "Уведомления",
   "notifications_token_launched_article": "[:username] [[:purple]]запустил[[/:purple]] токен вашей статьи",
   "notifications_token_launched_creator": "[:username] [[:purple]]запустил[[/:purple]] ваш токен создателя",
