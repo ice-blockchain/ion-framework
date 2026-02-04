@@ -4,7 +4,7 @@ part of '../list_item.dart';
 
 class _ListItemDApp extends ListItem {
   _ListItemDApp({
-    required Widget title,
+    required InlineSpan titleSpan,
     required Widget subtitle,
     super.key,
     super.border,
@@ -32,15 +32,11 @@ class _ListItemDApp extends ListItem {
           contentPadding: contentPadding ?? EdgeInsets.zero,
           leadingPadding: leadingPadding ?? EdgeInsetsDirectional.only(end: 8.0.s),
           constraints: constraints ?? const BoxConstraints(),
-          title: Row(
-            children: [
-              Flexible(child: title),
-              if (verifiedBadge)
-                Padding(
-                  padding: EdgeInsetsDirectional.only(end: 4.0.s),
-                  child: Assets.svg.iconBadgeVerify.icon(size: defaultBadgeSize),
-                ),
-            ],
+          title: InlineBadgeText(
+            titleSpan: titleSpan,
+            badges: verifiedBadge
+                ? [Assets.svg.iconBadgeVerify.icon(size: defaultBadgeSize)]
+                : const <Widget>[],
           ),
           subtitle: subtitle,
         );

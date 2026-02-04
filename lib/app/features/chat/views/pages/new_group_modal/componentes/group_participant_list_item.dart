@@ -29,7 +29,7 @@ class GroupParticipantsListItem extends ConsumerWidget {
         if (userPreviewData == null) return const SizedBox.shrink();
 
         return BadgesUserListItem(
-          title: Text(userPreviewData.data.trimmedDisplayName),
+          titleSpan: TextSpan(text: userPreviewData.data.trimmedDisplayName),
           subtitle: Text(
             withPrefix(
               input: userPreviewData.data.name,

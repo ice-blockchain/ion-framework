@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
@@ -117,23 +118,18 @@ class TwitterTokenHeader extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      token.title,
-                      style: context.theme.appTextThemes.subtitle3.copyWith(
-                        color: context.theme.appColors.secondaryBackground,
-                      ),
-                    ),
-                    if (token.creator.verified.falseOrValue)
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(start: 5.0.s),
-                        child: Assets.svg.iconBadgeVerify.icon(
-                          size: 16.s,
-                        ),
-                      ),
-                  ],
+                InlineBadgeText(
+                  titleSpan: TextSpan(text: token.title),
+                  badges: token.creator.verified.falseOrValue
+                      ? [
+                          Assets.svg.iconBadgeVerify.icon(
+                            size: 16.s,
+                          ),
+                        ]
+                      : const <Widget>[],
+                  style: context.theme.appTextThemes.subtitle3.copyWith(
+                    color: context.theme.appColors.secondaryBackground,
+                  ),
                 ),
                 SizedBox(height: 8.0.s),
                 Container(

@@ -203,8 +203,8 @@ class _MediaBottomOverlay extends ConsumerWidget {
                     child: IntrinsicHeight(
                       child: BadgesUserListItem(
                         masterPubkey: messageEntity.masterPubkey,
-                        title: Text(
-                          userMetadata.data.trimmedDisplayName,
+                        titleSpan: TextSpan(
+                          text: userMetadata.data.trimmedDisplayName,
                           style: context.theme.appTextThemes.subtitle3.copyWith(
                             color: context.theme.appColors.onPrimaryAccent,
                           ),

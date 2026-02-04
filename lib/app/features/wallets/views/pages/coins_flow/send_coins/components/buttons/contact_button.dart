@@ -37,7 +37,7 @@ class ContactButton extends ConsumerWidget {
           bottom: 10.0.s,
           end: 8.0.s,
         ),
-        title: Text(userPreviewData.data.trimmedDisplayName),
+        titleSpan: TextSpan(text: userPreviewData.data.trimmedDisplayName),
         subtitle: Text(userPreviewData.data.name),
         masterPubkey: userPreviewData.masterPubkey,
         trailing: IconButton(

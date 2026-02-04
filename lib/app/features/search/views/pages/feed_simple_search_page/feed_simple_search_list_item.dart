@@ -39,7 +39,7 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 8.0.s),
         child: ScreenSideOffset.small(
           child: BadgesUserListItem(
-            title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+            titleSpan: TextSpan(text: displayName),
             subtitle: Text(
               withPrefix(
                 input: username,

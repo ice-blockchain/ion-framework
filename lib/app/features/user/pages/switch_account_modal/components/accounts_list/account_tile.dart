@@ -47,10 +47,7 @@ class SwitchAccountModalTile extends HookConsumerWidget {
     return BadgesUserListItem(
       isSelected: isCurrentUser,
       onTap: () => _handleTap(ref),
-      title: Text(
-        userPreview.data.trimmedDisplayName,
-        strutStyle: const StrutStyle(forceStrutHeight: true),
-      ),
+      titleSpan: TextSpan(text: userPreview.data.trimmedDisplayName),
       subtitle: Text(
         withPrefix(
           input: userPreview.data.name,

@@ -13,6 +13,7 @@ import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_sig
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/components/tabs_header/scroll_links_tabs_header.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/bookmarks/bookmark_button.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
@@ -281,22 +282,18 @@ class TokenizedCommunityPage extends HookConsumerWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      tokenInfo?.title ?? '',
-                      style: context.theme.appTextThemes.subtitle3.copyWith(
-                        color: context.theme.appColors.onPrimaryAccent,
-                      ),
-                    ),
-                    if (tokenInfo?.creator.verified.falseOrValue ?? false)
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(start: 5.0.s),
-                        child: Assets.svg.iconBadgeVerify.icon(
-                          size: 16.s,
-                        ),
-                      ),
-                  ],
+                InlineBadgeText(
+                  titleSpan: TextSpan(text: tokenInfo?.title ?? ''),
+                  badges: (tokenInfo?.creator.verified.falseOrValue ?? false)
+                      ? [
+                          Assets.svg.iconBadgeVerify.icon(
+                            size: 16.s,
+                          ),
+                        ]
+                      : const <Widget>[],
+                  style: context.theme.appTextThemes.subtitle3.copyWith(
+                    color: context.theme.appColors.onPrimaryAccent,
+                  ),
                 ),
                 Text(
                   tokenInfo?.marketData.ticker ?? '',

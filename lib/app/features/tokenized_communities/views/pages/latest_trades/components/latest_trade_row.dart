@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
@@ -143,30 +144,15 @@ class TitleAndMeta extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Flexible(
-              child: Text(
-                name,
-                style: texts.subtitle3.copyWith(color: colors.primaryText),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                softWrap: false,
-              ),
-            ),
-            if (verified) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-            ],
-            if (isCreator) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
-            ],
-            if (isXUser) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeXlogo.icon(size: 16.0.s),
-            ],
+        InlineBadgeText(
+          titleSpan: TextSpan(text: name),
+          badges: [
+            if (verified) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
+            if (isCreator) Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
+            if (isXUser) Assets.svg.iconBadgeXlogo.icon(size: 16.0.s),
           ],
+          style: texts.subtitle3.copyWith(color: colors.primaryText),
+          softWrap: false,
         ),
         Text(
           handle != null ? '$handle • $meta' : meta,

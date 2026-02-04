@@ -3,6 +3,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart'
@@ -125,20 +126,21 @@ class _CarouselCard extends HookConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Flexible(
-                                child: Text(
-                                  token.title,
-                                  overflow: TextOverflow.ellipsis,
+                                child: InlineBadgeText(
+                                  titleSpan: TextSpan(text: token.title),
+                                  badges: token.creator.verified.falseOrValue
+                                      ? [
+                                          Assets.svg.iconBadgeVerify.icon(
+                                            size: 16.0.s,
+                                          ),
+                                        ]
+                                      : const <Widget>[],
+                                  gap: 4.0.s,
                                   style: context.theme.appTextThemes.subtitle.copyWith(
                                     color: context.theme.appColors.secondaryBackground,
                                   ),
                                 ),
                               ),
-                              if (token.creator.verified.falseOrValue) ...[
-                                SizedBox(width: 4.0.s),
-                                Assets.svg.iconBadgeVerify.icon(
-                                  size: 16.0.s,
-                                ),
-                              ],
                             ],
                           ),
                           SizedBox(height: 5.0.s),

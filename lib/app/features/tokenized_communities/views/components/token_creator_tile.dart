@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -88,24 +89,13 @@ class _CreatorDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            Flexible(
-              child: Text(
-                name,
-                style: texts.subtitle3.copyWith(
-                  color: nameColor ?? colors.primaryText,
-                ),
-                strutStyle: const StrutStyle(forceStrutHeight: true),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (verified) ...[
-              SizedBox(width: 4.0.s),
-              Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-            ],
-          ],
+        InlineBadgeText(
+          titleSpan: TextSpan(text: name),
+          badges: verified ? [Assets.svg.iconBadgeVerify.icon(size: 16.0.s)] : const <Widget>[],
+          style: texts.subtitle3.copyWith(
+            color: nameColor ?? colors.primaryText,
+          ),
+          strutStyle: const StrutStyle(forceStrutHeight: true),
         ),
         Text(
           withPrefix(

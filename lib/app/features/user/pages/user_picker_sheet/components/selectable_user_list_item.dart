@@ -40,7 +40,7 @@ class SelectableUserListItem extends ConsumerWidget {
       canSendMessage: canSendMessage,
       child: BadgesUserListItem(
         masterPubkey: masterPubkey,
-        title: Text(displayName, strutStyle: const StrutStyle(forceStrutHeight: true)),
+        titleSpan: TextSpan(text: displayName),
         subtitle: Text(
           withPrefix(
             input: username,

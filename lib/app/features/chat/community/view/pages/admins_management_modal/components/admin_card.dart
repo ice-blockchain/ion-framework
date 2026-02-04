@@ -48,7 +48,7 @@ class AdminCard extends ConsumerWidget {
               ),
             );
           },
-          title: Text(userMetadata.data.trimmedDisplayName),
+          titleSpan: TextSpan(text: userMetadata.data.trimmedDisplayName),
           subtitle: Text(
             withPrefix(
               input: userMetadata.data.name,
