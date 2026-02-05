@@ -31,6 +31,7 @@ class TradesPage extends HookConsumerWidget {
 
     final isLoadingMore = useState(false);
     final hasMore = useState(true);
+    final previousTrades = useState<List<LatestTrade>>([]);
 
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
@@ -49,7 +50,17 @@ class TradesPage extends HookConsumerWidget {
     final baseTextWidth = buyTextWidth > sellTextWidth ? buyTextWidth : sellTextWidth;
     final minTextWidth = baseTextWidth + 2.0.s;
 
-    final trades = tradesAsync.valueOrNull ?? const <LatestTrade>[];
+    // Keep previous trades when refreshing to avoid empty flicker
+    final currentTrades = tradesAsync.valueOrNull ?? const <LatestTrade>[];
+
+    if (currentTrades.isNotEmpty) {
+      previousTrades.value = currentTrades;
+    }
+
+    final trades = currentTrades.isEmpty && previousTrades.value.isNotEmpty
+        ? previousTrades.value
+        : currentTrades;
+
     final hasError = tradesAsync.hasError;
 
     return Scaffold(

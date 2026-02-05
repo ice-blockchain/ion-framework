@@ -38,6 +38,7 @@ class CreatorTokensPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
+    final tabController = useTabController(initialLength: CreatorTokensTabType.values.length);
     final globalSearchNotifier = ref.watch(globalSearchTokensNotifierProvider.notifier);
 
     final searchController = useTextEditingController();
@@ -54,6 +55,25 @@ class CreatorTokensPage extends HookConsumerWidget {
         return () => searchController.removeListener(listener);
       },
       [searchController],
+    );
+
+    // Scroll to top when tab changes
+    useEffect(
+      () {
+        void tabListener() {
+          if (scrollController.hasClients) {
+            scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        }
+
+        tabController.addListener(tabListener);
+        return () => tabController.removeListener(tabListener);
+      },
+      [tabController, scrollController],
     );
 
     final maxScroll = _expandedHeaderHeight -
@@ -231,51 +251,49 @@ class CreatorTokensPage extends HookConsumerWidget {
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
-              DefaultTabController(
-                length: CreatorTokensTabType.values.length,
-                child: NestedScrollView(
-                  controller: scrollController,
-                  headerSliverBuilder: (context, innerBoxIsScrolled) {
-                    return [
-                      CreatorTokensHeader(
-                        expandedHeight: _expandedHeaderHeight - MediaQuery.paddingOf(context).top,
-                        tabBarHeight: _tabBarHeight,
-                        opacity: opacity,
-                        featuredTokensAsync: featuredTokensAsync,
-                        selectedToken: selectedToken,
-                        avatarColors: avatarColors,
-                        backButtonIcon: backButtonIcon,
-                        scrollController: scrollController,
-                        onPop: context.pop,
-                        onSearchToggle: () {
-                          final nextVisible = !isGlobalSearchVisible.value;
-                          isGlobalSearchVisible.value = nextVisible;
-                          if (!nextVisible) {
-                            resetGlobalSearch();
-                          }
-                        },
-                        carouselKey: carouselKey,
-                      ),
-                      SliverToBoxAdapter(
-                        child: CreatorTokensFilterBar(
-                          scrollController: scrollController,
-                        ),
-                      ),
-                      CreatorTokensSearchBar(
-                        isVisible: isGlobalSearchVisible.value,
-                        searchController: searchController,
-                        searchFocusNode: searchFocusNode,
-                        onCancelSearch: () {
+              NestedScrollView(
+                controller: scrollController,
+                headerSliverBuilder: (context, innerBoxIsScrolled) {
+                  return [
+                    CreatorTokensHeader(
+                      expandedHeight: _expandedHeaderHeight - MediaQuery.paddingOf(context).top,
+                      opacity: opacity,
+                      featuredTokensAsync: featuredTokensAsync,
+                      selectedToken: selectedToken,
+                      avatarColors: avatarColors,
+                      backButtonIcon: backButtonIcon,
+                      scrollController: scrollController,
+                      tabController: tabController,
+                      onPop: context.pop,
+                      onSearchToggle: () {
+                        final nextVisible = !isGlobalSearchVisible.value;
+                        isGlobalSearchVisible.value = nextVisible;
+                        if (!nextVisible) {
                           resetGlobalSearch();
-                          isGlobalSearchVisible.value = false;
-                        },
+                        }
+                      },
+                      carouselKey: carouselKey,
+                    ),
+                    SliverToBoxAdapter(
+                      child: CreatorTokensFilterBar(
+                        scrollController: scrollController,
                       ),
-                    ];
-                  },
-                  body: CreatorTokensBody(
-                    searchQuery: searchQuery.value,
-                    isGlobalSearchVisible: isGlobalSearchVisible.value,
-                  ),
+                    ),
+                    CreatorTokensSearchBar(
+                      isVisible: isGlobalSearchVisible.value,
+                      searchController: searchController,
+                      searchFocusNode: searchFocusNode,
+                      onCancelSearch: () {
+                        resetGlobalSearch();
+                        isGlobalSearchVisible.value = false;
+                      },
+                    ),
+                  ];
+                },
+                body: CreatorTokensBody(
+                  searchQuery: searchQuery.value,
+                  isGlobalSearchVisible: isGlobalSearchVisible.value,
+                  tabController: tabController,
                 ),
               ),
             ],

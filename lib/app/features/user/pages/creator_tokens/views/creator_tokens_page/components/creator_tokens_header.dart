@@ -17,7 +17,6 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 class CreatorTokensHeader extends ConsumerWidget {
   const CreatorTokensHeader({
     required this.expandedHeight,
-    required this.tabBarHeight,
     required this.opacity,
     required this.featuredTokensAsync,
     required this.selectedToken,
@@ -27,11 +26,12 @@ class CreatorTokensHeader extends ConsumerWidget {
     required this.onSearchToggle,
     this.carouselKey,
     this.scrollController,
+    this.tabController,
     super.key,
   });
 
   final double expandedHeight;
-  final double tabBarHeight;
+
   final double opacity;
   final AsyncValue<List<CommunityToken>> featuredTokensAsync;
   final ValueNotifier<CommunityToken?> selectedToken;
@@ -41,6 +41,7 @@ class CreatorTokensHeader extends ConsumerWidget {
   final VoidCallback onSearchToggle;
   final Key? carouselKey;
   final ScrollController? scrollController;
+  final TabController? tabController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -92,11 +93,12 @@ class CreatorTokensHeader extends ConsumerWidget {
         },
       ),
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(tabBarHeight),
+        preferredSize: Size.fromHeight(32.0.s),
         child: Align(
           alignment: AlignmentDirectional.bottomStart,
           child: TabsHeader(
             tabs: CreatorTokensTabType.values,
+            tabController: tabController,
             trailing: _SearchIconButton(
               onPressed: onSearchToggle,
             ),
