@@ -662,7 +662,8 @@ class TradeCommunityTokenService {
 
   String? _extractTokenAddress(CommunityToken? tokenInfo) => tokenInfo?.addresses.blockchain;
 
-<<<<<<< HEAD
+  String? _extractTokenTicker(CommunityToken? tokenInfo) => tokenInfo?.marketData.ticker;
+
   Future<bool> _isFirstBuy(String externalAddress, ExternalAddressType externalAddressType) async {
     if (externalAddressType.isXToken) {
       return false;
@@ -680,7 +681,4 @@ class TradeCommunityTokenService {
         await ionConnectService.hasFirstBuyDefinitionEvent(eventReference);
     return !hasFirstBuyDefinitionEvent;
   }
-=======
-  String? _extractTokenTicker(CommunityToken? tokenInfo) => tokenInfo?.marketData.ticker;
->>>>>>> void e18019a9f (feat = set token ticker for 1175)
 }
