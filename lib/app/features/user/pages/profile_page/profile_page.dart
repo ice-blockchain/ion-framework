@@ -31,6 +31,17 @@ import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
+class ProfileSpacing {
+  ProfileSpacing.forMode(ProfileMode mode)
+      : topDetailsSpacing = mode == ProfileMode.dark ? 9.0.s : 12.0.s,
+        bottomDetailsSpacing = mode == ProfileMode.dark ? 5.0.s : 12.0.s,
+        separatorSpacing = mode == ProfileMode.dark ? 9.0.s : 12.0.s;
+
+  final double topDetailsSpacing;
+  final double bottomDetailsSpacing;
+  final double separatorSpacing;
+}
+
 class ProfilePage extends HookConsumerWidget {
   const ProfilePage({
     required this.masterPubkey,
@@ -56,6 +67,8 @@ class ProfilePage extends HookConsumerWidget {
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
 
     final profileMode = tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
+
+    final spacing = ProfileSpacing.forMode(profileMode);
 
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
@@ -167,20 +180,14 @@ class ProfilePage extends HookConsumerWidget {
                   ),
                 ],
               ),
-              SizedBox(
-                height: profileMode == ProfileMode.dark ? 9.0.s : 12.0.s,
-              ),
+              SizedBox(height: spacing.topDetailsSpacing),
               ProfileDetails(
                 pubkey: masterPubkey,
                 profileMode: profileMode,
               ),
-              SizedBox(
-                height: profileMode == ProfileMode.dark ? 5.0.s : 12.0.s,
-              ),
+              SizedBox(height: spacing.separatorSpacing),
               if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
-              SizedBox(
-                height: profileMode == ProfileMode.dark ? 9.0.s : 12.0.s,
-              ),
+              SizedBox(height: spacing.bottomDetailsSpacing),
             ],
           ),
           headerActionsBuilder: (menuCloseSignal) => [
