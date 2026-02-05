@@ -52,18 +52,25 @@ class ProfileGradientBackground extends StatelessWidget {
   const ProfileGradientBackground({
     required this.colors,
     required this.disableDarkGradient,
-    this.translateY,
-    super.key,
+    this.enabled = true,
     this.child,
+    this.translateY,
+    this.borderRadius,
+    super.key,
   });
 
   final AvatarColors colors;
   final bool disableDarkGradient;
   final double? translateY;
   final Widget? child;
+  final bool enabled;
+  final BorderRadiusGeometry? borderRadius;
 
   @override
   Widget build(BuildContext context) {
+    if (!enabled) {
+      return child ?? const SizedBox.shrink();
+    }
     return TweenAnimationBuilder<AvatarColors>(
       duration: const Duration(milliseconds: 500),
       tween: _AvatarColorsTween(
@@ -77,6 +84,7 @@ class ProfileGradientBackground extends StatelessWidget {
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
+                  borderRadius: borderRadius,
                   gradient: LinearGradient(
                     colors: [animatedColors.first, animatedColors.second],
                     stops: const [0.0, 1.0],
@@ -90,6 +98,7 @@ class ProfileGradientBackground extends StatelessWidget {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
+                    borderRadius: borderRadius,
                     gradient: LinearGradient(
                       colors: [
                         Colors.transparent,
