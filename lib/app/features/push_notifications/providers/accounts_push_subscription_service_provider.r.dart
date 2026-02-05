@@ -21,7 +21,6 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -54,61 +53,6 @@ class AccountsPushSubscriptionService {
       _getCurrentUserAccountNotificationSets;
 
   final UserRelaysEntity _currentUserRelays;
-
-  /// Updates the external user push subscription when the current user
-  /// changes their account notification settings for a specific user.
-  Future<EventSerializable?> buildSubscriptionOnAccountSettingsChange({
-    required String masterPubkey,
-    required AccountNotificationSetType notificationSetType,
-    required bool shouldIncludeUser,
-  }) async {
-    if (!await _isAccountPushesEnabled()) {
-      return null;
-    }
-
-    final currentFilters = await _getUserSubscriptionFilters(masterPubkey: masterPubkey);
-
-    final notificationType = notificationSetType.toUserNotificationType();
-
-    if (shouldIncludeUser) {
-      final contains = currentFilters
-          .any((filter) => UserNotificationsType.fromFilter(filter) == notificationType);
-      if (contains) {
-        return null;
-      }
-      final updatedFilters = [
-        ...currentFilters,
-        notificationType.toRequestFilter(authors: [masterPubkey]),
-      ];
-
-      return _buildPushSubscriptionExternalData(
-        masterPubkey: masterPubkey,
-        filters: updatedFilters,
-      );
-    } else {
-      if (currentFilters.isEmpty) {
-        return null;
-      }
-
-      final updatedFilters = currentFilters.where((filter) {
-        final type = UserNotificationsType.fromFilter(filter);
-        return type != notificationType;
-      }).toList();
-
-      if (updatedFilters.length == currentFilters.length) {
-        return null;
-      }
-
-      if (updatedFilters.isEmpty) {
-        return _buildDeletePushSubscriptionExternalData(masterPubkey: masterPubkey);
-      } else {
-        return _buildPushSubscriptionExternalData(
-          masterPubkey: masterPubkey,
-          filters: updatedFilters,
-        );
-      }
-    }
-  }
 
   /// Builds the account push subscription when the a user is followed.
   ///
@@ -149,8 +93,9 @@ class AccountsPushSubscriptionService {
         masterPubkey: masterPubkey,
         filters: filters,
       );
+    } else {
+      return _buildDeletePushSubscriptionExternalData(masterPubkey: masterPubkey);
     }
-    return null;
   }
 
   /// If we unfollow a user, we remove the push subscription entirely.
