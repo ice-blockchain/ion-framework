@@ -17,7 +17,7 @@ class TokenAnalyticsLogger implements AnalyticsLogger {
     // These occur when the app is backgrounded and the OS closes the socket
     if (error is Http2StaleConnectionException) {
       Logger.log(
-        '[http-info] Stale connection detected: $message - will reconnect automatically',
+        'Stale connection detected: $message - will reconnect automatically',
       );
       return;
     }
@@ -107,7 +107,7 @@ class TokenAnalyticsLogger implements AnalyticsLogger {
     // These occur when the app is backgrounded and the OS closes the socket
     if (error is Http2StaleConnectionException) {
       Logger.log(
-        '[http-info] Stale connection detected for [$method] $url - will reconnect automatically',
+        'Stale connection detected for [$method] $url - will reconnect automatically',
       );
       return;
     }
