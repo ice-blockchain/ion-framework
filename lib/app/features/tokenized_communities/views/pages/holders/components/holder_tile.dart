@@ -53,6 +53,8 @@ class BurningHolderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final holderAddress = holder.position.holder?.addresses?.ionConnect ?? '';
+    final badgeType =
+        holder.position.rank == 0 ? RankBadgeType.bondingCurve : RankBadgeType.regular;
 
     return HolderTile(
       data: HolderTileData(
@@ -64,7 +66,7 @@ class BurningHolderTile extends StatelessWidget {
         ),
         supplyShare: holder.position.supplyShare,
         avatarUrl: holder.position.holder?.avatar,
-        badgeType: RankBadgeType.burning,
+        badgeType: badgeType,
       ),
     );
   }
