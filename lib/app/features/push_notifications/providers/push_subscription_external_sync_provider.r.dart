@@ -5,6 +5,7 @@ import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_notification_category.dart';
+import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/accounts_push_subscription_service_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/selected_push_categories_provider.m.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
@@ -21,15 +22,32 @@ const equality = DeepCollectionEquality.unordered();
 class PushSubscriptionExternalSync extends _$PushSubscriptionExternalSync {
   @override
   Future<void> build() async {
-    ref.listen(selectedPushCategoriesProvider, (prev, next) {
-      if (prev != null &&
-          !equality.equals(
-            _categoriesDependantOnFollowedUsers(prev),
-            _categoriesDependantOnFollowedUsers(next),
-          )) {
-        _syncFollowedUsersPushSubscriptions(next);
-      }
-    });
+    ref
+      ..listen(selectedPushCategoriesProvider, (prev, next) async {
+        if (prev != null &&
+            !equality.equals(
+              _categoriesDependantOnFollowedUsers(prev),
+              _categoriesDependantOnFollowedUsers(next),
+            )) {
+          final currentUserFollowList = await ref.read(currentUserFollowListProvider.future);
+          if (currentUserFollowList == null) {
+            return;
+          }
+
+          await _syncUsersPushSubscriptions(masterPubkeys: currentUserFollowList.masterPubkeys);
+        }
+      })
+      ..listen(currentUserAccountNotificationSetsProvider, (prev, next) {
+        final prevSets = prev?.valueOrNull;
+        final nextSets = next.valueOrNull;
+        if (prevSets != null && !equality.equals(prevSets, nextSets)) {
+          // TODO[push]: find diff master pubkeys and call sync for those.
+          // check
+          final updated = ref.read(currentUserAccountNotificationSetsProvider).valueOrNull;
+          final diff = prevSets.where((prevSet) => (nextSets ?? []).contains(prevSet));
+          print(diff);
+        }
+      });
   }
 
   List<PushNotificationCategory> _categoriesDependantOnFollowedUsers(
@@ -48,29 +66,21 @@ class PushSubscriptionExternalSync extends _$PushSubscriptionExternalSync {
   ///
   /// This involves taking the current follow list, determining optimal relays,
   /// and sending the updated push subscriptions to ion connect.
-  Future<void> _syncFollowedUsersPushSubscriptions(
-    SelectedPushCategoriesState pushCategoriesState,
-  ) async {
-    final currentUserFollowList = await ref.read(currentUserFollowListProvider.future);
-
-    if (currentUserFollowList == null) {
-      return;
-    }
-
+  Future<void> _syncUsersPushSubscriptions({
+    required List<String> masterPubkeys,
+  }) async {
     final accountsPushSubscriptionService =
         await ref.read(accountsPushSubscriptionServiceProvider.future);
     final optimalUserRelaysService = ref.read(optimalUserRelaysServiceProvider);
     final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
 
-    final followedUsersMasterPubkeys = currentUserFollowList.masterPubkeys;
-
     final followedUsersRelays = await optimalUserRelaysService.fetch(
-      masterPubkeys: followedUsersMasterPubkeys,
+      masterPubkeys: masterPubkeys,
       strategy: OptimalRelaysStrategy.mostUsers,
     );
 
     final followedUsersFiltersEntries = await Future.wait<MapEntry<String, EventSerializable?>>(
-      followedUsersMasterPubkeys.map(
+      masterPubkeys.map(
         (masterPubkey) async => MapEntry(
           masterPubkey,
           await accountsPushSubscriptionService.buildSubscriptionForFollowedUser(
@@ -95,5 +105,20 @@ class PushSubscriptionExternalSync extends _$PushSubscriptionExternalSync {
           cache: false,
         ),
     ]);
+  }
+
+  Future<void> _syncFollowedUserPushSubscription({required String masterPubkey}) async {
+    final accountsPushSubscriptionService =
+        await ref.read(accountsPushSubscriptionServiceProvider.future);
+    final pushSubscription = await accountsPushSubscriptionService.buildSubscriptionForFollowedUser(
+      masterPubkey: masterPubkey,
+    );
+    if (pushSubscription != null) {
+      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
+            pushSubscription,
+            actionSource: ActionSourceUser(masterPubkey),
+            cache: false,
+          );
+    }
   }
 }
