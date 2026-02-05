@@ -3,6 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/domain/content_payment_token_resolver_service.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/content_payment_token_context_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
@@ -478,7 +479,16 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         }
 
         final token = state.selectedPaymentToken ?? paymentContext.token;
-        final coinsGroup = _derivePaymentCoinsGroup(token, walletView);
+        final selected = state.selectedPaymentToken;
+        final sameAsContext = selected == null ||
+            selected.contractAddress.toLowerCase() ==
+                paymentContext.token.contractAddress.toLowerCase();
+        final derivedGroup = _derivePaymentCoinsGroup(token, walletView);
+        final coinsGroup = sameAsContext
+            ? (paymentContext.source == ContentPaymentTokenSource.supportedTokenFallback
+                ? derivedGroup
+                : paymentContext.coinsGroup)
+            : derivedGroup;
         return (token: token, coinsGroup: coinsGroup);
       } catch (error, stackTrace) {
         Logger.error(
@@ -624,6 +634,17 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         amountDecimals: amountDecimals,
         pricingIdentifierResolver: () => _resolvePricingIdentifier(mode),
         paymentTokenAddress: resolvePaymentTokenAddress(token),
+        fatAddressDataWithPricingResolver: (pricing) {
+          return ref.read(
+            fatAddressDataProvider(
+              externalAddress: params.externalAddress,
+              externalAddressType: params.externalAddressType,
+              eventReference: params.eventReference,
+              suggestedDetails: state.suggestedDetails,
+              pricing: pricing,
+            ).future,
+          );
+        },
       );
     } catch (error, stackTrace) {
       Logger.error(

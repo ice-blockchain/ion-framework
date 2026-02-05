@@ -11,6 +11,7 @@ import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resol
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,6 +26,7 @@ Future<FatAddressV2Data> fatAddressData(
 
   /// Suggested token details for creation of the contentToken from token info API
   SuggestedTokenDetails? suggestedDetails,
+  PricingResponse? pricing,
 }) async {
   final externalTypePrefix = externalAddressType.prefix;
 
@@ -35,6 +37,7 @@ Future<FatAddressV2Data> fatAddressData(
       externalAddress: externalAddress,
       externalTypePrefix: externalTypePrefix,
       eventReference: eventReference,
+      pricing: pricing,
     );
   }
 
@@ -44,6 +47,7 @@ Future<FatAddressV2Data> fatAddressData(
     externalTypePrefix: externalTypePrefix,
     eventReference: eventReference,
     suggestedDetails: suggestedDetails,
+    pricing: pricing,
   );
 }
 
@@ -52,6 +56,7 @@ Future<FatAddressV2Data> _buildCreatorFatAddressData(
   required String externalAddress,
   required String externalTypePrefix,
   required EventReference? eventReference,
+  required PricingResponse? pricing,
 }) async {
   final pubkey = MasterPubkeyResolver.resolve(externalAddress, eventReference: eventReference);
 
@@ -88,6 +93,10 @@ Future<FatAddressV2Data> _buildCreatorFatAddressData(
         symbol: symbol,
         externalAddress: externalAddress,
         externalType: _externalTypeByte(externalTypePrefix),
+        bondingCurveAlgAddress: pricing?.bondingCurveAlgAddress,
+        bondingStartPrice: _parseBondingValue(pricing?.initialPrice),
+        bondingEndPrice: _parseBondingValue(pricing?.finalPrice),
+        bondingTotalSupply: _parseBondingValue(pricing?.emissionVolume),
       ),
     ],
     creatorAddress: creatorAddress,
@@ -101,6 +110,7 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
   required String externalTypePrefix,
   required EventReference? eventReference,
   required SuggestedTokenDetails? suggestedDetails,
+  required PricingResponse? pricing,
 }) async {
   final masterPubkey =
       MasterPubkeyResolver.resolve(externalAddress, eventReference: eventReference);
@@ -133,6 +143,10 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
   final creatorTokenInfo =
       await ref.watch(tokenMarketInfoProvider(creatorTokenExternalAddress).future);
   final creatorTokenExists = (creatorTokenInfo?.addresses.blockchain?.trim() ?? '').isNotEmpty;
+  final creatorParams = _resolveCreatorParams(
+    pricing,
+    creatorTokenIncluded: !creatorTokenExists,
+  );
 
   final tokens = <FatAddressV2TokenRecord>[];
   if (!creatorTokenExists) {
@@ -148,6 +162,10 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
         symbol: creatorSymbol,
         externalAddress: creatorTokenExternalAddress,
         externalType: _externalTypeByte(const ExternalAddressType.ionConnectUser().prefix),
+        bondingCurveAlgAddress: creatorParams?.bondingCurveAlgAddress,
+        bondingStartPrice: _parseBondingValue(creatorParams?.initialPrice),
+        bondingEndPrice: _parseBondingValue(creatorParams?.finalPrice),
+        bondingTotalSupply: _parseBondingValue(creatorParams?.emissionVolume),
       ),
     );
   }
@@ -158,6 +176,10 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
       symbol: suggestedDetails?.ticker ?? externalAddress,
       externalAddress: externalAddress,
       externalType: _externalTypeByte(externalTypePrefix),
+      bondingCurveAlgAddress: pricing?.bondingCurveAlgAddress,
+      bondingStartPrice: _parseBondingValue(pricing?.initialPrice),
+      bondingEndPrice: _parseBondingValue(pricing?.finalPrice),
+      bondingTotalSupply: _parseBondingValue(pricing?.emissionVolume),
     ),
   );
 
@@ -166,6 +188,21 @@ Future<FatAddressV2Data> _buildContentFatAddressData(
     creatorAddress: creatorAddress,
     affiliateAddress: affiliateAddress,
   );
+}
+
+CreatorTokenParams? _resolveCreatorParams(
+  PricingResponse? pricing, {
+  required bool creatorTokenIncluded,
+}) {
+  if (!creatorTokenIncluded) return null;
+  return pricing?.creatorTokenParams;
+}
+
+BigInt? _parseBondingValue(String? value) {
+  if (value == null) return null;
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return null;
+  return BigInt.parse(trimmed);
 }
 
 Future<String?> _resolveAffiliateAddress(

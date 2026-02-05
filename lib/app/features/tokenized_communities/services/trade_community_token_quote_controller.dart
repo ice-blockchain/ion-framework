@@ -6,6 +6,7 @@ import 'package:ion/app/features/tokenized_communities/domain/trade_community_to
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
 import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -20,6 +21,7 @@ class TradeCommunityTokenQuoteRequest {
     required this.amountDecimals,
     required this.pricingIdentifierResolver,
     required this.paymentTokenAddress,
+    this.fatAddressDataWithPricingResolver,
   });
 
   final String externalAddress;
@@ -34,6 +36,8 @@ class TradeCommunityTokenQuoteRequest {
 
   final PricingIdentifierResolver pricingIdentifierResolver;
   final String paymentTokenAddress;
+  final Future<FatAddressV2Data> Function(PricingResponse pricing)?
+      fatAddressDataWithPricingResolver;
 }
 
 typedef TradeCommunityTokenServiceResolver = Future<TradeCommunityTokenService> Function();
@@ -168,6 +172,7 @@ class TradeCommunityTokenQuoteController {
         amount: apiAmount,
         paymentTokenAddress: request.paymentTokenAddress,
         fatAddressData: resolution.fatAddressData,
+        fatAddressDataWithPricingResolver: request.fatAddressDataWithPricingResolver,
       );
 
       if (currentRequestId != _requestId) return;

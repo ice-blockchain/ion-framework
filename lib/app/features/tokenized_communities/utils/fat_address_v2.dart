@@ -11,10 +11,10 @@ class FatAddressV2TokenRecord {
     required this.symbol,
     required this.externalAddress,
     required this.externalType,
-    this.bondingAddress,
-    this.bondingBegin,
-    this.bondingEnd,
-    this.bondingSupply,
+    this.bondingCurveAlgAddress,
+    this.bondingStartPrice,
+    this.bondingEndPrice,
+    this.bondingTotalSupply,
   });
 
   final String name;
@@ -22,14 +22,14 @@ class FatAddressV2TokenRecord {
   final String externalAddress;
   final int externalType;
 
-  final String? bondingAddress;
-  final BigInt? bondingBegin;
-  final BigInt? bondingEnd;
-  final BigInt? bondingSupply;
+  final String? bondingCurveAlgAddress;
+  final BigInt? bondingStartPrice;
+  final BigInt? bondingEndPrice;
+  final BigInt? bondingTotalSupply;
 
   @override
   String toString() {
-    return 'FatAddressV2TokenRecord(name: $name, symbol: $symbol, externalAddress: $externalAddress, externalType: $externalType, bondingAddress: $bondingAddress, bondingBegin: $bondingBegin, bondingEnd: $bondingEnd, bondingSupply: $bondingSupply)';
+    return 'FatAddressV2TokenRecord(name: $name, symbol: $symbol, externalAddress: $externalAddress, externalType: $externalType, bondingCurveAlgAddress: $bondingCurveAlgAddress, bondingStartPrice: $bondingStartPrice, bondingEndPrice: $bondingEndPrice, bondingTotalSupply: $bondingTotalSupply)';
   }
 }
 
@@ -131,13 +131,13 @@ class FatAddressV2Codec {
     }
 
     var tokenMask = 0;
-    final bondingAddress = token.bondingAddress?.trim() ?? '';
+    final bondingAddress = token.bondingCurveAlgAddress?.trim() ?? '';
     if (bondingAddress.isNotEmpty) {
       tokenMask |= _maskTokenBondingAddress;
     }
 
-    final begin = token.bondingBegin;
-    final end = token.bondingEnd;
+    final begin = token.bondingStartPrice;
+    final end = token.bondingEndPrice;
     if (begin != null || end != null) {
       if (begin == null || end == null) {
         throw const FormatException('bondingBegin and bondingEnd must be set together');
@@ -145,7 +145,7 @@ class FatAddressV2Codec {
       tokenMask |= _maskTokenBondingPrices;
     }
 
-    final supply = token.bondingSupply;
+    final supply = token.bondingTotalSupply;
     if (supply != null) {
       tokenMask |= _maskTokenBondingSupply;
     }
