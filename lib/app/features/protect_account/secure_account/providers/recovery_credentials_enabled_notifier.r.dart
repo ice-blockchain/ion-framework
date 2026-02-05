@@ -13,12 +13,12 @@ class RecoveryCredentialsEnabled extends _$RecoveryCredentialsEnabled {
   Future<bool> build() async {
     final selectedUser = ref.watch(currentIdentityKeyNameSelectorProvider);
     if (selectedUser == null) {
-      return false;
+      return true;
     }
 
     final ionIdentity = ref.watch(ionIdentityProvider).valueOrNull;
     if (ionIdentity == null) {
-      return false;
+      return true;
     }
     final credentials = await ionIdentity(username: selectedUser).auth.getCredentialsList();
     return credentials.any((credential) => credential.kind == CredentialKind.RecoveryKey.name);

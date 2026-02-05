@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -48,11 +52,32 @@ class SecureAccountModal extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
 
-    useRoutePresence(
-      onBecameActive: () async {
+    final maybeCloseIfAlreadySecured = useCallback(
+      () async {
         final isSecured = await ref.read(isCurrentUserSecuredProvider.future);
         if (context.mounted && isSecured) {
-          Navigator.of(ref.context).pop();
+          context.maybePop();
+        }
+      },
+      [],
+    );
+
+    useOnInit(() {
+      unawaited(maybeCloseIfAlreadySecured());
+    });
+
+    useRoutePresence(
+      onBecameActive: () {
+        unawaited(maybeCloseIfAlreadySecured());
+      },
+    );
+
+    ref.listen<AsyncValue<bool>>(
+      isCurrentUserSecuredProvider,
+      (_, next) {
+        final secured = next.maybeWhen(data: (value) => value, orElse: () => false);
+        if (secured && context.mounted) {
+          context.maybePop();
         }
       },
     );
