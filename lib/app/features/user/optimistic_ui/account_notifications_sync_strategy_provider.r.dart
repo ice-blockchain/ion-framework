@@ -25,20 +25,16 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
         String targetUserPubkey, {
         required bool shouldIncludeUser,
       }) async {
-        await Future.wait([
-          _updateAccountNotificationSetData(
-            externalUserMasterPubkey: targetUserPubkey,
-            notificationSetType: notificationSetType,
-            shouldIncludeUser: shouldIncludeUser,
-          ),
-          // Updating only external push subscription data as the current user's push subscription
-          // will be synced via SelectedPushCategoriesIonSubscription
-          _updateAccountPushSubscription(
-            masterPubkey: targetUserPubkey,
-            notificationSetType: notificationSetType,
-            shouldIncludeUser: shouldIncludeUser,
-          ),
-        ]);
+        await _updateAccountNotificationSetData(
+          externalUserMasterPubkey: targetUserPubkey,
+          notificationSetType: notificationSetType,
+          shouldIncludeUser: shouldIncludeUser,
+        );
+        // Updating only external push subscription data as the current user's push subscription
+        // will be synced via SelectedPushCategoriesIonSubscription
+        // Should be called after the notification set is updated to ensure
+        // that the push subscription is built with the correct data
+        await _updateAccountPushSubscription(masterPubkey: targetUserPubkey);
       },
     );
   }
@@ -91,18 +87,11 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
     );
   }
 
-  Future<void> _updateAccountPushSubscription({
-    required String masterPubkey,
-    required AccountNotificationSetType notificationSetType,
-    required bool shouldIncludeUser,
-  }) async {
+  Future<void> _updateAccountPushSubscription({required String masterPubkey}) async {
     final accountsPushSubscriptionService =
         await ref.read(accountsPushSubscriptionServiceProvider.future);
-    final pushSubscription =
-        await accountsPushSubscriptionService.buildSubscriptionOnAccountSettingsChange(
+    final pushSubscription = await accountsPushSubscriptionService.buildSubscriptionForFollowedUser(
       masterPubkey: masterPubkey,
-      notificationSetType: notificationSetType,
-      shouldIncludeUser: shouldIncludeUser,
     );
     if (pushSubscription != null) {
       await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
