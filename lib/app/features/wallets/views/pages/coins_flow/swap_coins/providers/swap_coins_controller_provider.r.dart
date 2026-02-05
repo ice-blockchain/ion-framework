@@ -231,9 +231,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     if (coinGroups == null || coinGroups.isEmpty) return null;
 
     // Filter to only internal coins (ION/ICE) - exclude creator tokens
-    final internalCoinGroups = coinGroups
-        .where(SwapCoinIdentifier.isInternalCoinGroup)
-        .toList();
+    final internalCoinGroups = coinGroups.where(SwapCoinIdentifier.isInternalCoinGroup).toList();
     if (internalCoinGroups.isEmpty) return null;
 
     // Try last used sell coin first (only if it's an internal coin)
