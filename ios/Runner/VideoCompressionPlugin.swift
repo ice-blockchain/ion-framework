@@ -49,12 +49,31 @@ public class VideoCompressionPlugin: NSObject, FlutterPlugin {
                 bitrate: bitrate
             )
 
+            let application = UIApplication.shared
+            var backgroundTaskId: UIBackgroundTaskIdentifier = .invalid
+            backgroundTaskId = application.beginBackgroundTask(withName: "video_compression") {
+                if backgroundTaskId != .invalid {
+                    application.endBackgroundTask(backgroundTaskId)
+                    backgroundTaskId = .invalid
+                }
+            }
+
             DispatchQueue.global(qos: .userInitiated).async {
                 do {
                     try self.compressVideo(inputPath: inputPath, outputPath: outputPath, options: options)
-                    DispatchQueue.main.async { result(nil) }
+                    DispatchQueue.main.async {
+                        if backgroundTaskId != .invalid {
+                            application.endBackgroundTask(backgroundTaskId)
+                            backgroundTaskId = .invalid
+                        }
+                        result(nil)
+                    }
                 } catch {
                     DispatchQueue.main.async {
+                        if backgroundTaskId != .invalid {
+                            application.endBackgroundTask(backgroundTaskId)
+                            backgroundTaskId = .invalid
+                        }
                         result(FlutterError(code: "COMPRESSION_FAILED", message: error.localizedDescription, details: nil))
                     }
                 }
