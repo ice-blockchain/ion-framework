@@ -149,7 +149,6 @@ class CoinTransactionsMapper {
             transferredAmountUsd: amountUSD,
             memo: transaction.memo,
             assetContractAddress: coin.contractAddress,
-            
           ),
           nft: (nft) => db.Transaction(
             type: transaction.type.value,
