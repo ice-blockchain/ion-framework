@@ -94,6 +94,15 @@ class TokenAnalyticsLogger implements AnalyticsLogger {
 
   @override
   void logHttpError(String method, String url, Object error, StackTrace stackTrace) {
+    // Don't log stale connection errors as errors - they're expected and handled automatically
+    // These occur when the app is backgrounded and the OS closes the socket
+    if (error is Http2StaleConnectionException) {
+      Logger.log(
+        '[http-info] Stale connection detected for [$method] $url - will reconnect automatically',
+      );
+      return;
+    }
+
     final buffer = StringBuffer()
       ..writeln('HTTP/2 Error')
       ..writeln('[$method] $url');

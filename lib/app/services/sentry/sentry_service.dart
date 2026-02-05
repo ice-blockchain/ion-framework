@@ -104,6 +104,9 @@ mixin SentryService {
     'software caused connection abort',
     'broken pipe',
     'no route to host',
+    // Stale connection errors (app backgrounded, OS closed socket)
+    'bad file descriptor',
+    'errno = 9',
     // TLS handshake transient failures
     'bad_decrypt',
     'decryption_failed_or_bad_record_mac',
@@ -139,6 +142,7 @@ mixin SentryService {
   /// - Network unreachable
   /// - Connection lost during request
   /// - SSL/TLS handshake failures
+  /// - Stale connection errors (app backgrounded, OS closed socket)
   ///
   /// Returns false for:
   /// - HTTP client errors (4xx status codes)
@@ -146,6 +150,12 @@ mixin SentryService {
   static bool _isNetworkConnectivityIssue(SentryEvent event, Hint hint) {
     // Check the throwable from hint first (most reliable)
     final throwable = hint.get('exception');
+
+    // Filter out Http2StaleConnectionException - these are expected and handled
+    if (throwable != null &&
+        throwable.runtimeType.toString().contains('Http2StaleConnectionException')) {
+      return true;
+    }
     // Check for common network connectivity exceptions
     if (throwable is SocketException) {
       // Allow client/server errors through
