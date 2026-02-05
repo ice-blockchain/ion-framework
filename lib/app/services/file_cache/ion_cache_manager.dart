@@ -16,7 +16,7 @@ class IONCacheManager {
   static final CacheManager instance = CacheManager(
     Config(
       key,
-      maxNrOfCacheObjects: 1000,
+      maxNrOfCacheObjects: 200,
       stalePeriod: const Duration(days: 60),
       repo: JsonCacheInfoRepository(databaseName: key),
       fileSystem: IONFileSystem(key),
@@ -27,7 +27,7 @@ class IONCacheManager {
   static final ionNetworkImage = CacheManager(
     Config(
       'ionNetworkImageCache',
-      maxNrOfCacheObjects: 1000,
+      maxNrOfCacheObjects: 500,
       stalePeriod: const Duration(days: 60),
       fileService: IonHttpFileService(),
     ),
@@ -36,7 +36,7 @@ class IONCacheManager {
   static final ionConnectNetworkImage = CacheManager(
     Config(
       'ionConnectNetworkImageCacheKey',
-      maxNrOfCacheObjects: 1000,
+      maxNrOfCacheObjects: 500,
       stalePeriod: const Duration(days: 1),
       fileService: IonHttpFileService(),
     ),
@@ -45,7 +45,7 @@ class IONCacheManager {
   static final networkVideos = CacheManager(
     Config(
       'networkVideosCacheKey',
-      maxNrOfCacheObjects: 100,
+      maxNrOfCacheObjects: 50,
       stalePeriod: const Duration(days: 1),
       fileService: IonHttpFileService(),
     ),
@@ -54,7 +54,7 @@ class IONCacheManager {
   static final preCachePictures = CacheManager(
     Config(
       'preCachePicturesCacheKey',
-      maxNrOfCacheObjects: 1000,
+      maxNrOfCacheObjects: 500,
       stalePeriod: const Duration(days: 60),
       fileService: IonHttpFileService(),
     ),
