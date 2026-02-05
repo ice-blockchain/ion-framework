@@ -46,6 +46,7 @@ class FeedContentToken extends StatelessWidget {
     this.showBuyButton = true,
     this.sidePadding,
     this.hasNotch = false,
+    this.enableContentNavigation = false,
     super.key,
   });
 
@@ -56,6 +57,7 @@ class FeedContentToken extends StatelessWidget {
   final double? sidePadding;
   final bool showBuyButton;
   final bool hasNotch;
+  final bool enableContentNavigation;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +93,7 @@ class FeedContentToken extends StatelessWidget {
                         pnl: pnl,
                         externalAddress: externalAddress,
                         showBuyButton: showBuyButton,
+                        enableContentNavigation: enableContentNavigation,
                       ),
                       if (hodl != null) hodl!,
                     ],
@@ -113,6 +116,7 @@ class ContentTokenHeader extends HookConsumerWidget {
     required this.externalAddress,
     this.showBuyButton = true,
     this.pnl,
+    this.enableContentNavigation = false,
     super.key,
   });
 
@@ -122,6 +126,7 @@ class ContentTokenHeader extends HookConsumerWidget {
   final String externalAddress;
   final bool showBuyButton;
   final Widget? pnl;
+  final bool enableContentNavigation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -205,97 +210,113 @@ class ContentTokenHeader extends HookConsumerWidget {
               ],
             ),
           ),
-        Stack(
-          alignment: AlignmentDirectional.bottomCenter,
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12.0.s),
-                color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-              margin: EdgeInsetsDirectional.only(
-                start: 12.0.s,
-                end: 12.0.s,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 20.0.s),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: TokenCreatorTile(
-                          creator: Creator(
-                            avatar: owner?.data.avatarUrl,
-                            display: owner?.data.displayName,
-                            name: owner?.data.name,
-                            verified: isVerified,
+        GestureDetector(
+          onTap: enableContentNavigation
+              ? () {
+                  final encodedEventReference = eventReference.encode();
+                  if (type == CommunityContentTokenType.article || entity is ArticleEntity) {
+                    ArticleDetailsRoute(
+                      eventReference: encodedEventReference,
+                    ).push<void>(context);
+                  } else {
+                    PostDetailsRoute(
+                      eventReference: encodedEventReference,
+                    ).push<void>(context);
+                  }
+                }
+              : null,
+          child: Stack(
+            alignment: AlignmentDirectional.bottomCenter,
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.0.s),
+                  color: context.theme.appColors.secondaryBackground.withValues(alpha: 0.15),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+                margin: EdgeInsetsDirectional.only(
+                  start: 12.0.s,
+                  end: 12.0.s,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20.0.s),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: TokenCreatorTile(
+                            creator: Creator(
+                              avatar: owner?.data.avatarUrl,
+                              display: owner?.data.displayName,
+                              name: owner?.data.name,
+                              verified: isVerified,
+                            ),
+                            creatorMasterPubkey: owner?.masterPubkey,
+                            nameColor: context.theme.appColors.onPrimaryAccent,
+                            handleColor: context.theme.appColors.attentionBlock,
                           ),
-                          creatorMasterPubkey: owner?.masterPubkey,
-                          nameColor: context.theme.appColors.onPrimaryAccent,
-                          handleColor: context.theme.appColors.attentionBlock,
+                        ),
+                        pnl ??
+                            ProfileTokenPrice(
+                              amount: token.marketData.priceUSD,
+                            ),
+                      ],
+                    ),
+                    if (content != null && content.isNotEmpty) ...[
+                      SizedBox(height: 12.0.s),
+                      Text(
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.start,
+                        content,
+                        style: context.theme.appTextThemes.caption2.copyWith(
+                          color: context.theme.appColors.onPrimaryAccent,
                         ),
                       ),
-                      pnl ??
-                          ProfileTokenPrice(
-                            amount: token.marketData.priceUSD,
-                          ),
                     ],
-                  ),
-                  if (content != null && content.isNotEmpty) ...[
-                    SizedBox(height: 12.0.s),
-                    Text(
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.start,
-                      content,
-                      style: context.theme.appTextThemes.caption2.copyWith(
-                        color: context.theme.appColors.onPrimaryAccent,
+                    GradientHorizontalDivider(
+                      margin: EdgeInsetsDirectional.symmetric(
+                        vertical: 14.0.s,
                       ),
                     ),
+                    ProfileTokenStats(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      eventReference:
+                          (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference,
+                    ),
+                    SizedBox(height: showBuyButton ? 24.0.s : 16.s),
                   ],
-                  GradientHorizontalDivider(
-                    margin: EdgeInsetsDirectional.symmetric(
-                      vertical: 14.0.s,
-                    ),
-                  ),
-                  ProfileTokenStats(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    eventReference:
-                        (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference,
-                  ),
-                  SizedBox(height: showBuyButton ? 24.0.s : 16.s),
-                ],
+                ),
               ),
-            ),
-            if (type == CommunityContentTokenType.article)
-              PositionedDirectional(
-                start: 12.s,
-                top: 16.s,
-                bottom: 16.s,
-                child: Container(
-                  width: 4.s,
-                  decoration: BoxDecoration(
-                    color: colors?.first,
-                    borderRadius: BorderRadiusDirectional.only(
-                      topEnd: Radius.circular(12.5.s),
-                      bottomEnd: Radius.circular(12.5.s),
+              if (type == CommunityContentTokenType.article)
+                PositionedDirectional(
+                  start: 12.s,
+                  top: 16.s,
+                  bottom: 16.s,
+                  child: Container(
+                    width: 4.s,
+                    decoration: BoxDecoration(
+                      color: colors?.first,
+                      borderRadius: BorderRadiusDirectional.only(
+                        topEnd: Radius.circular(12.5.s),
+                        bottomEnd: Radius.circular(12.5.s),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            if (showBuyButton)
-              PositionedDirectional(
-                bottom: -11.5.s,
-                child: _BuyButton(
-                  tokenDefinition: tokenDefinition,
-                  eventReference: eventReference,
+              if (showBuyButton)
+                PositionedDirectional(
+                  bottom: -11.5.s,
+                  child: _BuyButton(
+                    tokenDefinition: tokenDefinition,
+                    eventReference: eventReference,
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ],
     );
