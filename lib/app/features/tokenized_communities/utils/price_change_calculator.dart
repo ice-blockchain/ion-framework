@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/extensions/num.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 /// Calculates the price change percentage from a specific duration ago to now.
@@ -31,7 +32,7 @@ double calculatePriceChangePercentFromNow(
   // This gives us the price at exactly duration ago if it exists, or the latest candle <= that time
   for (var i = 0; i < sortedCandles.length; i++) {
     final candle = sortedCandles[i];
-    if (candle.timestamp <= targetTimestamp) {
+    if (candle.timestamp.toMicroseconds <= targetTimestamp) {
       pastCandle = candle;
       // Continue to find the latest candle that is still <= target time
     } else {
