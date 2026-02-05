@@ -669,6 +669,7 @@
   "notifications_reply_other_user": "[:username] a répondu au {type}",
   "notifications_repost": "[:username] a republié votre {type}",
   "notifications_share": "[:username] a partagé votre {type}",
+  "notifications_share_other_user": "[:username] a partagé le {type}",
   "notifications_title": "Notifications",
   "notifications_token_launched_article": "[:username] a [[:purple]]lancé[[/:purple]] le token de ton article",
   "notifications_token_launched_creator": "[:username] a [[:purple]]lancé[[/:purple]] ton token de créateur",

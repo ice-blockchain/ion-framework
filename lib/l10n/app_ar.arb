@@ -679,6 +679,7 @@
   "notifications_reply_other_user": "[:username] رد على {type}",
   "notifications_repost": "[:username] أعاد نشر {type} الخاص بك",
   "notifications_share": "[:username] شارك {type} الخاص بك",
+  "notifications_share_other_user": "[:username] شارك {type}",
   "notifications_title": "الإشعارات",
   "notifications_token_launched_article": "[:username] قام بـ[[:purple]]إطلاق[[/:purple]] رمز مقالتك",
   "notifications_token_launched_creator": "[:username] قام بـ[[:purple]]إطلاق[[/:purple]] رمز منشئك",

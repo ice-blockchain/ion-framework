@@ -48,7 +48,14 @@ class NotificationInfo extends HookConsumerWidget {
       final LikesIonNotification notification =>
         notification.getDescription(context, eventTypeLabel),
       final CommentIonNotification notification =>
-        notification.getDescription(context, eventTypeLabel, isAuthor),
+        notification.type == CommentIonNotificationType.quote &&
+                relatedEntity is CommunityTokenDefinitionEntity
+            ? notification.getDescription(
+                context,
+                eventTypeLabel,
+                _isOwnToken(ref, relatedEntity: relatedEntity),
+              )
+            : notification.getDescription(context, eventTypeLabel, isAuthor),
       final ContentIonNotification notification => notification.getDescription(context),
       final MentionIonNotification notification =>
         notification.getDescription(context, eventTypeLabel),
@@ -153,6 +160,18 @@ class NotificationInfo extends HookConsumerWidget {
     final currentUserPubkey = ref.read(currentPubkeySelectorProvider);
 
     return authorPubkey == currentUserPubkey;
+  }
+
+  bool _isOwnToken(
+    WidgetRef ref, {
+    required CommunityTokenDefinitionEntity relatedEntity,
+  }) {
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+
+    if (currentPubkey == null) return false;
+
+    return relatedEntity.data.dTag == currentPubkey ||
+        relatedEntity.data.dTag.contains(currentPubkey);
   }
 
   IonConnectEntity? _getRelatedEntity(WidgetRef ref, {required IonNotification notification}) {

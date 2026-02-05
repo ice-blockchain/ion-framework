@@ -669,6 +669,7 @@
   "notifications_reply_other_user": "[:username] a răspuns la {type}",
   "notifications_repost": "[:username] a repostat {type}",
   "notifications_share": "[:username] a distribuit {type}",
+  "notifications_share_other_user": "[:username] a distribuit {type}",
   "notifications_title": "Notificări",
   "notifications_token_launched_article": "[:username] a [[:purple]]lansat[[/:purple]] tokenul articolului tău",
   "notifications_token_launched_creator": "[:username] a [[:purple]]lansat[[/:purple]] tokenul tău de creator",
