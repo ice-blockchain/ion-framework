@@ -54,9 +54,8 @@ void useQuoteDisplay(
       if (quoteAmount != null && !isQuoting) {
         final quoteValue = formatCrypto(fromBlockchainUnits(quoteAmount.toString(), decimals));
         if (quoteController.text != quoteValue) quoteController.text = quoteValue;
-      } else if (quoteAmount == null) {
-        final zeroValue = formatCrypto(0);
-        if (quoteController.text != zeroValue) quoteController.text = zeroValue;
+      } else if (quoteAmount == null && quoteController.text.isNotEmpty) {
+        quoteController.clear();
       }
       return null;
     },
