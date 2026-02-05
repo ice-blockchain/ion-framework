@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="io.ion.app.ion_overlay_guard">
+
+  <!--
+    Allows the app to hide TYPE_APPLICATION_OVERLAY windows drawn by other apps.
+    This is a normal permission introduced in Android 12; it does not trigger a user prompt.
+  -->
+  <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
+
+</manifest>

@@ -519,6 +519,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  ion_overlay_guard:
+    dependency: transitive
+    description:
+      path: "../../ion_overlay_guard"
+      relative: true
+    source: path
+    version: "0.0.1"
   js:
     dependency: "direct overridden"
     description:

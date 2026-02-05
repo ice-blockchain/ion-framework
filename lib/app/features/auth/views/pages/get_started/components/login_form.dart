@@ -90,7 +90,9 @@ class LoginForm extends HookConsumerWidget {
               }
 
               // Only attempt auto-passkey login when the field is empty and no other login is running.
-              if (!isIdentityKeyNameEmpty || loginActionState.isLoading) {
+              if (!isIdentityKeyNameEmpty ||
+                  loginActionState.isLoading ||
+                  autoPasskeyLoginTriggered.value) {
                 return;
               }
 

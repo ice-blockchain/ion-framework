@@ -1,0 +1,25 @@
+name: ion_overlay_guard
+description: "Android-only helper to hide non-system overlay windows (TYPE_APPLICATION_OVERLAY) while sensitive flows are running."
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.6.2
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  custom_lint: ^0.7.2
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.ion.app.ion_overlay_guard
+        pluginClass: IonOverlayGuardPlugin

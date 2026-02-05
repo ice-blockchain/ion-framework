@@ -1737,6 +1737,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  ion_overlay_guard:
+    dependency: transitive
+    description:
+      path: "packages/ion_overlay_guard"
+      relative: true
+    source: path
+    version: "0.0.1"
   ion_screenshot_detector:
     dependency: "direct main"
     description:
