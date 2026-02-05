@@ -339,4 +339,30 @@ void main() {
       });
     });
   });
+
+  group('Cashtag pattern', () {
+    final regex = RegExp(const CashtagMatcher().pattern);
+
+    test('matches valid tickers without dots', () {
+      expect(regex.hasMatch(r'$hello'), isTrue);
+      expect(regex.hasMatch(r'$hello_123'), isTrue);
+      expect(regex.hasMatch(r'$hello__double'), isTrue);
+      expect(regex.hasMatch(r'$hello-world'), isTrue);
+    });
+
+    test('matches valid tickers with dots', () {
+      expect(regex.hasMatch(r'$hello.world'), isTrue);
+      expect(regex.hasMatch(r'$hello.world_test'), isTrue);
+      expect(regex.hasMatch(r'$hello-world.v2'), isTrue);
+      expect(regex.hasMatch(r'$h.e.l.l.o'), isTrue);
+      expect(regex.hasMatch(r'$P.STAGING.02'), isTrue);
+    });
+
+    test('does not match invalid tickers', () {
+      expect(regex.hasMatch(r'$123'), isFalse); // must contain letter
+      expect(regex.hasMatch(r'$...'), isFalse); // no letters
+      expect(regex.hasMatch(r'$-hello'), isFalse); // invalid start
+      expect(regex.hasMatch(r'$'), isFalse); // empty
+    });
+  });
 }

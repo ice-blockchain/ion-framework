@@ -110,5 +110,5 @@ class CashtagMatcher extends TextMatcher {
   const CashtagMatcher();
 
   @override
-  String get pattern => r'\$(?=[\w-]*[A-Za-z])\w+(?:-\w+)*\b';
+  String get pattern => r'\$(?=[\w.-]*[A-Za-z])[\w.]+(?:-[\w.]+)*\b';
 }
