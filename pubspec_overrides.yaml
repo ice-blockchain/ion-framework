@@ -1,6 +1,11 @@
 # melos_managed_dependency_overrides: ion_identity_client,js,ion_lint_rules,ion_connect_cache,ion_content_labeler,ion_token_analytics,ion_swap_client
 dependency_overrides:
   analyzer_plugin: ^0.13.1
+  flutter_cache_manager:
+    git:
+      url: https://github.com/ice-blockchain/flutter_cache_manager.git
+      path: flutter_cache_manager
+      ref: develop
   flutter_quill:
     git:
       url: https://github.com/ice-blockchain/flutter-quill.git
