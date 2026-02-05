@@ -331,12 +331,16 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       expandedHeader: Column(
         children: [
           SizedBox(height: MediaQuery.viewPaddingOf(context).top + 18.s),
-          if (tokenType != CommunityContentTokenType.profile) ...[
-            Text(
-              tokenInfo?.title ?? '',
-              style: context.theme.appTextThemes.subtitle3.copyWith(
-                fontWeight: FontWeight.w500,
-                color: context.theme.appColors.onPrimaryAccent,
+          if (tokenInfo != null &&
+              tokenType != null &&
+              tokenType != CommunityContentTokenType.profile) ...[
+            Center(
+              child: Text(
+                tokenInfo.title,
+                style: context.theme.appTextThemes.subtitle3.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: context.theme.appColors.onPrimaryAccent,
+                ),
               ),
             ),
             SizedBox(height: 30.0.s),
@@ -371,7 +375,6 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                           externalAddress: externalAddress,
                           tokenDefinition: tokenDefinition,
                           showBuyButton: false,
-                          enableContentNavigation: true,
                         ),
                       ),
               };
