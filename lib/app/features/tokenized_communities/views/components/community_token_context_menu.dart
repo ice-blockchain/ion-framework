@@ -10,9 +10,12 @@ import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/token_explorer_url_utils.dart';
 import 'package:ion/app/features/user/pages/components/header_action/header_action.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class CommunityTokenContextMenu extends HookConsumerWidget {
@@ -41,6 +44,15 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
       [closeSignal],
     );
 
+    final externalAddress = tokenDefinitionEntity?.data.externalAddress.trim() ?? '';
+    final tokenAddress = ref
+            .watch(tokenMarketInfoProvider(externalAddress))
+            .valueOrNull
+            ?.addresses
+            .blockchain
+            ?.trim() ??
+        '';
+
     return OverlayMenu(
       menuBuilder: (closeMenu) {
         closeMenuRef.value = closeMenu;
@@ -62,6 +74,22 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                       .push<void>(context);
                 },
               ),
+              if (tokenAddress.isNotEmpty) ...[
+                const OverlayMenuItemSeparator(),
+                OverlayMenuItem(
+                  verticalPadding: 12.s,
+                  label: context.i18n.token_contract,
+                  icon: Assets.svg.iconPopupBscscan
+                      .icon(size: 20.s, color: context.theme.appColors.quaternaryText),
+                  onPressed: () {
+                    final url = TokenExplorerUrlUtils.buildBscscanTokenUrl(
+                      contractAddress: tokenAddress,
+                    );
+                    closeMenu();
+                    openUrlInAppBrowser(url);
+                  },
+                ),
+              ],
               const OverlayMenuItemSeparator(),
               OverlayMenuItem(
                 verticalPadding: 12.s,

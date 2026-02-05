@@ -908,6 +908,7 @@
   "story_share_sender": "Udostępniłeś tę historię",
   "suggestions_empty_description": "Nie znaleźliśmy niczego pasującego do Twojego wyszukiwania",
   "suggestions_loading_description": "Szukaj użytkownika, którego chcesz wspomnieć",
+  "token_contract": "Kontrakt",
   "token_comment_holders_only": "Komentarze są dostępne tylko dla posiadaczy tokenów.",
   "token_stats_holders_description": "Holders represent the number of unique wallets that currently own the token.\n\nA rising number of holders is often a strong indicator of growing adoption, community interest, and broader distribution. While a healthy spread of ownership can contribute to long-term stability, tracking holder evolution over time can reveal increasing confidence and momentum around the project.",
   "token_stats_holders_title": "Holders",
