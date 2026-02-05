@@ -49,23 +49,32 @@ class IonNetworkImage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final supportsResize = cacheManager is ImageCacheManager;
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    final cacheWidth = (width ?? MediaQuery.sizeOf(context).width) * devicePixelRatio;
-    final cacheHeight = height != null ? height! * devicePixelRatio : null;
-    int? memCacheWidth;
-    int? memCacheHeight;
+    final layoutWidth = MediaQuery.sizeOf(context).width;
 
-    if (fit == BoxFit.fitWidth ||
-        fit == BoxFit.cover ||
-        fit == BoxFit.fill ||
-        fit == BoxFit.fitHeight) {
-      memCacheWidth = cacheHeight == null ? cacheWidth.toInt() : null;
-      memCacheHeight = cacheHeight?.toInt();
-    }
-    if (fit == BoxFit.contain) {
-      memCacheWidth = cacheWidth.toInt();
-      memCacheHeight = cacheHeight?.toInt();
-    }
+    final (memCacheWidth, memCacheHeight) = useMemoized(
+      () {
+        if (!supportsResize) return (null, null);
+        final cacheWidth = (width ?? layoutWidth) * devicePixelRatio;
+        final cacheHeight = height != null ? height! * devicePixelRatio : null;
+        int? w;
+        int? h;
+        if (fit == BoxFit.fitWidth ||
+            fit == BoxFit.cover ||
+            fit == BoxFit.fill ||
+            fit == BoxFit.fitHeight) {
+          w = cacheHeight == null ? cacheWidth.toInt() : null;
+          h = cacheHeight?.toInt();
+        }
+        if (fit == BoxFit.contain) {
+          w = cacheWidth.toInt();
+          h = cacheHeight?.toInt();
+        }
+        return (w, h);
+      },
+      [devicePixelRatio, layoutWidth, width, height, fit, cacheManager],
+    );
 
     final fetchError = useRef<Object?>(null);
 
@@ -92,7 +101,7 @@ class IonNetworkImage extends HookWidget {
     }
 
     return CachedNetworkImage(
-      key: Key("${imageUrl}_${cacheWidth.toInt()}x${cacheHeight?.toInt() ?? 'auto'}"),
+      key: supportsResize ? Key("${imageUrl}_${memCacheWidth}x${memCacheHeight ?? 'auto'}") : null,
       cacheKey: cacheKey,
       imageUrl: imageUrl,
       height: height,
