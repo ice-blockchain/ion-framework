@@ -10,9 +10,7 @@ import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.d
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
-import 'package:ion/app/features/protect_account/secure_account/providers/recovery_credentials_enabled_notifier.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
-import 'package:ion/app/features/protect_account/secure_account/providers/user_details_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/views/pages/secure_account_modal.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -66,6 +64,11 @@ class ForceAccountSecurityService {
 
   void onRouteChanged(String value) {
     _route = value;
+    _maybeTrigger();
+  }
+
+  void onLifecycleChanged(AppLifecycleState value) {
+    _lifecycle = value;
     _maybeTrigger();
   }
 
@@ -145,10 +148,12 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
       isCurrentUserSecuredProvider,
       fireImmediately: true,
       (_, AsyncValue<bool> next) {
-        final value = next.valueOrNull;
-        if (value != null) {
-          service.onSecured(secured: value);
-        }
+        final secured = next.when(
+          data: (value) => value,
+          loading: () => true,
+          error: (_, __) => true,
+        );
+        service.onSecured(secured: secured);
       },
     );
 
@@ -164,12 +169,7 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
       appLifecycleProvider,
       fireImmediately: true,
       (_, AppLifecycleState next) {
-        service._lifecycle = next;
-        if (next == AppLifecycleState.resumed) {
-          ref
-            ..invalidate(userDetailsProvider)
-            ..invalidate(recoveryCredentialsEnabledProvider);
-        }
+        service.onLifecycleChanged(next);
       },
     );
   }
