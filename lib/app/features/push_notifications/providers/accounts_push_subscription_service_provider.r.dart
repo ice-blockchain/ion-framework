@@ -45,7 +45,6 @@ class AccountsPushSubscriptionService {
         _getIonConnectEntity = getIonConnectEntity,
         _getSelectedPushCategories = getSelectedPushCategories,
         _getCurrentUserAccountNotificationSets = getCurrentUserAccountNotificationSets;
-
   final Future<IonConnectEntity?> Function({required EventReference eventReference})
       _getIonConnectEntity;
 
@@ -111,69 +110,58 @@ class AccountsPushSubscriptionService {
     }
   }
 
-  /// Updates the external user push subscription when the a user is followed or unfollowed.
+  /// Builds the account push subscription when the a user is followed.
   ///
-  /// If a user is unfollowed, the push subscription for that user is removed entirely.
-  /// If a user is followed, a new push subscription is created for that user,
-  ///   based on the current notification settings - if categories that depend on followed users are enabled.
-  ///   And based the current account notification sets of the followed user - user could be followed,
-  ///   account notifications are enabled, then unfollowed and followed again.
-  Future<EventSerializable?> buildSubscriptionOnFollowToggle({
+  /// A push subscription is created, based on:
+  ///   * The current account notification sets of the followed user - user could be followed,
+  ///       account notifications are enabled, then unfollowed and followed again.
+  ///   * The current notification settings - if categories that depend on followed users are enabled.
+  Future<EventSerializable?> buildSubscriptionForFollowedUser({
     required String masterPubkey,
-    required bool following,
   }) async {
-    // If we unfollow a user, we remove the push subscription entirely
-    if (!following) {
-      final currentFilters = await _getUserSubscriptionFilters(masterPubkey: masterPubkey);
-      if (currentFilters.isNotEmpty) {
-        return _buildDeletePushSubscriptionExternalData(masterPubkey: masterPubkey);
-      }
-      return null;
-    } else {
-      // User was not followed before, so it can not have a current subscription, building from scratch
-      final filters = <RequestFilter>[];
+    final filters = <RequestFilter>[];
 
-      // If account pushes are enabled, building filters based on the current notification sets for the user
-      if (await _isAccountPushesEnabled()) {
-        final currentUserAccountNotificationSets = await _getCurrentUserAccountNotificationSets();
-        final followedUserSets = currentUserAccountNotificationSets
-            .where((notificationSet) => notificationSet.data.userPubkeys.contains(masterPubkey));
-        filters.addAll(
-          followedUserSets.map(
-            (notificationSet) => notificationSet.data.type.toUserNotificationType().toRequestFilter(
-              authors: [masterPubkey],
-            ),
+    // If account pushes are enabled, building filters based on the current notification sets for the user
+    if (await _isAccountPushesEnabled()) {
+      final currentUserAccountNotificationSets = await _getCurrentUserAccountNotificationSets();
+      final followedUserSets = currentUserAccountNotificationSets
+          .where((notificationSet) => notificationSet.data.userPubkeys.contains(masterPubkey));
+      filters.addAll(
+        followedUserSets.map(
+          (notificationSet) => notificationSet.data.type.toUserNotificationType().toRequestFilter(
+            authors: [masterPubkey],
           ),
-        );
-      }
+        ),
+      );
+    }
 
-      // If categories that depend on followed users are enabled, add the corresponding filters
-      final selectedPushCategories = await _getSelectedPushCategories();
-      if (selectedPushCategories.contains(PushNotificationCategory.creatorToken)) {
-        filters.addAll(await _buildFilterForCreatorToken(masterPubkey: masterPubkey));
-      }
-      if (selectedPushCategories.contains(PushNotificationCategory.contentToken)) {
-        filters.addAll(await _buildFilterForContentToken(masterPubkey: masterPubkey));
-      }
+    // If categories that depend on followed users are enabled, add the corresponding filters
+    final selectedPushCategories = await _getSelectedPushCategories();
+    if (selectedPushCategories.contains(PushNotificationCategory.creatorToken)) {
+      filters.addAll(await _buildFilterForCreatorToken(masterPubkey: masterPubkey));
+    }
+    if (selectedPushCategories.contains(PushNotificationCategory.contentToken)) {
+      filters.addAll(await _buildFilterForContentToken(masterPubkey: masterPubkey));
+    }
 
-      if (filters.isNotEmpty) {
-        return _buildPushSubscriptionExternalData(
-          masterPubkey: masterPubkey,
-          filters: filters,
-        );
-      }
+    if (filters.isNotEmpty) {
+      return _buildPushSubscriptionExternalData(
+        masterPubkey: masterPubkey,
+        filters: filters,
+      );
     }
     return null;
   }
 
-  // call on
-  // 1. change in push notification settings
-  Future<void> updateFollowedUsersSubscriptions() async {
-    // get current follow list
-
-    // get current 30000 sets (check the pubkey in each set), build filters upon it
-    // get current subscription categories (check if categories for follow list are on, check is posts is on)
-    // compare with the current subscription, if not eq, send to relay
+  /// If we unfollow a user, we remove the push subscription entirely.
+  Future<EventSerializable?> buildSubscriptionForUnfollowedUser({
+    required String masterPubkey,
+  }) async {
+    final currentFilters = await _getUserSubscriptionFilters(masterPubkey: masterPubkey);
+    if (currentFilters.isNotEmpty) {
+      return _buildDeletePushSubscriptionExternalData(masterPubkey: masterPubkey);
+    }
+    return null;
   }
 
   Future<List<RequestFilter>> _getUserSubscriptionFilters({
