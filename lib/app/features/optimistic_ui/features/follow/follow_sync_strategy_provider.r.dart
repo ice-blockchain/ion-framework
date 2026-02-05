@@ -26,10 +26,13 @@ SyncStrategy<UserFollow> followSyncStrategy(Ref ref) {
   Future<EventMessage?> buildPushSubscriptionEvent(UserFollow follow) async {
     final accountsPushSubscriptionService =
         await ref.read(accountsPushSubscriptionServiceProvider.future);
-    final pushSubscription = await accountsPushSubscriptionService.buildSubscriptionOnFollowToggle(
-      masterPubkey: follow.pubkey,
-      following: follow.following,
-    );
+    final pushSubscription = follow.following
+        ? await accountsPushSubscriptionService.buildSubscriptionForFollowedUser(
+            masterPubkey: follow.pubkey,
+          )
+        : await accountsPushSubscriptionService.buildSubscriptionForUnfollowedUser(
+            masterPubkey: follow.pubkey,
+          );
     return pushSubscription != null ? await ionNotifier.sign(pushSubscription) : null;
   }
 
