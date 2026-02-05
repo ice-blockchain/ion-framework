@@ -319,10 +319,10 @@ packages:
     dependency: "direct main"
     description:
       name: cached_video_player_plus
-      sha256: "222349570b9d8f1ece27bb6f1e575fc749bf4d241b0525da8e99eace3744d9c2"
+      sha256: b7560ea4c5f6d3f2ab3cf1bfbdb35e454bd2860f71f2d38bc6a935e450b5b094
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.4"
+    version: "4.1.0"
   camera:
     dependency: "direct main"
     description:
@@ -1031,10 +1031,11 @@ packages:
   flutter_cache_manager:
     dependency: "direct main"
     description:
-      name: flutter_cache_manager
-      sha256: "400b6592f16a4409a7f2bb929a9a7e38c72cceb8ffb99ee57bbf2cb2cecf8386"
-      url: "https://pub.dev"
-    source: hosted
+      path: flutter_cache_manager
+      ref: develop
+      resolved-ref: c7e592b1fbeccd4ec8446fc9ce52d4e8f68bdda9
+      url: "https://github.com/ice-blockchain/flutter_cache_manager.git"
+    source: git
     version: "3.4.1"
   flutter_colorpicker:
     dependency: transitive
@@ -3183,14 +3184,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.0"
-  video_player_win:
-    dependency: "direct main"
-    description:
-      name: video_player_win
-      sha256: e7b92ae1050086f9be3787eba1fbecbea278b59453cb3589263daa0c62772a88
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.11"
   visibility_detector:
     dependency: "direct main"
     description:

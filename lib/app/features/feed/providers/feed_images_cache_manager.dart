@@ -15,7 +15,7 @@ class FeedImagesCacheManager {
       key,
       fileService: IonHttpFileService(concurrentFetches: maxConcurrentDownloads),
       stalePeriod: const Duration(days: 1),
-      maxNrOfCacheObjects: 1000,
+      maxNrOfCacheObjects: 500,
     );
 
     instance = CacheManager(
