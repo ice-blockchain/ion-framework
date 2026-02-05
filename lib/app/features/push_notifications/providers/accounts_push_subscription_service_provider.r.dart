@@ -7,13 +7,12 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/related_relay.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_notification_category.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
 import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
@@ -29,17 +28,20 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'accounts_push_subscription_service_provider.r.g.dart';
 
+/// Service responsible for managing the external user push subscriptions.
+///
+/// Because when we need to receive pushes about some user,
+/// we need to create a push subscription (31751 event) with the filters for that user and
+/// publish it to the relays of that user.
 class AccountsPushSubscriptionService {
   AccountsPushSubscriptionService({
     required UserRelaysEntity currentUserRelays,
-    required IonConnectNotifier ionConnectNotifier,
     required Future<IonConnectEntity?> Function({required EventReference eventReference})
         getIonConnectEntity,
     required Future<List<PushNotificationCategory>> Function() getSelectedPushCategories,
     required Future<List<AccountNotificationSetEntity>> Function()
         getCurrentUserAccountNotificationSets,
   })  : _currentUserRelays = currentUserRelays,
-        _ionConnectNotifier = ionConnectNotifier,
         _getIonConnectEntity = getIonConnectEntity,
         _getSelectedPushCategories = getSelectedPushCategories,
         _getCurrentUserAccountNotificationSets = getCurrentUserAccountNotificationSets;
@@ -54,17 +56,15 @@ class AccountsPushSubscriptionService {
 
   final UserRelaysEntity _currentUserRelays;
 
-  final IonConnectNotifier _ionConnectNotifier;
-
   /// Updates the external user push subscription when the current user
   /// changes their account notification settings for a specific user.
-  Future<void> updateOnAccountSettingsChange({
+  Future<EventSerializable?> buildSubscriptionOnAccountSettingsChange({
     required String masterPubkey,
     required AccountNotificationSetType notificationSetType,
     required bool shouldIncludeUser,
   }) async {
     if (!await _isAccountPushesEnabled()) {
-      return;
+      return null;
     }
 
     final currentFilters = await _getUserSubscriptionFilters(masterPubkey: masterPubkey);
@@ -75,20 +75,20 @@ class AccountsPushSubscriptionService {
       final contains = currentFilters
           .any((filter) => UserNotificationsType.fromFilter(filter) == notificationType);
       if (contains) {
-        return;
+        return null;
       }
       final updatedFilters = [
         ...currentFilters,
         notificationType.toRequestFilter(authors: [masterPubkey]),
       ];
 
-      await _sendUpdatedPushSubscriptionExternalData(
+      return _buildPushSubscriptionExternalData(
         masterPubkey: masterPubkey,
         filters: updatedFilters,
       );
     } else {
       if (currentFilters.isEmpty) {
-        return;
+        return null;
       }
 
       final updatedFilters = currentFilters.where((filter) {
@@ -97,13 +97,13 @@ class AccountsPushSubscriptionService {
       }).toList();
 
       if (updatedFilters.length == currentFilters.length) {
-        return;
+        return null;
       }
 
       if (updatedFilters.isEmpty) {
-        await _deletePushSubscriptionExternalData(masterPubkey: masterPubkey);
+        return _buildDeletePushSubscriptionExternalData(masterPubkey: masterPubkey);
       } else {
-        await _sendUpdatedPushSubscriptionExternalData(
+        return _buildPushSubscriptionExternalData(
           masterPubkey: masterPubkey,
           filters: updatedFilters,
         );
@@ -118,7 +118,7 @@ class AccountsPushSubscriptionService {
   ///   based on the current notification settings - if categories that depend on followed users are enabled.
   ///   And based the current account notification sets of the followed user - user could be followed,
   ///   account notifications are enabled, then unfollowed and followed again.
-  Future<void> updateOnFollowToggle({
+  Future<EventSerializable?> buildSubscriptionOnFollowToggle({
     required String masterPubkey,
     required bool following,
   }) async {
@@ -126,9 +126,9 @@ class AccountsPushSubscriptionService {
     if (!following) {
       final currentFilters = await _getUserSubscriptionFilters(masterPubkey: masterPubkey);
       if (currentFilters.isNotEmpty) {
-        await _deletePushSubscriptionExternalData(masterPubkey: masterPubkey);
+        return _buildDeletePushSubscriptionExternalData(masterPubkey: masterPubkey);
       }
-      return;
+      return null;
     } else {
       // User was not followed before, so it can not have a current subscription, building from scratch
       final filters = <RequestFilter>[];
@@ -157,12 +157,13 @@ class AccountsPushSubscriptionService {
       }
 
       if (filters.isNotEmpty) {
-        await _sendUpdatedPushSubscriptionExternalData(
+        return _buildPushSubscriptionExternalData(
           masterPubkey: masterPubkey,
           filters: filters,
         );
       }
     }
+    return null;
   }
 
   // call on
@@ -191,24 +192,18 @@ class AccountsPushSubscriptionService {
     return currentFilters;
   }
 
-  Future<void> _sendUpdatedPushSubscriptionExternalData({
+  Future<EventSerializable> _buildPushSubscriptionExternalData({
     required String masterPubkey,
     required List<RequestFilter> filters,
   }) async {
-    final pushSubscription = PushSubscriptionExternalData(
+    return PushSubscriptionExternalData(
       externalUserMasterPubkey: masterPubkey,
       filters: filters,
       relays: _currentUserRelays.urls.map((url) => RelatedRelay(url: url)).toList(),
     );
-
-    await _ionConnectNotifier.sendEntityData(
-      pushSubscription,
-      actionSource: ActionSourceUser(masterPubkey),
-      cache: false,
-    );
   }
 
-  Future<void> _deletePushSubscriptionExternalData({
+  Future<EventSerializable> _buildDeletePushSubscriptionExternalData({
     required String masterPubkey,
   }) async {
     final deletionRequest = DeletionRequest(
@@ -218,7 +213,7 @@ class AccountsPushSubscriptionService {
         ),
       ],
     );
-    await _ionConnectNotifier.sendEntityData(deletionRequest, cache: false);
+    return deletionRequest;
   }
 
   EventReference _buildPushSubscriptionEventReference(String masterPubkey) {
@@ -276,14 +271,12 @@ Future<AccountsPushSubscriptionService> accountsPushSubscriptionService(Ref ref)
   Future<List<AccountNotificationSetEntity>> getCurrentUserAccountNotificationSets() async =>
       ref.read(currentUserAccountNotificationSetsProvider.future);
   final currentUserRelays = await ref.watch(currentUserRelaysProvider.future);
-  final ionConnectNotifier = ref.watch(ionConnectNotifierProvider.notifier);
   if (currentUserRelays == null) {
     throw UserRelaysNotFoundException();
   }
 
   return AccountsPushSubscriptionService(
     currentUserRelays: currentUserRelays,
-    ionConnectNotifier: ionConnectNotifier,
     getIonConnectEntity: getIonConnectEntity,
     getSelectedPushCategories: getSelectedPushCategories,
     getCurrentUserAccountNotificationSets: getCurrentUserAccountNotificationSets,

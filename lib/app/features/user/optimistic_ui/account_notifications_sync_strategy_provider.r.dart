@@ -2,6 +2,7 @@
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -24,8 +25,6 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
         String targetUserPubkey, {
         required bool shouldIncludeUser,
       }) async {
-        final accountsPushSubscriptionService =
-            await ref.watch(accountsPushSubscriptionServiceProvider.future);
         await Future.wait([
           _updateAccountNotificationSetData(
             externalUserMasterPubkey: targetUserPubkey,
@@ -34,7 +33,7 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
           ),
           // Updating only external push subscription data as the current user's push subscription
           // will be synced via SelectedPushCategoriesIonSubscription
-          accountsPushSubscriptionService.updateOnAccountSettingsChange(
+          _updateAccountPushSubscription(
             masterPubkey: targetUserPubkey,
             notificationSetType: notificationSetType,
             shouldIncludeUser: shouldIncludeUser,
@@ -90,6 +89,28 @@ class AccountNotificationsSyncStrategyNotifier extends _$AccountNotificationsSyn
       notificationSetType: notificationSetType,
       users: updatedUsers.toList(),
     );
+  }
+
+  Future<void> _updateAccountPushSubscription({
+    required String masterPubkey,
+    required AccountNotificationSetType notificationSetType,
+    required bool shouldIncludeUser,
+  }) async {
+    final accountsPushSubscriptionService =
+        await ref.read(accountsPushSubscriptionServiceProvider.future);
+    final pushSubscription =
+        await accountsPushSubscriptionService.buildSubscriptionOnAccountSettingsChange(
+      masterPubkey: masterPubkey,
+      notificationSetType: notificationSetType,
+      shouldIncludeUser: shouldIncludeUser,
+    );
+    if (pushSubscription != null) {
+      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
+            pushSubscription,
+            actionSource: ActionSourceUser(masterPubkey),
+            cache: false,
+          );
+    }
   }
 
   Future<void> _sendUpdatedAccountNotificationSetData({
