@@ -193,10 +193,7 @@ ShareOptionsData? _getShareOptionsData(
 /// Removes all URLs from share description so the preview shows only text.
 String _stripAllUrls(String text) {
   if (text.isEmpty) return text;
-  return text
-      .replaceAll(RegExp(r'https?://\S+'), ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
+  return text.replaceAll(RegExp(r'https?://\S+'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 /// Converts a Quill Delta JSON string to plain text. Excludes link ops so URLs are not in the output.
