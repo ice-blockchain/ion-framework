@@ -210,3 +210,27 @@ final class TokenLaunchIonNotification extends IonNotification {
     };
   }
 }
+
+final class TokenTransactionIonNotification extends IonNotification {
+  TokenTransactionIonNotification({
+    required this.eventReference,
+    required super.timestamp,
+  }) : super(pubkeys: [eventReference.masterPubkey]);
+
+  final EventReference eventReference;
+
+  // TODO[push]: adjust
+  @override
+  Widget getIcon(BuildContext context, {required double size}) => TokenNotificationIcon(size: size);
+
+  // TODO[push]: adjust
+  @override
+  String getDescription(BuildContext context, [IonConnectEntity? entity]) {
+    return switch (entity) {
+      ModifiablePostEntity() || PostEntity() => context.i18n.notifications_token_launched_post,
+      ArticleEntity() => context.i18n.notifications_token_launched_article,
+      UserMetadataEntity() => context.i18n.notifications_token_launched_creator,
+      _ => ''
+    };
+  }
+}

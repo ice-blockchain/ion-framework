@@ -73,7 +73,7 @@ class AccountsPushSubscriptionService {
       filters.addAll(
         followedUserSets.map(
           (notificationSet) => notificationSet.data.type.toUserNotificationType().toRequestFilter(
-            authors: [masterPubkey],
+            masterPubkeys: [masterPubkey],
           ),
         ),
       );

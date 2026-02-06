@@ -326,7 +326,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     return [
       for (final AccountNotificationSetEntity(:data) in accountNotificationSets)
         if (data.userPubkeys.isNotEmpty)
-          data.type.toUserNotificationType().toRequestFilter(authors: data.userPubkeys),
+          data.type.toUserNotificationType().toRequestFilter(masterPubkeys: data.userPubkeys),
     ];
   }
 }

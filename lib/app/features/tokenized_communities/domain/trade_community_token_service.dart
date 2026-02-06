@@ -136,7 +136,7 @@ class TradeCommunityTokenService {
     );
 
     Logger.info(
-      '[TradeCommunityTokenService] Swap completed | status=${transaction['status']} | isBroadcasted=${_isBroadcasted(transaction)}',
+      '[TradeCommunityTokenService] Swap completed | $transaction',
     );
 
     if (_isBroadcasted(transaction)) {

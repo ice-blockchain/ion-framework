@@ -8,7 +8,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/event_kind.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -196,7 +195,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     List<List<String>> tags = const [],
     int? createdAt,
   }) async {
-    final definitionKind = definitionReference.kind;
+    // final definitionKind = definitionReference.kind; //TODO[push]: uncomment when BE is ready
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt,
@@ -211,10 +210,10 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         ['network', network],
         ['bonding_curve_address', bondingCurveAddress],
         ['token_address', tokenAddress],
-        ['token_symbol', tokenTicker],
+        // ['token_symbol', tokenTicker], //TODO[push]: uncomment when BE is ready
         ['tx_address', transactionAddress],
         ['tx_type', type.name],
-        if (definitionKind != null) EventKind(value: definitionKind).toTag(),
+        // if (definitionKind != null) EventKind(value: definitionKind).toTag(), //TODO[push]: uncomment when BE is ready
       ],
     );
   }
