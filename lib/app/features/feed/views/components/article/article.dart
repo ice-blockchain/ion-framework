@@ -186,6 +186,7 @@ class Article extends ConsumerWidget {
                                         entity: entity,
                                         isAccentTheme: isAccentTheme,
                                         showNotInterested: showNotInterested,
+                                        padding: EdgeInsets.zero,
                                       )
                                     : null,
                               ),
