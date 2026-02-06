@@ -940,6 +940,7 @@
   "tokenized_community_token_content": "Токен контента",
   "tokenized_community_token_creator": "Токен создателя",
   "tokenized_community_token_twitter": "Токен X",
+  "tokenized_community_trade": "сделка",
   "tokenized_community_trades_tab": "Сделки",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Добавить ссылку",
