@@ -8,6 +8,7 @@ import 'package:ion/app/features/push_notifications/data/models/push_notificatio
 import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/accounts_push_subscription_service_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/selected_push_categories_provider.m.dart';
+import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -37,15 +38,30 @@ class PushSubscriptionExternalSync extends _$PushSubscriptionExternalSync {
           await _syncUsersPushSubscriptions(masterPubkeys: currentUserFollowList.masterPubkeys);
         }
       })
-      ..listen(currentUserAccountNotificationSetsProvider, (prev, next) {
+      ..listen(currentUserAccountNotificationSetsProvider, (prev, next) async {
         final prevSets = prev?.valueOrNull;
         final nextSets = next.valueOrNull;
         if (prevSets != null && !equality.equals(prevSets, nextSets)) {
-          // TODO[push]: find diff master pubkeys and call sync for those.
-          // check
-          final updated = ref.read(currentUserAccountNotificationSetsProvider).valueOrNull;
-          final diff = prevSets.where((prevSet) => (nextSets ?? []).contains(prevSet));
-          print(diff);
+          final prevSetsMap = {for (final prevSet in prevSets) prevSet.data.type: prevSet};
+          final nextSetsMap = nextSets != null
+              ? {for (final nextSet in nextSets) nextSet.data.type: nextSet}
+              : <AccountNotificationSetType, AccountNotificationSetEntity>{};
+          final allTypes = {
+            ...prevSetsMap.keys,
+            ...nextSetsMap.keys,
+          };
+          final diffMasterPubkeys = <String>{
+            for (final type in allTypes)
+              ...() {
+                final prevPubkeys = prevSetsMap[type]?.data.userPubkeys.toSet() ?? {};
+                final nextPubkeys = nextSetsMap[type]?.data.userPubkeys.toSet() ?? {};
+                return {
+                  ...prevPubkeys.difference(nextPubkeys),
+                  ...nextPubkeys.difference(prevPubkeys),
+                };
+              }(),
+          };
+          await _syncUsersPushSubscriptions(masterPubkeys: diffMasterPubkeys.toList());
         }
       });
   }
@@ -62,9 +78,9 @@ class PushSubscriptionExternalSync extends _$PushSubscriptionExternalSync {
         .toList();
   }
 
-  /// Syncs external push subscriptions for categories that depend on the user's follow list.
+  /// Syncs external push subscriptions for provided users.
   ///
-  /// This involves taking the current follow list, determining optimal relays,
+  /// This involves determining optimal relays, building push subscriptions for each user
   /// and sending the updated push subscriptions to ion connect.
   Future<void> _syncUsersPushSubscriptions({
     required List<String> masterPubkeys,
@@ -74,51 +90,50 @@ class PushSubscriptionExternalSync extends _$PushSubscriptionExternalSync {
     final optimalUserRelaysService = ref.read(optimalUserRelaysServiceProvider);
     final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
 
-    final followedUsersRelays = await optimalUserRelaysService.fetch(
-      masterPubkeys: masterPubkeys,
-      strategy: OptimalRelaysStrategy.mostUsers,
-    );
-
-    final followedUsersFiltersEntries = await Future.wait<MapEntry<String, EventSerializable?>>(
-      masterPubkeys.map(
-        (masterPubkey) async => MapEntry(
-          masterPubkey,
-          await accountsPushSubscriptionService.buildSubscriptionForFollowedUser(
-            masterPubkey: masterPubkey,
+    if (masterPubkeys.length > 1) {
+      final followedUsersFiltersEntries = await Future.wait<MapEntry<String, EventSerializable?>>(
+        masterPubkeys.map(
+          (masterPubkey) async => MapEntry(
+            masterPubkey,
+            await accountsPushSubscriptionService.buildSubscriptionForFollowedUser(
+              masterPubkey: masterPubkey,
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    final followedUsersFilters = Map.fromEntries(followedUsersFiltersEntries);
+      final followedUsersFilters = Map.fromEntries(followedUsersFiltersEntries);
 
-    await Future.wait([
-      for (final MapEntry(key: relayUrl, value: masterPubkeys) in followedUsersRelays.entries)
-        ionConnectNotifier.sendEntitiesData(
-          masterPubkeys
-              .map(
-                (masterPubkey) => followedUsersFilters[masterPubkey],
-              )
-              .nonNulls
-              .toList(),
-          actionSource: ActionSource.relayUrl(relayUrl),
-          cache: false,
-        ),
-    ]);
-  }
+      final followedUsersRelays = await optimalUserRelaysService.fetch(
+        masterPubkeys: masterPubkeys,
+        strategy: OptimalRelaysStrategy.mostUsers,
+      );
 
-  Future<void> _syncFollowedUserPushSubscription({required String masterPubkey}) async {
-    final accountsPushSubscriptionService =
-        await ref.read(accountsPushSubscriptionServiceProvider.future);
-    final pushSubscription = await accountsPushSubscriptionService.buildSubscriptionForFollowedUser(
-      masterPubkey: masterPubkey,
-    );
-    if (pushSubscription != null) {
-      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
-            pushSubscription,
-            actionSource: ActionSourceUser(masterPubkey),
+      await Future.wait([
+        for (final MapEntry(key: relayUrl, value: masterPubkeys) in followedUsersRelays.entries)
+          ionConnectNotifier.sendEntitiesData(
+            masterPubkeys
+                .map(
+                  (masterPubkey) => followedUsersFilters[masterPubkey],
+                )
+                .nonNulls
+                .toList(),
+            actionSource: ActionSource.relayUrl(relayUrl),
             cache: false,
-          );
+          ),
+      ]);
+    } else {
+      final masterPubkey = masterPubkeys.first;
+      final filtersToSend = await accountsPushSubscriptionService.buildSubscriptionForFollowedUser(
+        masterPubkey: masterPubkey,
+      );
+      if (filtersToSend != null) {
+        await ionConnectNotifier.sendEntityData(
+          filtersToSend,
+          actionSource: ActionSource.user(masterPubkey),
+          cache: false,
+        );
+      }
     }
   }
 }
