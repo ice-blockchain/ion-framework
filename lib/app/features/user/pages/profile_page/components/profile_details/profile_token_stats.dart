@@ -8,6 +8,7 @@ import 'package:ion/app/components/speech_bubble/speech_bubble.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
@@ -48,7 +49,12 @@ class ProfileTokenStats extends HookConsumerWidget {
       ),
     );
 
-    if (!tokenInfo.hasValue) {
+    final hasTokenDefinition = ref
+        .watch(ionConnectEntityHasTokenDefinitionProvider(eventReference: eventReference!))
+        .valueOrNull
+        .falseOrValue;
+
+    if (!tokenInfo.hasValue || !hasTokenDefinition) {
       return const SizedBox.shrink();
     }
 
