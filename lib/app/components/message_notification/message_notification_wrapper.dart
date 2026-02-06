@@ -63,7 +63,9 @@ class MessageNotificationWrapper extends HookConsumerWidget {
     );
 
     final suffixWidget = notification.value?.suffixWidget;
-    final bottomPadding = notification.value?.bottomPadding ?? 94.0.s;
+    final baseBottomPadding = notification.value?.bottomPadding ?? 94.0.s;
+    final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+    final bottomPadding = baseBottomPadding + keyboardHeight;
 
     return Stack(
       children: [
