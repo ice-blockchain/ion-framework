@@ -255,6 +255,7 @@ class CommunityTokenIonConnectService {
       amountBase: amountBase,
       amountQuote: amountQuote,
       amountUsd: amountUsd,
+      kind: communityTokenDefinition.data.kind,
     );
   }
 

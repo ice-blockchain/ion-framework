@@ -35,6 +35,10 @@ class FeedPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return const Padding(
+      padding: EdgeInsets.all(80),
+      child: FeedNotificationsButton(),
+    );
     final feedCategory = ref.watch(feedCurrentFilterProvider.select((state) => state.category));
     final hasMorePosts = ref.watch(feedPostsProvider.select((state) => state.hasMore)).falseOrValue;
     final showTrendingVideosFeatureFlag = useRef(

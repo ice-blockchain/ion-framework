@@ -19,6 +19,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/date.dart';
+import 'package:ion/app/utils/num.dart';
 import 'package:ion/l10n/i10n.dart';
 
 class NotificationInfo extends HookConsumerWidget {
@@ -32,14 +33,16 @@ class NotificationInfo extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(appLocaleProvider);
-    final userDatas =
-        notification.pubkeys.take(notification.pubkeys.length == 2 ? 2 : 1).map((pubkey) {
-      return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
-    }).toList();
 
     final relatedEntity = _getRelatedEntity(ref, notification: notification);
     final eventTypeLabel = _getEventTypeLabel(ref, notification: notification);
     final isAuthor = _getIsAuthor(ref, notification: notification);
+
+    final pubkeys = [...notification.pubkeys, _getRelatedEntityPubkey(relatedEntity)].nonNulls;
+
+    final userDatas = pubkeys.take(pubkeys.length == 2 ? 2 : 1).map((pubkey) {
+      return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
+    }).toList();
 
     if (userDatas.contains(null)) {
       return const _Loading();
@@ -62,6 +65,8 @@ class NotificationInfo extends HookConsumerWidget {
         notification.getDescription(context, eventTypeLabel),
       final TokenLaunchIonNotification notification =>
         notification.getDescription(context, relatedEntity),
+      final TokenTransactionIonNotification notification =>
+        notification.getDescription(context, relatedEntity),
       _ => notification.getDescription(context)
     };
 
@@ -69,11 +74,11 @@ class NotificationInfo extends HookConsumerWidget {
     final textSpan = replaceString(
       description,
       RegExp(
-        '${tagRegex('username').pattern}|${tagRegex('purple', isSingular: false).pattern}',
+        '${tagRegex('username').pattern}|${tagRegex('purple', isSingular: false).pattern}|${tagRegex('red', isSingular: false).pattern}|${tagRegex('green', isSingular: false).pattern}|${tagRegex('amount').pattern}',
       ),
       (match, index) {
         if (match.namedGroup('username') != null) {
-          final pubkey = notification.pubkeys.elementAtOrNull(index);
+          final pubkey = pubkeys.elementAtOrNull(index);
           final userData = userDatas.elementAtOrNull(index);
           if (pubkey == null || userData == null) {
             return const TextSpan(text: '');
@@ -94,6 +99,26 @@ class NotificationInfo extends HookConsumerWidget {
           return TextSpan(
             text: match.namedGroup('purple'),
             style: context.theme.appTextThemes.body.copyWith(color: context.theme.appColors.purple),
+          );
+        } else if (match.namedGroup('green') != null) {
+          return TextSpan(
+            text: match.namedGroup('green'),
+            style:
+                context.theme.appTextThemes.body.copyWith(color: context.theme.appColors.success),
+          );
+        } else if (match.namedGroup('red') != null) {
+          return TextSpan(
+            text: match.namedGroup('red'),
+            style: context.theme.appTextThemes.body
+                .copyWith(color: context.theme.appColors.attentionRed),
+          );
+        } else if (match.namedGroup('amount') != null &&
+            relatedEntity is CommunityTokenActionEntity) {
+          final coins = relatedEntity.data.getTokenAmount()?.value ?? 0.0;
+          return TextSpan(
+            text: coins >= 1 ? formatCount(coins.toInt()) : coins.toString(),
+            style: context.theme.appTextThemes.body
+                .copyWith(color: context.theme.appColors.primaryText),
           );
         }
         return const TextSpan(text: '');
@@ -120,6 +145,13 @@ class NotificationInfo extends HookConsumerWidget {
         color: context.theme.appColors.primaryText,
       ),
     );
+  }
+
+  String? _getRelatedEntityPubkey(IonConnectEntity? relatedEntity) {
+    return switch (relatedEntity) {
+      CommunityTokenActionEntity() => relatedEntity.data.definitionReference.masterPubkey,
+      _ => relatedEntity?.masterPubkey,
+    };
   }
 
   TextSpan _getDateTextSpan(BuildContext context, {required Locale locale}) {
@@ -185,6 +217,7 @@ class NotificationInfo extends HookConsumerWidget {
       LikesIonNotification() => notification.eventReference,
       MentionIonNotification() => notification.eventReference,
       TokenLaunchIonNotification() => notification.eventReference,
+      TokenTransactionIonNotification() => notification.eventReference,
       _ => null,
     };
 
@@ -199,7 +232,9 @@ class NotificationInfo extends HookConsumerWidget {
       return null;
     }
 
-    if (notification is LikesIonNotification || notification is MentionIonNotification) {
+    if (notification is LikesIonNotification ||
+        notification is MentionIonNotification ||
+        notification is TokenTransactionIonNotification) {
       return entity;
     }
 

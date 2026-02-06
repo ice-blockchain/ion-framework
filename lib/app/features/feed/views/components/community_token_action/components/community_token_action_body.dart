@@ -89,7 +89,10 @@ class CommunityTokenActionBody extends HookConsumerWidget {
 
     final tokenType = ref.watch(tokenTypeForTokenDefinitionProvider(definitionEntity)).valueOrNull;
 
-    final amount = useMemoized(() => entity.data.getAmountByCurrency(externalAddress), [entity]);
+    final amount = useMemoized(
+      // getAmountByCurrency(externalAddress) is for backward compatibility
+      () => entity.data.getAmountByCurrency(externalAddress) ?? entity.data.getTokenAmount(),
+    );
     final amountUsd =
         useMemoized(() => entity.data.getAmountByCurrency(TransactionAmount.usdCurrency), [entity]);
 

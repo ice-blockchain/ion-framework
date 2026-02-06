@@ -1212,5 +1212,11 @@
   "who_can_reply_settings_title_video": "Who can reply to this video",
   "who_can_reply_settings_verified_accounts": "Verified accounts",
   "write_a_message": "Write a message...",
-  "your_position_card_title": "Your position"
+  "your_position_card_title": "Your position",
+  "notifications_token_transaction_buy_post": "[:username] [[:green]]bought[[/:green]] [:amount] of this post by [:username]",
+  "notifications_token_transaction_buy_article": "[:username] [[:green]]bought[[/:green]] [:amount] of this article by [:username]",
+  "notifications_token_transaction_buy_creator": "[:username] [[:green]]bought[[/:green]] [:amount] of [:username]",
+  "notifications_token_transaction_sell_post": "[:username] [[:red]]sold[[/:red]] [:amount] of this post by [:username]",
+  "notifications_token_transaction_sell_article": "[:username] [[:red]]sold[[/:red]] [:amount] of this article by [:username]",
+  "notifications_token_transaction_sell_creator": "[:username] [[:red]]sold[[/:red]] [:amount] of [:username]"
 }
