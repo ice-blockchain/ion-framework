@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/notifications/data/model/content_type.dart
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/ion_notification_repository.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'content_repository.r.g.dart';
@@ -81,6 +82,7 @@ class ContentRepository implements IonNotificationRepository {
       ModifiablePostEntity() when entity.data.videos.isNotEmpty => ContentType.videos,
       ModifiablePostEntity() => ContentType.posts,
       ArticleEntity() => ContentType.articles,
+      CommunityTokenActionEntity() => ContentType.tokenizedCommunitiesTransactions,
       _ => null,
     };
   }

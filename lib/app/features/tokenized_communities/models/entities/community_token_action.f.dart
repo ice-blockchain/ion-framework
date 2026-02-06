@@ -8,6 +8,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_kind.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -76,6 +77,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     required List<TransactionAmount> amounts,
     required List<RelatedHashtag> relatedHashtags,
     required RelatedPubkey relatedPubkey,
+    required int kind,
   }) = _CommunityTokenActionData;
 
   const CommunityTokenActionData._();
@@ -102,6 +104,8 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     final relatedPubkey = tags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).firstOrNull;
     final relatedHashtags =
         tags[RelatedHashtag.tagName]?.map(RelatedHashtag.fromTag).toList() ?? [];
+    final kind = tags[EventKind.tagName]?.map(EventKind.fromTag).firstOrNull?.value ??
+        -1; // For backward compatibility
 
     if (eventReference == null ||
         network == null ||
@@ -127,6 +131,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       amounts: amounts,
       relatedHashtags: relatedHashtags,
       relatedPubkey: relatedPubkey,
+      kind: kind,
     );
   }
 
@@ -167,6 +172,9 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
 
     /// Amount in USD
     required TransactionAmount amountUsd,
+
+    /// Kind of the related event
+    required int kind,
   }) {
     if (amountUsd.currency != TransactionAmount.usdCurrency) {
       throw ArgumentError.value(
@@ -186,6 +194,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       amounts: [amountBase, amountQuote, amountUsd],
       relatedHashtags: _buildRelatedHashtags(hasUserPosition: hasUserPosition, type: type),
       relatedPubkey: RelatedPubkey(value: definitionReference.masterPubkey),
+      kind: kind,
     );
   }
 
@@ -195,7 +204,6 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     List<List<String>> tags = const [],
     int? createdAt,
   }) async {
-    // final definitionKind = definitionReference.kind; //TODO[push]: uncomment when BE is ready
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt,
@@ -213,13 +221,17 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         // ['token_symbol', tokenTicker], //TODO[push]: uncomment when BE is ready
         ['tx_address', transactionAddress],
         ['tx_type', type.name],
-        // if (definitionKind != null) EventKind(value: definitionKind).toTag(), //TODO[push]: uncomment when BE is ready
+        // EventKind(value: kind).toTag(), //TODO[push]: uncomment when BE is ready
       ],
     );
   }
 
   TransactionAmount? getAmountByCurrency(String currency) {
     return amounts.firstWhereOrNull((amount) => amount.currency == currency);
+  }
+
+  TransactionAmount? getTokenAmount() {
+    return amounts.firstWhereOrNull((amount) => amount.currency == tokenTicker);
   }
 
   static List<RelatedHashtag> _buildRelatedHashtags({

@@ -507,7 +507,7 @@ class TradeCommunityTokenService {
       );
       final amountQuote = TransactionAmount(
         value: communityTokenAmountValue,
-        currency: externalAddress,
+        currency: tokenTicker,
       );
       final amountUsd = TransactionAmount.usd(value: usdAmountValue);
 
@@ -554,6 +554,13 @@ class TradeCommunityTokenService {
       '[TradeCommunityTokenService] _trySendSellEvents called | externalAddress=$externalAddress',
     );
     try {
+      final tokenTicker = _extractTokenTicker(tokenInfo);
+      if (tokenTicker == null) {
+        Logger.error('[TradeCommunityTokenService] Token ticker is missing');
+        throw TokenTickerNotFoundException(externalAddress);
+      }
+      Logger.info('[TradeCommunityTokenService] Token ticker extracted | tokenTicker=$tokenTicker');
+
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
         Logger.error('[TradeCommunityTokenService] Transaction hash is missing');
@@ -578,8 +585,7 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Amounts calculated | communityTokenAmountValue=$communityTokenAmountValue | paymentTokenAmountValue=$paymentTokenAmountValue | usdAmountValue=$usdAmountValue',
       );
 
-      final amountBase =
-          TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
+      final amountBase = TransactionAmount(value: communityTokenAmountValue, currency: tokenTicker);
       final amountQuote = TransactionAmount(
         value: paymentTokenAmountValue,
         currency: paymentTokenTicker,
@@ -595,7 +601,7 @@ class TradeCommunityTokenService {
         network: walletNetwork,
         bondingCurveAddress: bondingCurveAddress,
         tokenAddress: communityTokenAddress,
-        tokenTicker: '', //TODO:
+        tokenTicker: tokenTicker,
         transactionAddress: txHash,
         amountBase: amountBase,
         amountQuote: amountQuote,
