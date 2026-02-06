@@ -9,10 +9,13 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 enum UserNotificationsType {
   none,
+  tokenizedCommunitiesTransactions,
   stories,
   posts,
   videos,
@@ -34,6 +37,7 @@ enum UserNotificationsType {
   String get iconAsset {
     return switch (this) {
       UserNotificationsType.none => Assets.svg.iconProfileNotificationMute,
+      UserNotificationsType.tokenizedCommunitiesTransactions => Assets.svg.iconWorkPickcoin,
       UserNotificationsType.stories => Assets.svg.iconFeedStories,
       UserNotificationsType.posts => Assets.svg.iconFeedPost,
       UserNotificationsType.videos => Assets.svg.iconFeedVideos,
@@ -42,29 +46,36 @@ enum UserNotificationsType {
   }
 
   String getTitle(BuildContext context) {
-    switch (this) {
-      case UserNotificationsType.none:
-        return context.i18n.profile_none;
-      case UserNotificationsType.stories:
-        return context.i18n.profile_stories;
-      case UserNotificationsType.posts:
-        return context.i18n.profile_posts;
-      case UserNotificationsType.videos:
-        return context.i18n.profile_videos;
-      case UserNotificationsType.articles:
-        return context.i18n.profile_articles;
-    }
+    return switch (this) {
+      UserNotificationsType.none => context.i18n.profile_none,
+      UserNotificationsType.tokenizedCommunitiesTransactions =>
+        context.i18n.profile_tokenized_communities,
+      UserNotificationsType.stories => context.i18n.profile_stories,
+      UserNotificationsType.posts => context.i18n.profile_posts,
+      UserNotificationsType.videos => context.i18n.profile_videos,
+      UserNotificationsType.articles => context.i18n.profile_articles,
+    };
   }
 
-  RequestFilter toRequestFilter({required List<String> authors, int? limit}) {
+  RequestFilter toRequestFilter({required List<String> masterPubkeys, int? limit}) {
     return switch (this) {
+      UserNotificationsType.tokenizedCommunitiesTransactions => RequestFilter(
+          kinds: const [
+            CommunityTokenActionEntity.kind,
+          ],
+          tags: {
+            '#t': const [communityTokenActionTopic],
+            '#p': masterPubkeys,
+          },
+          limit: limit,
+        ),
       UserNotificationsType.videos => RequestFilter(
           kinds: const [
             PostEntity.kind,
             ModifiablePostEntity.kind,
           ],
           search: VideosSearchExtension(contain: true).query,
-          authors: authors,
+          authors: masterPubkeys,
           limit: limit,
         ),
       UserNotificationsType.stories => RequestFilter(
@@ -73,14 +84,14 @@ enum UserNotificationsType {
             ModifiablePostEntity.kind,
           ],
           search: ExpirationSearchExtension(expiration: true).query,
-          authors: authors,
+          authors: masterPubkeys,
           limit: limit,
         ),
       UserNotificationsType.articles => RequestFilter(
           kinds: const [
             ArticleEntity.kind,
           ],
-          authors: authors,
+          authors: masterPubkeys,
           limit: limit,
         ),
       UserNotificationsType.posts => RequestFilter(
@@ -102,14 +113,14 @@ enum UserNotificationsType {
               negative: true,
             ),
           ]).toString(),
-          authors: authors,
+          authors: masterPubkeys,
           limit: limit,
         ),
       UserNotificationsType.none => throw ArgumentError('Cannot build filter for none type'),
     };
   }
 
-  static Set<UserNotificationsType> toggleNotificationType(
+  Set<UserNotificationsType> toggleNotificationType(
     Set<UserNotificationsType> currentSet,
     UserNotificationsType option,
   ) {

@@ -14,6 +14,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
+import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
@@ -139,47 +140,21 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
       }
 
       await _syncContentTypeFromRelay(
-        users: notBlockedUsers,
+        masterPubkeys: notBlockedUsers,
         contentType: contentType,
       );
     }
   }
 
   Future<List<UserNotificationsType>> _getUserSpecificContentTypes() async {
-    final userSpecificTypes = <UserNotificationsType>[];
-    final currentPubkey = ref.read(currentPubkeySelectorProvider);
-    if (currentPubkey == null) {
-      return userSpecificTypes;
-    }
-
-    for (final type in [
-      UserNotificationsType.posts,
-      UserNotificationsType.stories,
-      UserNotificationsType.articles,
-      UserNotificationsType.videos,
-    ]) {
-      final setType = AccountNotificationSetType.fromUserNotificationType(type);
-      if (setType == null) {
-        continue;
-      }
-
-      final accountNotificationSet = await ref.read(
-        ionConnectEntityProvider(
-          eventReference: ReplaceableEventReference(
-            masterPubkey: currentPubkey,
-            kind: AccountNotificationSetEntity.kind,
-            dTag: setType.dTagName,
-          ),
-        ).future,
-      );
-
-      if (accountNotificationSet is AccountNotificationSetEntity &&
-          accountNotificationSet.data.userPubkeys.isNotEmpty) {
-        userSpecificTypes.add(type);
-      }
-    }
-
-    return userSpecificTypes;
+    final currentUserAccountNotificationSets =
+        await ref.read(currentUserAccountNotificationSetsProvider.future);
+    return currentUserAccountNotificationSets
+        .where(
+          (set) => set.data.userPubkeys.isNotEmpty,
+        )
+        .map((set) => set.data.type.toUserNotificationType())
+        .toList();
   }
 
   Future<Map<UserNotificationsType, List<String>>> _getAllUsersFromNotificationSets(
@@ -217,12 +192,14 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
   }
 
   Future<void> _syncContentTypeFromRelay({
-    required List<String> users,
+    required List<String> masterPubkeys,
     required UserNotificationsType contentType,
   }) async {
     final repository = ref.read(accountNotificationSyncRepositoryProvider);
 
     final contentTypeEnum = switch (contentType) {
+      UserNotificationsType.tokenizedCommunitiesTransactions =>
+        ContentType.tokenizedCommunitiesTransactions,
       UserNotificationsType.posts => ContentType.posts,
       UserNotificationsType.stories => ContentType.stories,
       UserNotificationsType.articles => ContentType.articles,
@@ -247,7 +224,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
 
     final requestFilter = _buildRequestFilter(
       contentType: contentType,
-      users: users,
+      masterPubkeys: masterPubkeys,
     );
 
     if (requestFilter == null) {
@@ -265,7 +242,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
         eventFutures.add(_processNotificationEvent(event, contentType));
       },
       actionSource: ActionSourceOptimalRelays(
-        masterPubkeys: users,
+        masterPubkeys: masterPubkeys,
         strategy: OptimalRelaysStrategy.bestLatency,
       ),
     );
@@ -299,13 +276,13 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
 
   RequestFilter? _buildRequestFilter({
     required UserNotificationsType contentType,
-    required List<String> users,
+    required List<String> masterPubkeys,
   }) {
-    if (users.isEmpty || contentType == UserNotificationsType.none) {
+    if (masterPubkeys.isEmpty || contentType == UserNotificationsType.none) {
       return null;
     }
 
-    return contentType.toRequestFilter(authors: users, limit: 100);
+    return contentType.toRequestFilter(masterPubkeys: masterPubkeys, limit: 100);
   }
 
   Future<void> _processNotificationEvent(

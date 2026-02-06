@@ -42,7 +42,7 @@ class ContentRepository implements IonNotificationRepository {
     );
   }
 
-  Future<List<ContentIonNotification>> getNotificationsAfter({
+  Future<List<IonNotification>> getNotificationsAfter({
     required int limit,
     DateTime? after,
   }) async {
@@ -51,11 +51,18 @@ class ContentRepository implements IonNotificationRepository {
       limit: limit,
     );
     return contentNotifications.map((content) {
+      if (content.type == ContentType.tokenizedCommunitiesTransactions) {
+        return TokenTransactionIonNotification(
+          eventReference: content.eventReference,
+          timestamp: content.createdAt.toDateTime,
+        );
+      }
       final notificationType = switch (content.type) {
         ContentType.posts => ContentIonNotificationType.posts,
         ContentType.stories => ContentIonNotificationType.stories,
         ContentType.articles => ContentIonNotificationType.articles,
         ContentType.videos => ContentIonNotificationType.videos,
+        _ => throw UnsupportedError('Unsupported content type: ${content.type}'),
       };
       return ContentIonNotification(
         type: notificationType,

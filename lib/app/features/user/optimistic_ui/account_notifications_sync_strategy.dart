@@ -21,7 +21,6 @@ class AccountNotificationsSyncStrategy implements SyncStrategy<AccountNotificati
     AccountNotificationsOption previous,
     AccountNotificationsOption optimistic,
   ) async {
-    // Update all 4 notification sets (posts, stories, articles, videos)
     const allSetTypes = AccountNotificationSetType.values;
     for (final notificationSetType in allSetTypes) {
       final notificationType = notificationSetType.toUserNotificationType();
