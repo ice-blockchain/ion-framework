@@ -32,18 +32,24 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
   @override
   FutureOr<void> build() {}
 
-  Future<void> publish(UserMetadata userMetadata,
-      {MediaFile? avatar,
-      MediaFile? banner,
-      MediaAttachment? tokenDefinitionMigrationStatusJson}) async {
+  Future<void> publish(
+    UserMetadata userMetadata, {
+    MediaFile? avatar,
+    MediaFile? banner,
+    MediaAttachment? tokenDefinitionMigrationStatusJson,
+  }) async {
     if (state.isLoading) return;
 
     state = const AsyncValue.loading();
 
-    state = await AsyncValue.guard(() => _publish(userMetadata,
+    state = await AsyncValue.guard(
+      () => _publish(
+        userMetadata,
         avatar: avatar,
         banner: banner,
-        tokenDefinitionMigrationStatusJson: tokenDefinitionMigrationStatusJson));
+        tokenDefinitionMigrationStatusJson: tokenDefinitionMigrationStatusJson,
+      ),
+    );
   }
 
   Future<void> publishWithUserActionSigner(

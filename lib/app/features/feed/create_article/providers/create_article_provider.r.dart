@@ -316,8 +316,7 @@ class CreateArticle extends _$CreateArticle {
     if (currentPubkey != null &&
         !ref
             .read(tokenOperationProtectedAccountsServiceProvider)
-            .isProtectedAccount(currentPubkey) &&
-        false) {
+            .isProtectedAccount(currentPubkey)) {
       final tokenDefinition = _buildArticleTokenDefinition(articleData);
       tokenDefinitionEvent = await ionNotifier.sign(tokenDefinition);
       eventsToSend.add(tokenDefinitionEvent);
@@ -333,6 +332,12 @@ class CreateArticle extends _$CreateArticle {
           cache: false,
         ),
     ];
+
+    if (tokenDefinitionEvent != null) {
+      futures.add(
+        communityTokenDefinitionRepository.cacheTokenDefinitionReference(tokenDefinitionEvent),
+      );
+    }
 
     await Future.wait(futures);
 

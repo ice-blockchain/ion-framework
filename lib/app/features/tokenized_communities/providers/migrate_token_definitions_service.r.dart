@@ -21,6 +21,7 @@ import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/token_definition_migration_state.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -37,8 +38,13 @@ part 'migrate_token_definitions_service.r.g.dart';
 @riverpod
 Future<void>? migrateTokenDefinitionsService(Ref ref) async {
   Logger.log('[MIGRATE SERVICE] START');
+
   var stop = false;
 
+  ///
+  /// If app is backgrounded, stop the migration.
+  /// If app is resumed, invalidate the provider and restart the migration.
+  ///
   ref.listen(appLifecycleProvider, (previous, next) {
     if (next == AppLifecycleState.resumed) {
       ref.invalidateSelf();
@@ -49,68 +55,29 @@ Future<void>? migrateTokenDefinitionsService(Ref ref) async {
   });
 
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
-
   if (currentUserMasterPubkey == null) {
     return;
   }
 
   final userMetadata =
       await ref.read(userMetadataProvider(currentUserMasterPubkey, cache: false).future);
-
   if (userMetadata == null) {
     return;
-  }
-
-  final jsonFileRemoteUrl = userMetadata.data.tokenDefinitionMigrationStatusJson?.url;
-
-  if (jsonFileRemoteUrl != null) {
-    final file = await ref.watch(ionConnectFileCacheServiceProvider).getFile(jsonFileRemoteUrl);
-    final contents = await file.readAsString();
-    final isMigrated = (jsonDecode(contents)
-        as Map<String, dynamic>)['tokenizedCommunitiesLegacyContentMigrated'] as bool;
-    if (isMigrated) {
-      return;
-    }
   }
 
   final isProtectedAccount = ref
       .watch(tokenOperationProtectedAccountsServiceProvider)
       .isProtectedAccount(currentUserMasterPubkey);
-
   if (isProtectedAccount) {
     return;
   }
-  final hasProfileTokenDefinition = ref
-      .read(
-        ionConnectEntityHasTokenDefinitionProvider(
-          eventReference: userMetadata.toEventReference(),
-        ),
-      )
-      .valueOrNull
-      .falseOrValue;
 
-  if (hasProfileTokenDefinition) {
-    if (stop) {
-      return;
-    }
-    final tokenDefinition = CommunityTokenDefinitionIon.fromEventReference(
-      eventReference: ReplaceableEventReference(
-        masterPubkey: currentUserMasterPubkey,
-        kind: UserMetadataEntity.kind,
-      ),
-      kind: UserMetadataEntity.kind,
-      type: CommunityTokenDefinitionIonType.original,
-    );
-    final tokenDefinitionEvent =
-        await ref.watch(ionConnectNotifierProvider.notifier).sign(tokenDefinition);
-    unawaited(ref.watch(ionConnectNotifierProvider.notifier).sendEvent(tokenDefinitionEvent));
-
-    unawaited(
-      (await ref.read(communityTokenDefinitionRepositoryProvider.future))
-          .cacheTokenDefinitionReference(tokenDefinitionEvent),
-    );
-    Logger.log('[MIGRATE SERVICE] Profile token definition migrated');
+  final isAlredyMigrated = await _isAlreadyMigrated(ref, userMetadata);
+  if (isAlredyMigrated) {
+    return;
   }
+
+  unawaited(_migrateUserMetadata(ref, userMetadata, stop: stop));
 
   final requestFilter = RequestFilter(
     kinds: const [
@@ -266,8 +233,9 @@ Future<void>? migrateTokenDefinitionsService(Ref ref) async {
   try {
     final tempDir = await getTemporaryDirectory();
     final file = File('${tempDir.path}/$migrationStatusJsonFileName');
-    final jsonString = jsonEncode({'tokenizedCommunitiesLegacyContentMigrated': isDone});
-    await file.writeAsString(jsonString);
+    final jsonString =
+        TokenDefinitionMigrationState(tokenizedCommunitiesLegacyContentMigrated: isDone).toJson();
+    await file.writeAsString(json.encode(jsonString));
 
     final mediaFile = MediaFile(
       path: file.path,
@@ -291,4 +259,61 @@ Future<void>? migrateTokenDefinitionsService(Ref ref) async {
   }
 
   return;
+}
+
+Future<bool> _isAlreadyMigrated(Ref ref, UserMetadataEntity userMetadata) async {
+  final jsonFileRemoteUrl = userMetadata.data.tokenDefinitionMigrationStatusJson?.url;
+  if (jsonFileRemoteUrl != null) {
+    final file = await ref.watch(ionConnectFileCacheServiceProvider).getFile(jsonFileRemoteUrl);
+    final contents = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+    final isMigrated =
+        TokenDefinitionMigrationState.fromJson(contents).tokenizedCommunitiesLegacyContentMigrated;
+    if (isMigrated) {
+      final bytes = await file.readAsBytes();
+      unawaited(
+        ref
+            .watch(ionConnectFileCacheServiceProvider)
+            .putFile(url: jsonFileRemoteUrl, bytes: bytes, fileExtension: 'json'),
+      );
+      return true;
+    }
+  }
+  return false;
+}
+
+Future<void> _migrateUserMetadata(
+  Ref ref,
+  UserMetadataEntity userMetadata, {
+  bool stop = false,
+}) async {
+  final hasProfileTokenDefinition = ref
+      .read(
+        ionConnectEntityHasTokenDefinitionProvider(
+          eventReference: userMetadata.toEventReference(),
+        ),
+      )
+      .valueOrNull
+      .falseOrValue;
+  if (!hasProfileTokenDefinition) {
+    if (stop) {
+      return;
+    }
+    final tokenDefinition = CommunityTokenDefinitionIon.fromEventReference(
+      eventReference: ReplaceableEventReference(
+        masterPubkey: userMetadata.masterPubkey,
+        kind: UserMetadataEntity.kind,
+      ),
+      kind: UserMetadataEntity.kind,
+      type: CommunityTokenDefinitionIonType.original,
+    );
+    final tokenDefinitionEvent =
+        await ref.watch(ionConnectNotifierProvider.notifier).sign(tokenDefinition);
+    unawaited(ref.watch(ionConnectNotifierProvider.notifier).sendEvent(tokenDefinitionEvent));
+
+    unawaited(
+      (await ref.read(communityTokenDefinitionRepositoryProvider.future))
+          .cacheTokenDefinitionReference(tokenDefinitionEvent),
+    );
+    Logger.log('[MIGRATE SERVICE] Profile token definition migrated');
+  }
 }
