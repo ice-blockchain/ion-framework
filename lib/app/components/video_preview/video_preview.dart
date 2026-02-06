@@ -31,6 +31,8 @@ class VideoPreview extends HookConsumerWidget {
     this.duration,
     this.onlyOneShouldPlay = true,
     this.framedEventReference,
+    this.ownerEventReference,
+    this.mediaIndex = 0,
     this.visibilityThreshold = 1.0,
     super.key,
   });
@@ -40,7 +42,12 @@ class VideoPreview extends HookConsumerWidget {
   final String authorPubkey;
   final String? thumbnailUrl;
   final Duration? duration;
+  // post framed event reference  (quote post)
   final EventReference? framedEventReference;
+  // post owner event reference (post owner)
+  final EventReference? ownerEventReference;
+  // media index in the post (carousel media index)
+  final int mediaIndex;
   final double visibilityThreshold;
 
   @override
@@ -49,6 +56,8 @@ class VideoPreview extends HookConsumerWidget {
     final videoSettings = ref.watch(videoSettingsProvider);
 
     final isVideoPlaybackEnabled = ref.watch(feedVideoPlaybackEnabledNotifierProvider);
+    final uniqueControllerId =
+        framedEventReference?.encode() ?? ownerEventReference?.encode() ?? '';
 
     // If autoplay is disabled, we don't need to initialize the controller (to avoid the video downloading)
     final videoControllerProviderState = (videoSettings.autoplay && isVideoPlaybackEnabled)
@@ -58,7 +67,7 @@ class VideoPreview extends HookConsumerWidget {
                 sourcePath: videoUrl,
                 authorPubkey: authorPubkey,
                 looping: true,
-                uniqueId: framedEventReference?.encode() ?? '',
+                uniqueId: '$uniqueControllerId-$mediaIndex',
                 onlyOneShouldPlay: onlyOneShouldPlay,
               ),
             ),
@@ -71,7 +80,6 @@ class VideoPreview extends HookConsumerWidget {
     useRoutePresence(
       onBecameInactive: () {
         if (context.mounted) {
-          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).disablePlayback();
           // Save the current position of the video
           if (controller != null) {
             ref
@@ -83,7 +91,6 @@ class VideoPreview extends HookConsumerWidget {
       },
       onBecameActive: () {
         if (context.mounted) {
-          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).enablePlayback();
           isRouteFocused.value = true;
         }
       },
@@ -105,10 +112,12 @@ class VideoPreview extends HookConsumerWidget {
         if (controller == null || !controller.value.isInitialized) {
           return;
         }
+        final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
         final shouldBeActive = isFullyVisible.value && isRouteFocused.value;
+
         if (shouldBeActive && !controller.value.isPlaying) {
           controller.play();
-        } else if (!shouldBeActive && controller.value.isPlaying) {
+        } else if (!shouldBeActive && controller.value.isPlaying && isCurrentRoute) {
           controller.pause();
         }
       },
@@ -145,7 +154,7 @@ class VideoPreview extends HookConsumerWidget {
         controller != null && controller.value.hasError || videoControllerProviderState.hasError;
 
     return VisibilityDetector(
-      key: ValueKey(uniqueId),
+      key: ValueKey(uniqueId.value),
       onVisibilityChanged: handleVisibilityChanged,
       child: Stack(
         children: [
