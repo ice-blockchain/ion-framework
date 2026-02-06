@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 //  final isMigrated = (jsonDecode(contents)
 //         as Map<String, dynamic>)['tokenizedCommunitiesLegacyContentMigrated'] as bool;
 
