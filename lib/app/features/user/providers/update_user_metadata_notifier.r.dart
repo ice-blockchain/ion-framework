@@ -6,6 +6,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
+import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifier.m.dart';
 import 'package:ion/app/features/settings/model/privacy_options.dart';
@@ -31,12 +32,18 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
   @override
   FutureOr<void> build() {}
 
-  Future<void> publish(UserMetadata userMetadata, {MediaFile? avatar, MediaFile? banner}) async {
+  Future<void> publish(UserMetadata userMetadata,
+      {MediaFile? avatar,
+      MediaFile? banner,
+      MediaAttachment? tokenDefinitionMigrationStatusJson}) async {
     if (state.isLoading) return;
 
     state = const AsyncValue.loading();
 
-    state = await AsyncValue.guard(() => _publish(userMetadata, avatar: avatar, banner: banner));
+    state = await AsyncValue.guard(() => _publish(userMetadata,
+        avatar: avatar,
+        banner: banner,
+        tokenDefinitionMigrationStatusJson: tokenDefinitionMigrationStatusJson));
   }
 
   Future<void> publishWithUserActionSigner(
@@ -61,6 +68,7 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
     UserMetadata userMetadata, {
     MediaFile? avatar,
     MediaFile? banner,
+    MediaAttachment? tokenDefinitionMigrationStatusJson,
   }) async {
     var data = userMetadata.copyWith(
       website:
@@ -106,6 +114,15 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
     if (data.about != null) {
       data = data.copyWith(
         about: QuillTextUtils.trimBioDeltaJson(data.about),
+      );
+    }
+
+    if (tokenDefinitionMigrationStatusJson != null) {
+      data = data.copyWith(
+        media: {
+          ...data.media,
+          tokenDefinitionMigrationStatusJson.url: tokenDefinitionMigrationStatusJson,
+        },
       );
     }
 

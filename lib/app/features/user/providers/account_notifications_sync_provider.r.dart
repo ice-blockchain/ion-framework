@@ -264,7 +264,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
 
     final eventFutures = <Future<void>>[];
 
-    final newLastCreatedAt = await eventBackfillService.startBackfill(
+    final (newLastCreatedAt, _) = await eventBackfillService.startBackfill(
       latestEventTimestamp: latestEventTimestamp.microsecondsSinceEpoch,
       filter: requestFilter,
       onEvent: (event) {
