@@ -16,6 +16,7 @@ instructions:
         - Check for unremoved listeners (ValueNotifier, ChangeNotifier, Streams)
         - Verify dispose() methods clean up controllers, listeners, and subscriptions
         - Look for potential memory leaks
+        - Ensure async callbacks do not update state after dispose (mounted checks)
 
     2. **Null Safety & Error Handling**
         - Verify null-aware operators (?., ??) are used correctly
@@ -42,6 +43,10 @@ instructions:
         - Avoid magic numbers—use named constants
         - Prefer named parameters for functions with multiple arguments
         - Use widget subclasses instead of methods that return widgets
+        - Use `.s` extension for responsive sizing (e.g., `16.0.s` not `16.0`)
+        - Use `ScreenSideOffset.defaultSmallMargin` or `.small` for margins
+        - Don't use verbs (`getSomethingProvider`), use data names
+        - Use SeparatedColumn/SeparatedRow for lists with separators between items
 
     5. **Testing & Maintainability**
         - Identify integration test scenarios for critical flows
@@ -52,6 +57,10 @@ instructions:
         - Infinite loops in widget rebuilds are avoided
         - MediaQuery/Theme are not accessed unnecessarily
         - GlobalKey usage is justified and not overused
+  
+    7. **Security & Privacy**
+        - Ensure no secrets (private keys, passkeys, JWTs, seeds) are logged
+        - Do not store secrets in SharedPreferences; use secure storage
 
 - name: "General Code Quality"
   fileFilters:
@@ -67,3 +76,11 @@ instructions:
     2. Ensure no secrets or environment values are hardcoded.
     3. Verify proper use of linters (flutter analyze).
     4. Maintain architectural consistency (e.g., separation of concerns).
+    5. Verify that there is no code duplication and the code follows the DRY principle. 
+    6. Verify that magic numbers are not used and are replaced with named constants where appropriate. 
+    7. Verify that existing design patterns, if any, are used correctly and consistently. 
+    8. Identify areas where poorly structured or tightly coupled code could be refactored using an appropriate design pattern, without overengineering. 
+    9. Check that responsibilities are clearly separated and that classes or functions have a single, well-defined purpose. 
+    10. Check for overly complex logic and verify that it can be simplified without changing behavior. 
+    11. Verify that comments are present only where the intent or logic is not obvious from the code. 
+    12. Assess overall readability and maintainability of the code.
