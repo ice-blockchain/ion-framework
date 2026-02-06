@@ -43,6 +43,7 @@ class ContentBottomSheetMenu extends ConsumerWidget {
           showShadow: showShadow,
           forAppBar: true,
           key: key,
+          padding: EdgeInsets.zero,
         );
 
   final EventReference eventReference;
