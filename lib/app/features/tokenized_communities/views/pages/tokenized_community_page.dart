@@ -375,6 +375,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                           externalAddress: externalAddress,
                           tokenDefinition: tokenDefinition,
                           showBuyButton: false,
+                          enableContentNavigation: true,
                         ),
                       ),
               };
