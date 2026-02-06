@@ -18,6 +18,7 @@ import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.d
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
@@ -229,14 +230,18 @@ class SwapCoinsController extends _$SwapCoinsController {
     final coinGroups = walletView?.coinGroups;
     if (coinGroups == null || coinGroups.isEmpty) return null;
 
-    // Try last used sell coin first
-    final lastUsed = coinGroups.firstWhereOrNull(
+    // Filter to only internal coins (ION/ICE) - exclude creator tokens
+    final internalCoinGroups = coinGroups.where(SwapCoinIdentifier.isInternalCoinGroup).toList();
+    if (internalCoinGroups.isEmpty) return null;
+
+    // Try last used sell coin first (only if it's an internal coin)
+    final lastUsed = internalCoinGroups.firstWhereOrNull(
       (group) => group.symbolGroup == lastSymbolGroup,
     );
     if (lastUsed != null) return lastUsed;
 
-    // Otherwise pick the coin with the highest balance
-    return maxBy<CoinsGroup, double>(coinGroups, (g) => g.totalAmount);
+    // Otherwise pick the internal coin with the highest balance
+    return maxBy<CoinsGroup, double>(internalCoinGroups, (g) => g.totalAmount);
   }
 
   /// Find network with the highest balance

@@ -15,8 +15,8 @@ class SwapCoinIdentifier {
     return coin.abbreviation.toUpperCase() == 'ION' && network.isBsc;
   }
 
-  static bool isInternalCoinGroup(CoinsGroup coin) {
-    return ['ION', 'ICE'].contains(coin.abbreviation.toUpperCase());
+  static bool isInternalCoinGroup(CoinsGroup coinsGroup) {
+    return ['ion', 'ice'].contains(coinsGroup.symbolGroup.toLowerCase());
   }
 
   /// Checks if a coin is ION ION (ION token on Ion network)
