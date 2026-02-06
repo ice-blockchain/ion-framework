@@ -336,10 +336,12 @@ class TokenizedCommunityPage extends HookConsumerWidget {
           SizedBox(height: MediaQuery.viewPaddingOf(context).top + 18.s),
           if (tokenInfo != null &&
               tokenType != null &&
-              tokenType != CommunityContentTokenType.profile) ...[
+              tokenType != CommunityContentTokenType.profile &&
+              tokenType != CommunityContentTokenType.twitter) ...[
             Center(
               child: Text(
                 tokenInfo.title,
+                overflow: TextOverflow.ellipsis,
                 style: context.theme.appTextThemes.subtitle3.copyWith(
                   fontWeight: FontWeight.w500,
                   color: context.theme.appColors.onPrimaryAccent,
@@ -368,18 +370,13 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                   ),
                 _ => tokenDefinition == null
                     ? const SizedBox.shrink()
-                    : Padding(
-                        padding: EdgeInsetsDirectional.only(
-                          top: tokenType == CommunityContentTokenType.postText ? 36.s : 0,
-                        ),
-                        child: ContentTokenHeader(
-                          type: tokenType ?? CommunityContentTokenType.postText,
-                          token: tokenInfo,
-                          externalAddress: externalAddress,
-                          tokenDefinition: tokenDefinition,
-                          showBuyButton: false,
-                          enableContentNavigation: true,
-                        ),
+                    : ContentTokenHeader(
+                        type: tokenType ?? CommunityContentTokenType.postText,
+                        token: tokenInfo,
+                        externalAddress: externalAddress,
+                        tokenDefinition: tokenDefinition,
+                        showBuyButton: false,
+                        enableContentNavigation: true,
                       ),
               };
             },
