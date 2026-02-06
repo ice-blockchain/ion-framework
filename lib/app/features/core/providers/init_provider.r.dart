@@ -17,6 +17,7 @@ import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/feed_feature_initializer.dart';
 import 'package:ion/app/features/force_update/providers/force_update_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/global_subscription.r.dart';
+import 'package:ion/app/features/ion_connect/providers/migrate_token_definitions_service.r.dart';
 import 'package:ion/app/features/push_notifications/background/firebase_messaging_background_service.dart';
 import 'package:ion/app/features/push_notifications/providers/pushes_init_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/tokenized_community_onboarding_provider.m.dart';
@@ -84,6 +85,7 @@ Future<void> initApp(Ref ref) async {
     ..listen(feedBookmarkCollectionsNotifierProvider, noop)
     ..listen(pushesInitProvider, noop)
     ..listen(globalSubscriptionProvider, (_, subscription) => subscription?.init())
+    ..listen(migrateTokenDefinitionsServiceProvider, noop)
     ..listen(accountNotificationsSyncProvider, noop)
     ..listen(deepLinkHandlerProvider, noop)
     ..listen(tokenizedCommunityOnboardingServiceProvider, noop);

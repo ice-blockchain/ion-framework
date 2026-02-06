@@ -22,7 +22,10 @@ enum MimeType {
   brotli('application/brotli'),
 
   /// Generic binary format for ION Connect
-  generic('application/octet-stream');
+  generic('application/octet-stream'),
+
+  /// JSON format for ION Connect
+  json('application/json');
 
   const MimeType(this.value);
 

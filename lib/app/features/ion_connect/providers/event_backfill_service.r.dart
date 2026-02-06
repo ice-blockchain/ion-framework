@@ -24,35 +24,40 @@ class EventBackfillService {
   final IonConnectNotifier ionConnectNotifier;
   final Ref ref;
 
-  Future<int> startBackfill({
+  Future<(int lastCreatedAt, bool isDone)> startBackfill({
     required int latestEventTimestamp,
     required RequestFilter filter,
     required void Function(EventMessage event) onEvent,
+    int? limit,
     ActionSource? actionSource,
   }) async {
     int? tmpLastCreatedAt;
+    var tmpIsDone = false;
     while (true) {
-      final (maxCreatedAt, stopFetching) = await _fetchPagedEvents(
+      final (maxCreatedAt, stopFetching, isDone) = await _fetchPagedEvents(
         initialLatestEventTimestamp: latestEventTimestamp,
         regularSince: tmpLastCreatedAt ?? latestEventTimestamp,
         filter: filter,
+        limit: limit,
         onEvent: onEvent,
         actionSource: actionSource,
       );
       tmpLastCreatedAt = maxCreatedAt;
       if (stopFetching) {
+        tmpIsDone = isDone;
         break;
       }
     }
-    return tmpLastCreatedAt;
+    return (tmpLastCreatedAt, tmpIsDone);
   }
 
-  Future<(int maxCreatedAt, bool stopFetching)> _fetchPagedEvents({
+  Future<(int maxCreatedAt, bool stopFetching, bool isDone)> _fetchPagedEvents({
     required int initialLatestEventTimestamp,
     required RequestFilter filter,
     required void Function(EventMessage event) onEvent,
     int? regularSince,
     int? regularUntil,
+    int? limit,
     int? previousMaxCreatedAt,
     Set<String> previousRegularIds = const {},
     int page = 1,
@@ -66,14 +71,14 @@ class EventBackfillService {
         );
         // return the initial latest event timestamp
         // to avoid setting invalid timestamp in storage
-        return (initialLatestEventTimestamp, true);
+        return (initialLatestEventTimestamp, true, false);
       }
       final requestMessage = RequestMessage(
         filters: [
           filter.copyWith(
             since: () => regularSince?.toMicroseconds,
             until: () => regularUntil?.toMicroseconds,
-            limit: () => 100,
+            limit: () => limit ?? 100,
           ),
         ],
       );
@@ -103,13 +108,14 @@ class EventBackfillService {
       final nonDuplicateEventIds = regularIds.whereNot((id) => previousRegularIds.contains(id));
 
       if (nonDuplicateEventIds.isEmpty) {
-        return (maxCreatedAt, page <= 2);
+        return (maxCreatedAt, page <= 2, true);
       }
 
       return _fetchPagedEvents(
         initialLatestEventTimestamp: initialLatestEventTimestamp,
         regularSince: regularSince,
         regularUntil: minCreatedAt,
+        limit: limit,
         previousMaxCreatedAt: maxCreatedAt,
         previousRegularIds: {
           ...previousRegularIds,
