@@ -39,6 +39,17 @@ class EvmTxBuilder {
     );
   }
 
+  Future<EvmTransaction> encodeApproveTransaction({
+    required String data,
+    required String token,
+  }) async {
+    return _wrapTransaction(
+      to: token,
+      data: data,
+      value: BigInt.zero,
+    );
+  }
+
   Future<BigInt> allowance({
     required String token,
     required String owner,
@@ -62,6 +73,18 @@ class EvmTxBuilder {
     );
 
     return result.first as BigInt;
+  }
+
+  EvmTransaction wrapTransaction({
+    required String to,
+    required String data,
+    required BigInt value,
+  }) {
+    return _wrapTransaction(
+      to: to,
+      data: data,
+      value: value,
+    );
   }
 
   EvmTransaction _wrapTransaction({

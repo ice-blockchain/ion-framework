@@ -118,17 +118,4 @@ class SwapOkxRepository {
           [],
     );
   }
-
-  Future<void> broadcastSwap({
-    required String chainIndex,
-    required String address,
-  }) async {
-    await _dio.post<dynamic>(
-      '/pre-transaction/broadcast-transaction',
-      queryParameters: {
-        'chainIndex': chainIndex,
-        'address': address,
-      },
-    );
-  }
 }

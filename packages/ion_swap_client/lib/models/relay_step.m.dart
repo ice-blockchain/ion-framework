@@ -7,7 +7,6 @@ part 'relay_step.m.freezed.dart';
 part 'relay_step.m.g.dart';
 
 @freezed
-// TODO(ice-erebus): maybe add signature step
 class RelayStep with _$RelayStep {
   factory RelayStep({
     required String id,
