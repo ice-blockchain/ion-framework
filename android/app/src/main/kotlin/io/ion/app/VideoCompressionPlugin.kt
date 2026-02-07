@@ -1,5 +1,6 @@
 package io.ion.app
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -7,6 +8,7 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
+import android.os.PowerManager
 import android.util.Log
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -15,12 +17,15 @@ import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
 
-class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
+class VideoCompressionPlugin(
+    private val context: Context
+) : MethodChannel.MethodCallHandler {
     companion object {
         private const val TAG = "VideoCompression"
         private const val DEFAULT_FRAME_RATE = 30
         private const val DEFAULT_I_FRAME_INTERVAL = 1
         private val compressionSemaphore = Semaphore(2, true)
+        private const val WAKE_LOCK_TIMEOUT_MS = 10 * 60 * 1000L
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -42,6 +47,9 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
 
                 Thread {
                     compressionSemaphore.acquire()
+                    val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
+                        .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$TAG:compress")
+                    wakeLock.acquire(WAKE_LOCK_TIMEOUT_MS)
                     try {
                         Log.d(TAG, "Starting compression: $inputPath (${compressionSemaphore.availablePermits()} slots remaining)")
                         compressVideo(inputPath, outputPath, destWidth, destHeight, codec, quality)
@@ -50,6 +58,9 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                         Log.e(TAG, "Compression failed", e)
                         result.error("COMPRESSION_FAILED", e.message, null)
                     } finally {
+                        if (wakeLock.isHeld) {
+                            wakeLock.release()
+                        }
                         compressionSemaphore.release()
                         Log.d(TAG, "Compression completed: $inputPath (${compressionSemaphore.availablePermits()} slots available)")
                     }
