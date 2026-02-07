@@ -80,9 +80,12 @@ class TopHolderTile extends StatelessWidget {
     final holderName = holder.position.holder?.name;
     final holderDisplay = holder.position.holder?.display;
     final holderBlockchainAddress = holder.position.holder?.addresses?.blockchain;
+    final badgeType =
+        holder.position.rank == 0 ? RankBadgeType.bondingCurve : RankBadgeType.regular;
 
     return HolderTile(
       rank: holder.position.rank,
+      badgeType: badgeType,
       amountText: formatAmountCompactFromRaw(holder.position.amount),
       displayName: holderDisplay ??
           shortenAddress(
