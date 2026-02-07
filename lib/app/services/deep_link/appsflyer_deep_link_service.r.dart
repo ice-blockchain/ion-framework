@@ -235,17 +235,18 @@ final class AppsFlyerDeepLinkService {
     final completer = Completer<String>();
 
     try {
+      final ogParams = _buildOgParams(
+        ogTitle: ogTitle,
+        ogImageUrl: ogImageUrl,
+        ogDescription: ogDescription,
+      );
       _appsflyerSdk.generateInviteLink(
         AppsFlyerInviteLinkParams(
           brandDomain: _brandDomain,
           customParams: {
             'deep_link_value': path,
             if (contentType != null) _contentTypeKey: contentType.value,
-            ...?_buildOgParams(
-              ogTitle: ogTitle,
-              ogImageUrl: ogImageUrl,
-              ogDescription: ogDescription,
-            ),
+            ...?ogParams,
           },
         ),
         (dynamic data) => _handleInviteLinkSuccess(data, completer),
