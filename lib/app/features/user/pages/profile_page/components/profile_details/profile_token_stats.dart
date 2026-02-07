@@ -13,6 +13,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_operation
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/follow_counters/follow_counters.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/show_bottom_notch_provider.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/hooks/use_watch_when_visible.dart';
@@ -280,10 +281,15 @@ class ProfileTokenStatsFeed extends StatelessWidget {
       children: [
         IntrinsicWidth(
           child: Container(
-            decoration: ShapeDecoration(
-              color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
-              shape: const BottomNotchRectBorder(),
-            ),
+            decoration: ShowBottomNotchProvider.of(context)?.show ?? true
+                ? ShapeDecoration(
+                    color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
+                    shape: const BottomNotchRectBorder(),
+                  )
+                : BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(12.s)),
+                    color: context.theme.appColors.primaryBackground.withValues(alpha: 0.1),
+                  ),
             constraints: BoxConstraints(minWidth: 260.s),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

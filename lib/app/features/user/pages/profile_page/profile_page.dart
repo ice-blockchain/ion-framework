@@ -23,12 +23,24 @@ import 'package:ion/app/features/user/pages/profile_page/components/header/profi
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_actions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_details.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/show_bottom_notch_provider.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/tab_entities_list.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
+
+class ProfileSpacing {
+  ProfileSpacing.forMode(ProfileMode mode)
+      : topDetailsSpacing = mode == ProfileMode.dark ? 9.0.s : 12.0.s,
+        bottomDetailsSpacing = mode == ProfileMode.dark ? 5.0.s : 12.0.s,
+        separatorSpacing = mode == ProfileMode.dark ? 9.0.s : 12.0.s;
+
+  final double topDetailsSpacing;
+  final double bottomDetailsSpacing;
+  final double separatorSpacing;
+}
 
 class ProfilePage extends HookConsumerWidget {
   const ProfilePage({
@@ -55,6 +67,8 @@ class ProfilePage extends HookConsumerWidget {
         .get(TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled);
 
     final profileMode = tokenizedCommunitiesEnabled ? ProfileMode.dark : ProfileMode.light;
+
+    final spacing = ProfileSpacing.forMode(profileMode);
 
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
@@ -113,96 +127,94 @@ class ProfilePage extends HookConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
-      body: CollapsingHeaderTabsLayout(
-        backgroundColor: context.theme.appColors.secondaryBackground,
-        showBackButton: showBackButton,
-        newUiMode: profileMode == ProfileMode.dark,
-        imageUrl: avatarUrl,
-        tabs: UserContentType.values,
-        collapsedHeaderBuilder: (opacity) => Header(
-          opacity: opacity,
-          masterPubkey: masterPubkey,
-          showBackButton: !isCurrentUserProfile,
-          textColor:
-              profileMode == ProfileMode.dark ? context.theme.appColors.secondaryBackground : null,
-        ),
-        tabBarViews: TabEntityType.values
-            .map(
-              (type) => type == TabEntityType.replies
-                  ? TabEntitiesList.replies(
-                      pubkey: masterPubkey,
-                      onRefresh: onRefresh,
-                    )
-                  : TabEntitiesList(
-                      pubkey: masterPubkey,
-                      type: type,
-                      onRefresh: onRefresh,
-                    ),
-            )
-            .toList(),
-        expandedHeader: Column(
-          children: [
-            SizedBox(
-              height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) + 27.0.s,
-            ),
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ProfileAvatar(
-                  profileMode: profileMode,
-                  pubkey: masterPubkey,
-                  size: profileMode == ProfileMode.dark ? 88.0.s : null,
-                ),
-                PositionedDirectional(
-                  bottom: -6.0.s,
-                  end: -6.0.s,
-                  child: ProfileMainAction(
-                    pubkey: masterPubkey,
-                    profileMode: profileMode,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: profileMode == ProfileMode.dark ? 9.0.s : 12.0.s,
-            ),
-            ProfileDetails(
-              pubkey: masterPubkey,
-              profileMode: profileMode,
-            ),
-            SizedBox(
-              height: profileMode == ProfileMode.dark ? 5.0.s : 12.0.s,
-            ),
-            if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
-            SizedBox(
-              height: profileMode == ProfileMode.dark ? 9.0.s : 12.0.s,
-            ),
-          ],
-        ),
-        headerActionsBuilder: (menuCloseSignal) => [
-          if (profileMode == ProfileMode.dark) ...[
-            ProfileActions(
-              pubkey: masterPubkey,
-              profileMode: profileMode,
-            ),
-          ],
-          if (isMultiAccountsEnabled) ...[
-            GestureDetector(
-              onTap: () => SwitchAccountRoute().push<void>(context),
-              child: Assets.svg.iconSwitchProfile.icon(
-                size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
-                color: profileMode == ProfileMode.dark
-                    ? context.theme.appColors.secondaryBackground
-                    : null,
-              ),
-            ),
-          ],
-          ProfileContextMenu(
-            pubkey: masterPubkey,
-            closeSignal: menuCloseSignal,
-            profileMode: profileMode,
+      body: ShowBottomNotchProvider(
+        show: false,
+        child: CollapsingHeaderTabsLayout(
+          backgroundColor: context.theme.appColors.secondaryBackground,
+          showBackButton: showBackButton,
+          newUiMode: profileMode == ProfileMode.dark,
+          imageUrl: avatarUrl,
+          tabs: UserContentType.values,
+          collapsedHeaderBuilder: (opacity) => Header(
+            opacity: opacity,
+            masterPubkey: masterPubkey,
+            showBackButton: !isCurrentUserProfile,
+            textColor: profileMode == ProfileMode.dark
+                ? context.theme.appColors.secondaryBackground
+                : null,
           ),
-        ],
+          tabBarViews: TabEntityType.values
+              .map(
+                (type) => type == TabEntityType.replies
+                    ? TabEntitiesList.replies(
+                        pubkey: masterPubkey,
+                        onRefresh: onRefresh,
+                      )
+                    : TabEntitiesList(
+                        pubkey: masterPubkey,
+                        type: type,
+                        onRefresh: onRefresh,
+                      ),
+              )
+              .toList(),
+          expandedHeader: Column(
+            children: [
+              SizedBox(
+                height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) + 27.0.s,
+              ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ProfileAvatar(
+                    profileMode: profileMode,
+                    pubkey: masterPubkey,
+                    size: profileMode == ProfileMode.dark ? 88.0.s : null,
+                  ),
+                  PositionedDirectional(
+                    bottom: -6.0.s,
+                    end: -6.0.s,
+                    child: ProfileMainAction(
+                      pubkey: masterPubkey,
+                      profileMode: profileMode,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: spacing.topDetailsSpacing),
+              ProfileDetails(
+                pubkey: masterPubkey,
+                profileMode: profileMode,
+              ),
+              SizedBox(height: spacing.separatorSpacing),
+              if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
+              SizedBox(height: spacing.bottomDetailsSpacing),
+            ],
+          ),
+          headerActionsBuilder: (menuCloseSignal) => [
+            if (profileMode == ProfileMode.dark) ...[
+              ProfileActions(
+                pubkey: masterPubkey,
+                profileMode: profileMode,
+              ),
+            ],
+            if (isMultiAccountsEnabled) ...[
+              GestureDetector(
+                onTap: () => SwitchAccountRoute().push<void>(context),
+                child: Assets.svg.iconSwitchProfile.icon(
+                  size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
+                  color: profileMode == ProfileMode.dark
+                      ? context.theme.appColors.secondaryBackground
+                      : null,
+                ),
+              ),
+            ],
+            ProfileContextMenu(
+              pubkey: masterPubkey,
+              closeSignal: menuCloseSignal,
+              profileMode: profileMode,
+            ),
+          ],
+        ),
       ),
     );
   }

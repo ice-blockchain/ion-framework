@@ -20,6 +20,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/show_bottom_notch_provider.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class CommunityTokenMessage extends HookConsumerWidget {
@@ -83,40 +84,44 @@ class CommunityTokenMessage extends HookConsumerWidget {
       context: context,
     );
 
-    return MessageItemWrapper(
-      isMe: isMe,
-      margin: margin,
-      messageItem: messageItem,
-      containerMaxWidth: 315.s,
-      contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 12.0.s),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (repliedMessageItem != null) ReplyMessage(messageItem, repliedMessageItem, onTapReply),
-          if (definitionEntity case final definitionEntity?)
-            GestureDetector(
-              onTap: () {
-                TokenizedCommunityRoute(
-                  externalAddress: definitionEntity.data.externalAddress,
-                ).push<void>(context);
-              },
-              child: _TokenCard(definitionEntity: definitionEntity),
-            ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              MessageReactions(eventMessage: eventMessage, isMe: isMe),
-              Padding(
-                padding: EdgeInsetsDirectional.only(top: 6.0.s),
-                child: MessageMetadata(
-                  eventMessage: eventMessage,
-                  startPadding: hasReactions ? 0.0.s : 8.0.s,
-                ),
+    return ShowBottomNotchProvider(
+      show: false,
+      child: MessageItemWrapper(
+        isMe: isMe,
+        margin: margin,
+        messageItem: messageItem,
+        containerMaxWidth: 315.s,
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 12.0.s),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (repliedMessageItem != null)
+              ReplyMessage(messageItem, repliedMessageItem, onTapReply),
+            if (definitionEntity case final definitionEntity?)
+              GestureDetector(
+                onTap: () {
+                  TokenizedCommunityRoute(
+                    externalAddress: definitionEntity.data.externalAddress,
+                  ).push<void>(context);
+                },
+                child: _TokenCard(definitionEntity: definitionEntity),
               ),
-            ],
-          ),
-        ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                MessageReactions(eventMessage: eventMessage, isMe: isMe),
+                Padding(
+                  padding: EdgeInsetsDirectional.only(top: 6.0.s),
+                  child: MessageMetadata(
+                    eventMessage: eventMessage,
+                    startPadding: hasReactions ? 0.0.s : 8.0.s,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
