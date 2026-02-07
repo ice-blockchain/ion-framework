@@ -10,6 +10,7 @@ import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/hooks/use_story_viewer_story_preload.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_content.dart';
 import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/core/story_gesture_handler.dart';
+import 'package:ion/app/features/feed/stories/views/components/story_viewer/components/viewers/ad_story_viewer.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 
 class UserStoryPageView extends HookConsumerWidget {
@@ -78,15 +79,17 @@ class UserStoryPageView extends HookConsumerWidget {
           storiesLength: stories.length,
           onSeenAll: () => handleUserExit(onNextUser),
         ),
-        child: StoryContent(
-          key: Key(currentStory.id),
-          story: currentStory,
-          viewerPubkey: pubkey,
-          onNext: () => singleUserStoriesNotifier.advance(
-            storiesLength: stories.length,
-            onSeenAll: () => handleUserExit(onNextUser),
-          ),
-        ),
+        child: currentStory.id.endsWith(UserStories.adKeySuffix)
+            ? AdStoryViewer(key: Key(currentStory.id), storyId: currentStory.id)
+            : StoryContent(
+                key: Key(currentStory.id),
+                story: currentStory,
+                viewerPubkey: pubkey,
+                onNext: () => singleUserStoriesNotifier.advance(
+                  storiesLength: stories.length,
+                  onSeenAll: () => handleUserExit(onNextUser),
+                ),
+              ),
       ),
     );
   }

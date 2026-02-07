@@ -1,4 +1,4 @@
-# melos_managed_dependency_overrides: ion_identity_client,js,ion_lint_rules,ion_connect_cache,ion_content_labeler,ion_token_analytics,ion_swap_client
+# melos_managed_dependency_overrides: ion_identity_client,js,ion_lint_rules,ion_connect_cache,ion_content_labeler,ion_token_analytics,ion_swap_client,ion_ads
 dependency_overrides:
   analyzer_plugin: ^0.13.1
   flutter_cache_manager:
@@ -10,6 +10,8 @@ dependency_overrides:
     git:
       url: https://github.com/ice-blockchain/flutter-quill.git
       ref: 7ccd3a8782d397995ab65b3ba8523896591310b8
+  ion_ads:
+    path: packages/ion_ads
   ion_connect_cache:
     path: packages/ion_connect_cache
   ion_content_labeler:
