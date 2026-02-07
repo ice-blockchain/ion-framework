@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/top_holder_extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_empty.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
@@ -168,7 +169,7 @@ class _TopHolderList extends ConsumerWidget {
               return BurningHolderTile(holder: holder);
             }
 
-            return TopHolderTile(holder: holder);
+            return HolderTile(data: holder.tileData);
           },
           separatorBuilder: (context, index) => SizedBox(height: 4.0.s),
         );

@@ -37,11 +37,8 @@ class LatestTradeRow extends StatelessWidget {
         ? i18n.trade_buy_badge_label
         : i18n.trade_sell_badge_label;
 
-    final holderAddress =
-        trade.position.holder.addresses?.ionConnect ?? trade.position.addresses.ionConnect;
-    final creatorAddress = trade.creator.addresses?.ionConnect;
-    final isCreator =
-        creatorAddress != null && holderAddress != null && holderAddress == creatorAddress;
+    final isCreator = trade.isCreator;
+    final holderIonConnectAddress = trade.position.holder.addresses?.ionConnect;
     final isXUser = trade.position.holder.isXUser;
     final username = trade.position.holder.name;
 
@@ -107,10 +104,10 @@ class LatestTradeRow extends StatelessWidget {
     return InkWell(
       onTap: isXUser
           ? () => openUrlInAppBrowser('https://x.com/$username')
-          : holderAddress != null
+          : holderIonConnectAddress != null
               ? () => ProfileNavigationUtils.navigateToProfile(
                     context,
-                    pubkey: holderAddress,
+                    pubkey: holderIonConnectAddress,
                   )
               : null,
       child: content,

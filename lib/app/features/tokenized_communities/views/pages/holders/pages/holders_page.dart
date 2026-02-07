@@ -9,6 +9,7 @@ import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/top_holder_extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_tile.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/top_holders/components/top_holders_skeleton.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
@@ -78,8 +79,8 @@ class HoldersPage extends HookConsumerWidget {
                       return _HoldersListPadding(
                         topPadding: topPadding,
                         bottomPadding: bottomPadding,
-                        child: TopHolderTile(
-                          holder: holder,
+                        child: HolderTile(
+                          data: holder.tileData,
                         ),
                       );
                     },
