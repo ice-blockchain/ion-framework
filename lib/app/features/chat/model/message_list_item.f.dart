@@ -60,6 +60,7 @@ sealed class ChatMessageInfoItem with _$ChatMessageInfoItem {
   const factory ChatMessageInfoItem.shareProfile({
     required EventMessage eventMessage,
     required String contentDescription,
+    String? avatarUrl,
   }) = ShareProfileItem;
 
   @Implements<MessageInfo>()
