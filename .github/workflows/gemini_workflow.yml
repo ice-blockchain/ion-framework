@@ -1,0 +1,43 @@
+name: Gemini AI Code Review
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+on:
+  # Trigger manually to save API quota
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull Request Number (e.g., 10)'
+        required: true
+        type: string
+
+  # Uncomment the lines below to re-enable automatic runs on every PR
+  # pull_request:
+  #   types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install requests google-generativeai
+
+      - name: Run Gemini Review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Determine PR Number: Use manual input if available, otherwise fallback to event data
+          PR_NUMBER: ${{ github.event.inputs.pr_number || github.event.pull_request.number }}
+        run: python scripts/review_pr.py
