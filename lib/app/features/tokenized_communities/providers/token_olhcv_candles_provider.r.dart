@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
+import 'package:ion/app/utils/date.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -42,12 +44,12 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
     }
 
     for (final candle in batch) {
-      final existingIndex = currentCandles.indexWhere(
-        (existing) => existing.timestamp == candle.timestamp,
-      );
+      final last = currentCandles.isNotEmpty ? currentCandles.last : null;
+      final sameSlot = last != null &&
+          areSameTimeSlot(candle.timestamp.toDateTime, last.timestamp.toDateTime, interval);
 
-      if (existingIndex >= 0) {
-        currentCandles[existingIndex] = candle;
+      if (sameSlot) {
+        currentCandles[currentCandles.length - 1] = candle;
       } else {
         currentCandles.add(candle);
       }
