@@ -27,6 +27,7 @@ class UserDelegationEntity
     required String signature,
     required int createdAt,
     required UserDelegationData data,
+    EventMessage? eventMessage,
   }) = _UserDelegationEntity;
 
   const UserDelegationEntity._();
@@ -44,6 +45,7 @@ class UserDelegationEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: UserDelegationData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

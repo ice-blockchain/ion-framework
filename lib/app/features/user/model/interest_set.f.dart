@@ -27,6 +27,7 @@ class InterestSetEntity
     required String signature,
     required int createdAt,
     required InterestSetData data,
+    EventMessage? eventMessage,
   }) = _InterestSetEntity;
 
   const InterestSetEntity._();
@@ -44,6 +45,7 @@ class InterestSetEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: InterestSetData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

@@ -23,6 +23,7 @@ class InterestsEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity,
     required String signature,
     required int createdAt,
     required InterestsData data,
+    EventMessage? eventMessage,
   }) = _InterestsEntity;
 
   const InterestsEntity._();
@@ -40,6 +41,7 @@ class InterestsEntity with IonConnectEntity, CacheableEntity, ReplaceableEntity,
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: InterestsData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

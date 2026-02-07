@@ -22,6 +22,7 @@ class BlockedUserEntity with IonConnectEntity, ImmutableEntity, _$BlockedUserEnt
     required int createdAt,
     required String masterPubkey,
     required BlockedUserEntityData data,
+    EventMessage? eventMessage,
   }) = _BlockedUserEntity;
 
   const BlockedUserEntity._();
@@ -37,6 +38,7 @@ class BlockedUserEntity with IonConnectEntity, ImmutableEntity, _$BlockedUserEnt
       createdAt: eventMessage.createdAt,
       masterPubkey: eventMessage.masterPubkey,
       data: BlockedUserEntityData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

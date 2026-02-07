@@ -33,6 +33,7 @@ class BadgeDefinitionEntity
     required String signature,
     required int createdAt,
     required BadgeDefinitionData data,
+    EventMessage? eventMessage,
   }) = _BadgeDefinitionEntity;
 
   const BadgeDefinitionEntity._();
@@ -49,11 +50,12 @@ class BadgeDefinitionEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: BadgeDefinitionData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 
   static const int kind = 30009;
   static const String verifiedBadgeDTag = 'verified';

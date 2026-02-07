@@ -29,6 +29,7 @@ class CommunityUpdateEntity with _$CommunityUpdateEntity, IonConnectEntity, Immu
     required String signature,
     required int createdAt,
     required CommunityUpdateData data,
+    EventMessage? eventMessage,
   }) = _CommunityUpdateEntity;
 
   const CommunityUpdateEntity._();
@@ -45,6 +46,7 @@ class CommunityUpdateEntity with _$CommunityUpdateEntity, IonConnectEntity, Immu
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: CommunityUpdateData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

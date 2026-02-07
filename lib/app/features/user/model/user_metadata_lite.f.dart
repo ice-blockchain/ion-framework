@@ -28,6 +28,7 @@ class UserMetadataLiteEntity
     @Default('') String pubkey,
     @Default('') String signature,
     @Default(0) int createdAt,
+    EventMessage? eventMessage,
   }) = _UserMetadataLiteEntity;
 
   const UserMetadataLiteEntity._();
@@ -44,11 +45,12 @@ class UserMetadataLiteEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: UserMetadataLite.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 
   // Negative kind to indicate that this model is not part of the protocol and should be used only on the FE
   static const int kind = -1;

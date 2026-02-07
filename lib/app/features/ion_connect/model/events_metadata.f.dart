@@ -22,6 +22,7 @@ class EventsMetadataEntity with IonConnectEntity, ImmutableEntity, _$EventsMetad
     required String signature,
     required int createdAt,
     required EventsMetadataData data,
+    EventMessage? eventMessage,
   }) = _EventsMetadataEntity;
 
   const EventsMetadataEntity._();
@@ -38,6 +39,7 @@ class EventsMetadataEntity with IonConnectEntity, ImmutableEntity, _$EventsMetad
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: EventsMetadataData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
