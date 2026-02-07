@@ -70,6 +70,18 @@ class PushNotificationsSettings extends ConsumerWidget {
                       enabled: hasNotificationsPermission,
                     ),
                     SelectableOptionsGroup(
+                      title: context.i18n.push_notification_tokenized_community_group_title,
+                      selected: _filterSelectedOptions(
+                        TokenizedCommunityNotificationOption.values,
+                        selected: selectedCategories,
+                      ),
+                      options: TokenizedCommunityNotificationOption.values,
+                      onSelected: (option) => ref
+                          .read(selectedPushCategoriesProvider.notifier)
+                          .toggleCategory(option.category),
+                      enabled: hasNotificationsPermission,
+                    ),
+                    SelectableOptionsGroup(
                       title: context.i18n.push_notification_chat_group_title,
                       selected: _filterSelectedOptions(
                         ChatNotificationOption.values,

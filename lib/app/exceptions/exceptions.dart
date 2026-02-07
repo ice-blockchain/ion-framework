@@ -843,3 +843,11 @@ class LiquidityPoolNotFoundException extends IONException {
     required String tokenOut,
   }) : super(10150, 'No liquidity pool found for $tokenIn -> $tokenOut');
 }
+
+class TokenTickerNotFoundException extends IONException {
+  TokenTickerNotFoundException(String externalAddress)
+      : super(
+          10150,
+          'Token ticker not found for external address: $externalAddress',
+        );
+}

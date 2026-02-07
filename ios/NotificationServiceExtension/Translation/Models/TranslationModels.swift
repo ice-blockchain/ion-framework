@@ -17,6 +17,10 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let replyArticle: NotificationTranslation?
     let replyComment: NotificationTranslation?
     let mention: NotificationTranslation?
+    let accountPost: NotificationTranslation?
+    let accountArticle: NotificationTranslation?
+    let accountVideo: NotificationTranslation?
+    let accountStory: NotificationTranslation?
     let repost: NotificationTranslation?
     let repostArticle: NotificationTranslation?
     let repostComment: NotificationTranslation?
@@ -55,6 +59,7 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
         case version = "_version"
         case reply, replyArticle, replyComment
         case mention
+        case accountPost, accountArticle, accountVideo, accountStory
         case repost, repostArticle, repostComment
         case quote, quoteArticle, quoteComment
         case like, likeArticle, likeComment, likeStory

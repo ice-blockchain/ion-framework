@@ -136,7 +136,7 @@ class TradeCommunityTokenService {
     );
 
     Logger.info(
-      '[TradeCommunityTokenService] Swap completed | status=${transaction['status']} | isBroadcasted=${_isBroadcasted(transaction)}',
+      '[TradeCommunityTokenService] Swap completed | $transaction',
     );
 
     if (_isBroadcasted(transaction)) {
@@ -195,7 +195,6 @@ class TradeCommunityTokenService {
             walletNetwork: walletNetwork,
             baseTokenTicker: baseTokenTicker,
             tokenDecimals: tokenDecimals,
-            existingTokenAddress: existingTokenAddress,
             tokenInfo: tokenInfo,
           ),
       ]);
@@ -468,7 +467,6 @@ class TradeCommunityTokenService {
     required String walletNetwork,
     required String baseTokenTicker,
     required int tokenDecimals,
-    required String? existingTokenAddress,
     required CommunityToken? tokenInfo,
   }) async {
     Logger.info(
@@ -487,21 +485,10 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
       );
 
-      final tokenAddress = existingTokenAddress ??
-          await withRetry<String>(
-            ({Object? error}) async {
-              Logger.info('[TradeCommunityTokenService] Retrying to fetch token address');
-              final tokenAddress =
-                  _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
-              if (tokenAddress == null || tokenAddress.isEmpty) {
-                throw TokenAddressNotFoundException(externalAddress);
-              }
-              return tokenAddress;
-            },
-            retryWhen: (error) => error is TokenAddressNotFoundException,
-          );
+      final (:tokenAddress, :tokenTicker) =
+          await _getTokenAddressAndTicker(externalAddress: externalAddress, tokenInfo: tokenInfo);
       Logger.info(
-        '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
+        '[TradeCommunityTokenService] Token address and ticker obtained | tokenAddress=$tokenAddress | tokenTicker=$tokenTicker',
       );
 
       const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
@@ -520,9 +507,9 @@ class TradeCommunityTokenService {
       );
       final amountQuote = TransactionAmount(
         value: communityTokenAmountValue,
-        currency: externalAddress,
+        currency: tokenTicker,
       );
-      final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+      final amountUsd = TransactionAmount.usd(value: usdAmountValue);
 
       Logger.info(
         '[TradeCommunityTokenService] Calling sendBuyActionEvents | externalAddress=$externalAddress | network=$walletNetwork | hasUserPosition=$hasUserPosition | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$tokenAddress | transactionAddress=$txHash',
@@ -534,6 +521,7 @@ class TradeCommunityTokenService {
         hasUserPosition: hasUserPosition,
         bondingCurveAddress: bondingCurveAddress,
         tokenAddress: tokenAddress,
+        tokenTicker: tokenTicker,
         transactionAddress: txHash,
         amountBase: amountBase,
         amountQuote: amountQuote,
@@ -566,6 +554,13 @@ class TradeCommunityTokenService {
       '[TradeCommunityTokenService] _trySendSellEvents called | externalAddress=$externalAddress',
     );
     try {
+      final tokenTicker = _extractTokenTicker(tokenInfo);
+      if (tokenTicker == null) {
+        Logger.error('[TradeCommunityTokenService] Token ticker is missing');
+        throw TokenTickerNotFoundException(externalAddress);
+      }
+      Logger.info('[TradeCommunityTokenService] Token ticker extracted | tokenTicker=$tokenTicker');
+
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
         Logger.error('[TradeCommunityTokenService] Transaction hash is missing');
@@ -590,13 +585,12 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Amounts calculated | communityTokenAmountValue=$communityTokenAmountValue | paymentTokenAmountValue=$paymentTokenAmountValue | usdAmountValue=$usdAmountValue',
       );
 
-      final amountBase =
-          TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
+      final amountBase = TransactionAmount(value: communityTokenAmountValue, currency: tokenTicker);
       final amountQuote = TransactionAmount(
         value: paymentTokenAmountValue,
         currency: paymentTokenTicker,
       );
-      final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+      final amountUsd = TransactionAmount.usd(value: usdAmountValue);
 
       Logger.info(
         '[TradeCommunityTokenService] Calling sendSellActionEvents | externalAddress=$externalAddress | network=$walletNetwork | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$communityTokenAddress | transactionAddress=$txHash',
@@ -607,6 +601,7 @@ class TradeCommunityTokenService {
         network: walletNetwork,
         bondingCurveAddress: bondingCurveAddress,
         tokenAddress: communityTokenAddress,
+        tokenTicker: tokenTicker,
         transactionAddress: txHash,
         amountBase: amountBase,
         amountQuote: amountQuote,
@@ -624,6 +619,41 @@ class TradeCommunityTokenService {
     }
   }
 
+  /// Fetch token address and ticker for the given external address.
+  ///
+  /// First buy can create token contract, analytics may lag behind.
+  /// Retry fetching token address until it's available.
+  Future<({String tokenAddress, String tokenTicker})> _getTokenAddressAndTicker({
+    required String externalAddress,
+    required CommunityToken? tokenInfo,
+  }) async {
+    if (tokenInfo != null) {
+      final tokenAddress = _extractTokenAddress(tokenInfo);
+      final tokenTicker = _extractTokenTicker(tokenInfo);
+      if (tokenAddress != null && tokenTicker != null) {
+        return (tokenAddress: tokenAddress, tokenTicker: tokenTicker);
+      }
+    }
+
+    return withRetry<({String tokenAddress, String tokenTicker})>(
+      ({Object? error}) async {
+        Logger.info('[TradeCommunityTokenService] Retrying to fetch token address and ticker');
+        final tokenData = await repository.fetchTokenInfoFresh(externalAddress);
+        final tokenAddress = _extractTokenAddress(tokenData);
+        final tokenTicker = _extractTokenTicker(tokenData);
+        if (tokenAddress == null || tokenAddress.isEmpty) {
+          throw TokenAddressNotFoundException(externalAddress);
+        }
+        if (tokenTicker == null) {
+          throw TokenTickerNotFoundException(externalAddress);
+        }
+        return (tokenAddress: tokenAddress, tokenTicker: tokenTicker);
+      },
+      retryWhen: (error) =>
+          error is TokenAddressNotFoundException || error is TokenTickerNotFoundException,
+    );
+  }
+
   bool _isBroadcasted(TransactionResult transaction) {
     final status = transaction['status']?.toString() ?? '';
     return status.toLowerCase() == 'broadcasted';
@@ -637,6 +667,8 @@ class TradeCommunityTokenService {
   }
 
   String? _extractTokenAddress(CommunityToken? tokenInfo) => tokenInfo?.addresses.blockchain;
+
+  String? _extractTokenTicker(CommunityToken? tokenInfo) => tokenInfo?.marketData.ticker;
 
   Future<bool> _isFirstBuy(String externalAddress, ExternalAddressType externalAddressType) async {
     if (externalAddressType.isXToken) {
