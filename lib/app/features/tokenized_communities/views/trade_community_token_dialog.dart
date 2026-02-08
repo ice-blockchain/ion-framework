@@ -14,6 +14,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/feed/providers/user_holdings_tab_provider.r.dart';
+import 'package:ion/app/features/feed/providers/user_tokenized_community_data_source_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
@@ -464,7 +465,9 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   void _invalidateUserHoldings(WidgetRef ref) {
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
     if (currentPubkey != null) {
-      ref.invalidate(userHoldingsTabProvider(currentPubkey));
+      ref
+        ..invalidate(userHoldingsTabProvider(currentPubkey))
+        ..invalidate(userTokenizedCommunityDataSourceProvider(currentPubkey));
       final userMetadata = ref.read(userMetadataProvider(currentPubkey)).valueOrNull;
       final holderAddress = userMetadata?.toEventReference().toString();
       if (holderAddress != null) {
