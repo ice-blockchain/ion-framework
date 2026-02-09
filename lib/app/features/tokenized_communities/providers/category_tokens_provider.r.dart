@@ -14,6 +14,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   static const int _limit = 10;
   NetworkSubscription<List<CommunityTokenBase>>? _realtimeSubscription;
   late final TokenCategoryType _type;
+  String? _tokenType;
 
   @override
   CategoryTokensState build(TokenCategoryType type) {
@@ -33,7 +34,10 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     if (state.sessionId != null) return;
 
     final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-    final session = await client.communityTokens.createViewingSession(_type);
+    final session = await client.communityTokens.createViewingSession(
+      _type,
+      tokenType: _tokenType,
+    );
 
     state = state.copyWith(sessionId: session.id);
 
@@ -51,6 +55,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
       final page = await client.communityTokens.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
+        tokenType: _tokenType,
         limit: _limit,
       );
 
@@ -88,6 +93,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
       final page = await client.communityTokens.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
+        tokenType: _tokenType,
         limit: _limit,
         offset: state.browsingOffset,
       );
@@ -114,6 +120,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
       final page = await client.communityTokens.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
+        tokenType: _tokenType,
         keyword: state.searchQuery,
         limit: _limit,
         offset: state.searchOffset,
@@ -153,6 +160,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
       final page = await client.communityTokens.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
+        tokenType: _tokenType,
         keyword: query,
         limit: _limit,
       );
@@ -213,5 +221,11 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     _realtimeSubscription = null;
     state = const CategoryTokensState();
     await _initialize();
+  }
+
+  Future<void> setTokenType(String? tokenType) async {
+    if (_tokenType == tokenType) return;
+    _tokenType = tokenType;
+    await refresh();
   }
 }

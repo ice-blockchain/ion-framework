@@ -5,11 +5,12 @@ import 'package:ion_token_analytics/src/community_tokens/token_info/models/model
 import 'package:ion_token_analytics/src/core/network_client.dart';
 
 abstract class CategoryTokensRepository {
-  Future<ViewingSession> createViewingSession(TokenCategoryType type);
+  Future<ViewingSession> createViewingSession(TokenCategoryType type, {String? tokenType});
 
   Future<PaginatedCategoryTokensData> getCategoryTokens({
     required String sessionId,
     required TokenCategoryType type,
+    String? tokenType,
     String? keyword,
     int limit = 20,
     int offset = 0,

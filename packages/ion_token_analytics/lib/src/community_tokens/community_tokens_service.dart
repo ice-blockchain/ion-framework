@@ -173,13 +173,14 @@ class IonCommunityTokensService {
     return _latestTokensRepository.subscribeToLatestTokens(keyword: keyword, type: type);
   }
 
-  Future<ViewingSession> createViewingSession(TokenCategoryType type) {
-    return _categoryTokensRepository.createViewingSession(type);
+  Future<ViewingSession> createViewingSession(TokenCategoryType type, {String? tokenType}) {
+    return _categoryTokensRepository.createViewingSession(type, tokenType: tokenType);
   }
 
   Future<PaginatedCategoryTokensData> getCategoryTokens({
     required String sessionId,
     required TokenCategoryType type,
+    String? tokenType,
     String? keyword,
     int limit = 20,
     int offset = 0,
@@ -187,6 +188,7 @@ class IonCommunityTokensService {
     return _categoryTokensRepository.getCategoryTokens(
       sessionId: sessionId,
       type: type,
+      tokenType: tokenType,
       keyword: keyword,
       limit: limit,
       offset: offset,

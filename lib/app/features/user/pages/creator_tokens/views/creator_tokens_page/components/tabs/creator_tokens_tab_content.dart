@@ -43,28 +43,28 @@ class CreatorTokensTabContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedFilter = ref.watch(creatorTokensFilterNotifierProvider);
+    final requestType = selectedFilter.requestType;
+
+    useEffect(
+      () {
+        if (tabType.isLatest) {
+          unawaited(ref.read(latestTokensNotifierProvider.notifier).setTokenType(requestType));
+        } else {
+          unawaited(
+            ref
+                .read(categoryTokensNotifierProvider(tabType.categoryType!).notifier)
+                .setTokenType(requestType),
+          );
+        }
+        return null;
+      },
+      [requestType, tabType],
+    );
 
     // Watch the appropriate provider based on tab type
     final state = tabType.isLatest
         ? ref.watch(latestTokensNotifierProvider)
         : ref.watch(categoryTokensNotifierProvider(tabType.categoryType!));
-
-    final filteredItems = useMemoized(
-      () {
-        if (selectedFilter == TokenTypeFilter.all) {
-          return state.activeItems;
-        }
-
-        return state.activeItems.where((token) {
-          final source = token.addresses.twitter != null
-              ? CommunityTokenSource.twitter
-              : CommunityTokenSource.ionConnect;
-
-          return selectedFilter.matchesTokenType(token.type, source);
-        }).toList();
-      },
-      [state.activeItems, selectedFilter],
-    );
 
     return LoadMoreBuilder(
       hasMore: state.activeHasMore,
@@ -76,7 +76,7 @@ class CreatorTokensTabContent extends HookConsumerWidget {
       ),
       slivers: [
         CreatorTokensList(
-          items: filteredItems,
+          items: state.activeItems,
           isInitialLoading: state.activeIsInitialLoading,
         ),
         SliverPadding(

@@ -11,9 +11,10 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
   final NetworkClient _client;
 
   @override
-  Future<ViewingSession> createViewingSession(TokenCategoryType type) async {
+  Future<ViewingSession> createViewingSession(TokenCategoryType type, {String? tokenType}) async {
     final response = await _client.post<Map<String, dynamic>>(
       '/v1/community-tokens/${type.value}/viewing-sessions',
+      queryParameters: {if (tokenType != null && tokenType.isNotEmpty) 'type': tokenType},
     );
     return ViewingSession.fromJson(response);
   }
@@ -22,6 +23,7 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
   Future<PaginatedCategoryTokensData> getCategoryTokens({
     required String sessionId,
     required TokenCategoryType type,
+    String? tokenType,
     String? keyword,
     int limit = 20,
     int offset = 0,
@@ -31,6 +33,7 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
       queryParameters: {
         'limit': limit,
         'offset': offset,
+        if (tokenType != null && tokenType.isNotEmpty) 'type': tokenType,
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
       },
     );
