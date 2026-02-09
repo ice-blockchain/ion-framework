@@ -13,6 +13,7 @@ import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_p
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/providers/creator_tokens_filter_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensTabContent extends HookConsumerWidget {
   const CreatorTokensTabContent({
@@ -42,6 +43,7 @@ class CreatorTokensTabContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedFilter = ref.watch(creatorTokensFilterNotifierProvider);
     final requestType = selectedFilter.requestType;
+    final cachedItemsByType = useRef<Map<String?, List<CommunityToken>>>({});
 
     useEffect(
       () {
@@ -64,6 +66,24 @@ class CreatorTokensTabContent extends HookConsumerWidget {
         ? ref.watch(latestTokensNotifierProvider)
         : ref.watch(categoryTokensNotifierProvider(tabType.categoryType!));
 
+    useEffect(
+      () {
+        if (state.activeItems.isNotEmpty) {
+          cachedItemsByType.value = {
+            ...cachedItemsByType.value,
+            requestType: List<CommunityToken>.from(state.activeItems),
+          };
+        }
+        return null;
+      },
+      [state.activeItems, requestType],
+    );
+
+    final cachedItems = cachedItemsByType.value[requestType] ?? const <CommunityToken>[];
+    final itemsToShow = state.activeItems.isNotEmpty ? state.activeItems : cachedItems;
+    final showInitialLoading =
+        state.activeIsInitialLoading || (state.activeIsLoading && itemsToShow.isEmpty);
+
     return LoadMoreBuilder(
       hasMore: state.activeHasMore,
       onLoadMore: () => _loadMore(ref),
@@ -74,8 +94,8 @@ class CreatorTokensTabContent extends HookConsumerWidget {
       ),
       slivers: [
         CreatorTokensList(
-          items: state.activeItems,
-          isInitialLoading: state.activeIsInitialLoading,
+          items: itemsToShow,
+          isInitialLoading: showInitialLoading,
         ),
         SliverPadding(
           padding: EdgeInsetsDirectional.only(
