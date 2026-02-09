@@ -76,7 +76,7 @@ class MessageItemWrapper extends HookConsumerWidget {
     );
 
     final isSharedProfileMessage = messageItem is ShareProfileItem;
-      final imageColors = useImageColors(
+    final imageColors = useImageColors(
       isSharedProfileMessage ? (messageItem as ShareProfileItem).avatarUrl : null,
       enabled: isSharedProfileMessage,
     );
