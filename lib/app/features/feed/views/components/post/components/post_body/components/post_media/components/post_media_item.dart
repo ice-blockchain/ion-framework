@@ -71,7 +71,7 @@ class PostMediaItem extends HookWidget {
                     mediaItem.duration != null ? Duration(seconds: mediaItem.duration!) : null,
                 authorPubkey: eventReference.masterPubkey,
                 thumbnailUrl: mediaItem.image,
-                ownerEventReference: eventReference,
+                postEventReference: eventReference,
                 framedEventReference: framedEventReference,
                 mediaIndex: mediaIndex,
                 visibilityThreshold: 0.5,

@@ -31,7 +31,7 @@ class VideoPreview extends HookConsumerWidget {
     this.duration,
     this.onlyOneShouldPlay = true,
     this.framedEventReference,
-    this.ownerEventReference,
+    this.postEventReference,
     this.mediaIndex = 0,
     this.visibilityThreshold = 1.0,
     super.key,
@@ -42,10 +42,10 @@ class VideoPreview extends HookConsumerWidget {
   final String authorPubkey;
   final String? thumbnailUrl;
   final Duration? duration;
-  // post framed event reference  (quote post)
+  // post framed event reference (quote/repost post)
   final EventReference? framedEventReference;
-  // post owner event reference (post owner)
-  final EventReference? ownerEventReference;
+  // post event reference (the post containing this video, kind 30175 or 1)
+  final EventReference? postEventReference;
   // media index in the post (carousel media index)
   final int mediaIndex;
   final double visibilityThreshold;
@@ -56,8 +56,10 @@ class VideoPreview extends HookConsumerWidget {
     final videoSettings = ref.watch(videoSettingsProvider);
 
     final isVideoPlaybackEnabled = ref.watch(feedVideoPlaybackEnabledNotifierProvider);
+    // Use post event reference for unique controller ID (not just authorPubkey,
+    // as one author can have multiple posts with videos at the same mediaIndex)
     final uniqueControllerId =
-        framedEventReference?.encode() ?? ownerEventReference?.encode() ?? '';
+        framedEventReference?.encode() ?? postEventReference?.encode() ?? '';
 
     // If autoplay is disabled, we don't need to initialize the controller (to avoid the video downloading)
     final videoControllerProviderState = (videoSettings.autoplay && isVideoPlaybackEnabled)
