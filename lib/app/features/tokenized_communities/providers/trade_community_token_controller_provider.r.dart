@@ -16,6 +16,7 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_config_ca
 import 'package:ion/app/features/tokenized_communities/providers/trade_config_cache_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
+import 'package:ion/app/features/tokenized_communities/services/trade_community_last_payment_coin_service.dart';
 import 'package:ion/app/features/tokenized_communities/services/trade_community_token_quote_controller.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
@@ -49,53 +50,7 @@ typedef TradeCommunityTokenControllerParams = ({
 class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   TradeCommunityTokenQuoteController? _quoteController;
   CommunityTokenPricingIdentifierResolver? _pricingIdentifierResolver;
-
-  static const _lastPaymentCoinKey = 'TokenizedCommunities:lastPaymentCoinSymbolGroup';
-
-  /// Restores last used payment token from localStorage.
-  /// Only applies when [supportedTokens] is available and state has no token yet.
-  /// Returns true if a token was restored.
-  bool _restoreLastUsedPaymentToken(List<CoinData> supportedTokens) {
-    if (supportedTokens.isEmpty) return false;
-
-    final localStorage = ref.read(localStorageProvider);
-    final storedSymbolGroup = localStorage.getString(_lastPaymentCoinKey);
-
-    if (storedSymbolGroup == null || storedSymbolGroup.isEmpty) {
-      return false;
-    }
-
-    final matched = supportedTokens.firstWhereOrNull(
-      (t) => t.symbolGroup == storedSymbolGroup,
-    );
-    if (matched == null) {
-      return false;
-    }
-
-    final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
-    final paymentCoinsGroup = _derivePaymentCoinsGroup(matched, walletView);
-    state = state.copyWith(
-      selectedPaymentToken: matched,
-      paymentCoinsGroup: paymentCoinsGroup,
-    );
-    ref.read(tradeConfigCacheProvider.notifier).save(
-          params.externalAddress,
-          TradeConfigCacheData(
-            selectedPaymentToken: matched,
-            paymentCoinsGroup: paymentCoinsGroup,
-          ),
-        );
-
-    return true;
-  }
-
-  /// Persists the selected payment token to localStorage.
-  void _saveLastUsedPaymentToken(CoinData token) {
-    if (params.externalAddressType.isContentToken) return;
-
-    final symbolGroup = token.symbolGroup;
-    ref.read(localStorageProvider).setString(_lastPaymentCoinKey, symbolGroup);
-  }
+  TradeCommunityLastPaymentCoinService? _lastPaymentCoinService;
 
   @override
   TradeCommunityTokenState build(TradeCommunityTokenControllerParams params) {
@@ -117,6 +72,10 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       debounce: const Duration(
         milliseconds: TokenizedCommunitiesConstants.quoteDebounceMilliseconds,
       ),
+    );
+
+    _lastPaymentCoinService ??= TradeCommunityLastPaymentCoinService(
+      localStorage: ref.read(localStorageProvider),
     );
 
     final pubkey = params.eventReference?.masterPubkey ??
@@ -230,8 +189,21 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
       final supportedTokens = await ref.read(supportedSwapTokensProvider.future);
       if (state.selectedPaymentToken == null && supportedTokens.isNotEmpty) {
-        final restored = _restoreLastUsedPaymentToken(supportedTokens);
-        if (restored) {
+        final restoredToken = _lastPaymentCoinService!.restoreLastUsedPaymentToken(supportedTokens);
+        if (restoredToken != null) {
+          final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+          final paymentCoinsGroup = _derivePaymentCoinsGroup(restoredToken, walletView);
+          state = state.copyWith(
+            selectedPaymentToken: restoredToken,
+            paymentCoinsGroup: paymentCoinsGroup,
+          );
+          ref.read(tradeConfigCacheProvider.notifier).save(
+                params.externalAddress,
+                TradeConfigCacheData(
+                  selectedPaymentToken: restoredToken,
+                  paymentCoinsGroup: paymentCoinsGroup,
+                ),
+              );
           unawaited(_updateDerivedState());
         } else {
           selectPaymentToken(supportedTokens.first);
@@ -452,7 +424,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
   void selectPaymentToken(CoinData token) {
     state = state.copyWith(selectedPaymentToken: token);
-    _saveLastUsedPaymentToken(token);
+    _lastPaymentCoinService!.saveLastUsedPaymentToken(token);
     _updateDerivedState();
     _scheduleQuoteUpdates();
     _refreshFormattedAmounts();
