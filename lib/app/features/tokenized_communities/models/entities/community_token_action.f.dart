@@ -218,10 +218,10 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         ['network', network],
         ['bonding_curve_address', bondingCurveAddress],
         ['token_address', tokenAddress],
-        // ['token_symbol', tokenTicker], //TODO[push]: uncomment when BE is ready
+        ['token_symbol', tokenTicker],
         ['tx_address', transactionAddress],
         ['tx_type', type.name],
-        // EventKind(value: kind).toTag(), //TODO[push]: uncomment when BE is ready
+        EventKind(value: kind).toTag(),
       ],
     );
   }

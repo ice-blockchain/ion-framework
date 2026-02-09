@@ -229,8 +229,7 @@ final class TokenTransactionIonNotification extends IonNotification {
   String getDescription(BuildContext context, [IonConnectEntity? entity]) {
     return switch (entity) {
       CommunityTokenActionEntity() => switch (entity.data.type) {
-          //TODO[push] switch (entity.data.kind) {
-          CommunityTokenActionType.buy => switch (ModifiablePostEntity.kind) {
+          CommunityTokenActionType.buy => switch (entity.data.kind) {
               ModifiablePostEntity.kind ||
               PostEntity.kind =>
                 context.i18n.notifications_token_transaction_buy_post,

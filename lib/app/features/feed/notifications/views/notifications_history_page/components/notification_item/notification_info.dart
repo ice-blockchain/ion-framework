@@ -22,6 +22,7 @@ import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/l10n/i10n.dart';
 
+// TODO: refactor - extract description building from the model, create separate widgets per use case
 class NotificationInfo extends HookConsumerWidget {
   const NotificationInfo({
     required this.notification,
