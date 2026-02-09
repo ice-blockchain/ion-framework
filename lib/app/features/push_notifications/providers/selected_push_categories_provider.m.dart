@@ -21,7 +21,6 @@ class SelectedPushCategories extends _$SelectedPushCategories {
   }
 
   void toggleCategory(PushNotificationCategory category) {
-    //TODO[pushes]: update external push subscription when categories change (only for the ones that depend on follow list)
     state = state.categories.contains(category)
         ? state.copyWith(categories: [...state.categories]..remove(category))
         : state.copyWith(categories: [...state.categories, category]);

@@ -231,6 +231,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   }
 
   Future<List<RequestFilter>> _buildFilterForCreatorTokenTrades() async {
+    //TODO[push]: add pubkeys from accounts sets
     final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
     return [
@@ -324,6 +325,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     final accountNotificationSets =
         await ref.watch(currentUserAccountNotificationSetsProvider.future);
     return [
+      // TODO[push]: do not add for TC (we're adding those in the categories filters)
       for (final AccountNotificationSetEntity(:data) in accountNotificationSets)
         if (data.userPubkeys.isNotEmpty)
           data.type.toUserNotificationType().toRequestFilter(masterPubkeys: data.userPubkeys),

@@ -1941,11 +1941,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0.0.43"
-      resolved-ref: "334645a49b4dabcfb0012aba9cef7da5eebdc128"
+      ref: "0.0.44"
+      resolved-ref: de707a1fea30241fdf08dae32fca2f85637429f1
       url: "https://github.com/ice-blockchain/nostr-dart"
     source: git
-    version: "0.0.42"
+    version: "0.0.44"
   octo_image:
     dependency: transitive
     description:

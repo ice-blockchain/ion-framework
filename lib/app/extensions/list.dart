@@ -19,8 +19,14 @@ extension ListRandomExtension<T> on List<T> {
 extension DeepEqualityListExtension on List<dynamic> {
   static const _deepEquality = DeepCollectionEquality();
 
+  static const _deepEqualityUnordered = DeepCollectionEquality.unordered();
+
   bool equalsDeep(List<dynamic> other) {
     return _deepEquality.equals(this, other);
+  }
+
+  bool equalsDeepUnordered(List<dynamic> other) {
+    return _deepEqualityUnordered.equals(this, other);
   }
 
   bool containsList(List<String> target) {
