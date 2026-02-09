@@ -246,7 +246,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
       () {
         if (quoteAmount != null) {
           final quoteValue =
-              (quoteAmount.priceForSellTokenInBuyToken * amount).toStringAsFixed(decimals);
+              (quoteAmount.priceForSellTokenInBuyToken * amount).formatWithDecimals(decimals);
           if (quoteController.text != quoteValue) {
             quoteController.text = quoteValue;
           }
