@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
-//  final isMigrated = (jsonDecode(contents)
-//         as Map<String, dynamic>)['tokenizedCommunitiesLegacyContentMigrated'] as bool;
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'token_definition_migration_state.f.freezed.dart';
+part 'token_definition_migration_state.f.g.dart';
 
-@Freezed(copyWith: false)
+@freezed
 class TokenDefinitionMigrationState with _$TokenDefinitionMigrationState {
   const factory TokenDefinitionMigrationState({
     @Default(false) bool tokenizedCommunitiesLegacyContentMigrated,

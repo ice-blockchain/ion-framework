@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/user/user_about/user_about.dart';
@@ -71,30 +70,18 @@ class ProfileUserInfo extends ConsumerWidget {
           children: [
             info,
             if (hasBscWallet && eventReferenceString != null && !isProtectedAccount)
-              Column(
-                children: [
-                  GradientHorizontalDivider(
-                    margin: EdgeInsetsDirectional.symmetric(vertical: 12.5.s),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ProfileTokenStats(
-                          eventReference: eventReference,
-                          leading: GestureDetector(
-                            onTap: () {
-                              if (eventReference == null) return;
-                              TokenizedCommunityRoute(
-                                externalAddress: eventReferenceString,
-                              ).push<void>(context);
-                            },
-                            child: const BuyButton(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              ProfileTokenStats(
+                eventReference: eventReference,
+                leading: GestureDetector(
+                  onTap: () {
+                    if (eventReference == null) return;
+                    TokenizedCommunityRoute(
+                      externalAddress: eventReferenceString,
+                    ).push<void>(context);
+                  },
+                  child: const BuyButton(),
+                ),
+                seperatorMargin: 12.0.s,
               ),
           ],
         ),

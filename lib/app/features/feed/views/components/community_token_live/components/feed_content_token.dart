@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/carousel/carousel_with_dots.dart';
-import 'package:ion/app/components/dividers/gradient_horizontal_divider.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -277,15 +276,11 @@ class ContentTokenHeader extends HookConsumerWidget {
                         ),
                       ),
                     ],
-                    GradientHorizontalDivider(
-                      margin: EdgeInsetsDirectional.symmetric(
-                        vertical: 14.0.s,
-                      ),
-                    ),
                     ProfileTokenStats(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       eventReference:
                           (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference,
+                      seperatorMargin: 14.0.s,
                     ),
                     SizedBox(height: showBuyButton ? 24.0.s : 16.s),
                   ],

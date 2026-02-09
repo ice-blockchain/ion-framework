@@ -126,7 +126,9 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
     if (tokenDefinitionMigrationStatusJson != null) {
       data = data.copyWith(
         media: {
-          ...data.media,
+          ...Map.fromEntries(
+            data.media.entries.where((entry) => entry.value.alt != migrationStatusJsonFileName),
+          ),
           tokenDefinitionMigrationStatusJson.url: tokenDefinitionMigrationStatusJson,
         },
       );

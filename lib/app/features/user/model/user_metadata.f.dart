@@ -18,7 +18,7 @@ import 'package:ion/app/features/user/model/user_preview_data.dart';
 part 'user_metadata.f.freezed.dart';
 part 'user_metadata.f.g.dart';
 
-const String migrationStatusJsonFileName = 'migration_status.json';
+const String migrationStatusJsonFileName = 'tokenizedCommunitiesLegacyContent';
 
 @Freezed(equal: false)
 class UserMetadataEntity

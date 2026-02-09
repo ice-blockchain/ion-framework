@@ -927,7 +927,7 @@
   "tokenized_community_creator_token_live_title": "Creator token is LIVE!",
   "tokenized_community_holders_tab": "Holders",
   "tokenized_community_not_available_comments_description": "Comments are not available to buy yet",
-  "tokenized_community_not_available_no_definition_description": "Token creation is not available for previously created posts.",
+  "tokenized_community_not_available_no_definition_description": "Token creation is not available for this user content.",
   "tokenized_community_not_available_title": "Tokenized content error",
   "tokenized_community_onboarding_ads_description": "Online+ earns revenue from ads and boosted posts, and creators receive 50% of everything generated through these features.",
   "tokenized_community_onboarding_ads_title": "Earn from ads and boosts",

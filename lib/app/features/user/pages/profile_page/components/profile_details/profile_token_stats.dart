@@ -26,6 +26,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileTokenStats extends HookConsumerWidget {
   const ProfileTokenStats({
+    required this.seperatorMargin,
     this.eventReference,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
     this.spacing,
@@ -37,6 +38,7 @@ class ProfileTokenStats extends HookConsumerWidget {
   final MainAxisAlignment mainAxisAlignment;
   final Widget? leading;
   final double? spacing;
+  final double seperatorMargin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,60 +71,74 @@ class ProfileTokenStats extends HookConsumerWidget {
       if (isProtected) {
         return const SizedBox.shrink();
       }
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      return Column(
         children: [
-          const _BuyHint(),
-          SizedBox(width: 8.0.s),
-          GestureDetector(
-            onTap: () {
-              if (hasTokenInfo) {
-                // Someone already bought, open token page
-                TokenizedCommunityRoute(
-                  externalAddress: eventReference!.toString(),
-                ).push<void>(context);
-              } else {
-                // No one bought yet, open trade dialog
-                TradeCommunityTokenRoute(
-                  eventReference: eventReference!.encode(),
-                  initialMode: CommunityTokenTradeMode.buy,
-                ).push<void>(context);
-              }
-            },
-            child: const BuyButton(),
+          GradientHorizontalDivider(
+            margin: EdgeInsetsDirectional.symmetric(vertical: seperatorMargin),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const _BuyHint(),
+              SizedBox(width: 8.0.s),
+              GestureDetector(
+                onTap: () {
+                  if (hasTokenInfo) {
+                    // Someone already bought, open token page
+                    TokenizedCommunityRoute(
+                      externalAddress: eventReference!.toString(),
+                    ).push<void>(context);
+                  } else {
+                    // No one bought yet, open trade dialog
+                    TradeCommunityTokenRoute(
+                      eventReference: eventReference!.encode(),
+                      initialMode: CommunityTokenTradeMode.buy,
+                    ).push<void>(context);
+                  }
+                },
+                child: const BuyButton(),
+              ),
+            ],
           ),
         ],
       );
     }
-    return Row(
-      mainAxisAlignment: mainAxisAlignment,
-      spacing: spacing ?? 0,
+    return Column(
       children: [
-        TokenStatItem(
-          icon: Assets.svg.iconMemeMarketcap,
-          text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
-          onTap: () => showSimpleBottomSheet<void>(
-            context: context,
-            child: const InfoModal(infoType: InfoType.marketCap),
-          ),
+        GradientHorizontalDivider(
+          margin: EdgeInsetsDirectional.symmetric(vertical: seperatorMargin),
         ),
-        TokenStatItem(
-          icon: Assets.svg.iconMemeMarkers,
-          text: MarketDataFormatter.formatVolume(marketData.volume),
-          onTap: () => showSimpleBottomSheet<void>(
-            context: context,
-            child: const InfoModal(infoType: InfoType.volume),
-          ),
+        Row(
+          mainAxisAlignment: mainAxisAlignment,
+          spacing: spacing ?? 0,
+          children: [
+            TokenStatItem(
+              icon: Assets.svg.iconMemeMarketcap,
+              text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
+              onTap: () => showSimpleBottomSheet<void>(
+                context: context,
+                child: const InfoModal(infoType: InfoType.marketCap),
+              ),
+            ),
+            TokenStatItem(
+              icon: Assets.svg.iconMemeMarkers,
+              text: MarketDataFormatter.formatVolume(marketData.volume),
+              onTap: () => showSimpleBottomSheet<void>(
+                context: context,
+                child: const InfoModal(infoType: InfoType.volume),
+              ),
+            ),
+            TokenStatItem(
+              icon: Assets.svg.iconSearchGroups,
+              text: formatCount(marketData.holders),
+              onTap: () => showSimpleBottomSheet<void>(
+                context: context,
+                child: const InfoModal(infoType: InfoType.holders),
+              ),
+            ),
+            if (leading != null) leading!,
+          ],
         ),
-        TokenStatItem(
-          icon: Assets.svg.iconSearchGroups,
-          text: formatCount(marketData.holders),
-          onTap: () => showSimpleBottomSheet<void>(
-            context: context,
-            child: const InfoModal(infoType: InfoType.holders),
-          ),
-        ),
-        if (leading != null) leading!,
       ],
     );
   }
