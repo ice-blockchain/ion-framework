@@ -287,7 +287,7 @@ class Env extends _$Env {
       EnvVariable.ION_IOS_APP_ID => AppEnv.ionIosAppId as T,
       EnvVariable.ION_ORIGIN => AppEnv.ionOrigin as T,
       EnvVariable.ION_INTERNAL_DEEP_LINK_SCHEME => AppEnv.ionInternalDeepLinkScheme as T,
-      EnvVariable.SHOW_DEBUG_INFO => _toBool(AppEnv.showDebugInfo) as T,
+      EnvVariable.SHOW_DEBUG_INFO => true as T,
       EnvVariable.BANUBA_TOKEN => AppEnv.banubaToken as T,
       EnvVariable.STORY_EXPIRATION_HOURS => _toInt(AppEnv.storyExpirationHours) as T,
       EnvVariable.EDIT_POST_ALLOWED_MINUTES => _toInt(AppEnv.editPostAllowedMinutes) as T,
