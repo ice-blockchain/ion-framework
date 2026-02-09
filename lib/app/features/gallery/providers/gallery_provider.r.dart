@@ -12,7 +12,9 @@ import 'package:ion/app/features/gallery/providers/providers.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/services/media_service/video_info_service.r.dart';
 import 'package:ion/app/utils/filter_video_by_format.dart';
+import 'package:ion/app/utils/image_path.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -21,6 +23,29 @@ part 'gallery_provider.r.g.dart';
 @riverpod
 Future<AssetEntity?> assetEntity(Ref ref, String id) {
   return AssetEntity.fromId(id);
+}
+
+@riverpod
+Future<int> videoDuration(Ref ref, String assetId) async {
+  final assetEntity = await ref.watch(assetEntityProvider(assetId).future);
+  if (assetEntity == null || assetEntity.type != AssetType.video) {
+    return 0;
+  }
+
+  if (assetEntity.duration > 0) {
+    return assetEntity.duration;
+  }
+
+  try {
+    final file = await getAssetFile(assetEntity);
+    if (file == null) return 0;
+
+    final videoInfo = await ref.read(videoInfoServiceProvider).getVideoInformation(file.path);
+    return videoInfo.duration.inSeconds;
+  } catch (e) {
+    Logger.log('Failed to get video duration via FFprobe: $e');
+    return 0;
+  }
 }
 
 @riverpod
