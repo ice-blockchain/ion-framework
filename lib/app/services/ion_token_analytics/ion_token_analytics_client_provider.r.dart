@@ -40,7 +40,7 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
   // the socket while the app is in the background.
   ref
     ..listen<AppLifecycleState>(appLifecycleProvider, (previous, next) {
-      if (next != AppLifecycleState.resumed && previous == AppLifecycleState.resumed) {
+      if (next == AppLifecycleState.hidden && previous != AppLifecycleState.paused) {
         Logger.log(
           '[IonTokenAnalyticsClient] App backgrounded, disposing client',
         );
