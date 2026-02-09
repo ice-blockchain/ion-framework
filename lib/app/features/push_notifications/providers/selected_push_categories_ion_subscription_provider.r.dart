@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
@@ -231,14 +232,15 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   }
 
   Future<List<RequestFilter>> _buildFilterForCreatorTokenTrades() async {
-    //TODO[push]: add pubkeys from accounts sets
     final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+    final tokenizedCommunitiesTransactionsAccounts =
+        await _getTokenizedCommunitiesTransactionsAccounts();
     return [
       RequestFilter(
         kinds: const [CommunityTokenActionEntity.kind],
         tags: {
-          '#p': [currentUserPubkey],
+          '#p': [currentUserPubkey, ...(tokenizedCommunitiesTransactionsAccounts ?? [])],
           '#k': [UserMetadataEntity.kind.toString()],
           '#t': const [communityTokenActionTopic],
           '#tx_type': [CommunityTokenActionType.buy.name],
@@ -250,11 +252,13 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   Future<List<RequestFilter>> _buildFilterForContentTokenTrades() async {
     final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+    final tokenizedCommunitiesTransactionsAccounts =
+        await _getTokenizedCommunitiesTransactionsAccounts();
     return [
       RequestFilter(
         kinds: const [CommunityTokenActionEntity.kind],
         tags: {
-          '#p': [currentUserPubkey],
+          '#p': [currentUserPubkey, ...(tokenizedCommunitiesTransactionsAccounts ?? [])],
           '#k': [
             PostEntity.kind.toString(),
             ModifiablePostEntity.kind.toString(),
@@ -265,6 +269,20 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
         },
       ),
     ];
+  }
+
+  Future<List<String>?> _getTokenizedCommunitiesTransactionsAccounts() async {
+    final accountNotificationSets =
+        await ref.watch(currentUserAccountNotificationSetsProvider.future);
+    final tokenizedCommunitiesTransactionsAccounts = accountNotificationSets
+        .firstWhereOrNull(
+          (accountNotificationSet) =>
+              accountNotificationSet.data.type ==
+              AccountNotificationSetType.tokenizedCommunitiesTransactions,
+        )
+        ?.data
+        .userPubkeys;
+    return tokenizedCommunitiesTransactionsAccounts;
   }
 
   Future<List<RequestFilter>> _buildFilterForTokenUpdates() async {
@@ -320,14 +338,16 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     );
   }
 
-  /// Builds filters for external user activities (posts, articles, videos, stories)
   Future<List<RequestFilter>?> _buildAccountsFilters() async {
     final accountNotificationSets =
         await ref.watch(currentUserAccountNotificationSetsProvider.future);
+    // TODO[push] check posts category?
     return [
-      // TODO[push]: do not add for TC (we're adding those in the categories filters)
       for (final AccountNotificationSetEntity(:data) in accountNotificationSets)
-        if (data.userPubkeys.isNotEmpty)
+        // Skip tokenized communities transactions category because it is handled
+        // when building filters for creator token trades and content token trades categories
+        if (data.type != AccountNotificationSetType.tokenizedCommunitiesTransactions &&
+            data.userPubkeys.isNotEmpty)
           data.type.toUserNotificationType().toRequestFilter(masterPubkeys: data.userPubkeys),
     ];
   }
