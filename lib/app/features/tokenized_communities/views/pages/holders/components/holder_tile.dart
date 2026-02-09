@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
+import 'package:ion/app/features/tokenized_communities/views/pages/holders/models/holder_tile_data.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
 import 'package:ion/app/services/browser/browser.dart';
-import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -28,12 +28,16 @@ class BondingCurveHolderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HolderTile(
-      rank: holder.position.rank,
-      amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: context.i18n.tokenized_community_bonding_curve,
-      supplyShare: holder.position.supplyShare,
-      avatarUrl: holder.position.holder?.avatar,
-      badgeType: RankBadgeType.bondingCurve,
+      data: HolderTileData(
+        rank: holder.position.rank,
+        amountText: formatAmountCompactFromRaw(holder.position.amount),
+        basicInfo: HolderBasicInfo(
+          displayName: context.i18n.tokenized_community_bonding_curve,
+        ),
+        supplyShare: holder.position.supplyShare,
+        avatarUrl: holder.position.holder?.avatar,
+        badgeType: RankBadgeType.bondingCurve,
+      ),
     );
   }
 }
@@ -51,86 +55,28 @@ class BurningHolderTile extends StatelessWidget {
     final holderAddress = holder.position.holder?.addresses?.ionConnect ?? '';
 
     return HolderTile(
-      rank: holder.position.rank,
-      amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: holder.position.holder?.display ?? context.i18n.tokenized_community_burned,
-      supplyShare: holder.position.supplyShare,
-      avatarUrl: holder.position.holder?.avatar,
-      badgeType: RankBadgeType.burning,
-      address: holderAddress,
-    );
-  }
-}
-
-class TopHolderTile extends StatelessWidget {
-  const TopHolderTile({
-    required this.holder,
-    super.key,
-  });
-
-  final TopHolder holder;
-
-  @override
-  Widget build(BuildContext context) {
-    final isXUser = holder.position.holder?.isXUser ?? false;
-    final holderAddress = holder.position.holder?.addresses?.ionConnect;
-    final creatorAddress = holder.creator.addresses?.ionConnect;
-    final isCreator = creatorAddress != null && holderAddress == creatorAddress;
-
-    final holderName = holder.position.holder?.name;
-    final holderDisplay = holder.position.holder?.display;
-    final holderBlockchainAddress = holder.position.holder?.addresses?.blockchain;
-
-    return HolderTile(
-      rank: holder.position.rank,
-      amountText: formatAmountCompactFromRaw(holder.position.amount),
-      displayName: holderDisplay ??
-          shortenAddress(
-            holderBlockchainAddress ?? '',
-          ),
-      username: holderName == null ? null : '@$holderName',
-      supplyShare: holder.position.supplyShare,
-      verified: holder.position.holder?.verified ?? false,
-      isCreator: isCreator,
-      avatarUrl: holder.position.holder?.avatar,
-      holderAddress: holderAddress,
-      isXUser: isXUser,
-      isIonConnectUser: holder.position.holder?.addresses?.ionConnect != null,
+      data: HolderTileData(
+        rank: holder.position.rank,
+        amountText: formatAmountCompactFromRaw(holder.position.amount),
+        basicInfo: HolderBasicInfo(
+          displayName: holder.position.holder?.display ?? context.i18n.tokenized_community_burned,
+          address: holderAddress,
+        ),
+        supplyShare: holder.position.supplyShare,
+        avatarUrl: holder.position.holder?.avatar,
+        badgeType: RankBadgeType.burning,
+      ),
     );
   }
 }
 
 class HolderTile extends StatelessWidget {
   const HolderTile({
-    required this.rank,
-    required this.amountText,
-    required this.displayName,
-    required this.supplyShare,
-    this.verified = false,
-    this.isCreator = false,
-    this.username,
-    this.avatarUrl,
-    this.holderAddress,
-    this.isXUser = false,
-    this.badgeType = RankBadgeType.regular,
-    this.address,
-    this.isIonConnectUser = false,
+    required this.data,
     super.key,
   });
 
-  final int rank;
-  final String amountText;
-  final String displayName;
-  final double supplyShare;
-  final bool isCreator;
-  final bool verified;
-  final String? username;
-  final String? avatarUrl;
-  final String? holderAddress;
-  final bool isXUser;
-  final RankBadgeType badgeType;
-  final String? address;
-  final bool isIonConnectUser;
+  final HolderTileData data;
 
   @override
   Widget build(BuildContext context) {
@@ -138,12 +84,12 @@ class HolderTile extends StatelessWidget {
     final texts = context.theme.appTextThemes;
 
     return GestureDetector(
-      onTap: isXUser
-          ? () => openUrlInAppBrowser('https://x.com/$username')
-          : holderAddress != null
+      onTap: data.badge.isXUser
+          ? () => openUrlInAppBrowser('https://x.com/${data.basicInfo.username}')
+          : data.holderAddress != null
               ? () => ProfileNavigationUtils.navigateToProfile(
                     context,
-                    pubkey: holderAddress,
+                    pubkey: data.holderAddress,
                   )
               : null,
       child: Row(
@@ -152,24 +98,20 @@ class HolderTile extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                _RankBadge(rank: rank, type: badgeType),
+                _RankBadge(rank: data.rank, type: data.badgeType),
                 SizedBox(width: 12.0.s),
                 HolderAvatar(
-                  imageUrl: avatarUrl,
-                  seed: displayName,
-                  isXUser: isXUser,
-                  isIonConnectUser: isIonConnectUser,
+                  imageUrl: data.avatarUrl,
+                  seed: data.basicInfo.displayName,
+                  isXUser: data.badge.isXUser,
+                  isIonConnectUser: data.isIonConnectUser,
                 ),
                 SizedBox(width: 8.0.s),
                 Expanded(
                   child: _NameAndAmount(
-                    name: displayName,
-                    handle: username,
-                    address: address,
-                    isCreator: isCreator,
-                    verified: verified,
-                    amountText: amountText,
-                    isXUser: isXUser,
+                    holderInfo: data.basicInfo,
+                    badgeInfo: data.badge,
+                    amountText: data.amountText,
                   ),
                 ),
               ],
@@ -182,7 +124,7 @@ class HolderTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(12.0.s),
             ),
             child: Text(
-              '${formatSupplySharePercent(supplyShare)}%',
+              '${formatSupplySharePercent(data.supplyShare)}%',
               style: texts.caption2
                   .copyWith(color: colors.primaryText, height: 18 / texts.caption2.fontSize!),
             ),
@@ -249,22 +191,14 @@ class _MedalIcon extends StatelessWidget {
 
 class _NameAndAmount extends StatelessWidget {
   const _NameAndAmount({
-    required this.name,
+    required this.holderInfo,
+    required this.badgeInfo,
     required this.amountText,
-    required this.verified,
-    required this.isCreator,
-    this.handle,
-    this.address,
-    this.isXUser = true,
   });
 
-  final String name;
-  final String? handle;
-  final String? address;
+  final HolderBasicInfo holderInfo;
+  final HolderBadge badgeInfo;
   final String amountText;
-  final bool verified;
-  final bool isCreator;
-  final bool isXUser;
 
   @override
   Widget build(BuildContext context) {
@@ -276,11 +210,11 @@ class _NameAndAmount extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         InlineBadgeText(
-          titleSpan: TextSpan(text: name),
+          titleSpan: TextSpan(text: holderInfo.displayName),
           badges: [
-            if (verified) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
-            if (isCreator) Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
-            if (isXUser) Assets.svg.iconBadgeXlogo.icon(size: 16.0.s),
+            if (badgeInfo.verified) Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
+            if (badgeInfo.isCreator) Assets.svg.iconBadgeCreator.icon(size: 16.0.s),
+            if (badgeInfo.isXUser) Assets.svg.iconBadgeXlogo.icon(size: 16.0.s),
           ],
           trailingGap: 8.0.s,
           style: texts.subtitle3.copyWith(
@@ -288,7 +222,7 @@ class _NameAndAmount extends StatelessWidget {
           ),
         ),
         Text(
-          handle != null ? '$handle • $amountText' : amountText,
+          holderInfo.username != null ? '@${holderInfo.username} • $amountText' : amountText,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: texts.caption.copyWith(color: colors.quaternaryText),
