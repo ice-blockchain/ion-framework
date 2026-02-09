@@ -85,7 +85,9 @@ T useWatchWhenVisible<T>({
     // briefly return a degraded value (AsyncLoading or AsyncData(null)) before the
     // full provider chain resolves. In that case, keep returning the cached value
     // to avoid a flash of wrong state.
-    if (lastValueRef.value != null && currentValue is AsyncValue) {
+    if (lastValueRef.value != null &&
+        currentValue is AsyncValue &&
+        lastValueRef.value is AsyncValue) {
       final asyncCurrent = currentValue as AsyncValue;
       final asyncCached = lastValueRef.value! as AsyncValue;
       // Keep cache if:
