@@ -605,3 +605,26 @@ Delta withFullLinks(Delta delta) {
   }
   return out;
 }
+
+/// Fills the attributes of hashtag and cashtag operations in a Delta,
+/// replacing the placeholder prefix ('#' or '$') with the full text of the operation.
+///
+/// This ensures that the attribute value contains the complete tag string
+/// (e.g., {'hashtag': '#ION'}) rather than just the prefix.
+Delta withFullTags(Delta delta) {
+  final out = Delta();
+  for (final op in delta.toList()) {
+    final hashTag = op.attributes?[HashtagAttribute.attributeKey];
+    final cashTag = op.attributes?[CashtagAttribute.attributeKey];
+
+    if (hashTag != null && op.value is String && hashTag == '#') {
+      out.push(Operation.insert(op.value, {HashtagAttribute.attributeKey: op.value}));
+    } else if (cashTag != null && op.value is String && cashTag == r'$') {
+      out.push(Operation.insert(op.value, {CashtagAttribute.attributeKey: op.value}));
+    } else {
+      out.push(op);
+    }
+  }
+
+  return out;
+}
