@@ -59,7 +59,10 @@ class CreatorTokensBody extends ConsumerWidget {
               items: globalSearch.activeItems,
               isInitialLoading: globalSearch.activeIsInitialLoading,
             ),
-            SliverPadding(padding: EdgeInsetsDirectional.only(bottom: 12.0.s)),
+            SliverPadding(
+              padding:
+                  EdgeInsetsDirectional.only(bottom: 12.0.s + MediaQuery.paddingOf(context).bottom),
+            ),
           ],
         ),
       ],
