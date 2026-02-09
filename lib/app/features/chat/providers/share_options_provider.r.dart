@@ -139,7 +139,9 @@ ShareOptionsData? _getShareOptionsData(
       if (userDisplayName == null) {
         return null;
       }
-      final content = entity.data.richText?.content ?? entity.data.textContent;
+      final rawFromRich = entity.data.richText?.content;
+      final rawFromText = entity.data.textContent;
+      final content = rawFromRich ?? rawFromText;
       String? imageUrl;
       if (!entity.isStory) {
         final firstMedia = entity.data.media.values.firstOrNull;
@@ -148,7 +150,10 @@ ShareOptionsData? _getShareOptionsData(
         imageUrl = userPreviewData!.avatarUrl;
       }
 
-      final plainTextContent = _convertDeltaToPlainText(content);
+      // When richText is null, content is plain text (textContent); when richText is set, content is Quill Delta JSON.
+      final plainTextContent = _stripAllUrls(
+        rawFromRich != null ? _convertDeltaToPlainText(content) : content.trim(),
+      );
       final contentType = mapEntityToSharedContentType(entity);
 
       return ShareOptionsData(
@@ -185,7 +190,13 @@ ShareOptionsData? _getShareOptionsData(
   }
 }
 
-/// Converts a Quill Delta JSON string to plain text
+/// Removes all URLs from share description so the preview shows only text.
+String _stripAllUrls(String text) {
+  if (text.isEmpty) return text;
+  return text.replaceAll(RegExp(r'https?://\S+'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+}
+
+/// Converts a Quill Delta JSON string to plain text. Excludes link ops so URLs are not in the output.
 String _convertDeltaToPlainText(String? value) {
   if (value == null) {
     return '';
@@ -196,7 +207,6 @@ String _convertDeltaToPlainText(String? value) {
 
     final filteredDelta = Delta();
     for (final op in delta.operations) {
-      // exclude links from the plain text
       if (op.attributes?.containsKey(Attribute.link.key) ?? false) {
         continue;
       }
