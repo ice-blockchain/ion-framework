@@ -76,9 +76,11 @@ class MessageItemWrapper extends HookConsumerWidget {
     );
 
     final isSharedProfileMessage = messageItem is ShareProfileItem;
-    final profileColors = messageItem is ShareProfileItem
-        ? useImageColors((messageItem as ShareProfileItem).avatarUrl)
-        : useAvatarFallbackColors;
+      final imageColors = useImageColors(
+      isSharedProfileMessage ? (messageItem as ShareProfileItem).avatarUrl : null,
+      enabled: isSharedProfileMessage,
+    );
+    final profileColors = isSharedProfileMessage ? imageColors : useAvatarFallbackColors;
 
     final showReactDialog = useCallback(
       () async {
