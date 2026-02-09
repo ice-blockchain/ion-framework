@@ -4,6 +4,8 @@ import 'dart:async';
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/early_access_provider.r.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,6 +27,9 @@ class AuthFlowActionNotifier extends _$AuthFlowActionNotifier {
     state = await AsyncValue.guard(() async {
       final ionIdentity = await ref.read(ionIdentityProvider.future);
       final earlyAccessEmail = ref.read(earlyAccessEmailProvider);
+      final signUpLoginFallbackEnabled = ref
+          .read(featureFlagsProvider.notifier)
+          .get(AuthFeatureFlag.signUpLoginFallbackOnUserAlreadyExists);
 
       final authStateBeforeAction = await ref.read(authProvider.future);
       final previouslyAuthenticatedUsers = authStateBeforeAction.authenticatedIdentityKeyNames;
@@ -44,6 +49,10 @@ class AuthFlowActionNotifier extends _$AuthFlowActionNotifier {
               currentAuthenticatedUsers: previouslyAuthenticatedUsers,
             );
       } on UserAlreadyExistsException {
+        if (!signUpLoginFallbackEnabled) {
+          rethrow;
+        }
+
         try {
           await ionIdentity(username: keyName).auth.verifyUserLoginFlow();
         } catch (_) {}

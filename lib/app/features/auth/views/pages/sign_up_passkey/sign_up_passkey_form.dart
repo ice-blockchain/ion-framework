@@ -14,6 +14,8 @@ import 'package:ion/app/features/auth/providers/auth_screen_busy_provider.r.dart
 import 'package:ion/app/features/auth/views/components/identity_key_name_input/identity_key_name_input.dart';
 import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biometrics.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -28,6 +30,9 @@ class SignUpPasskeyForm extends HookConsumerWidget {
 
     final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
     final authFlowState = ref.watch(authFlowActionNotifierProvider);
+    final signUpLoginFallbackEnabled = ref
+        .watch(featureFlagsProvider.notifier)
+        .get(AuthFeatureFlag.signUpLoginFallbackOnUserAlreadyExists);
 
     useOnInit(
       () {
@@ -40,7 +45,16 @@ class SignUpPasskeyForm extends HookConsumerWidget {
 
     ref.displayErrors(
       authFlowActionNotifierProvider,
-      excludedExceptions: {...excludedPasskeyExceptions, UserAlreadyExistsException},
+      excludedExceptions: {
+        ...excludedPasskeyExceptions,
+        if (signUpLoginFallbackEnabled) UserAlreadyExistsException,
+      },
+    );
+
+    useOnInit(
+      () {
+        ref.invalidate(authFlowActionNotifierProvider);
+      },
     );
 
     final authScreenIsBusy = ref.watch(authScreenBusyProvider);
@@ -52,7 +66,7 @@ class SignUpPasskeyForm extends HookConsumerWidget {
           IdentityKeyNameInput(
             errorText: switch (authFlowState.error) {
               final PasskeyCancelledException _ => null,
-              final UserAlreadyExistsException _ => null,
+              final UserAlreadyExistsException _ when signUpLoginFallbackEnabled => null,
               final IONIdentityException identityException => identityException.title(context),
               _ => authFlowState.error?.toString()
             },

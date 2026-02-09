@@ -54,3 +54,10 @@ final class MultiAccountsFeatureFlag extends FeatureFlag {
 
   static const multiAccountsEnabled = MultiAccountsFeatureFlag._(key: 'multiAccountsEnabled');
 }
+
+final class AuthFeatureFlag extends FeatureFlag {
+  const AuthFeatureFlag._({required super.key});
+
+  static const signUpLoginFallbackOnUserAlreadyExists =
+      AuthFeatureFlag._(key: 'signUpLoginFallbackOnUserAlreadyExists');
+}
