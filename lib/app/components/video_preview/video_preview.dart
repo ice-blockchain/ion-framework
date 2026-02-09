@@ -44,7 +44,7 @@ class VideoPreview extends HookConsumerWidget {
   final Duration? duration;
   // post framed event reference (quote/repost post)
   final EventReference? framedEventReference;
-  // post event reference (the post containing this video, kind 30175 or 1)
+  // post event reference
   final EventReference? postEventReference;
   // media index in the post (carousel media index)
   final int mediaIndex;
