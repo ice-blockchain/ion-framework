@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
+import 'package:ion/app/features/components/verify_identity/passkey_dialog_state.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
@@ -41,6 +42,14 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
   ref
     ..listen<AppLifecycleState>(appLifecycleProvider, (previous, next) {
       if (next == AppLifecycleState.hidden && previous != AppLifecycleState.paused) {
+        // Don't dispose during passkey auth - Face ID causes 'inactive' state
+        // which triggers disposal and SSE cleanup cascade that blocks passkey callback
+        if (GlobalPasskeyDialogState.isShowing) {
+          Logger.log(
+            '[IonTokenAnalyticsClient] Skipping disposal - passkey auth in progress',
+          );
+          return;
+        }
         Logger.log(
           '[IonTokenAnalyticsClient] App backgrounded, disposing client',
         );
