@@ -128,6 +128,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         '[CommunityTokenTradeNotifier] Token info | existingTokenAddress=$existingTokenAddress',
       );
 
+      // Create fat address data for token first buy
       final fatAddressData = (existingTokenAddress != null && existingTokenAddress.isNotEmpty)
           ? null
           : await ref.read(
@@ -138,6 +139,19 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
                 suggestedDetails: formState.suggestedDetails,
               ).future,
             );
+
+      if (params.externalAddressType.isContentToken &&
+          fatAddressData != null &&
+          ((formState.suggestedDetails?.name.isEmpty ?? true) ||
+              (formState.suggestedDetails?.ticker.isEmpty ?? true))) {
+        Logger.error(
+          '[CommunityTokenTradeNotifier] Missing AI generated suggested details | suggestedDetails=${formState.suggestedDetails}',
+        );
+        throw Exception(
+          'Missing AI generated suggested details for content token first buy, externalAddress=${params.externalAddress}',
+        );
+      }
+
       Logger.info(
         '[CommunityTokenTradeNotifier] Fat address data | hasFatAddressData=${fatAddressData != null}',
       );

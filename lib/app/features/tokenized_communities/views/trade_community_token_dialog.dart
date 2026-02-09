@@ -252,12 +252,12 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   }
 
   bool _isContinueButtonEnabled(TradeCommunityTokenState state) {
-    return !state.shouldWaitSuggestedDetails ||
-        ((state.suggestedDetails?.name.isNotEmpty ?? false) &&
-                (state.suggestedDetails?.ticker.isNotEmpty ?? false)) &&
-            (state.mode == CommunityTokenTradeMode.buy
-                ? _isBuyContinueButtonEnabled(state)
-                : _isSellContinueButtonEnabled(state));
+    return (!state.shouldWaitSuggestedDetails ||
+            ((state.suggestedDetails?.name.isNotEmpty ?? false) &&
+                (state.suggestedDetails?.ticker.isNotEmpty ?? false))) &&
+        (state.mode == CommunityTokenTradeMode.buy
+            ? _isBuyContinueButtonEnabled(state)
+            : _isSellContinueButtonEnabled(state));
   }
 
   bool _isBuyContinueButtonEnabled(TradeCommunityTokenState state) {
@@ -332,6 +332,15 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     if (state.targetWallet == null || state.selectedPaymentToken == null) {
       Logger.warning(
         '[TradeCommunityTokenDialog] Missing wallet or token | wallet=${state.targetWallet?.id} | token=${state.selectedPaymentToken?.abbreviation}',
+      );
+      return;
+    }
+
+    if (state.shouldWaitSuggestedDetails &&
+        ((state.suggestedDetails?.ticker.isEmpty ?? true) ||
+            (state.suggestedDetails?.name.isEmpty ?? true))) {
+      Logger.warning(
+        '[TradeCommunityTokenDialog] Missing suggested details | ticker=${state.suggestedDetails?.ticker} | name=${state.suggestedDetails?.name}',
       );
       return;
     }
