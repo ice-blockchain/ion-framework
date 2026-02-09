@@ -75,7 +75,6 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
     final publishedExternalFilters = _buildPubkeysToFilters(filters: publishedData?.filters ?? [])
       ..remove(currentPubkey);
 
-    //TODO[push] test if filters == works correctly for Maps and Lists
     final filtersToUpdate = Map.fromEntries(
       currentExternalFilters.entries.where(
         (entry) => !(currentExternalFilters[entry.key] ?? [])
@@ -125,12 +124,12 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
     final RequestFilter(:authors, :tags) = filter;
     final pTags = tags?['#p']?.whereType<String>();
     return filter.copyWith(
-      authors: authors != null && authors.contains(pubkey) ? () => [pubkey] : null,
-      tags: tags != null && pTags != null && pTags.contains(pubkey)
-          ? () => {
-                ...tags,
-                '#p': [pubkey],
-              }
+      authors: () => authors != null && authors.contains(pubkey) ? [pubkey] : null,
+      tags: () => tags != null && pTags != null && pTags.contains(pubkey)
+          ? {
+              ...tags,
+              '#p': [pubkey],
+            }
           : null,
     );
   }
