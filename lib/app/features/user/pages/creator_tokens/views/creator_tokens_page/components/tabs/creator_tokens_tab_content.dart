@@ -11,10 +11,8 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/models/token_type_filter.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/providers/creator_tokens_filter_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensTabContent extends HookConsumerWidget {
   const CreatorTokensTabContent({
