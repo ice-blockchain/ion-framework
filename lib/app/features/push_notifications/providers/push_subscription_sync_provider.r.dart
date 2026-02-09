@@ -36,21 +36,23 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
 
     if (selectedCategoriesSubscription != null &&
         selectedCategoriesSubscription != publishedSubscription?.data) {
-      await ref.watch(ionConnectNotifierProvider.notifier).sendEntityData(
-            selectedCategoriesSubscription,
-            actionSource: ActionSourceRelayUrl(selectedCategoriesSubscription.relay.url),
-          );
-    }
-
-    if (selectedCategoriesSubscription != null &&
-        selectedCategoriesSubscription.filters.isEmpty &&
-        publishedSubscription != null) {
-      await _deleteSubscription(publishedSubscription);
+      if (selectedCategoriesSubscription.filters.isNotEmpty) {
+        await _updateSubscription(selectedCategoriesSubscription);
+      } else if (publishedSubscription != null) {
+        await _deleteSubscription(publishedSubscription);
+      }
     }
   }
 
+  Future<void> _updateSubscription(PushSubscriptionOwnData subscriptionData) async {
+    await ref.watch(ionConnectNotifierProvider.notifier).sendEntityData(
+          subscriptionData,
+          actionSource: ActionSourceRelayUrl(subscriptionData.relay.url),
+        );
+  }
+
   Future<void> _deleteSubscription(PushSubscriptionEntity entity) async {
-    await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
+    await ref.watch(ionConnectNotifierProvider.notifier).sendEntityData(
           DeletionRequest(
             events: [
               EventToDelete(
