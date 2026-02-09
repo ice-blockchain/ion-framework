@@ -21,6 +21,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'push_subscription_sync_provider.r.g.dart';
 
+/// Synchronizes the push subscription data on relays for both the current user
+/// and external users mentioned in the filters.
 @Riverpod(keepAlive: true)
 class PushSubscriptionSync extends _$PushSubscriptionSync {
   @override
@@ -37,34 +39,56 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       return;
     }
 
-    final selectedCategoriesSubscription =
+    final currentSubscriptionData =
         await ref.watch(selectedPushCategoriesIonSubscriptionProvider.future);
     final publishedSubscription = await ref.read(currentUserPushSubscriptionProvider.future);
 
-    if (selectedCategoriesSubscription != null &&
-        selectedCategoriesSubscription != publishedSubscription?.data) {
-      if (selectedCategoriesSubscription.filters.isNotEmpty) {
-        await _updateOwnSubscription(selectedCategoriesSubscription);
-        await _updateExternalSubscription(
-          currentData: selectedCategoriesSubscription,
-          publishedData: publishedSubscription?.data,
-        );
-      } else if (publishedSubscription != null) {
-        await _deleteOwnSubscription(publishedSubscription);
-      }
+    if (currentSubscriptionData != null && currentSubscriptionData != publishedSubscription?.data) {
+      await _updateOwnSubscription(
+        currentData: currentSubscriptionData,
+        publishedEntity: publishedSubscription,
+      );
+      await _updateExternalSubscription(
+        currentData: currentSubscriptionData,
+        publishedEntity: publishedSubscription,
+      );
     }
   }
 
-  Future<void> _updateOwnSubscription(PushSubscriptionOwnData subscriptionData) async {
-    await ref.watch(ionConnectNotifierProvider.notifier).sendEntityData(
-          subscriptionData,
-          actionSource: ActionSourceRelayUrl(subscriptionData.relay.url),
-        );
+  /// Handles push subscription data for the current user.
+  ///
+  /// It contains all filters (for the current user and external ones) and is published to the current user relays.
+  Future<void> _updateOwnSubscription({
+    required PushSubscriptionOwnData currentData,
+    required PushSubscriptionEntity? publishedEntity,
+  }) async {
+    final ionConnectNotifier = ref.watch(ionConnectNotifierProvider.notifier);
+    final cacheNotifier = ref.watch(ionConnectCacheProvider.notifier);
+    if (currentData.filters.isNotEmpty) {
+      await ionConnectNotifier.sendEntityData(
+        currentData,
+        actionSource: ActionSourceRelayUrl(currentData.relay.url),
+      );
+    } else if (publishedEntity != null) {
+      await ionConnectNotifier.sendEntityData(
+        _buildDeletePushSubscriptionOwnData(publishedEntity),
+        cache: false,
+      );
+      cacheNotifier.remove(publishedEntity.cacheKey);
+    }
   }
 
+  /// Handles push subscription data for external users.
+  ///
+  /// It contains only filters related to a specific external user and is published to that user's relays.
+  /// The flow is as follows:
+  ///  1) Find all pubkeys in the filters except the current user's pubkey
+  ///  2) For each pubkey, build a separate entity containing only filters related to that pubkey
+  ///  3) Compute the diff between the newly built data and the already published ones
+  ///  4) Publish the data with differences to the relays of the corresponding users
   Future<void> _updateExternalSubscription({
-    required PushSubscriptionData currentData,
-    required PushSubscriptionData? publishedData,
+    required PushSubscriptionOwnData currentData,
+    required PushSubscriptionEntity? publishedEntity,
   }) async {
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
     final currentUserRelays = await ref.watch(currentUserRelaysProvider.future);
@@ -72,8 +96,8 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
 
     final currentExternalFilters = _buildPubkeysToFilters(filters: currentData.filters)
       ..remove(currentPubkey);
-    final publishedExternalFilters = _buildPubkeysToFilters(filters: publishedData?.filters ?? [])
-      ..remove(currentPubkey);
+    final publishedExternalFilters =
+        _buildPubkeysToFilters(filters: publishedEntity?.data.filters ?? [])..remove(currentPubkey);
 
     final filtersToUpdate = Map.fromEntries(
       currentExternalFilters.entries.where(
@@ -95,14 +119,15 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
           currentUserRelays: currentUserRelays,
         ),
       for (final entry in filtersToDelete.entries)
-        entry.key: _buildDeletePushSubscriptionExternalData(
-          masterPubkey: entry.key,
-        ),
+        entry.key: _buildDeletePushSubscriptionExternalData(masterPubkey: entry.key),
     };
 
     await _sendExternalUsersPushSubscriptionData(pubkeysToData: dataToSync);
   }
 
+  /// Search for pubkeys in filters and build a map where
+  ///   key is user pubkey
+  ///   value is a list of filters related to this user (filters that have this pubkey in authors or in #p tags)
   Map<String, List<RequestFilter>> _buildPubkeysToFilters({required List<RequestFilter> filters}) {
     final pubkeyToFilters = <String, List<RequestFilter>>{};
     for (final filter in filters) {
@@ -119,7 +144,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
     return pubkeyToFilters;
   }
 
-  /// Removes all other users apart the provided one for the filter
+  /// Removes all other users except the provided one for the filter
   RequestFilter _buildUserSpecificFilter({required RequestFilter filter, required String pubkey}) {
     final RequestFilter(:authors, :tags) = filter;
     final pTags = tags?['#p']?.whereType<String>();
@@ -134,25 +159,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
     );
   }
 
-  Future<void> _deleteOwnSubscription(PushSubscriptionEntity entity) async {
-    await ref.watch(ionConnectNotifierProvider.notifier).sendEntityData(
-          DeletionRequest(
-            events: [
-              EventToDelete(
-                eventReference: ImmutableEventReference(
-                  masterPubkey: entity.masterPubkey,
-                  eventId: entity.id,
-                  kind: PushSubscriptionEntity.kind,
-                ),
-              ),
-            ],
-          ),
-          cache: false,
-        );
-    ref.read(ionConnectCacheProvider.notifier).remove(entity.cacheKey);
-  }
-
-  /// TODO[push]: add comments to all methods in this class
+  /// Publish external users push subscription data to their relays
   Future<void> _sendExternalUsersPushSubscriptionData({
     required Map<String, EventSerializable> pubkeysToData,
   }) async {
@@ -204,7 +211,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       events: [
         EventToDelete(
           eventReference: ReplaceableEventReference(
-            masterPubkey: masterPubkey,
+            masterPubkey: masterPubkey, //TODO[push]: add device_id
             kind: PushSubscriptionEntity.kind,
             dTag: masterPubkey,
           ),
@@ -212,5 +219,21 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       ],
     );
     return deletionRequest;
+  }
+
+  EventSerializable _buildDeletePushSubscriptionOwnData(
+    PushSubscriptionEntity publishedSubscriptionEntity,
+  ) {
+    return DeletionRequest(
+      events: [
+        EventToDelete(
+          eventReference: ImmutableEventReference(
+            masterPubkey: publishedSubscriptionEntity.masterPubkey,
+            eventId: publishedSubscriptionEntity.id,
+            kind: PushSubscriptionEntity.kind,
+          ),
+        ),
+      ],
+    );
   }
 }
