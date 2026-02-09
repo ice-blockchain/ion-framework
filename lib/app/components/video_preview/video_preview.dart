@@ -58,8 +58,7 @@ class VideoPreview extends HookConsumerWidget {
     final isVideoPlaybackEnabled = ref.watch(feedVideoPlaybackEnabledNotifierProvider);
     // Use post event reference for unique controller ID (not just authorPubkey,
     // as one author can have multiple posts with videos at the same mediaIndex)
-    final uniqueControllerId =
-        framedEventReference?.encode() ?? postEventReference?.encode() ?? '';
+    final uniqueControllerId = framedEventReference?.encode() ?? postEventReference?.encode() ?? '';
 
     // If autoplay is disabled, we don't need to initialize the controller (to avoid the video downloading)
     final videoControllerProviderState = (videoSettings.autoplay && isVideoPlaybackEnabled)
