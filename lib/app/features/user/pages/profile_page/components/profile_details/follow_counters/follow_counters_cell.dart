@@ -46,7 +46,8 @@ class FollowCountersCell extends StatelessWidget {
     if (profileMode == ProfileMode.dark) {
       return context.theme.appTextThemes.caption2.copyWith(
         color: _numberColor(context),
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
+        height: 1.17,
       );
     }
     return context.theme.appTextThemes.body2.copyWith(
@@ -58,7 +59,6 @@ class FollowCountersCell extends StatelessWidget {
     if (profileMode == ProfileMode.dark) {
       return context.theme.appTextThemes.caption2.copyWith(
         color: _labelColor(context),
-        fontWeight: FontWeight.w400,
       );
     }
     return context.theme.appTextThemes.body2.copyWith(
