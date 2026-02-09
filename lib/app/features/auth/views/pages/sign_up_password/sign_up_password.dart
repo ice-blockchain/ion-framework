@@ -16,6 +16,9 @@ import 'package:ion/app/features/auth/views/pages/sign_up_password/password_vali
 import 'package:ion/app/features/auth/views/pages/sign_up_password/sign_up_password_button.dart';
 import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biometrics.dart';
 import 'package:ion/app/features/components/verify_identity/components/password_input.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -34,10 +37,15 @@ class SignUpPasswordPage extends HookConsumerWidget {
     final passwordConfirmationInputFocused = useState<bool>(false);
 
     final formKey = useRef(GlobalKey<FormState>());
+    final signUpLoginFallbackEnabled = ref
+        .watch(featureFlagsProvider.notifier)
+        .get(AuthFeatureFlag.signUpLoginFallbackOnUserAlreadyExists);
 
     ref.displayErrors(
       authFlowActionNotifierProvider,
-      excludedExceptions: {UserAlreadyExistsException},
+      excludedExceptions: {
+        if (signUpLoginFallbackEnabled) UserAlreadyExistsException,
+      },
     );
     final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
 
@@ -65,6 +73,12 @@ class SignUpPasswordPage extends HookConsumerWidget {
         passwordInputFocused.value,
         passwordConfirmationInputFocused.value,
       ],
+    );
+
+    useOnInit(
+      () {
+        ref.invalidate(authFlowActionNotifierProvider);
+      },
     );
 
     return SheetContent(

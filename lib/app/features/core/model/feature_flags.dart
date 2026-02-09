@@ -42,3 +42,10 @@ final class TokenizedCommunitiesFeatureFlag extends FeatureFlag {
   static const tokenizedCommunitiesEnabled =
       TokenizedCommunitiesFeatureFlag._(key: 'tokenizedCommunitiesEnabled');
 }
+
+final class AuthFeatureFlag extends FeatureFlag {
+  const AuthFeatureFlag._({required super.key});
+
+  static const signUpLoginFallbackOnUserAlreadyExists =
+      AuthFeatureFlag._(key: 'signUpLoginFallbackOnUserAlreadyExists');
+}
