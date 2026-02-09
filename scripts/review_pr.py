@@ -61,7 +61,7 @@ You are an expert mobile developer (Flutter, Android, iOS).
     - Avoid magic numbers—use named constants
     - Prefer named parameters for functions with multiple arguments
     - Use widget subclasses instead of methods that return widgets
-    - Use `.s` extension for responsive sizing (e.g., `16.0.s` not `16.0`)
+    - Use `.s` extension for responsive sizing (e.g., `16.0.s` not `16.0`) exclude `fontSize` and remove `TextScaler.noScaling`
     - Use `ScreenSideOffset.defaultSmallMargin` or `.small` for margins
     - Don't use verbs (`getSomethingProvider`), use data names
     - Use SeparatedColumn/SeparatedRow for lists with separators between items
