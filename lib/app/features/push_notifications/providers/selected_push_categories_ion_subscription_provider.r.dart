@@ -97,7 +97,8 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       filters.add(messageFilter);
     }
 
-    final accountsFilters = await _buildAccountsFilters();
+    final accountsFilters =
+        await _buildAccountsFilters(selectedPushCategories: selectedPushCategories);
     if (accountsFilters != null) {
       filters.addAll(accountsFilters);
     }
@@ -338,16 +339,25 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     );
   }
 
-  Future<List<RequestFilter>?> _buildAccountsFilters() async {
+  Future<List<RequestFilter>?> _buildAccountsFilters({
+    required List<PushNotificationCategory> selectedPushCategories,
+  }) async {
     final accountNotificationSets =
         await ref.watch(currentUserAccountNotificationSetsProvider.future);
-    // TODO[push] check posts category?
+    final accountNotificationsEnabled =
+        selectedPushCategories.contains(PushNotificationCategory.posts);
+    const accountsRelatedCategories = [
+      AccountNotificationSetType.articles,
+      AccountNotificationSetType.posts,
+      AccountNotificationSetType.videos,
+      AccountNotificationSetType.stories,
+    ];
+
+    // Skip tokenized communities transactions category because it is handled
+    // when building filters for creator token trades and content token trades categories
     return [
       for (final AccountNotificationSetEntity(:data) in accountNotificationSets)
-        // Skip tokenized communities transactions category because it is handled
-        // when building filters for creator token trades and content token trades categories
-        if (data.type != AccountNotificationSetType.tokenizedCommunitiesTransactions &&
-            data.userPubkeys.isNotEmpty)
+        if (accountsRelatedCategories.contains(data.type) && accountNotificationsEnabled)
           data.type.toUserNotificationType().toRequestFilter(masterPubkeys: data.userPubkeys),
     ];
   }

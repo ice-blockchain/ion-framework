@@ -156,6 +156,8 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
   Future<void> _sendExternalUsersPushSubscriptionData({
     required Map<String, EventSerializable> pubkeysToData,
   }) async {
+    if (pubkeysToData.isEmpty) return;
+
     final optimalUserRelaysService = ref.read(optimalUserRelaysServiceProvider);
     final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
 
