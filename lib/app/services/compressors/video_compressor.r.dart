@@ -145,14 +145,20 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     final duration = videoInfo.duration.inSeconds;
 
     if (duration > hardwareCompressionThreshold.inSeconds) {
-      final nativeSettings = Platform.isAndroid
-          ? AndroidNativeVideoCompressionSettings.balanced
-          : IosNativeVideoCompressionSettings.balanced;
+      try {
+        final nativeSettings = Platform.isAndroid
+            ? AndroidNativeVideoCompressionSettings.balanced
+            : IosNativeVideoCompressionSettings.balanced;
 
-      return nativeVideoCompressor.compress(
-        file,
-        settings: nativeSettings,
-      );
+        return await nativeVideoCompressor.compress(
+          file,
+          settings: nativeSettings,
+        );
+      } catch (e, s) {
+        Logger.warning(
+          'Native video compression failed, falling back to FFmpeg: $e\n$s',
+        );
+      }
     }
 
     settings ??= VideoCompressionSettings.balanced;
