@@ -69,6 +69,8 @@ class _ContentState extends ConsumerWidget {
       walletAddressNotifierProvider.select((state) => state.isLoading),
     );
 
+    ref.displayErrors(walletAddressNotifierProvider);
+
     return Stack(
       alignment: Alignment.center,
       children: [
