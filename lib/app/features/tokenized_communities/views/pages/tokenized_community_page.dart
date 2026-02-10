@@ -41,6 +41,7 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/provi
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_card.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
 import 'package:ion/generated/assets.gen.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 enum TokenizedCommunityTabType implements TabType {
   chart,
@@ -568,9 +569,15 @@ class _TokenStats extends HookConsumerWidget {
 
   final String externalAddress;
 
+  /// Returns the index of the 24h timeframe, or the last index if not found.
+  int get24hItemIndex(List<MapEntry<String, TradingStats>> entries) {
+    final index = entries.indexWhere((e) => e.key == timeframe24hApiKey);
+    return index != -1 ? index : entries.length - 1;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedTimeframe = useState(0);
+    final selectedTimeframe = useState<int?>(null);
 
     final tradingStatsAsync = ref.watch(tokenTradingStatsProvider(externalAddress));
 
@@ -587,11 +594,14 @@ class _TokenStats extends HookConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        final selectedTimeframeStats = timeframeEntries[selectedTimeframe.value].value;
+        // if null -> select last index
+        final seletedIndex = selectedTimeframe.value ?? get24hItemIndex(timeframeEntries);
+
+        final selectedTimeframeStats = timeframeEntries[seletedIndex].value;
         final selectedStatsFormatted = TradingStatsFormatted.fromStats(selectedTimeframeStats);
 
         return ChartStats(
-          selectedTimeframe: selectedTimeframe.value,
+          selectedTimeframe: seletedIndex,
           timeframes: [
             for (final timeframeEntry in timeframeEntries)
               TimeframeChange(
