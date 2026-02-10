@@ -7,9 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/global_notification_bar/providers/global_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
+import 'package:ion/app/features/core/providers/internet_status_stream_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/hooks/use_keyboard_height.dart';
 import 'package:ion/app/features/feed/stories/providers/story_pause_provider.r.dart';
@@ -110,12 +112,19 @@ class _StoryControlsPanel extends HookConsumerWidget {
       const [],
     );
 
-    final keyboardHeight = useKeyboardHeight();
-    final safeArea = MediaQuery.viewPaddingOf(context).bottom;
+    final notification = ref.watch(globalNotificationNotifierProvider);
+    final hasInternetConnection = ref.watch(hasInternetConnectionProvider);
+    final isBannerVisible = notification != null || !hasInternetConnection;
 
-    final baseline = safeArea + 16.0.s;
-    final linear = keyboardHeight + safeArea - controlsHeight.value;
-    final bottomPadding = math.max(baseline, linear);
+    final keyboardHeight = useKeyboardHeight();
+    final safeAreaBottom = MediaQuery.viewPaddingOf(context).bottom;
+    final safeAreaTop = MediaQuery.paddingOf(context).top;
+    final notificationHeight = 42.0.s;
+
+    final baseline = safeAreaBottom + 16.0.s;
+    final topBannerHeight = baseline + safeAreaTop + notificationHeight;
+    final linear = keyboardHeight + safeAreaBottom - controlsHeight.value;
+    final bottomPadding = math.max(baseline, linear) + (isBannerVisible ? topBannerHeight : 0.0);
 
     Future<void> onSubmit(String? txt) async {
       if (txt == null || txt.isEmpty) return;

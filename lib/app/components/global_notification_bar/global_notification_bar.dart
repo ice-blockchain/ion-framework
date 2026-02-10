@@ -19,10 +19,35 @@ class GlobalNotificationBar extends HookConsumerWidget {
     final controller = useAnimationController(
       duration: animationDuration,
     );
+    final lastChild = useState<Widget?>(null);
 
     final animation = CurvedAnimation(
       parent: controller,
       curve: Curves.easeInOut,
+    );
+
+    useEffect(
+      () {
+        if (child != null) {
+          lastChild.value = child;
+        }
+        return null;
+      },
+      [child],
+    );
+
+    useEffect(
+      () {
+        void handleStatus(AnimationStatus status) {
+          if (status == AnimationStatus.dismissed && child == null) {
+            lastChild.value = null;
+          }
+        }
+
+        controller.addStatusListener(handleStatus);
+        return () => controller.removeStatusListener(handleStatus);
+      },
+      [controller, child],
     );
 
     _controlAnimation(
@@ -34,7 +59,7 @@ class GlobalNotificationBar extends HookConsumerWidget {
     return SizeTransition(
       sizeFactor: animation,
       axisAlignment: 1,
-      child: child ?? const SizedBox.shrink(),
+      child: lastChild.value ?? const SizedBox.shrink(),
     );
   }
 
