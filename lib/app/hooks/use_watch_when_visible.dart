@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/build_context.dart';
 
 /// Hook that watches a provider only when the route is active and the app is in the foreground.
@@ -80,8 +81,29 @@ T useWatchWhenVisible<T>({
   if (shouldWatch) {
     // Watch when active and in foreground - keeps provider alive and subscription active
     currentValue = watcher();
-    // Update cache with latest value
-    lastValueRef.value = currentValue;
+    // When resuming watch after being inactive, the provider may reinitialize and
+    // briefly return a degraded value (AsyncLoading or AsyncData(null)) before the
+    // full provider chain resolves. In that case, keep returning the cached value
+    // to avoid a flash of wrong state.
+    if (lastValueRef.value != null &&
+        currentValue is AsyncValue &&
+        lastValueRef.value is AsyncValue) {
+      final asyncCurrent = currentValue as AsyncValue;
+      final asyncCached = lastValueRef.value! as AsyncValue;
+      // Keep cache if:
+      // 1. New value has no data yet (still loading), OR
+      // 2. New value resolved to null but cached had real data
+      //    (upstream dependency hasn't resolved yet)
+      final shouldKeepCache = !asyncCurrent.hasValue ||
+          (asyncCurrent.valueOrNull == null && asyncCached.valueOrNull != null);
+      if (shouldKeepCache) {
+        currentValue = lastValueRef.value;
+      } else {
+        lastValueRef.value = currentValue;
+      }
+    } else {
+      lastValueRef.value = currentValue;
+    }
   } else {
     // Route is inactive or app is backgrounded - use cached value (don't call watcher)
     currentValue = lastValueRef.value;
