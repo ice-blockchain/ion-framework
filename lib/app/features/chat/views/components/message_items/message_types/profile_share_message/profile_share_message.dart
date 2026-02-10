@@ -54,6 +54,7 @@ class ProfileShareMessage extends HookConsumerWidget {
 
     final messageItem = ShareProfileItem(
       eventMessage: eventMessage,
+      avatarUrl: userMetadata?.data.avatarUrl,
       contentDescription: userMetadata?.data.name ?? '',
     );
 

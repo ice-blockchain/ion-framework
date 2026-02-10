@@ -30,7 +30,9 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -73,6 +75,13 @@ class MessageItemWrapper extends HookConsumerWidget {
       messageItem: messageItem,
     );
 
+    final isSharedProfileMessage = messageItem is ShareProfileItem;
+    final imageColors = useImageColors(
+      isSharedProfileMessage ? (messageItem as ShareProfileItem).avatarUrl : null,
+      enabled: isSharedProfileMessage,
+    );
+    final profileColors = isSharedProfileMessage ? imageColors : useAvatarFallbackColors;
+
     final showReactDialog = useCallback(
       () async {
         try {
@@ -108,6 +117,15 @@ class MessageItemWrapper extends HookConsumerWidget {
       [messageItemKey, isMe, messageItem, deliveryStatus],
     );
 
+    final borderRadius = BorderRadiusDirectional.only(
+      topStart: Radius.circular(12.0.s),
+      topEnd: Radius.circular(12.0.s),
+      bottomStart: !isLastMessageFromAuthor || isMe ? Radius.circular(12.0.s) : Radius.zero,
+      bottomEnd: isMe && isLastMessageFromAuthor && (messageItem is! PostItem)
+          ? Radius.zero
+          : Radius.circular(12.0.s),
+    );
+
     return SwipeableMessage(
       enabled: deliveryStatus != MessageDeliveryStatus.failed,
       onSwipeToReply: () {
@@ -120,49 +138,51 @@ class MessageItemWrapper extends HookConsumerWidget {
           padding: margin ?? EdgeInsets.zero,
           child: Align(
             alignment: isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-            child: GestureDetector(
-              onLongPress: () {
-                HapticFeedback.mediumImpact();
-                showReactDialog();
-              },
-              child: RepaintBoundary(
-                key: messageItemKey,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: contentPadding,
-                      constraints: BoxConstraints(
-                        maxWidth: containerMaxWidth ?? maxWidth,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isMe
-                            ? context.theme.appColors.primaryAccent
-                            : context.theme.appColors.onPrimaryAccent,
-                        borderRadius: BorderRadiusDirectional.only(
-                          topStart: Radius.circular(12.0.s),
-                          topEnd: Radius.circular(12.0.s),
-                          bottomStart: !isLastMessageFromAuthor || isMe
-                              ? Radius.circular(12.0.s)
-                              : Radius.zero,
-                          bottomEnd: isMe && isLastMessageFromAuthor && (messageItem is! PostItem)
-                              ? Radius.zero
-                              : Radius.circular(12.0.s),
+            child: ProfileGradientBackground(
+              disableDarkGradient: false,
+              borderRadius: borderRadius,
+              enabled: isSharedProfileMessage,
+              colors: (
+                first: profileColors?.first ?? context.theme.appColors.primaryAccent,
+                second: profileColors?.second ?? context.theme.appColors.onPrimaryAccent
+              ),
+              child: GestureDetector(
+                onLongPress: () {
+                  HapticFeedback.mediumImpact();
+                  showReactDialog();
+                },
+                child: RepaintBoundary(
+                  key: messageItemKey,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: contentPadding,
+                        constraints: BoxConstraints(
+                          maxWidth: containerMaxWidth ?? maxWidth,
                         ),
+                        decoration: BoxDecoration(
+                          borderRadius: borderRadius,
+                          color: isSharedProfileMessage
+                              ? Colors.transparent
+                              : isMe
+                                  ? context.theme.appColors.primaryAccent
+                                  : context.theme.appColors.onPrimaryAccent,
+                        ),
+                        child: child,
                       ),
-                      child: child,
-                    ),
-                    if (deliveryStatus == MessageDeliveryStatus.failed)
-                      Row(
-                        children: [
-                          SizedBox(width: 6.0.s),
-                          Assets.svg.iconMessageFailed.icon(
-                            color: context.theme.appColors.attentionRed,
-                            size: 16.0.s,
-                          ),
-                        ],
-                      ),
-                  ],
+                      if (deliveryStatus == MessageDeliveryStatus.failed)
+                        Row(
+                          children: [
+                            SizedBox(width: 6.0.s),
+                            Assets.svg.iconMessageFailed.icon(
+                              color: context.theme.appColors.attentionRed,
+                              size: 16.0.s,
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
