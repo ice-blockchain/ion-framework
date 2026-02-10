@@ -273,16 +273,19 @@ class VideoPlayerControllerFactory {
           throw StateError('video_init_cancelled');
         }
         try {
-          await Future.any<void>([
-            player.initialize(),
-            cancelToken.future.then((_) => throw StateError('video_init_cancelled')),
-            Future<void>.delayed(_initTimeout).then(
-              (_) => throw TimeoutException(
-                'player.initialize() timed out',
+          await player.initialize().timeout(
                 _initTimeout,
-              ),
-            ),
-          ]);
+                onTimeout: () => throw TimeoutException(
+                  'player.initialize() timed out',
+                  _initTimeout,
+                ),
+              );
+          if (cancelToken.isCompleted) {
+            try {
+              await player.dispose();
+            } catch (_) {}
+            throw StateError('video_init_cancelled');
+          }
           return player.controller;
         } catch (e, stackTrace) {
           Logger.log(
