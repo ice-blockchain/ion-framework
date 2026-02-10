@@ -140,14 +140,12 @@ class TradeCommunityTokenService {
     );
 
     if (_isBroadcasted(transaction)) {
-      // We skip master pubkey resolution and profile-related events for external tokens to avoid parsing errors.
-      final isExternalToken = externalAddressType.isXToken;
-
       String? masterPubkey;
       ReplaceableEventReference? profileEventReference;
       var hasProfileToken = false;
 
-      if (!isExternalToken) {
+      // We skip master pubkey resolution and profile-related events for non-content tokens to avoid parsing errors.
+      if (externalAddressType.isContentToken) {
         Logger.info(
           '[TradeCommunityTokenService] Resolving master pubkey and checking profile token',
         );
@@ -172,17 +170,14 @@ class TradeCommunityTokenService {
       }
 
       Logger.info(
-        '[TradeCommunityTokenService] Sending events | firstBuy=$firstBuy | shouldSendEvents=$shouldSendEvents | isExternalToken=$isExternalToken',
+        '[TradeCommunityTokenService] Sending events | firstBuy=$firstBuy | shouldSendEvents=$shouldSendEvents | isContentToken=${externalAddressType.isContentToken}',
       );
 
       await Future.wait([
         if (firstBuy)
           // First-buy events are always sent, regardless of [shouldSendEvents].
           _sendFirstBuyEvents(externalAddress: externalAddress),
-        if (!isExternalToken &&
-            externalAddressType.isContentToken &&
-            !hasProfileToken &&
-            profileEventReference != null)
+        if (externalAddressType.isContentToken && !hasProfileToken && profileEventReference != null)
           _sendFirstBuyEvents(externalAddress: profileEventReference.toString()),
         if (shouldSendEvents)
           _trySendBuyEvents(
