@@ -26,7 +26,7 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class ProfileTokenStats extends HookConsumerWidget {
   const ProfileTokenStats({
-    required this.seperatorMargin,
+    required this.separatorMargin,
     this.eventReference,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
     this.spacing,
@@ -38,7 +38,7 @@ class ProfileTokenStats extends HookConsumerWidget {
   final MainAxisAlignment mainAxisAlignment;
   final Widget? leading;
   final double? spacing;
-  final double seperatorMargin;
+  final double separatorMargin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,7 +74,7 @@ class ProfileTokenStats extends HookConsumerWidget {
       return Column(
         children: [
           GradientHorizontalDivider(
-            margin: EdgeInsetsDirectional.symmetric(vertical: seperatorMargin),
+            margin: EdgeInsetsDirectional.symmetric(vertical: separatorMargin),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -106,7 +106,7 @@ class ProfileTokenStats extends HookConsumerWidget {
     return Column(
       children: [
         GradientHorizontalDivider(
-          margin: EdgeInsetsDirectional.symmetric(vertical: seperatorMargin),
+          margin: EdgeInsetsDirectional.symmetric(vertical: separatorMargin),
         ),
         Row(
           mainAxisAlignment: mainAxisAlignment,

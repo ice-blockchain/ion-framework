@@ -81,7 +81,7 @@ class ProfileUserInfo extends ConsumerWidget {
                   },
                   child: const BuyButton(),
                 ),
-                seperatorMargin: 12.0.s,
+                separatorMargin: 12.0.s,
               ),
           ],
         ),

@@ -280,7 +280,7 @@ class ContentTokenHeader extends HookConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       eventReference:
                           (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference,
-                      seperatorMargin: 14.0.s,
+                      separatorMargin: 14.0.s,
                     ),
                     SizedBox(height: showBuyButton ? 24.0.s : 16.s),
                   ],
