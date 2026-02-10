@@ -32,10 +32,14 @@ class CoinsComparator {
         _checkHardcodedPriority(lowerSymbolGroupA, lowerSymbolGroupB, _CoinPriority._firstCoin);
     if (firstCoinComparison != null) return firstCoinComparison;
 
-    // 0.2. ICE always comes second (after ION), regardless of other conditions
-    final secondCoinComparison =
-        _checkHardcodedPriority(lowerSymbolGroupA, lowerSymbolGroupB, _CoinPriority._secondCoin);
-    if (secondCoinComparison != null) return secondCoinComparison;
+    // 0.2. ICE (OLD) with low balance goes to end of the list
+    final isAIceOldLowBalance = lowerSymbolGroupA == _CoinPriority._iceOld &&
+        balanceA < _CoinPriority._iceOldLowBalanceThreshold;
+    final isBIceOldLowBalance = lowerSymbolGroupB == _CoinPriority._iceOld &&
+        balanceB < _CoinPriority._iceOldLowBalanceThreshold;
+
+    if (isAIceOldLowBalance && !isBIceOldLowBalance) return 1;
+    if (isBIceOldLowBalance && !isAIceOldLowBalance) return -1;
 
     // 1. Compare by balanceUSD in descending order
     final balanceComparison = balanceB.compareTo(balanceA);
@@ -105,10 +109,10 @@ class CoinsComparator {
 
 class _CoinPriority {
   static const _firstCoin = 'ion';
-  static const _secondCoin = 'ice';
+  static const _iceOld = 'ice';
+  static const _iceOldLowBalanceThreshold = 0.01;
   final _symbolGroupsPriorityList = const [
     _firstCoin,
-    _secondCoin,
     'binancecoin', // Binance Coin
     'bitcoin', // Bitcoin
     'ethereum', // Ethereum
