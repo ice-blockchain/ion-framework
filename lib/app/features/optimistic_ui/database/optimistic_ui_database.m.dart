@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/optimistic_ui/database/tables/user_sent_likes_table.d.dart';
@@ -25,6 +26,10 @@ OptimisticUiDatabase optimisticUiDatabase(Ref ref) {
 
   onLogout(ref, database.close);
   onUserSwitch(ref, database.close);
+  onAppWentToBackground(
+    ref,
+    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
+  );
 
   return database;
 }

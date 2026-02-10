@@ -7,6 +7,7 @@ import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.steps.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/account_notification_sync_state_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/comments_table.d.dart';
@@ -34,6 +35,10 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
 
   onLogout(ref, database.close);
   onUserSwitch(ref, database.close);
+  onAppWentToBackground(
+    ref,
+    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
+  );
 
   return database;
 }

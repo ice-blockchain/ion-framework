@@ -9,6 +9,7 @@ import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/features/wallets/data/database/tables/coins_table.d.dart';
@@ -44,6 +45,10 @@ WalletsDatabase walletsDatabase(Ref ref) {
 
   onLogout(ref, database.close);
   onUserSwitch(ref, database.close);
+  onAppWentToBackground(
+    ref,
+    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
+  );
 
   return database;
 }
