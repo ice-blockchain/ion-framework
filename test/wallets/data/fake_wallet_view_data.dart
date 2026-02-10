@@ -12,7 +12,7 @@ final mockedWalletDataArray = <WalletViewData>[
     createdAt: DateTime.now().microsecondsSinceEpoch,
     updatedAt: DateTime.now().microsecondsSinceEpoch,
     symbolGroups: {},
-    isMainWalletView: false,
+    isMainWalletView: true,
   ),
   WalletViewData(
     id: '2',
