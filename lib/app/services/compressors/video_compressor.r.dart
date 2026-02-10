@@ -110,6 +110,14 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     return '${seconds.toStringAsFixed(2)} s';
   }
 
+  bool _isCodecRelatedError(Object error) {
+    if (error is! PlatformException || error.code != 'COMPRESSION_FAILED') {
+      return false;
+    }
+    final details = error.details;
+    return details is Map && details['type'] == 'codec';
+  }
+
   Future<void> _logVideoError(
     Object error,
     StackTrace stackTrace,
@@ -154,9 +162,12 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
           file,
           settings: nativeSettings,
         );
-      } catch (e, s) {
+      } catch (e) {
+        if (!_isCodecRelatedError(e)) {
+          rethrow;
+        }
         Logger.warning(
-          'Native video compression failed, falling back to FFmpeg: $e\n$s',
+          'Native video compression failed (codec), falling back to FFmpeg: $e',
         );
       }
     }
