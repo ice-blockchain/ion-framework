@@ -33,3 +33,17 @@ abstract class CreatorBase {
 
   bool get isXUser;
 }
+
+extension CreatorIdentityExtension on CreatorBase? {
+  bool isCreator(CreatorBase? other) {
+    final thisIonConnectAddress = this?.addresses?.ionConnect;
+    final otherIonConnectAddress = other?.addresses?.ionConnect;
+    if (thisIonConnectAddress != null && thisIonConnectAddress == otherIonConnectAddress) {
+      return true;
+    }
+
+    final thisTwitterAddress = this?.addresses?.twitter;
+    final otherTwitterAddress = other?.addresses?.twitter;
+    return thisTwitterAddress != null && thisTwitterAddress == otherTwitterAddress;
+  }
+}
