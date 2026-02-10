@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -147,6 +148,8 @@ class NotificationInfo extends HookConsumerWidget {
       ArticleEntity() => ref.context.i18n.common_article,
       CommunityTokenDefinitionEntity() =>
         ref.context.i18n.tokenized_community_token_creator.toLowerCase(),
+      CommunityTokenActionEntity() => ref.context.i18n.notifications_post,
+      GenericRepostEntity() => ref.context.i18n.notifications_post,
       _ => '',
     };
   }
