@@ -23,15 +23,14 @@ class CreatorTokenParams with _$CreatorTokenParams {
 @freezed
 class PricingResponse with _$PricingResponse {
   const factory PricingResponse({
-    required String feeSponsorId,
     required String amount,
     required String amountBNB,
     required double amountUSD,
+    required String feeSponsorId,
     String? bondingCurveAlgAddress,
     CreatorTokenParams? creatorTokenParams,
     String? emissionVolume,
     String? feeSponsorAddress,
-    String? feeSponsorId,
     String? finalPrice,
     double? finalPriceUSD,
     String? initialPrice,

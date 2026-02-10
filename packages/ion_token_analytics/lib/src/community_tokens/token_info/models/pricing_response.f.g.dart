@@ -32,10 +32,10 @@ Map<String, dynamic> _$$CreatorTokenParamsImplToJson(
 _$PricingResponseImpl _$$PricingResponseImplFromJson(
   Map<String, dynamic> json,
 ) => _$PricingResponseImpl(
-  feeSponsorId: json['feeSponsorId'] as String,
   amount: json['amount'] as String,
   amountBNB: json['amountBNB'] as String,
   amountUSD: (json['amountUSD'] as num).toDouble(),
+  feeSponsorId: json['feeSponsorId'] as String,
   bondingCurveAlgAddress: json['bondingCurveAlgAddress'] as String?,
   creatorTokenParams: json['creatorTokenParams'] == null
       ? null
@@ -44,7 +44,6 @@ _$PricingResponseImpl _$$PricingResponseImplFromJson(
         ),
   emissionVolume: json['emissionVolume'] as String?,
   feeSponsorAddress: json['feeSponsorAddress'] as String?,
-  feeSponsorId: json['feeSponsorId'] as String,
   finalPrice: json['finalPrice'] as String?,
   finalPriceUSD: (json['finalPriceUSD'] as num?)?.toDouble(),
   initialPrice: json['initialPrice'] as String?,
@@ -59,13 +58,13 @@ Map<String, dynamic> _$$PricingResponseImplToJson(
   'amount': instance.amount,
   'amountBNB': instance.amountBNB,
   'amountUSD': instance.amountUSD,
+  'feeSponsorId': instance.feeSponsorId,
   if (instance.bondingCurveAlgAddress case final value?)
     'bondingCurveAlgAddress': value,
   if (instance.creatorTokenParams?.toJson() case final value?)
     'creatorTokenParams': value,
   if (instance.emissionVolume case final value?) 'emissionVolume': value,
   if (instance.feeSponsorAddress case final value?) 'feeSponsorAddress': value,
-  if (instance.feeSponsorId case final value?) 'feeSponsorId': value,
   if (instance.finalPrice case final value?) 'finalPrice': value,
   if (instance.finalPriceUSD case final value?) 'finalPriceUSD': value,
   if (instance.initialPrice case final value?) 'initialPrice': value,
