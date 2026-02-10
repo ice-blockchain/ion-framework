@@ -16,12 +16,13 @@ class OhlcvCandlesRepositoryImpl implements OhlcvCandlesRepository {
     int limit = 60,
     int offset = 0,
   }) async {
-    final response = await _client.get<List<dynamic>>(
+    final response = await _client.get<List<dynamic>?>(
       '/v1/community-tokens/$externalAddress/ohlcv',
       queryParameters: {'interval': interval, 'limit': limit, 'offset': offset},
     );
+    final list = response ?? [];
 
-    return response.map((json) => OhlcvCandle.fromJson(json as Map<String, dynamic>)).toList();
+    return list.map((json) => OhlcvCandle.fromJson(json as Map<String, dynamic>)).toList();
   }
 
   @override
