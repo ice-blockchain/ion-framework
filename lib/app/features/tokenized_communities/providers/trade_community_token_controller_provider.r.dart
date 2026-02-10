@@ -299,24 +299,55 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     final contractAddress = token.addresses.blockchain?.trim() ?? '';
     final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
-    if (walletView != null && contractAddress.isNotEmpty) {
-      final matchedGroup = walletView.coinGroups.firstWhereOrNull(
-        (g) => g.coins.any(
-          (c) =>
-              c.coin.network.id == network.id &&
-              c.coin.contractAddress.toLowerCase() == contractAddress.toLowerCase(),
-        ),
+    if (walletView == null || contractAddress.isEmpty) {
+      return CreatorTokenUtils.deriveCreatorTokenCoinsGroup(
+        token: token,
+        externalAddress: params.externalAddress,
+        network: network,
       );
-      if (matchedGroup != null) {
-        return matchedGroup;
-      }
     }
 
-    return CreatorTokenUtils.deriveCreatorTokenCoinsGroup(
-      token: token,
-      externalAddress: params.externalAddress,
-      network: network,
+    final contractLower = contractAddress.toLowerCase();
+    final contractNetworkMatches = walletView.coinGroups.where(
+      (g) => g.coins.any(
+        (c) =>
+            c.coin.network.id == network.id &&
+            c.coin.contractAddress.toLowerCase() == contractLower,
+      ),
     );
+
+    if (contractNetworkMatches.isEmpty) {
+      return CreatorTokenUtils.deriveCreatorTokenCoinsGroup(
+        token: token,
+        externalAddress: params.externalAddress,
+        network: network,
+      );
+    }
+
+    // Prefer groups that are linked to a real wallet (walletId != null).
+    // symbolGroup is used only to choose between groups that already
+    // match the same contract + network.
+    final walletBoundGroups = contractNetworkMatches
+        .where(
+          (g) => g.coins.any((c) => c.walletId != null),
+        )
+        .toList();
+
+    if (walletBoundGroups.isNotEmpty) {
+      final ticker = token.marketData.ticker?.trim().toLowerCase() ?? '';
+
+      if (ticker.isNotEmpty) {
+        final byTicker = walletBoundGroups.firstWhereOrNull(
+          (g) => g.symbolGroup.toLowerCase() == ticker,
+        );
+
+        if (byTicker != null) return byTicker;
+      }
+
+      return walletBoundGroups.first;
+    }
+
+    return contractNetworkMatches.first;
   }
 
   void setMode(CommunityTokenTradeMode mode) {
