@@ -48,6 +48,7 @@ class GalleryGridCell extends ConsumerWidget {
     final maxVideoDurationInSeconds = ref.watch(
       mediaSelectionNotifierProvider.select((state) => state.maxVideoDurationInSeconds),
     );
+    final videoDurationAsync = ref.watch(videoDurationProvider(mediaFile.path));
 
     return SizedBox(
       width: cellWidth,
@@ -104,7 +105,7 @@ class GalleryGridCell extends ConsumerWidget {
                             bottom: 4.0.s,
                             end: 4.0.s,
                             child: DurationBadge(
-                              duration: asset.duration,
+                              duration: videoDurationAsync.valueOrNull ?? 0,
                             ),
                           ),
                       ],

@@ -293,13 +293,15 @@ class MediaService {
         if (file == null) {
           throw AssetEntityFileNotFoundException();
         }
+        final videoDurationAsync = ref.watch(videoDurationProvider(mediaFile.path));
+
         return MediaFile(
           path: file.path,
           height: assetEntity.height,
           width: assetEntity.width,
           mimeType: mimeType,
           thumb: mediaFile.thumb,
-          duration: assetEntity.duration,
+          duration: videoDurationAsync.valueOrNull ?? 0,
         );
       }),
     );
