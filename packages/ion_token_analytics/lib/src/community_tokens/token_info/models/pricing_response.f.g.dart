@@ -32,6 +32,7 @@ Map<String, dynamic> _$$CreatorTokenParamsImplToJson(
 _$PricingResponseImpl _$$PricingResponseImplFromJson(
   Map<String, dynamic> json,
 ) => _$PricingResponseImpl(
+  feeSponsorId: json['feeSponsorId'] as String,
   amount: json['amount'] as String,
   amountBNB: json['amountBNB'] as String,
   amountUSD: (json['amountUSD'] as num).toDouble(),
@@ -43,7 +44,7 @@ _$PricingResponseImpl _$$PricingResponseImplFromJson(
         ),
   emissionVolume: json['emissionVolume'] as String?,
   feeSponsorAddress: json['feeSponsorAddress'] as String?,
-  feeSponsorId: json['feeSponsorId'] as String?,
+  feeSponsorId: json['feeSponsorId'] as String,
   finalPrice: json['finalPrice'] as String?,
   finalPriceUSD: (json['finalPriceUSD'] as num?)?.toDouble(),
   initialPrice: json['initialPrice'] as String?,

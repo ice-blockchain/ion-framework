@@ -301,6 +301,7 @@ PricingResponse _$PricingResponseFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$PricingResponse {
+  String get feeSponsorId => throw _privateConstructorUsedError;
   String get amount => throw _privateConstructorUsedError;
   String get amountBNB => throw _privateConstructorUsedError;
   double get amountUSD => throw _privateConstructorUsedError;
@@ -335,6 +336,7 @@ abstract class $PricingResponseCopyWith<$Res> {
   ) = _$PricingResponseCopyWithImpl<$Res, PricingResponse>;
   @useResult
   $Res call({
+    String feeSponsorId,
     String amount,
     String amountBNB,
     double amountUSD,
@@ -369,6 +371,7 @@ class _$PricingResponseCopyWithImpl<$Res, $Val extends PricingResponse>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? feeSponsorId = null,
     Object? amount = null,
     Object? amountBNB = null,
     Object? amountUSD = null,
@@ -386,6 +389,10 @@ class _$PricingResponseCopyWithImpl<$Res, $Val extends PricingResponse>
   }) {
     return _then(
       _value.copyWith(
+            feeSponsorId: null == feeSponsorId
+                ? _value.feeSponsorId
+                : feeSponsorId // ignore: cast_nullable_to_non_nullable
+                      as String,
             amount: null == amount
                 ? _value.amount
                 : amount // ignore: cast_nullable_to_non_nullable
@@ -415,7 +422,7 @@ class _$PricingResponseCopyWithImpl<$Res, $Val extends PricingResponse>
                 : feeSponsorAddress // ignore: cast_nullable_to_non_nullable
                       as String?,
             feeSponsorId: freezed == feeSponsorId
-                ? _value.feeSponsorId
+                ? _value.feeSponsorId!
                 : feeSponsorId // ignore: cast_nullable_to_non_nullable
                       as String?,
             finalPrice: freezed == finalPrice
@@ -474,6 +481,7 @@ abstract class _$$PricingResponseImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    String feeSponsorId,
     String amount,
     String amountBNB,
     double amountUSD,
@@ -508,6 +516,7 @@ class __$$PricingResponseImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? feeSponsorId = null,
     Object? amount = null,
     Object? amountBNB = null,
     Object? amountUSD = null,
@@ -525,6 +534,10 @@ class __$$PricingResponseImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$PricingResponseImpl(
+        feeSponsorId: null == feeSponsorId
+            ? _value.feeSponsorId
+            : feeSponsorId // ignore: cast_nullable_to_non_nullable
+                  as String,
         amount: null == amount
             ? _value.amount
             : amount // ignore: cast_nullable_to_non_nullable
@@ -554,7 +567,7 @@ class __$$PricingResponseImplCopyWithImpl<$Res>
             : feeSponsorAddress // ignore: cast_nullable_to_non_nullable
                   as String?,
         feeSponsorId: freezed == feeSponsorId
-            ? _value.feeSponsorId
+            ? _value.feeSponsorId!
             : feeSponsorId // ignore: cast_nullable_to_non_nullable
                   as String?,
         finalPrice: freezed == finalPrice
@@ -590,6 +603,7 @@ class __$$PricingResponseImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$PricingResponseImpl implements _PricingResponse {
   const _$PricingResponseImpl({
+    required this.feeSponsorId,
     required this.amount,
     required this.amountBNB,
     required this.amountUSD,
@@ -609,6 +623,8 @@ class _$PricingResponseImpl implements _PricingResponse {
   factory _$PricingResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$PricingResponseImplFromJson(json);
 
+  @override
+  final String feeSponsorId;
   @override
   final String amount;
   @override
@@ -640,7 +656,7 @@ class _$PricingResponseImpl implements _PricingResponse {
 
   @override
   String toString() {
-    return 'PricingResponse(amount: $amount, amountBNB: $amountBNB, amountUSD: $amountUSD, bondingCurveAlgAddress: $bondingCurveAlgAddress, creatorTokenParams: $creatorTokenParams, emissionVolume: $emissionVolume, feeSponsorAddress: $feeSponsorAddress, feeSponsorId: $feeSponsorId, finalPrice: $finalPrice, finalPriceUSD: $finalPriceUSD, initialPrice: $initialPrice, initialPriceUSD: $initialPriceUSD, usdPriceION: $usdPriceION, usdPriceBNB: $usdPriceBNB)';
+    return 'PricingResponse(feeSponsorId: $feeSponsorId, amount: $amount, amountBNB: $amountBNB, amountUSD: $amountUSD, bondingCurveAlgAddress: $bondingCurveAlgAddress, creatorTokenParams: $creatorTokenParams, emissionVolume: $emissionVolume, feeSponsorAddress: $feeSponsorAddress, feeSponsorId: $feeSponsorId, finalPrice: $finalPrice, finalPriceUSD: $finalPriceUSD, initialPrice: $initialPrice, initialPriceUSD: $initialPriceUSD, usdPriceION: $usdPriceION, usdPriceBNB: $usdPriceBNB)';
   }
 
   @override
@@ -648,6 +664,8 @@ class _$PricingResponseImpl implements _PricingResponse {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PricingResponseImpl &&
+            (identical(other.feeSponsorId, feeSponsorId) ||
+                other.feeSponsorId == feeSponsorId) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.amountBNB, amountBNB) ||
                 other.amountBNB == amountBNB) &&
@@ -681,6 +699,7 @@ class _$PricingResponseImpl implements _PricingResponse {
   @override
   int get hashCode => Object.hash(
     runtimeType,
+    feeSponsorId,
     amount,
     amountBNB,
     amountUSD,
@@ -716,6 +735,7 @@ class _$PricingResponseImpl implements _PricingResponse {
 
 abstract class _PricingResponse implements PricingResponse {
   const factory _PricingResponse({
+    required final String feeSponsorId,
     required final String amount,
     required final String amountBNB,
     required final double amountUSD,
@@ -735,6 +755,8 @@ abstract class _PricingResponse implements PricingResponse {
   factory _PricingResponse.fromJson(Map<String, dynamic> json) =
       _$PricingResponseImpl.fromJson;
 
+  @override
+  String get feeSponsorId;
   @override
   String get amount;
   @override

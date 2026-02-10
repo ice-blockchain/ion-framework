@@ -23,6 +23,7 @@ class CreatorTokenParams with _$CreatorTokenParams {
 @freezed
 class PricingResponse with _$PricingResponse {
   const factory PricingResponse({
+    required String feeSponsorId,
     required String amount,
     required String amountBNB,
     required double amountUSD,

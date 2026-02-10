@@ -123,7 +123,7 @@ class TradeCommunityTokenService {
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
-      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
+      feeSponsorId: quote.finalPricing.feeSponsorId,
       userActionSigner: userActionSigner,
     );
 
@@ -132,12 +132,14 @@ class TradeCommunityTokenService {
     );
 
     if (_isBroadcasted(transaction)) {
+      // We skip master pubkey resolution and profile-related events for external tokens to avoid parsing errors.
+      final isExternalToken = externalAddressType.isXToken;
+
       String? masterPubkey;
       ReplaceableEventReference? profileEventReference;
       var hasProfileToken = false;
 
-      // We skip master pubkey resolution and profile-related events for non-content tokens to avoid parsing errors.
-      if (externalAddressType.isContentToken) {
+      if (!isExternalToken) {
         Logger.info(
           '[TradeCommunityTokenService] Resolving master pubkey and checking profile token',
         );
@@ -162,14 +164,17 @@ class TradeCommunityTokenService {
       }
 
       Logger.info(
-        '[TradeCommunityTokenService] Sending events | firstBuy=$firstBuy | shouldSendEvents=$shouldSendEvents | isContentToken=${externalAddressType.isContentToken}',
+        '[TradeCommunityTokenService] Sending events | firstBuy=$firstBuy | shouldSendEvents=$shouldSendEvents | isExternalToken=$isExternalToken',
       );
 
       await Future.wait([
         if (firstBuy)
           // First-buy events are always sent, regardless of [shouldSendEvents].
           _sendFirstBuyEvents(externalAddress: externalAddress),
-        if (externalAddressType.isContentToken && !hasProfileToken && profileEventReference != null)
+        if (!isExternalToken &&
+            externalAddressType.isContentToken &&
+            !hasProfileToken &&
+            profileEventReference != null)
           _sendFirstBuyEvents(externalAddress: profileEventReference.toString()),
         if (shouldSendEvents)
           _trySendBuyEvents(
@@ -254,7 +259,7 @@ class TradeCommunityTokenService {
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
-      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
+      feeSponsorId: quote.finalPricing.feeSponsorId,
       userActionSigner: userActionSigner,
     );
 
@@ -342,6 +347,7 @@ class TradeCommunityTokenService {
     required UserActionSignerNew userActionSigner,
     required String newName,
     required String newSymbol,
+    required String feeSponsorId,
   }) async {
     final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
     final tokenAddress = _extractTokenAddress(tokenInfo);
@@ -369,7 +375,7 @@ class TradeCommunityTokenService {
     final result = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: [updateOperation],
-      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
+      feeSponsorId: feeSponsorId,
       userActionSigner: userActionSigner,
     );
     return result;

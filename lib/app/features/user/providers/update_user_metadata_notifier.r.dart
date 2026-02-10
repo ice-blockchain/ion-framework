@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/providers/feed_config_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
@@ -206,6 +207,9 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
       );
     }
 
+    final runtimeConfig = await ref.read(feedConfigProvider.future);
+    final feeSponsorId = runtimeConfig.feeSponsorId;
+
     final username = userMetadata.name.trim();
     final displayName = userMetadata.trimmedDisplayName.trim();
     final fallbackPubkey = currentMetadata.masterPubkey.isNotEmpty
@@ -222,6 +226,7 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
         userActionSigner: userActionSigner,
         newName: name,
         newSymbol: symbol,
+        feeSponsorId: feeSponsorId,
       );
     } catch (error, stackTrace) {
       Logger.error(
