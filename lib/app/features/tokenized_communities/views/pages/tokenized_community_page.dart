@@ -291,12 +291,14 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                       : const <Widget>[],
                   style: context.theme.appTextThemes.subtitle3.copyWith(
                     color: context.theme.appColors.onPrimaryAccent,
+                    height: 1.35,
                   ),
                 ),
                 Text(
                   tokenInfo?.marketData.ticker ?? '',
                   style: context.theme.appTextThemes.caption.copyWith(
                     color: context.theme.appColors.attentionBlock,
+                    height: 1.33,
                   ),
                 ),
               ],
