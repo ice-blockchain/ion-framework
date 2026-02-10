@@ -121,4 +121,27 @@ class TradeCommunityTokenApi {
       rethrow;
     }
   }
+
+  /// Fetches community token analytics (launched, migrated, volume) for the given interval
+  ///
+  /// Uses endpoint GET /v1/community-token-analytics/{analyticsType}?interval={interval}
+  /// Returns CommunityTokenAnalyticsResponse if successful, otherwise null
+  Future<CommunityTokenAnalyticsResponse?> getCommunityTokenAnalytics({
+    required String analyticsType,
+    required String interval,
+  }) async {
+    try {
+      return await _analyticsClient.communityTokens.getCommunityTokenAnalytics(
+        analyticsType: analyticsType,
+        interval: interval,
+      );
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to get community token analytics',
+      );
+      rethrow;
+    }
+  }
 }
