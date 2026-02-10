@@ -14,6 +14,7 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_back
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/bsc_wallet_check_provider.m.dart';
+import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
@@ -124,7 +125,15 @@ class _ContentState extends ConsumerWidget {
     final bscNetwork = result.bscNetwork;
     if (bscNetwork == null) return;
 
-    final address = await _createBscWallet(context, ref, network: bscNetwork);
+    final mainWalletView = await ref.read(mainWalletViewProvider.future);
+    if (!context.mounted) return;
+
+    final address = await _createBscWallet(
+      context,
+      ref,
+      network: bscNetwork,
+      mainWalletViewId: mainWalletView.id,
+    );
     if (!context.mounted || address == null) return;
 
     await ref
@@ -139,6 +148,7 @@ class _ContentState extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref, {
     required NetworkData network,
+    required String mainWalletViewId,
   }) async {
     String? address;
     await guardPasskeyDialog(
@@ -150,6 +160,7 @@ class _ContentState extends ConsumerWidget {
             address = await ref.read(walletAddressNotifierProvider.notifier).createWallet(
                   network: network,
                   onVerifyIdentity: onVerifyIdentity,
+                  walletViewId: mainWalletViewId,
                 );
           },
           child: child,

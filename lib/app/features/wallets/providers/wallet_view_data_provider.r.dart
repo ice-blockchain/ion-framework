@@ -201,3 +201,9 @@ Future<WalletViewData?> walletViewByAddress(
     (walletView) => walletView.coins.any((coin) => coin.walletId == wallet.id),
   );
 }
+
+@riverpod
+Future<WalletViewData> mainWalletView(Ref ref) async {
+  final walletViews = await ref.watch(walletViewsDataNotifierProvider.future);
+  return walletViews.firstWhere((walletView) => walletView.isMainWalletView);
+}
