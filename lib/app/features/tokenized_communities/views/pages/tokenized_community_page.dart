@@ -569,7 +569,7 @@ class _TokenStats extends HookConsumerWidget {
 
   final String externalAddress;
 
-  /// Returns the index of the 24h timeframe, or the last index if not found.
+  // Returns the index of the 24h timeframe, or the last index as fallback if not found.
   int get24hItemIndex(List<MapEntry<String, TradingStats>> entries) {
     final index = entries.indexWhere((e) => e.key == timeframe24hApiKey);
     return index != -1 ? index : entries.length - 1;
@@ -594,7 +594,7 @@ class _TokenStats extends HookConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        // if null -> select last index
+        // If no timeframe is selected, select the 24h timeframe as default.
         final seletedIndex = selectedTimeframe.value ?? get24hItemIndex(timeframeEntries);
 
         final selectedTimeframeStats = timeframeEntries[seletedIndex].value;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
-/// Trading-stats API key for 24h in unit-first format (used by token stats counters).
+// Trading-stats API key for 24h in unit-first format (used by token stats counters).
 const String timeframe24hApiKey = 'h24';
 
 extension TimeframeFormatting on String {
