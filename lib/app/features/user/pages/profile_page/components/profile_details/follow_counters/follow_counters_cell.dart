@@ -44,10 +44,10 @@ class FollowCountersCell extends StatelessWidget {
 
   TextStyle _numberTextStyle(BuildContext context) {
     if (profileMode == ProfileMode.dark) {
-      return context.theme.appTextThemes.body2.copyWith(
+      return context.theme.appTextThemes.caption2.copyWith(
         color: _numberColor(context),
-        fontSize: 12.0.s,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
+        height: 1.17,
       );
     }
     return context.theme.appTextThemes.body2.copyWith(
@@ -57,10 +57,8 @@ class FollowCountersCell extends StatelessWidget {
 
   TextStyle _labelTextStyle(BuildContext context) {
     if (profileMode == ProfileMode.dark) {
-      return context.theme.appTextThemes.body2.copyWith(
+      return context.theme.appTextThemes.caption2.copyWith(
         color: _labelColor(context),
-        fontSize: 12.0.s,
-        fontWeight: FontWeight.w400,
       );
     }
     return context.theme.appTextThemes.body2.copyWith(
@@ -99,7 +97,6 @@ class FollowCountersCell extends StatelessWidget {
                   formatCount(usersNumber),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  textScaler: TextScaler.noScaling,
                   style: _numberTextStyle(context),
                 ),
               ],
@@ -109,7 +106,6 @@ class FollowCountersCell extends StatelessWidget {
               followType.getTitle(context),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              textScaler: TextScaler.noScaling,
               style: _labelTextStyle(context),
             ),
           ],
