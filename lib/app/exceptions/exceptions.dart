@@ -843,3 +843,7 @@ class LiquidityPoolNotFoundException extends IONException {
     required String tokenOut,
   }) : super(10150, 'No liquidity pool found for $tokenIn -> $tokenOut');
 }
+
+class MainWalletViewNotFoundException extends IONException {
+  MainWalletViewNotFoundException() : super(10151, 'Main wallet view not found');
+}
