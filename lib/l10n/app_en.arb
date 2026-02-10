@@ -940,6 +940,7 @@
   "tokenized_community_token_content": "Content token",
   "tokenized_community_token_creator": "Creator token",
   "tokenized_community_token_twitter": "X token",
+  "tokenized_community_trade": "trade",
   "tokenized_community_trades_tab": "Trades",
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Add a link",
