@@ -18,6 +18,7 @@ class TransactionData with _$TransactionData {
     required NetworkData network,
     required TransactionType type,
     required TransactionCryptoAsset cryptoAsset,
+    required String index,
     String? id,
     String? fee,
     String? externalHash,

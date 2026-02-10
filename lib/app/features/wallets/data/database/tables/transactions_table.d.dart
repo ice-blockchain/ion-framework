@@ -42,11 +42,16 @@ class TransactionsTable extends Table {
   // For 1756 event id
   TextColumn get eventId => text().nullable()();
 
+  // Transaction index from wallet history API (to distinguish multiple legs in same tx)
+  // Empty string for pending transactions, non-empty for confirmed transactions
+  // Non-nullable to avoid primary key duplication issues with null values
+  TextColumn get index => text().withDefault(const Constant(''))();
+
   @override
   String? get tableName => 'transactions_table_v2';
 
   @override
-  Set<Column> get primaryKey => {txHash, walletViewId, type};
+  Set<Column> get primaryKey => {txHash, walletViewId, type, index};
 }
 
 /// We need to be sure that the data in the db is stored in a single format,

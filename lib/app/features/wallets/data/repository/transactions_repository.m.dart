@@ -418,6 +418,7 @@ class TransactionsRepository {
       dateConfirmed: transaction.timestamp,
       status: TransactionStatus.confirmed,
       cryptoAsset: cryptoAsset,
+      index: transaction.index ?? '',
     );
   }
 

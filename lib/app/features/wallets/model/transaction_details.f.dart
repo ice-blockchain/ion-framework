@@ -35,6 +35,7 @@ class TransactionDetails with _$TransactionDetails {
     required NetworkFeeOption? networkFeeOption,
     required String? memo,
     SwapStatus? swapStatus,
+    String? index,
   }) = _TransactionDetails;
 
   factory TransactionDetails.fromTransactionData(
@@ -98,6 +99,7 @@ class TransactionDetails with _$TransactionDetails {
           : null,
       dateBroadcasted: null,
       swapStatus: transaction.swapStatus,
+      index: transaction.index,
     );
   }
 

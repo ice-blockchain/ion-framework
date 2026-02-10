@@ -31,6 +31,7 @@ class FakeTransactionData {
       receiverWalletAddress: receiverWalletAddress,
       fee: fee,
       status: status,
+      index: '',
     );
   }
 
