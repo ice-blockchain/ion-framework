@@ -183,6 +183,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
               lineTouchData: LineTouchData(
                 enabled: canInteract,
                 touchCallback: handleChartTouch,
+                touchSpotThreshold: double.infinity,
                 touchTooltipData: LineTouchTooltipData(
                   getTooltipColor: (_) => colors.primaryBackground,
                   getTooltipItems: buildTooltipItems,
