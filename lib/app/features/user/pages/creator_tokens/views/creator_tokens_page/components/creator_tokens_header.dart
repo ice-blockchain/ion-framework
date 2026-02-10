@@ -7,10 +7,12 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/carousel/creator_tokens_carousel_skeleton.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_analytics_sheet.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -56,6 +58,22 @@ class CreatorTokensHeader extends ConsumerWidget {
         onPop,
         icon: backButtonIcon,
       ),
+      actions: [
+        IconButton(
+          padding: EdgeInsets.zero,
+          icon: Assets.svg.iconCommunityAnalytics.icon(
+            size: NavigationAppBar.actionButtonSide,
+            color: context.theme.appColors.onPrimaryAccent,
+          ),
+          onPressed: () {
+            showSimpleBottomSheet<void>(
+              context: context,
+              child: const CreatorTokensAnalyticsSheet(),
+            );
+          },
+        ),
+        SizedBox(width: 16.0.s),
+      ],
       flexibleSpace: Builder(
         builder: (context) {
           return Stack(
