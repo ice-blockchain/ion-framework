@@ -37,7 +37,7 @@ class LatestTradeRow extends StatelessWidget {
         ? i18n.trade_buy_badge_label
         : i18n.trade_sell_badge_label;
 
-    final isCreator = trade.isCreator;
+    final isCreator = trade.position.holder.isCreator(trade.creator);
     final holderIonConnectAddress = trade.position.holder.addresses?.ionConnect;
     final isXUser = trade.position.holder.isXUser;
     final username = trade.position.holder.name;

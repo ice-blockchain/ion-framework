@@ -44,15 +44,4 @@ extension LatestTradeExtension on LatestTrade {
 
     return LatestTrade.fromJson(mergedJson);
   }
-
-  bool get isCreator {
-    final holderIonConnectAddress = position.holder.addresses?.ionConnect;
-    final creatorIonConnectAddress = creator.addresses?.ionConnect;
-    final holderTwitterAddress = position.holder.addresses?.twitter;
-    final creatorTwitterAddress = creator.addresses?.twitter;
-
-    return (creatorIonConnectAddress != null &&
-            holderIonConnectAddress == creatorIonConnectAddress) ||
-        (creatorTwitterAddress != null && holderTwitterAddress == creatorTwitterAddress);
-  }
 }

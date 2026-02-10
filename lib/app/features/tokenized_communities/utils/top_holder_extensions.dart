@@ -6,17 +6,6 @@ import 'package:ion/app/utils/num.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 extension TopHolderMapping on TopHolder {
-  bool get isCreator {
-    final holderIonConnectAddress = position.holder?.addresses?.ionConnect;
-    final creatorIonConnectAddress = creator.addresses?.ionConnect;
-    final holderTwitterAddress = position.holder?.addresses?.twitter;
-    final creatorTwitterAddress = creator.addresses?.twitter;
-
-    return (creatorIonConnectAddress != null &&
-            holderIonConnectAddress == creatorIonConnectAddress) ||
-        (creatorTwitterAddress != null && holderTwitterAddress == creatorTwitterAddress);
-  }
-
   HolderTileData get tileData => HolderTileData(
         rank: position.rank,
         amountText: formatAmountCompactFromRaw(position.amount),
@@ -29,7 +18,7 @@ extension TopHolderMapping on TopHolder {
         ),
         badge: HolderBadge(
           verified: position.holder?.verified ?? false,
-          isCreator: isCreator,
+          isCreator: position.holder.isCreator(creator),
           isXUser: position.holder?.isXUser ?? false,
         ),
         supplyShare: position.supplyShare,
