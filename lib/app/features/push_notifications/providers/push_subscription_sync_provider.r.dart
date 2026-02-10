@@ -17,6 +17,7 @@ import 'package:ion/app/features/push_notifications/providers/selected_push_cate
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
+import 'package:ion/app/services/device_id/device_id.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'push_subscription_sync_provider.r.g.dart';
@@ -92,6 +93,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
   }) async {
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
     final currentUserRelays = await ref.watch(currentUserRelaysProvider.future);
+    final deviceId = await ref.watch(deviceIdServiceProvider).get();
     if (currentPubkey == null || currentUserRelays == null) return;
 
     final currentExternalFilters = _buildPubkeysToFilters(filters: currentData.filters)
@@ -115,11 +117,13 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       for (final entry in filtersToUpdate.entries)
         entry.key: _buildPushSubscriptionExternalData(
           masterPubkey: entry.key,
+          deviceId: deviceId,
           filters: entry.value,
           currentUserRelays: currentUserRelays,
         ),
       for (final entry in filtersToDelete.entries)
-        entry.key: _buildDeletePushSubscriptionExternalData(masterPubkey: entry.key),
+        entry.key:
+            _buildDeletePushSubscriptionExternalData(masterPubkey: entry.key, deviceId: deviceId),
     };
 
     await _sendExternalUsersPushSubscriptionData(pubkeysToData: dataToSync);
@@ -194,11 +198,15 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
 
   EventSerializable _buildPushSubscriptionExternalData({
     required String masterPubkey,
+    required String deviceId,
     required List<RequestFilter> filters,
     required UserRelaysEntity currentUserRelays,
   }) {
     return PushSubscriptionExternalData(
-      externalUserMasterPubkey: masterPubkey,
+      dTag: PushSubscriptionExternalDataDTag(
+        deviceId: deviceId,
+        externalUserMasterPubkey: masterPubkey,
+      ),
       filters: filters,
       relays: currentUserRelays.urls.map((url) => RelatedRelay(url: url)).toList(),
     );
@@ -206,14 +214,18 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
 
   EventSerializable _buildDeletePushSubscriptionExternalData({
     required String masterPubkey,
+    required String deviceId,
   }) {
     final deletionRequest = DeletionRequest(
       events: [
         EventToDelete(
           eventReference: ReplaceableEventReference(
-            masterPubkey: masterPubkey, //TODO[push]: add device_id
+            masterPubkey: masterPubkey,
             kind: PushSubscriptionEntity.kind,
-            dTag: masterPubkey,
+            dTag: PushSubscriptionExternalDataDTag(
+              deviceId: deviceId,
+              externalUserMasterPubkey: masterPubkey,
+            ).toString(),
           ),
         ),
       ],

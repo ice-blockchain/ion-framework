@@ -64,12 +64,12 @@ abstract class PushSubscriptionData implements ReplaceableEntityData, EventSeria
           (filterJson) => RequestFilter.fromJson(filterJson as Map<String, dynamic>),
         )
         .toList();
-    final dTag = tags[ReplaceableEventIdentifier.tagName]!
-        .map(ReplaceableEventIdentifier.fromTag)
-        .first
-        .value;
 
     if (tags.containsKey(RelatedToken.tagName)) {
+      final dTag = tags[ReplaceableEventIdentifier.tagName]!
+          .map(ReplaceableEventIdentifier.fromTag)
+          .first
+          .value;
       return PushSubscriptionOwnData(
         deviceId: dTag,
         platform:
@@ -79,8 +79,11 @@ abstract class PushSubscriptionData implements ReplaceableEntityData, EventSeria
         filters: filters,
       );
     } else {
+      final dTag = tags[ReplaceableEventIdentifier.tagName]!
+          .map(PushSubscriptionExternalDataDTag.fromTag)
+          .first;
       return PushSubscriptionExternalData(
-        externalUserMasterPubkey: dTag,
+        dTag: dTag,
         relays: tags[RelatedRelay.tagName]!.map(RelatedRelay.fromTag).toList(),
         filters: filters,
       );
@@ -151,7 +154,7 @@ class PushSubscriptionExternalData
     with _$PushSubscriptionExternalData
     implements PushSubscriptionData {
   const factory PushSubscriptionExternalData({
-    required String externalUserMasterPubkey,
+    required PushSubscriptionExternalDataDTag dTag,
     required List<RequestFilter> filters,
     required List<RelatedRelay> relays,
   }) = _PushSubscriptionExternalData;
@@ -171,7 +174,7 @@ class PushSubscriptionExternalData
       content: jsonEncode(filters),
       tags: [
         ...tags,
-        [ReplaceableEventIdentifier.tagName, externalUserMasterPubkey],
+        dTag.toTag(),
         ...relays.map((relay) => relay.toTag()),
       ],
     );
@@ -182,7 +185,54 @@ class PushSubscriptionExternalData
     return ReplaceableEventReference(
       kind: PushSubscriptionEntity.kind,
       masterPubkey: pubkey,
-      dTag: externalUserMasterPubkey,
+      dTag: dTag.toString(),
     );
   }
+}
+
+@Freezed(toStringOverride: false)
+class PushSubscriptionExternalDataDTag with _$PushSubscriptionExternalDataDTag {
+  const factory PushSubscriptionExternalDataDTag({
+    required String deviceId,
+    required String externalUserMasterPubkey,
+  }) = _PushSubscriptionExternalDataDTag;
+
+  const PushSubscriptionExternalDataDTag._();
+
+  factory PushSubscriptionExternalDataDTag.fromTag(List<String> tag) {
+    if (tag[0] != ReplaceableEventIdentifier.tagName) {
+      throw IncorrectEventTagNameException(
+        actual: tag[0],
+        expected: ReplaceableEventIdentifier.tagName,
+      );
+    }
+    if (tag.length != 2) {
+      throw IncorrectEventTagException(tag: tag.toString());
+    }
+
+    return PushSubscriptionExternalDataDTag.fromString(tag[1]);
+  }
+
+  factory PushSubscriptionExternalDataDTag.fromString(String input) {
+    final parts = input.split(PushSubscriptionExternalDataDTag.divider);
+    if (parts.length != 2) {
+      throw IncorrectEventTagException(tag: input);
+    }
+
+    return PushSubscriptionExternalDataDTag(
+      externalUserMasterPubkey: parts[0],
+      deviceId: parts[1],
+    );
+  }
+
+  List<String> toTag() {
+    return [ReplaceableEventIdentifier.tagName, toString()];
+  }
+
+  @override
+  String toString() {
+    return '$externalUserMasterPubkey${PushSubscriptionExternalDataDTag.divider}$deviceId';
+  }
+
+  static const String divider = '_';
 }
