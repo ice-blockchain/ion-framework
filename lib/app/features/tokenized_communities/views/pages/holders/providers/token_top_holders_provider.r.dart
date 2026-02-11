@@ -236,6 +236,10 @@ class TokenTopHolders extends _$TokenTopHolders {
   }
 
   void _applyEvent(List<TopHolder> list, TopHolder item) {
+    // if item already exists and it is same with all fields, do nothing
+    if (list.any((e) => e == item)) {
+      return;
+    }
     final movedFrom = _indexByHolderIdentity(list, item);
     if (movedFrom != -1) {
       list.removeAt(movedFrom);
