@@ -134,8 +134,10 @@ class TokenComments extends _$TokenComments {
     final currentState = ref.read(entitiesPagedDataProvider(dataSource));
     final items = currentState?.data.items;
 
-    // Check if entity already exists before inserting
-    if (items != null && items.contains(entity)) {
+    // Check if entity already exists before inserting by comparing event references
+    final alreadyExists =
+        items?.any((item) => item.toEventReference() == entity.toEventReference()) ?? false;
+    if (alreadyExists) {
       return;
     }
 
