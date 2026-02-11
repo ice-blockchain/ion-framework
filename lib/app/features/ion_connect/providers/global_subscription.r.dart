@@ -204,8 +204,9 @@ class GlobalSubscription {
         onEvent: (event) => _handleEvent(event, eventSource: EventSource.pFilter),
       )
           .then((result) {
-        latestEventTimestampService.updateRegularFilter(result, RegularFilterType.pFilter);
-        return (RegularFilterType.pFilter, result);
+        final (lastCreatedAt, _) = result;
+        latestEventTimestampService.updateRegularFilter(lastCreatedAt, RegularFilterType.pFilter);
+        return (RegularFilterType.pFilter, lastCreatedAt);
       }),
     );
 
@@ -227,8 +228,9 @@ class GlobalSubscription {
         onEvent: (event) => _handleEvent(event, eventSource: EventSource.qFilter),
       )
           .then((result) {
-        latestEventTimestampService.updateRegularFilter(result, RegularFilterType.qFilter);
-        return (RegularFilterType.qFilter, result);
+        final (lastCreatedAt, _) = result;
+        latestEventTimestampService.updateRegularFilter(lastCreatedAt, RegularFilterType.qFilter);
+        return (RegularFilterType.qFilter, lastCreatedAt);
       }),
     );
 

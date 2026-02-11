@@ -18,6 +18,8 @@ import 'package:ion/app/features/user/model/user_preview_data.dart';
 part 'user_metadata.f.freezed.dart';
 part 'user_metadata.f.g.dart';
 
+const String migrationStatusJsonFileName = 'tokenizedCommunitiesLegacyContent';
+
 @Freezed(equal: false)
 class UserMetadataEntity
     with IonConnectEntity, CacheableEntity, ReplaceableEntity, _$UserMetadataEntity
@@ -77,6 +79,7 @@ class UserMetadata
     WhoCanSetting? whoCanMessageYou,
     WhoCanSetting? whoCanInviteYouToGroups,
     Map<String, IonContentNftCollection>? ionContentNftCollections,
+    MediaAttachment? tokenDefinitionMigrationStatusJson,
   }) = _UserMetadata;
 
   factory UserMetadata.fromEventMessage(EventMessage eventMessage) {
@@ -107,6 +110,8 @@ class UserMetadata
       whoCanInviteYouToGroups: WhoCanSetting.fromString(userDataContent.whoCanInviteYouToGroups),
       wallets: userDataContent.wallets,
       ionContentNftCollections: userDataContent.ionContentNftCollections,
+      tokenDefinitionMigrationStatusJson:
+          media.values.where((element) => element.alt == migrationStatusJsonFileName).firstOrNull,
     );
   }
 
