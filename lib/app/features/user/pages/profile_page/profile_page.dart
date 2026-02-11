@@ -126,92 +126,90 @@ class ProfilePage extends HookConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
-      body:  CollapsingHeaderTabsLayout(
-          backgroundColor: context.theme.appColors.secondaryBackground,
-          showBackButton: showBackButton,
-          newUiMode: profileMode == ProfileMode.dark,
-          imageUrl: avatarUrl,
-          tabs: UserContentType.values,
-          collapsedHeaderBuilder: (opacity) => Header(
-            opacity: opacity,
-            masterPubkey: masterPubkey,
-            showBackButton: !isCurrentUserProfile,
-            textColor: profileMode == ProfileMode.dark
-                ? context.theme.appColors.secondaryBackground
-                : null,
-          ),
-          tabBarViews: TabEntityType.values
-              .map(
-                (type) => type == TabEntityType.replies
-                    ? TabEntitiesList.replies(
-                        pubkey: masterPubkey,
-                        onRefresh: onRefresh,
-                      )
-                    : TabEntitiesList(
-                        pubkey: masterPubkey,
-                        type: type,
-                        onRefresh: onRefresh,
-                      ),
-              )
-              .toList(),
-          expandedHeader: Column(
-            children: [
-              SizedBox(
-                height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) + 27.0.s,
-              ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  ProfileAvatar(
-                    profileMode: profileMode,
-                    pubkey: masterPubkey,
-                    size: profileMode == ProfileMode.dark ? 88.0.s : null,
-                  ),
-                  PositionedDirectional(
-                    bottom: -6.0.s,
-                    end: -6.0.s,
-                    child: ProfileMainAction(
+      body: CollapsingHeaderTabsLayout(
+        backgroundColor: context.theme.appColors.secondaryBackground,
+        showBackButton: showBackButton,
+        newUiMode: profileMode == ProfileMode.dark,
+        imageUrl: avatarUrl,
+        tabs: UserContentType.values,
+        collapsedHeaderBuilder: (opacity) => Header(
+          opacity: opacity,
+          masterPubkey: masterPubkey,
+          showBackButton: !isCurrentUserProfile,
+          textColor:
+              profileMode == ProfileMode.dark ? context.theme.appColors.secondaryBackground : null,
+        ),
+        tabBarViews: TabEntityType.values
+            .map(
+              (type) => type == TabEntityType.replies
+                  ? TabEntitiesList.replies(
                       pubkey: masterPubkey,
-                      profileMode: profileMode,
+                      onRefresh: onRefresh,
+                    )
+                  : TabEntitiesList(
+                      pubkey: masterPubkey,
+                      type: type,
+                      onRefresh: onRefresh,
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: spacing.topDetailsSpacing),
-              ProfileDetails(
-                pubkey: masterPubkey,
-                profileMode: profileMode,
-              ),
-              SizedBox(height: spacing.separatorSpacing),
-              if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
-              SizedBox(height: spacing.bottomDetailsSpacing),
-            ],
-          ),
-          headerActionsBuilder: (menuCloseSignal) => [
-            if (profileMode == ProfileMode.dark) ...[
-              ProfileActions(
-                pubkey: masterPubkey,
-                profileMode: profileMode,
-              ),
-            ],
-            if (isMultiAccountsEnabled) ...[
-              GestureDetector(
-                onTap: () => SwitchAccountRoute().push<void>(context),
-                child: Assets.svg.iconSwitchProfile.icon(
-                  size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
-                  color: profileMode == ProfileMode.dark
-                      ? context.theme.appColors.secondaryBackground
-                      : null,
+            )
+            .toList(),
+        expandedHeader: Column(
+          children: [
+            SizedBox(
+              height: (profileMode == ProfileMode.dark ? statusBarHeight : 0) + 27.0.s,
+            ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ProfileAvatar(
+                  profileMode: profileMode,
+                  pubkey: masterPubkey,
+                  size: profileMode == ProfileMode.dark ? 88.0.s : null,
                 ),
-              ),
-            ],
-            ProfileContextMenu(
+                PositionedDirectional(
+                  bottom: -6.0.s,
+                  end: -6.0.s,
+                  child: ProfileMainAction(
+                    pubkey: masterPubkey,
+                    profileMode: profileMode,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: spacing.topDetailsSpacing),
+            ProfileDetails(
               pubkey: masterPubkey,
-              closeSignal: menuCloseSignal,
+              profileMode: profileMode,
+            ),
+            SizedBox(height: spacing.separatorSpacing),
+            if (profileMode != ProfileMode.dark) const HorizontalSeparator(),
+            SizedBox(height: spacing.bottomDetailsSpacing),
+          ],
+        ),
+        headerActionsBuilder: (menuCloseSignal) => [
+          if (profileMode == ProfileMode.dark) ...[
+            ProfileActions(
+              pubkey: masterPubkey,
               profileMode: profileMode,
             ),
           ],
-      
+          if (isMultiAccountsEnabled) ...[
+            GestureDetector(
+              onTap: () => SwitchAccountRoute().push<void>(context),
+              child: Assets.svg.iconSwitchProfile.icon(
+                size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
+                color: profileMode == ProfileMode.dark
+                    ? context.theme.appColors.secondaryBackground
+                    : null,
+              ),
+            ),
+          ],
+          ProfileContextMenu(
+            pubkey: masterPubkey,
+            closeSignal: menuCloseSignal,
+            profileMode: profileMode,
+          ),
+        ],
       ),
     );
   }
