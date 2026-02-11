@@ -95,7 +95,11 @@ Future<void>? migrateTokenDefinitionsService(Ref ref) async {
       await _finalizeMigration(ref, userMetadata, isDone: isDone);
     }
   } catch (e, stackTrace) {
-    Logger.log('[MIGRATE TOKEN DEFINITIONS SERVICE] error: $e');
+    Logger.error(
+      e,
+      stackTrace: stackTrace,
+      message: '[MIGRATE TOKEN DEFINITIONS SERVICE] migration is failed',
+    );
     await SentryService.logException(e, stackTrace: stackTrace);
   }
 }
