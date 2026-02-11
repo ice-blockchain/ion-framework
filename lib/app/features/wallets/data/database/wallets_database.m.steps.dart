@@ -5123,8 +5123,6 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from21To22(migrator, schema);
         return 22;
-<<<<<<< HEAD
-=======
       case 22:
         final schema = Schema23(database: database);
         final migrator = i1.Migrator(database, schema);
@@ -5140,7 +5138,6 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from24To25(migrator, schema);
         return 25;
->>>>>>> 82619936e (feat(swap): display cross chain swaps in transaction history (#3166))
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
