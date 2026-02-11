@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/selected_wallet_view_id_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
@@ -132,6 +133,58 @@ void main() {
         fail('Expected StateError to be thrown');
       } catch (e) {
         expect(e, isA<StateError>());
+      }
+    });
+  });
+
+  group('mainWalletViewProvider', () {
+    test('returns the main wallet view when it exists', () async {
+      final container = createContainer(
+        overrides: [
+          walletViewsDataNotifierProvider.overrideWith(
+            () => MockWalletsDataNotifier(mockedWalletDataArray),
+          ),
+        ],
+      );
+
+      final result = await container.read(mainWalletViewProvider.future);
+
+      expect(result.id, equals('1'));
+      expect(result.isMainWalletView, isTrue);
+    });
+
+    test('returns main wallet view even when another wallet is selected', () async {
+      final container = createContainer(
+        overrides: [
+          walletViewsDataNotifierProvider.overrideWith(
+            () => MockWalletsDataNotifier(mockedWalletDataArray),
+          ),
+          selectedWalletViewIdNotifierProvider.overrideWith(MockSelectedWalletIdNotifier.new),
+        ],
+      );
+
+      container.read(selectedWalletViewIdNotifierProvider.notifier).selectedWalletId = '3';
+
+      final result = await container.read(mainWalletViewProvider.future);
+
+      expect(result.id, equals('1'));
+      expect(result.isMainWalletView, isTrue);
+    });
+
+    test('throws when no main wallet view exists', () async {
+      final container = createContainer(
+        overrides: [
+          walletViewsDataNotifierProvider.overrideWith(
+            () => MockWalletsDataNotifier(<WalletViewData>[]),
+          ),
+        ],
+      );
+
+      try {
+        await container.read(mainWalletViewProvider.future);
+        fail('Expected MainWalletViewNotFoundException to be thrown');
+      } catch (e) {
+        expect(e, isA<MainWalletViewNotFoundException>());
       }
     });
   });

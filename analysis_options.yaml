@@ -23,3 +23,4 @@ linter:
     lines_longer_than_80_chars: false
     one_member_abstracts: false
     use_build_context_synchronously: true
+    prefer_if_null_operators: false

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/wallet_views/wallet_views_service.r.dart';
@@ -200,4 +201,14 @@ Future<WalletViewData?> walletViewByAddress(
   return walletViews.firstWhereOrNull(
     (walletView) => walletView.coins.any((coin) => coin.walletId == wallet.id),
   );
+}
+
+@riverpod
+Future<WalletViewData> mainWalletView(Ref ref) async {
+  final walletViews = await ref.watch(walletViewsDataNotifierProvider.future);
+  final mainWalletView = walletViews.firstWhereOrNull((walletView) => walletView.isMainWalletView);
+  if (mainWalletView == null) {
+    throw MainWalletViewNotFoundException();
+  }
+  return mainWalletView;
 }
