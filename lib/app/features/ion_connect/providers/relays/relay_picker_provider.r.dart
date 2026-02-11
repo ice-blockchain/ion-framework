@@ -38,10 +38,11 @@ class RelayPicker extends _$RelayPicker {
   final Map<String, ({String? winnerUrl, DateTime checkedAt})> _directProbeCache = {};
   final Map<String, Future<String?>> _inFlightDirectProbes = {};
 
-  /// Phase 1: connection-only probe in direct-only mode.
+  /// Phase 1: direct-only pool probe.
   ///
-  /// Uses [createRelay] with `allowProxy: false` to validate direct reachability.
-  /// Probe relays are closed immediately; this phase does not authenticate.
+  /// Uses lightweight socket reachability checks (no proxy candidates) and
+  /// returns the first direct winner. Probe relays are always closed and this
+  /// phase never authenticates.
   Future<String?> _pickDirectRelayUrlFromPool(
     List<String> relayPool, {
     required String sessionPrefix,
@@ -175,15 +176,24 @@ class RelayPicker extends _$RelayPicker {
     );
   }
 
-  /// Returns a relay from a pool using the new two-phase strategy:
-  /// 1) try all relays directly (no proxies) in pool order
-  /// 2) if none connect directly, fall back to the existing behavior using [relayProvider]
+  /// Returns a relay from a pool using two phases:
+  /// 1) direct-only probing across the full pool and connect direct winner
+  /// 2) if no direct winner, use [fallbackRelayUrl] with proxy-enabled [relayProvider]
   Future<IonConnectRelay> _getRelayFromPool(
     List<String> relayPool, {
     required bool anonymous,
     required String sessionPrefix,
     required String fallbackRelayUrl,
   }) async {
+    if (relayPool.length == 1) {
+      return await ref.read(
+        relayProvider(
+          fallbackRelayUrl,
+          anonymous: anonymous,
+        ).future,
+      );
+    }
+
     final directRelayUrl = await _pickDirectRelayUrlFromPool(
       relayPool,
       sessionPrefix: sessionPrefix,

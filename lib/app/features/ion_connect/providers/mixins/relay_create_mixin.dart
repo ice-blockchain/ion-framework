@@ -21,9 +21,9 @@ mixin RelayCreateMixin {
     Ref ref,
     String url, {
     bool allowProxy = true,
-    Duration? connectTimeout,
   }) async {
     final dislikedConnectUrls = ref.read(relayDislikedConnectUrlsProvider(url));
+    // `allowProxy: false` is used by direct-only picker flow to force direct connect.
     final candidates = ref.read(relayConnectUrisProvider(url, includeProxies: allowProxy));
     final proxyDomains = ref.read(relayProxyDomainsProvider);
     final savedPreferredDomain = ref.read(relayProxyDomainPreferenceProvider(url));
@@ -38,7 +38,7 @@ mixin RelayCreateMixin {
         continue;
       }
 
-      final socket = WebSocket(connectUri, timeout: connectTimeout);
+      final socket = WebSocket(connectUri);
       final relay = IonConnectRelay(
         url: url,
         connectUrl: connectUrl,
