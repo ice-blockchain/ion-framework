@@ -85,11 +85,7 @@ Future<void>? migrateTokenDefinitionsService(Ref ref) async {
     if (!isDone) return;
 
     final definitions = migrationCtx.collectTokenDefinitions(currentUserMasterPubkey);
-
-    for (final tokenDefinition in definitions) {
-      if (stop) break;
-      await _syncTokenDefinition(ref, tokenDefinition);
-    }
+    await _syncTokenDefinitions(ref, definitions);
 
     if (!stop) {
       await _finalizeMigration(ref, userMetadata, isDone: isDone);
@@ -156,7 +152,7 @@ Future<void> _migrateUserMetadata(
       type: CommunityTokenDefinitionIonType.original,
     );
 
-    await _syncTokenDefinition(ref, tokenDefinition);
+    await _syncTokenDefinitions(ref, [tokenDefinition]);
   }
 }
 
@@ -187,15 +183,25 @@ RequestFilter _buildRequestFilter(String currentUserMasterPubkey) {
   );
 }
 
-Future<void> _syncTokenDefinition(Ref ref, CommunityTokenDefinitionIon definition) async {
-  final notifier = ref.read(ionConnectNotifierProvider.notifier);
-  final tokenDefinitionEvent = await notifier.sign(definition);
+Future<void> _syncTokenDefinitions(Ref ref, List<CommunityTokenDefinitionIon> definitions) async {
+  if (definitions.isEmpty) return;
 
-  await notifier.sendEvent(tokenDefinitionEvent);
-  unawaited(
-    (await ref.read(communityTokenDefinitionRepositoryProvider.future))
-        .cacheTokenDefinitionReference(tokenDefinitionEvent),
-  );
+  final notifier = ref.read(ionConnectNotifierProvider.notifier);
+
+  final tokenDefinitionEvents = <EventMessage>[];
+
+  for (final definition in definitions) {
+    final event = await notifier.sign(definition);
+    tokenDefinitionEvents.add(event);
+  }
+
+  await notifier.sendEvents(tokenDefinitionEvents);
+  for (final tokenDefinitionEvent in tokenDefinitionEvents) {
+    unawaited(
+      (await ref.read(communityTokenDefinitionRepositoryProvider.future))
+          .cacheTokenDefinitionReference(tokenDefinitionEvent),
+    );
+  }
 }
 
 Future<void> _finalizeMigration(
