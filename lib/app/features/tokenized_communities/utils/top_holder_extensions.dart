@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/models/holder_tile_data.dart';
 import 'package:ion/app/utils/address.dart';
-import 'package:ion/app/utils/num.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 extension TopHolderMapping on TopHolder {
   HolderTileData get tileData => HolderTileData(
         rank: position.rank,
-        amountText: formatAmountCompactFromRaw(position.amount),
+        amountText: formatTokenAmountWithSubscript(fromBlockchainUnits(position.amount, 18)),
         basicInfo: HolderBasicInfo(
           displayName: position.holder?.display ??
               shortenAddress(

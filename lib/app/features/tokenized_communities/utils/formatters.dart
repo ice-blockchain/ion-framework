@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:intl/intl.dart';
+import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/utils/num.dart';
 
@@ -114,6 +115,46 @@ String toSubscript(int number) {
     '9': '₉',
   };
   return digits.split('').map((d) => subscriptMap[d] ?? d).join();
+}
+
+String formatTokenAmountWithSubscript(double value) {
+  final absValue = value.abs();
+
+  if (absValue == 0) return '0';
+
+  if (absValue >= 1000) {
+    return MarketDataFormatter.formatCompactNumber(value);
+  }
+
+  if (absValue >= 1) {
+    return value.toStringAsFixed(2);
+  }
+
+  if (absValue >= 0.001) {
+    final formatted = value.toStringAsFixed(4);
+    return formatted.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '.00');
+  }
+
+  return _formatAmountSubscriptNotation(value);
+}
+
+String _formatAmountSubscriptNotation(double value) {
+  final absValue = value.abs();
+  final expStr = absValue.toStringAsExponential(12);
+  final match = RegExp(r'^(\d(?:\.\d+)?)e([+-]\d+)$').firstMatch(expStr);
+  if (match == null) return value.toStringAsFixed(6);
+
+  final mantissaStr = match.group(1)!;
+  final exponent = int.parse(match.group(2)!);
+  final zeroCount = exponent.abs() - 1;
+
+  final digits = mantissaStr.replaceAll('.', '');
+  var trailing = digits.length > 2 ? digits.substring(0, 2) : digits;
+  trailing = trailing.replaceAll(RegExp(r'0+$'), '');
+  if (trailing.isEmpty) trailing = '0';
+
+  final sign = value < 0 ? '-' : '';
+  return '${sign}0.0${toSubscript(zeroCount)}$trailing';
 }
 
 // Formats a DateTime for chart date labels (e.g., "15/03").

@@ -3,10 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/models/holder_tile_data.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
 import 'package:ion/app/services/browser/browser.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -30,7 +32,7 @@ class BondingCurveHolderTile extends StatelessWidget {
     return HolderTile(
       data: HolderTileData(
         rank: holder.position.rank,
-        amountText: formatAmountCompactFromRaw(holder.position.amount),
+        amountText: formatTokenAmountWithSubscript(fromBlockchainUnits(holder.position.amount, 18)),
         basicInfo: HolderBasicInfo(
           displayName: context.i18n.tokenized_community_bonding_curve,
         ),
@@ -59,7 +61,7 @@ class BurningHolderTile extends StatelessWidget {
     return HolderTile(
       data: HolderTileData(
         rank: holder.position.rank,
-        amountText: formatAmountCompactFromRaw(holder.position.amount),
+        amountText: formatTokenAmountWithSubscript(fromBlockchainUnits(holder.position.amount, 18)),
         basicInfo: HolderBasicInfo(
           displayName: holder.position.holder?.display ?? context.i18n.tokenized_community_burned,
           address: holderAddress,

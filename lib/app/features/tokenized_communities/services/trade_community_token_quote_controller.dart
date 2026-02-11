@@ -7,7 +7,7 @@ import 'package:ion/app/features/tokenized_communities/enums/community_token_tra
 import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 typedef PricingIdentifierResolver = Future<PricingIdentifierResolution> Function();
