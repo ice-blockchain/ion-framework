@@ -188,14 +188,7 @@ Future<void> _syncTokenDefinitions(Ref ref, List<CommunityTokenDefinitionIon> de
 
   final notifier = ref.read(ionConnectNotifierProvider.notifier);
 
-  final tokenDefinitionEvents = <EventMessage>[];
-
-  await Future.wait(
-    definitions.map((definition) async {
-      final event = await notifier.sign(definition);
-      tokenDefinitionEvents.add(event);
-    }),
-  );
+  final tokenDefinitionEvents = await Future.wait(definitions.map(notifier.sign));
 
   if (tokenDefinitionEvents.isEmpty) return;
 
