@@ -104,7 +104,7 @@ class CommunityTokenMessage extends HookConsumerWidget {
                     externalAddress: definitionEntity.data.externalAddress,
                   ).push<void>(context);
                 },
-                child: _TokenCard(definitionEntity: definitionEntity),
+                child: AbsorbPointer(child: _TokenCard(definitionEntity: definitionEntity)),
               ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
