@@ -190,10 +190,14 @@ Future<void> _syncTokenDefinitions(Ref ref, List<CommunityTokenDefinitionIon> de
 
   final tokenDefinitionEvents = <EventMessage>[];
 
-  for (final definition in definitions) {
-    final event = await notifier.sign(definition);
-    tokenDefinitionEvents.add(event);
-  }
+  await Future.wait(
+    definitions.map((definition) async {
+      final event = await notifier.sign(definition);
+      tokenDefinitionEvents.add(event);
+    }),
+  );
+
+  if (tokenDefinitionEvents.isEmpty) return;
 
   await notifier.sendEvents(tokenDefinitionEvents);
   for (final tokenDefinitionEvent in tokenDefinitionEvents) {
