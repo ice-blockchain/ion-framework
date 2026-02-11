@@ -20,17 +20,19 @@ class WalletAddressNotifier extends _$WalletAddressNotifier {
   Future<String?> createWallet({
     required NetworkData network,
     required ion.OnVerifyIdentity<ion.Wallet> onVerifyIdentity,
+    String? walletViewId,
   }) async {
     state = const AsyncValue.loading();
 
     String? walletAddress;
     state = await AsyncValue.guard(() async {
       final ionIdentity = await ref.read(ionIdentityClientProvider.future);
-      final walletView = await ref.read(currentWalletViewDataProvider.future);
+      final viewId =
+          walletViewId != null ? walletViewId : await ref.read(currentWalletViewIdProvider.future);
 
       final result = await ionIdentity.wallets.createWallet(
         network: network.id,
-        walletViewId: walletView.id,
+        walletViewId: viewId,
         onVerifyIdentity: onVerifyIdentity,
       );
 

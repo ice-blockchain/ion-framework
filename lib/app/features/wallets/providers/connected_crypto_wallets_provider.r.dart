@@ -38,15 +38,10 @@ Future<List<Wallet>> walletViewCryptoWallets(Ref ref, {String? walletViewId}) as
 /// Returns crypto wallets of the main WalletView
 @riverpod
 Future<List<Wallet>> mainCryptoWallets(Ref ref) async {
-  final walletViews = await ref.watch(walletViewsDataNotifierProvider.future);
+  final mainWalletView = await ref.watch(mainWalletViewProvider.future);
   final cryptoWallets = await ref.watch(walletsNotifierProvider.future);
 
-  final walletIds = walletViews
-      .firstWhere((w) => w.isMainWalletView)
-      .coins
-      .map((coin) => coin.walletId)
-      .nonNulls
-      .toList();
+  final walletIds = mainWalletView.coins.map((coin) => coin.walletId).nonNulls.toList();
 
   return cryptoWallets.filterByIds(walletIds);
 }

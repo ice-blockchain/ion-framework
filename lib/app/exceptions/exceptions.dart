@@ -822,3 +822,7 @@ class UpdateWalletViewRequestNoWalletViewException extends IONException {
           'To build request from coins list wallet view should be provided',
         );
 }
+
+class MainWalletViewNotFoundException extends IONException {
+  MainWalletViewNotFoundException() : super(10151, 'Main wallet view not found');
+}
