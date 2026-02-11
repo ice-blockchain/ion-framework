@@ -158,22 +158,16 @@ class _ProfileSummary extends StatelessWidget {
       child: BadgesUserListItem(
         titleSpan: TextSpan(
           text: userMetadata.data.trimmedDisplayName,
-          style: context.theme.appTextThemes.subtitle3.copyWith(
-            color: isMe
-                ? context.theme.appColors.onPrimaryAccent
-                : context.theme.appColors.primaryText,
-          ),
+          style: context.theme.appTextThemes.subtitle3
+              .copyWith(color: context.theme.appColors.onPrimaryAccent),
         ),
         subtitle: Text(
           withPrefix(
             input: userMetadata.data.name,
             textDirection: Directionality.of(context),
           ),
-          style: context.theme.appTextThemes.body2.copyWith(
-            color: isMe
-                ? context.theme.appColors.onPrimaryAccent
-                : context.theme.appColors.onTertiaryBackground,
-          ),
+          style: context.theme.appTextThemes.body2
+              .copyWith(color: context.theme.appColors.onPrimaryAccent),
         ),
         masterPubkey: userMetadata.masterPubkey,
         avatarSize: 40.0.s,
