@@ -69,17 +69,19 @@ class TokenAreaLineChart extends HookConsumerWidget {
       candles: candles,
     );
 
-    final lineColor = isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
+    final targetLineColor =
+        isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
     final canInteract = !isLoading;
 
     final displayMinY = visibleYRangeData.visibleYRange.value?.minY ?? calcData.chartMinY;
     final displayMaxY = visibleYRangeData.visibleYRange.value?.maxY ?? calcData.chartMaxY;
+    final hasVisibleRange = visibleYRangeData.visibleYRange.value != null;
 
     final gradient = useChartGradient(
       chartMaxY: calcData.chartMaxY,
       displayMinY: displayMinY,
       displayMaxY: displayMaxY,
-      hasVisibleRange: visibleYRangeData.visibleYRange.value != null,
+      hasVisibleRange: hasVisibleRange,
     );
 
     // Only animate Y-axis changes triggered by scroll, not by data load
@@ -133,96 +135,104 @@ class TokenAreaLineChart extends HookConsumerWidget {
             }).toList();
           }
 
-          return LineChart(
-            key: transformation.chartKey,
-            duration: duration,
-            transformationConfig: FlTransformationConfig(
-              scaleAxis: FlScaleAxis.horizontal,
-              panEnabled: canInteract,
-              scaleEnabled: false,
-              transformationController: transformation.transformationController,
-            ),
-            LineChartData(
-              minY: displayMinY,
-              maxY: displayMaxY,
-              minX: 0,
-              maxX: adjustedMaxX,
-              borderData: FlBorderData(show: false),
-              gridData: const FlGridData(
-                drawHorizontalLine: false,
-                drawVerticalLine: false,
-              ),
-              titlesData: FlTitlesData(
-                leftTitles: const AxisTitles(),
-                rightTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    minIncluded: false,
-                    maxIncluded: false,
-                    showTitles: true,
-                    reservedSize: reservedSize,
-                    getTitlesWidget: (value, meta) => Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: ChartPriceLabel(value: value),
+          return TweenAnimationBuilder<Color?>(
+            duration: const Duration(milliseconds: 200),
+            tween: ColorTween(end: targetLineColor),
+            builder: (context, animatedColor, _) {
+              final lineColor = animatedColor ?? targetLineColor;
+
+              return LineChart(
+                key: transformation.chartKey,
+                duration: duration,
+                transformationConfig: FlTransformationConfig(
+                  scaleAxis: FlScaleAxis.horizontal,
+                  panEnabled: canInteract,
+                  scaleEnabled: false,
+                  transformationController: transformation.transformationController,
+                ),
+                LineChartData(
+                  minY: displayMinY,
+                  maxY: displayMaxY,
+                  minX: 0,
+                  maxX: adjustedMaxX,
+                  borderData: FlBorderData(show: false),
+                  gridData: const FlGridData(
+                    drawHorizontalLine: false,
+                    drawVerticalLine: false,
+                  ),
+                  titlesData: FlTitlesData(
+                    leftTitles: const AxisTitles(),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        minIncluded: false,
+                        maxIncluded: false,
+                        showTitles: true,
+                        reservedSize: reservedSize,
+                        getTitlesWidget: (value, meta) => Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: ChartPriceLabel(value: value),
+                        ),
+                      ),
+                    ),
+                    topTitles: const AxisTitles(),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 26.0.s,
+                        interval: calcData.xAxisStep,
+                        getTitlesWidget: (value, meta) => _ChartBottomTitle(
+                          value: value,
+                          meta: meta,
+                          calcData: calcData,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                topTitles: const AxisTitles(),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 26.0.s,
-                    interval: calcData.xAxisStep,
-                    getTitlesWidget: (value, meta) => _ChartBottomTitle(
-                      value: value,
-                      meta: meta,
-                      calcData: calcData,
+                  lineTouchData: LineTouchData(
+                    enabled: canInteract,
+                    touchCallback: handleChartTouch,
+                    touchSpotThreshold: double.infinity,
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (_) => colors.primaryBackground,
+                      getTooltipItems: buildTooltipItems,
                     ),
+                    getTouchedSpotIndicator: buildTouchedSpotIndicators,
+                    getTouchLineStart: (_, __) => 0,
+                    getTouchLineEnd: (_, __) => double.infinity,
                   ),
-                ),
-              ),
-              lineTouchData: LineTouchData(
-                enabled: canInteract,
-                touchCallback: handleChartTouch,
-                touchSpotThreshold: double.infinity,
-                touchTooltipData: LineTouchTooltipData(
-                  getTooltipColor: (_) => colors.primaryBackground,
-                  getTooltipItems: buildTooltipItems,
-                ),
-                getTouchedSpotIndicator: buildTouchedSpotIndicators,
-                getTouchLineStart: (_, __) => 0,
-                getTouchLineEnd: (_, __) => double.infinity,
-              ),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: calcData.spots,
-                  color: lineColor,
-                  barWidth: 1.5.s,
-                  dotData: FlDotData(
-                    checkToShowDot: (spot, barData) => spot.x == barData.spots.last.x,
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 3.0.s,
-                        color: lineColor,
-                        strokeWidth: 1.5.s,
-                        strokeColor: colors.secondaryBackground,
-                      );
-                    },
-                  ),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: gradient.gradientStops,
-                      colors: [
-                        lineColor.withValues(alpha: gradient.gradientTopAlpha),
-                        lineColor.withValues(alpha: 0),
-                      ],
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: calcData.spots,
+                      color: lineColor,
+                      barWidth: 1.5.s,
+                      dotData: FlDotData(
+                        checkToShowDot: (spot, barData) => spot.x == barData.spots.last.x,
+                        getDotPainter: (spot, percent, barData, index) {
+                          return FlDotCirclePainter(
+                            radius: 3.0.s,
+                            color: lineColor,
+                            strokeWidth: 1.5.s,
+                            strokeColor: colors.secondaryBackground,
+                          );
+                        },
+                      ),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: gradient.gradientStops,
+                          colors: [
+                            lineColor.withValues(alpha: gradient.gradientTopAlpha),
+                            lineColor.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
