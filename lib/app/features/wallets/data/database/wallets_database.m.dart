@@ -72,11 +72,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
-<<<<<<< HEAD
-  int get schemaVersion => 22;
-=======
   int get schemaVersion => 25;
->>>>>>> 82619936e (feat(swap): display cross chain swaps in transaction history (#3166))
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -273,8 +269,6 @@ class WalletsDatabase extends _$WalletsDatabase {
           await m.deleteTable(schema.transactionsTableV2.actualTableName);
           await m.createTable(schema.transactionsTableV2);
         },
-<<<<<<< HEAD
-=======
         from22To23: (m, schema) async {
           final columnExists = await isColumnExists(
             tableName: schema.coinsTable.actualTableName,
@@ -330,7 +324,6 @@ class WalletsDatabase extends _$WalletsDatabase {
           await m.createTable(schema.swapTransactionsTable);
           await m.dropColumn(schema.transactionsTableV2, 'is_swap');
         },
->>>>>>> 82619936e (feat(swap): display cross chain swaps in transaction history (#3166))
       ),
     );
   }
