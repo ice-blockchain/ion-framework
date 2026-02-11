@@ -123,7 +123,7 @@ class TradeCommunityTokenService {
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
-      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
+      feeSponsorId: routeQuote.quote.finalPricing.feeSponsorId,
       userActionSigner: userActionSigner,
     );
 
@@ -254,7 +254,7 @@ class TradeCommunityTokenService {
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
-      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
+      feeSponsorId: quote.finalPricing.feeSponsorId,
       userActionSigner: userActionSigner,
     );
 
@@ -342,6 +342,7 @@ class TradeCommunityTokenService {
     required UserActionSignerNew userActionSigner,
     required String newName,
     required String newSymbol,
+    required String feeSponsorId,
   }) async {
     final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
     final tokenAddress = _extractTokenAddress(tokenInfo);
@@ -369,7 +370,7 @@ class TradeCommunityTokenService {
     final result = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: [updateOperation],
-      feeSponsorId: TokenizedCommunitiesConstants.tradeFeeSponsorWalletId,
+      feeSponsorId: feeSponsorId,
       userActionSigner: userActionSigner,
     );
     return result;

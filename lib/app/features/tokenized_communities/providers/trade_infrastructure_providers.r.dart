@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
@@ -13,7 +11,6 @@ import 'package:ion/app/features/tokenized_communities/data/trade_community_toke
 import 'package:ion/app/features/tokenized_communities/domain/pancakeswap_v3_service.dart';
 import 'package:ion/app/features/tokenized_communities/domain/pancakeswap_v3_user_ops_builder.dart';
 import 'package:ion/app/features/tokenized_communities/domain/supported_swap_tokens_resolver_service.dart';
-import 'package:ion/app/features/tokenized_communities/domain/tokenized_communities_trade_config.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_ops_support.dart';
@@ -25,6 +22,7 @@ import 'package:ion/app/features/tokenized_communities/domain/trade_user_ops_bui
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/tokenized_communities_trade_config_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/web3client_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
@@ -101,26 +99,28 @@ Future<TradeCommunityTokenRepository> tradeCommunityTokenRepository(
 }
 
 @riverpod
-PancakeSwapV3Repository pancakeSwapV3Repository(Ref ref) {
+Future<PancakeSwapV3Repository> pancakeSwapV3Repository(Ref ref) async {
   final web3Client = ref.watch(web3ClientProvider);
+  final tradeConfig = await ref.watch(tokenizedCommunitiesTradeConfigProvider.future);
   return PancakeSwapV3Repository(
     web3Client: web3Client,
-    tradeConfig: _tradeConfig(),
+    tradeConfig: tradeConfig,
   );
 }
 
 @riverpod
-PancakeSwapV3Service pancakeSwapV3Service(Ref ref) {
-  final repository = ref.watch(pancakeSwapV3RepositoryProvider);
+Future<PancakeSwapV3Service> pancakeSwapV3Service(Ref ref) async {
+  final repository = await ref.watch(pancakeSwapV3RepositoryProvider.future);
+  final tradeConfig = await ref.watch(tokenizedCommunitiesTradeConfigProvider.future);
   return PancakeSwapV3Service(
     repository: repository,
-    tradeConfig: _tradeConfig(),
+    tradeConfig: tradeConfig,
   );
 }
 
 @riverpod
-PancakeSwapV3UserOpsBuilder pancakeSwapV3UserOpsBuilder(Ref ref) {
-  final pancakeSwapService = ref.watch(pancakeSwapV3ServiceProvider);
+Future<PancakeSwapV3UserOpsBuilder> pancakeSwapV3UserOpsBuilder(Ref ref) async {
+  final pancakeSwapService = await ref.watch(pancakeSwapV3ServiceProvider.future);
   return PancakeSwapV3UserOpsBuilder(
     pancakeSwapService: pancakeSwapService,
   );
@@ -133,9 +133,10 @@ Future<TradeCommunityTokenService> tradeCommunityTokenService(
   final repository = await ref.watch(tradeCommunityTokenRepositoryProvider.future);
   final ionConnectService = await ref.watch(communityTokenIonConnectServiceProvider.future);
   final protectedAccountsService = ref.watch(tokenOperationProtectedAccountsServiceProvider);
-  final pancakeSwapService = ref.watch(pancakeSwapV3ServiceProvider);
-  final pancakeSwapUserOpsBuilder = ref.watch(pancakeSwapV3UserOpsBuilderProvider);
-  final tokenResolver = TradeTokenResolver(tradeConfig: _tradeConfig());
+  final pancakeSwapService = await ref.watch(pancakeSwapV3ServiceProvider.future);
+  final pancakeSwapUserOpsBuilder = await ref.watch(pancakeSwapV3UserOpsBuilderProvider.future);
+  final tradeConfig = await ref.watch(tokenizedCommunitiesTradeConfigProvider.future);
+  final tokenResolver = TradeTokenResolver(tradeConfig: tradeConfig);
   final support = TradeOpsSupport(repository: repository);
   final routeBuilder = TradeRouteBuilder(tokenResolver: tokenResolver);
   final quoteBuilder = TradeQuoteBuilder(
@@ -148,7 +149,7 @@ Future<TradeCommunityTokenService> tradeCommunityTokenService(
     pancakeSwapService: pancakeSwapService,
     pancakeSwapUserOpsBuilder: pancakeSwapUserOpsBuilder,
     support: support,
-    tradeConfig: _tradeConfig(),
+    tradeConfig: tradeConfig,
   );
 
   return TradeCommunityTokenService(
@@ -158,17 +159,6 @@ Future<TradeCommunityTokenService> tradeCommunityTokenService(
     routeBuilder: routeBuilder,
     quoteBuilder: quoteBuilder,
     userOpsBuilder: userOpsBuilder,
-  );
-}
-
-TokenizedCommunitiesTradeConfig _tradeConfig() {
-  return const TokenizedCommunitiesTradeConfig(
-    pancakeSwapWbnbAddress: '0xae13d989dac2f0debff460ac112a837c89baa7cd',
-    pancakeSwapIonTokenAddress: '0x2c73996babf1a06c2c057177353293f7ca0907c8',
-    pancakeSwapSwapRouterAddress: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
-    pancakeSwapQuoterV2Address: '0xbC203d7f83677c7ed3F7acEc959963E7F4ECC5C2',
-    pancakeSwapFeeTier: 500,
-    ionTokenDecimals: 18,
   );
 }
 

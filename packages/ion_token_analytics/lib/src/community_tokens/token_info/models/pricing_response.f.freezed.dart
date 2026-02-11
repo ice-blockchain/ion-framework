@@ -304,12 +304,12 @@ mixin _$PricingResponse {
   String get amount => throw _privateConstructorUsedError;
   String get amountBNB => throw _privateConstructorUsedError;
   double get amountUSD => throw _privateConstructorUsedError;
+  String get feeSponsorId => throw _privateConstructorUsedError;
   String? get bondingCurveAlgAddress => throw _privateConstructorUsedError;
   CreatorTokenParams? get creatorTokenParams =>
       throw _privateConstructorUsedError;
   String? get emissionVolume => throw _privateConstructorUsedError;
   String? get feeSponsorAddress => throw _privateConstructorUsedError;
-  String? get feeSponsorId => throw _privateConstructorUsedError;
   String? get finalPrice => throw _privateConstructorUsedError;
   double? get finalPriceUSD => throw _privateConstructorUsedError;
   String? get initialPrice => throw _privateConstructorUsedError;
@@ -338,11 +338,11 @@ abstract class $PricingResponseCopyWith<$Res> {
     String amount,
     String amountBNB,
     double amountUSD,
+    String feeSponsorId,
     String? bondingCurveAlgAddress,
     CreatorTokenParams? creatorTokenParams,
     String? emissionVolume,
     String? feeSponsorAddress,
-    String? feeSponsorId,
     String? finalPrice,
     double? finalPriceUSD,
     String? initialPrice,
@@ -372,11 +372,11 @@ class _$PricingResponseCopyWithImpl<$Res, $Val extends PricingResponse>
     Object? amount = null,
     Object? amountBNB = null,
     Object? amountUSD = null,
+    Object? feeSponsorId = null,
     Object? bondingCurveAlgAddress = freezed,
     Object? creatorTokenParams = freezed,
     Object? emissionVolume = freezed,
     Object? feeSponsorAddress = freezed,
-    Object? feeSponsorId = freezed,
     Object? finalPrice = freezed,
     Object? finalPriceUSD = freezed,
     Object? initialPrice = freezed,
@@ -398,6 +398,10 @@ class _$PricingResponseCopyWithImpl<$Res, $Val extends PricingResponse>
                 ? _value.amountUSD
                 : amountUSD // ignore: cast_nullable_to_non_nullable
                       as double,
+            feeSponsorId: null == feeSponsorId
+                ? _value.feeSponsorId
+                : feeSponsorId // ignore: cast_nullable_to_non_nullable
+                      as String,
             bondingCurveAlgAddress: freezed == bondingCurveAlgAddress
                 ? _value.bondingCurveAlgAddress
                 : bondingCurveAlgAddress // ignore: cast_nullable_to_non_nullable
@@ -413,10 +417,6 @@ class _$PricingResponseCopyWithImpl<$Res, $Val extends PricingResponse>
             feeSponsorAddress: freezed == feeSponsorAddress
                 ? _value.feeSponsorAddress
                 : feeSponsorAddress // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            feeSponsorId: freezed == feeSponsorId
-                ? _value.feeSponsorId
-                : feeSponsorId // ignore: cast_nullable_to_non_nullable
                       as String?,
             finalPrice: freezed == finalPrice
                 ? _value.finalPrice
@@ -477,11 +477,11 @@ abstract class _$$PricingResponseImplCopyWith<$Res>
     String amount,
     String amountBNB,
     double amountUSD,
+    String feeSponsorId,
     String? bondingCurveAlgAddress,
     CreatorTokenParams? creatorTokenParams,
     String? emissionVolume,
     String? feeSponsorAddress,
-    String? feeSponsorId,
     String? finalPrice,
     double? finalPriceUSD,
     String? initialPrice,
@@ -511,11 +511,11 @@ class __$$PricingResponseImplCopyWithImpl<$Res>
     Object? amount = null,
     Object? amountBNB = null,
     Object? amountUSD = null,
+    Object? feeSponsorId = null,
     Object? bondingCurveAlgAddress = freezed,
     Object? creatorTokenParams = freezed,
     Object? emissionVolume = freezed,
     Object? feeSponsorAddress = freezed,
-    Object? feeSponsorId = freezed,
     Object? finalPrice = freezed,
     Object? finalPriceUSD = freezed,
     Object? initialPrice = freezed,
@@ -537,6 +537,10 @@ class __$$PricingResponseImplCopyWithImpl<$Res>
             ? _value.amountUSD
             : amountUSD // ignore: cast_nullable_to_non_nullable
                   as double,
+        feeSponsorId: null == feeSponsorId
+            ? _value.feeSponsorId
+            : feeSponsorId // ignore: cast_nullable_to_non_nullable
+                  as String,
         bondingCurveAlgAddress: freezed == bondingCurveAlgAddress
             ? _value.bondingCurveAlgAddress
             : bondingCurveAlgAddress // ignore: cast_nullable_to_non_nullable
@@ -552,10 +556,6 @@ class __$$PricingResponseImplCopyWithImpl<$Res>
         feeSponsorAddress: freezed == feeSponsorAddress
             ? _value.feeSponsorAddress
             : feeSponsorAddress // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        feeSponsorId: freezed == feeSponsorId
-            ? _value.feeSponsorId
-            : feeSponsorId // ignore: cast_nullable_to_non_nullable
                   as String?,
         finalPrice: freezed == finalPrice
             ? _value.finalPrice
@@ -593,11 +593,11 @@ class _$PricingResponseImpl implements _PricingResponse {
     required this.amount,
     required this.amountBNB,
     required this.amountUSD,
+    required this.feeSponsorId,
     this.bondingCurveAlgAddress,
     this.creatorTokenParams,
     this.emissionVolume,
     this.feeSponsorAddress,
-    this.feeSponsorId,
     this.finalPrice,
     this.finalPriceUSD,
     this.initialPrice,
@@ -616,6 +616,8 @@ class _$PricingResponseImpl implements _PricingResponse {
   @override
   final double amountUSD;
   @override
+  final String feeSponsorId;
+  @override
   final String? bondingCurveAlgAddress;
   @override
   final CreatorTokenParams? creatorTokenParams;
@@ -623,8 +625,6 @@ class _$PricingResponseImpl implements _PricingResponse {
   final String? emissionVolume;
   @override
   final String? feeSponsorAddress;
-  @override
-  final String? feeSponsorId;
   @override
   final String? finalPrice;
   @override
@@ -640,7 +640,7 @@ class _$PricingResponseImpl implements _PricingResponse {
 
   @override
   String toString() {
-    return 'PricingResponse(amount: $amount, amountBNB: $amountBNB, amountUSD: $amountUSD, bondingCurveAlgAddress: $bondingCurveAlgAddress, creatorTokenParams: $creatorTokenParams, emissionVolume: $emissionVolume, feeSponsorAddress: $feeSponsorAddress, feeSponsorId: $feeSponsorId, finalPrice: $finalPrice, finalPriceUSD: $finalPriceUSD, initialPrice: $initialPrice, initialPriceUSD: $initialPriceUSD, usdPriceION: $usdPriceION, usdPriceBNB: $usdPriceBNB)';
+    return 'PricingResponse(amount: $amount, amountBNB: $amountBNB, amountUSD: $amountUSD, feeSponsorId: $feeSponsorId, bondingCurveAlgAddress: $bondingCurveAlgAddress, creatorTokenParams: $creatorTokenParams, emissionVolume: $emissionVolume, feeSponsorAddress: $feeSponsorAddress, finalPrice: $finalPrice, finalPriceUSD: $finalPriceUSD, initialPrice: $initialPrice, initialPriceUSD: $initialPriceUSD, usdPriceION: $usdPriceION, usdPriceBNB: $usdPriceBNB)';
   }
 
   @override
@@ -653,6 +653,8 @@ class _$PricingResponseImpl implements _PricingResponse {
                 other.amountBNB == amountBNB) &&
             (identical(other.amountUSD, amountUSD) ||
                 other.amountUSD == amountUSD) &&
+            (identical(other.feeSponsorId, feeSponsorId) ||
+                other.feeSponsorId == feeSponsorId) &&
             (identical(other.bondingCurveAlgAddress, bondingCurveAlgAddress) ||
                 other.bondingCurveAlgAddress == bondingCurveAlgAddress) &&
             (identical(other.creatorTokenParams, creatorTokenParams) ||
@@ -661,8 +663,6 @@ class _$PricingResponseImpl implements _PricingResponse {
                 other.emissionVolume == emissionVolume) &&
             (identical(other.feeSponsorAddress, feeSponsorAddress) ||
                 other.feeSponsorAddress == feeSponsorAddress) &&
-            (identical(other.feeSponsorId, feeSponsorId) ||
-                other.feeSponsorId == feeSponsorId) &&
             (identical(other.finalPrice, finalPrice) ||
                 other.finalPrice == finalPrice) &&
             (identical(other.finalPriceUSD, finalPriceUSD) ||
@@ -684,11 +684,11 @@ class _$PricingResponseImpl implements _PricingResponse {
     amount,
     amountBNB,
     amountUSD,
+    feeSponsorId,
     bondingCurveAlgAddress,
     creatorTokenParams,
     emissionVolume,
     feeSponsorAddress,
-    feeSponsorId,
     finalPrice,
     finalPriceUSD,
     initialPrice,
@@ -719,11 +719,11 @@ abstract class _PricingResponse implements PricingResponse {
     required final String amount,
     required final String amountBNB,
     required final double amountUSD,
+    required final String feeSponsorId,
     final String? bondingCurveAlgAddress,
     final CreatorTokenParams? creatorTokenParams,
     final String? emissionVolume,
     final String? feeSponsorAddress,
-    final String? feeSponsorId,
     final String? finalPrice,
     final double? finalPriceUSD,
     final String? initialPrice,
@@ -742,6 +742,8 @@ abstract class _PricingResponse implements PricingResponse {
   @override
   double get amountUSD;
   @override
+  String get feeSponsorId;
+  @override
   String? get bondingCurveAlgAddress;
   @override
   CreatorTokenParams? get creatorTokenParams;
@@ -749,8 +751,6 @@ abstract class _PricingResponse implements PricingResponse {
   String? get emissionVolume;
   @override
   String? get feeSponsorAddress;
-  @override
-  String? get feeSponsorId;
   @override
   String? get finalPrice;
   @override

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/tokenized_communities/data/models/tokenized_communities_trade_config.f.dart';
 import 'package:ion/app/features/tokenized_communities/data/pancakeswap_v3_repository.dart';
-import 'package:ion/app/features/tokenized_communities/domain/tokenized_communities_trade_config.dart';
 
 class PancakeSwapV3Service {
   PancakeSwapV3Service({

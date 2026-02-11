@@ -30,6 +30,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     required double nsfwBlockThreshold,
     required double langDetectScoreThreshold,
     required String cdnBaseUrl,
+    required String feeSponsorId,
     @Default(true) bool allowNewRegistrations,
     @Default(false) bool enableEarlyAccessRegistrations,
     @Default(true) bool forceSecurityEnabled,

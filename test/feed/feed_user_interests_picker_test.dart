@@ -39,6 +39,7 @@ void main() {
         langDetectScoreThreshold: 0.9,
         cdnBaseUrl: '',
         forYouSeenSkipsMultiplier: 0.5,
+        feeSponsorId: '',
       );
       interests = FeedInterests.fromJson({
         'music': {
