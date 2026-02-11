@@ -12,8 +12,10 @@ import 'package:ion/app/features/ion_connect/model/related_relay.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
+import 'package:ion/app/features/push_notifications/providers/firebase_messaging_token_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/push_subscription_provider.r.dart';
 import 'package:ion/app/features/push_notifications/providers/selected_push_categories_ion_subscription_provider.r.dart';
+import 'package:ion/app/features/push_notifications/providers/synced_fcm_token_provider.r.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
@@ -44,16 +46,69 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
         await ref.watch(selectedPushCategoriesIonSubscriptionProvider.future);
     final publishedSubscription = await ref.read(currentUserPushSubscriptionProvider.future);
 
-    if (currentSubscriptionData != null && currentSubscriptionData != publishedSubscription?.data) {
-      await _updateOwnSubscription(
-        currentData: currentSubscriptionData,
-        publishedEntity: publishedSubscription,
-      );
-      await _updateExternalSubscription(
-        currentData: currentSubscriptionData,
-        publishedEntity: publishedSubscription,
-      );
+    // App is not ready
+    if (currentSubscriptionData == null) {
+      return;
     }
+
+    final fcmToken = await ref.watch(firebaseMessagingTokenProvider.future);
+    if (fcmToken == null) {
+      return;
+    }
+
+    final shouldUpdate = await _shouldUpdateSubscription(
+      currentData: currentSubscriptionData,
+      publishedSubscription: publishedSubscription,
+      fcmToken: fcmToken,
+    );
+
+    if (!shouldUpdate) {
+      return;
+    }
+
+    await Future.wait([
+      _updateOwnSubscription(
+        currentData: currentSubscriptionData,
+        publishedEntity: publishedSubscription,
+      ),
+      _updateExternalSubscription(
+        currentData: currentSubscriptionData,
+        publishedEntity: publishedSubscription,
+      ),
+    ]);
+
+    await _saveSyncedFcmToken(fcmToken: fcmToken);
+  }
+
+  Future<bool> _shouldUpdateSubscription({
+    required PushSubscriptionOwnData currentData,
+    required PushSubscriptionEntity? publishedSubscription,
+    required String fcmToken,
+  }) async {
+    // There is no published subscription yet, but there are selected categories
+    if (publishedSubscription == null && currentData.filters.isNotEmpty) {
+      return true;
+    }
+
+    // Just in case check
+    final publishedData = publishedSubscription?.data;
+    if (publishedData is! PushSubscriptionOwnData) {
+      return false;
+    }
+
+    // Compare subscription filters
+    if (!currentData.filters.equalsDeepUnordered(publishedData.filters)) {
+      return true;
+    }
+
+    // Manually compare the synced fcm token with the current one,
+    // because the public one is encrypted with a random nonce.
+    final syncedFcmToken = ref.watch(syncedFcmTokenProvider);
+    return syncedFcmToken != fcmToken;
+  }
+
+  Future<void> _saveSyncedFcmToken({required String fcmToken}) async {
+    await ref.read(syncedFcmTokenProvider.notifier).setToken(fcmToken);
   }
 
   /// Handles push subscription data for the current user.
