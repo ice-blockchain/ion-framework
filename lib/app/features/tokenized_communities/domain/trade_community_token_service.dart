@@ -582,11 +582,12 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
       );
 
-      const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
-
-      final baseTokenAmountValue = fromBlockchainUnits(amountIn.toString(), tokenDecimals);
-      final communityTokenAmountValue = fromBlockchainUnits(pricing.amount, communityTokenDecimals);
       final usdAmountValue = pricing.amountUSD;
+      final communityTokenAmountValue = fromBlockchainUnits(pricing.amount);
+      final baseTokenAmountValue = fromBlockchainUnits(
+        amountIn.toString(),
+        decimals: tokenDecimals,
+      );
 
       Logger.info(
         '[TradeCommunityTokenService] Amounts calculated | baseTokenAmountValue=$baseTokenAmountValue | communityTokenAmountValue=$communityTokenAmountValue | usdAmountValue=$usdAmountValue',
@@ -656,11 +657,11 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
       );
 
-      const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
-
-      final communityTokenAmountValue =
-          fromBlockchainUnits(amountIn.toString(), communityTokenDecimals);
-      final paymentTokenAmountValue = fromBlockchainUnits(pricing.amount, paymentTokenDecimals);
+      final communityTokenAmountValue = fromBlockchainUnits(amountIn.toString());
+      final paymentTokenAmountValue = fromBlockchainUnits(
+        pricing.amount,
+        decimals: paymentTokenDecimals,
+      );
 
       final usdAmountValue = pricing.amountUSD;
 

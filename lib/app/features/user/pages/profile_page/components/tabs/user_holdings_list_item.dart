@@ -106,7 +106,9 @@ class UserHoldingsListItem extends ConsumerWidget {
                             ),
                             SizedBox(width: 4.0.s),
                             Text(
-                              formatTokenAmountWithSubscript(fromBlockchainUnits(position.amount, 18)),
+                              formatTokenAmountWithSubscript(
+                                fromBlockchainUnits(position.amount),
+                              ),
                               style: context.theme.appTextThemes.caption.copyWith(
                                 color: context.theme.appColors.quaternaryText,
                               ),

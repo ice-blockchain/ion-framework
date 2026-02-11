@@ -177,7 +177,7 @@ class UndefinedTransactionsBinder {
       if (rawTransferredAmount != null && rawTransferredAmount != '0') {
         final coin = await _coinsRepository.getCoinById(binding.coinId);
         if (coin != null) {
-          final amount = fromBlockchainUnits(rawTransferredAmount, coin.decimals);
+          final amount = fromBlockchainUnits(rawTransferredAmount, decimals: coin.decimals);
           calculatedTransferredAmountUsd = amount * coin.priceUSD;
         } else {
           Logger.warning(

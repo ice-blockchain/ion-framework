@@ -6,7 +6,7 @@ import 'package:ion/app/utils/num.dart';
 
 /// Converts a blockchain-precise numeric string (e.g., `"1000000000000000000"`)
 /// into a human-readable Decimal value (e.g., `Decimal.parse('1.0')`).
-double fromBlockchainUnits(String input, int decimals) {
+double fromBlockchainUnits(String input, {int decimals = 18}) {
   try {
     final value = BigInt.parse(input);
     final divisor = BigInt.from(10).pow(decimals);

@@ -669,7 +669,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     } else {
       final transferredAmount = transaction.transferredAmount ?? '0';
       final transferredCoin = CoinData.fromDB(transactionCoin, domainNetwork);
-      final amount = fromBlockchainUnits(transferredAmount, transferredCoin.decimals);
+      final amount = fromBlockchainUnits(transferredAmount, decimals: transferredCoin.decimals);
       final amountUSD = transaction.transferredAmountUsd ?? (amount * transferredCoin.priceUSD);
 
       cryptoAsset = TransactionCryptoAsset.coin(

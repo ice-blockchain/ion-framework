@@ -32,7 +32,7 @@ class BondingCurveHolderTile extends StatelessWidget {
     return HolderTile(
       data: HolderTileData(
         rank: holder.position.rank,
-        amountText: formatTokenAmountWithSubscript(fromBlockchainUnits(holder.position.amount, 18)),
+        amountText: formatTokenAmountWithSubscript(fromBlockchainUnits(holder.position.amount)),
         basicInfo: HolderBasicInfo(
           displayName: context.i18n.tokenized_community_bonding_curve,
         ),
@@ -61,7 +61,7 @@ class BurningHolderTile extends StatelessWidget {
     return HolderTile(
       data: HolderTileData(
         rank: holder.position.rank,
-        amountText: formatTokenAmountWithSubscript(fromBlockchainUnits(holder.position.amount, 18)),
+        amountText: formatTokenAmountWithSubscript(fromBlockchainUnits(holder.position.amount)),
         basicInfo: HolderBasicInfo(
           displayName: holder.position.holder?.display ?? context.i18n.tokenized_community_burned,
           address: holderAddress,

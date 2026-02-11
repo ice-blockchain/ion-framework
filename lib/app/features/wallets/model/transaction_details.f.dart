@@ -46,7 +46,7 @@ class TransactionDetails with _$TransactionDetails {
     final fee = transaction.fee;
     final nativeCoin = transaction.nativeCoin;
     final isFeeAvailable = fee != null && nativeCoin != null;
-    final feeAmount = isFeeAvailable ? fromBlockchainUnits(fee, nativeCoin.decimals) : null;
+    final feeAmount = isFeeAvailable ? fromBlockchainUnits(fee, decimals: nativeCoin.decimals) : null;
 
     return TransactionDetails(
       id: transaction.id,

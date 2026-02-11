@@ -9,7 +9,9 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 extension TopHolderMapping on TopHolder {
   HolderTileData get tileData => HolderTileData(
         rank: position.rank,
-        amountText: formatTokenAmountWithSubscript(fromBlockchainUnits(position.amount, 18)),
+        amountText: formatTokenAmountWithSubscript(
+          fromBlockchainUnits(position.amount),
+        ),
         basicInfo: HolderBasicInfo(
           displayName: position.holder?.display ??
               shortenAddress(

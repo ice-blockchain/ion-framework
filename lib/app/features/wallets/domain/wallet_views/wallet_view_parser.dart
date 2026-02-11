@@ -134,7 +134,7 @@ class WalletViewParser {
 
     if (asset != null) {
       rawCoinAmount = asset.balance;
-      coinAmount = fromBlockchainUnits(asset.balance, asset.decimals);
+      coinAmount = fromBlockchainUnits(asset.balance, decimals: asset.decimals);
       coinBalanceUSD = coinAmount * coinDTO.priceUSD;
     }
 

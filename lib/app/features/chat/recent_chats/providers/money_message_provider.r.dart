@@ -155,7 +155,7 @@ Future<MoneyDisplayData?> transactionDisplayData(
     if (assetId != null && assetId.isNotEmpty && rawAmount != null && rawAmount.isNotEmpty) {
       final coin = await ref.watch(coinByIdProvider(assetId).future);
       if (coin != null) {
-        final normalizedAmount = fromBlockchainUnits(rawAmount, coin.decimals);
+        final normalizedAmount = fromBlockchainUnits(rawAmount, decimals: coin.decimals);
         return (
           amount: formatCrypto(normalizedAmount),
           coin: coin.abbreviation,

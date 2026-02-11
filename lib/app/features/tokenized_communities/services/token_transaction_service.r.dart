@@ -356,7 +356,7 @@ class TokenTransactionService {
     const tokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
     final tokenAmount = fromBlockchainUnits(
       expectedPricing.amount,
-      tokenDecimals,
+      decimals: tokenDecimals,
     );
     final tokenRawAmount = expectedPricing.amount;
     final amountUSD = expectedPricing.amountUSD;
@@ -463,7 +463,7 @@ class TokenTransactionService {
     const tokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
     final tokenAmount = fromBlockchainUnits(
       expectedPricing.amount,
-      tokenDecimals,
+      decimals: tokenDecimals,
     );
     final tokenRawAmount = expectedPricing.amount;
     final amountUSD = expectedPricing.amountUSD;

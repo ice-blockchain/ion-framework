@@ -707,7 +707,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     if (paymentTokenPriceUSD != null && state.mode == CommunityTokenTradeMode.sell) {
       final decimals = state.selectedPaymentToken?.decimals;
       if (decimals != null) {
-        final quoteAmount = fromBlockchainUnits(pricing.amount, decimals);
+        final quoteAmount = fromBlockchainUnits(pricing.amount, decimals: decimals);
         paymentQuote = formatToCurrency(quoteAmount * paymentTokenPriceUSD);
       }
     }

@@ -15,7 +15,7 @@ void main() {
         (input: '123456789012345678', decimals: 18, expected: 0.123456789012345678),
       ], (t) {
         test('fromBlockchainUnits("${t.input}", ${t.decimals}) returns ${t.expected}', () {
-          final result = fromBlockchainUnits(t.input, t.decimals);
+          final result = fromBlockchainUnits(t.input, decimals: t.decimals);
           expect(result, t.expected);
         });
       });
@@ -28,7 +28,7 @@ void main() {
         (input: '123456789', decimals: 8, expected: 1.23456789),
       ], (t) {
         test('fromBlockchainUnits("${t.input}", ${t.decimals}) returns ${t.expected}', () {
-          final result = fromBlockchainUnits(t.input, t.decimals);
+          final result = fromBlockchainUnits(t.input, decimals: t.decimals);
           expect(result, t.expected);
         });
       });
@@ -41,7 +41,7 @@ void main() {
         (input: '1234567', decimals: 6, expected: 1.234567),
       ], (t) {
         test('fromBlockchainUnits("${t.input}", ${t.decimals}) returns ${t.expected}', () {
-          final result = fromBlockchainUnits(t.input, t.decimals);
+          final result = fromBlockchainUnits(t.input, decimals: t.decimals);
           expect(result, t.expected);
         });
       });
@@ -52,7 +52,7 @@ void main() {
         (input: '1000', decimals: 0, expected: 1000.0),
       ], (t) {
         test('fromBlockchainUnits("${t.input}", ${t.decimals}) returns ${t.expected}', () {
-          final result = fromBlockchainUnits(t.input, t.decimals);
+          final result = fromBlockchainUnits(t.input, decimals: t.decimals);
           expect(result, t.expected);
         });
       });
@@ -60,30 +60,30 @@ void main() {
 
     group('zero values', () {
       test('zero with 18 decimals returns 0.0', () {
-        final result = fromBlockchainUnits('0', 18);
+        final result = fromBlockchainUnits('0');
         expect(result, 0.0);
       });
 
       test('zero with 8 decimals returns 0.0', () {
-        final result = fromBlockchainUnits('0', 8);
+        final result = fromBlockchainUnits('0', decimals: 8);
         expect(result, 0.0);
       });
 
       test('zero with 0 decimals returns 0.0', () {
-        final result = fromBlockchainUnits('0', 0);
+        final result = fromBlockchainUnits('0', decimals: 0);
         expect(result, 0.0);
       });
     });
 
     group('large numbers', () {
       test('handles very large blockchain amounts', () {
-        final result = fromBlockchainUnits('999999999999999999999999999999', 18);
+        final result = fromBlockchainUnits('999999999999999999999999999999');
         // expect(result, closeTo(999999999999.999999999999999999, 1000));
         expect(result, 999999999999.999999999999999999);
       });
 
       test('handles maximum safe integer-like values', () {
-        final result = fromBlockchainUnits('9007199254740991000000000000000000', 18);
+        final result = fromBlockchainUnits('9007199254740991000000000000000000');
         // expect(result, closeTo(9007199254740991.0, 1000));
         expect(result, 9007199254740991.0);
       });
@@ -91,34 +91,34 @@ void main() {
 
     group('edge cases', () {
       test('handles very small amounts (1 unit)', () {
-        final result = fromBlockchainUnits('1', 18);
+        final result = fromBlockchainUnits('1');
         expect(result, 0.000000000000000001);
       });
 
       test('handles very small amounts (1 unit) with 8 decimals', () {
-        final result = fromBlockchainUnits('1', 8);
+        final result = fromBlockchainUnits('1', decimals: 8);
         expect(result, 0.00000001);
       });
     });
 
     group('invalid input handling', () {
       test('returns 0.0 for invalid number string', () {
-        final result = fromBlockchainUnits('invalid', 18);
+        final result = fromBlockchainUnits('invalid');
         expect(result, 0.0);
       });
 
       test('returns 0.0 for empty string', () {
-        final result = fromBlockchainUnits('', 18);
+        final result = fromBlockchainUnits('');
         expect(result, 0.0);
       });
 
       test('returns 0.0 for non-numeric string', () {
-        final result = fromBlockchainUnits('abc123', 18);
+        final result = fromBlockchainUnits('abc123');
         expect(result, 0.0);
       });
 
       test('returns 0.0 for decimal input string', () {
-        final result = fromBlockchainUnits('1.5', 18);
+        final result = fromBlockchainUnits('1.5');
         expect(result, 0.0);
       });
     });
@@ -232,7 +232,7 @@ void main() {
       test('round-trip conversion preserves precision for ${t.value} with ${t.decimals} decimals',
           () {
         final blockchainUnits = toBlockchainUnits(t.value, t.decimals);
-        final converted = fromBlockchainUnits(blockchainUnits.toString(), t.decimals);
+        final converted = fromBlockchainUnits(blockchainUnits.toString(), decimals: t.decimals);
         expect(converted, t.value);
       });
     });
@@ -241,7 +241,7 @@ void main() {
       const inputString = '1000000000000000000';
       const decimals = 18;
 
-      final doubleValue = fromBlockchainUnits(inputString, decimals);
+      final doubleValue = fromBlockchainUnits(inputString, decimals: decimals);
       final backToBigInt = toBlockchainUnits(doubleValue, decimals);
 
       expect(backToBigInt.toString(), inputString);

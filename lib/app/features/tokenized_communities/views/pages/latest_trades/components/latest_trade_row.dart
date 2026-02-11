@@ -31,7 +31,9 @@ class LatestTradeRow extends StatelessWidget {
     final i18n = context.i18n;
 
     final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
-    final amountText = formatTokenAmountWithSubscript(fromBlockchainUnits(trade.position.amount, 18));
+    final amountText = formatTokenAmountWithSubscript(
+      fromBlockchainUnits(trade.position.amount),
+    );
     final usdText = formatUSD(trade.position.amountUSD);
 
     final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
