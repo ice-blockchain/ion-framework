@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_modifier_converter.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/converters/feed_type_converter.d.dart';
 import 'package:ion/app/features/feed/data/database/following_feed_database/following_feed_database.m.steps.dart';
@@ -17,6 +16,7 @@ import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'following_feed_database.m.g.dart';
@@ -31,12 +31,7 @@ FollowingFeedDatabase followingFeedDatabase(Ref ref) {
 
   final database = FollowingFeedDatabase(pubkey);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
-  onAppWentToBackground(
-    ref,
-    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
-  );
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }

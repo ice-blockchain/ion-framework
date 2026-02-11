@@ -9,7 +9,6 @@ import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/dao/transactions_visibility_status_dao.m.dart';
 import 'package:ion/app/features/wallets/data/database/tables/coins_table.d.dart';
@@ -23,6 +22,7 @@ import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.steps.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -43,12 +43,7 @@ WalletsDatabase walletsDatabase(Ref ref) {
       : null;
   final database = WalletsDatabase(pubkey, appGroupId: appGroup);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
-  onAppWentToBackground(
-    ref,
-    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
-  );
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }

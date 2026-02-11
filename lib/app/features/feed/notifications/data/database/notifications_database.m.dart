@@ -7,7 +7,6 @@ import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.steps.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/account_notification_sync_state_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/comments_table.d.dart';
@@ -19,6 +18,7 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/token_l
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'notifications_database.m.g.dart';
@@ -33,12 +33,7 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
 
   final database = NotificationsDatabase(pubkey);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
-  onAppWentToBackground(
-    ref,
-    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
-  );
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }

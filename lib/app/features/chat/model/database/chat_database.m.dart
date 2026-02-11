@@ -21,7 +21,6 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.steps.dart'
 import 'package:ion/app/features/chat/model/group_subject.f.dart';
 import 'package:ion/app/features/chat/model/message_reaction.f.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
-import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
@@ -33,6 +32,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_
 import 'package:ion/app/features/user_archive/model/database/user_archive_database.m.dart';
 import 'package:ion/app/features/user_archive/model/entities/user_archive_entity.f.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -66,12 +66,7 @@ ChatDatabase chatDatabase(Ref ref) {
       : null;
   final database = ChatDatabase(pubkey, appGroupId: appGroup);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
-  onAppWentToBackground(
-    ref,
-    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
-  );
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }
