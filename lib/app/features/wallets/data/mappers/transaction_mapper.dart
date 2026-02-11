@@ -40,6 +40,7 @@ class CoinTransactionsMapper {
           dateConfirmed: details.dateConfirmed,
           dateRequested: details.dateRequested,
           memo: details.memo,
+          index: details.index ?? '',
         );
       },
       nft: (nft) {
@@ -58,6 +59,7 @@ class CoinTransactionsMapper {
           dateConfirmed: details.dateConfirmed,
           dateRequested: details.dateRequested,
           memo: details.memo,
+          index: details.index ?? '',
         );
       },
       notInitialized: () => throw ArgumentError('Cannot save uninitialized asset data'),
@@ -119,6 +121,8 @@ class CoinTransactionsMapper {
             transferredAmountUsd: double.tryParse(content.amountUsd ?? '0'),
             eventId: entity.id,
             assetContractAddress: entity.data.assetAddress,
+            // Transaction from Ion Connect relay (kind 1756) - payment notification, not confirmed on-chain yet, so empty index
+            index: '',
           );
         })
         .nonNulls
@@ -149,6 +153,7 @@ class CoinTransactionsMapper {
             transferredAmountUsd: amountUSD,
             memo: transaction.memo,
             assetContractAddress: coin.contractAddress,
+            index: transaction.index,
           ),
           nft: (nft) => db.Transaction(
             type: transaction.type.value,
@@ -168,6 +173,7 @@ class CoinTransactionsMapper {
             createdAtInRelay: transaction.createdAtInRelay,
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
+            index: transaction.index,
           ),
           nftIdentifier: (identifier, network) => db.Transaction(
             type: transaction.type.value,
@@ -187,6 +193,7 @@ class CoinTransactionsMapper {
             createdAtInRelay: transaction.createdAtInRelay,
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
+            index: transaction.index,
           ),
           undefinedCoin: (String contractAddress, String rawAmount) => db.Transaction(
             type: transaction.type.value,
@@ -207,6 +214,7 @@ class CoinTransactionsMapper {
             userPubkey: transaction.userPubkey,
             memo: transaction.memo,
             assetContractAddress: contractAddress,
+            index: transaction.index,
           ),
         );
       }).toList();

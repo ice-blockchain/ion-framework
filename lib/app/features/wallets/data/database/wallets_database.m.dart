@@ -73,7 +73,7 @@ class WalletsDatabase extends _$WalletsDatabase {
   final String? appGroupId;
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   /// Opens a connection to the database with the given pubkey
   /// Uses app group container for iOS extensions if appGroupId is provided
@@ -324,6 +324,13 @@ class WalletsDatabase extends _$WalletsDatabase {
         from24To25: (Migrator m, Schema25 schema) async {
           await m.createTable(schema.swapTransactionsTable);
           await m.dropColumn(schema.transactionsTableV2, 'is_swap');
+        },
+        from25To26: (Migrator m, Schema26 schema) async {
+          // SQLite doesn't support ALTER PRIMARY KEY, so we need to drop and recreate the table
+          // Clear all transactions and recreate with new primary key including index
+          // Before dropping, convert any null index values to empty string if table exists
+          await m.deleteTable(schema.transactionsTableV2.actualTableName);
+          await m.createTable(schema.transactionsTableV2);
         },
       ),
     );

@@ -61,6 +61,8 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     return transaction(() async {
       String buildSwapKey(Transaction t) => '${t.txHash}_${t.walletViewId}';
 
+      // Query transactions matching by txHash, walletViewId, type
+      // We'll match by index in application code (empty string for pending transactions)
       final existingByTxHash = await (select(transactionsTable)
             ..where(
               (t) =>
@@ -98,6 +100,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
           .get();
 
       // Combine all existing transactions and remove duplicates
+      // Key includes index to handle multiple legs of same transaction
       final allExisting = <Transaction>[
         ...existingByTxHash,
         ...existingByExternalHash,
@@ -106,7 +109,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
           .fold<Map<String, Transaction>>(
             <String, Transaction>{},
             (map, tx) {
-              final key = '${tx.txHash}_${tx.walletViewId}_${tx.type}';
+              final key = '${tx.txHash}_${tx.walletViewId}_${tx.type}_${tx.index}';
               if (!map.containsKey(key)) {
                 map[key] = tx;
               }
@@ -138,15 +141,85 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         return tx;
       }).toList();
 
+      // Create map with full key including index
       final existingMap = {
-        for (final e in allExisting) '${buildSwapKey(e)}_${e.type}': e,
+        for (final e in allExisting) '${buildSwapKey(e)}_${e.type}_${e.index}': e,
       };
 
+      // Create maps for incompleted transactions (index=empty string)
+      // Basic key: txHash_walletViewId_type (for basic matching - all incomplete transactions)
+      // Extended key: txHash_walletViewId_type_sender_receiver (for extended matching - only those with eventId/userPubkey)
+      String buildBasicIncompletedTransactionKey(Transaction t) => '${buildSwapKey(t)}_${t.type}';
+      String buildExtendedIncompletedTransactionKey(Transaction t) =>
+          '${buildBasicIncompletedTransactionKey(t)}_${t.senderWalletAddress ?? 'null'}_${t.receiverWalletAddress ?? 'null'}';
+
+      // All incompleted transactions by basic key (for deletion)
+      final basicIncompletedTransactionsMap = <String, List<Transaction>>{};
+      // Incompleted transactions with eventId/userPubkey by extended key (for data copying)
+      final extendedIncompletedTransactionsMap = <String, Transaction>{};
+
+      for (final e in allExisting) {
+        // Include transactions with empty index (pending/broadcasted) that should be replaced by confirmed transactions
+        if (e.index.isEmpty) {
+          // Add to basic map (for deletion)
+          final basicKey = buildBasicIncompletedTransactionKey(e);
+          basicIncompletedTransactionsMap.putIfAbsent(basicKey, () => []).add(e);
+
+          // Add to extended map if it has ion pay/relay metadata (for data copying)
+          if (e.eventId != null || e.userPubkey != null) {
+            final extendedKey = buildExtendedIncompletedTransactionKey(e);
+            if (!extendedIncompletedTransactionsMap.containsKey(extendedKey)) {
+              extendedIncompletedTransactionsMap[extendedKey] = e;
+            }
+          }
+        }
+      }
+
       final newTransactions = normalizedTransactions.where(
-        (t) => !existingMap.containsKey('${buildSwapKey(t)}_${t.type}'),
+        (t) => !existingMap.containsKey('${buildSwapKey(t)}_${t.type}_${t.index}'),
       );
+
+      // Track incompleted transactions that will be deleted
+      // - Basic matches: all incomplete transactions matching by basic key (will be deleted)
+      // - Extended matches: incomplete transactions matching by extended key (will be deleted and data used for update)
+      // Use Set to avoid duplicates (a transaction could match both extended and basic, but we only process one path)
+      final incompletedTransactionsToDelete = <Transaction>{};
+
       final toInsert = normalizedTransactions.map((toInsertRaw) {
-        final existing = existingMap['${buildSwapKey(toInsertRaw)}_${toInsertRaw.type}'];
+        // First try exact match including index
+        var existing =
+            existingMap['${buildSwapKey(toInsertRaw)}_${toInsertRaw.type}_${toInsertRaw.index}'];
+
+        // If no exact match and incoming has non-empty index, check for incompleted transactions (index=empty string).
+        // This handles the case where incompleted transaction becomes confirmed with actual index.
+        //
+        // Matching rules:
+        // - Extended matching: match incompleted transactions that have eventId or userPubkey,
+        //   requiring senderWalletAddress and receiverWalletAddress to match. Use their data for update.
+        // - Basic matching: match all incompleted transactions by txHash, walletViewId, type.
+        //   Delete them but don't use their data for update.
+        if (existing == null && toInsertRaw.index.isNotEmpty) {
+          // 1) Try extended matching first (for data copying)
+          final extendedKey = buildExtendedIncompletedTransactionKey(toInsertRaw);
+          final extendedMatch = extendedIncompletedTransactionsMap[extendedKey];
+
+          if (extendedMatch != null) {
+            existing = extendedMatch;
+            // Mark this incompleted transaction for deletion since we're updating it with a new index
+            incompletedTransactionsToDelete.add(extendedMatch);
+          } else {
+            // 2) Try basic matching (for deletion only, no data copying)
+            final basicKey = buildBasicIncompletedTransactionKey(toInsertRaw);
+            final basicMatches = basicIncompletedTransactionsMap[basicKey];
+
+            if (basicMatches != null && basicMatches.isNotEmpty) {
+              // Mark all basic matches for deletion (but don't use their data)
+              incompletedTransactionsToDelete.addAll(basicMatches);
+            }
+            // Explicitly ensure existing is null - we don't use data from basic matches
+            existing = null;
+          }
+        }
 
         if (existing == null) return toInsertRaw;
 
@@ -161,28 +234,60 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
             ? toInsertRaw.transferredAmountUsd ?? existing.transferredAmountUsd
             : existing.transferredAmountUsd ?? toInsertRaw.transferredAmountUsd;
 
+        // When updating from incompleted transaction (index was empty string, now has value),
+        // copy eventId, userPubkey, and createdAtInRelay from the incompleted transaction.
+        // If existing.index is empty, it means we matched an incompleted transaction via extended matching.
+        final isIncompletedMatch = existing.index.isEmpty;
+
         return toInsertRaw.copyWith(
           id: Value(existing.id ?? toInsertRaw.id),
           coinId: Value(existing.coinId ?? toInsertRaw.coinId),
           fee: Value(fee),
-          eventId: Value(existing.eventId ?? toInsertRaw.eventId),
-          userPubkey: Value(existing.userPubkey ?? toInsertRaw.userPubkey),
+          eventId: Value(
+            isIncompletedMatch ? (existing.eventId ?? toInsertRaw.eventId) : toInsertRaw.eventId,
+          ),
+          userPubkey: Value(
+            isIncompletedMatch
+                ? (existing.userPubkey ?? toInsertRaw.userPubkey)
+                : toInsertRaw.userPubkey,
+          ),
           dateRequested: Value(existing.dateRequested ?? toInsertRaw.dateRequested),
           dateConfirmed: Value(existing.dateConfirmed ?? toInsertRaw.dateConfirmed),
-          createdAtInRelay: Value(existing.createdAtInRelay ?? toInsertRaw.createdAtInRelay),
+          createdAtInRelay: Value(
+            isIncompletedMatch
+                ? (existing.createdAtInRelay ?? toInsertRaw.createdAtInRelay)
+                : toInsertRaw.createdAtInRelay,
+          ),
           transferredAmount: Value(transferredAmount),
           transferredAmountUsd: Value(transferredAmountUsd),
           assetContractAddress: Value(
             existing.assetContractAddress ?? toInsertRaw.assetContractAddress,
           ),
+          index: toInsertRaw.index,
         );
       });
       final updatedTransactions = toInsert.where((t) {
-        final existing = existingMap['${buildSwapKey(t)}_${t.type}'];
+        final existing = existingMap['${buildSwapKey(t)}_${t.type}_${t.index}'];
         return existing != null && existing != t;
       }).toList();
 
       await batch((batch) {
+        // Delete incompleted transactions that are being updated with actual index
+        // (since primary key changes, we need to delete old row first)
+        // Both pending and broadcasted transactions should be replaced when confirmed transaction arrives
+        // Basic matches are deleted without data copying, extended matches are deleted with data copying
+        if (incompletedTransactionsToDelete.isNotEmpty) {
+          for (final pendingOrBroadcastedTx in incompletedTransactionsToDelete) {
+            batch.deleteWhere(
+              transactionsTable,
+              (t) =>
+                  t.txHash.equals(pendingOrBroadcastedTx.txHash) &
+                  t.walletViewId.equals(pendingOrBroadcastedTx.walletViewId) &
+                  t.type.equals(pendingOrBroadcastedTx.type) &
+                  t.index.equals(''),
+            );
+          }
+        }
         batch.insertAllOnConflictUpdate(transactionsTable, toInsert);
       });
 
@@ -603,6 +708,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
       eventId: transaction.eventId,
       memo: transaction.memo,
       swapStatus: swapStatus,
+      index: transaction.index,
     );
   }
 
