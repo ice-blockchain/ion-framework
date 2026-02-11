@@ -353,11 +353,7 @@ class TokenTransactionService {
           : '[TokenTransactionService] Creating minimal coin data from external address for first buy',
     );
 
-    const tokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
-    final tokenAmount = fromBlockchainUnits(
-      expectedPricing.amount,
-      decimals: tokenDecimals,
-    );
+    final tokenAmount = fromBlockchainUnits(expectedPricing.amount);
     final tokenRawAmount = expectedPricing.amount;
     final amountUSD = expectedPricing.amountUSD;
 
@@ -460,11 +456,7 @@ class TokenTransactionService {
     required PricingResponse expectedPricing,
   }) {
     final paymentRawAmount = toBlockchainUnits(amount, paymentToken.decimals).toString();
-    const tokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
-    final tokenAmount = fromBlockchainUnits(
-      expectedPricing.amount,
-      decimals: tokenDecimals,
-    );
+    final tokenAmount = fromBlockchainUnits(expectedPricing.amount);
     final tokenRawAmount = expectedPricing.amount;
     final amountUSD = expectedPricing.amountUSD;
 

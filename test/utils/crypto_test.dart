@@ -241,7 +241,7 @@ void main() {
       const inputString = '1000000000000000000';
       const decimals = 18;
 
-      final doubleValue = fromBlockchainUnits(inputString, decimals: decimals);
+      final doubleValue = fromBlockchainUnits(inputString);
       final backToBigInt = toBlockchainUnits(doubleValue, decimals);
 
       expect(backToBigInt.toString(), inputString);
