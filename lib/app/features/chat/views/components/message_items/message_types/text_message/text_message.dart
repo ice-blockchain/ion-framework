@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/text_span_builder/hooks/use_text_span_builder.dart';
 import 'package:ion/app/components/text_span_builder/text_span_builder.dart';
 import 'package:ion/app/components/url_preview/providers/url_metadata_provider.r.dart';
@@ -23,6 +24,7 @@ class TextMessage extends HookConsumerWidget {
   const TextMessage({
     required this.eventMessage,
     this.margin,
+    this.screenOffsetSide,
     this.onTapReply,
     super.key,
   });
@@ -30,6 +32,7 @@ class TextMessage extends HookConsumerWidget {
   final VoidCallback? onTapReply;
   final EventMessage eventMessage;
   final EdgeInsetsDirectional? margin;
+  final ScreenOffsetSide? screenOffsetSide;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -113,6 +116,7 @@ class TextMessage extends HookConsumerWidget {
       isMe: isMe,
       margin: margin,
       messageItem: messageItem,
+      screenOffsetSide: screenOffsetSide,
       contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 12.0.s),
       child: IntrinsicWidth(
         child: Column(

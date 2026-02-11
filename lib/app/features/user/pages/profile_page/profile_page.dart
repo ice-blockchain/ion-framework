@@ -23,7 +23,6 @@ import 'package:ion/app/features/user/pages/profile_page/components/header/profi
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_actions/profile_actions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_details.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
-import 'package:ion/app/features/user/pages/profile_page/components/show_bottom_notch_provider.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/tab_entities_list.dart';
 import 'package:ion/app/features/user/pages/profile_page/profile_skeleton.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -127,9 +126,7 @@ class ProfilePage extends HookConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.theme.appColors.secondaryBackground,
-      body: ShowBottomNotchProvider(
-        show: false,
-        child: CollapsingHeaderTabsLayout(
+      body:  CollapsingHeaderTabsLayout(
           backgroundColor: context.theme.appColors.secondaryBackground,
           showBackButton: showBackButton,
           newUiMode: profileMode == ProfileMode.dark,
@@ -214,7 +211,7 @@ class ProfilePage extends HookConsumerWidget {
               profileMode: profileMode,
             ),
           ],
-        ),
+      
       ),
     );
   }

@@ -45,6 +45,7 @@ class MessageItemWrapper extends HookConsumerWidget {
     this.isLastMessageFromAuthor = true,
     this.margin,
     this.containerMaxWidth,
+    this.screenOffsetSide,
     super.key,
   });
 
@@ -53,6 +54,7 @@ class MessageItemWrapper extends HookConsumerWidget {
   final bool isLastMessageFromAuthor;
   final EdgeInsetsDirectional? margin;
   final ChatMessageInfoItem messageItem;
+  final ScreenOffsetSide? screenOffsetSide;
   final EdgeInsetsGeometry contentPadding;
   final double? containerMaxWidth;
 
@@ -134,6 +136,7 @@ class MessageItemWrapper extends HookConsumerWidget {
       margin: margin,
       accentTheme: isMe,
       child: ScreenSideOffset.small(
+        only: screenOffsetSide,
         child: Padding(
           padding: margin ?? EdgeInsets.zero,
           child: Align(
