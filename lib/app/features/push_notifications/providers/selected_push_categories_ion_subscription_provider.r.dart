@@ -357,7 +357,9 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     // when building filters for creator token trades and content token trades categories
     return [
       for (final AccountNotificationSetEntity(:data) in accountNotificationSets)
-        if (accountsRelatedCategories.contains(data.type) && accountNotificationsEnabled)
+        if (accountsRelatedCategories.contains(data.type) &&
+            accountNotificationsEnabled &&
+            data.userPubkeys.isNotEmpty)
           data.type.toUserNotificationType().toRequestFilter(masterPubkeys: data.userPubkeys),
     ];
   }

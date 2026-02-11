@@ -103,6 +103,8 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
 
     // Manually compare the synced fcm token with the current one,
     // because the public one is encrypted with a random nonce.
+    // Meaning the same token will look different on the relay after each encryption,
+    // so we can't rely on the equality of encrypted tokens.
     final syncedFcmToken = ref.watch(syncedFcmTokenProvider);
     return syncedFcmToken != fcmToken;
   }
