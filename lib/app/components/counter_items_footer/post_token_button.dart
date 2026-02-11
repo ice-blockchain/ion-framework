@@ -271,6 +271,7 @@ class _TokenButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         constraints: BoxConstraints(minWidth: 50.0.s),
@@ -309,23 +310,26 @@ class _MarketCap extends ConsumerWidget {
 
     final effectiveColor = color ?? context.theme.appColors.onTertiaryBackground;
 
-    return Row(
-      children: [
-        Assets.svg.iconMemeMarketcap.icon(
-          size: 16.0.s,
-          color: effectiveColor,
-        ),
-        Padding(
-          padding: EdgeInsetsDirectional.only(start: 4.0.s),
-          child: Text(
-            defaultUsdCompact(tokenInfo.marketData.marketCap),
-            style: context.theme.appTextThemes.caption2.copyWith(
-              color: effectiveColor,
-              height: 1.1,
+    return Padding(
+      padding: EdgeInsetsDirectional.symmetric(horizontal: 8.0.s),
+      child: Row(
+        children: [
+          Assets.svg.iconMemeMarketcap.icon(
+            size: 16.0.s,
+            color: effectiveColor,
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.only(start: 4.0.s),
+            child: Text(
+              defaultUsdCompact(tokenInfo.marketData.marketCap),
+              style: context.theme.appTextThemes.caption2.copyWith(
+                color: effectiveColor,
+                height: 1.1,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
