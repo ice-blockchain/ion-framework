@@ -17,7 +17,7 @@ double? userTokenMarketCap(Ref ref, String masterPubkey) {
   );
 
   return ref.watch(
-    tokenMarketInfoIfAvailableProvider(eventReference)
+    tokenMarketInfoProvider(eventReference.toString())
         .select((AsyncValue<CommunityToken?> state) => state.valueOrNull?.marketData.marketCap),
   );
 }
