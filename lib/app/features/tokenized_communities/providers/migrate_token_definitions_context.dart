@@ -55,17 +55,14 @@ class MigrationContext {
     final definitions = <CommunityTokenDefinitionIon>[];
 
     // Modifiable Posts
-    for (final post in modifiablePosts) {
-      if (modifiablePostEventReferencesHasTokenDefinition.contains(post.toEventReference())) {
+    for (final modifiablePost in modifiablePosts) {
+      if (modifiablePostEventReferencesHasTokenDefinition
+          .contains(modifiablePost.toEventReference())) {
         continue;
       }
       definitions.add(
         CommunityTokenDefinitionIon.fromEventReference(
-          eventReference: ReplaceableEventReference(
-            masterPubkey: masterPubkey,
-            kind: ModifiablePostEntity.kind,
-            dTag: post.data.replaceableEventId.value,
-          ),
+          eventReference: modifiablePost.toEventReference(),
           kind: ModifiablePostEntity.kind,
           type: CommunityTokenDefinitionIonType.original,
         ),
@@ -79,11 +76,7 @@ class MigrationContext {
       }
       definitions.add(
         CommunityTokenDefinitionIon.fromEventReference(
-          eventReference: ImmutableEventReference(
-            masterPubkey: masterPubkey,
-            kind: PostEntity.kind,
-            eventId: post.id,
-          ),
+          eventReference: post.toEventReference(),
           kind: PostEntity.kind,
           type: CommunityTokenDefinitionIonType.original,
         ),
@@ -97,11 +90,7 @@ class MigrationContext {
       }
       definitions.add(
         CommunityTokenDefinitionIon.fromEventReference(
-          eventReference: ReplaceableEventReference(
-            masterPubkey: masterPubkey,
-            kind: ArticleEntity.kind,
-            dTag: article.data.replaceableEventId.value,
-          ),
+          eventReference: article.toEventReference(),
           kind: ArticleEntity.kind,
           type: CommunityTokenDefinitionIonType.original,
         ),
