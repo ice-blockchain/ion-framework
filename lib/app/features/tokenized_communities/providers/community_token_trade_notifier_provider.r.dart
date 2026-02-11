@@ -17,6 +17,7 @@ import 'package:ion/app/features/tokenized_communities/services/token_import_ser
 import 'package:ion/app/features/tokenized_communities/services/token_transaction_service.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/utils/payment_token_address_resolver.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
@@ -25,6 +26,7 @@ import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'community_token_trade_notifier_provider.r.g.dart';
@@ -117,6 +119,12 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         throw StateError('Quote is not ready yet');
       }
 
+      await _ensurePricingValidForBuy(
+        expectedPricing: expectedPricing,
+        externalAddress: params.externalAddress,
+        externalAddressType: params.externalAddressType,
+      );
+
       Logger.info('[CommunityTokenTradeNotifier] Step 5: Sending first buy metadata if needed');
       await _sendFirstBuyMetadataIfNeeded();
 
@@ -137,6 +145,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
                 externalAddressType: params.externalAddressType,
                 eventReference: params.eventReference,
                 suggestedDetails: formState.suggestedDetails,
+                pricing: expectedPricing,
               ).future,
             );
 
@@ -495,5 +504,44 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         message: '[CommunityTokenTradeNotifier] Failed to send first buy metadata',
       );
     }
+  }
+
+  Future<void> _ensurePricingValidForBuy({
+    required PricingResponse expectedPricing,
+    required String externalAddress,
+    required ExternalAddressType externalAddressType,
+  }) async {
+    if (!_hasRequiredBondingFields(expectedPricing)) {
+      throw StateError('Quote is missing bonding curve parameters');
+    }
+
+    if (!externalAddressType.isContentToken) return;
+
+    final creatorExternalAddress =
+        MasterPubkeyResolver.creatorExternalAddressFromExternal(externalAddress);
+    final creatorTokenInfo = ref.read(tokenMarketInfoProvider(creatorExternalAddress)).valueOrNull;
+    final creatorTokenExists = (creatorTokenInfo?.addresses.blockchain?.trim() ?? '').isNotEmpty;
+
+    if (!creatorTokenExists && !_hasRequiredCreatorParams(expectedPricing)) {
+      throw StateError('Quote is missing creator token parameters');
+    }
+  }
+
+  bool _hasRequiredBondingFields(PricingResponse pricing) {
+    final address = pricing.bondingCurveAlgAddress?.trim() ?? '';
+    final initial = pricing.initialPrice?.trim() ?? '';
+    final finalPrice = pricing.finalPrice?.trim() ?? '';
+    final supply = pricing.emissionVolume?.trim() ?? '';
+    return address.isNotEmpty && initial.isNotEmpty && finalPrice.isNotEmpty && supply.isNotEmpty;
+  }
+
+  bool _hasRequiredCreatorParams(PricingResponse pricing) {
+    final params = pricing.creatorTokenParams;
+    if (params == null) return false;
+    final address = params.bondingCurveAlgAddress?.trim() ?? '';
+    final initial = params.initialPrice?.trim() ?? '';
+    final finalPrice = params.finalPrice?.trim() ?? '';
+    final supply = params.emissionVolume?.trim() ?? '';
+    return address.isNotEmpty && initial.isNotEmpty && finalPrice.isNotEmpty && supply.isNotEmpty;
   }
 }
