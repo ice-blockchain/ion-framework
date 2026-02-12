@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="420" viewBox="0 0 1050 420">
+  <defs>
+    <style>
+      .label { font: 11px sans-serif; fill: #333; }
+      .axis { font: 10px sans-serif; fill: #666; }
+    </style>
+  </defs>
+  <g font-family="sans-serif">
+    <text x="10" y="18" class="axis" font-weight="bold">Network Waterfall (0-120s) - Post Page Load</text>
+    <line x1="420" y1="28" x2="1020" y2="28" stroke="#ddd" stroke-width="1"/>
+    <text x="420" y="42" class="axis">0</text>
+    <text x="520" y="42" class="axis">20s</text>
+    <text x="620" y="42" class="axis">40s</text>
+    <text x="720" y="42" class="axis">60s</text>
+    <text x="820" y="42" class="axis">80s</text>
+    <text x="920" y="42" class="axis">100s</text>
+    <text x="1015" y="42" class="axis">120s</text>
+
+    <!-- Row 0: Main post NOSTR session 0-1766ms -->
+    <rect x="420" y="55" width="9" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="67" class="label" text-anchor="end">Main post NOSTR session (wss) - REQ post+replies</text>
+
+    <!-- Row 1: 10x ion-connect-relays 640ms, 150ms -->
+    <rect x="423" y="78" width="1" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="90" class="label" text-anchor="end">10x HTTP GET ion-connect-relays (per-reply user)</text>
+
+    <!-- Row 2: 10+ user sessions 936ms, 3700ms -->
+    <rect x="424" y="101" width="19" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="113" class="label" text-anchor="end">10+ user sessions (profile, badges, token_action)</text>
+
+    <!-- Row 3: Batch ion-connect-relays 1680ms, 1100ms -->
+    <rect x="427" y="124" width="6" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="136" class="label" text-anchor="end">1x HTTP GET ion-connect-relays batch (6 users)</text>
+
+    <!-- Row 4: Optimal relays 1770ms, 2683ms -->
+    <rect x="427" y="147" width="13" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="159" class="label" text-anchor="end">Optimal relays session - kind:0 for 6 authors</text>
+
+    <!-- Row 5: NFT GET 68s, 600ms -->
+    <rect x="760" y="170" width="3" height="18" fill="#757575" rx="2"/>
+    <text x="415" y="182" class="label" text-anchor="end">NFT GET - collection not available yet</text>
+
+    <!-- Row 6: NFT retries 77s, 92s, 107s -->
+    <rect x="805" y="193" width="3" height="18" fill="#757575" rx="2"/>
+    <text x="415" y="205" class="label" text-anchor="end">NFT GET retries (3x) - not available</text>
+
+    <!-- Row 7: in_app_notifications_posts 96s, 16541ms -->
+    <rect x="900" y="216" width="83" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="228" class="label" text-anchor="end">in_app_notifications_posts (5s relay timeout)</text>
+
+    <!-- Row 8: stories 112.5s -->
+    <rect x="930" y="239" width="8" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="251" class="label" text-anchor="end">in_app_notifications_stories</text>
+
+    <!-- Row 9: articles -->
+    <rect x="931" y="262" width="9" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="274" class="label" text-anchor="end">in_app_notifications_articles</text>
+
+    <!-- Row 10: videos -->
+    <rect x="932" y="285" width="6" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="297" class="label" text-anchor="end">in_app_notifications_videos</text>
+  </g>
+</svg>

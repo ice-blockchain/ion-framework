@@ -1,0 +1,19 @@
+{
+  "totalMs": 120000,
+  "outPath": "docs/network-waterfall.png",
+  "entries": [
+    {"startMs": 0, "durationMs": 1766, "label": "Main post NOSTR session (wss) - REQ post+replies", "status": "2xx"},
+    {"startMs": 640, "durationMs": 150, "label": "10x HTTP GET ion-connect-relays (per-reply user)", "status": "2xx"},
+    {"startMs": 936, "durationMs": 3700, "label": "10+ user sessions (profile, badges, token_action)", "status": "2xx"},
+    {"startMs": 1680, "durationMs": 1100, "label": "1x HTTP GET ion-connect-relays batch (6 users)", "status": "2xx"},
+    {"startMs": 1770, "durationMs": 2683, "label": "Optimal relays session - kind:0 for 6 authors", "status": "2xx"},
+    {"startMs": 68000, "durationMs": 600, "label": "NFT GET - collection not available yet", "status": "error"},
+    {"startMs": 77000, "durationMs": 600, "label": "NFT GET retry - not available", "status": "error"},
+    {"startMs": 92000, "durationMs": 600, "label": "NFT GET retry - not available", "status": "error"},
+    {"startMs": 107000, "durationMs": 600, "label": "NFT GET retry - not available", "status": "error"},
+    {"startMs": 96000, "durationMs": 16541, "label": "in_app_notifications_posts (5s relay timeout)", "status": "2xx"},
+    {"startMs": 112540, "durationMs": 1540, "label": "in_app_notifications_stories", "status": "2xx"},
+    {"startMs": 114080, "durationMs": 1742, "label": "in_app_notifications_articles", "status": "2xx"},
+    {"startMs": 115822, "durationMs": 1123, "label": "in_app_notifications_videos", "status": "2xx"}
+  ]
+}

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="260" viewBox="0 0 1050 260">
+  <defs>
+    <style>
+      .label { font: 11px sans-serif; fill: #333; }
+      .axis { font: 10px sans-serif; fill: #666; }
+    </style>
+  </defs>
+  <g font-family="sans-serif">
+    <text x="10" y="18" class="axis" font-weight="bold">Network Waterfall - Main Load (0-5s)</text>
+    <line x1="420" y1="28" x2="1020" y2="28" stroke="#ddd" stroke-width="1"/>
+    <text x="420" y="42" class="axis">0</text>
+    <text x="542" y="42" class="axis">1s</text>
+    <text x="664" y="42" class="axis">2s</text>
+    <text x="786" y="42" class="axis">3s</text>
+    <text x="908" y="42" class="axis">4s</text>
+    <text x="1015" y="42" class="axis">5s</text>
+
+    <!-- Row 0: Main post 0-1766ms -->
+    <rect x="420" y="55" width="212" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="67" class="label" text-anchor="end">Main post NOSTR session (wss) - REQ post+replies</text>
+
+    <!-- Row 1: 10x ion-connect 640ms, 150ms -->
+    <rect x="493" y="78" width="18" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="90" class="label" text-anchor="end">10x HTTP GET ion-connect-relays (per-reply user)</text>
+
+    <!-- Row 2: 10+ user sessions 936ms, 3700ms -->
+    <rect x="538" y="101" width="444" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="113" class="label" text-anchor="end">10+ user sessions (profile, badges, token_action)</text>
+
+    <!-- Row 3: Batch ion-connect 1680ms, 1100ms -->
+    <rect x="604" y="124" width="132" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="136" class="label" text-anchor="end">1x HTTP GET ion-connect-relays batch (6 users)</text>
+
+    <!-- Row 4: Optimal relays 1770ms, 2683ms -->
+    <rect x="607" y="147" width="322" height="18" fill="#4caf50" rx="2"/>
+    <text x="415" y="159" class="label" text-anchor="end">Optimal relays session - kind:0 for 6 authors</text>
+  </g>
+</svg>

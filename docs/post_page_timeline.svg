@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" font-family="system-ui, sans-serif" font-size="12">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <!-- Title -->
+  <text x="450" y="24" font-size="16" font-weight="bold" text-anchor="middle">Post Page Load Timeline</text>
+  
+  <!-- Time axis -->
+  <line x1="60" y1="380" x2="860" y2="380" stroke="#666" stroke-width="1"/>
+  <line x1="60" y1="380" x2="60" y2="385" stroke="#666"/>
+  <line x1="260" y1="380" x2="260" y2="385" stroke="#666"/>
+  <line x1="460" y1="380" x2="460" y2="385" stroke="#666"/>
+  <line x1="660" y1="380" x2="660" y2="385" stroke="#666"/>
+  <line x1="860" y1="380" x2="860" y2="385" stroke="#666"/>
+  <text x="60" y="398" text-anchor="middle">0s</text>
+  <text x="260" y="398" text-anchor="middle">10s</text>
+  <text x="460" y="398" text-anchor="middle">20s</text>
+  <text x="660" y="398" text-anchor="middle">30s</text>
+  <text x="860" y="398" text-anchor="middle">38s</text>
+
+  <!-- Phase 1: Navigation -->
+  <rect x="65" y="48" width="50" height="28" fill="#e3f2fd" stroke="#1976d2" rx="4"/>
+  <text x="90" y="66" text-anchor="middle">Nav</text>
+
+  <!-- Phase 2: Relay Connections -->
+  <rect x="65" y="88" width="180" height="28" fill="#e8f5e9" stroke="#388e3c" rx="4"/>
+  <text x="155" y="106" text-anchor="middle">Relay connect (3 relays)</text>
+
+  <!-- Phase 3: HTTP -->
+  <rect x="65" y="128" width="40" height="28" fill="#fff3e0" stroke="#f57c00" rx="4"/>
+  <text x="85" y="146" text-anchor="middle">HTTP</text>
+  <rect x="265" y="128" width="30" height="28" fill="#fff3e0" stroke="#f57c00" rx="4"/>
+  <text x="280" y="146" text-anchor="middle">+</text>
+  <rect x="475" y="128" width="30" height="28" fill="#fff3e0" stroke="#f57c00" rx="4"/>
+  <text x="490" y="146" text-anchor="middle">+</text>
+  <rect x="675" y="128" width="30" height="28" fill="#fff3e0" stroke="#f57c00" rx="4"/>
+  <text x="690" y="146" text-anchor="middle">+</text>
+  <text x="60" y="164" font-size="10" fill="#666">NFT identity retries</text>
+
+  <!-- Phase 4: Auth -->
+  <rect x="205" y="168" width="120" height="28" fill="#fce4ec" stroke="#c2185b" rx="4"/>
+  <text x="265" y="186" text-anchor="middle">NIP-42 Auth</text>
+
+  <!-- Phase 5: Main Session -->
+  <rect x="325" y="208" width="100" height="28" fill="#e1bee7" stroke="#7b1fa2" rx="4"/>
+  <text x="375" y="226" text-anchor="middle">Main REQ</text>
+  <text x="375" y="252" font-size="10" fill="#666" text-anchor="middle">replies (30175)</text>
+
+  <!-- Phase 6: Parallel Sessions -->
+  <rect x="365" y="268" width="400" height="28" fill="#e0f5e9" stroke="#2e7d32" rx="4"/>
+  <text x="565" y="286" text-anchor="middle">6 parallel sessions (reply authors)</text>
+  <text x="565" y="310" font-size="10" fill="#666" text-anchor="middle">kind 31175, some 5s timeout</text>
+
+  <!-- Phase 7: Current User -->
+  <rect x="325" y="328" width="280" height="28" fill="#e3f2fd" stroke="#1565c0" rx="4"/>
+  <text x="465" y="346" text-anchor="middle">Current user notifications</text>
+  <text x="465" y="370" font-size="10" fill="#666" text-anchor="middle">posts, stories, articles</text>
+
+  <!-- Warning -->
+  <rect x="555" y="318" width="100" height="28" fill="#ffebee" stroke="#c62828" rx="4"/>
+  <text x="605" y="336" text-anchor="middle">500 rebuilds</text>
+  <text x="605" y="352" font-size="9" fill="#c62828" text-anchor="middle">tokenMarketInfo</text>
+</svg>

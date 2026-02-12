@@ -10,6 +10,7 @@ import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
+import 'package:ion/app/features/core/providers/clear_all_cache_provider.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/feed_category.dart';
 import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_helpers.r.dart';
@@ -29,6 +30,7 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/router/components/navigation_button/navigation_button.dart';
 
 class FeedPage extends HookConsumerWidget {
   const FeedPage({super.key});
@@ -64,6 +66,8 @@ class FeedPage extends HookConsumerWidget {
           const FeedNotificationsButton(),
           SizedBox(width: 12.0.s),
           FeedFiltersMenuButton(scrollController: scrollController),
+          SizedBox(width: 12.0.s),
+          const _ClearCacheButton(),
         ],
         scrollController: scrollController,
         horizontalPadding: ScreenSideOffset.defaultSmallMargin,
@@ -127,5 +131,20 @@ class FeedPage extends HookConsumerWidget {
       ref.read(feedStoriesProvider.notifier).refresh();
       ref.read(currentUserFeedStoryProvider.notifier).refresh();
     }
+  }
+}
+
+class _ClearCacheButton extends ConsumerWidget {
+  const _ClearCacheButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return NavigationButton(
+      onPressed: () => ref.read(clearAllCacheProvider)(),
+      icon: Icon(
+        Icons.refresh,
+        color: context.theme.appColors.primaryText,
+      ),
+    );
   }
 }
