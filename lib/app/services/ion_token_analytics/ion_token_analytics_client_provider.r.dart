@@ -36,26 +36,27 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
     ),
   );
 
-  // Listen to app lifecycle changes and dispose client when backgrounded.
+  // Listen to app lifecycle changes and force-disconnect when backgrounded.
   // This prevents "Bad file descriptor" errors that occur when the OS closes
   // the socket while the app is in the background.
+  // We use forceDisconnect (not dispose) so the client stays alive and
+  // ReconnectingSse can transparently re-establish subscriptions on resume,
+  // avoiding a provider rebuild cascade.
   ref
     ..listen<AppLifecycleState>(appLifecycleProvider, (previous, next) {
       if (next == AppLifecycleState.hidden && previous != AppLifecycleState.paused) {
-        // Don't dispose during passkey auth - Face ID causes 'inactive' state
-        // which triggers disposal and SSE cleanup cascade that blocks passkey callback
+        // Don't disconnect during passkey auth - Face ID causes 'inactive' state
+        // which triggers cleanup cascade that blocks passkey callback
         if (GlobalPasskeyDialogState.isShowing) {
           Logger.log(
-            '[IonTokenAnalyticsClient] Skipping disposal - passkey auth in progress',
+            '[IonTokenAnalyticsClient] Skipping disconnect - passkey auth in progress',
           );
           return;
         }
         Logger.log(
-          '[IonTokenAnalyticsClient] App backgrounded, disposing client',
+          '[IonTokenAnalyticsClient] App backgrounded, force-disconnecting client',
         );
-        client.dispose();
-        // Invalidate this provider so a fresh client is created when the app resumes
-        ref.invalidateSelf();
+        client.forceDisconnect();
       }
     })
 
