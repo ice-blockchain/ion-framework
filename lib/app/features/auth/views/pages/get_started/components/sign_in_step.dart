@@ -20,7 +20,6 @@ import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_s
 import 'package:ion/app/features/auth/views/pages/get_started/components/login_form.dart';
 import 'package:ion/app/features/auth/views/pages/get_started/get_started.dart';
 import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biometrics.dart';
-import 'package:ion/app/features/components/passkey/hooks/use_on_suggest_to_create_local_passkey_creds.dart';
 import 'package:ion/app/features/components/passkey/no_local_passkey_creds_popup.dart';
 import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -35,6 +34,7 @@ typedef PromptSignInDialogCallback = Future<String?> Function(
   required String identityKeyName,
   required bool localCredsOnly,
   required Map<TwoFaType, String>? twoFaTypes,
+  Future<void> Function(String username)? onSuggestToCreatePasskeyCreds,
 });
 
 typedef SuggestBiometricsCallback = Future<void> Function({
@@ -49,6 +49,7 @@ class SignInStep extends HookConsumerWidget {
     required this.twoFAOptionsCount,
     required this.step,
     required this.showSignInDialog,
+    required this.onSuggestToCreatePasskeyCreds,
     super.key,
   });
 
@@ -58,13 +59,13 @@ class SignInStep extends HookConsumerWidget {
   final ValueNotifier<GetStartedPageStep> step;
 
   final PromptSignInDialogCallback showSignInDialog;
+  final Future<void> Function(String username) onSuggestToCreatePasskeyCreds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isPasskeyAvailable = ref.watch(isPasskeyAvailableProvider).valueOrNull ?? false;
     final isProcessing = useState(false);
 
-    final onSuggestToCreatePasskeyCreds = useOnSuggestToCreateLocalPasskeyCreds(ref);
     final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
 
     final alreadyAskedRef = useRef(false);
@@ -225,6 +226,7 @@ class SignInStep extends HookConsumerWidget {
         identityKeyName: usernameRef.value,
         localCredsOnly: true,
         twoFaTypes: twoFAOptions.value,
+        onSuggestToCreatePasskeyCreds: onSuggestToCreatePasskeyCreds,
       );
 
       if (ref.context.mounted) {
@@ -242,10 +244,8 @@ class SignInStep extends HookConsumerWidget {
                 identityKeyName: usernameRef.value,
                 localCredsOnly: false,
                 twoFaTypes: twoFAOptions.value,
+                onSuggestToCreatePasskeyCreds: onSuggestToCreatePasskeyCreds,
               );
-              if (ref.context.mounted && !ref.read(loginActionNotifierProvider).hasError) {
-                await onSuggestToCreatePasskeyCreds(username);
-              }
             }
           }
         } else if (loginPassword != null) {

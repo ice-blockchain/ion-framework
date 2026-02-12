@@ -11,6 +11,7 @@ import 'package:ion/app/features/auth/views/pages/get_started/components/sign_in
 import 'package:ion/app/features/auth/views/pages/two_fa/twofa_input_step.dart';
 import 'package:ion/app/features/auth/views/pages/two_fa/twofa_options_step.dart';
 import 'package:ion/app/features/components/biometrics/hooks/use_on_suggest_biometrics.dart';
+import 'package:ion/app/features/components/passkey/hooks/use_on_suggest_to_create_local_passkey_creds.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/selected_two_fa_types_provider.m.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -44,6 +45,7 @@ class GetStartedPage extends HookConsumerWidget {
     );
 
     final onSuggestToAddBiometrics = useOnSuggestToAddBiometrics(ref);
+    final onSuggestToCreatePasskeyCreds = useOnSuggestToCreateLocalPasskeyCreds(ref);
 
     return switch (step.value) {
       GetStartedPageStep.signIn => SignInStep(
@@ -52,6 +54,7 @@ class GetStartedPage extends HookConsumerWidget {
           twoFAOptionsCount: twoFAOptionsCount,
           usernameRef: usernameRef,
           showSignInDialog: _showSignInDialog,
+          onSuggestToCreatePasskeyCreds: onSuggestToCreatePasskeyCreds,
         ),
       GetStartedPageStep.twoFAOptions => ProviderScope(
           overrides: [
@@ -83,6 +86,7 @@ class GetStartedPage extends HookConsumerWidget {
                 identityKeyName: usernameRef.value,
                 localCredsOnly: false,
                 twoFaTypes: twoFAOptions.value,
+                onSuggestToCreatePasskeyCreds: onSuggestToCreatePasskeyCreds,
               );
               if (loginPassword != null) {
                 await onSuggestToAddBiometrics(
@@ -101,6 +105,7 @@ class GetStartedPage extends HookConsumerWidget {
     required String identityKeyName,
     required bool localCredsOnly,
     required Map<TwoFaType, String>? twoFaTypes,
+    Future<void> Function(String username)? onSuggestToCreatePasskeyCreds,
   }) async {
     String? loginPassword;
     await guardPasskeyDialog(
@@ -123,6 +128,19 @@ class GetStartedPage extends HookConsumerWidget {
         child: child,
       ),
     );
+
+    // After successful login, check if we should suggest local passkey creds
+    // The canSuggest state may have been set from a previous failed localCredsOnly attempt
+    // (when passkey_signer sets state to canSuggest and throws NoLocalPasskeyCredsFoundIONIdentityException)
+    // If user then successfully logs in via QR code (localCredsOnly: false) or password,
+    // we should check and show the suggestion popup
+    if (ref.context.mounted && onSuggestToCreatePasskeyCreds != null) {
+      final loginState = ref.read(loginActionNotifierProvider);
+      if (!loginState.isLoading && !loginState.hasError) {
+        await onSuggestToCreatePasskeyCreds(identityKeyName);
+      }
+    }
+
     return loginPassword;
   }
 }
