@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:decimal/decimal.dart';
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/num.dart';
 
@@ -138,4 +139,9 @@ String _formatWithSmartTruncation(
     maximumFractionDigits: maxDecimals,
     minimumFractionDigits: minDecimals,
   );
+}
+
+String formatTokenAmount(double value, [String? currency]) {
+  final formatted = formatTokenAmountWithSubscript(value);
+  return currency != null ? '$formatted $currency' : formatted;
 }

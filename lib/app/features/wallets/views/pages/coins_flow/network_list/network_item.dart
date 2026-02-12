@@ -55,7 +55,7 @@ class NetworkItem extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              isBalanceVisible ? formatCrypto(coinInWallet.amount) : StringConstants.obfuscated,
+              isBalanceVisible ? formatTokenAmount(coinInWallet.amount) : StringConstants.obfuscated,
               style: context.theme.appTextThemes.body
                   .copyWith(color: context.theme.appColors.primaryText),
             ),

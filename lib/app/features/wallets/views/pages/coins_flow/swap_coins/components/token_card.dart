@@ -592,7 +592,7 @@ class _TokenCardFooter extends StatelessWidget {
                     final maxValue = coinForNetwork?.amount;
 
                     return Text(
-                      '${formatCrypto(maxValue ?? 0)} ${coinsGroup?.abbreviation ?? ''}',
+                      '${formatTokenAmount(maxValue ?? 0)} ${coinsGroup?.abbreviation ?? ''}',
                       style: textStyles.caption2.copyWith(
                         color: isError ? colors.attentionRed : colors.tertiaryText,
                       ),

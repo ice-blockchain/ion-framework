@@ -120,15 +120,18 @@ String toSubscript(int number) {
 String formatTokenAmountWithSubscript(double value) {
   final absValue = value.abs();
 
-  if (absValue == 0) return '0';
+  if (absValue == 0) return '0.00';
 
   if (absValue >= 1000) {
     return MarketDataFormatter.formatCompactNumber(value);
   }
 
   if (absValue >= 1) {
-    final formatted = value.toStringAsFixed(2);
-    return formatted.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+    return value.toStringAsFixed(2);
+  }
+
+  if (absValue >= 0.01) {
+    return value.toStringAsFixed(2);
   }
 
   if (absValue >= 0.001) {

@@ -178,7 +178,7 @@ class _TransactionDetailsContent extends StatelessWidget {
                 if (transaction.networkFeeOption != null &&
                     transaction.type == TransactionType.send) ...[
                   _NetworkFeeRow(
-                    value: formatCrypto(
+                    value: formatTokenAmount(
                       transaction.networkFeeOption!.amount,
                       transaction.networkFeeOption!.symbol,
                     ),
