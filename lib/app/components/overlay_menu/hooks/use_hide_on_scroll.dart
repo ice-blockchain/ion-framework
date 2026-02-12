@@ -11,8 +11,15 @@ void useHideOnScroll(
 ) {
   useEffect(
     () {
+      final isScrollingNotifier =
+          scrollController?.position.isScrollingNotifier ??
+          Scrollable.maybeOf(context)?.position.isScrollingNotifier;
+
       void handleScrolling() {
         if (!overlayPortalController.isShowing) return;
+        // Only hide when scrolling starts (value true), not when it stops (value false).
+        // This allows opening the menu while scroll is active without it closing immediately.
+        if (isScrollingNotifier?.value != true) return;
 
         SchedulerBinding.instance.addPostFrameCallback((_) {
           if (context.mounted && overlayPortalController.isShowing) {
@@ -21,12 +28,9 @@ void useHideOnScroll(
         });
       }
 
-      final changeNotifier =
-          scrollController ?? Scrollable.maybeOf(context)?.position.isScrollingNotifier;
+      isScrollingNotifier?.addListener(handleScrolling);
 
-      changeNotifier?.addListener(handleScrolling);
-
-      return () => changeNotifier?.removeListener(handleScrolling);
+      return () => isScrollingNotifier?.removeListener(handleScrolling);
     },
     [overlayPortalController, scrollController],
   );
