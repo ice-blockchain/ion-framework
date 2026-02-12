@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/nsfw/models/video_thumbnail.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
@@ -13,6 +15,7 @@ import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
+import 'package:ion/app/utils/image_path.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nsfw_validation_service.r.g.dart';
@@ -38,25 +41,53 @@ class NsfwValidationService {
   final VideoInfoService videoInfoService;
   final NsfwModelManager nsfwModelManager;
 
+  /// Timeout for GIF thumbnail extraction to avoid simulator hang / infinite loading.
+  static const _gifThumbnailTimeout = Duration(seconds: 2);
+
   // Combined validation: images + videos in single isolate call
   Future<Map<String, bool>> hasNsfwInMediaFiles(List<MediaFile> mediaFiles) async {
-    final imageFiles = mediaFiles.where(_isImageMedia).toList();
-    final videoFiles = _extractVideoFiles(mediaFiles);
+    final gifFiles = mediaFiles.where(_isGifMediaFile).toList();
+    final nonGifFiles = mediaFiles.where((media) => !_isGifMediaFile(media)).toList();
 
-    final thumbnails = await _generateVideoThumbnails(videoFiles);
+    // Check GIFs first: fail-closed if extraction failed
+    final gifThumbnails = await _generateGifThumbnailsWithFallback(gifFiles);
+    if (gifFiles.isNotEmpty && gifThumbnails.isEmpty) {
+      throw NSFWProcessingException();
+    }
+
+    final imageFiles = nonGifFiles.where(_isImageMedia).toList();
+    final videoFiles = _extractVideoFiles(nonGifFiles);
+    final videoThumbnails = await _generateVideoThumbnails(videoFiles);
+    final allThumbnails = [...videoThumbnails, ...gifThumbnails];
+
+    if (imageFiles.isEmpty && allThumbnails.isEmpty) {
+      throw NSFWProcessingException();
+    }
+
     final mediaBytesToCheck =
-        await _prepareMediaBytes(imageFiles: imageFiles, thumbnails: thumbnails);
+        await _prepareMediaBytes(imageFiles: imageFiles, thumbnails: allThumbnails);
 
-    if (mediaBytesToCheck.isEmpty) return {};
+    if (mediaBytesToCheck.isEmpty) {
+      throw NSFWProcessingException();
+    }
 
     final nsfwResults = await _checkMediaBytesForNsfw(mediaBytesToCheck);
 
-    return _buildMediaCheckResultsMap(
+    final results = _buildMediaCheckResultsMap(
       nsfwResults: nsfwResults,
       images: imageFiles,
       videos: videoFiles,
-      thumbnails: thumbnails,
+      gifs: gifFiles,
+      thumbnails: allThumbnails,
     );
+
+    for (final gif in gifFiles) {
+      if (!results.containsKey(gif.path)) {
+        results[gif.path] = true;
+      }
+    }
+
+    return results;
   }
 
   Future<Map<String, bool>> hasNsfwInImagePaths(List<String> paths) async {
@@ -95,8 +126,27 @@ class NsfwValidationService {
 
   bool _isImageMedia(MediaFile media) {
     final mime = media.mimeType ?? '';
+    if (_isGifMedia(media, mime)) {
+      return false;
+    }
     if (mime.startsWith('image/')) return true;
     return _isImageExtension(media.path);
+  }
+
+  bool _isGifMediaFile(MediaFile media) {
+    return _isGifMedia(media, media.mimeType ?? '');
+  }
+
+  bool _isGifMedia(MediaFile media, String mime) {
+    if (mime == LocalMimeType.gif.value || mime == MimeType.gif.value) {
+      return true;
+    }
+
+    if (mime.contains('gif')) {
+      return true;
+    }
+
+    return media.path.isGif;
   }
 
   bool _isImageExtension(String path) {
@@ -158,6 +208,77 @@ class NsfwValidationService {
     return thumbnails;
   }
 
+  Future<List<VideoThumbnail>> _generateGifThumbnailsWithFallback(
+    List<MediaFile> gifFiles,
+  ) async {
+    if (gifFiles.isEmpty) return [];
+
+    try {
+      return await _generateGifThumbnails(gifFiles).timeout(
+        _gifThumbnailTimeout,
+        onTimeout: () {
+          Logger.warning(
+            'GIF thumbnail extraction timed out after ${_gifThumbnailTimeout.inSeconds}s, '
+            'treating GIFs as allowed',
+          );
+          return <VideoThumbnail>[];
+        },
+      );
+    } catch (e, st) {
+      Logger.error(
+        e,
+        stackTrace: st,
+        message: 'GIF thumbnail extraction failed, treating GIFs as allowed',
+      );
+      return [];
+    }
+  }
+
+  Future<List<String>> _buildGifTimestamps(MediaFile gif) async {
+    try {
+      final info = await videoInfoService.getVideoInformation(gif.path);
+      final durationMs = info.duration.inMilliseconds;
+      if (durationMs <= 0) {
+        return ['00:00:00.000'];
+      }
+
+      final positions = [0.05, 0.40, 0.80];
+      return positions.map((p) => _formatTimestamp((durationMs * p).round())).toList();
+    } catch (e, st) {
+      Logger.warning('Failed to get GIF duration for NSFW check: $e');
+      Logger.error(e, stackTrace: st, message: 'GIF duration probe failed');
+      return ['00:00:00.000'];
+    }
+  }
+
+  Future<List<VideoThumbnail>> _generateGifThumbnails(List<MediaFile> gifs) async {
+    final thumbnails = <VideoThumbnail>[];
+
+    for (final gif in gifs) {
+      final timestamps = await _buildGifTimestamps(gif);
+
+      for (final ts in timestamps) {
+        try {
+          final thumbMedia = await videoCompressor.getThumbnail(gif, timestamp: ts);
+          final bytes = await File(thumbMedia.path).readAsBytes();
+
+          thumbnails.add(
+            VideoThumbnail(
+              path: thumbMedia.path,
+              bytes: bytes,
+              videoPath: gif.path,
+            ),
+          );
+        } catch (e, st) {
+          Logger.warning('Failed to extract GIF frame for NSFW check at $ts: ${gif.path}');
+          Logger.error(e, stackTrace: st, message: 'GIF thumbnail extraction failed');
+        }
+      }
+    }
+
+    return thumbnails;
+  }
+
   Future<Map<String, Uint8List>> _prepareMediaBytes({
     List<MediaFile>? imageFiles,
     List<VideoThumbnail>? thumbnails,
@@ -204,6 +325,7 @@ class NsfwValidationService {
     required List<VideoThumbnail> thumbnails,
     required List<MediaFile> images,
     required List<MediaFile> videos,
+    required List<MediaFile> gifs,
   }) {
     final finalResults = <String, bool>{};
 
@@ -219,11 +341,11 @@ class NsfwValidationService {
       thumbsByVideo.putIfAbsent(thumb.videoPath, () => []).add(thumb);
     }
 
-    // Aggregate per video
+    // Aggregate per video (fail-closed: no thumbs => block)
     for (final video in videos) {
       final relatedThumbs = thumbsByVideo[video.path];
       if (relatedThumbs == null || relatedThumbs.isEmpty) {
-        finalResults[video.path] = false;
+        finalResults[video.path] = true;
         continue;
       }
 
@@ -232,6 +354,21 @@ class NsfwValidationService {
       );
 
       finalResults[video.path] = hasNsfw;
+    }
+
+    // Aggregate per gif (fail-closed: no thumbs => block)
+    for (final gif in gifs) {
+      final relatedThumbs = thumbsByVideo[gif.path];
+      if (relatedThumbs == null || relatedThumbs.isEmpty) {
+        finalResults[gif.path] = true;
+        continue;
+      }
+
+      final hasNsfw = relatedThumbs.any(
+        (t) => nsfwResults[t.path]?.decision == NsfwDecision.block,
+      );
+
+      finalResults[gif.path] = hasNsfw;
     }
 
     return finalResults;
