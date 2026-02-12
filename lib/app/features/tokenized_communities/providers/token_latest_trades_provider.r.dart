@@ -22,6 +22,10 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
   bool _disposed = false;
 
+  /// Incremented on every [build] call so that async work from a previous
+  /// build cycle can detect it is stale and bail out early.
+  int _generation = 0;
+
   StreamController<List<LatestTrade>>? _controller;
   NetworkSubscription<List<LatestTradeBase>>? _activeSubscription;
   late Future<IonTokenAnalyticsClient> _clientFuture;
@@ -42,6 +46,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     _restOffset = offset;
     _disposed = false;
 
+    final generation = ++_generation;
+
     _clientFuture = ref.watch(ionTokenAnalyticsClientProvider.future);
 
     final controller = StreamController<List<LatestTrade>>(sync: true);
@@ -57,8 +63,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
     // Contract: subscribe first (so we don't miss live trades), then load initial snapshot.
     // Both run concurrently; mutations are serialized via `_enqueue`.
-    unawaited(_runSse());
-    unawaited(_loadInitial(offset: offset));
+    unawaited(_runSse(generation));
+    unawaited(_loadInitial(offset: offset, generation: generation));
 
     return controller.stream;
   }
@@ -88,9 +94,10 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     }
   }
 
-  Future<void> _loadInitial({required int offset}) async {
+  Future<void> _loadInitial({required int offset, required int generation}) async {
     try {
       final client = await _clientFuture;
+      if (generation != _generation) return;
 
       // One-time initial snapshot.
       final initialTrades = await client.communityTokens.fetchLatestTrades(
@@ -98,9 +105,13 @@ class TokenLatestTrades extends _$TokenLatestTrades {
         limit: _pageSize,
         offset: offset,
       );
+      if (generation != _generation) return;
 
       await _enqueue(() {
-        _currentTrades.addAll(initialTrades);
+        if (generation != _generation) return;
+        _currentTrades
+          ..clear()
+          ..addAll(initialTrades);
         _restOffset = offset + initialTrades.length;
         _emit();
       });
@@ -109,21 +120,30 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     }
   }
 
-  Future<void> _runSse() async {
-    // Keep reconnecting forever while the provider is alive.
-    while (!_disposed) {
+  Future<void> _runSse(int generation) async {
+    // Keep reconnecting forever while the provider is alive
+    // and this is still the current build cycle.
+    while (!_disposed && generation == _generation) {
       try {
         final client = await _clientFuture;
+        if (generation != _generation) break;
+
         final subscription = await client.communityTokens.subscribeToLatestTrades(
           ionConnectAddress: _masterPubkey,
         );
+        if (generation != _generation) {
+          await subscription.close();
+          break;
+        }
         _activeSubscription = subscription;
 
         await for (final batch in subscription.stream) {
-          if (_disposed) break;
+          if (_disposed || generation != _generation) break;
           if (batch.isEmpty) continue;
 
           await _enqueue(() {
+            if (generation != _generation) return;
+
             final updates = batch.whereType<LatestTrade>().toList(growable: false);
             if (updates.isEmpty) return;
 
