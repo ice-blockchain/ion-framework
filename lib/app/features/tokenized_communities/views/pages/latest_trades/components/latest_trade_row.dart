@@ -6,6 +6,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
 import 'package:ion/app/services/browser/browser.dart';
+import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/formatters.dart';

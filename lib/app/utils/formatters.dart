@@ -113,14 +113,6 @@ String obscureEmail(String email) {
   return '*****$visiblePart$domainPart';
 }
 
-String shortenAddress(String address) {
-  if (address.length < 30) {
-    return address;
-  }
-  return '${address.substring(0, 12)}...'
-      '${address.substring(address.length - 14, address.length)}';
-}
-
 String obscurePhoneNumber(String phone) {
   // Determine prefix: if the phone starts with '+', take the first two characters;
   // otherwise, take the first character.
