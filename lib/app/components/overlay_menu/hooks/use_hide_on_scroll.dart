@@ -11,8 +11,7 @@ void useHideOnScroll(
 ) {
   useEffect(
     () {
-      final isScrollingNotifier =
-          scrollController?.position.isScrollingNotifier ??
+      final isScrollingNotifier = scrollController?.position.isScrollingNotifier ??
           Scrollable.maybeOf(context)?.position.isScrollingNotifier;
 
       void handleScrolling() {
