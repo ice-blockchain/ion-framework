@@ -12,4 +12,9 @@ enum PushNotificationCategory {
   messagePaymentRequest,
   messagePaymentReceived,
   updates,
+  creatorToken,
+  contentToken,
+  creatorTokenTrades,
+  contentTokenTrades,
+  tokenUpdates,
 }
