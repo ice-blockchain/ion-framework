@@ -20,7 +20,9 @@ class MarketDataFormatter {
   // Formats a USD volume value with $ prefix.
   // - 2961.69 -> $2.96K
   // - 3000000 -> $3.00M
-  static String formatVolume(double volume) => base_formatters.formatVolume(volume);
+  static String formatVolume(double volume) {
+    return r'$' + base_formatters.formatCompactNumber(volume);
+  }
 
   // Formats a USD price/amount value with compact notation, always showing 2 decimals.
   // - 123.45 -> 123.45

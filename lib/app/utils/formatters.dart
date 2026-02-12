@@ -62,13 +62,6 @@ String formatCompactNumber(num value) {
   return value.toStringAsFixed(0);
 }
 
-// Formats a USD volume value with $ prefix.
-// - 2961.69 -> $2.96K
-// - 3000000 -> $3.00M
-String formatVolume(double volume) {
-  return r'$' + formatCompactNumber(volume);
-}
-
 String formatTokenAmountWithSubscript(double value) {
   final absValue = value.abs();
 
