@@ -17,7 +17,9 @@ extension TopHolderMapping on TopHolder {
               shortenAddress(
                 position.holder?.addresses?.blockchain ?? '',
               ),
-          username: position.holder?.name == null ? null : '@${position.holder?.name}',
+          username: position.holder?.name == null
+              ? null
+              : '@${position.holder?.name}',
         ),
         badge: HolderBadge(
           verified: position.holder?.verified ?? false,
