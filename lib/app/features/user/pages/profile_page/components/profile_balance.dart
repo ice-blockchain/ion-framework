@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:ion/app/components/dividers/gradient_vertical_divider.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/utils/formatters.dart' as market_data_formatters;
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart' as market_data_formatters;
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 

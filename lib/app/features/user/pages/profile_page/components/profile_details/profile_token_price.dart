@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/utils/formatters.dart' as market_data_formatter;
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart' as market_data_formatter;
 
 class ProfileTokenPrice extends StatelessWidget {
   const ProfileTokenPrice({

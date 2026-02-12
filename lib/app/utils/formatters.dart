@@ -1,36 +1,22 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:dlibphonenumber/dlibphonenumber.dart' hide NumberFormat;
-import 'package:intl/intl.dart' show NumberFormat;
+import 'package:dlibphonenumber/dlibphonenumber.dart';
 
-/// Formats a price with subscript notation for very small values.
-/// Examples:
-/// 0.1 -> $0.1
-/// 0.12 -> $0.12
-/// 0.123 -> $0.123
-/// 0.001 -> $0.001
-/// 0.0001 -> $0.0₃1
-/// 0.00001 -> $0.0₄1
-String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
-  final absPrice = price.abs();
-
-  if (absPrice >= 0.01) {
-    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 2).format(price);
-  }
-
-  if (absPrice >= 0.001) {
-    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 3).format(price);
-  }
-
-  if (absPrice == 0) return '${symbol}0.00';
-
-  // For very small values, use subscript notation
-  final subscriptResult = formatSubscriptNotation(price, symbol);
-  if (subscriptResult.isEmpty) {
-    // Fallback if subscript formatting fails
-    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 4).format(price);
-  }
-  return subscriptResult;
+String toSubscript(int number) {
+  final digits = number.toString();
+  const subscriptMap = {
+    '0': '₀',
+    '1': '₁',
+    '2': '₂',
+    '3': '₃',
+    '4': '₄',
+    '5': '₅',
+    '6': '₆',
+    '7': '₇',
+    '8': '₈',
+    '9': '₉',
+  };
+  return digits.split('').map((d) => subscriptMap[d] ?? d).join();
 }
 
 // Formats a value using subscript notation for very small numbers.
@@ -56,23 +42,6 @@ String formatSubscriptNotation(double value, [String symbol = '']) {
 
   final sign = value < 0 ? '-' : '';
   return '$sign$symbol' '0.0' '${toSubscript(zeroCount)}' '$trailing';
-}
-
-String toSubscript(int number) {
-  final digits = number.toString();
-  const subscriptMap = {
-    '0': '₀',
-    '1': '₁',
-    '2': '₂',
-    '3': '₃',
-    '4': '₄',
-    '5': '₅',
-    '6': '₆',
-    '7': '₇',
-    '8': '₈',
-    '9': '₉',
-  };
-  return digits.split('').map((d) => subscriptMap[d] ?? d).join();
 }
 
 // Formats a large number into a compact string representation.
@@ -144,6 +113,14 @@ String obscureEmail(String email) {
   return '*****$visiblePart$domainPart';
 }
 
+String shortenAddress(String address) {
+  if (address.length < 30) {
+    return address;
+  }
+  return '${address.substring(0, 12)}...'
+      '${address.substring(address.length - 14, address.length)}';
+}
+
 String obscurePhoneNumber(String phone) {
   // Determine prefix: if the phone starts with '+', take the first two characters;
   // otherwise, take the first character.
@@ -171,22 +148,4 @@ String formatPhoneNumber(String countryCode, String phoneNumber) {
     PhoneNumberUtil.instance.parse('$countryCode$phoneNumber', null),
     PhoneNumberFormat.e164,
   );
-}
-
-// For address like 0xb38c367c51800f066f61d9206a38023e876680c4a96ceedcb79935c46bf66eac
-// returns short form 0xb38c3...f66eac
-String shortenAddress(String address) {
-  final value = address.trim();
-  if (value.isEmpty) {
-    return value;
-  }
-
-  const headLength = 7; // `0x` + 5 chars
-  const tailLength = 6;
-
-  if (value.length <= headLength + tailLength + 3) {
-    return value;
-  }
-
-  return '${value.substring(0, headLength)}...${value.substring(value.length - tailLength)}';
 }
