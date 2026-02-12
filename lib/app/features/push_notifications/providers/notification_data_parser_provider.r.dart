@@ -194,22 +194,6 @@ class NotificationDataParser {
             await translator.translate((t) => t.mention?.title),
             await translator.translate((t) => t.mention?.body)
           ),
-        PushNotificationType.accountPost => (
-            await translator.translate((t) => t.accountPost?.title),
-            await translator.translate((t) => t.accountPost?.body)
-          ),
-        PushNotificationType.accountArticle => (
-            await translator.translate((t) => t.accountArticle?.title),
-            await translator.translate((t) => t.accountArticle?.body)
-          ),
-        PushNotificationType.accountVideo => (
-            await translator.translate((t) => t.accountVideo?.title),
-            await translator.translate((t) => t.accountVideo?.body)
-          ),
-        PushNotificationType.accountStory => (
-            await translator.translate((t) => t.accountStory?.title),
-            await translator.translate((t) => t.accountStory?.body)
-          ),
         PushNotificationType.repost => (
             await translator.translate((t) => t.repost?.title),
             await translator.translate((t) => t.repost?.body)
@@ -341,6 +325,58 @@ class NotificationDataParser {
         PushNotificationType.chatPaymentReceivedMessage => (
             await translator.translate((t) => t.chatPaymentReceivedMessage?.title),
             await translator.translate((t) => t.chatPaymentReceivedMessage?.body)
+          ),
+        PushNotificationType.yourCreatorTokenIsLive => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.yourContentTokenIsLive => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.yourFolloweeCreatorTokenIsLive => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.yourFolloweeContentTokenIsLive => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.someoneBoughtYourToken => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.someoneBoughtSomeRelevantToken => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.yourCreatorTokenPriceIncreased => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.moreBuyersJoined => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.trendingToken => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.newPostSubscription => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.newStorySubscription => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.newVideoSubscription => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.newArticleSubscription => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
           ),
       };
     } catch (error) {

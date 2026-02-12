@@ -123,13 +123,13 @@ class IonConnectPushDataPayload {
       return _getGiftWrapNotificationType(entity);
     } else if (entity is FollowListEntity) {
       return PushNotificationType.follower;
-    } else if (entity is ModifiablePostEntity || entity is PostEntity) {
-      if (isQuotePost(entity)) {
-        return _getQuoteNotificationType(entity, getRelatedEntity);
-      } else if (isUserMentioned(masterPubkey: currentPubkey, entity: entity)) {
+    } else if (entity is ModifiablePostEntity || entity is PostEntity || entity is ArticleEntity) {
+      if (_isQuoteOfCurrentUser(currentPubkey: currentPubkey, entity: entity)) {
+        return _getQuoteOfCurrentUserNotificationType(entity, getRelatedEntity);
+      } else if (_isCurrentUserMentioned(currentPubkey: currentPubkey, entity: entity)) {
         return PushNotificationType.mention;
-      } else if (isReplyPost(entity)) {
-        return _getReplyNotificationType(entity, currentPubkey, getRelatedEntity);
+      } else if (_isReplyToCurrentUserPost(currentPubkey: currentPubkey, entity: entity)) {
+        return _getReplyToCurrentUserNotificationType(entity, currentPubkey, getRelatedEntity);
       } else {
         return _getAccountNotificationType(entity);
       }
@@ -138,14 +138,15 @@ class IonConnectPushDataPayload {
     return null;
   }
 
-  bool isUserMentioned({required String masterPubkey, required IonConnectEntity entity}) {
+  bool _isCurrentUserMentioned({required String currentPubkey, required IonConnectEntity entity}) {
     final currentUserMention =
-        ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind)
+        ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind)
             .encode();
 
     final content = switch (entity) {
       ModifiablePostEntity() => entity.data.content,
       PostEntity() => entity.data.content,
+      ArticleEntity() => entity.data.content,
       _ => null
     };
 
@@ -156,14 +157,21 @@ class IonConnectPushDataPayload {
     return false;
   }
 
-  bool isQuotePost(IonConnectEntity entity) {
-    return (entity is ModifiablePostEntity && entity.data.quotedEvent != null) ||
-        (entity is PostEntity && entity.data.quotedEvent != null);
+  bool _isQuoteOfCurrentUser({required String currentPubkey, required IonConnectEntity entity}) {
+    return (entity is ModifiablePostEntity &&
+            entity.data.quotedEvent?.eventReference.masterPubkey == currentPubkey) ||
+        (entity is PostEntity &&
+            entity.data.quotedEvent?.eventReference.masterPubkey == currentPubkey);
   }
 
-  bool isReplyPost(IonConnectEntity entity) {
-    return (entity is ModifiablePostEntity && entity.data.parentEvent != null) ||
-        (entity is PostEntity && entity.data.parentEvent != null);
+  bool _isReplyToCurrentUserPost({
+    required String currentPubkey,
+    required IonConnectEntity entity,
+  }) {
+    return (entity is ModifiablePostEntity &&
+            entity.data.parentEvent?.eventReference.masterPubkey == currentPubkey) ||
+        (entity is PostEntity &&
+            entity.data.parentEvent?.eventReference.masterPubkey == currentPubkey);
   }
 
   Future<PushNotificationType> _getRepostNotificationType(
@@ -187,7 +195,7 @@ class IonConnectPushDataPayload {
     return PushNotificationType.repost;
   }
 
-  Future<PushNotificationType> _getQuoteNotificationType(
+  Future<PushNotificationType> _getQuoteOfCurrentUserNotificationType(
     IonConnectEntity entity,
     Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
   ) async {
@@ -211,7 +219,7 @@ class IonConnectPushDataPayload {
     return PushNotificationType.quote;
   }
 
-  Future<PushNotificationType> _getReplyNotificationType(
+  Future<PushNotificationType> _getReplyToCurrentUserNotificationType(
     IonConnectEntity entity,
     String currentPubkey,
     Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
@@ -359,15 +367,16 @@ class IonConnectPushDataPayload {
   ) {
     return switch (entity) {
       ModifiablePostEntity(data: final postData) => switch (postData) {
-          _ when postData.expiration != null => PushNotificationType.accountStory,
-          _ when postData.hasVideo => PushNotificationType.accountVideo,
-          _ => PushNotificationType.accountPost,
+          _ when postData.expiration != null => PushNotificationType.newStorySubscription,
+          _ when postData.hasVideo => PushNotificationType.newVideoSubscription,
+          _ => PushNotificationType.newPostSubscription,
         },
       PostEntity(data: final postData) => switch (postData) {
-          _ when postData.expiration != null => PushNotificationType.accountStory,
-          _ when postData.hasVideo => PushNotificationType.accountVideo,
-          _ => PushNotificationType.accountPost,
+          _ when postData.expiration != null => PushNotificationType.newStorySubscription,
+          _ when postData.hasVideo => PushNotificationType.newVideoSubscription,
+          _ => PushNotificationType.newPostSubscription,
         },
+      ArticleEntity() => PushNotificationType.newArticleSubscription,
       _ => null,
     };
   }
@@ -609,10 +618,6 @@ enum PushNotificationType {
   replyArticle,
   replyComment,
   mention,
-  accountPost,
-  accountArticle,
-  accountVideo,
-  accountStory,
   repost,
   repostArticle,
   repostComment,
@@ -645,7 +650,20 @@ enum PushNotificationType {
   chatMultiPhotoMessage,
   chatMultiVideoMessage,
   chatPaymentRequestMessage,
-  chatPaymentReceivedMessage;
+  chatPaymentReceivedMessage,
+  yourCreatorTokenIsLive,
+  yourContentTokenIsLive,
+  yourFolloweeCreatorTokenIsLive,
+  yourFolloweeContentTokenIsLive,
+  someoneBoughtYourToken,
+  someoneBoughtSomeRelevantToken,
+  yourCreatorTokenPriceIncreased,
+  moreBuyersJoined,
+  trendingToken,
+  newPostSubscription,
+  newStorySubscription,
+  newVideoSubscription,
+  newArticleSubscription;
 
   bool get isChat => const {
         chatDocumentMessage,
