@@ -53,8 +53,7 @@ class ConfirmationSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useEffect(
       () {
-        final notifier = ref.read(sendDisabledNotifierProvider.notifier)
-          ..startCheckSendDisabled();
+        final notifier = ref.read(sendDisabledNotifierProvider.notifier)..startCheckSendDisabled();
 
         return notifier.stopCheckSendDisabled;
       },
@@ -96,8 +95,7 @@ class ConfirmationSheet extends HookConsumerWidget {
       });
 
     final isLoading = ref.watch(sendCoinsNotifierProvider).isLoading;
-    final isSendDisabled =
-        ref.watch(sendDisabledNotifierProvider).value ?? true;
+    final isSendDisabled = ref.watch(sendDisabledNotifierProvider).value ?? true;
     final isDisabled = isLoading || isSendDisabled;
 
     return SheetContent(
@@ -143,8 +141,7 @@ class ConfirmationSheet extends HookConsumerWidget {
                     ),
                   ],
                   SizedBox(height: 16.0.s),
-                  if (formData.senderWallet?.address
-                      case final String address) ...[
+                  if (formData.senderWallet?.address case final String address) ...[
                     ListItem.textWithIcon(
                       title: Text(locale.wallet_title),
                       value: formData.walletView!.name,
@@ -184,10 +181,8 @@ class ConfirmationSheet extends HookConsumerWidget {
                     ),
                     SizedBox(height: 16.0.s),
                   ],
-                  if (formData.selectedNetworkFeeOption
-                      case final NetworkFeeOption fee) ...[
-                    if (fee.getDisplayArrivalTime(context)
-                        case final String arrivalTime)
+                  if (formData.selectedNetworkFeeOption case final NetworkFeeOption fee) ...[
+                    if (fee.getDisplayArrivalTime(context) case final String arrivalTime)
                       ListItemArrivalTime(formattedTime: arrivalTime),
                     SizedBox(height: 16.0.s),
                     ListItemNetworkFee(
@@ -199,8 +194,7 @@ class ConfirmationSheet extends HookConsumerWidget {
                     Button(
                       mainAxisSize: MainAxisSize.max,
                       disabled: isDisabled,
-                      backgroundColor:
-                          isDisabled ? context.theme.appColors.sheetLine : null,
+                      backgroundColor: isDisabled ? context.theme.appColors.sheetLine : null,
                       label: ref.watch(sendCoinsNotifierProvider).maybeMap(
                             loading: (_) => const IONLoadingIndicator(),
                             orElse: () => Text(
@@ -216,8 +210,7 @@ class ConfirmationSheet extends HookConsumerWidget {
                             return RiverpodVerifyIdentityRequestBuilder(
                               provider: sendCoinsNotifierProvider,
                               requestWithVerifyIdentity: (
-                                OnVerifyIdentity<Map<String, dynamic>>
-                                    onVerifyIdentity,
+                                OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
                               ) async {
                                 await ref
                                     .read(sendCoinsNotifierProvider.notifier)

@@ -7,8 +7,7 @@ class MarketDataFormatter {
   MarketDataFormatter._();
 
   // Delegates to the top-level formatCompactNumber from base utils.
-  static String formatCompactNumber(num value) =>
-      base_formatters.formatCompactNumber(value);
+  static String formatCompactNumber(num value) => base_formatters.formatCompactNumber(value);
 
   // Formats a USD price value.
   // - 123.45 -> $123.45
