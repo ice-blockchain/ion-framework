@@ -259,6 +259,8 @@ class IonConnectPushDataPayload: Decodable {
             }
         } else if let entity = entity as? CommunityTokenDefinitionEntity {
             return getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity)
+        } else if let entity = entity as? CommunityTokenActionEntity {
+            return getTokenIsBoughtNotificationType(currentPubkey: currentPubkey, entity: entity)
         }
 
         return nil
@@ -710,6 +712,17 @@ class IonConnectPushDataPayload: Decodable {
             return entity.data.kind == UserMetadataEntity.kind
                 ? .yourFolloweeCreatorTokenIsLive
                 : .yourFolloweeContentTokenIsLive
+        }
+    }
+
+    private func getTokenIsBoughtNotificationType(
+        currentPubkey: String,
+        entity: CommunityTokenActionEntity
+    ) -> PushNotificationType? {
+        if entity.data.relatedPubkey.value == currentPubkey {
+            return .someoneBoughtYourToken
+        } else {
+            return .someoneBoughtSomeRelevantToken
         }
     }
 

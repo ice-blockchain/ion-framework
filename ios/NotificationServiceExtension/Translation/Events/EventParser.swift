@@ -33,6 +33,8 @@ class EventParser {
             return try WalletAssetEntity.fromEventMessage(eventMessage)
         case CommunityTokenDefinitionEntity.kind:
             return try CommunityTokenDefinitionEntity.fromEventMessage(eventMessage)
+        case CommunityTokenActionEntity.kind:
+            return try CommunityTokenActionEntity.fromEventMessage(eventMessage)
         default:
             throw UnknownEventException(eventId: eventMessage.id, kind: eventMessage.kind)
         }
