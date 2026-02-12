@@ -23,12 +23,16 @@ typedef RelaysState = Map<String, IonConnectRelay>;
 class Relay extends _$Relay
     with RelayTimerMixin, RelayCreateMixin, RelayAuthMixin, RelayClosedMixin, RelayActiveMixin {
   @override
-  Future<IonConnectRelay> build(String url, {bool anonymous = false}) async {
+  Future<IonConnectRelay> build(
+    String url, {
+    bool anonymous = false,
+    bool allowProxy = true,
+  }) async {
     final dislikedConnectUrlsNotifier = ref.read(relayDislikedConnectUrlsProvider(url).notifier);
 
     try {
       while (true) {
-        final relay = await createRelay(ref, url);
+        final relay = await createRelay(ref, url, allowProxy: allowProxy);
         try {
           // Treat auth init as part of relay creation.
           // If auth fails with an auth-required loop, we failover by retrying with the next connect URL.
@@ -76,7 +80,7 @@ class Relay extends _$Relay
       }
     } catch (e) {
       Logger.warning(
-        '[RELAY] Failed to create relay for URL: $url, error: $e',
+        '[RELAY] Failed to create relay for URL: $url, allowProxy: $allowProxy, error: $e',
       );
       Timer(const Duration(minutes: 1), () {
         ref.invalidateSelf();

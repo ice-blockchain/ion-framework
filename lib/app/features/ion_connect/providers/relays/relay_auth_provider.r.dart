@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -83,25 +82,6 @@ class RelayAuth extends _$RelayAuth {
       }
     });
     ref.onDispose(authMessageSubscription.cancel);
-
-    final connectionSubscription = relay.socket.connection.listen((state) {
-      // When the underlying websocket reconnects, any in-flight AUTH attempt is no longer valid.
-      // If we keep the old completer, authenticateRelay() will "short circuit" and we will never
-      // send a new AUTH for the new connection.
-      if (state is Disconnected ||
-          state is Disconnecting ||
-          state is Reconnecting ||
-          state is Reconnected) {
-        final c = service.completer;
-        if (c != null && !c.isCompleted) {
-          c.completeError(
-            const SocketException('Relay connection changed during authentication'),
-          );
-        }
-        service.completer = null;
-      }
-    });
-    ref.onDispose(connectionSubscription.cancel);
 
     return service;
   }
