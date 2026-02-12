@@ -26,4 +26,13 @@ class RelayDislikedConnectUrls extends _$RelayDislikedConnectUrls {
     state = {...state, connectUrl};
     return true;
   }
+
+  /// Removes [connectUrl] from the disliked set.
+  ///
+  /// Returns `true` if the url existed and was removed.
+  bool remove(String connectUrl) {
+    if (!state.contains(connectUrl)) return false;
+    state = {...state}..remove(connectUrl);
+    return true;
+  }
 }
