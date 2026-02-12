@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
@@ -50,11 +48,6 @@ class _WebViewState extends ConsumerState<WebView> {
       children: [
         wf.WebViewWidget(
           controller: controller,
-          gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{
-            Factory<VerticalDragGestureRecognizer>(VerticalDragGestureRecognizer.new),
-            Factory<HorizontalDragGestureRecognizer>(HorizontalDragGestureRecognizer.new),
-            Factory<PanGestureRecognizer>(PanGestureRecognizer.new),
-          },
         ),
         if (_isLoadingPage)
           Center(
