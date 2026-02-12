@@ -186,7 +186,7 @@ class ConfirmationSheet extends HookConsumerWidget {
                       ListItemArrivalTime(formattedTime: arrivalTime),
                     SizedBox(height: 16.0.s),
                     ListItemNetworkFee(
-                      value: formatTokenAmount(fee.amount, fee.symbol),
+                      value: formatCryptoCompact(fee.amount, fee.symbol),
                     ),
                   ],
                   SizedBox(height: 22.0.s),

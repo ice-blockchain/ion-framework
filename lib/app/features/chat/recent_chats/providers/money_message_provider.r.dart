@@ -76,7 +76,7 @@ Future<MoneyDisplayData?> fundsRequestDisplayData(
   }
 
   return (
-    amount: formatCrypto(amount),
+    amount: formatCryptoFull(amount),
     coin: coin.abbreviation,
   );
 }
@@ -157,7 +157,7 @@ Future<MoneyDisplayData?> transactionDisplayData(
       if (coin != null) {
         final normalizedAmount = fromBlockchainUnits(rawAmount, decimals: coin.decimals);
         return (
-          amount: formatCrypto(normalizedAmount),
+          amount: formatCryptoFull(normalizedAmount),
           coin: coin.abbreviation,
         );
       }
@@ -180,7 +180,7 @@ Future<MoneyDisplayData?> transactionDisplayData(
   }
 
   return (
-    amount: formatCrypto(amount),
+    amount: formatCryptoFull(amount),
     coin: coin.abbreviation,
   );
 }

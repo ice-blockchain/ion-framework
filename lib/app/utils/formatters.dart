@@ -93,6 +93,13 @@ String formatCompactNumber(num value) {
   return value.toStringAsFixed(0);
 }
 
+// Formats a USD volume value with $ prefix.
+// - 2961.69 -> $2.96K
+// - 3000000 -> $3.00M
+String formatVolume(double volume) {
+  return r'$' + formatCompactNumber(volume);
+}
+
 String formatTokenAmountWithSubscript(double value) {
   final absValue = value.abs();
 
@@ -164,4 +171,22 @@ String formatPhoneNumber(String countryCode, String phoneNumber) {
     PhoneNumberUtil.instance.parse('$countryCode$phoneNumber', null),
     PhoneNumberFormat.e164,
   );
+}
+
+// For address like 0xb38c367c51800f066f61d9206a38023e876680c4a96ceedcb79935c46bf66eac
+// returns short form 0xb38c3...f66eac
+String shortenAddress(String address) {
+  final value = address.trim();
+  if (value.isEmpty) {
+    return value;
+  }
+
+  const headLength = 7; // `0x` + 5 chars
+  const tailLength = 6;
+
+  if (value.length <= headLength + tailLength + 3) {
+    return value;
+  }
+
+  return '${value.substring(0, headLength)}...${value.substring(value.length - tailLength)}';
 }

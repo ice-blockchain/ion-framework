@@ -5,7 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
+import 'package:ion/app/utils/formatters.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 // Inline mention widget for the editor (badge-style with market cap and close).
@@ -56,7 +56,7 @@ class MentionInlineWidget extends HookWidget {
               ),
               SizedBox(width: 2.0.s),
               Text(
-                '\$${MarketDataFormatter.formatCompactNumber(marketCap)}',
+                '\$${formatCompactNumber(marketCap)}',
                 style: textStyle.copyWith(
                   color: context.theme.appColors.onTertiaryBackground,
                 ),

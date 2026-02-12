@@ -51,7 +51,7 @@ void useQuoteDisplay(
   useEffect(
     () {
       if (quoteAmount != null && !isQuoting) {
-        final quoteValue = formatCrypto(
+        final quoteValue = formatCryptoFull(
           fromBlockchainUnits(
             quoteAmount.toString(),
             decimals: decimals,

@@ -66,7 +66,7 @@ class SendCoinsForm extends HookConsumerWidget {
     final usdAmount =
         (parseAmount(amountController.text) ?? 0) * (coin?.selectedOption?.coin.priceUSD ?? 0);
 
-    useOnInit(() => amountController.text = amount == 0.0 ? '' : formatCrypto(amount), []);
+    useOnInit(() => amountController.text = amount == 0.0 ? '' : formatCryptoFull(amount), []);
 
     if (formController.isContactPreselected) {
       _listenContactWallet(ref, formController.contactPubkey);

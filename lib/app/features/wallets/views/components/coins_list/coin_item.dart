@@ -146,7 +146,7 @@ class _CoinsGroupItemContent extends StatelessWidget {
                 ),
               Text(
                 isBalanceVisible
-                    ? formatTokenAmount(coinsGroup.totalAmount)
+                    ? formatCryptoCompact(coinsGroup.totalAmount)
                     : StringConstants.obfuscated,
                 style: context.theme.appTextThemes.body
                     .copyWith(color: context.theme.appColors.primaryText),

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/models/holder_tile_data.dart';
-import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/formatters.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';

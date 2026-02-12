@@ -13,7 +13,7 @@ import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/utils/formatters.dart' as market_data_formatter;
+import 'package:ion/app/utils/formatters.dart' as base_formatters;
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -171,7 +171,7 @@ class _CarouselCard extends HookConsumerWidget {
                                   borderRadius: BorderRadius.circular(7.0.s),
                                 ),
                                 child: Text(
-                                  market_data_formatter
+                                  base_formatters
                                       .formatPriceWithSubscript(token.marketData.priceUSD),
                                   style: context.theme.appTextThemes.caption2.copyWith(
                                     color: context.theme.appColors.primaryText,

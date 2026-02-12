@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
+import 'package:ion/app/utils/formatters.dart' as base_formatters;
 import 'package:ion/generated/assets.gen.dart';
 
 // Inline cashtag widget for the editor (badge-style with market cap and close).
@@ -67,7 +67,7 @@ class CashtagInlineWidget extends HookWidget {
                   ),
                   SizedBox(width: 2.0.s),
                   Text(
-                    r'$' + MarketDataFormatter.formatCompactNumber(marketCap),
+                    r'$' + base_formatters.formatCompactNumber(marketCap),
                     style: textStyle.copyWith(
                       color: context.theme.appColors.onTertiaryBackground,
                     ),

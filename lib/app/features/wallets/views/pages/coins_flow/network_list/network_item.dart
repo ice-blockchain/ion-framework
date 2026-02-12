@@ -56,7 +56,7 @@ class NetworkItem extends ConsumerWidget {
           children: [
             Text(
               isBalanceVisible
-                  ? formatTokenAmount(coinInWallet.amount)
+                  ? formatCryptoCompact(coinInWallet.amount)
                   : StringConstants.obfuscated,
               style: context.theme.appTextThemes.body
                   .copyWith(color: context.theme.appColors.primaryText),

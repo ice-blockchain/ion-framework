@@ -6,11 +6,11 @@ import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/token_card_builder.dart';
-import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/utils/formatters.dart' as base_formatters;
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -165,15 +165,13 @@ class TwitterTokenHeader extends StatelessWidget {
             children: [
               TokenStatItem(
                 icon: Assets.svg.iconMemeMarketcap,
-                text: MarketDataFormatter.formatCompactNumber(
+                text: base_formatters.formatCompactNumber(
                   token.marketData.marketCap,
                 ),
               ),
               TokenStatItem(
                 icon: Assets.svg.iconMemeMarkers,
-                text: MarketDataFormatter.formatVolume(
-                  token.marketData.volume,
-                ),
+                text: base_formatters.formatVolume(token.marketData.volume),
               ),
               TokenStatItem(
                 icon: Assets.svg.iconSearchGroups,

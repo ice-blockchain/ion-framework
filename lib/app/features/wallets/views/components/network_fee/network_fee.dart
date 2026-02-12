@@ -35,7 +35,7 @@ class NetworkFeeOptionWidget extends StatelessWidget {
         const Spacer(),
         RichText(
           text: TextSpan(
-            text: formatTokenAmount(feeOption.amount, feeOption.symbol),
+            text: formatCryptoCompact(feeOption.amount, feeOption.symbol),
             style: context.theme.appTextThemes.body.copyWith(
               color: context.theme.appColors.primaryText,
             ),
