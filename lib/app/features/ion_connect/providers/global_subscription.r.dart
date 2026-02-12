@@ -23,7 +23,6 @@ import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.
 import 'package:ion/app/features/ion_connect/providers/events_management_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/global_subscription_latest_event_timestamp_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_subscription_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
@@ -50,7 +49,6 @@ class GlobalSubscription {
     required this.currentUserMasterPubkey,
     required this.devicePubkey,
     required this.latestEventTimestampService,
-    required this.ionConnectNotifier,
     required this.globalSubscriptionNotifier,
     required this.eventsManagementService,
     required this.eventBackfillService,
@@ -63,7 +61,6 @@ class GlobalSubscription {
   final UserMuteService? userMuteService;
   final UserArchiveService? userArchiveService;
   final GlobalSubscriptionLatestEventTimestampService latestEventTimestampService;
-  final IonConnectNotifier ionConnectNotifier;
   final GlobalSubscriptionNotifier globalSubscriptionNotifier;
   final EventsManagementService eventsManagementService;
   final EventBackfillService eventBackfillService;
@@ -503,12 +500,14 @@ class GlobalSubscriptionNotifier extends _$GlobalSubscriptionNotifier {
     /// We subtract 1 minute from the since timestamp to avoid missing events.
     /// Because event's createdAt is set on client side.
     final sinceOverlap = const Duration(minutes: 1).inMicroseconds;
-    final modifiedRequestMessage = requestMessage
-      ..filters.map((filter) {
+    final modifiedRequestMessage = RequestMessage(
+      subscriptionId: requestMessage.subscriptionId,
+      filters: requestMessage.filters.map((filter) {
         return filter.copyWith(
           since: () => filter.since != null ? filter.since! - sinceOverlap : null,
         );
-      }).toList();
+      }).toList(),
+    );
     final appState = ref.watch(appLifecycleProvider);
     if (appState != AppLifecycleState.resumed) {
       // Do not subscribe to the stream if the app is in the background.
@@ -539,7 +538,8 @@ GlobalSubscription? globalSubscription(Ref ref) {
 
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   final devicePubkey = ref.watch(currentUserIonConnectEventSignerProvider).valueOrNull?.publicKey;
-  final delegationComplete = ref.watch(delegationCompleteProvider).valueOrNull.falseOrValue;
+  final delegationComplete =
+      ref.watch(delegationCompleteProvider.select((v) => v.valueOrNull.falseOrValue));
 
   if (currentUserMasterPubkey == null || devicePubkey == null || !delegationComplete) {
     return null;
@@ -551,7 +551,6 @@ GlobalSubscription? globalSubscription(Ref ref) {
 
   final latestEventTimestampService =
       ref.watch(globalSubscriptionLatestEventTimestampServiceProvider);
-  final ionConnectNotifier = ref.watch(ionConnectNotifierProvider.notifier);
   final globalSubscriptionNotifier = ref.watch(globalSubscriptionNotifierProvider.notifier);
   final eventsManagementService = ref.watch(eventsManagementServiceProvider).valueOrNull;
   final eventBackfillService = ref.watch(eventBackfillServiceProvider);
@@ -566,7 +565,6 @@ GlobalSubscription? globalSubscription(Ref ref) {
     currentUserMasterPubkey: currentUserMasterPubkey,
     devicePubkey: devicePubkey,
     latestEventTimestampService: latestEventTimestampService,
-    ionConnectNotifier: ionConnectNotifier,
     globalSubscriptionNotifier: globalSubscriptionNotifier,
     eventsManagementService: eventsManagementService,
     eventBackfillService: eventBackfillService,
