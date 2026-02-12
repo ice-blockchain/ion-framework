@@ -15,7 +15,8 @@ import 'package:ion/app/features/tokenized_communities/models/entities/transacti
 import 'package:ion/app/features/tokenized_communities/providers/token_holder_position_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart' as market_data_formatters;
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart'
+    as market_data_formatters;
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_balance.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_chart.dart';
