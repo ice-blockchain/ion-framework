@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
+import 'package:ion/app/utils/formatters.dart';
 
 void main() {
   group('formatPriceWithSubscript', () {

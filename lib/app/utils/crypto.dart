@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:decimal/decimal.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/formatters.dart';
 import 'package:ion/app/utils/num.dart';
 
 /// Converts a blockchain-precise numeric string (e.g., `"1000000000000000000"`)

@@ -2,6 +2,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
+import 'package:ion/app/utils/formatters.dart';
 
 import '../../../../test_utils.dart';
 

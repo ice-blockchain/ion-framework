@@ -4,8 +4,8 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

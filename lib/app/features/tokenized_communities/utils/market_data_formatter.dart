@@ -1,28 +1,14 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:intl/intl.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
+import 'package:ion/app/utils/formatters.dart' as base_formatters;
 
 class MarketDataFormatter {
   MarketDataFormatter._();
 
-  // Formats a large number into a compact string representation.
-  // - 1234 -> 1.23K
-  // - 1234567 -> 1.23M
-  // - 1234567890 -> 1.23B
-  static String formatCompactNumber(num value) {
-    if (value >= 1e9) {
-      return '${(value / 1e9).toStringAsFixed(2)}B';
-    } else if (value >= 1e6) {
-      return '${(value / 1e6).toStringAsFixed(2)}M';
-    } else if (value >= 1e3) {
-      return '${(value / 1e3).toStringAsFixed(2)}K';
-    } else if (value < 1) {
-      return value.toStringAsFixed(2);
-    }
-
-    return value.toStringAsFixed(0);
-  }
+  // Delegates to the top-level formatCompactNumber from base utils.
+  static String formatCompactNumber(num value) =>
+      base_formatters.formatCompactNumber(value);
 
   // Formats a USD price value.
   // - 123.45 -> $123.45
@@ -71,7 +57,7 @@ class MarketDataFormatter {
 
     // For very small values, use subscript notation with symbol prefix
     if (absValue < 0.01) {
-      final subscriptResult = formatSubscriptNotation(value, symbol);
+      final subscriptResult = base_formatters.formatSubscriptNotation(value, symbol);
       if (subscriptResult.isEmpty) {
         // Fallback to price format for edge cases
         return formatPrice(value, symbol: symbol);
