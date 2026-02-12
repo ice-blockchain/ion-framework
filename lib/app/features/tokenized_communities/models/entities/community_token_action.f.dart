@@ -230,6 +230,10 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     return amounts.firstWhereOrNull((amount) => amount.currency == currency);
   }
 
+  TransactionAmount? getUsdAmount() {
+    return getAmountByCurrency(TransactionAmount.usdCurrency);
+  }
+
   TransactionAmount? getTokenAmount() {
     return amounts.firstWhereOrNull((amount) => amount.currency == tokenTicker);
   }

@@ -90,6 +90,7 @@ class NotificationDataParser {
       notificationType,
       getFundsRequestData: getFundsRequestData,
       getTransactionData: getTransactionData,
+      getRelatedEntity: getRelatedEntity,
     );
 
     final result = (
