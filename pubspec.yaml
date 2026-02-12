@@ -111,6 +111,7 @@ dependencies:
   freezed_annotation: ^2.4.1
   functional_listener: ^4.1.0
   go_router: ^15.1.2
+  gif: ^2.3.0
   google_fonts: ^6.2.1
   google_sign_in: ^6.2.2
   googleapis: ^13.2.0

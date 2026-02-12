@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/components/gif_preview/gif_preview.dart';
 import 'package:ion/app/components/video_preview/video_preview.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
@@ -10,6 +11,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
+import 'package:ion/app/utils/image_path.dart';
 
 class PostMediaItem extends HookWidget {
   const PostMediaItem({
@@ -56,15 +58,24 @@ class PostMediaItem extends HookWidget {
         child: AspectRatio(
           aspectRatio: aspectRatio,
           child: switch (mediaItem.mediaType) {
-            MediaType.image => LayoutBuilder(
-                builder: (context, constraints) {
-                  return FeedIONConnectNetworkImage(
+            MediaType.image => _isAnimatedImage(mediaItem)
+                ? GifPreview(
                     imageUrl: mediaItem.url,
-                    fit: BoxFit.cover,
                     authorPubkey: eventReference.masterPubkey,
-                  );
-                },
-              ),
+                    thumbnailUrl: mediaItem.image,
+                    blurhash: mediaItem.blurhash,
+                    aspectRatio: aspectRatio,
+                    framedEventReference: framedEventReference?.encode(),
+                  )
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      return FeedIONConnectNetworkImage(
+                        imageUrl: mediaItem.url,
+                        fit: BoxFit.cover,
+                        authorPubkey: eventReference.masterPubkey,
+                      );
+                    },
+                  ),
             MediaType.video => VideoPreview(
                 videoUrl: mediaItem.url,
                 duration:
@@ -81,5 +92,18 @@ class PostMediaItem extends HookWidget {
         ),
       ),
     );
+  }
+
+  bool _isAnimatedImage(MediaAttachment media) {
+    const gifExtension = '.gif';
+    const webpExtension = 'webp';
+
+    if (media.url.isGif) return true;
+    final mime = media.mimeType.toLowerCase();
+    if (mime.contains(gifExtension)) return true;
+    if (media.url.toLowerCase().endsWith('.$webpExtension') || mime.contains(webpExtension)) {
+      return true;
+    }
+    return false;
   }
 }
