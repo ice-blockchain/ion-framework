@@ -20,6 +20,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
@@ -136,6 +137,8 @@ class IonConnectPushDataPayload {
       }
     } else if (entity is CommunityTokenDefinitionEntity) {
       return _getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity);
+    } else if (entity is CommunityTokenActionEntity) {
+      return _getTokenIsBoughtNotificationType(currentPubkey: currentPubkey, entity: entity);
     }
 
     return null;
@@ -402,6 +405,17 @@ class IonConnectPushDataPayload {
       }
     }
     return null;
+  }
+
+  PushNotificationType? _getTokenIsBoughtNotificationType({
+    required String currentPubkey,
+    required CommunityTokenActionEntity entity,
+  }) {
+    if (entity.data.relatedPubkey.value == currentPubkey) {
+      return PushNotificationType.someoneBoughtYourToken;
+    } else {
+      return PushNotificationType.someoneBoughtSomeRelevantToken;
+    }
   }
 
   Future<Map<String, String>> placeholders(
