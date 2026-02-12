@@ -30,7 +30,7 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/share/share.dart';
-import 'package:ion/app/utils/crypto_formatter.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 // for those assets we can't build the explorer url right away and need to wait till confirmed

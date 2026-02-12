@@ -322,7 +322,7 @@ class WalletViewsLiveUpdater {
 
       final adjustedAmount = fromBlockchainUnits(
         (adjustedRawAmount.isNegative ? 0 : adjustedRawAmount).toString(),
-        coinInWallet.coin.decimals,
+        decimals: coinInWallet.coin.decimals,
       );
       final adjustedBalanceUSD = adjustedAmount * coinInWallet.coin.priceUSD;
 

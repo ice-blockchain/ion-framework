@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
@@ -179,7 +179,7 @@ class _AmountDetails extends StatelessWidget {
             ),
             SizedBox(width: 3.s),
             Text(
-              defaultAbbreviate(position.amountValue),
+              formatTokenAmountWithSubscript(position.amountValue),
               style: context.theme.appTextThemes.body2
                   .copyWith(color: context.theme.appColors.onPrimaryAccent),
             ),

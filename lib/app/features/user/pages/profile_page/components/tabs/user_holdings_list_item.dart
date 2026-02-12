@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/skeleton/container_skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/profit_loss_indicator.dart';
@@ -12,7 +13,7 @@ import 'package:ion/app/features/tokenized_communities/views/components/token_pr
 import 'package:ion/app/features/tokenized_communities/views/components/token_type_gradient_indicator.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/twitter_badge.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/utils/num.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -105,7 +106,9 @@ class UserHoldingsListItem extends ConsumerWidget {
                             ),
                             SizedBox(width: 4.0.s),
                             Text(
-                              formatAmountCompactFromRaw(position.amount),
+                              formatTokenAmountWithSubscript(
+                                fromBlockchainUnits(position.amount),
+                              ),
                               style: context.theme.appTextThemes.caption.copyWith(
                                 color: context.theme.appColors.quaternaryText,
                               ),

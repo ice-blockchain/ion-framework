@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:intl/intl.dart';
+import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/utils/num.dart';
 
@@ -75,8 +76,8 @@ String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
 }
 
 // Formats a value using subscript notation for very small numbers.
-// Returns a string like "$0.0₂25" for very small values.
-String formatSubscriptNotation(double value, String symbol) {
+// Returns a string like "$0.0₂25" for very small values (or "0.0₂25" without symbol).
+String formatSubscriptNotation(double value, [String symbol = '']) {
   final absValue = value.abs();
   final expStr = absValue.toStringAsExponential(12);
   final match = RegExp(r'^(\d(?:\.\d+)?)e([+-]\d+)$').firstMatch(expStr);
@@ -114,6 +115,30 @@ String toSubscript(int number) {
     '9': '₉',
   };
   return digits.split('').map((d) => subscriptMap[d] ?? d).join();
+}
+
+String formatTokenAmountWithSubscript(double value) {
+  final absValue = value.abs();
+
+  if (absValue == 0) return '0';
+
+  if (absValue >= 1000) {
+    return MarketDataFormatter.formatCompactNumber(value);
+  }
+
+  if (absValue >= 1) {
+    final formatted = value.toStringAsFixed(2);
+    return formatted.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+  }
+
+  if (absValue >= 0.001) {
+    final formatted = value.toStringAsFixed(4);
+    return formatted.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+  }
+
+  // Use shared subscript notation for very small values
+  final subscript = formatSubscriptNotation(value);
+  return subscript.isNotEmpty ? subscript : value.toStringAsFixed(6);
 }
 
 // Formats a DateTime for chart date labels (e.g., "15/03").

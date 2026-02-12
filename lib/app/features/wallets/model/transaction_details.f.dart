@@ -10,7 +10,7 @@ import 'package:ion/app/features/wallets/model/swap_status.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
+import 'package:ion/app/utils/crypto.dart';
 
 part 'transaction_details.f.freezed.dart';
 
@@ -46,7 +46,12 @@ class TransactionDetails with _$TransactionDetails {
     final fee = transaction.fee;
     final nativeCoin = transaction.nativeCoin;
     final isFeeAvailable = fee != null && nativeCoin != null;
-    final feeAmount = isFeeAvailable ? fromBlockchainUnits(fee, nativeCoin.decimals) : null;
+    final feeAmount = isFeeAvailable
+        ? fromBlockchainUnits(
+            fee,
+            decimals: nativeCoin.decimals,
+          )
+        : null;
 
     return TransactionDetails(
       id: transaction.id,

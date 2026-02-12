@@ -27,8 +27,8 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -707,7 +707,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     if (paymentTokenPriceUSD != null && state.mode == CommunityTokenTradeMode.sell) {
       final decimals = state.selectedPaymentToken?.decimals;
       if (decimals != null) {
-        final quoteAmount = fromBlockchainUnits(pricing.amount, decimals);
+        final quoteAmount = fromBlockchainUnits(pricing.amount, decimals: decimals);
         paymentQuote = formatToCurrency(quoteAmount * paymentTokenPriceUSD);
       }
     }

@@ -3,9 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
-import 'package:ion/app/utils/crypto_formatter.dart';
+import 'package:ion/app/utils/crypto.dart';
 
 void useAmountListener(
   TextEditingController amountController,
@@ -52,7 +51,12 @@ void useQuoteDisplay(
   useEffect(
     () {
       if (quoteAmount != null && !isQuoting) {
-        final quoteValue = formatCrypto(fromBlockchainUnits(quoteAmount.toString(), decimals));
+        final quoteValue = formatCrypto(
+          fromBlockchainUnits(
+            quoteAmount.toString(),
+            decimals: decimals,
+          ),
+        );
         if (quoteController.text != quoteValue) quoteController.text = quoteValue;
       } else if (quoteAmount == null && quoteController.text.isNotEmpty) {
         quoteController.clear();

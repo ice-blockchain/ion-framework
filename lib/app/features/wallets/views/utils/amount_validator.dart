@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
+import 'package:ion/app/utils/crypto.dart';
 
 String? amountValidator({
   required String? value,

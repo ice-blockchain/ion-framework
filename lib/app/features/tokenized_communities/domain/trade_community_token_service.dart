@@ -18,9 +18,9 @@ import 'package:ion/app/features/tokenized_communities/utils/external_address_ex
 import 'package:ion/app/features/tokenized_communities/utils/fat_address_v2.dart';
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
-import 'package:ion/app/features/wallets/utils/crypto_amount_converter.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -582,11 +582,12 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
       );
 
-      const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
-
-      final baseTokenAmountValue = fromBlockchainUnits(amountIn.toString(), tokenDecimals);
-      final communityTokenAmountValue = fromBlockchainUnits(pricing.amount, communityTokenDecimals);
       final usdAmountValue = pricing.amountUSD;
+      final communityTokenAmountValue = fromBlockchainUnits(pricing.amount);
+      final baseTokenAmountValue = fromBlockchainUnits(
+        amountIn.toString(),
+        decimals: tokenDecimals,
+      );
 
       Logger.info(
         '[TradeCommunityTokenService] Amounts calculated | baseTokenAmountValue=$baseTokenAmountValue | communityTokenAmountValue=$communityTokenAmountValue | usdAmountValue=$usdAmountValue',
@@ -656,11 +657,11 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
       );
 
-      const communityTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
-
-      final communityTokenAmountValue =
-          fromBlockchainUnits(amountIn.toString(), communityTokenDecimals);
-      final paymentTokenAmountValue = fromBlockchainUnits(pricing.amount, paymentTokenDecimals);
+      final communityTokenAmountValue = fromBlockchainUnits(amountIn.toString());
+      final paymentTokenAmountValue = fromBlockchainUnits(
+        pricing.amount,
+        decimals: paymentTokenDecimals,
+      );
 
       final usdAmountValue = pricing.amountUSD;
 

@@ -3,10 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
 import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/app/utils/address.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -29,7 +31,9 @@ class LatestTradeRow extends StatelessWidget {
     final i18n = context.i18n;
 
     final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
-    final amountText = formatAmountCompactFromRaw(trade.position.amount);
+    final amountText = formatTokenAmountWithSubscript(
+      fromBlockchainUnits(trade.position.amount),
+    );
     final usdText = formatUSD(trade.position.amountUSD);
 
     final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
