@@ -248,21 +248,23 @@ class IonConnectPushDataPayload: Decodable {
                 }
             }
         } else if entity is ModifiablePostEntity || entity is PostEntity || entity is ArticleEntity {
-            if _isQuoteOfCurrentUser(currentPubkey: currentPubkey, entity: entity) {
-                return _getQuoteOfCurrentUserNotificationType(entity: entity, keysStorage: keysStorage)
-            } else if _isCurrentUserMentioned(currentPubkey: currentPubkey, entity: entity) {
+            if isQuoteOfCurrentUser(currentPubkey: currentPubkey, entity: entity) {
+                return getQuoteOfCurrentUserNotificationType(entity: entity, keysStorage: keysStorage)
+            } else if isCurrentUserMentioned(currentPubkey: currentPubkey, entity: entity) {
                 return .mention
-            } else if _isReplyToCurrentUserPost(currentPubkey: currentPubkey, entity: entity) {
-                return _getReplyToCurrentUserNotificationType(entity: entity, keysStorage: keysStorage)
+            } else if isReplyToCurrentUserPost(currentPubkey: currentPubkey, entity: entity) {
+                return getReplyToCurrentUserNotificationType(entity: entity, keysStorage: keysStorage)
             } else {
                 return getAccountNotificationType(entity: entity)
             }
+        } else if let entity = entity as? CommunityTokenDefinitionEntity {
+            return getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity)
         }
 
         return nil
     }
 
-    private func _isCurrentUserMentioned(currentPubkey: String, entity: IonConnectEntity) -> Bool {
+    private func isCurrentUserMentioned(currentPubkey: String, entity: IonConnectEntity) -> Bool {
         let currentUserMention = ReplaceableEventReference(
             masterPubkey: currentPubkey,
             kind: UserMetadataEntity.kind
@@ -288,12 +290,12 @@ class IonConnectPushDataPayload: Decodable {
         return false
     }
 
-    private func _isQuoteOfCurrentUser(currentPubkey: String, entity: IonConnectEntity) -> Bool {
+    private func isQuoteOfCurrentUser(currentPubkey: String, entity: IonConnectEntity) -> Bool {
         return (entity as? ModifiablePostEntity)?.data.quotedEvent?.eventReference.masterPubkey == currentPubkey ||
                (entity as? PostEntity)?.data.quotedEvent?.eventReference.masterPubkey == currentPubkey
     }
 
-    private func _isReplyToCurrentUserPost(
+    private func isReplyToCurrentUserPost(
         currentPubkey: String,
         entity: IonConnectEntity
     ) -> Bool {
@@ -555,7 +557,7 @@ class IonConnectPushDataPayload: Decodable {
         return .repost
     }
     
-    private func _getQuoteOfCurrentUserNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
+    private func getQuoteOfCurrentUserNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
         // Extract quoted event reference from the entity
         let quotedEventRef: EventReference?
         if let modifiablePost = entity as? ModifiablePostEntity {
@@ -603,7 +605,7 @@ class IonConnectPushDataPayload: Decodable {
         return .quote
     }
     
-    private func _getReplyToCurrentUserNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
+    private func getReplyToCurrentUserNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
         // Extract parent event reference from the entity
         let parentEventRef: EventReference?
         if let modifiablePost = entity as? ModifiablePostEntity {
@@ -694,6 +696,21 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         return .chatMultiMediaMessage
+    }
+
+    private func getTokenIsLiveNotificationType(
+        currentPubkey: String,
+        entity: CommunityTokenDefinitionEntity
+    ) -> PushNotificationType? {
+        if entity.data.eventReference.masterPubkey == currentPubkey {
+            return entity.data.kind == UserMetadataEntity.kind
+                ? .yourCreatorTokenIsLive
+                : .yourContentTokenIsLive
+        } else {
+            return entity.data.kind == UserMetadataEntity.kind
+                ? .yourFolloweeCreatorTokenIsLive
+                : .yourFolloweeContentTokenIsLive
+        }
     }
 
     private func getAccountNotificationType(entity: IonConnectEntity) -> PushNotificationType? {
