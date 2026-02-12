@@ -224,7 +224,7 @@ class _NameAndAmount extends StatelessWidget {
           ),
         ),
         Text(
-          holderInfo.username != null ? '@${holderInfo.username} • $amountText' : amountText,
+          holderInfo.username != null ? '${holderInfo.username} • $amountText' : amountText,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: texts.caption.copyWith(color: colors.quaternaryText),
