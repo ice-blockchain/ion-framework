@@ -60,13 +60,9 @@ class OverlayMenu extends HookWidget {
 
     final showMenu = useCallback(
       () {
-        final isScrolling = scrollController?.position.isScrollingNotifier.value ?? false;
-        //prevent opening filters menu if scroll is active
-        if (!isScrolling) {
-          overlayPortalController.show();
-          animationController.forward();
-          onOpen?.call();
-        }
+        overlayPortalController.show();
+        animationController.forward();
+        onOpen?.call();
       },
       [overlayPortalController],
     );
