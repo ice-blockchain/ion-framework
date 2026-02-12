@@ -171,14 +171,6 @@ class NotificationTranslationService {
                 return translations.replyComment
             case .mention:
                 return translations.mention
-            case .accountPost:
-                return translations.accountPost
-            case .accountArticle:
-                return translations.accountArticle
-            case .accountVideo:
-                return translations.accountVideo
-            case .accountStory:
-                return translations.accountStory
             case .repost:
                 return translations.repost
             case .repostArticle:
@@ -245,6 +237,32 @@ class NotificationTranslationService {
                 return translations.chatPaymentRequestMessage
             case .chatPaymentReceivedMessage:
                 return translations.chatPaymentReceivedMessage
+            case .yourCreatorTokenIsLive:
+                return translations.yourCreatorTokenIsLive
+            case .yourContentTokenIsLive:
+                return translations.yourContentTokenIsLive
+            case .yourFolloweeCreatorTokenIsLive:
+                return translations.yourFolloweeCreatorTokenIsLive
+            case .yourFolloweeContentTokenIsLive:
+                return translations.yourFolloweeContentTokenIsLive
+            case .someoneBoughtYourToken:
+                return translations.someoneBoughtYourToken
+            case .someoneBoughtSomeRelevantToken:
+                return translations.someoneBoughtSomeRelevantToken
+            case .yourCreatorTokenPriceIncreased:
+                return translations.yourCreatorTokenPriceIncreased
+            case .moreBuyersJoined:
+                return translations.moreBuyersJoined
+            case .trendingToken:
+                return translations.trendingToken
+            case .newPostSubscription:
+                return translations.newPostSubscription
+            case .newStorySubscription:
+                return translations.newStorySubscription
+            case .newVideoSubscription:
+                return translations.newVideoSubscription
+            case .newArticleSubscription:
+                return translations.newArticleSubscription
             }
         }
 
@@ -301,7 +319,7 @@ class NotificationTranslationService {
         
         let eventReference = ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind)
         let eventReferenceKey = eventReference.toString()
-        
+
         guard let userMetadata: UserMetadataEntity = cacheDB.getEntity(for: eventReferenceKey) else {
             return nil
         }
@@ -387,13 +405,13 @@ class NotificationTranslationService {
             if let quotedEvent = modifiablePost.data.quotedEvent {
                 return quotedEvent.eventReference.toString()
             } else if let parentEvent = modifiablePost.data.parentEvent {
-                return parentEvent.eventReference
+                return parentEvent.eventReference.toString()
             }
         } else if let post = entity as? PostEntity {
             if let quotedEvent = post.data.quotedEvent {
                 return quotedEvent.eventReference.toString()
             } else if let parentEvent = post.data.parentEvent {
-                return parentEvent.eventReference
+                return parentEvent.eventReference.toString()
             }
         }
         

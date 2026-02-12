@@ -17,10 +17,6 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let replyArticle: NotificationTranslation?
     let replyComment: NotificationTranslation?
     let mention: NotificationTranslation?
-    let accountPost: NotificationTranslation?
-    let accountArticle: NotificationTranslation?
-    let accountVideo: NotificationTranslation?
-    let accountStory: NotificationTranslation?
     let repost: NotificationTranslation?
     let repostArticle: NotificationTranslation?
     let repostComment: NotificationTranslation?
@@ -54,12 +50,24 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let chatMultiVideoMessage: NotificationTranslation?
     let chatPaymentRequestMessage: NotificationTranslation?
     let chatPaymentReceivedMessage: NotificationTranslation?
+    let yourCreatorTokenIsLive: NotificationTranslation?
+    let yourContentTokenIsLive: NotificationTranslation?
+    let yourFolloweeCreatorTokenIsLive: NotificationTranslation?
+    let yourFolloweeContentTokenIsLive: NotificationTranslation?
+    let someoneBoughtYourToken: NotificationTranslation?
+    let someoneBoughtSomeRelevantToken: NotificationTranslation?
+    let yourCreatorTokenPriceIncreased: NotificationTranslation?
+    let moreBuyersJoined: NotificationTranslation?
+    let trendingToken: NotificationTranslation?
+    let newPostSubscription: NotificationTranslation?
+    let newStorySubscription: NotificationTranslation?
+    let newVideoSubscription: NotificationTranslation?
+    let newArticleSubscription: NotificationTranslation?
     
     enum CodingKeys: String, CodingKey {
         case version = "_version"
         case reply, replyArticle, replyComment
         case mention
-        case accountPost, accountArticle, accountVideo, accountStory
         case repost, repostArticle, repostComment
         case quote, quoteArticle, quoteComment
         case like, likeArticle, likeComment, likeStory
@@ -72,5 +80,12 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
         case chatGifMessage, chatMultiGifMessage, chatMultiMediaMessage
         case chatMultiPhotoMessage, chatMultiVideoMessage
         case chatPaymentRequestMessage, chatPaymentReceivedMessage
+        case yourCreatorTokenIsLive, yourContentTokenIsLive
+        case yourFolloweeCreatorTokenIsLive, yourFolloweeContentTokenIsLive
+        case someoneBoughtYourToken, someoneBoughtSomeRelevantToken
+        case yourCreatorTokenPriceIncreased, moreBuyersJoined
+        case trendingToken
+        case newPostSubscription, newStorySubscription
+        case newVideoSubscription, newArticleSubscription
     }
 }
