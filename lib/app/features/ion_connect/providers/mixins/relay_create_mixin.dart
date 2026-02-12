@@ -17,9 +17,14 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/logging.dart';
 
 mixin RelayCreateMixin {
-  Future<IonConnectRelay> createRelay(Ref ref, String url) async {
+  Future<IonConnectRelay> createRelay(
+    Ref ref,
+    String url, {
+    bool allowProxy = true,
+  }) async {
     final dislikedConnectUrls = ref.read(relayDislikedConnectUrlsProvider(url));
-    final candidates = ref.read(relayConnectUrisProvider(url));
+    // `allowProxy: false` is used by direct-only picker flow to force direct connect.
+    final candidates = ref.read(relayConnectUrisProvider(url, includeProxies: allowProxy));
     final proxyDomains = ref.read(relayProxyDomainsProvider);
     final savedPreferredDomain = ref.read(relayProxyDomainPreferenceProvider(url));
 
@@ -28,7 +33,8 @@ mixin RelayCreateMixin {
 
     for (final connectUri in candidates) {
       final connectUrl = connectUri.toString();
-      if (dislikedConnectUrls.contains(connectUrl)) {
+      // Direct-only attempts should always re-check direct reachability.
+      if (allowProxy && dislikedConnectUrls.contains(connectUrl)) {
         continue;
       }
 
