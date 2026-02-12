@@ -91,7 +91,7 @@ class NotificationTranslationService {
             return nil
         }
 
-        let placeholders = data.placeholders(type: notificationType)
+        let placeholders = await data.placeholders(type: notificationType, keysStorage: keysStorage)
         
         let result = (
             title: replacePlaceholders(title, placeholders),

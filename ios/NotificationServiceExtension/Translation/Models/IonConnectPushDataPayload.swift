@@ -305,7 +305,7 @@ class IonConnectPushDataPayload: Decodable {
                (entity as? PostEntity)?.data.parentEvent?.eventReference.masterPubkey == currentPubkey
     }
 
-    func placeholders(type: PushNotificationType) -> [String: String] {
+    func placeholders(type: PushNotificationType, keysStorage: KeysStorage) async -> [String: String] {
         guard let masterPubkey = mainEntity?.masterPubkey else {
             return [:]
         }
@@ -340,6 +340,36 @@ class IonConnectPushDataPayload: Decodable {
                     if type == PushNotificationType.chatDocumentMessage, let media = message.data.media.first {
                         data["documentExt"] = FileTypeMapper.getFileType(mimeType: media.originalMimeType)
                     }
+                }
+            }
+        }
+
+        // Handle CommunityTokenActionEntity placeholders
+        if let entity = mainEntity as? CommunityTokenActionEntity {
+            if let amountUsd = entity.data.getUsdAmount() {
+                data["amountUSD"] = PriceFormatter.formatPriceWithSubscript(amountUsd.value, symbol: "")
+            } else {
+                data["amountUSD"] = ""
+            }
+            data["ticker"] = entity.data.tokenTicker
+            
+            if type == .someoneBoughtSomeRelevantToken {
+                // Fetch the original author's metadata
+                let eventReference = ReplaceableEventReference(
+                    masterPubkey: entity.data.relatedPubkey.value,
+                    kind: UserMetadataEntity.kind
+                )
+                let eventReferenceKey = eventReference.toString()
+                
+                let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+                guard cacheDB.openDatabase() else {
+                    NSLog("[NSE] Failed to open ion_connect_cache database for original author metadata")
+                    return data
+                }
+                defer { cacheDB.closeDatabase() }
+                
+                if let originalUserMetadata = cacheDB.getGenericEntity(for: eventReferenceKey) as? UserMetadataEntity {
+                    data["originalAuthorDisplayName"] = originalUserMetadata.data.trimmedDisplayName
                 }
             }
         }
