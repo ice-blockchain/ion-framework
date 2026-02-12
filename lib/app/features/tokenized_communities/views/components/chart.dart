@@ -9,7 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
-import 'package:ion/app/features/tokenized_communities/hooks/use_chart_initial_switcher_animation_enabled.dart';
+import 'package:ion/app/features/tokenized_communities/hooks/use_chart_initial_fade_in_visibility.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
@@ -82,58 +82,22 @@ class Chart extends HookConsumerWidget {
       ],
     );
 
-    final initialSwitcherAnimationEnabled = useChartInitialSwitcherAnimationEnabled(
-      hasLoadedOnce: hasLoadedOnce.value,
-    );
+    final isLoading = candlesAsync.isLoading;
+    final useCached = hasLoadedOnce.value && cachedCandles.value != null;
+    final candlesToRender =
+        isLoading ? (useCached ? cachedCandles.value : null) : chartDisplayData.candlesToShow;
+    final showEmptyPlaceholder = isLoading && !useCached;
 
-    return candlesAsync.when(
-      data: (_) {
-        return _ChartContent(
-          price: price,
-          label: label,
-          createdAtOfToken: createdAtOfToken,
-          changePercent: changePercent,
-          candles: chartDisplayData.candlesToShow,
-          isLoading: false,
-          showEmptyPlaceholder: false,
-          switcherDuration:
-              initialSwitcherAnimationEnabled ? const Duration(milliseconds: 200) : Duration.zero,
-          selectedRange: selectedRange.value,
-          onRangeChanged: (range) => selectedRange.value = range,
-        );
-      },
-      error: (error, stackTrace) {
-        return _ChartContent(
-          price: price,
-          label: label,
-          createdAtOfToken: createdAtOfToken,
-          changePercent: changePercent,
-          candles: chartDisplayData.candlesToShow,
-          isLoading: false,
-          showEmptyPlaceholder: false,
-          switcherDuration:
-              initialSwitcherAnimationEnabled ? const Duration(milliseconds: 200) : Duration.zero,
-          selectedRange: selectedRange.value,
-          onRangeChanged: (range) => selectedRange.value = range,
-        );
-      },
-      loading: () {
-        final useCached = hasLoadedOnce.value && cachedCandles.value != null;
-        // Use cached candles if available (interval change), otherwise empty (initial load)
-        return _ChartContent(
-          price: price,
-          label: label,
-          createdAtOfToken: createdAtOfToken,
-          changePercent: changePercent,
-          candles: useCached ? cachedCandles.value : null,
-          isLoading: true,
-          showEmptyPlaceholder: !useCached,
-          switcherDuration:
-              initialSwitcherAnimationEnabled ? const Duration(milliseconds: 200) : Duration.zero,
-          selectedRange: selectedRange.value,
-          onRangeChanged: null,
-        );
-      },
+    return _ChartContent(
+      price: price,
+      label: label,
+      createdAtOfToken: createdAtOfToken,
+      changePercent: changePercent,
+      candles: candlesToRender,
+      isLoading: isLoading,
+      showEmptyPlaceholder: showEmptyPlaceholder,
+      selectedRange: selectedRange.value,
+      onRangeChanged: isLoading ? null : (range) => selectedRange.value = range,
     );
   }
 
@@ -153,7 +117,7 @@ class Chart extends HookConsumerWidget {
   }
 }
 
-class _ChartContent extends StatelessWidget {
+class _ChartContent extends HookWidget {
   const _ChartContent({
     required this.price,
     required this.label,
@@ -162,7 +126,6 @@ class _ChartContent extends StatelessWidget {
     required this.candles,
     required this.isLoading,
     required this.showEmptyPlaceholder,
-    required this.switcherDuration,
     required this.selectedRange,
     required this.onRangeChanged,
   });
@@ -174,13 +137,18 @@ class _ChartContent extends StatelessWidget {
   final List<ChartCandle>? candles;
   final bool isLoading;
   final bool showEmptyPlaceholder;
-  final Duration switcherDuration;
   final ChartTimeRange selectedRange;
   final ValueChanged<ChartTimeRange>? onRangeChanged;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
+    final isChartVisible = useChartInitialFadeInVisibility(
+      context: context,
+      isLoading: isLoading,
+      hasRenderableData: candles != null && candles!.isNotEmpty,
+    );
+
     return ColoredBox(
       color: colors.secondaryBackground,
       child: Column(
@@ -201,16 +169,18 @@ class _ChartContent extends StatelessWidget {
             child: Center(
               child: AspectRatio(
                 aspectRatio: 1.7,
-                child: AnimatedSwitcher(
-                  duration: switcherDuration,
-                  child: showEmptyPlaceholder
-                      ? const SizedBox.expand()
-                      : TokenAreaLineChart(
+                child: showEmptyPlaceholder
+                    ? const SizedBox.expand()
+                    : AnimatedOpacity(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOut,
+                        opacity: isChartVisible ? 1 : 0,
+                        child: TokenAreaLineChart(
                           candles: candles ?? const [],
                           selectedRange: selectedRange,
                           isLoading: isLoading,
                         ),
-                ),
+                      ),
               ),
             ),
           ),
