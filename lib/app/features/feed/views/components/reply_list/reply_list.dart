@@ -17,6 +17,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/d3g_post_detail_tracker.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ReplyList extends HookConsumerWidget {
@@ -52,6 +53,10 @@ class ReplyList extends HookConsumerWidget {
     );
 
     final isLoading = replies?.data is PagedLoading;
+
+    // [d3g]
+    if (entities != null && entities.isNotEmpty) d3gTracker.markFirstReply();
+    if (!isLoading && entities != null) d3gTracker.finish();
 
     return KeyboardVisibilityBuilder(
       builder: (context, isKeyboardVisible) => LoadMoreBuilder(

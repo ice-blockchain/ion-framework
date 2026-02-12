@@ -35,6 +35,7 @@ import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/retry.dart';
+import 'package:ion/d3g_post_detail_tracker.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -383,9 +384,11 @@ class IonConnectNotifier extends _$IonConnectNotifier {
     ActionType? actionType,
     ActionSource actionSource = const ActionSourceCurrentUser(),
   }) async* {
+    d3gTracker.trackRequestStart(); // [d3g]
     await for (final event
         in requestEvents(requestMessage, actionType: actionType, actionSource: actionSource)) {
       try {
+        d3gTracker.trackEvent(event); // [d3g]
         yield _parseAndCache(event) as T;
       } catch (error, stackTrace) {
         Logger.log('Failed to process event ${event.id}', error: error, stackTrace: stackTrace);

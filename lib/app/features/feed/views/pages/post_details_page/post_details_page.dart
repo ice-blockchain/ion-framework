@@ -32,6 +32,7 @@ import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/services/analytics_service/analytics_service_provider.r.dart';
+import 'package:ion/d3g_post_detail_tracker.dart';
 
 class PostDetailsPage extends HookConsumerWidget {
   const PostDetailsPage({
@@ -43,6 +44,7 @@ class PostDetailsPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useMemoized(d3gTracker.start); // [d3g] must be synchronous, before entity watch
     final canReply = ref.watch(canReplyProvider(eventReference)).value ?? false;
     final scrollController = useScrollController();
     final entity = ref
@@ -52,6 +54,7 @@ class PostDetailsPage extends HookConsumerWidget {
           ),
         )
         .valueOrNull;
+    if (entity != null) d3gTracker.markPostShown(); // [d3g]
     final isReply = entity is ModifiablePostEntity && entity.data.isReply ||
         entity is PostEntity && entity.data.isReply;
 

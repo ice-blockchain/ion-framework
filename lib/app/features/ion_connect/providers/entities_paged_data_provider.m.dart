@@ -11,12 +11,30 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/default_events_metadata_handler.r.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_database_cache_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'entities_paged_data_provider.m.freezed.dart';
 part 'entities_paged_data_provider.m.g.dart';
+
+List<String> _flattenTagValues(Iterable<List<Object?>> tagValueLists) {
+  final result = <String>[];
+  void collect(List<Object?> list) {
+    for (final e in list) {
+      if (e is String) {
+        result.add(e);
+      } else if (e is List) {
+        collect(e.cast<Object?>());
+      }
+    }
+  }
+  for (final v in tagValueLists) {
+    collect(v);
+  }
+  return result;
+}
 
 abstract class PagedNotifier {
   Future<void> fetchEntities();
@@ -197,6 +215,36 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
         return DataSourceFetchResult.empty(dataSource.actionSource);
       }
 
+      final visible = (state!.data.items ?? {}).toList();
+      var cursor = visible.length;
+
+      if (visible.isEmpty) {
+        final kinds = dataSource.requestFilter.kinds;
+        final tagValues = _flattenTagValues(dataSource.requestFilter.tags?.values ?? []);
+        final keyword = tagValues.where((s) => s.isNotEmpty).firstOrNull;
+        if (kinds != null && keyword != null) {
+          try {
+            final cached = await ref
+                .read(ionConnectDatabaseCacheProvider.notifier)
+                .getAllFiltered(kinds: kinds, keyword: keyword);
+            for (final entity in cached) {
+              if (dataSource.entityFilter(entity)) {
+                visible.add(entity);
+              }
+            }
+            if (visible.isNotEmpty) {
+              cursor = visible.length;
+              state = state?.copyWith(
+                data: Paged.loading(
+                  visible.toSet(),
+                  pagination: state!.data.pagination,
+                ),
+              );
+            }
+          } catch (_) {}
+        }
+      }
+
       final requestMessage = RequestMessage();
       final filter = dataSource.requestFilter;
       requestMessage.addFilter(
@@ -207,9 +255,6 @@ class EntitiesPagedData extends _$EntitiesPagedData implements PagedNotifier {
             requestMessage,
             actionSource: dataSource.actionSource,
           );
-
-      final visible = (state!.data.items ?? {}).toList();
-      var cursor = visible.length;
 
       DateTime? lastEventTime;
       final pagedFilter = dataSource.pagedFilter ?? dataSource.entityFilter;
