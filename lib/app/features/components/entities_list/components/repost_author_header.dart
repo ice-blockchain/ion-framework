@@ -15,9 +15,11 @@ class RepostAuthorHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final name = ref.watch(isCurrentUserSelectorProvider(pubkey))
-        ? context.i18n.common_you
-        : ref.watch(userPreviewDataProvider(pubkey).select(userPreviewDisplayNameSelector));
+    final text = ref.watch(isCurrentUserSelectorProvider(pubkey))
+        ? context.i18n.feed_you_reposted
+        : context.i18n.feed_someone_reposted(
+            ref.watch(userPreviewDataProvider(pubkey).select(userPreviewDisplayNameSelector)),
+          );
 
     return Padding(
       padding: EdgeInsetsDirectional.only(top: 12.0.s),
@@ -32,7 +34,7 @@ class RepostAuthorHeader extends ConsumerWidget {
             SizedBox(width: 4.0.s),
             Flexible(
               child: Text(
-                context.i18n.feed_someone_reposted(name),
+                text,
                 style: context.theme.appTextThemes.body2.copyWith(
                   color: context.theme.appColors.onTertiaryBackground,
                 ),
