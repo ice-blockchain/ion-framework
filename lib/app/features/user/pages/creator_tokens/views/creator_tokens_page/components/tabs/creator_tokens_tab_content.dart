@@ -41,6 +41,8 @@ class CreatorTokensTabContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useAutomaticKeepAlive();
+
     final selectedFilter = ref.watch(creatorTokensFilterNotifierProvider);
     final requestType = selectedFilter.requestType;
     final cachedItemsByType = useRef<Map<String?, List<CommunityToken>>>({});
