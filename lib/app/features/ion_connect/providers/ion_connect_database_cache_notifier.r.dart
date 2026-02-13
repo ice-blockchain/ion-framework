@@ -2,10 +2,12 @@
 
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
@@ -22,35 +24,44 @@ part 'ion_connect_database_cache_notifier.r.g.dart';
 
 abstract class DbCacheableEntity implements EntityEventSerializable {}
 
-@Riverpod(keepAlive: true)
-Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
+QueryExecutor _openCacheConnection(String? appGroup) {
   const databaseName = 'ion_connect_cache';
 
+  if (appGroup == null) {
+    return driftDatabase(
+      name: databaseName,
+      native: DriftNativeOptions(
+        setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
+      ),
+    );
+  }
+
+  return driftDatabase(
+    name: databaseName,
+    native: DriftNativeOptions(
+      databasePath: () async =>
+          getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroup),
+      shareAcrossIsolates: true,
+      setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
+    ),
+  );
+}
+
+@Riverpod(keepAlive: true)
+Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
   final appGroup = Platform.isIOS
       ? ref.watch(envProvider.notifier).get<String>(EnvVariable.FOUNDATION_APP_GROUP)
       : null;
 
-  final executor = appGroup == null
-      ? driftDatabase(
-          name: databaseName,
-          native: DriftNativeOptions(
-            setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
-          ),
-        )
-      : driftDatabase(
-          name: databaseName,
-          native: DriftNativeOptions(
-            databasePath: () async =>
-                getSharedDatabasePath(databaseName: databaseName, appGroupId: appGroup),
-            shareAcrossIsolates: true,
-            setup: (database) => database.execute(DatabaseConstants.journalModeWAL),
-          ),
-        );
-
-  final database = IONConnectCacheDatabase(executor);
+  final database = IONConnectCacheDatabase(_openCacheConnection(appGroup));
   final cacheService = IonConnectCacheServiceDriftImpl(db: database);
 
   onLogout(ref, cacheService.clearDatabase);
+  //onUserSwitch(ref, cacheService.clearDatabase);
+  onAppWentToBackground(
+    ref,
+    () => database.customStatement(DatabaseConstants.walCheckpointTruncate),
+  );
 
   return cacheService;
 }

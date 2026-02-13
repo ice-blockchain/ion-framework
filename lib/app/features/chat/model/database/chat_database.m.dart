@@ -32,6 +32,7 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_
 import 'package:ion/app/features/user_archive/model/database/user_archive_database.m.dart';
 import 'package:ion/app/features/user_archive/model/entities/user_archive_entity.f.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -65,7 +66,7 @@ ChatDatabase chatDatabase(Ref ref) {
       : null;
   final database = ChatDatabase(pubkey, appGroupId: appGroup);
 
-  onLogout(ref, database.close);
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }

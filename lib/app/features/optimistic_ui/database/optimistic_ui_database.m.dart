@@ -9,6 +9,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/optimistic_ui/database/tables/user_sent_likes_table.d.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'optimistic_ui_database.m.g.dart';
@@ -23,7 +24,7 @@ OptimisticUiDatabase optimisticUiDatabase(Ref ref) {
 
   final database = OptimisticUiDatabase(pubkey);
 
-  onLogout(ref, database.close);
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }
