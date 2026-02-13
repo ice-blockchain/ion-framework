@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user_mute/model/database/user_mute_database.m.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_mute_database_provider.r.g.dart';
@@ -19,9 +20,7 @@ UserMuteDatabase userMuteDatabase(Ref ref) {
 
   final database = UserMuteDatabase(pubkey);
 
-  onLogout(ref, database.close);
-  // TODO: Not present in the release_candidate yet
-  //onUserSwitch(ref, database.close);
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }
