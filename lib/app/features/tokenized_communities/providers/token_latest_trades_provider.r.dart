@@ -72,7 +72,9 @@ class TokenLatestTrades extends _$TokenLatestTrades {
   Future<int> loadMore() async {
     if (_disposed) return 0;
 
+    final generation = _generation;
     final client = await _clientFuture;
+    if (generation != _generation) return 0;
 
     try {
       final moreTrades = await client.communityTokens.fetchLatestTrades(
@@ -80,9 +82,11 @@ class TokenLatestTrades extends _$TokenLatestTrades {
         limit: _pageSize,
         offset: _restOffset,
       );
+      if (generation != _generation) return 0;
       final fetchedCount = moreTrades.length;
 
       await _enqueue(() {
+        if (generation != _generation) return;
         _currentTrades.addAll(moreTrades);
         _restOffset += moreTrades.length;
         _emit();
@@ -109,9 +113,19 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
       await _enqueue(() {
         if (generation != _generation) return;
-        _currentTrades
-          ..clear()
-          ..addAll(initialTrades);
+
+        if (_currentTrades.isEmpty) {
+          // No SSE trades arrived yet — use the snapshot as-is.
+          _currentTrades.addAll(initialTrades);
+        } else {
+          // SSE trades already present — merge, deduplicating via structural equality
+          // (LatestTrade is a Freezed class with value-based == / hashCode).
+          final existingTrades = _currentTrades.toSet();
+          final newFromSnapshot =
+              initialTrades.where((t) => !existingTrades.contains(t)).toList(growable: false);
+          _currentTrades.addAll(newFromSnapshot);
+        }
+
         _restOffset = offset + initialTrades.length;
         _emit();
       });
@@ -124,6 +138,10 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     // Keep reconnecting forever while the provider is alive
     // and this is still the current build cycle.
     while (!_disposed && generation == _generation) {
+      // Track the subscription locally so that a stale loop only
+      // closes its own subscription, never the one belonging to a
+      // newer generation.
+      NetworkSubscription<List<LatestTradeBase>>? localSubscription;
       try {
         final client = await _clientFuture;
         if (generation != _generation) break;
@@ -135,6 +153,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
           await subscription.close();
           break;
         }
+        localSubscription = subscription;
         _activeSubscription = subscription;
 
         await for (final batch in subscription.stream) {
@@ -169,17 +188,21 @@ class TokenLatestTrades extends _$TokenLatestTrades {
           message: 'Latest trades subscription failed; reconnecting',
         );
       } finally {
+        // Only close the subscription that *this* loop iteration opened.
+        // If a newer generation already replaced `_activeSubscription`,
+        // we must not null it out or close it.
         try {
-          await _activeSubscription?.close();
+          await localSubscription?.close();
         } catch (e, st) {
-          // ignore and log error
           Logger.error(
             e,
             stackTrace: st,
             message: '[TokenLatestTrades] Failed to close subscription in _runSse finally block',
           );
         }
-        _activeSubscription = null;
+        if (_activeSubscription == localSubscription) {
+          _activeSubscription = null;
+        }
       }
     }
   }
