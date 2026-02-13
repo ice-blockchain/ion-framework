@@ -74,19 +74,16 @@ class CreatorTokensTabContent extends HookConsumerWidget {
           return null;
         }
 
-        if (state.activeItems.isNotEmpty || !state.activeHasMore) {
-          cachedItemsByType.value = {
-            ...cachedItemsByType.value,
-            requestType: List<CommunityToken>.from(state.activeItems),
-          };
-        }
+        cachedItemsByType.value = {
+          ...cachedItemsByType.value,
+          requestType: List<CommunityToken>.from(state.activeItems),
+        };
         return null;
       },
       [
         state.activeItems,
         state.activeIsLoading,
         state.activeIsInitialLoading,
-        state.activeHasMore,
         requestType,
       ],
     );
