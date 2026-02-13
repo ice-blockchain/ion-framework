@@ -24,13 +24,10 @@ List<EntitiesDataSource>? relevantFollowersDataSource(Ref ref, String pubkey, {i
         tags: {
           '#p': [pubkey],
         },
-        search: SearchExtensions(
-          [
-            MostRelevantFollowersSearchExtension(),
-            ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
-            ...SearchExtensions.withTokens(forKind: UserMetadataEntity.kind).extensions,
-          ],
-        ).toString(),
+        search: SearchExtensions([
+          MostRelevantFollowersSearchExtension(),
+          ...SearchExtensions.forUserMetadata().extensions,
+        ]).toString(),
         limit: limit,
       ),
     ),
