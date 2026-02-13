@@ -121,12 +121,17 @@ class NetworkClient {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
   }) async {
+    final queryParams = _buildQueryParameters(queryParameters);
+    final fullPath = Uri(path: path, queryParameters: queryParams).toString();
+
     final initialSubscription = await _client.subscribeSse<T>(
       path,
-      queryParameters: _buildQueryParameters(queryParameters),
+      queryParameters: queryParams,
       headers: _addAuthorizationHeader(headers),
     );
-    _logger?.log('[NetworkClient] Opening initial SSE subscription: $path');
+    _logger?.log(
+      '[NetworkClient] Opening initial SSE subscription: $path with query: $queryParams',
+    );
 
     // Some SSE endpoints use a marker event with `Data: nil` (Go), which may be
     // delivered as a literal `<nil>` string. If the SSE decoder attempts to
@@ -143,10 +148,10 @@ class NetworkClient {
       initialSubscription: initialSubscription,
       createSubscription: () => _client.subscribeSse<T>(
         path,
-        queryParameters: _buildQueryParameters(queryParameters),
+        queryParameters: queryParams,
         headers: _addAuthorizationHeader(headers),
       ),
-      path: path,
+      path: fullPath,
       logger: _logger,
       onStaleConnection: _client.forceDisconnect,
     );

@@ -52,8 +52,17 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
+      final sessionId = state.sessionId;
+      if (sessionId == null) {
+        state = state.copyWith(
+          browsingIsLoading: false,
+          browsingIsInitialLoading: false,
+        );
+        return;
+      }
+
       final page = await client.communityTokens.getCategoryTokens(
-        sessionId: state.sessionId!,
+        sessionId: sessionId,
         type: _type,
         tokenType: _tokenType,
         limit: _limit,
@@ -86,12 +95,21 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   Future<void> _loadMoreBrowsing() async {
     if (!state.browsingHasMore || state.browsingIsLoading) return;
 
+    // Ensure session is initialized before attempting to load more
+    if (state.sessionId == null) return;
+
     state = state.copyWith(browsingIsLoading: true);
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
+      final sessionId = state.sessionId;
+      if (sessionId == null) {
+        state = state.copyWith(browsingIsLoading: false);
+        return;
+      }
+
       final page = await client.communityTokens.getCategoryTokens(
-        sessionId: state.sessionId!,
+        sessionId: sessionId,
         type: _type,
         tokenType: _tokenType,
         limit: _limit,
@@ -113,12 +131,21 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   Future<void> _loadMoreSearch() async {
     if (!state.searchHasMore || state.searchIsLoading) return;
 
+    // Ensure session is initialized before attempting to load more
+    if (state.sessionId == null) return;
+
     state = state.copyWith(searchIsLoading: true);
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
+      final sessionId = state.sessionId;
+      if (sessionId == null) {
+        state = state.copyWith(searchIsLoading: false);
+        return;
+      }
+
       final page = await client.communityTokens.getCategoryTokens(
-        sessionId: state.sessionId!,
+        sessionId: sessionId,
         type: _type,
         tokenType: _tokenType,
         keyword: state.searchQuery,
