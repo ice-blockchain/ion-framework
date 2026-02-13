@@ -12,6 +12,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
+import 'package:ion/app/features/feed/create_post/providers/onelink_resolved_quote_provider.r.dart';
 import 'package:ion/app/features/feed/create_post/views/hooks/use_can_submit_post.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
 import 'package:ion/app/features/feed/polls/utils/poll_utils.dart';
@@ -84,6 +85,11 @@ class PostSubmitButton extends HookConsumerWidget {
       pollAnswers: draftPoll.answers,
       modifiedEvent: modifiedEntity,
     );
+
+    // Use dynamically resolved onelink quote if no static quotedEvent
+    final oneLinkResolvedQuote =
+        quotedEvent == null ? ref.watch(oneLinkResolvedQuoteNotifierProvider) : null;
+    final effectiveQuotedEvent = quotedEvent ?? oneLinkResolvedQuote;
 
     final loading = useState(false);
     final prefetchedUgcCounter = ref.watch(ugcCounterProvider());
@@ -164,7 +170,7 @@ class PostSubmitButton extends HookConsumerWidget {
                     textEditorController.document.toDelta(),
                   ),
                   parentEvent: parentEvent,
-                  quotedEvent: quotedEvent,
+                  quotedEvent: effectiveQuotedEvent,
                   mediaFiles: filesToUpload,
                   whoCanReply: whoCanReply,
                   topics: selectedTopics,

@@ -75,6 +75,19 @@ AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
   );
 }
 
+/// Result of resolving a OneLink URL asynchronously.
+///
+/// Contains the decoded deep link value (encoded event reference like `ion:naddr1...`)
+/// and the optional content type extracted from the link's click event.
+typedef OneLinkResolveResult = ({
+  /// The resolved deep link value, typically an encoded event reference
+  /// (e.g. `ion:naddr1...` or `ion:nevent1...`).
+  String? deepLinkValue,
+
+  /// The content type of the shared content, if available.
+  SharedContentType? contentType,
+});
+
 final class AppsFlyerDeepLinkService {
   AppsFlyerDeepLinkService(
     this._appsflyerSdk, {
@@ -103,6 +116,10 @@ final class AppsFlyerDeepLinkService {
 
   bool _isInitialized = false;
 
+  /// Completer used to intercept the next `onDeepLinking` callback result
+  /// when [resolveOneLinkUrlAsync] is in flight.
+  Completer<OneLinkResolveResult?>? _pendingResolveCompleter;
+
   Future<void> init({
     required void Function(String path, SharedContentType? contentType) onDeeplink,
     required InternalDeepLinkService internalDeepLinkService,
@@ -112,6 +129,35 @@ final class AppsFlyerDeepLinkService {
     });
     _appsflyerSdk
       ..onDeepLinking((link) {
+        // If there's a pending async resolve request, intercept the result
+        // and complete the completer instead of triggering navigation.
+        //
+        // Brand domain links go through a two-step resolution:
+        // 1st callback: deepLinkValue is null, clickEvent has the brand domain URL
+        //   → the existing logic below re-resolves with the base host
+        // 2nd callback: deepLinkValue is present with the actual encoded event ref
+        //
+        // We only complete the completer when deepLinkValue is available.
+        // If it's null, we let the existing logic handle re-resolution.
+        final pendingCompleter = _pendingResolveCompleter;
+        if (pendingCompleter != null && !pendingCompleter.isCompleted) {
+          final deepLinkValue = link.deepLink?.deepLinkValue;
+          if (deepLinkValue != null && deepLinkValue.isNotEmpty) {
+            _pendingResolveCompleter = null;
+            final resolvedContentType = _extractContentTypeFromLink(link);
+            pendingCompleter.complete(
+              (
+                deepLinkValue: deepLinkValue,
+                contentType: resolvedContentType,
+              ),
+            );
+            return;
+          }
+          // deepLinkValue is null — fall through to existing logic
+          // which will re-resolve brand domain links. The completer
+          // stays active for the subsequent callback.
+        }
+
         final path = link.deepLink?.deepLinkValue;
         final contentType = _extractContentTypeFromLink(link);
 
@@ -347,7 +393,44 @@ final class AppsFlyerDeepLinkService {
     return Map<String, String?>.from(payload as Map<String, dynamic>);
   }
 
-  void resolveDeeplink(String url) => _appsflyerSdk.resolveOneLinkUrl(url);
+  void resolveDeeplink(String url) =>
+      _appsflyerSdk.resolveOneLinkUrl(url.replaceAll(_brandDomain, _baseHost));
+
+  /// Resolves a OneLink URL asynchronously and returns the result.
+  ///
+  /// Unlike [resolveDeeplink], this method returns a [Future] that completes
+  /// with the resolved deep link value and content type. It works by temporarily
+  /// intercepting the next [onDeepLinking] callback result.
+  ///
+  /// Returns `null` if the resolution times out or fails.
+  Future<OneLinkResolveResult?> resolveOneLinkUrlAsync(String url) async {
+    // Cancel any previous pending resolve
+    if (_pendingResolveCompleter != null && !_pendingResolveCompleter!.isCompleted) {
+      _pendingResolveCompleter!.complete(null);
+    }
+
+    final completer = Completer<OneLinkResolveResult?>();
+    _pendingResolveCompleter = completer;
+
+    resolveDeeplink(url);
+
+    try {
+      return await completer.future.timeout(
+        _linkGenerationTimeout,
+        onTimeout: () {
+          Logger.error(
+            'OneLink URL resolution timed out after ${_linkGenerationTimeout.inSeconds}s',
+          );
+          _pendingResolveCompleter = null;
+          return null;
+        },
+      );
+    } catch (error) {
+      Logger.error('OneLink URL resolution failed: $error');
+      _pendingResolveCompleter = null;
+      return null;
+    }
+  }
 
   SharedContentType? _extractContentTypeFromLink(DeepLinkResult link) {
     try {
