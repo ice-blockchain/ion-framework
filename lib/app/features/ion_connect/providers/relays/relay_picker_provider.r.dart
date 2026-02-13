@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/auth/providers/relays_assigned_provider.r.dart';
 import 'package:ion/app/features/core/providers/relay_proxy_domains_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart' hide requestEvents;
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
@@ -296,6 +297,24 @@ class RelayPicker extends _$RelayPicker {
 
     switch (actionSource) {
       case ActionSourceCurrentUser():
+        final currentUserRelays = await ref.read(currentUserIdentityConnectRelaysProvider.future);
+        if (currentUserRelays == null || currentUserRelays.isEmpty) {
+          Logger.log(
+            '$sessionPrefix[RELAY] Current user relays unavailable; skipping relay selection.',
+          );
+
+          return {};
+        }
+
+        final relaysAssigned = await ref.read(relaysAssignedProvider.future);
+        if (relaysAssigned != true) {
+          Logger.log(
+            '$sessionPrefix[RELAY] Current user relays not assigned; skipping relay selection.',
+          );
+
+          return {};
+        }
+
         final currentUserRankedRelays = await _getCurrentUserRankedRelays();
         final currentUserRankedRelayUrls =
             currentUserRankedRelays.map((relay) => relay.url).toList();
