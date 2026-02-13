@@ -64,6 +64,7 @@ class GifPreview extends HookConsumerWidget {
     );
 
     final isVideoPlaybackEnabled = ref.watch(feedVideoPlaybackEnabledNotifierProvider);
+    final playbackNotifier = ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier);
     final videoSettings = ref.watch(videoSettingsProvider);
     final isFullyVisible = useState(false);
     final isRouteFocused = useState(true);
@@ -72,24 +73,24 @@ class GifPreview extends HookConsumerWidget {
     useRoutePresence(
       onBecameInactive: () {
         if (context.mounted) {
-          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).disablePlayback();
+          playbackNotifier.disablePlayback();
           isRouteFocused.value = false;
         }
       },
       onBecameActive: () {
         if (context.mounted) {
-          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).enablePlayback();
+          playbackNotifier.enablePlayback();
           isRouteFocused.value = true;
         }
       },
     );
 
-    // On first load, if this is the current route, enable playback right away.
-    // Can't use useEffect(init) for this—must run after build.
+    // On mount, enable playback if already on current route (onBecameActive
+    // may not fire for widgets that mount during route transition).
     useOnInit(
       () {
         if (context.mounted && context.isCurrentRoute) {
-          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).enablePlayback();
+          playbackNotifier.enablePlayback();
         }
       },
       [],
@@ -113,14 +114,18 @@ class GifPreview extends HookConsumerWidget {
       () {
         if (!isGifLoaded.value) return;
         try {
-          if (controller.isAnimating) {
-            if (!shouldAnimate) {
-              controller.stop();
-            }
-          } else {
-            if (shouldAnimate) {
-              controller.repeat();
-            }
+          final wouldPlay = isFullyVisible.value &&
+              isRouteFocused.value &&
+              videoSettings.autoplay;
+          // Enable playback when a GIF would play but it's disabled (e.g. full post
+          // opened from feed — onBecameActive may not fire during route transition).
+          if (wouldPlay && !isVideoPlaybackEnabled) {
+            playbackNotifier.enablePlayback();
+          }
+          if (controller.isAnimating && !shouldAnimate) {
+            controller.stop();
+          } else if (!controller.isAnimating && shouldAnimate) {
+            controller.repeat();
           }
         } catch (_) {
           // GIF may not be ready yet (no Duration) - onFetchCompleted will retry
@@ -137,7 +142,7 @@ class GifPreview extends HookConsumerWidget {
     );
 
     return VisibilityDetector(
-      key: ValueKey(uniqueId),
+      key: ValueKey(uniqueId.value),
       onVisibilityChanged: handleVisibilityChanged,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -148,14 +153,13 @@ class GifPreview extends HookConsumerWidget {
             child: FutureBuilder<List<int>>(
               future: gifBytesFuture,
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return _StaticPlaceholder(
-                    authorPubkey: authorPubkey,
-                    aspectRatio: effectiveAspectRatio,
-                    thumbnailUrl: thumbnailUrl,
-                    blurhash: blurhash,
-                  );
-                }
+                final placeholder = _StaticPlaceholder(
+                  authorPubkey: authorPubkey,
+                  aspectRatio: effectiveAspectRatio,
+                  thumbnailUrl: thumbnailUrl,
+                  blurhash: blurhash,
+                );
+                if (!snapshot.hasData) return placeholder;
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   VisibilityDetectorController.instance.notifyNow();
@@ -165,28 +169,10 @@ class GifPreview extends HookConsumerWidget {
                   image: MemoryImage(Uint8List.fromList(snapshot.requireData)),
                   controller: controller,
                   fit: BoxFit.cover,
-                  placeholder: (context) => _StaticPlaceholder(
-                    authorPubkey: authorPubkey,
-                    aspectRatio: effectiveAspectRatio,
-                    thumbnailUrl: thumbnailUrl,
-                    blurhash: blurhash,
-                  ),
+                  placeholder: (_) => placeholder,
                   onFetchCompleted: () {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (!context.mounted) return;
-                      isGifLoaded.value = true;
-                      try {
-                        final settings = ref.read(videoSettingsProvider);
-                        final shouldAnimateNow = isFullyVisible.value &&
-                            isRouteFocused.value &&
-                            ref.read(feedVideoPlaybackEnabledNotifierProvider) &&
-                            settings.autoplay;
-                        if (controller.isAnimating) {
-                          if (!shouldAnimateNow) controller.stop();
-                        } else {
-                          if (shouldAnimateNow) controller.repeat();
-                        }
-                      } catch (_) {}
+                      if (context.mounted) isGifLoaded.value = true;
                     });
                   },
                 );
