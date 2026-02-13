@@ -39,6 +39,11 @@ class TokenMarketInfo extends _$TokenMarketInfo {
     final cachedtoken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
 
     if (cachedtoken != null) {
+      _logTokenPosition(
+        source: 'cache',
+        externalAddress: externalAddress,
+        token: cachedtoken,
+      );
       yield cachedtoken;
     }
 
@@ -47,9 +52,17 @@ class TokenMarketInfo extends _$TokenMarketInfo {
     final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
 
     if (currentToken == null) {
+      Logger.log(
+        '[TokenMarketInfo] getTokenInfo (REST) returned null | externalAddress=$externalAddress',
+      );
       unawaited(_subscribeSse(client, externalAddress, null));
       yield null;
     } else {
+      _logTokenPosition(
+        source: 'REST',
+        externalAddress: externalAddress,
+        token: currentToken,
+      );
       final adjusted = _processAndCacheToken(currentToken, ref);
       if (adjusted != null) {
         yield adjusted;
@@ -83,7 +96,13 @@ class TokenMarketInfo extends _$TokenMarketInfo {
             return;
           }
 
-          final adjusted = _processAndCacheToken(_activeTokenState!, ref);
+          final merged = _activeTokenState!;
+          _logTokenPosition(
+            source: 'SSE',
+            externalAddress: externalAddress,
+            token: merged,
+          );
+          final adjusted = _processAndCacheToken(merged, ref);
           if (adjusted != null) {
             state = AsyncData(adjusted);
           }
@@ -200,6 +219,19 @@ class CachedTokenMarketInfoNotifier extends _$CachedTokenMarketInfoNotifier {
 
     return token.copyWith(marketData: adjustedMarketData);
   }
+}
+
+void _logTokenPosition({
+  required String source,
+  required String externalAddress,
+  required CommunityToken token,
+}) {
+  final position = token.marketData.position;
+  Logger.log(
+    '[TokenMarketInfo] $source | externalAddress=$externalAddress | '
+    'position=$position | '
+    'position.amountValue=${position?.amountValue}',
+  );
 }
 
 CommunityToken? _processAndCacheToken(CommunityToken token, Ref ref) {
