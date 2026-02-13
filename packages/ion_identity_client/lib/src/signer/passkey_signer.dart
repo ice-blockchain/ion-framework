@@ -176,13 +176,17 @@ class PasskeysSigner {
       final assertion = await sign(
         challenge,
         localCredsOnly: localCredsOnly,
+        username: username,
       );
       await _clearCanSuggestStateOnSuccess(username);
       return assertion;
     } on NoCredentialsAvailableException {
       if (localCredsOnly && username.isNotEmpty) {
         try {
-          final assertion = await sign(challenge);
+          final assertion = await sign(
+            challenge,
+            username: username,
+          );
           await _clearCanSuggestStateOnSuccess(username);
           return assertion;
         } on NoCredentialsAvailableException {
@@ -237,12 +241,16 @@ class PasskeysSigner {
   ///
   /// This method interacts with a passkey authenticator to authenticate the
   /// user, utilizing the options specified in [PasskeysOptions].
+  ///
+  /// [username] is optional and used for iOS bug detection when [localCredsOnly] is true.
   Future<AssertionRequestData> sign(
     UserActionChallenge challenge, {
     bool localCredsOnly = false,
+    String? username,
   }) async {
     final relyingPartyId = _resolveRelyingId(challenge.rp);
     final timeoutMs = localCredsOnly == true ? options.timeout : options.otherDeviceTimeout;
+    final authStartTime = DateTime.now();
     try {
       final fido2Assertion = await _withWatchdog(
         future: PasskeyAuthenticator().authenticate(
@@ -281,6 +289,30 @@ class PasskeysSigner {
     } on NoCredentialsAvailableException {
       rethrow;
     } on PasskeyAuthCancelledException {
+      final errorTime = DateTime.now();
+      final duration = errorTime.difference(authStartTime);
+      final durationMs = duration.inMilliseconds;
+
+      // iOS inconsistency: sometimes throws PasskeyAuthCancelledException instead of
+      // NoCredentialsAvailableException when no local credentials exist but backend expects them.
+      // https://github.com/corbado/flutter-passkeys/issues/161
+      // To separate this case from user cancellation we are using additional checks
+      // We use timing to distinguish: iOS bug is fast (< 200ms), user cancellation is slower (> 200ms).
+      // If all conditions suggest iOS bug (fast failure, no local creds scenario):
+      // 1. localCredsOnly=true (we're looking for local credentials)
+      // 2. username != null && username.isNotEmpty (we know which user to look for)
+      // 3. challenge.allowCredentials.webauthn.isNotEmpty (backend expects credentials to exist)
+      // 4. duration < 200ms (fast failure suggests iOS bug, not user cancellation)
+      // Then throw NoCredentialsAvailableException to let login() handle retry logic
+      if (localCredsOnly &&
+          username != null &&
+          username.isNotEmpty &&
+          challenge.allowCredentials.webauthn.isNotEmpty &&
+          durationMs < 200) {
+        throw NoCredentialsAvailableException();
+      }
+
+      // Otherwise, treat as real user cancellation
       throw const PasskeyCancelledException();
     } on UnhandledAuthenticatorException catch (e) {
       if (PasskeyCancelledException.isMatch(e)) {
