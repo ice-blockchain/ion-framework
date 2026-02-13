@@ -938,6 +938,8 @@
   "tokenized_community_onboarding_support_title": "Les utilisateurs premium soutiennent les créateurs",
   "tokenized_community_onboarding_web3_description": "Chaque interaction avec les tokens de créateurs, y compris l’achat, la vente et les actions d’entrée/sortie, génère des frais pour la plateforme, dont 50 % sont reversés aux créateurs.",
   "tokenized_community_onboarding_web3_title": "Gagnez grâce à l’activité Web3",
+  "tokenized_community_restricted_region_unavailable_description": "Les échanges ne sont pas encore disponibles dans votre région, mais nous y travaillons. Nous vous informerons dès que ce sera disponible.",
+  "tokenized_community_restricted_region_unavailable_title": "Presque prêt !",
   "tokenized_community_token_content": "Token de contenu",
   "tokenized_community_token_creator": "Token de créateur",
   "tokenized_community_token_twitter": "Token X",

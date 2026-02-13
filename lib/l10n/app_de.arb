@@ -938,6 +938,8 @@
   "tokenized_community_onboarding_support_title": "Premium-Nutzer unterstützen Creator",
   "tokenized_community_onboarding_web3_description": "Jede Interaktion mit Creator-Tokens, einschließlich Kauf, Verkauf und On-/Off-Ramp-Aktionen, erzeugt Plattformgebühren, von denen 50 % an Creator gehen.",
   "tokenized_community_onboarding_web3_title": "Verdienen durch Web3-Aktivitäten",
+  "tokenized_community_restricted_region_unavailable_description": "Swaps sind in Ihrer Region noch nicht verfügbar, aber wir arbeiten daran. Wir benachrichtigen Sie, sobald sie verfügbar sind.",
+  "tokenized_community_restricted_region_unavailable_title": "Fast geschafft!",
   "tokenized_community_token_content": "Content-Token",
   "tokenized_community_token_creator": "Creator-Token",
   "tokenized_community_token_twitter": "X-Token",
