@@ -68,7 +68,11 @@ class CreatorTokensTabContent extends HookConsumerWidget {
 
     useEffect(
       () {
-        if (state.activeItems.isNotEmpty) {
+        if (state.activeIsLoading || state.activeIsInitialLoading) {
+          return null;
+        }
+
+        if (state.activeItems.isNotEmpty || !state.activeHasMore) {
           cachedItemsByType.value = {
             ...cachedItemsByType.value,
             requestType: List<CommunityToken>.from(state.activeItems),
@@ -76,7 +80,13 @@ class CreatorTokensTabContent extends HookConsumerWidget {
         }
         return null;
       },
-      [state.activeItems, requestType],
+      [
+        state.activeItems,
+        state.activeIsLoading,
+        state.activeIsInitialLoading,
+        state.activeHasMore,
+        requestType,
+      ],
     );
 
     final cachedItems = cachedItemsByType.value[requestType] ?? const <CommunityToken>[];

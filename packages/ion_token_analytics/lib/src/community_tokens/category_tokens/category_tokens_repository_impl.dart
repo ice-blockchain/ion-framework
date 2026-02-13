@@ -28,21 +28,35 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
     int limit = 20,
     int offset = 0,
   }) async {
-    final response = await _client.get<List<dynamic>>(
-      '/v1/community-tokens/${type.value}/viewing-sessions/$sessionId',
-      queryParameters: {
-        'limit': limit,
-        'offset': offset,
-        if (tokenType != null && tokenType.isNotEmpty) 'type': tokenType,
-        if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
-      },
-    );
+    late final List<dynamic> response;
+
+    try {
+      response = await _client.get<List<dynamic>>(
+        '/v1/community-tokens/${type.value}/viewing-sessions/$sessionId',
+        queryParameters: {
+          'limit': limit,
+          'offset': offset,
+          if (tokenType != null && tokenType.isNotEmpty) 'type': tokenType,
+          if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
+        },
+      );
+    } catch (error) {
+      if (_isSessionNotFound(error)) {
+        return PaginatedCategoryTokensData(items: const [], nextOffset: offset, hasMore: false);
+      }
+      rethrow;
+    }
 
     final items = response.map((e) => CommunityToken.fromJson(e as Map<String, dynamic>)).toList();
     final hasMore = items.length == limit;
     final nextOffset = offset + items.length;
 
     return PaginatedCategoryTokensData(items: items, nextOffset: nextOffset, hasMore: hasMore);
+  }
+
+  bool _isSessionNotFound(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('status 404') || message.contains('session not found');
   }
 
   @override
