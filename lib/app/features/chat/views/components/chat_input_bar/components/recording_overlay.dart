@@ -11,18 +11,20 @@ class RecordingOverlay extends ConsumerWidget {
     required this.paddingBottom,
     required this.onSubmitted,
     required this.onResumeRecording,
+    required this.isKeyboardVisible,
     super.key,
   });
 
   final double paddingBottom;
   final Future<void> Function() onSubmitted;
   final Future<void> Function() onResumeRecording;
+  final bool isKeyboardVisible;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final voiceRecordingState = ref.watch(voiceRecordingActiveStateProvider);
 
     return PositionedDirectional(
-      bottom: MediaQuery.viewInsetsOf(context).bottom + 8.0.s,
+      bottom: isKeyboardVisible ? 8.0.s : 0,
       end: 14.0.s,
       child: SafeArea(
         child: Container(
