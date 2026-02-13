@@ -19,6 +19,7 @@ import 'package:ion/app/features/push_notifications/providers/synced_fcm_token_p
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
+import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/device_id/device_id.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -228,6 +229,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
 
     final optimalUserRelaysService = ref.read(optimalUserRelaysServiceProvider);
     final ionConnectNotifier = ref.read(ionConnectNotifierProvider.notifier);
+    final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
 
     if (pubkeysToData.length > 1) {
       final optimalUserRelays = await optimalUserRelaysService.fetch(
@@ -240,6 +242,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
           ionConnectNotifier.sendEntitiesData(
             masterPubkeys.map((masterPubkey) => pubkeysToData[masterPubkey]).nonNulls.toList(),
             actionSource: ActionSource.relayUrl(relayUrl),
+            metadataBuilders: [userEventsMetadataBuilder],
             cache: false,
           ),
       ]);
@@ -248,6 +251,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       await ionConnectNotifier.sendEntityData(
         entityData,
         actionSource: ActionSource.user(masterPubkey),
+        metadataBuilders: [userEventsMetadataBuilder],
         cache: false,
       );
     }
