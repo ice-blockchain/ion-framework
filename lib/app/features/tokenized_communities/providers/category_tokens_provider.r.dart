@@ -96,17 +96,13 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     if (!state.browsingHasMore || state.browsingIsLoading) return;
 
     // Ensure session is initialized before attempting to load more
-    if (state.sessionId == null) return;
+    final sessionId = state.sessionId;
+    if (sessionId == null) return;
 
     state = state.copyWith(browsingIsLoading: true);
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final sessionId = state.sessionId;
-      if (sessionId == null) {
-        state = state.copyWith(browsingIsLoading: false);
-        return;
-      }
 
       final page = await client.communityTokens.getCategoryTokens(
         sessionId: sessionId,
@@ -132,17 +128,13 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     if (!state.searchHasMore || state.searchIsLoading) return;
 
     // Ensure session is initialized before attempting to load more
-    if (state.sessionId == null) return;
+    final sessionId = state.sessionId;
+    if (sessionId == null) return;
 
     state = state.copyWith(searchIsLoading: true);
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final sessionId = state.sessionId;
-      if (sessionId == null) {
-        state = state.copyWith(searchIsLoading: false);
-        return;
-      }
 
       final page = await client.communityTokens.getCategoryTokens(
         sessionId: sessionId,
