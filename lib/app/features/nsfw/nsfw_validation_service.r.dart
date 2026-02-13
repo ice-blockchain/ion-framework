@@ -219,17 +219,12 @@ class NsfwValidationService {
         onTimeout: () {
           Logger.warning(
             'GIF thumbnail extraction timed out after ${_gifThumbnailTimeout.inSeconds}s, '
-            'treating GIFs as allowed',
+            'will fail-closed (block)',
           );
           return <VideoThumbnail>[];
         },
       );
-    } catch (e, st) {
-      Logger.error(
-        e,
-        stackTrace: st,
-        message: 'GIF thumbnail extraction failed, treating GIFs as allowed',
-      );
+    } catch (e, _) {
       return [];
     }
   }
@@ -244,9 +239,7 @@ class NsfwValidationService {
 
       final positions = [0.05, 0.40, 0.80];
       return positions.map((p) => _formatTimestamp((durationMs * p).round())).toList();
-    } catch (e, st) {
-      Logger.warning('Failed to get GIF duration for NSFW check: $e');
-      Logger.error(e, stackTrace: st, message: 'GIF duration probe failed');
+    } catch (_) {
       return ['00:00:00.000'];
     }
   }
