@@ -168,15 +168,16 @@ class PasskeysSigner {
       return assertion;
     } on NoCredentialsAvailableException {
       if (localCredsOnly && username.isNotEmpty) {
+        // Set canSuggest before retry - user doesn't have local passkey credentials
+        await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
+          username: username,
+          state: LocalPasskeyCredsState.canSuggest,
+        );
         try {
           final assertion = await sign(challenge);
-          await _clearCanSuggestStateOnSuccess(username);
+          // Don't clear canSuggest state - retry succeeded means QR code login was used
           return assertion;
         } on NoCredentialsAvailableException {
-          await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
-            username: username,
-            state: LocalPasskeyCredsState.canSuggest,
-          );
           throw const NoLocalPasskeyCredsFoundIONIdentityException();
         }
       }
