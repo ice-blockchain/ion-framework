@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/domain/content_payment_token_resolver_service.dart';
@@ -14,6 +17,7 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_config_ca
 import 'package:ion/app/features/tokenized_communities/providers/trade_config_cache_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
+import 'package:ion/app/features/tokenized_communities/services/trade_community_last_payment_coin_service.dart';
 import 'package:ion/app/features/tokenized_communities/services/trade_community_token_quote_controller.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
@@ -28,6 +32,7 @@ import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -46,6 +51,8 @@ typedef TradeCommunityTokenControllerParams = ({
 class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   TradeCommunityTokenQuoteController? _quoteController;
   CommunityTokenPricingIdentifierResolver? _pricingIdentifierResolver;
+  TradeCommunityLastPaymentCoinService? _lastPaymentCoinService;
+  Completer<void>? _updateDerivedStateCompleter;
 
   @override
   TradeCommunityTokenState build(TradeCommunityTokenControllerParams params) {
@@ -67,6 +74,12 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       debounce: const Duration(
         milliseconds: TokenizedCommunitiesConstants.quoteDebounceMilliseconds,
       ),
+    );
+
+    final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider) ?? '';
+    _lastPaymentCoinService ??= TradeCommunityLastPaymentCoinService(
+      userPreferencesService:
+          ref.read(userPreferencesServiceProvider(identityKeyName: identityKeyName)),
     );
 
     final pubkey = params.eventReference?.masterPubkey ??
@@ -180,7 +193,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
       final supportedTokens = await ref.read(supportedSwapTokensProvider.future);
       if (state.selectedPaymentToken == null && supportedTokens.isNotEmpty) {
-        selectPaymentToken(supportedTokens.first);
+        await _restoreLastUsedPaymentTokenIfAvailable(supportedTokens);
       }
     } catch (error, stackTrace) {
       Logger.error(
@@ -188,6 +201,34 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         stackTrace: stackTrace,
         message: 'Failed to initialize trade form',
       );
+    }
+  }
+
+  /// Restores last used payment token if available.
+  /// Falls back to selecting the first supported token if restoration fails.
+  Future<void> _restoreLastUsedPaymentTokenIfAvailable(List<CoinData> supportedTokens) async {
+    final restoredToken = _lastPaymentCoinService!.restoreLastUsedPaymentToken(supportedTokens);
+    if (restoredToken != null) {
+      final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+      final paymentCoinsGroup = _derivePaymentCoinsGroup(restoredToken, walletView);
+      state = state.copyWith(
+        selectedPaymentToken: restoredToken,
+        paymentCoinsGroup: paymentCoinsGroup,
+      );
+      ref.read(tradeConfigCacheProvider.notifier).save(
+            params.externalAddress,
+            TradeConfigCacheData(
+              selectedPaymentToken: restoredToken,
+              paymentCoinsGroup: paymentCoinsGroup,
+            ),
+          );
+
+      // Cancel any pending _updateDerivedState() call and start a new one with the restored token
+      // _updateDerivedState() will handle cancellation internally, but we call it explicitly
+      // to ensure the state is updated with the restored token
+      await _updateDerivedState();
+    } else {
+      selectPaymentToken(supportedTokens.first);
     }
   }
 
@@ -397,6 +438,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
   void selectPaymentToken(CoinData token) {
     state = state.copyWith(selectedPaymentToken: token);
+    _lastPaymentCoinService!.saveLastUsedPaymentToken(token);
     _updateDerivedState();
     _scheduleQuoteUpdates();
     _refreshFormattedAmounts();
@@ -423,43 +465,78 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   Future<void> _updateDerivedState() async {
-    final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
-
-    final paymentContext = await _resolvePaymentContext(walletView);
-    final paymentToken = paymentContext.token;
-    final paymentCoinsGroup = paymentContext.coinsGroup;
-    if (paymentToken == null || paymentCoinsGroup == null) {
-      state = state.copyWith(
-        selectedPaymentToken: null,
-        paymentCoinsGroup: null,
-        targetWallet: null,
-        targetNetwork: null,
+    // Cancel previous call if still running
+    if (_updateDerivedStateCompleter != null && !_updateDerivedStateCompleter!.isCompleted) {
+      _updateDerivedStateCompleter!.completeError(
+        StateError('Cancelled by newer _updateDerivedState call'),
       );
-      return;
     }
 
-    final (targetWallet, targetNetwork) = state.mode == CommunityTokenTradeMode.sell
-        ? await _updateDerivedStateForSell()
-        : await _updateDerivedStateForBuy(paymentToken, paymentCoinsGroup);
+    final completer = Completer<void>();
+    _updateDerivedStateCompleter = completer;
 
-    state = state.copyWith(
-      selectedPaymentToken: paymentToken,
-      paymentCoinsGroup: paymentCoinsGroup,
-      targetWallet: targetWallet,
-      targetNetwork: targetNetwork,
-    );
+    try {
+      final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
 
-    ref.read(tradeConfigCacheProvider.notifier).save(
-          params.externalAddress,
-          TradeConfigCacheData(
-            selectedPaymentToken: paymentToken,
-            paymentCoinsGroup: paymentCoinsGroup,
-            targetWallet: targetWallet,
-            targetNetwork: targetNetwork,
-          ),
+      final paymentContext = await _resolvePaymentContext(walletView);
+
+      // Check if this call was cancelled
+      if (_updateDerivedStateCompleter != completer) {
+        return;
+      }
+
+      final paymentToken = paymentContext.token;
+      final paymentCoinsGroup = paymentContext.coinsGroup;
+      if (paymentToken == null || paymentCoinsGroup == null) {
+        // Check again before updating state
+        if (_updateDerivedStateCompleter != completer) return;
+
+        state = state.copyWith(
+          selectedPaymentToken: null,
+          paymentCoinsGroup: null,
+          targetWallet: null,
+          targetNetwork: null,
         );
+        completer.complete();
+        return;
+      }
 
-    _refreshFormattedAmounts();
+      final (targetWallet, targetNetwork) = state.mode == CommunityTokenTradeMode.sell
+          ? await _updateDerivedStateForSell()
+          : await _updateDerivedStateForBuy(paymentToken, paymentCoinsGroup);
+
+      // Final check before updating state
+      if (_updateDerivedStateCompleter != completer) return;
+
+      state = state.copyWith(
+        selectedPaymentToken: paymentToken,
+        paymentCoinsGroup: paymentCoinsGroup,
+        targetWallet: targetWallet,
+        targetNetwork: targetNetwork,
+      );
+
+      ref.read(tradeConfigCacheProvider.notifier).save(
+            params.externalAddress,
+            TradeConfigCacheData(
+              selectedPaymentToken: paymentToken,
+              paymentCoinsGroup: paymentCoinsGroup,
+              targetWallet: targetWallet,
+              targetNetwork: targetNetwork,
+            ),
+          );
+
+      _refreshFormattedAmounts();
+      completer.complete();
+    } catch (e) {
+      if (!completer.isCompleted) {
+        completer.completeError(e);
+      }
+      rethrow;
+    } finally {
+      if (_updateDerivedStateCompleter == completer) {
+        _updateDerivedStateCompleter = null;
+      }
+    }
   }
 
   Future<({CoinData? token, CoinsGroup? coinsGroup})> _resolvePaymentContext(
