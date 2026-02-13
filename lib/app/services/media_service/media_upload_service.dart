@@ -46,10 +46,10 @@ class MediaUploadService {
     }
   }
 
+  /// Thumbnail for GIF: try video-compress → thumbnail, else extract frame at 0s, else scale image.
   Future<MediaFile> _getGifThumbnailSource(MediaFile file, MediaFile compressedImage) async {
     final videoCompressor = ref.read(videoCompressorProvider);
 
-    /// Thumbnail for video/GIF: compress → thumbnail, else original at 0s, else scale as image
     try {
       final compressedVideo = await videoCompressor.compress(file);
       return await videoCompressor.getThumbnail(compressedVideo, thumb: file.thumb);
