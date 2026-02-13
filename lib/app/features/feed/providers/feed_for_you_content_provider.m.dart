@@ -43,10 +43,47 @@ part 'feed_for_you_content_provider.m.g.dart';
 
 @riverpod
 class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
+  int _fetchGeneration = 0;
+
+  FeedForYouContentState _initialState() {
+    return const FeedForYouContentState(
+      items: null,
+      isLoading: false,
+      forYouRetryLimitReached: false,
+      englishContentFallbackEnabled: false,
+      hasMoreFollowing: true,
+      modifiersPagination: {},
+    );
+  }
+
+  bool _isAuthenticated(String? currentIdentityKeyName) {
+    if (currentIdentityKeyName == null) return false;
+    return ref.read(authProvider).valueOrNull?.isAuthenticated ?? false;
+  }
+
+  void _handleAuthChange() {
+    _fetchGeneration++;
+    ref.invalidateSelf();
+  }
+
+  bool _shouldContinue(int fetchGeneration) {
+    if (fetchGeneration != _fetchGeneration) return false;
+
+    final currentIdentityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    return _isAuthenticated(currentIdentityKeyName);
+  }
+
   @override
   FeedForYouContentState build(FeedType feedType, {FeedModifier? feedModifier}) {
     // Needs for reload the feed when the user switches accounts
-    ref.watch(currentIdentityKeyNameSelectorProvider);
+    final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
+    onLogout(ref, _handleAuthChange);
+    onUserSwitch(ref, _handleAuthChange);
+
+    if (!_isAuthenticated(currentIdentityKeyName)) {
+      return _initialState();
+    }
+
     Future.microtask(fetchEntities);
 
     _refreshOnContentLangChange();
@@ -71,14 +108,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
         ),
         noop,
       );
-    return const FeedForYouContentState(
-      items: null,
-      isLoading: false,
-      forYouRetryLimitReached: false,
-      englishContentFallbackEnabled: false,
-      hasMoreFollowing: true,
-      modifiersPagination: {},
-    );
+    return _initialState();
   }
 
   void _refreshOnContentLangChange() {
@@ -108,18 +138,48 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   @override
   Future<void> fetchEntities() async {
     if (state.isLoading) return;
+    final currentIdentityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    if (!_isAuthenticated(currentIdentityKeyName)) {
+      _ensureEmptyState();
+      return;
+    }
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+    if (currentPubkey == null) {
+      Logger.info('$_logTag Skipping fetch: current user pubkey unavailable');
+      _ensureEmptyState();
+      return;
+    }
+
+    final fetchGeneration = _fetchGeneration;
     state = state.copyWith(isLoading: true);
     try {
       await for (final entity in requestEntities(limit: feedType.pageSize)) {
+        if (!_shouldContinue(fetchGeneration)) {
+          break;
+        }
         state = state.copyWith(items: {...(state.items ?? {}), entity});
       }
-      _ensureEmptyState();
+      if (_shouldContinue(fetchGeneration)) {
+        _ensureEmptyState();
+      }
     } finally {
-      state = state.copyWith(isLoading: false);
+      if (_shouldContinue(fetchGeneration)) {
+        state = state.copyWith(isLoading: false);
+      }
     }
   }
 
   Stream<IonConnectEntity> requestEntities({required int limit}) async* {
+    final currentIdentityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    if (!_isAuthenticated(currentIdentityKeyName)) {
+      Logger.info('$_logTag Skipping request: user not authenticated');
+      return;
+    }
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+    if (currentPubkey == null) {
+      Logger.info('$_logTag Skipping request: current user pubkey unavailable');
+      return;
+    }
     Logger.info('$_logTag Requesting events, limit: [$limit]');
 
     var fetchedEvents = 0;

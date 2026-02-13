@@ -51,6 +51,34 @@ enum FeedFollowingSourceType {
 
 @riverpod
 class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifier {
+  int _fetchGeneration = 0;
+
+  FeedFollowingContentState _initialState({required bool fetchSeen}) {
+    return FeedFollowingContentState(
+      items: null,
+      isLoading: false,
+      seenPagination: Pagination(hasMore: fetchSeen),
+      unseenPagination: {},
+    );
+  }
+
+  bool _isAuthenticated(String? currentIdentityKeyName) {
+    if (currentIdentityKeyName == null) return false;
+    return ref.read(authProvider).valueOrNull?.isAuthenticated ?? false;
+  }
+
+  void _handleAuthChange() {
+    _fetchGeneration++;
+    ref.invalidateSelf();
+  }
+
+  bool _shouldContinue(int fetchGeneration) {
+    if (fetchGeneration != _fetchGeneration) return false;
+
+    final currentIdentityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    return _isAuthenticated(currentIdentityKeyName);
+  }
+
   @override
   FeedFollowingContentState build(
     FeedType feedType, {
@@ -65,28 +93,51 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
     /// Whether to use global accounts instead of the current user's following list.
     bool global = false,
   }) {
+    final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
+    onLogout(ref, _handleAuthChange);
+    onUserSwitch(ref, _handleAuthChange);
+
+    if (!_isAuthenticated(currentIdentityKeyName)) {
+      return _initialState(fetchSeen: fetchSeen);
+    }
+
     if (autoFetch) {
       Future.microtask(fetchEntities);
     }
-    return FeedFollowingContentState(
-      items: null,
-      isLoading: false,
-      seenPagination: Pagination(hasMore: fetchSeen),
-      unseenPagination: {},
-    );
+    return _initialState(fetchSeen: fetchSeen);
   }
 
   @override
   Future<void> fetchEntities() async {
     if (state.isLoading) return;
+    final currentIdentityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    if (!_isAuthenticated(currentIdentityKeyName)) {
+      _ensureEmptyState();
+      return;
+    }
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+    if (currentPubkey == null) {
+      Logger.info('$_logTag Skipping fetch: current user pubkey unavailable');
+      _ensureEmptyState();
+      return;
+    }
+
+    final fetchGeneration = _fetchGeneration;
     state = state.copyWith(isLoading: true);
     try {
       await for (final entity in requestEntities(limit: feedType.pageSize)) {
+        if (!_shouldContinue(fetchGeneration)) {
+          break;
+        }
         state = state.copyWith(items: {...(state.items ?? {}), entity});
       }
-      _ensureEmptyState();
+      if (_shouldContinue(fetchGeneration)) {
+        _ensureEmptyState();
+      }
     } finally {
-      state = state.copyWith(isLoading: false);
+      if (_shouldContinue(fetchGeneration)) {
+        state = state.copyWith(isLoading: false);
+      }
     }
   }
 
@@ -94,6 +145,16 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
   /// * First, requests unseen entities from followed users (see [_fetchUnseenEntities]).
   /// * Then, if [fetchSeen] is true, requests seen entities (see [_fetchSeenEntities]).
   Stream<IonConnectEntity> requestEntities({required int limit}) async* {
+    final currentIdentityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    if (!_isAuthenticated(currentIdentityKeyName)) {
+      Logger.info('$_logTag Skipping request: user not authenticated');
+      return;
+    }
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+    if (currentPubkey == null) {
+      Logger.info('$_logTag Skipping request: current user pubkey unavailable');
+      return;
+    }
     Logger.info('$_logTag Requesting events');
 
     var unseenCount = 0;
