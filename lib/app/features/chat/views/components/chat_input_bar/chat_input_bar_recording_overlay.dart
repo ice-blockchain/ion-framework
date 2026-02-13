@@ -43,6 +43,15 @@ class ChatInputBarRecordingOverlay extends HookConsumerWidget {
       }
     });
 
+    final stopRecording = useCallback(
+      () {
+        recorderController.stop();
+        ref.invalidate(voiceRecordingActiveStateProvider);
+        onCancelled();
+      },
+      [recorderController],
+    );
+
     useEffect(
       () {
         final recorderStateSubscription = recorderController.onRecorderStateChanged.listen((state) {
@@ -107,7 +116,7 @@ class ChatInputBarRecordingOverlay extends HookConsumerWidget {
         children: [
           if (voiceRecordingState.isPaused) ...[
             DeleteAudioButton(
-              onPressed: onCancelled,
+              onPressed: stopRecording,
             ),
             SizedBox(width: 6.0.s),
             if (audioPath.value != null)
@@ -116,7 +125,7 @@ class ChatInputBarRecordingOverlay extends HookConsumerWidget {
                 path: audioPath.value!,
               ),
           ] else ...[
-            CancelRecordButton(recorderController: recorderController),
+            CancelRecordButton(onPressed: stopRecording),
             const Spacer(),
             const RecordingRedIndicator(),
             SizedBox(width: 4.0.s),

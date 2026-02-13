@@ -18,13 +18,14 @@ class ActionButton extends HookConsumerWidget {
     required this.textFieldController,
     required this.onSubmitted,
     required this.recorderController,
+    required this.isKeyboardVisible,
     super.key,
   });
 
   final TextEditingController textFieldController;
   final Future<void> Function()? onSubmitted;
   final RecorderController recorderController;
-
+  final bool isKeyboardVisible;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isRecordingCancelled = useRef<bool>(false);
@@ -34,6 +35,8 @@ class ActionButton extends HookConsumerWidget {
 
     useEffect(
       () {
+        // Pre-warm microphone permission so recording starts promptly
+        ref.read(permissionsProvider.notifier).checkPermission(Permission.microphone);
         void onTextChanged() {
           hasText.value = textFieldController.text.trim().isNotEmpty;
         }
@@ -67,6 +70,7 @@ class ActionButton extends HookConsumerWidget {
         );
       } else if (!voiceRecordingState.isIdle) {
         return AudioRecordingButton(
+          isKeyboardVisible: isKeyboardVisible,
           paddingBottom: paddingBottom.value,
           onSubmitted: onSend,
           onResumeRecording: () async {
@@ -79,8 +83,8 @@ class ActionButton extends HookConsumerWidget {
       }
     }
 
-    return GestureDetector(
-      onLongPressStart: (details) async {
+    final checkPermissionAndStartRecording = useCallback(
+      ({required bool lockImmediately}) async {
         if (!hasText.value) {
           await ref.read(permissionsProvider.notifier).checkPermission(Permission.microphone);
           final status = ref.read(
@@ -97,7 +101,11 @@ class ActionButton extends HookConsumerWidget {
               return;
             }
             if (context.mounted) {
-              ref.read(voiceRecordingActiveStateProvider.notifier).start();
+              if (lockImmediately) {
+                ref.read(voiceRecordingActiveStateProvider.notifier).lock();
+              } else {
+                ref.read(voiceRecordingActiveStateProvider.notifier).start();
+              }
               unawaited(HapticFeedback.lightImpact());
             }
           } else {
@@ -107,6 +115,17 @@ class ActionButton extends HookConsumerWidget {
           }
         }
       },
+      [
+        recorderController,
+        hasText.value,
+        isRecordingCancelled.value,
+        context.mounted,
+      ],
+    );
+
+    return GestureDetector(
+      onLongPressStart: (_) => checkPermissionAndStartRecording(lockImmediately: false),
+      onTap: () => checkPermissionAndStartRecording(lockImmediately: true),
       onLongPressMoveUpdate: (details) {
         if (details.localOffsetFromOrigin.dy < 0) {
           paddingBottom.value = details.localOffsetFromOrigin.dy * -1;
