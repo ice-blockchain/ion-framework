@@ -3,6 +3,7 @@
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/utils/validators.dart';
 
@@ -174,6 +175,18 @@ class MediaAttachment {
   late MediaType mediaType = _parseMediaType(url: url, mimeType: mimeType);
 
   late MediaType? mediaTypeEncrypted = MediaType.fromMimeType(originalMimeType ?? mimeType);
+
+  /// Whether this image is animated (GIF or WebP), for choosing GifPreview over static image.
+  bool get isAnimatedImage => _isAnimatedImage(url: url, mimeType: mimeType);
+
+  static bool _isAnimatedImage({required String url, required String mimeType}) {
+    if (url.toLowerCase().endsWith('.gif')) return true;
+    final mime = mimeType.toLowerCase();
+    if (mime == LocalMimeType.gif.value || mime == MimeType.gif.value) return true;
+    if (mime.contains('gif')) return true;
+    if (url.toLowerCase().endsWith('.webp') || mime.contains('webp')) return true;
+    return false;
+  }
 
   final String? blurhash;
 

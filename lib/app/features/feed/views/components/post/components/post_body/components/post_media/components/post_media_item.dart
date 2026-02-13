@@ -11,7 +11,6 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
-import 'package:ion/app/utils/image_path.dart';
 
 class PostMediaItem extends HookWidget {
   const PostMediaItem({
@@ -58,7 +57,7 @@ class PostMediaItem extends HookWidget {
         child: AspectRatio(
           aspectRatio: aspectRatio,
           child: switch (mediaItem.mediaType) {
-            MediaType.image => _isAnimatedImage(mediaItem)
+            MediaType.image => mediaItem.isAnimatedImage
                 ? GifPreview(
                     imageUrl: mediaItem.url,
                     authorPubkey: eventReference.masterPubkey,
@@ -92,18 +91,5 @@ class PostMediaItem extends HookWidget {
         ),
       ),
     );
-  }
-
-  bool _isAnimatedImage(MediaAttachment media) {
-    const gifExtension = '.gif';
-    const webpExtension = 'webp';
-
-    if (media.url.isGif) return true;
-    final mime = media.mimeType.toLowerCase();
-    if (mime.contains(gifExtension)) return true;
-    if (media.url.toLowerCase().endsWith('.$webpExtension') || mime.contains(webpExtension)) {
-      return true;
-    }
-    return false;
   }
 }
