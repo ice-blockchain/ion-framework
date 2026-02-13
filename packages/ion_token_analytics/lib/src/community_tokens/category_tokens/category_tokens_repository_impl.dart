@@ -4,6 +4,7 @@ import 'package:ion_token_analytics/src/community_tokens/category_tokens/categor
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/models/models.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/models.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
+import 'package:ion_token_analytics/src/core/network_exceptions.dart';
 
 class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
   CategoryTokensRepositoryImpl(this._client);
@@ -40,8 +41,8 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
           if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
         },
       );
-    } catch (error) {
-      if (_isSessionNotFound(error)) {
+    } on HttpStatusException catch (error) {
+      if (error.isNotFound) {
         return PaginatedCategoryTokensData(items: const [], nextOffset: offset, hasMore: false);
       }
       rethrow;
@@ -52,11 +53,6 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
     final nextOffset = offset + items.length;
 
     return PaginatedCategoryTokensData(items: items, nextOffset: nextOffset, hasMore: hasMore);
-  }
-
-  bool _isSessionNotFound(Object error) {
-    final message = error.toString().toLowerCase();
-    return message.contains('status 404') || message.contains('session not found');
   }
 
   @override

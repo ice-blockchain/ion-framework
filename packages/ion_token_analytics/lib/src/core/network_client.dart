@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:ion_token_analytics/src/core/extensions/http_status_code.dart';
 import 'package:ion_token_analytics/src/core/logger.dart';
+import 'package:ion_token_analytics/src/core/network_exceptions.dart';
 import 'package:ion_token_analytics/src/core/reconnecting_sse.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
@@ -53,8 +54,7 @@ class NetworkClient {
 
     final statusCode = response.statusCode ?? 0;
     if (!statusCode.isSuccessStatusCode) {
-      //TODO: add custom exceptions with codes
-      throw Exception('Request failed with status ${response.statusCode}: $path');
+      throw HttpStatusException(statusCode: statusCode, path: path);
     }
 
     return NetworkResponse<T>(data: response.data as T, headers: response.headers);
@@ -95,8 +95,7 @@ class NetworkClient {
 
     final statusCode = response.statusCode ?? 0;
     if (!statusCode.isSuccessStatusCode) {
-      //TODO: add custom exceptions with codes
-      throw Exception('Request failed with status ${response.statusCode}: $path');
+      throw HttpStatusException(statusCode: statusCode, path: path);
     }
 
     return response.data as T;
