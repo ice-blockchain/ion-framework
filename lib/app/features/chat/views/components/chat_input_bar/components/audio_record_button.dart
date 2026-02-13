@@ -27,12 +27,14 @@ class AudioRecordingButton extends HookConsumerWidget {
     required this.paddingBottom,
     required this.onSubmitted,
     required this.onResumeRecording,
+    required this.isKeyboardVisible,
     super.key,
   });
 
   final double paddingBottom;
   final Future<void> Function() onSubmitted;
   final Future<void> Function() onResumeRecording;
+  final bool isKeyboardVisible;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final overlayEntry = useRef<OverlayEntry?>(null);
@@ -44,6 +46,7 @@ class AudioRecordingButton extends HookConsumerWidget {
           overlayEntry.value = OverlayEntry(
             builder: (context) {
               return RecordingOverlay(
+                isKeyboardVisible: isKeyboardVisible,
                 paddingBottom: paddingBottom,
                 onSubmitted: onSubmitted,
                 onResumeRecording: onResumeRecording,

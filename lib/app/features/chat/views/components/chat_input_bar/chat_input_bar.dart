@@ -161,6 +161,8 @@ class ChatInputBar extends HookConsumerWidget {
       [textFieldFocusNode, isAttachMenuShown.value, isTogglingBottomView],
     );
 
+    final voiceRecordingState = ref.watch(voiceRecordingActiveStateProvider);
+
     if (isBlocked) {
       return ChatBlockedUserBar(receiverMasterPubkey: receiverMasterPubkey);
     }
@@ -217,6 +219,7 @@ class ChatInputBar extends HookConsumerWidget {
                   ActionButton(
                     textFieldController: textFieldController,
                     recorderController: voiceRecorderController.value,
+                    isKeyboardVisible: isKeyboardVisible.value,
                     onSubmitted: isTextLimitReached.value
                         ? null
                         : () async {
@@ -237,26 +240,27 @@ class ChatInputBar extends HookConsumerWidget {
                 ],
               ),
               TextMessageLimitLabel(textEditingController: textFieldController),
-              ChatInputBarRecordingOverlay(
-                onRecordingFinished: (mediaFile) async {
-                  if (recordedMediaFile.value == null) {
-                    recordedMediaFile.value = mediaFile;
-                  } else {
-                    recordedMediaFile.value =
-                        await ref.read(audioCompressorProvider).combineAudioFiles([
-                      recordedMediaFile.value!,
-                      mediaFile,
-                    ]);
-                  }
-                  return recordedMediaFile.value!.path;
-                },
-                onCancelled: () {
-                  ref.invalidate(voiceRecordingActiveStateProvider);
-                  voiceRecorderController.value.reset();
-                  recordedMediaFile.value = null;
-                },
-                recorderController: voiceRecorderController.value,
-              ),
+              if (!voiceRecordingState.isIdle)
+                ChatInputBarRecordingOverlay(
+                  onRecordingFinished: (mediaFile) async {
+                    if (recordedMediaFile.value == null) {
+                      recordedMediaFile.value = mediaFile;
+                    } else {
+                      recordedMediaFile.value =
+                          await ref.read(audioCompressorProvider).combineAudioFiles([
+                        recordedMediaFile.value!,
+                        mediaFile,
+                      ]);
+                    }
+                    return recordedMediaFile.value!.path;
+                  },
+                  onCancelled: () {
+                    ref.invalidate(voiceRecordingActiveStateProvider);
+                    voiceRecorderController.value.reset();
+                    recordedMediaFile.value = null;
+                  },
+                  recorderController: voiceRecorderController.value,
+                ),
             ],
           ),
           SizedBox(
