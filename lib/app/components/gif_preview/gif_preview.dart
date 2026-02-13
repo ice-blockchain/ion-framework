@@ -114,9 +114,7 @@ class GifPreview extends HookConsumerWidget {
       () {
         if (!isGifLoaded.value) return;
         try {
-          final wouldPlay = isFullyVisible.value &&
-              isRouteFocused.value &&
-              videoSettings.autoplay;
+          final wouldPlay = isFullyVisible.value && isRouteFocused.value && videoSettings.autoplay;
           // Enable playback when a GIF would play but it's disabled (e.g. full post
           // opened from feed — onBecameActive may not fire during route transition).
           if (wouldPlay && !isVideoPlaybackEnabled) {
