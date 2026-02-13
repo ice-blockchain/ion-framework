@@ -39,6 +39,7 @@ class MessageItemWrapper extends HookConsumerWidget {
     required this.contentPadding,
     this.isLastMessageFromAuthor = true,
     this.margin,
+    this.screenOffsetSide,
     super.key,
   });
 
@@ -48,6 +49,7 @@ class MessageItemWrapper extends HookConsumerWidget {
   final EdgeInsetsDirectional? margin;
   final ChatMessageInfoItem messageItem;
   final EdgeInsetsGeometry contentPadding;
+  final ScreenOffsetSide? screenOffsetSide;
 
   /// The maximum width of the message content in the chat
   static double get maxWidth => 282.0.s;
@@ -111,6 +113,7 @@ class MessageItemWrapper extends HookConsumerWidget {
       margin: margin,
       accentTheme: isMe,
       child: ScreenSideOffset.small(
+        only: screenOffsetSide,
         child: Padding(
           padding: margin ?? EdgeInsets.zero,
           child: Align(
