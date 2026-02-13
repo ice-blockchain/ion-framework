@@ -23,7 +23,7 @@ class TradeCommunityLastPaymentCoinService {
     if (storedSymbolGroup == null || storedSymbolGroup.isEmpty) return null;
 
     final matched = supportedTokens.firstWhereOrNull(
-      (t) => t.symbolGroup == storedSymbolGroup,
+      (t) => t.symbolGroup.toLowerCase() == storedSymbolGroup.toLowerCase(),
     );
     if (matched == null) return null;
 
