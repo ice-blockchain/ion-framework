@@ -44,6 +44,7 @@ class GifPreview extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final uniqueId = useRef(UniqueKey().toString());
     final vsync = useSingleTickerProvider();
     final controller = useMemoized(
       () => GifController(vsync: vsync),
@@ -83,9 +84,8 @@ class GifPreview extends HookConsumerWidget {
       },
     );
 
-    // When mounting on current route (e.g. full post), enable playback immediately.
-    // useRoutePresence may not fire onBecameActive on first build (wasActive is null).
-    // Must run after build - cannot access inherited widgets (context.isCurrentRoute) in useEffect init.
+    // On first load, if this is the current route, enable playback right away.
+    // Can't use useEffect(init) for this—must run after build.
     useOnInit(
       () {
         if (context.mounted && context.isCurrentRoute) {
@@ -137,7 +137,7 @@ class GifPreview extends HookConsumerWidget {
     );
 
     return VisibilityDetector(
-      key: ValueKey('gif_${framedEventReference ?? ''}_$imageUrl'),
+      key: ValueKey(uniqueId),
       onVisibilityChanged: handleVisibilityChanged,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -145,56 +145,52 @@ class GifPreview extends HookConsumerWidget {
 
           return ColoredBox(
             color: context.theme.appColors.primaryBackground,
-            child: BlurhashImageWrapper(
-              aspectRatio: effectiveAspectRatio,
-              blurhash: blurhash,
-              child: FutureBuilder<List<int>>(
-                future: gifBytesFuture,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return _StaticPlaceholder(
-                      authorPubkey: authorPubkey,
-                      aspectRatio: effectiveAspectRatio,
-                      thumbnailUrl: thumbnailUrl,
-                      blurhash: blurhash,
-                    );
-                  }
-
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    VisibilityDetectorController.instance.notifyNow();
-                  });
-
-                  return Gif(
-                    image: MemoryImage(Uint8List.fromList(snapshot.requireData)),
-                    controller: controller,
-                    fit: BoxFit.cover,
-                    placeholder: (context) => _StaticPlaceholder(
-                      authorPubkey: authorPubkey,
-                      aspectRatio: effectiveAspectRatio,
-                      thumbnailUrl: thumbnailUrl,
-                      blurhash: blurhash,
-                    ),
-                    onFetchCompleted: () {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (!context.mounted) return;
-                        isGifLoaded.value = true;
-                        try {
-                          final settings = ref.read(videoSettingsProvider);
-                          final shouldAnimateNow = isFullyVisible.value &&
-                              isRouteFocused.value &&
-                              ref.read(feedVideoPlaybackEnabledNotifierProvider) &&
-                              settings.autoplay;
-                          if (controller.isAnimating) {
-                            if (!shouldAnimateNow) controller.stop();
-                          } else {
-                            if (shouldAnimateNow) controller.repeat();
-                          }
-                        } catch (_) {}
-                      });
-                    },
+            child: FutureBuilder<List<int>>(
+              future: gifBytesFuture,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return _StaticPlaceholder(
+                    authorPubkey: authorPubkey,
+                    aspectRatio: effectiveAspectRatio,
+                    thumbnailUrl: thumbnailUrl,
+                    blurhash: blurhash,
                   );
-                },
-              ),
+                }
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  VisibilityDetectorController.instance.notifyNow();
+                });
+
+                return Gif(
+                  image: MemoryImage(Uint8List.fromList(snapshot.requireData)),
+                  controller: controller,
+                  fit: BoxFit.cover,
+                  placeholder: (context) => _StaticPlaceholder(
+                    authorPubkey: authorPubkey,
+                    aspectRatio: effectiveAspectRatio,
+                    thumbnailUrl: thumbnailUrl,
+                    blurhash: blurhash,
+                  ),
+                  onFetchCompleted: () {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!context.mounted) return;
+                      isGifLoaded.value = true;
+                      try {
+                        final settings = ref.read(videoSettingsProvider);
+                        final shouldAnimateNow = isFullyVisible.value &&
+                            isRouteFocused.value &&
+                            ref.read(feedVideoPlaybackEnabledNotifierProvider) &&
+                            settings.autoplay;
+                        if (controller.isAnimating) {
+                          if (!shouldAnimateNow) controller.stop();
+                        } else {
+                          if (shouldAnimateNow) controller.repeat();
+                        }
+                      } catch (_) {}
+                    });
+                  },
+                );
+              },
             ),
           );
         },
