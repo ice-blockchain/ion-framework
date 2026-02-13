@@ -31,6 +31,7 @@ class _WebViewState extends ConsumerState<WebView> {
           onWebResourceError: (_) => _setLoading(false),
         ),
       )
+      ..setJavaScriptMode(wf.JavaScriptMode.unrestricted)
       ..loadRequest(
         Uri.parse(widget.url),
       );
