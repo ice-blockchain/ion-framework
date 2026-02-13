@@ -22,6 +22,7 @@ import 'package:ion/app/features/wallets/data/database/tables/sync_coins_table.d
 import 'package:ion/app/features/wallets/data/database/tables/transaction_visibility_status_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/tables/transactions_table.d.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.steps.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:ion/app/utils/directory.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -42,8 +43,7 @@ WalletsDatabase walletsDatabase(Ref ref) {
       : null;
   final database = WalletsDatabase(pubkey, appGroupId: appGroup);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }

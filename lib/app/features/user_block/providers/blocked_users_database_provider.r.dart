@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user_block/model/database/block_user_database.m.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'blocked_users_database_provider.r.g.dart';
@@ -19,8 +20,7 @@ BlockUserDatabase blockedUsersDatabase(Ref ref) {
 
   final database = BlockUserDatabase(pubkey);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }

@@ -18,6 +18,7 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/token_l
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'notifications_database.m.g.dart';
@@ -32,8 +33,7 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
 
   final database = NotificationsDatabase(pubkey);
 
-  onLogout(ref, database.close);
-  onUserSwitch(ref, database.close);
+  registerDatabaseLifecycle(ref, database);
 
   return database;
 }
