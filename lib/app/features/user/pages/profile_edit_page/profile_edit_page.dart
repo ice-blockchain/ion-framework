@@ -72,6 +72,30 @@ class ProfileEditPage extends HookConsumerWidget {
     final textEditorKey = useMemoized(TextEditorKeys.bioInput);
     final scrollController = useScrollController();
     final suggestionsState = ref.watch(suggestionsNotifierProvider);
+    final bioFocusNode = useFocusNode();
+    final keyboardVisibilityController = useMemoized(KeyboardVisibilityController.new);
+
+    useEffect(
+      () {
+        void scrollListener() {
+          if (bioFocusNode.hasFocus && !keyboardVisibilityController.isVisible) {
+            final context = textEditorKey.currentContext;
+            if (context != null && context.mounted) {
+              Scrollable.ensureVisible(
+                context,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                alignment: 0.1,
+              );
+            }
+          }
+        }
+
+        bioFocusNode.addListener(scrollListener);
+        return () => bioFocusNode.removeListener(scrollListener);
+      },
+      [bioFocusNode],
+    );
 
     return Scaffold(
       body: KeyboardDismissOnTap(
@@ -109,17 +133,20 @@ class ProfileEditPage extends HookConsumerWidget {
                                 },
                               ),
                               SizedBox(height: paddingValue),
-                              BioRichTextInput(
-                                textEditorKey: textEditorKey,
-                                initialValue: userMetadata.data.about,
-                                onChanged: (text) {
-                                  final trimmedText = QuillTextUtils.trimBioDeltaJson(text);
-
-                                  return update(
-                                    draftRef.value
-                                        .copyWith(about: text.trim().isEmpty ? null : trimmedText),
-                                  );
-                                },
+                              Focus(
+                                focusNode: bioFocusNode,
+                                child: BioRichTextInput(
+                                  textEditorKey: textEditorKey,
+                                  initialValue: userMetadata.data.about,
+                                  onChanged: (text) {
+                                    final trimmedText = QuillTextUtils.trimBioDeltaJson(text);
+                                    return update(
+                                      draftRef.value.copyWith(
+                                        about: text.trim().isEmpty ? null : trimmedText,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                               SuggestionsContainer(
                                 scrollController: scrollController,
