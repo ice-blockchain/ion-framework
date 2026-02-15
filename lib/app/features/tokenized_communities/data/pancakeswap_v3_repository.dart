@@ -72,6 +72,68 @@ class PancakeSwapV3Repository {
 ]
 ''';
 
+  static const _swapRouterProbeAbi = '''
+[
+  {
+    "inputs": [],
+    "name": "factory",
+    "outputs": [
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "WETH9",
+    "outputs": [
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "tokenIn", "type": "address" },
+          { "internalType": "address", "name": "tokenOut", "type": "address" },
+          { "internalType": "uint24", "name": "fee", "type": "uint24" },
+          { "internalType": "address", "name": "recipient", "type": "address" },
+          { "internalType": "uint256", "name": "deadline", "type": "uint256" },
+          { "internalType": "uint256", "name": "amountIn", "type": "uint256" },
+          { "internalType": "uint256", "name": "amountOutMinimum", "type": "uint256" },
+          { "internalType": "uint160", "name": "sqrtPriceLimitX96", "type": "uint160" }
+        ],
+        "internalType": "struct IV3SwapRouter.ExactInputSingleParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "exactInputSingle",
+    "outputs": [
+      { "internalType": "uint256", "name": "amountOut", "type": "uint256" }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  }
+]
+''';
+
+  static const _quoterFactoryAbi = '''
+[
+  {
+    "inputs": [],
+    "name": "factory",
+    "outputs": [
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
+''';
+
   Future<BigInt> quoteExactInputSingle({
     required String tokenIn,
     required String tokenOut,
@@ -105,9 +167,8 @@ class PancakeSwapV3Repository {
       function: function,
       params: [params],
     );
-
-    // returns (amountOut, sqrtPriceX96After, initializedTicksCrossed, gasEstimate)
-    return result[0] as BigInt;
+    final amountOut = result[0] as BigInt;
+    return amountOut;
   }
 
   Future<BigInt> quoteExactOutputSingle({
@@ -143,8 +204,80 @@ class PancakeSwapV3Repository {
       function: function,
       params: [params],
     );
+    final amountIn = result[0] as BigInt;
+    return amountIn;
+  }
 
-    // returns (amountIn, sqrtPriceX96After, initializedTicksCrossed, gasEstimate)
-    return result[0] as BigInt;
+  Future<String> fetchRouterWeth9Address() async {
+    final contract = DeployedContract(
+      ContractAbi.fromJson(_swapRouterProbeAbi, 'SwapRouterProbe'),
+      EthereumAddress.fromHex(swapRouterAddress),
+    );
+    final function = contract.function('WETH9');
+    final result = await web3Client.call(
+      contract: contract,
+      function: function,
+      params: const [],
+    );
+    return (result.first as EthereumAddress).hexEip55;
+  }
+
+  Future<String> fetchRouterFactoryAddress() async {
+    final contract = DeployedContract(
+      ContractAbi.fromJson(_swapRouterProbeAbi, 'SwapRouterProbe'),
+      EthereumAddress.fromHex(swapRouterAddress),
+    );
+    final function = contract.function('factory');
+    final result = await web3Client.call(
+      contract: contract,
+      function: function,
+      params: const [],
+    );
+    return (result.first as EthereumAddress).hexEip55;
+  }
+
+  Future<String> fetchQuoterFactoryAddress() async {
+    final contract = DeployedContract(
+      ContractAbi.fromJson(_quoterFactoryAbi, 'QuoterFactoryProbe'),
+      EthereumAddress.fromHex(quoterV2Address),
+    );
+    final function = contract.function('factory');
+    final result = await web3Client.call(
+      contract: contract,
+      function: function,
+      params: const [],
+    );
+    return (result.first as EthereumAddress).hexEip55;
+  }
+
+  Future<void> probeExactInputSingle({
+    required String tokenIn,
+    required String tokenOut,
+    required int fee,
+    required String recipient,
+  }) async {
+    final contract = DeployedContract(
+      ContractAbi.fromJson(_swapRouterProbeAbi, 'SwapRouterProbe'),
+      EthereumAddress.fromHex(swapRouterAddress),
+    );
+    final function = contract.function('exactInputSingle');
+    final deadline = BigInt.from(DateTime.now().millisecondsSinceEpoch ~/ 1000 + 300);
+
+    await web3Client.call(
+      contract: contract,
+      function: function,
+      params: [
+        [
+          EthereumAddress.fromHex(tokenIn),
+          EthereumAddress.fromHex(tokenOut),
+          BigInt.from(fee),
+          EthereumAddress.fromHex(recipient),
+          deadline,
+          BigInt.zero,
+          BigInt.zero,
+          BigInt.zero,
+        ],
+      ],
+    );
   }
 }

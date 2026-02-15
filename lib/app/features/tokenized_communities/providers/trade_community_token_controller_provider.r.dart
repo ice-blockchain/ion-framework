@@ -78,8 +78,9 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
     final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider) ?? '';
     _lastPaymentCoinService ??= TradeCommunityLastPaymentCoinService(
-      userPreferencesService:
-          ref.read(userPreferencesServiceProvider(identityKeyName: identityKeyName)),
+      userPreferencesService: ref.read(
+        userPreferencesServiceProvider(identityKeyName: identityKeyName),
+      ),
     );
 
     final pubkey = params.eventReference?.masterPubkey ??
@@ -756,7 +757,9 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   ) async {
     final resolver = _pricingIdentifierResolver;
     if (resolver == null) {
-      throw StateError('CommunityTokenPricingIdentifierResolver is not initialized');
+      throw StateError(
+        'CommunityTokenPricingIdentifierResolver is not initialized',
+      );
     }
     return resolver.resolve(mode);
   }
@@ -815,6 +818,8 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       'ION': pricing.usdPriceION,
       'TION': pricing.usdPriceION,
       'BNB': pricing.usdPriceBNB,
+      'USDT': 1.0,
+      'USDC': 1.0,
     };
 
     return tokenMap[token];

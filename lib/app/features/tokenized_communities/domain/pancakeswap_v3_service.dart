@@ -12,6 +12,8 @@ class PancakeSwapV3Service {
 
   final PancakeSwapV3Repository repository;
   final TokenizedCommunitiesTradeConfig tradeConfig;
+  bool _routerCompatibilityChecked = false;
+  static const List<int> _fallbackFeeTiers = [100, 500, 2500, 10000];
 
   static const _nativeTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
@@ -23,12 +25,64 @@ class PancakeSwapV3Service {
 
   String get swapRouterAddress => tradeConfig.pancakeSwapSwapRouterAddress;
 
-  bool isIonTokenAddress(String address) {
-    return address.toLowerCase() == ionTokenAddress.toLowerCase();
-  }
-
   bool isNativeTokenAddress(String address) {
     return address.toLowerCase() == _nativeTokenAddress || address.toLowerCase() == 'bnb';
+  }
+
+  Future<void> ensureRouterCompatibility() async {
+    if (_routerCompatibilityChecked) return;
+
+    final expectedWbnb = wbnbTokenAddress.toLowerCase();
+    final routerAddress = swapRouterAddress;
+
+    try {
+      final routerWeth9 = (await repository.fetchRouterWeth9Address()).toLowerCase();
+      if (routerWeth9 != expectedWbnb) {
+        throw PancakeSwapRouterMisconfiguredException(
+          'WETH9 mismatch. router=$routerAddress WETH9=$routerWeth9 expected=$expectedWbnb',
+        );
+      }
+    } catch (error) {
+      if (error is PancakeSwapRouterMisconfiguredException) rethrow;
+      throw PancakeSwapRouterMisconfiguredException(
+        'WETH9 probe failed for router=$routerAddress error=$error',
+      );
+    }
+
+    try {
+      final routerFactory = (await repository.fetchRouterFactoryAddress()).toLowerCase();
+      final quoterFactory = (await repository.fetchQuoterFactoryAddress()).toLowerCase();
+      if (routerFactory != quoterFactory) {
+        throw PancakeSwapRouterMisconfiguredException(
+          'Factory mismatch. router=$routerAddress routerFactory=$routerFactory quoterFactory=$quoterFactory',
+        );
+      }
+    } catch (error) {
+      if (error is PancakeSwapRouterMisconfiguredException) rethrow;
+      throw PancakeSwapRouterMisconfiguredException(
+        'Factory probe failed for router=$routerAddress error=$error',
+      );
+    }
+
+    try {
+      await repository.probeExactInputSingle(
+        tokenIn: wbnbTokenAddress,
+        tokenOut: ionTokenAddress,
+        fee: feeTier,
+        recipient: routerAddress,
+      );
+    } catch (error) {
+      final message = error.toString().toLowerCase();
+      if (message.contains('invalid nft position manager') ||
+          message.contains('function selector was not recognized')) {
+        throw PancakeSwapRouterMisconfiguredException(
+          'exactInputSingle probe failed for router=$routerAddress error=$error',
+        );
+      }
+      // AS/SPL/no-pool style reverts still mean router ABI/selector are compatible.
+    }
+
+    _routerCompatibilityChecked = true;
   }
 
   Future<({BigInt amountIn, int fee})> getQuoteForExactOutput({
@@ -36,23 +90,29 @@ class PancakeSwapV3Service {
     required String tokenOut,
     required BigInt amountOut,
   }) async {
+    await ensureRouterCompatibility();
     final effectiveTokenIn = isNativeTokenAddress(tokenIn) ? wbnbTokenAddress : tokenIn;
     final effectiveTokenOut = isNativeTokenAddress(tokenOut) ? wbnbTokenAddress : tokenOut;
+    final candidates = _resolveFeeTierCandidates();
 
-    try {
-      final amountIn = await repository.quoteExactOutputSingle(
-        tokenIn: effectiveTokenIn,
-        tokenOut: effectiveTokenOut,
-        amountOut: amountOut,
-        fee: feeTier,
-      );
-      return (amountIn: amountIn, fee: feeTier);
-    } catch (error) {
-      if (_looksLikeNoPoolError(error)) {
-        throw LiquidityPoolNotFoundException(tokenIn: tokenIn, tokenOut: tokenOut);
+    for (final feeCandidate in candidates) {
+      try {
+        final amountIn = await repository.quoteExactOutputSingle(
+          tokenIn: effectiveTokenIn,
+          tokenOut: effectiveTokenOut,
+          amountOut: amountOut,
+          fee: feeCandidate,
+        );
+        return (amountIn: amountIn, fee: feeCandidate);
+      } catch (error) {
+        if (_looksLikeNoPoolError(error)) {
+          continue;
+        }
+        rethrow;
       }
-      rethrow;
     }
+
+    throw LiquidityPoolNotFoundException(tokenIn: tokenIn, tokenOut: tokenOut);
   }
 
   Future<({BigInt amountOut, int fee})> getQuoteForExactInput({
@@ -60,29 +120,53 @@ class PancakeSwapV3Service {
     required String tokenOut,
     required BigInt amountIn,
   }) async {
+    await ensureRouterCompatibility();
     final effectiveTokenIn = isNativeTokenAddress(tokenIn) ? wbnbTokenAddress : tokenIn;
     final effectiveTokenOut = isNativeTokenAddress(tokenOut) ? wbnbTokenAddress : tokenOut;
+    final candidates = _resolveFeeTierCandidates();
 
-    try {
-      final amountOut = await repository.quoteExactInputSingle(
-        tokenIn: effectiveTokenIn,
-        tokenOut: effectiveTokenOut,
-        amountIn: amountIn,
-        fee: feeTier,
-      );
-      return (amountOut: amountOut, fee: feeTier);
-    } catch (error) {
-      if (_looksLikeNoPoolError(error)) {
-        throw LiquidityPoolNotFoundException(tokenIn: tokenIn, tokenOut: tokenOut);
+    for (final feeCandidate in candidates) {
+      try {
+        final amountOut = await repository.quoteExactInputSingle(
+          tokenIn: effectiveTokenIn,
+          tokenOut: effectiveTokenOut,
+          amountIn: amountIn,
+          fee: feeCandidate,
+        );
+        return (amountOut: amountOut, fee: feeCandidate);
+      } catch (error) {
+        if (_looksLikeNoPoolError(error)) {
+          continue;
+        }
+        rethrow;
       }
-      rethrow;
     }
+
+    throw LiquidityPoolNotFoundException(tokenIn: tokenIn, tokenOut: tokenOut);
   }
 
   bool _looksLikeNoPoolError(Object error) {
     final message = error.toString().toLowerCase();
     return (message.contains('pool') && message.contains('not')) ||
         message.contains('no liquidity') ||
-        message.contains('liquidity pool');
+        message.contains('liquidity pool') ||
+        message.contains('execution reverted: 0x') ||
+        message.contains('execution reverted: spl') ||
+        message.contains('execution reverted: unexpected error');
+  }
+
+  List<int> _resolveFeeTierCandidates() {
+    final configured = tradeConfig.pancakeSwapFeeTier;
+    final candidates = <int>[
+      configured,
+      ..._fallbackFeeTiers,
+    ];
+    final unique = <int>[];
+    for (final candidate in candidates) {
+      if (!unique.contains(candidate)) {
+        unique.add(candidate);
+      }
+    }
+    return unique;
   }
 }

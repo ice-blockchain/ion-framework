@@ -851,3 +851,8 @@ class MainWalletViewNotFoundException extends IONException {
 class PositionUnchangedException extends IONException {
   PositionUnchangedException() : super(10152, 'Position unchanged');
 }
+
+class PancakeSwapRouterMisconfiguredException extends IONException {
+  PancakeSwapRouterMisconfiguredException(String reason)
+      : super(10153, 'PancakeSwap router misconfigured: $reason');
+}
