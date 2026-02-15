@@ -31,6 +31,7 @@ class TradeUserOpsBuilder {
   final PancakeSwapV3UserOpsBuilder _pancakeSwapUserOpsBuilder;
   final TradeOpsSupport _support;
   final TokenizedCommunitiesTradeConfig _tradeConfig;
+  static const int _nativeTokenDecimals = 18;
 
   Future<List<EvmUserOperation>> buildUserOps({
     required TradeRoutePlan route,
@@ -43,18 +44,18 @@ class TradeUserOpsBuilder {
     FatAddressV2Data? fatAddressData,
   }) async {
     final opsPerStep = await Future.wait(
-      quote.steps.map(
-        (quoteStep) => _buildUserOpsForStep(
-          quoteStep: quoteStep,
-          route: route,
-          walletAddress: walletAddress,
-          paymentTokenAddress: paymentTokenAddress,
-          paymentTokenDecimals: paymentTokenDecimals,
-          communityTokenDecimals: communityTokenDecimals,
-          communityTokenAddress: communityTokenAddress,
-          fatAddressData: fatAddressData,
-        ),
-      ),
+      quote.steps.asMap().entries.map(
+            (entry) => _buildUserOpsForStep(
+              quoteStep: entry.value,
+              route: route,
+              walletAddress: walletAddress,
+              paymentTokenAddress: paymentTokenAddress,
+              paymentTokenDecimals: paymentTokenDecimals,
+              communityTokenDecimals: communityTokenDecimals,
+              communityTokenAddress: communityTokenAddress,
+              fatAddressData: fatAddressData,
+            ),
+          ),
     );
     return opsPerStep.expand((ops) => ops).toList();
   }
@@ -119,12 +120,12 @@ class TradeUserOpsBuilder {
       owner: walletAddress,
       tokenIn: tokenIn,
       amountIn: quoteStep.amountIn,
-      paymentTokenAddress: paymentTokenAddress,
       paymentTokenDecimals: paymentTokenDecimals,
     );
     return _pancakeSwapUserOpsBuilder.buildSwapOperations(
       tokenIn: tokenIn,
       tokenOut: tokenOut,
+      feeTier: quoteStep.pancakeSwapFeeTier ?? _tradeConfig.pancakeSwapFeeTier,
       amountIn: quoteStep.amountIn,
       amountOutMinimum: quoteStep.minReturn,
       recipient: walletAddress,
@@ -230,7 +231,6 @@ class TradeUserOpsBuilder {
     required String owner,
     required String tokenIn,
     required BigInt amountIn,
-    required String paymentTokenAddress,
     required int paymentTokenDecimals,
   }) async {
     if (_pancakeSwapService.isNativeTokenAddress(tokenIn)) {
@@ -238,7 +238,9 @@ class TradeUserOpsBuilder {
     }
     final decimals = tokenIn == _tradeConfig.pancakeSwapIonTokenAddress
         ? _tradeConfig.ionTokenDecimals
-        : paymentTokenDecimals;
+        : _isSameAddress(tokenIn, _tradeConfig.pancakeSwapWbnbAddress)
+            ? _nativeTokenDecimals
+            : paymentTokenDecimals;
     return _support.buildAllowanceApprovalOperationIfNeeded(
       owner: owner,
       tokenAddress: tokenIn,
@@ -256,6 +258,7 @@ class TradeUserOpsBuilder {
   }) async {
     return switch (role) {
       TradeTokenRole.payment => paymentTokenAddress,
+      TradeTokenRole.wrappedNative => _tradeConfig.pancakeSwapWbnbAddress,
       TradeTokenRole.ion => _tradeConfig.pancakeSwapIonTokenAddress,
       TradeTokenRole.creator => await _resolveCreatorTokenAddress(route, communityTokenAddress),
       TradeTokenRole.content => await _resolveContentTokenAddress(route, communityTokenAddress),
@@ -322,9 +325,14 @@ class TradeUserOpsBuilder {
   }) {
     return switch (role) {
       TradeTokenRole.payment => paymentTokenDecimals,
+      TradeTokenRole.wrappedNative => _nativeTokenDecimals,
       TradeTokenRole.ion => _tradeConfig.ionTokenDecimals,
       TradeTokenRole.creator => communityTokenDecimals,
       TradeTokenRole.content => communityTokenDecimals,
     };
+  }
+
+  bool _isSameAddress(String left, String right) {
+    return left.trim().toLowerCase() == right.trim().toLowerCase();
   }
 }

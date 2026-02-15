@@ -13,6 +13,11 @@ class TradeTokenResolver {
     return _normalize(address) == _normalize(_tradeConfig.pancakeSwapIonTokenAddress);
   }
 
+  bool isNativeTokenAddress(String address) {
+    final normalized = _normalize(address);
+    return normalized == 'bnb' || normalized == '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+  }
+
   String _normalize(String address) {
     return address.trim().toLowerCase();
   }
