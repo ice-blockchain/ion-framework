@@ -173,31 +173,11 @@ class PasskeysSigner {
     required bool localCredsOnly,
   }) async {
     try {
-      final assertion = await sign(
+      return await sign(
         challenge,
         localCredsOnly: localCredsOnly,
-        username: username,
       );
-      await _clearCanSuggestStateOnSuccess(username);
-      return assertion;
     } on NoCredentialsAvailableException {
-      if (localCredsOnly && username.isNotEmpty) {
-        try {
-          final assertion = await sign(
-            challenge,
-            username: username,
-          );
-          await _clearCanSuggestStateOnSuccess(username);
-          return assertion;
-        } on NoCredentialsAvailableException {
-          await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
-            username: username,
-            state: LocalPasskeyCredsState.canSuggest,
-          );
-          throw const NoLocalPasskeyCredsFoundIONIdentityException();
-        }
-      }
-
       if (localCredsOnly) {
         await localPasskeyCredsStateStorage.updateLocalPasskeyCredsState(
           username: username,
@@ -205,23 +185,8 @@ class PasskeysSigner {
         );
       }
       throw const NoLocalPasskeyCredsFoundIONIdentityException();
-    } on PasskeyValidationException catch (e) {
-      // Auto-login with passkey is tried when username is empty (e.g., field focus).
-      // If the backend returns a bad challenge (like empty rpId), just avoid showing an error to the user.
-      if (username.isEmpty && localCredsOnly) {
-        throw NoLocalPasskeyCredsFoundIONIdentityException(e.message);
-      }
-      rethrow;
     } on PasskeyAuthCancelledException {
       throw const PasskeyCancelledException();
-    }
-  }
-
-  Future<void> _clearCanSuggestStateOnSuccess(String username) async {
-    if (username.isEmpty) return;
-    final state = localPasskeyCredsStateStorage.getLocalPasskeyCredsState(username: username);
-    if (state == LocalPasskeyCredsState.canSuggest) {
-      await localPasskeyCredsStateStorage.removeLocalPasskeyCredsState(username: username);
     }
   }
 
