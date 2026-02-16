@@ -30,7 +30,16 @@ class HoldersPage extends HookConsumerWidget {
     final topHoldersProvider = tokenTopHoldersProvider(externalAddress, limit: 20);
     final topHoldersAsync = ref.watch(topHoldersProvider);
     final topHolders = topHoldersAsync.valueOrNull ?? const <TopHolder>[];
+
     final boundingCurveAddress = ref.watch(bondingCurveAddressProvider).valueOrNull;
+
+    final sortedList = useMemoized(
+      () => topHolders.sortedByPriority(
+        bondingCurveAddress: boundingCurveAddress ?? '',
+      ),
+      [topHolders, boundingCurveAddress],
+    );
+
     return Scaffold(
       appBar: NavigationAppBar.screen(
         title: Text(context.i18n.holders, style: context.theme.appTextThemes.subtitle2),
@@ -51,11 +60,11 @@ class HoldersPage extends HookConsumerWidget {
                   )
                 else
                   SliverList.builder(
-                    itemCount: topHolders.length,
+                    itemCount: sortedList.length,
                     itemBuilder: (context, index) {
                       final topPadding = index == 0 ? 12.s : 7.s;
                       final bottomPadding = 7.s;
-                      final holder = topHolders[index];
+                      final holder = sortedList[index];
 
                       if (boundingCurveAddress != null &&
                           holder.isBoundingCurve(boundingCurveAddress)) {
