@@ -61,7 +61,7 @@ class CoinAmountInput extends HookWidget {
                   padding: EdgeInsetsDirectional.only(end: 16.0.s),
                   child: TextButton(
                     onPressed: () {
-                      controller.text = formatCrypto(maxValue ?? 0);
+                      controller.text = formatCryptoFull(maxValue ?? 0);
                     },
                     child: Text(
                       locale.wallet_max,

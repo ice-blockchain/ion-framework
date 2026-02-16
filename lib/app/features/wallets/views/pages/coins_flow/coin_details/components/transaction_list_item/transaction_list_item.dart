@@ -44,8 +44,9 @@ class TransactionListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
 
-    final amountText =
-        isBalanceVisible ? formatCrypto(transactionData.coinAmount) : StringConstants.obfuscated;
+    final amountText = isBalanceVisible
+        ? formatCryptoCompact(transactionData.coinAmount)
+        : StringConstants.obfuscated;
     final usdText = isBalanceVisible
         ? context.i18n.wallet_approximate_in_usd(formatUSD(transactionData.usdAmount))
         : StringConstants.obfuscated;

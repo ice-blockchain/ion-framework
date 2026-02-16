@@ -185,7 +185,9 @@ class ConfirmationSheet extends HookConsumerWidget {
                     if (fee.getDisplayArrivalTime(context) case final String arrivalTime)
                       ListItemArrivalTime(formattedTime: arrivalTime),
                     SizedBox(height: 16.0.s),
-                    ListItemNetworkFee(value: formatCrypto(fee.amount, fee.symbol)),
+                    ListItemNetworkFee(
+                      value: formatCryptoCompact(fee.amount, fee.symbol),
+                    ),
                   ],
                   SizedBox(height: 22.0.s),
                   if (formData.assetData case final CoinAssetToSendData coin)

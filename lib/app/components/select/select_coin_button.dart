@@ -110,7 +110,9 @@ class _HasCoinSelected extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  isBalanceVisible ? formatCrypto(selectedCoin.amount) : StringConstants.obfuscated,
+                  isBalanceVisible
+                      ? formatCryptoFull(selectedCoin.amount)
+                      : StringConstants.obfuscated,
                   style: textTheme.body,
                 ),
                 Text(

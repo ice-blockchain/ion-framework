@@ -14,7 +14,7 @@ import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
-import 'package:ion/app/utils/formatters.dart';
+import 'package:ion/app/utils/address.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 

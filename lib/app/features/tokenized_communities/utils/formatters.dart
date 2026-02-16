@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:intl/intl.dart';
-import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
+import 'package:ion/app/utils/formatters.dart' as base_formatters;
 import 'package:ion/app/utils/num.dart';
 
 String formatPercent(double p) {
@@ -67,78 +67,12 @@ String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
   if (absPrice == 0) return '${symbol}0.00';
 
   // For very small values, use subscript notation
-  final subscriptResult = formatSubscriptNotation(price, symbol);
+  final subscriptResult = base_formatters.formatSubscriptNotation(price, symbol);
   if (subscriptResult.isEmpty) {
     // Fallback if subscript formatting fails
     return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 4).format(price);
   }
   return subscriptResult;
-}
-
-// Formats a value using subscript notation for very small numbers.
-// Returns a string like "$0.0₂25" for very small values (or "0.0₂25" without symbol).
-String formatSubscriptNotation(double value, [String symbol = '']) {
-  final absValue = value.abs();
-  final expStr = absValue.toStringAsExponential(12);
-  final match = RegExp(r'^(\d(?:\.\d+)?)e([+-]\d+)$').firstMatch(expStr);
-  if (match == null) {
-    return '';
-  }
-
-  final mantissaStr = match.group(1)!;
-  final exponent = int.parse(match.group(2)!);
-  final absExponent = exponent.abs();
-  final zeroCount = absExponent - 1;
-
-  final digits = mantissaStr.replaceAll('.', '');
-  // Keep at most 2 significant digits for the trailing part
-  var trailing = digits.length > 2 ? digits.substring(0, 2) : digits;
-  trailing = trailing.replaceAll(RegExp(r'0+$'), '');
-  if (trailing.isEmpty) trailing = '0';
-
-  final sign = value < 0 ? '-' : '';
-  return '$sign$symbol' '0.0' '${toSubscript(zeroCount)}' '$trailing';
-}
-
-String toSubscript(int number) {
-  final digits = number.toString();
-  const subscriptMap = {
-    '0': '₀',
-    '1': '₁',
-    '2': '₂',
-    '3': '₃',
-    '4': '₄',
-    '5': '₅',
-    '6': '₆',
-    '7': '₇',
-    '8': '₈',
-    '9': '₉',
-  };
-  return digits.split('').map((d) => subscriptMap[d] ?? d).join();
-}
-
-String formatTokenAmountWithSubscript(double value) {
-  final absValue = value.abs();
-
-  if (absValue == 0) return '0';
-
-  if (absValue >= 1000) {
-    return MarketDataFormatter.formatCompactNumber(value);
-  }
-
-  if (absValue >= 1) {
-    final formatted = value.toStringAsFixed(2);
-    return formatted.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
-  }
-
-  if (absValue >= 0.001) {
-    final formatted = value.toStringAsFixed(4);
-    return formatted.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
-  }
-
-  // Use shared subscript notation for very small values
-  final subscript = formatSubscriptNotation(value);
-  return subscript.isNotEmpty ? subscript : value.toStringAsFixed(6);
 }
 
 // Formats a DateTime for chart date labels (e.g., "15/03").

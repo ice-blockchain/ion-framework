@@ -2,6 +2,7 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/formatters.dart';
 import 'package:ion/app/utils/num.dart';
 
 /// Converts a blockchain-precise numeric string (e.g., `"1000000000000000000"`)
@@ -40,7 +41,7 @@ const List<({double value, String suffix})> _scaleInfo = [
   (value: _million, suffix: 'M'),
 ];
 
-String formatCrypto(double value, [String? currency]) {
+String formatCryptoFull(double value, [String? currency]) {
   // Normalize input values
   final normalized = switch (value) {
     _ when value <= 0 => 0.0,
@@ -138,4 +139,9 @@ String _formatWithSmartTruncation(
     maximumFractionDigits: maxDecimals,
     minimumFractionDigits: minDecimals,
   );
+}
+
+String formatCryptoCompact(double value, [String? currency]) {
+  final formatted = formatTokenAmountWithSubscript(value);
+  return currency != null ? '$formatted $currency' : formatted;
 }

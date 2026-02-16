@@ -248,10 +248,10 @@ void main() {
     });
   });
 
-  group('formatCrypto', () {
+  group('formatCryptoFull', () {
     group('zero values', () {
       test('formats zero as 0.00', () {
-        expect(formatCrypto(0), '0.00');
+        expect(formatCryptoFull(0), '0.00');
       });
     });
 
@@ -271,8 +271,8 @@ void main() {
         (value: 2567000.0, expected: '2.567M'),
         (value: 2567890.0, expected: '2.567M'), // truncated to 3 decimals
       ], (t) {
-        test('formatCrypto(${t.value}) returns ${t.expected}', () {
-          expect(formatCrypto(t.value), t.expected);
+        test('formatCryptoFull(${t.value}) returns ${t.expected}', () {
+          expect(formatCryptoFull(t.value), t.expected);
         });
       });
 
@@ -285,8 +285,8 @@ void main() {
         (value: 18308397101.0, expected: '18.308B'),
         (value: 18308397101.537, expected: '18.308B'),
       ], (t) {
-        test('formatCrypto(${t.value}) returns ${t.expected}', () {
-          expect(formatCrypto(t.value), t.expected);
+        test('formatCryptoFull(${t.value}) returns ${t.expected}', () {
+          expect(formatCryptoFull(t.value), t.expected);
         });
       });
 
@@ -298,14 +298,14 @@ void main() {
         (value: 1234567890123456.0, expected: '1234.567T'),
         (value: 9999999999999999.0, expected: '10000T'),
       ], (t) {
-        test('formatCrypto(${t.value}) returns ${t.expected}', () {
-          expect(formatCrypto(t.value), t.expected);
+        test('formatCryptoFull(${t.value}) returns ${t.expected}', () {
+          expect(formatCryptoFull(t.value), t.expected);
         });
       });
 
       test('boundary values near 1M', () {
-        expect(formatCrypto(999999), '999,999.00'); // stays unabbreviated
-        expect(formatCrypto(1000000), '1M'); // becomes abbreviated
+        expect(formatCryptoFull(999999), '999,999.00'); // stays unabbreviated
+        expect(formatCryptoFull(1000000), '1M'); // becomes abbreviated
       });
     });
 
@@ -325,8 +325,8 @@ void main() {
         (value: 10.1, expected: '10.10'),
         (value: 999.999, expected: '999.99'),
       ], (t) {
-        test('formatCrypto(${t.value}) returns ${t.expected}', () {
-          expect(formatCrypto(t.value), t.expected);
+        test('formatCryptoFull(${t.value}) returns ${t.expected}', () {
+          expect(formatCryptoFull(t.value), t.expected);
         });
       });
     });
@@ -346,8 +346,8 @@ void main() {
         (value: 2.0000001, expected: '2.00'),
         (value: 3.1415926, expected: '3.141592'),
       ], (t) {
-        test('formatCrypto(${t.value}) returns ${t.expected}', () {
-          expect(formatCrypto(t.value), t.expected);
+        test('formatCryptoFull(${t.value}) returns ${t.expected}', () {
+          expect(formatCryptoFull(t.value), t.expected);
         });
       });
     });
@@ -369,8 +369,8 @@ void main() {
         (value: 0.999999, expected: '0.999999'),
         (value: 0.5, expected: '0.50'),
       ], (t) {
-        test('formatCrypto(${t.value}) returns ${t.expected}', () {
-          expect(formatCrypto(t.value), t.expected);
+        test('formatCryptoFull(${t.value}) returns ${t.expected}', () {
+          expect(formatCryptoFull(t.value), t.expected);
         });
       });
     });
@@ -392,23 +392,23 @@ void main() {
         (value: 18308397101537.31, currency: 'USD', expected: '18.308T USD'),
         (value: 2567890.0, currency: 'SATS', expected: '2.567M SATS'),
       ], (t) {
-        test('formatCrypto(${t.value}, ${t.currency}) returns ${t.expected}', () {
-          expect(formatCrypto(t.value, t.currency), t.expected);
+        test('formatCryptoFull(${t.value}, ${t.currency}) returns ${t.expected}', () {
+          expect(formatCryptoFull(t.value, t.currency), t.expected);
         });
       });
 
       test('null currency returns value without suffix', () {
-        expect(formatCrypto(1.5), '1.50');
+        expect(formatCryptoFull(1.5), '1.50');
       });
     });
 
     group('boundary values', () {
       test('handles values exactly at boundaries', () {
-        expect(formatCrypto(1), '1.00');
-        expect(formatCrypto(10), '10.00');
-        expect(formatCrypto(0.999999), '0.999999');
-        expect(formatCrypto(0.9999999), '0.999999');
-        expect(formatCrypto(10.000001), '10.00');
+        expect(formatCryptoFull(1), '1.00');
+        expect(formatCryptoFull(10), '10.00');
+        expect(formatCryptoFull(0.999999), '0.999999');
+        expect(formatCryptoFull(0.9999999), '0.999999');
+        expect(formatCryptoFull(10.000001), '10.00');
       });
     });
 
@@ -422,25 +422,25 @@ void main() {
         (value: -1000000.0, expected: '0.00'),
         (value: -0.000001, expected: '0.00'),
       ], (t) {
-        test('formatCrypto(${t.value}) returns ${t.expected}', () {
-          expect(formatCrypto(t.value), t.expected);
+        test('formatCryptoFull(${t.value}) returns ${t.expected}', () {
+          expect(formatCryptoFull(t.value), t.expected);
         });
       });
     });
 
     group('edge cases', () {
       test('handles very small numbers correctly', () {
-        expect(formatCrypto(1e-7), '0.000001');
-        expect(formatCrypto(1e-6), '0.000001');
-        expect(formatCrypto(1.23e-6), '0.000001');
+        expect(formatCryptoFull(1e-7), '0.000001');
+        expect(formatCryptoFull(1e-6), '0.000001');
+        expect(formatCryptoFull(1.23e-6), '0.000001');
       });
 
       test('handles very small numbers normalized to minimum threshold', () {
-        expect(formatCrypto(0.00000001), '0.000001');
-        expect(formatCrypto(0.00000012), '0.000001');
-        expect(formatCrypto(0.00000123), '0.000001');
-        expect(formatCrypto(0.000000456), '0.000001');
-        expect(formatCrypto(0.0000000789), '0.000001');
+        expect(formatCryptoFull(0.00000001), '0.000001');
+        expect(formatCryptoFull(0.00000012), '0.000001');
+        expect(formatCryptoFull(0.00000123), '0.000001');
+        expect(formatCryptoFull(0.000000456), '0.000001');
+        expect(formatCryptoFull(0.0000000789), '0.000001');
       });
     });
   });

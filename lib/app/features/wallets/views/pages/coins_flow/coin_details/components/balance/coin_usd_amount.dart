@@ -32,7 +32,7 @@ class CoinUsdAmount extends HookConsumerWidget {
     final balance = ref.watch(coinBalanceNotifierProvider(symbolGroup: coinsGroup.symbolGroup));
 
     final coinText = isBalanceVisible
-        ? '${formatCrypto(balance.amount)} ${coinsGroup.abbreviation}'
+        ? '${formatCryptoFull(balance.amount)} ${coinsGroup.abbreviation}'
         : StringConstants.obfuscated;
     final usdText = isBalanceVisible
         ? context.i18n.wallet_approximate_in_usd(
