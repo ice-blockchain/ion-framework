@@ -13,7 +13,7 @@ import 'package:ion/app/features/tokenized_communities/hooks/use_chart_initial_f
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_price_change_percent_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_trading_stats_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_metric_value_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
@@ -65,7 +65,7 @@ class Chart extends HookConsumerWidget {
     );
 
     final changePercent =
-        ref.watch(tokenPriceChangePercentProvider(externalAddress));
+        ref.watch(token24hPriceChangeProvider(externalAddress));
 
     // Cache the last successfully loaded candles to show during loading
     final cachedCandles = useRef<List<ChartCandle>?>(null);

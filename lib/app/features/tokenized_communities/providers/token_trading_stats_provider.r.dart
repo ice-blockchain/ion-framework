@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/tokenized_communities/utils/timeframe_extension.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -34,4 +36,24 @@ Stream<Map<String, TradingStats>> tokenTradingStats(
       yield currentStats;
     }
   }
+}
+
+// Extracts the 24h price change percentage from trading stats
+// Returns 0.0 while data is loading or if the 24h key is missing which is not expected
+@riverpod
+double token24hPriceChange(
+  Ref ref,
+  String externalAddress,
+) {
+  final stats = ref.watch(tokenTradingStatsProvider(externalAddress)).valueOrNull;
+  if (stats == null || stats.isEmpty) return 0;
+
+  final stats24h = stats[timeframe24hApiKey];
+  if (stats24h != null) return stats24h.priceDiff;
+
+  Logger.error(
+    'Trading stats: "$timeframe24hApiKey" key not found. '
+    'Available keys: ${stats.keys.toList()}.',
+  );
+  return 0;
 }
