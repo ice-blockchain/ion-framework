@@ -15,6 +15,7 @@ extension TopHolderListSorting on List<TopHolder> {
           if (h.isBurning) return 1;
           return 2;
         }
+
         return priority(a).compareTo(priority(b));
       });
   }
