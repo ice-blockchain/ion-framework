@@ -43,8 +43,12 @@ EventReference? useOneLinkQuotedEvent({
       // when the modal is reopened (via useOnInit in PostFormModal).
       if (oneLinkUrl == null) return null;
 
-      // Skip if we already resolved this exact URL
-      if (oneLinkUrl == lastResolvedUrl.value) return null;
+      // Skip if we already resolved this exact URL and the quote is still shown.
+      // When the user cleared the quote (resolvedRef == null), re-resolve for any pasted URL.
+      if (oneLinkUrl == lastResolvedUrl.value && resolvedRef != null) {
+        _removeUrlFromEditor(textEditorController, oneLinkUrl);
+        return null;
+      }
 
       // Skip if already resolving
       if (isResolving.value) return null;
