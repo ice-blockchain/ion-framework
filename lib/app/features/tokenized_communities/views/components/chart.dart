@@ -461,7 +461,7 @@ class _MetricIconSwitcher extends StatelessWidget {
         },
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: EdgeInsets.all(6.0.s),
+          padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 2.0.s),
           decoration: BoxDecoration(
             color: isSelected ? colors.primaryAccent : colors.primaryBackground,
             borderRadius: BorderRadius.circular(8.0.s),

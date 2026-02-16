@@ -8,10 +8,9 @@ enum ChartTimeRange { m1, m3, m5, m15, m30, h1, d1 }
 enum ChartMetric { close, marketCap }
 
 extension ChartMetricExtension on ChartMetric {
-  // TODO: replace with final icon assets
   String get iconAsset => switch (this) {
-        ChartMetric.close => Assets.svg.iconCreatecoinProfit,
-        ChartMetric.marketCap => Assets.svg.iconCreatecoinDollar,
+        ChartMetric.close => Assets.svg.iconTagPriceLinear,
+        ChartMetric.marketCap => Assets.svg.iconMemeMarketcap,
       };
 }
 
