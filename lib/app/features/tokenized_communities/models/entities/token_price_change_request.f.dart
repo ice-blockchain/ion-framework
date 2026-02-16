@@ -6,10 +6,12 @@ import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/model/output_tag.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 
 part 'token_price_change_request.f.freezed.dart';
@@ -52,18 +54,20 @@ class TokenPriceChangeRequestData with _$TokenPriceChangeRequestData implements 
   const factory TokenPriceChangeRequestData({
     required TokenPriceChangeInput input,
     required TokenPriceChangeRequestParams params,
-    String? output,
+    @Default(MimeType.json) MimeType output,
   }) = _TokenPriceChangeRequestData;
 
   const TokenPriceChangeRequestData._();
 
   factory TokenPriceChangeRequestData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
+    final output = tags[OutputTag.tagName]!.map(OutputTag.fromTag).first.value;
+
     return TokenPriceChangeRequestData(
       input: TokenPriceChangeInput.fromTags(tags[TokenPriceChangeInput.tagName] ?? []),
       params:
           TokenPriceChangeRequestParams.fromTags(tags[TokenPriceChangeRequestParams.tagName] ?? []),
-      output: tags['output']?.firstOrNull?[1],
+      output: output,
     );
   }
 
@@ -82,6 +86,7 @@ class TokenPriceChangeRequestData with _$TokenPriceChangeRequestData implements 
         ...tags,
         ...input.toTags(),
         ...params.toTags(),
+        OutputTag(value: output).toTag(),
       ],
     );
   }
