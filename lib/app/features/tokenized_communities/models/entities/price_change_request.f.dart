@@ -50,7 +50,7 @@ class PriceChangeRequestEntity
 @freezed
 class PriceChangeRequestData with _$PriceChangeRequestData implements EventSerializable {
   const factory PriceChangeRequestData({
-    required PriceChangeRequestInput input,
+    required PriceChangeInput input,
     required PriceChangeRequestParams params,
     String? output,
   }) = _PriceChangeRequestData;
@@ -60,7 +60,7 @@ class PriceChangeRequestData with _$PriceChangeRequestData implements EventSeria
   factory PriceChangeRequestData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
     return PriceChangeRequestData(
-      input: PriceChangeRequestInput.fromTags(tags[PriceChangeRequestInput.tagName] ?? []),
+      input: PriceChangeInput.fromTags(tags[PriceChangeInput.tagName] ?? []),
       params: PriceChangeRequestParams.fromTags(tags[PriceChangeRequestParams.tagName] ?? []),
       output: tags['output']?.firstOrNull?[1],
     );
@@ -129,24 +129,23 @@ class PriceChangeRequestParams with _$PriceChangeRequestParams {
 }
 
 @freezed
-class PriceChangeRequestInput with _$PriceChangeRequestInput {
-  const factory PriceChangeRequestInput({
+class PriceChangeInput with _$PriceChangeInput {
+  const factory PriceChangeInput({
     required EventReference eventReference,
-  }) = _PriceChangeRequestInput;
+  }) = _PriceChangeInput;
 
-  const PriceChangeRequestInput._();
+  const PriceChangeInput._();
 
-  factory PriceChangeRequestInput.fromTags(List<List<String>> tags) {
+  factory PriceChangeInput.fromTags(List<List<String>> tags) {
     final tag = tags.firstWhereOrNull(
-      (tag) =>
-          tag[0] == PriceChangeRequestInput.tagName && tag.length == 5 && tag[4] == 'priceChange',
+      (tag) => tag[0] == PriceChangeInput.tagName && tag.length == 5 && tag[4] == 'priceChange',
     );
 
     if (tag == null) {
       throw IncorrectEventTagException(tag: tag);
     }
 
-    return PriceChangeRequestInput(
+    return PriceChangeInput(
       eventReference: ReplaceableEventReference.fromString(tag[1]),
     );
   }
