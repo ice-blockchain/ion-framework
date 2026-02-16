@@ -8,6 +8,7 @@ import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_t
 import 'package:ion/app/features/tokenized_communities/data/pancakeswap_v3_repository.dart';
 import 'package:ion/app/features/tokenized_communities/data/token_info_cache.dart';
 import 'package:ion/app/features/tokenized_communities/data/trade_community_token_api.dart';
+import 'package:ion/app/features/tokenized_communities/domain/content_payment_token_resolver_service.dart';
 import 'package:ion/app/features/tokenized_communities/domain/pancakeswap_v3_service.dart';
 import 'package:ion/app/features/tokenized_communities/domain/pancakeswap_v3_user_ops_builder.dart';
 import 'package:ion/app/features/tokenized_communities/domain/supported_swap_tokens_resolver_service.dart';
@@ -20,10 +21,13 @@ import 'package:ion/app/features/tokenized_communities/domain/trade_route_builde
 import 'package:ion/app/features/tokenized_communities/domain/trade_token_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_user_ops_builder.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_ion_connect_notifier_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/content_payment_token_context_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/external_address_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/tokenized_communities_trade_config_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/web3client_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/wallets/data/repository/coins_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -228,6 +232,55 @@ Future<List<CoinsGroup>> supportedSwapTokenGroups(Ref ref) async {
     supportedTokens: tokens,
     walletView: walletView,
   );
+}
+
+@riverpod
+AsyncValue<List<CoinsGroup>> selectTradePaymentTokenGroups(
+  Ref ref,
+  String? contentTokenExternalAddress,
+) {
+  final baseGroupsAsync = ref.watch(supportedSwapTokenGroupsProvider);
+  if (baseGroupsAsync.hasError) {
+    return AsyncValue.error(
+      baseGroupsAsync.error!,
+      baseGroupsAsync.stackTrace ?? StackTrace.current,
+    );
+  }
+
+  final baseGroups = baseGroupsAsync.valueOrNull;
+  if (baseGroups == null) {
+    return const AsyncValue.loading();
+  }
+
+  if (contentTokenExternalAddress == null || contentTokenExternalAddress.isEmpty) {
+    return AsyncValue.data(baseGroups);
+  }
+
+  final externalAddressTypeAsync = ref.watch(
+    externalAddressTypeProvider(externalAddress: contentTokenExternalAddress),
+  );
+  final externalAddressType = externalAddressTypeAsync.valueOrNull;
+  if (externalAddressType == null || !externalAddressType.isContentToken) {
+    return AsyncValue.data(baseGroups);
+  }
+
+  final creatorContextAsync = ref.watch(
+    contentPaymentTokenContextProvider(
+      externalAddress: contentTokenExternalAddress,
+      externalAddressType: externalAddressType,
+    ),
+  );
+  final creatorContext = creatorContextAsync.valueOrNull;
+  if (creatorContext == null || creatorContext.source != ContentPaymentTokenSource.creatorToken) {
+    return AsyncValue.data(baseGroups);
+  }
+
+  final creatorGroup = creatorContext.coinsGroup;
+  final groupsWithoutCreator = baseGroups
+      .where((group) => group.symbolGroup != creatorGroup.symbolGroup)
+      .toList(growable: false);
+
+  return AsyncValue.data([creatorGroup, ...groupsWithoutCreator]);
 }
 
 @riverpod

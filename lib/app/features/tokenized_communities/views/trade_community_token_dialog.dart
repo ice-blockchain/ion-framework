@@ -115,7 +115,6 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     final pubkey = eventReference?.masterPubkey ??
         CreatorTokenUtils.tryExtractPubkeyFromExternalAddress(resolvedExternalAddress);
-    final supportedTokensAsync = ref.watch(supportedSwapTokensProvider);
     final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
 
     ref
@@ -214,8 +213,10 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                 communityAvatarWidget: communityAvatarWidget,
                 onTokenTap: () => _showTokenSelectionSheet(
                   context,
+                  ref,
                   controller,
-                  supportedTokensAsync,
+                  mode: state.mode,
+                  externalAddress: resolvedExternalAddress,
                 ),
               ),
             SizedBox(height: 29.0.s),
@@ -297,31 +298,37 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
   Future<void> _showTokenSelectionSheet(
     BuildContext context,
-    TradeCommunityTokenController controller,
-    AsyncValue<List<CoinData>> supportedTokensAsync,
-  ) async {
-    if (supportedTokensAsync.hasError) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading tokens: ${supportedTokensAsync.error}'),
-        ),
+    WidgetRef ref,
+    TradeCommunityTokenController controller, {
+    required CommunityTokenTradeMode mode,
+    required String externalAddress,
+  }) async {
+    List<CoinData> tokens;
+    try {
+      tokens = await ref.read(supportedSwapTokensProvider.future);
+      if (!context.mounted) return;
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: '[TradeCommunityTokenDialog] Failed to load supported swap tokens',
       );
       return;
     }
-
-    final tokens = supportedTokensAsync.valueOrNull ?? <CoinData>[];
     if (tokens.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No supported tokens available')),
+      Logger.warning(
+        '[TradeCommunityTokenDialog] Supported swap tokens list is empty',
       );
       return;
     }
 
+    if (!context.mounted) return;
     final selectedCoin = await SelectTradePaymentTokenProfileRoute(
-      title: context.i18n.wallet_swap_coins_select_coin,
+      contentTokenExternalAddress: mode == CommunityTokenTradeMode.buy ? externalAddress : null,
     ).push<CoinData>(context);
 
-    if (selectedCoin != null && context.mounted) {
+    if (!context.mounted) return;
+    if (selectedCoin != null) {
       controller.selectPaymentToken(selectedCoin);
     }
   }
