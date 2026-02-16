@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:intl/intl.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
+import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 import 'package:ion/app/utils/formatters.dart' as base_formatters;
 import 'package:ion/app/utils/num.dart';
 

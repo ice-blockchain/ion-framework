@@ -3,8 +3,8 @@
 import 'package:decimal/decimal.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/num.dart';
+import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_candles_normalizer.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

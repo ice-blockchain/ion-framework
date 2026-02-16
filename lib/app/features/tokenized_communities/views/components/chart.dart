@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_initial_fade_in_visibility.dart';
+import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_metric_preference_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
@@ -19,6 +20,8 @@ import 'package:ion/app/features/tokenized_communities/utils/chart_metric_value_
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
+
+export 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 
 class Chart extends HookConsumerWidget {
   const Chart({
@@ -204,18 +207,12 @@ class _ChartContent extends HookWidget {
           ),
           SizedBox(height: 12.0.s),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-            child: _MetricSelector(
-              selected: selectedMetric,
-              onChanged: onMetricChanged,
-            ),
-          ),
-          SizedBox(height: 10.0.s),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0.s),
-            child: _RangeSelector(
-              selected: selectedRange,
-              onChanged: onRangeChanged,
+            padding: EdgeInsetsDirectional.only(start: 16.0.s),
+            child: _TimeframeAndMetricRow(
+              selectedRange: selectedRange,
+              onRangeChanged: onRangeChanged,
+              selectedMetric: selectedMetric,
+              onMetricChanged: onMetricChanged,
             ),
           ),
           SizedBox(height: 12.0.s),
@@ -347,6 +344,150 @@ class _TokenAge extends StatelessWidget {
   }
 }
 
+class _TimeframeAndMetricRow extends StatelessWidget {
+  const _TimeframeAndMetricRow({
+    required this.selectedRange,
+    required this.selectedMetric,
+    required this.onMetricChanged,
+    this.onRangeChanged,
+  });
+
+  final ChartTimeRange selectedRange;
+  final ValueChanged<ChartTimeRange>? onRangeChanged;
+  final ChartMetric selectedMetric;
+  final ValueChanged<ChartMetric> onMetricChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    final texts = context.theme.appTextThemes;
+    final fadeWidth = 20.0.s;
+
+    Widget timeframeChip(ChartTimeRange range) {
+      final isSelected = range == selectedRange;
+      return GestureDetector(
+        onTap: onRangeChanged == null
+            ? null
+            : () {
+                if (!isSelected) {
+                  HapticFeedback.lightImpact();
+                }
+                onRangeChanged!(range);
+              },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          margin: EdgeInsetsDirectional.only(end: 4.0.s),
+          padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 3.0.s),
+          decoration: BoxDecoration(
+            color: isSelected ? colors.primaryAccent : colors.primaryBackground,
+            borderRadius: BorderRadius.circular(8.0.s),
+          ),
+          child: Text(
+            range.label,
+            style: texts.caption2.copyWith(
+              color: isSelected ? colors.onPrimaryAccent : colors.secondaryText,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsetsDirectional.only(end: 82.0.s),
+          child: Row(
+            children: ChartTimeRange.values.map(timeframeChip).toList(),
+          ),
+        ),
+        PositionedDirectional(
+          end: 0,
+          top: 0,
+          bottom: 0,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IgnorePointer(
+                child: Container(
+                  width: fadeWidth,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colors.secondaryBackground.withValues(alpha: 0),
+                        colors.secondaryBackground.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              ColoredBox(
+                color: colors.secondaryBackground,
+                child: _MetricIconSwitcher(
+                  selected: selectedMetric,
+                  onChanged: onMetricChanged,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MetricIconSwitcher extends StatelessWidget {
+  const _MetricIconSwitcher({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final ChartMetric selected;
+  final ValueChanged<ChartMetric> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+
+    Widget iconButton(ChartMetric metric) {
+      final isSelected = metric == selected;
+      return GestureDetector(
+        onTap: () {
+          if (!isSelected) {
+            HapticFeedback.lightImpact();
+            onChanged(metric);
+          }
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: EdgeInsets.all(6.0.s),
+          decoration: BoxDecoration(
+            color: isSelected ? colors.primaryAccent : colors.primaryBackground,
+            borderRadius: BorderRadius.circular(8.0.s),
+          ),
+          child: metric.iconAsset.icon(
+            size: 16.0.s,
+            color: isSelected ? colors.onPrimaryAccent : colors.secondaryText,
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsetsDirectional.only(end: 16.0.s),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          iconButton(ChartMetric.close),
+          SizedBox(width: 4.0.s),
+          iconButton(ChartMetric.marketCap),
+        ],
+      ),
+    );
+  }
+}
+
 class ChartPriceLabel extends StatelessWidget {
   const ChartPriceLabel({
     required this.value,
@@ -366,189 +507,6 @@ class ChartPriceLabel extends StatelessWidget {
       textAlign: TextAlign.center,
     );
   }
-}
-
-enum ChartTimeRange { m1, m3, m5, m15, m30, h1, d1 }
-
-enum ChartMetric { close, marketCap }
-
-extension ChartMetricExtension on ChartMetric {
-  String get label => switch (this) {
-        // TODO: localize
-        ChartMetric.close => 'Price',
-        ChartMetric.marketCap => 'Market Cap',
-      };
-}
-
-extension ChartTimeRangeExtension on ChartTimeRange {
-  String get label => switch (this) {
-        ChartTimeRange.m1 => '1m',
-        ChartTimeRange.m3 => '3m',
-        ChartTimeRange.m5 => '5m',
-        ChartTimeRange.m15 => '15m',
-        ChartTimeRange.m30 => '30m',
-        ChartTimeRange.h1 => '1h',
-        ChartTimeRange.d1 => '1d',
-      };
-
-  String get intervalString => switch (this) {
-        ChartTimeRange.m1 => '1m',
-        ChartTimeRange.m3 => '3m',
-        ChartTimeRange.m5 => '5m',
-        ChartTimeRange.m15 => '15m',
-        ChartTimeRange.m30 => '30m',
-        ChartTimeRange.h1 => '1h',
-        ChartTimeRange.d1 => '24h',
-      };
-
-  Duration get duration => switch (this) {
-        ChartTimeRange.m1 => const Duration(minutes: 1),
-        ChartTimeRange.m3 => const Duration(minutes: 3),
-        ChartTimeRange.m5 => const Duration(minutes: 5),
-        ChartTimeRange.m15 => const Duration(minutes: 15),
-        ChartTimeRange.m30 => const Duration(minutes: 30),
-        ChartTimeRange.h1 => const Duration(hours: 1),
-        ChartTimeRange.d1 => const Duration(days: 1),
-      };
-}
-
-class _RangeSelector extends StatelessWidget {
-  const _RangeSelector({required this.selected, this.onChanged});
-
-  final ChartTimeRange selected;
-  final ValueChanged<ChartTimeRange>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    final texts = context.theme.appTextThemes;
-
-    Widget chip(ChartTimeRange range) {
-      final isSelected = range == selected;
-      return GestureDetector(
-        onTap: onChanged == null
-            ? null
-            : () {
-                if (!isSelected) {
-                  HapticFeedback.lightImpact();
-                }
-                onChanged!(range);
-              },
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          margin: EdgeInsetsDirectional.only(end: 8.0.s),
-          padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 3.0.s),
-          decoration: BoxDecoration(
-            color: isSelected ? colors.primaryAccent : colors.primaryBackground,
-            borderRadius: BorderRadius.circular(8.0.s),
-          ),
-          child: Text(
-            range.label,
-            style: texts.caption2.copyWith(
-              color: isSelected ? colors.onPrimaryAccent : colors.secondaryText,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                chip(ChartTimeRange.m1),
-                chip(ChartTimeRange.m3),
-                chip(ChartTimeRange.m5),
-                chip(ChartTimeRange.m15),
-                chip(ChartTimeRange.m30),
-                chip(ChartTimeRange.h1),
-                chip(ChartTimeRange.d1),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MetricSelector extends StatelessWidget {
-  const _MetricSelector({
-    required this.selected,
-    required this.onChanged,
-  });
-
-  final ChartMetric selected;
-  final ValueChanged<ChartMetric> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.appColors;
-    final texts = context.theme.appTextThemes;
-
-    Widget chip(ChartMetric metric) {
-      final isSelected = metric == selected;
-      return GestureDetector(
-        onTap: () {
-          if (!isSelected) {
-            HapticFeedback.lightImpact();
-            onChanged(metric);
-          }
-        },
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          margin: EdgeInsetsDirectional.only(end: 8.0.s),
-          padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 4.0.s),
-          decoration: BoxDecoration(
-            color: isSelected ? colors.primaryAccent : colors.primaryBackground,
-            borderRadius: BorderRadius.circular(8.0.s),
-          ),
-          child: Text(
-            metric.label,
-            style: texts.caption2.copyWith(
-              color: isSelected ? colors.onPrimaryAccent : colors.secondaryText,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      children: [
-        chip(ChartMetric.close),
-        chip(ChartMetric.marketCap),
-      ],
-    );
-  }
-}
-
-class ChartCandle {
-  const ChartCandle({
-    required this.open,
-    required this.high,
-    required this.low,
-    required this.close,
-    required this.marketCap,
-    required this.price,
-    required this.date,
-  });
-
-  final double open;
-  final double high;
-  final double low;
-  final double close;
-  final double marketCap;
-  final Decimal price;
-  final DateTime date;
-
-  double valueFor(ChartMetric metric) => switch (metric) {
-        ChartMetric.close => close,
-        ChartMetric.marketCap => marketCap,
-      };
 }
 
 // Demo candles for initial placeholder display

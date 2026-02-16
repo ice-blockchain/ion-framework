@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:decimal/decimal.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
+import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 
 // Normalizes candles by filling gaps based on selectedRange interval.
 // Example: [10:00, 15:00] with 1h interval → [10:00, 11:00, 12:00, 13:00, 14:00, 15:00]
