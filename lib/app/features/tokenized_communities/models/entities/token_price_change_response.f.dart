@@ -7,6 +7,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
@@ -51,7 +52,7 @@ class TokenPriceChangeResponseEntity
 class TokenPriceChangeResponseData with _$TokenPriceChangeResponseData {
   const factory TokenPriceChangeResponseData({
     required TokenPriceChangeRequestEntity request,
-    required TokenPriceChangeInput input,
+    required ReplaceableEventReference tokenDefinitionReference,
     required List<CommunityTokenActionEntity> actions,
   }) = _TokenPriceChangeResponseData;
 
@@ -63,7 +64,8 @@ class TokenPriceChangeResponseData with _$TokenPriceChangeResponseData {
       request: TokenPriceChangeRequestEntity.fromEventMessage(
         EventMessage.fromPayloadJson(jsonDecode(tags['request']!.first[1]) as Map<String, dynamic>),
       ),
-      input: TokenPriceChangeInput.fromTags(tags[TokenPriceChangeInput.tagName] ?? []),
+      tokenDefinitionReference:
+          ReplaceableEventReference.fromTag(tags[ReplaceableEventReference.tagName]!.first),
       actions: (jsonDecode(eventMessage.content) as List<dynamic>)
           .map(
             (action) => CommunityTokenActionEntity.fromEventMessage(

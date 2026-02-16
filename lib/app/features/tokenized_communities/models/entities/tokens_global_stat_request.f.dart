@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/output_tag.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_input.f.dart';
 
 part 'tokens_global_stat_request.f.freezed.dart';
 
@@ -51,7 +52,6 @@ class TokensGlobalStatRequestEntity
 @freezed
 class TokensGlobalStatRequestData with _$TokensGlobalStatRequestData implements EventSerializable {
   const factory TokensGlobalStatRequestData({
-    required TokensGlobalStatRequestInput input,
     @Default(MimeType.json) MimeType output,
   }) = _TokensGlobalStatRequestData;
 
@@ -61,9 +61,6 @@ class TokensGlobalStatRequestData with _$TokensGlobalStatRequestData implements 
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
     final output = tags[OutputTag.tagName]!.map(OutputTag.fromTag).first.value;
     return TokensGlobalStatRequestData(
-      input: TokensGlobalStatRequestInput.fromTags(
-        tags[TokensGlobalStatRequestInput.tagName] ?? [],
-      ),
       output: output,
     );
   }
@@ -81,36 +78,9 @@ class TokensGlobalStatRequestData with _$TokensGlobalStatRequestData implements 
       content: '',
       tags: [
         ...tags,
-        ...input.toTags(),
+        const TokenInputTag(value: TokenInput.trending).toTag(),
         OutputTag(value: output).toTag(),
       ],
     );
   }
-}
-
-@freezed
-class TokensGlobalStatRequestInput with _$TokensGlobalStatRequestInput {
-  const factory TokensGlobalStatRequestInput({
-    required TokensGlobalStatRequestInputType type,
-  }) = _TokensGlobalStatRequestInput;
-
-  const TokensGlobalStatRequestInput._();
-
-  factory TokensGlobalStatRequestInput.fromTags(List<List<String>> tags) {
-    return const TokensGlobalStatRequestInput(
-      type: TokensGlobalStatRequestInputType.trending,
-    );
-  }
-
-  List<List<String>> toTags() {
-    return [
-      [tagName, 'trending', 'text'],
-    ];
-  }
-
-  static const String tagName = 'i';
-}
-
-enum TokensGlobalStatRequestInputType {
-  trending,
 }
