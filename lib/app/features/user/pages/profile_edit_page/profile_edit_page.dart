@@ -18,6 +18,7 @@ import 'package:ion/app/features/auth/views/components/user_data_inputs/name_inp
 import 'package:ion/app/features/auth/views/components/user_data_inputs/nickname_input.dart';
 import 'package:ion/app/features/auth/views/components/user_data_inputs/website_input.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/comments_section_compact/hooks/use_ensure_input_visibility.dart';
 import 'package:ion/app/features/user/hooks/use_nickname_availability_error_message.dart';
 import 'package:ion/app/features/user/pages/components/profile_avatar/profile_avatar.dart';
 import 'package:ion/app/features/user/pages/profile_edit_page/components/category_selector/category_selector.dart';
@@ -73,28 +74,12 @@ class ProfileEditPage extends HookConsumerWidget {
     final scrollController = useScrollController();
     final suggestionsState = ref.watch(suggestionsNotifierProvider);
     final bioFocusNode = useFocusNode();
-    final keyboardVisibilityController = useMemoized(KeyboardVisibilityController.new);
+    final isInputFocused = useState(false);
 
-    useEffect(
-      () {
-        void scrollListener() {
-          if (bioFocusNode.hasFocus && !keyboardVisibilityController.isVisible) {
-            final context = textEditorKey.currentContext;
-            if (context != null && context.mounted) {
-              Scrollable.ensureVisible(
-                context,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-                alignment: 0.1,
-              );
-            }
-          }
-        }
-
-        bioFocusNode.addListener(scrollListener);
-        return () => bioFocusNode.removeListener(scrollListener);
-      },
-      [bioFocusNode],
+    useEnsureInputVisibility(
+      inputKey: textEditorKey,
+      isInputFocused: isInputFocused,
+      context: context,
     );
 
     return Scaffold(
@@ -135,6 +120,7 @@ class ProfileEditPage extends HookConsumerWidget {
                               SizedBox(height: paddingValue),
                               Focus(
                                 focusNode: bioFocusNode,
+                                onFocusChange: (isFocused) => isInputFocused.value = isFocused,
                                 child: BioRichTextInput(
                                   textEditorKey: textEditorKey,
                                   initialValue: userMetadata.data.about,
