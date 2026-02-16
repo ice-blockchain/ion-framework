@@ -37,6 +37,7 @@ class ChartCalculationData {
 ChartCalculationData? chartCalculationData(
   Ref ref, {
   required List<ChartCandle> candles,
+  required ChartMetric selectedMetric,
   required ChartTimeRange selectedRange,
 }) {
   if (candles.isEmpty) {
@@ -44,13 +45,13 @@ ChartCalculationData? chartCalculationData(
   }
 
   // Single-pass calculation of min/max
-  var minY = candles.first.close;
-  var maxY = candles.first.close;
+  var minY = candles.first.valueFor(selectedMetric);
+  var maxY = candles.first.valueFor(selectedMetric);
 
   for (final candle in candles.skip(1)) {
-    final close = candle.close;
-    if (close < minY) minY = close;
-    if (close > maxY) maxY = close;
+    final y = candle.valueFor(selectedMetric);
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
   }
 
   // Calculate Y-axis padding
@@ -62,7 +63,7 @@ ChartCalculationData? chartCalculationData(
   final allSpots = candles
       .asMap()
       .entries
-      .map((entry) => FlSpot(entry.key.toDouble(), entry.value.close))
+      .map((entry) => FlSpot(entry.key.toDouble(), entry.value.valueFor(selectedMetric)))
       .toList();
 
   // Limit to last 2000 points for rendering performance (fl_chart has issues with 7000+ points)

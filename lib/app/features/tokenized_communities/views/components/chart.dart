@@ -14,8 +14,10 @@ import 'package:ion/app/features/tokenized_communities/providers/chart_processed
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_price_change_percent_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_metric_value_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/chart_formatted_value_text.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -23,24 +25,29 @@ class Chart extends HookConsumerWidget {
   const Chart({
     required this.externalAddress,
     required this.price,
+    required this.marketCap,
     required this.label,
     super.key,
   });
 
   final String externalAddress;
   final Decimal price;
+  final double marketCap;
   final String label;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final createdAtOfToken =
-        ref.watch(tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.createdAt));
+    final createdAtOfToken = ref.watch(
+      tokenMarketInfoProvider(externalAddress)
+          .select((t) => t.valueOrNull?.createdAt),
+    );
 
     if (createdAtOfToken == null) {
       return const SizedBox.shrink();
     }
 
     final selectedRange = useState(calculateDefaultRange(createdAtOfToken));
+    final selectedMetric = useState(ChartMetric.close);
 
     final candlesAsync = ref.watch(
       tokenOhlcvCandlesProvider(
@@ -52,13 +59,15 @@ class Chart extends HookConsumerWidget {
     final chartDisplayData = ref.watch(
       chartProcessedDataProvider(
         candles: candlesAsync.valueOrNull ?? const [],
-        price: price,
+        baselineClose: price,
+        baselineMarketCap: marketCap,
         selectedRange: selectedRange.value,
         tokenCreatedAt: DateTime.parse(createdAtOfToken),
       ),
     );
 
-    final changePercent = ref.watch(tokenPriceChangePercentProvider(externalAddress));
+    final changePercent =
+        ref.watch(tokenPriceChangePercentProvider(externalAddress));
 
     // Cache the last successfully loaded candles to show during loading
     final cachedCandles = useRef<List<ChartCandle>?>(null);
@@ -66,7 +75,8 @@ class Chart extends HookConsumerWidget {
 
     // Keep latest renderable candles for subsequent loading states.
     final hasRenderableCandles = chartDisplayData.candlesToShow.isNotEmpty;
-    final shouldCacheLoadedCandles = candlesAsync.hasValue && hasRenderableCandles;
+    final shouldCacheLoadedCandles =
+        candlesAsync.hasValue && hasRenderableCandles;
 
     useEffect(
       () {
@@ -84,18 +94,22 @@ class Chart extends HookConsumerWidget {
 
     final isLoading = candlesAsync.isLoading;
     final useCached = hasLoadedOnce.value && cachedCandles.value != null;
-    final candlesToRender =
-        isLoading ? (useCached ? cachedCandles.value : null) : chartDisplayData.candlesToShow;
+    final candlesToRender = isLoading
+        ? (useCached ? cachedCandles.value : null)
+        : chartDisplayData.candlesToShow;
     final showEmptyPlaceholder = isLoading && !useCached;
 
     return _ChartContent(
       price: price,
+      marketCap: marketCap,
       label: label,
       createdAtOfToken: createdAtOfToken,
       changePercent: changePercent,
       candles: candlesToRender,
       isLoading: isLoading,
       showEmptyPlaceholder: showEmptyPlaceholder,
+      selectedMetric: selectedMetric.value,
+      onMetricChanged: (metric) => selectedMetric.value = metric,
       selectedRange: selectedRange.value,
       onRangeChanged: isLoading ? null : (range) => selectedRange.value = range,
     );
@@ -120,23 +134,29 @@ class Chart extends HookConsumerWidget {
 class _ChartContent extends HookWidget {
   const _ChartContent({
     required this.price,
+    required this.marketCap,
     required this.label,
     required this.createdAtOfToken,
     required this.changePercent,
     required this.candles,
     required this.isLoading,
     required this.showEmptyPlaceholder,
+    required this.selectedMetric,
+    required this.onMetricChanged,
     required this.selectedRange,
     required this.onRangeChanged,
   });
 
   final Decimal price;
+  final double marketCap;
   final String label;
   final String createdAtOfToken;
   final double changePercent;
   final List<ChartCandle>? candles;
   final bool isLoading;
   final bool showEmptyPlaceholder;
+  final ChartMetric selectedMetric;
+  final ValueChanged<ChartMetric> onMetricChanged;
   final ChartTimeRange selectedRange;
   final ValueChanged<ChartTimeRange>? onRangeChanged;
 
@@ -159,9 +179,11 @@ class _ChartContent extends HookWidget {
           SizedBox(height: 4.0.s),
           _ValueAndChange(
             price: price,
+            marketCap: marketCap,
             label: label,
             changePercent: changePercent,
             createdAtOfToken: createdAtOfToken,
+            selectedMetric: selectedMetric,
           ),
           SizedBox(height: 10.0.s),
           Padding(
@@ -177,6 +199,7 @@ class _ChartContent extends HookWidget {
                         opacity: isChartVisible ? 1 : 0,
                         child: TokenAreaLineChart(
                           candles: candles ?? const [],
+                          selectedMetric: selectedMetric,
                           selectedRange: selectedRange,
                           isLoading: isLoading,
                         ),
@@ -185,6 +208,14 @@ class _ChartContent extends HookWidget {
             ),
           ),
           SizedBox(height: 12.0.s),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0.s),
+            child: _MetricSelector(
+              selected: selectedMetric,
+              onChanged: onMetricChanged,
+            ),
+          ),
+          SizedBox(height: 10.0.s),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0.s),
             child: _RangeSelector(
@@ -198,8 +229,6 @@ class _ChartContent extends HookWidget {
     );
   }
 }
-
-String _formatPrice(Decimal p) => p.toStringAsFixed(4);
 
 class _ChartHeader extends StatelessWidget {
   const _ChartHeader();
@@ -234,20 +263,34 @@ class _ChartHeader extends StatelessWidget {
 class _ValueAndChange extends StatelessWidget {
   const _ValueAndChange({
     required this.price,
+    required this.marketCap,
     required this.label,
     required this.changePercent,
     required this.createdAtOfToken,
+    required this.selectedMetric,
   });
 
   final Decimal price;
+  final double marketCap;
   final String label;
   final double changePercent;
   final String createdAtOfToken;
+  final ChartMetric selectedMetric;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
+    final priceValue = double.tryParse(price.toString()) ?? 0.0;
+    final formattedValue = switch (selectedMetric) {
+      ChartMetric.close => formatChartMetricValueData(
+          priceValue,
+        ),
+      ChartMetric.marketCap => formatChartMetricValueData(
+          marketCap,
+        ),
+    };
+    final valueTextStyle = texts.subtitle.copyWith(color: colors.primaryText);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0.s),
@@ -257,10 +300,27 @@ class _ValueAndChange extends StatelessWidget {
             child: Row(
               children: [
                 Flexible(
-                  child: Text(
-                    '${_formatPrice(price)} $label',
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.baseline,
+                          baseline: TextBaseline.alphabetic,
+                          child: ChartFormattedValueText(
+                            parts: formattedValue.parts ??
+                                PriceLabelParts(fullText: formattedValue.text),
+                            style: valueTextStyle,
+                            subscriptStyle: valueTextStyle.copyWith(
+                              color: colors.primaryText,
+                              fontSize: 8.0.s,
+                            ),
+                          ),
+                        ),
+                        TextSpan(text: ' $label'),
+                      ],
+                    ),
                     overflow: TextOverflow.ellipsis,
-                    style: texts.subtitle.copyWith(color: colors.primaryText),
+                    style: valueTextStyle,
                   ),
                 ),
                 SizedBox(width: 4.0.s),
@@ -314,7 +374,10 @@ class _TokenAge extends StatelessWidget {
 }
 
 class ChartPriceLabel extends StatelessWidget {
-  const ChartPriceLabel({required this.value, super.key});
+  const ChartPriceLabel({
+    required this.value,
+    super.key,
+  });
 
   final double value;
 
@@ -322,42 +385,30 @@ class ChartPriceLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
+    final formatted = formatChartMetricValueData(value);
+    final labelStyle = texts.caption5.copyWith(color: colors.tertiaryText);
 
-    final parts = PriceLabelFormatter.format(value);
-
-    if (parts.fullText != null) {
-      return Text(
-        parts.fullText!,
-        style: texts.caption5.copyWith(color: colors.tertiaryText),
-      );
-    }
-
-    return RichText(
+    return ChartFormattedValueText(
+      parts: formatted.parts ?? PriceLabelParts(fullText: formatted.text),
+      style: labelStyle,
+      subscriptStyle:
+          texts.caption5.copyWith(fontSize: 6.5.s, color: colors.tertiaryText),
       textAlign: TextAlign.center,
-      text: TextSpan(
-        style: texts.caption5.copyWith(color: colors.tertiaryText),
-        children: [
-          TextSpan(text: parts.prefix ?? ''),
-          if (parts.subscript != null)
-            WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: Transform.translate(
-                offset: Offset(0, 2.0.s),
-                child: Text(
-                  parts.subscript!,
-                  style: texts.caption5.copyWith(fontSize: 6.5.s, color: colors.tertiaryText),
-                ),
-              ),
-            ),
-          TextSpan(text: parts.trailing ?? ''),
-        ],
-      ),
     );
   }
 }
 
 enum ChartTimeRange { m1, m3, m5, m15, m30, h1, d1 }
+
+enum ChartMetric { close, marketCap }
+
+extension ChartMetricExtension on ChartMetric {
+  String get label => switch (this) {
+        // TODO: localize
+        ChartMetric.close => 'Price',
+        ChartMetric.marketCap => 'Market Cap',
+      };
+}
 
 extension ChartTimeRangeExtension on ChartTimeRange {
   String get label => switch (this) {
@@ -455,12 +506,63 @@ class _RangeSelector extends StatelessWidget {
   }
 }
 
+class _MetricSelector extends StatelessWidget {
+  const _MetricSelector({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final ChartMetric selected;
+  final ValueChanged<ChartMetric> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    final texts = context.theme.appTextThemes;
+
+    Widget chip(ChartMetric metric) {
+      final isSelected = metric == selected;
+      return GestureDetector(
+        onTap: () {
+          if (!isSelected) {
+            HapticFeedback.lightImpact();
+            onChanged(metric);
+          }
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          margin: EdgeInsetsDirectional.only(end: 8.0.s),
+          padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 4.0.s),
+          decoration: BoxDecoration(
+            color: isSelected ? colors.primaryAccent : colors.primaryBackground,
+            borderRadius: BorderRadius.circular(8.0.s),
+          ),
+          child: Text(
+            metric.label,
+            style: texts.caption2.copyWith(
+              color: isSelected ? colors.onPrimaryAccent : colors.secondaryText,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        chip(ChartMetric.close),
+        chip(ChartMetric.marketCap),
+      ],
+    );
+  }
+}
+
 class ChartCandle {
   const ChartCandle({
     required this.open,
     required this.high,
     required this.low,
     required this.close,
+    required this.marketCap,
     required this.price,
     required this.date,
   });
@@ -469,8 +571,14 @@ class ChartCandle {
   final double high;
   final double low;
   final double close;
+  final double marketCap;
   final Decimal price;
   final DateTime date;
+
+  double valueFor(ChartMetric metric) => switch (metric) {
+        ChartMetric.close => close,
+        ChartMetric.marketCap => marketCap,
+      };
 }
 
 // Demo candles for initial placeholder display
@@ -507,8 +615,8 @@ List<ChartCandle> _generateDemoCandles() {
 
     // Group candles by day; time-of-day is not rendered in the axis label.
     final dayIndex = i ~/ candlesPerDay;
-    final date =
-        DateTime(now.year, now.month, now.day).subtract(Duration(days: numDays - 1 - dayIndex));
+    final date = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: numDays - 1 - dayIndex));
 
     candles.add(
       ChartCandle(
@@ -516,6 +624,7 @@ List<ChartCandle> _generateDemoCandles() {
         high: high,
         low: low,
         close: close,
+        marketCap: close,
         price: Decimal.parse(close.toStringAsFixed(4)),
         date: date,
       ),

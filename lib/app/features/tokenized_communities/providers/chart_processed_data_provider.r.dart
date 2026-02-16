@@ -25,22 +25,32 @@ class ChartProcessedData {
 ChartProcessedData chartProcessedData(
   Ref ref, {
   required List<OhlcvCandle> candles,
-  required Decimal price,
+  required Decimal baselineClose,
+  required double baselineMarketCap,
   required ChartTimeRange selectedRange,
   required DateTime tokenCreatedAt,
 }) {
   final chartCandles = _mapOhlcvToChartCandles(candles);
   final isEmpty = chartCandles.isEmpty;
 
-  final normalizedCandles =
-      chartCandles.isNotEmpty ? normalizeCandles(chartCandles, selectedRange) : chartCandles;
+  final normalizedCandles = chartCandles.isNotEmpty
+      ? normalizeCandles(chartCandles, selectedRange)
+      : chartCandles;
 
   final candlesToShow = isEmpty
-      ? _buildFlatCandles(price, selectedRange, tokenCreatedAt)
+      ? _buildFlatCandles(
+          baselineClose,
+          baselineMarketCap,
+          selectedRange,
+          tokenCreatedAt,
+        )
       // Edge case: If normalization still returns 1 candle (typically when candle is at "now"),
       // expand to 2 candles for proper visualization
       : normalizedCandles.length == 1
-          ? _expandSingleCandleToFlatLine(normalizedCandles.first, tokenCreatedAt)
+          ? _expandSingleCandleToFlatLine(
+              normalizedCandles.first,
+              tokenCreatedAt,
+            )
           : normalizedCandles;
 
   return ChartProcessedData(
@@ -58,6 +68,7 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
           high: candle.high,
           low: candle.low,
           close: candle.close,
+          marketCap: candle.marketCap,
           price: Decimal.parse(candle.close.toString()),
           date: candle.timestamp.toDateTime,
         ),
@@ -69,18 +80,22 @@ List<ChartCandle> _mapOhlcvToChartCandles(List<OhlcvCandle> source) {
 // Creates candles respecting token creation, with max 35 candles.
 // For young tokens: starts from creation. For old tokens: starts from 35 intervals back.
 List<ChartCandle> _buildFlatCandles(
-  Decimal price,
+  Decimal baselineClose,
+  double baselineMarketCap,
   ChartTimeRange selectedRange,
   DateTime tokenCreatedAt,
 ) {
   final now = DateTime.now();
   final interval = selectedRange.duration;
   const maxCount = 35;
-  final value = double.tryParse(price.toString()) ?? 0;
+  final closeValue = double.tryParse(baselineClose.toString()) ?? 0;
+  final marketCapValue = baselineMarketCap;
 
   // Start from the later of: tokenCreatedAt OR (now - maxCount * interval)
   final earliestAllowed = now.subtract(interval * maxCount);
-  final startDate = tokenCreatedAt.isAfter(earliestAllowed) ? tokenCreatedAt : earliestAllowed;
+  final startDate = tokenCreatedAt.isAfter(earliestAllowed)
+      ? tokenCreatedAt
+      : earliestAllowed;
 
   final candles = <ChartCandle>[];
 
@@ -89,11 +104,12 @@ List<ChartCandle> _buildFlatCandles(
   while (!fillDate.isAfter(now)) {
     candles.add(
       ChartCandle(
-        open: value,
-        high: value,
-        low: value,
-        close: value,
-        price: price,
+        open: closeValue,
+        high: closeValue,
+        low: closeValue,
+        close: closeValue,
+        marketCap: marketCapValue,
+        price: baselineClose,
         date: fillDate,
       ),
     );
@@ -107,11 +123,12 @@ List<ChartCandle> _buildFlatCandles(
       if (candles.first.date != now) {
         candles.add(
           ChartCandle(
-            open: value,
-            high: value,
-            low: value,
-            close: value,
-            price: price,
+            open: closeValue,
+            high: closeValue,
+            low: closeValue,
+            close: closeValue,
+            marketCap: marketCapValue,
+            price: baselineClose,
             date: now,
           ),
         );
@@ -120,11 +137,12 @@ List<ChartCandle> _buildFlatCandles(
         candles.insert(
           0,
           ChartCandle(
-            open: value,
-            high: value,
-            low: value,
-            close: value,
-            price: price,
+            open: closeValue,
+            high: closeValue,
+            low: closeValue,
+            close: closeValue,
+            marketCap: marketCapValue,
+            price: baselineClose,
             date: startDate,
           ),
         );
@@ -134,21 +152,23 @@ List<ChartCandle> _buildFlatCandles(
       candles
         ..add(
           ChartCandle(
-            open: value,
-            high: value,
-            low: value,
-            close: value,
-            price: price,
+            open: closeValue,
+            high: closeValue,
+            low: closeValue,
+            close: closeValue,
+            marketCap: marketCapValue,
+            price: baselineClose,
             date: startDate,
           ),
         )
         ..add(
           ChartCandle(
-            open: value,
-            high: value,
-            low: value,
-            close: value,
-            price: price,
+            open: closeValue,
+            high: closeValue,
+            low: closeValue,
+            close: closeValue,
+            marketCap: marketCapValue,
+            price: baselineClose,
             date: now,
           ),
         );
@@ -165,21 +185,24 @@ List<ChartCandle> _expandSingleCandleToFlatLine(
   DateTime tokenCreatedAt,
 ) {
   final now = DateTime.now();
-  final price = candle.close;
-  final priceDecimal = Decimal.parse(price.toStringAsFixed(4));
+  final close = candle.close;
+  final marketCap = candle.marketCap;
+  final priceDecimal = Decimal.parse(close.toStringAsFixed(4));
 
   // If candle is already at "now" (or very close), expand backward to tokenCreatedAt
   // Otherwise expand forward to "now"
-  final candleIsAtNow = now.difference(candle.date).abs() < const Duration(seconds: 1);
+  final candleIsAtNow =
+      now.difference(candle.date).abs() < const Duration(seconds: 1);
 
   if (candleIsAtNow) {
     // Candle is at "now", expand backward to tokenCreatedAt
     return [
       ChartCandle(
-        open: price,
-        high: price,
-        low: price,
-        close: price,
+        open: close,
+        high: close,
+        low: close,
+        close: close,
+        marketCap: marketCap,
         price: priceDecimal,
         date: tokenCreatedAt,
       ),
@@ -191,10 +214,11 @@ List<ChartCandle> _expandSingleCandleToFlatLine(
   return [
     candle,
     ChartCandle(
-      open: price,
-      high: price,
-      low: price,
-      close: price,
+      open: close,
+      high: close,
+      low: close,
+      close: close,
+      marketCap: marketCap,
       price: priceDecimal,
       date: now,
     ),
