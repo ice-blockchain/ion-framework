@@ -35,4 +35,14 @@ enum TokenTypeFilter {
       TokenTypeFilter.x => tokenSource == CommunityTokenSource.twitter,
     };
   }
+
+  String? get requestType {
+    return switch (this) {
+      TokenTypeFilter.all => null,
+      TokenTypeFilter.general => null,
+      TokenTypeFilter.creator => 'profile',
+      TokenTypeFilter.content => 'anyPost',
+      TokenTypeFilter.x => 'xcom',
+    };
+  }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -42,8 +43,12 @@ class LoadMoreBuilder extends HookWidget {
     final loadMore = useCallback(
       () {
         if (hasMore && !loading.value) {
-          loading.value = true;
-          onLoadMore().whenComplete(() => loading.value = false);
+          SchedulerBinding.instance.addPostFrameCallback(
+            (_) {
+              loading.value = true;
+              onLoadMore().whenComplete(() => loading.value = false);
+            },
+          );
         }
       },
       [hasMore, loading.value, onLoadMore],

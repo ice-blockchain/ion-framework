@@ -4,6 +4,7 @@ import 'package:ion_token_analytics/src/community_tokens/category_tokens/categor
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/models/models.dart';
 import 'package:ion_token_analytics/src/community_tokens/token_info/models/models.dart';
 import 'package:ion_token_analytics/src/core/network_client.dart';
+import 'package:ion_token_analytics/src/core/network_exceptions.dart';
 
 class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
   CategoryTokensRepositoryImpl(this._client);
@@ -11,9 +12,10 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
   final NetworkClient _client;
 
   @override
-  Future<ViewingSession> createViewingSession(TokenCategoryType type) async {
+  Future<ViewingSession> createViewingSession(TokenCategoryType type, {String? tokenType}) async {
     final response = await _client.post<Map<String, dynamic>>(
       '/v1/community-tokens/${type.value}/viewing-sessions',
+      queryParameters: {if (tokenType != null && tokenType.isNotEmpty) 'type': tokenType},
     );
     return ViewingSession.fromJson(response);
   }
@@ -22,18 +24,29 @@ class CategoryTokensRepositoryImpl implements CategoryTokensRepository {
   Future<PaginatedCategoryTokensData> getCategoryTokens({
     required String sessionId,
     required TokenCategoryType type,
+    String? tokenType,
     String? keyword,
     int limit = 20,
     int offset = 0,
   }) async {
-    final response = await _client.get<List<dynamic>>(
-      '/v1/community-tokens/${type.value}/viewing-sessions/$sessionId',
-      queryParameters: {
-        'limit': limit,
-        'offset': offset,
-        if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
-      },
-    );
+    late final List<dynamic> response;
+
+    try {
+      response = await _client.get<List<dynamic>>(
+        '/v1/community-tokens/${type.value}/viewing-sessions/$sessionId',
+        queryParameters: {
+          'limit': limit,
+          'offset': offset,
+          if (tokenType != null && tokenType.isNotEmpty) 'type': tokenType,
+          if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
+        },
+      );
+    } on HttpStatusException catch (error) {
+      if (error.isNotFound) {
+        return PaginatedCategoryTokensData(items: const [], nextOffset: offset, hasMore: false);
+      }
+      rethrow;
+    }
 
     final items = response.map((e) => CommunityToken.fromJson(e as Map<String, dynamic>)).toList();
     final hasMore = items.length == limit;

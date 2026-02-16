@@ -14,6 +14,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   static const int _limit = 10;
   NetworkSubscription<List<CommunityTokenBase>>? _realtimeSubscription;
   late final TokenCategoryType _type;
+  String? _tokenType;
 
   @override
   CategoryTokensState build(TokenCategoryType type) {
@@ -33,7 +34,10 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     if (state.sessionId != null) return;
 
     final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-    final session = await client.communityTokens.createViewingSession(_type);
+    final session = await client.communityTokens.createViewingSession(
+      _type,
+      tokenType: _tokenType,
+    );
 
     state = state.copyWith(sessionId: session.id);
 
@@ -48,9 +52,19 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
+      final sessionId = state.sessionId;
+      if (sessionId == null) {
+        state = state.copyWith(
+          browsingIsLoading: false,
+          browsingIsInitialLoading: false,
+        );
+        return;
+      }
+
       final page = await client.communityTokens.getCategoryTokens(
-        sessionId: state.sessionId!,
+        sessionId: sessionId,
         type: _type,
+        tokenType: _tokenType,
         limit: _limit,
       );
 
@@ -81,13 +95,19 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   Future<void> _loadMoreBrowsing() async {
     if (!state.browsingHasMore || state.browsingIsLoading) return;
 
+    // Ensure session is initialized before attempting to load more
+    final sessionId = state.sessionId;
+    if (sessionId == null) return;
+
     state = state.copyWith(browsingIsLoading: true);
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
+
       final page = await client.communityTokens.getCategoryTokens(
-        sessionId: state.sessionId!,
+        sessionId: sessionId,
         type: _type,
+        tokenType: _tokenType,
         limit: _limit,
         offset: state.browsingOffset,
       );
@@ -107,13 +127,19 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   Future<void> _loadMoreSearch() async {
     if (!state.searchHasMore || state.searchIsLoading) return;
 
+    // Ensure session is initialized before attempting to load more
+    final sessionId = state.sessionId;
+    if (sessionId == null) return;
+
     state = state.copyWith(searchIsLoading: true);
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
+
       final page = await client.communityTokens.getCategoryTokens(
-        sessionId: state.sessionId!,
+        sessionId: sessionId,
         type: _type,
+        tokenType: _tokenType,
         keyword: state.searchQuery,
         limit: _limit,
         offset: state.searchOffset,
@@ -153,6 +179,7 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
       final page = await client.communityTokens.getCategoryTokens(
         sessionId: state.sessionId!,
         type: _type,
+        tokenType: _tokenType,
         keyword: query,
         limit: _limit,
       );
@@ -213,5 +240,11 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     _realtimeSubscription = null;
     state = const CategoryTokensState();
     await _initialize();
+  }
+
+  Future<void> setTokenType(String? tokenType) async {
+    if (_tokenType == tokenType) return;
+    _tokenType = tokenType;
+    await refresh();
   }
 }

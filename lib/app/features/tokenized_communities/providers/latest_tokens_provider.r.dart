@@ -14,6 +14,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
   static const int _limit = 10;
 
   NetworkSubscription<dynamic>? _realtimeSubscription;
+  String? _tokenType;
 
   @override
   LatestTokensState build() {
@@ -36,7 +37,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
 
   Future<void> _subscribeToRealtimeUpdates() async {
     final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-    _realtimeSubscription = await client.communityTokens.subscribeToLatestTokens();
+    _realtimeSubscription = await client.communityTokens.subscribeToLatestTokens(type: _tokenType);
     _realtimeSubscription!.stream.listen(_handleRealtimeEvent);
   }
 
@@ -50,7 +51,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final page = await client.communityTokens.getLatestTokens(limit: _limit);
+      final page = await client.communityTokens.getLatestTokens(limit: _limit, type: _tokenType);
 
       state = state.copyWith(
         browsingItems: _appendUnique(
@@ -89,6 +90,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
       final page = await client.communityTokens.getLatestTokens(
         limit: _limit,
         offset: state.browsingOffset,
+        type: _tokenType,
       );
 
       state = state.copyWith(
@@ -117,6 +119,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
         keyword: state.searchQuery,
         limit: _limit,
         offset: state.searchOffset,
+        type: _tokenType,
       );
 
       state = state.copyWith(
@@ -156,6 +159,7 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
       final page = await client.communityTokens.getLatestTokens(
         keyword: query,
         limit: _limit,
+        type: _tokenType,
       );
 
       state = state.copyWith(
@@ -179,6 +183,12 @@ class LatestTokensNotifier extends _$LatestTokensNotifier {
     _realtimeSubscription = null;
     state = const LatestTokensState();
     await _initialize();
+  }
+
+  Future<void> setTokenType(String? tokenType) async {
+    if (_tokenType == tokenType) return;
+    _tokenType = tokenType;
+    await refresh();
   }
 
   void _handleRealtimeEvent(dynamic event) {

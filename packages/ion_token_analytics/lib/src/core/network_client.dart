@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:ion_token_analytics/src/core/extensions/http_status_code.dart';
 import 'package:ion_token_analytics/src/core/logger.dart';
+import 'package:ion_token_analytics/src/core/network_exceptions.dart';
 import 'package:ion_token_analytics/src/core/reconnecting_sse.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
@@ -53,8 +54,7 @@ class NetworkClient {
 
     final statusCode = response.statusCode ?? 0;
     if (!statusCode.isSuccessStatusCode) {
-      //TODO: add custom exceptions with codes
-      throw Exception('Request failed with status ${response.statusCode}: $path');
+      throw HttpStatusException(statusCode: statusCode, path: path);
     }
 
     return NetworkResponse<T>(data: response.data as T, headers: response.headers);
@@ -95,8 +95,7 @@ class NetworkClient {
 
     final statusCode = response.statusCode ?? 0;
     if (!statusCode.isSuccessStatusCode) {
-      //TODO: add custom exceptions with codes
-      throw Exception('Request failed with status ${response.statusCode}: $path');
+      throw HttpStatusException(statusCode: statusCode, path: path);
     }
 
     return response.data as T;
@@ -121,12 +120,17 @@ class NetworkClient {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
   }) async {
+    final queryParams = _buildQueryParameters(queryParameters);
+    final fullPath = Uri(path: path, queryParameters: queryParams).toString();
+
     final initialSubscription = await _client.subscribeSse<T>(
       path,
-      queryParameters: _buildQueryParameters(queryParameters),
+      queryParameters: queryParams,
       headers: _addAuthorizationHeader(headers),
     );
-    _logger?.log('[NetworkClient] Opening initial SSE subscription: $path');
+    _logger?.log(
+      '[NetworkClient] Opening initial SSE subscription: $path with query: $queryParams',
+    );
 
     // Some SSE endpoints use a marker event with `Data: nil` (Go), which may be
     // delivered as a literal `<nil>` string. If the SSE decoder attempts to
@@ -143,10 +147,10 @@ class NetworkClient {
       initialSubscription: initialSubscription,
       createSubscription: () => _client.subscribeSse<T>(
         path,
-        queryParameters: _buildQueryParameters(queryParameters),
+        queryParameters: queryParams,
         headers: _addAuthorizationHeader(headers),
       ),
-      path: path,
+      path: fullPath,
       logger: _logger,
       onStaleConnection: _client.forceDisconnect,
     );

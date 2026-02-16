@@ -11,7 +11,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/category_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/models/token_type_filter.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/providers/creator_tokens_filter_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -42,29 +41,57 @@ class CreatorTokensTabContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    useAutomaticKeepAlive();
+
     final selectedFilter = ref.watch(creatorTokensFilterNotifierProvider);
+    final requestType = selectedFilter.requestType;
+    final cachedItemsByType = useRef<Map<String?, List<CommunityToken>>>({});
+
+    useEffect(
+      () {
+        if (tabType.isLatest) {
+          unawaited(ref.read(latestTokensNotifierProvider.notifier).setTokenType(requestType));
+        } else {
+          unawaited(
+            ref
+                .read(categoryTokensNotifierProvider(tabType.categoryType!).notifier)
+                .setTokenType(requestType),
+          );
+        }
+        return null;
+      },
+      [requestType, tabType],
+    );
 
     // Watch the appropriate provider based on tab type
     final state = tabType.isLatest
         ? ref.watch(latestTokensNotifierProvider)
         : ref.watch(categoryTokensNotifierProvider(tabType.categoryType!));
 
-    final filteredItems = useMemoized(
+    useEffect(
       () {
-        if (selectedFilter == TokenTypeFilter.all) {
-          return state.activeItems;
+        if (state.activeIsLoading || state.activeIsInitialLoading) {
+          return null;
         }
 
-        return state.activeItems.where((token) {
-          final source = token.addresses.twitter != null
-              ? CommunityTokenSource.twitter
-              : CommunityTokenSource.ionConnect;
-
-          return selectedFilter.matchesTokenType(token.type, source);
-        }).toList();
+        cachedItemsByType.value = {
+          ...cachedItemsByType.value,
+          requestType: List<CommunityToken>.from(state.activeItems),
+        };
+        return null;
       },
-      [state.activeItems, selectedFilter],
+      [
+        state.activeItems,
+        state.activeIsLoading,
+        state.activeIsInitialLoading,
+        requestType,
+      ],
     );
+
+    final cachedItems = cachedItemsByType.value[requestType] ?? const <CommunityToken>[];
+    final itemsToShow = state.activeItems.isNotEmpty ? state.activeItems : cachedItems;
+    final showInitialLoading =
+        state.activeIsInitialLoading || (state.activeIsLoading && itemsToShow.isEmpty);
 
     return LoadMoreBuilder(
       hasMore: state.activeHasMore,
@@ -76,8 +103,8 @@ class CreatorTokensTabContent extends HookConsumerWidget {
       ),
       slivers: [
         CreatorTokensList(
-          items: filteredItems,
-          isInitialLoading: state.activeIsInitialLoading,
+          items: itemsToShow,
+          isInitialLoading: showInitialLoading,
         ),
         SliverPadding(
           padding: EdgeInsetsDirectional.only(
