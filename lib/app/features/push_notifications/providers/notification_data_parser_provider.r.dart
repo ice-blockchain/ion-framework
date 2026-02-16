@@ -343,13 +343,21 @@ class NotificationDataParser {
             await translator.translate((t) => t.yourFolloweeContentTokenIsLive?.title),
             await translator.translate((t) => t.yourFolloweeContentTokenIsLive?.body)
           ),
-        PushNotificationType.someoneBoughtYourToken => (
-            await translator.translate((t) => t.someoneBoughtYourToken?.title),
-            await translator.translate((t) => t.someoneBoughtYourToken?.body)
+        PushNotificationType.someoneBoughtYourCreatorToken => (
+            await translator.translate((t) => t.someoneBoughtYourCreatorToken?.title),
+            await translator.translate((t) => t.someoneBoughtYourCreatorToken?.body)
           ),
-        PushNotificationType.someoneBoughtSomeRelevantToken => (
-            await translator.translate((t) => t.someoneBoughtSomeRelevantToken?.title),
-            await translator.translate((t) => t.someoneBoughtSomeRelevantToken?.body)
+        PushNotificationType.someoneBoughtYourContentToken => (
+            await translator.translate((t) => t.someoneBoughtYourContentToken?.title),
+            await translator.translate((t) => t.someoneBoughtYourContentToken?.body)
+          ),
+        PushNotificationType.someoneBoughtSomeRelevantCreatorToken => (
+            await translator.translate((t) => t.someoneBoughtSomeRelevantCreatorToken?.title),
+            await translator.translate((t) => t.someoneBoughtSomeRelevantCreatorToken?.body)
+          ),
+        PushNotificationType.someoneBoughtSomeRelevantContentToken => (
+            await translator.translate((t) => t.someoneBoughtSomeRelevantContentToken?.title),
+            await translator.translate((t) => t.someoneBoughtSomeRelevantContentToken?.body)
           ),
         PushNotificationType.yourCreatorTokenPriceIncreased => (
             await translator.translate((t) => t.yourCreatorTokenPriceIncreased?.title),

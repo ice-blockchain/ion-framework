@@ -413,9 +413,15 @@ class IonConnectPushDataPayload {
     required CommunityTokenActionEntity entity,
   }) {
     if (entity.data.relatedPubkey.value == currentPubkey) {
-      return PushNotificationType.someoneBoughtYourToken;
+      return switch (entity.data.kind) {
+        UserMetadataEntity.kind => PushNotificationType.someoneBoughtYourCreatorToken,
+        _ => PushNotificationType.someoneBoughtYourContentToken,
+      };
     } else {
-      return PushNotificationType.someoneBoughtSomeRelevantToken;
+      return switch (entity.data.kind) {
+        UserMetadataEntity.kind => PushNotificationType.someoneBoughtSomeRelevantCreatorToken,
+        _ => PushNotificationType.someoneBoughtSomeRelevantContentToken,
+      };
     }
   }
 
@@ -494,16 +500,26 @@ class IonConnectPushDataPayload {
       data['amountUSD'] =
           amountUsd != null ? formatPriceWithSubscript(amountUsd.value, symbol: '') : '';
       data['ticker'] = entity.data.tokenTicker;
-      if (notificationType == PushNotificationType.someoneBoughtSomeRelevantToken) {
-        final originalUserMetadata = await getRelatedEntity(
-          ReplaceableEventReference(
-            masterPubkey: entity.data.relatedPubkey.value,
-            kind: UserMetadataEntity.kind,
-          ),
-        ) as UserMetadataEntity?;
-        if (originalUserMetadata != null) {
-          data['originalAuthorDisplayName'] = originalUserMetadata.data.trimmedDisplayName;
-        }
+    }
+
+    // For community token definitions, "username" and "displayName" placeholders belong
+    // to the author of the original event.
+    // For example: "Community launched a token for @{{username}}’s post.""
+    if (entity
+        case CommunityTokenDefinitionEntity(
+          data: final CommunityTokenDefinitionIon definitionData
+        )) {
+      final originalUserMetadata = await getRelatedEntity(
+        ReplaceableEventReference(
+          masterPubkey: definitionData.eventReference.masterPubkey,
+          kind: UserMetadataEntity.kind,
+        ),
+      ) as UserMetadataEntity?;
+      if (originalUserMetadata != null) {
+        data.addAll({
+          'username': originalUserMetadata.data.name,
+          'displayName': originalUserMetadata.data.displayName,
+        });
       }
     }
 
@@ -712,9 +728,11 @@ enum PushNotificationType {
   yourContentTokenIsLive,
   yourFolloweeCreatorTokenIsLive,
   yourFolloweeContentTokenIsLive,
-  someoneBoughtYourToken,
-  someoneBoughtSomeRelevantToken,
   yourCreatorTokenPriceIncreased,
+  someoneBoughtYourCreatorToken,
+  someoneBoughtYourContentToken,
+  someoneBoughtSomeRelevantCreatorToken,
+  someoneBoughtSomeRelevantContentToken,
   moreBuyersJoined,
   trendingToken,
   newPostSubscription,
