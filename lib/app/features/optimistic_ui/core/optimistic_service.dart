@@ -37,17 +37,22 @@ class OptimisticService<T extends OptimisticModel> {
   Future<void> initialize(FutureOr<List<T>> init) async {
     _initializationCompleter ??= Completer<void>();
 
+    List<T> initialState;
+    Object? initError;
     try {
-      await _manager.initialize(init);
-      _isInitialized = true;
-      if (!_initializationCompleter!.isCompleted) {
-        _initializationCompleter!.complete();
-      }
+      initialState = await init;
     } catch (e) {
-      if (!_initializationCompleter!.isCompleted) {
-        _initializationCompleter!.completeError(e);
-      }
-      rethrow;
+      initialState = <T>[];
+      initError = e;
+    }
+
+    await _manager.initialize(initialState);
+    _isInitialized = true;
+    if (!_initializationCompleter!.isCompleted) {
+      _initializationCompleter!.complete();
+    }
+    if (initError != null) {
+      throw Exception('An error occurred while initializing the optimistic service: $initError');
     }
   }
 
