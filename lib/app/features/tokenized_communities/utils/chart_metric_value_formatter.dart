@@ -1,65 +1,40 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
+import 'package:ion/app/utils/formatters.dart';
 import 'package:ion/app/utils/num.dart';
 
-class ChartMetricValueFormat {
-  const ChartMetricValueFormat({
-    required this.text,
-    this.parts,
-  });
-
-  final String text;
-  final PriceLabelParts? parts;
-
-  bool get hasRichParts => parts != null && parts!.fullText == null;
-}
-
-/// Builds chart-ready formatting data for one numeric value.
+/// Formats a numeric value for chart display (title, tooltip, Y-axis).
 ///
 /// Rules:
-/// - `abs(value) >= 1000` -> grouped integer text (e.g. `6,380`)
-/// - `abs(value) >= 100` -> grouped 2-decimal text (e.g. `914.73`)
-/// - otherwise -> `PriceLabelFormatter` output:
-///   - plain `fullText` for normal decimals, or
-///   - split `parts` (`prefix/subscript/trailing`) for tiny values.
-///
-/// Tiny-value example:
-/// `0.000000564` can be split into parts for subscript rendering.
-ChartMetricValueFormat formatChartMetricValueData(double value) {
-  final abs = value.abs();
-  if (abs >= 1000) {
-    return ChartMetricValueFormat(
-      text: formatDouble(
-        value,
-        maximumFractionDigits: 0,
-        minimumFractionDigits: 0,
-      ),
-    );
-  }
-  if (abs >= 100) {
-    return ChartMetricValueFormat(
-      text: formatDouble(
-        value,
-        // ignore: avoid_redundant_argument_values
-        maximumFractionDigits: 2,
-        // ignore: avoid_redundant_argument_values
-        minimumFractionDigits: 2,
-      ),
-    );
-  }
-
-  final parts = PriceLabelFormatter.format(value);
-  if (parts.fullText != null) {
-    return ChartMetricValueFormat(text: parts.fullText!, parts: parts);
-  }
-
-  return ChartMetricValueFormat(
-    text: '${parts.prefix ?? ''}${parts.subscript ?? ''}${parts.trailing ?? ''}',
-    parts: parts,
-  );
-}
-
+/// - `abs(value) >= 1000` -> grouped integer (e.g. `6,380`)
+/// - `abs(value) >= 100`  -> grouped 2-decimal (e.g. `914.73`)
+/// - `abs(value) >= 0.001` or zero -> 4-decimal fixed (e.g. `0.0300`)
+/// - `abs(value) < 0.001` -> Unicode subscript notation (e.g. `0.0₄56`)
 String formatChartMetricValue(double value) {
-  return formatChartMetricValueData(value).text;
+  final abs = value.abs();
+
+  if (abs >= 1000) {
+    return formatDouble(
+      value,
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0,
+    );
+  }
+
+  if (abs >= 100) {
+    return formatDouble(
+      value,
+      // ignore: avoid_redundant_argument_values
+      maximumFractionDigits: 2,
+      // ignore: avoid_redundant_argument_values
+      minimumFractionDigits: 2,
+    );
+  }
+
+  if (abs >= 0.001 || abs == 0) {
+    return value.toStringAsFixed(4);
+  }
+
+  final result = formatSubscriptNotation(value, keepTrailingZeros: true);
+  return result.isNotEmpty ? result : value.toStringAsFixed(6);
 }

@@ -11,7 +11,6 @@ import 'package:ion/app/features/tokenized_communities/hooks/use_chart_transform
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_visible_y_range.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_metric_value_formatter.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/chart_formatted_value_text.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart_tooltip_listener.dart';
 import 'package:ion/app/utils/string.dart';
@@ -131,28 +130,8 @@ class TokenAreaLineChart extends HookConsumerWidget {
             }
             return touchedSpots.map(
               (spot) {
-                final formatted = formatChartMetricValueData(
-                  spot.y,
-                );
-                if (formatted.hasRichParts) {
-                  final parts = formatted.parts!;
-                  final tooltipStyle =
-                      styles.caption2.copyWith(color: colors.primaryText);
-                  return LineTooltipItem(
-                    '',
-                    tooltipStyle,
-                    children: buildFormattedValueTextSpans(
-                      parts: parts,
-                      style: tooltipStyle,
-                      subscriptStyle: styles.caption2.copyWith(
-                        color: colors.primaryText,
-                        fontSize: 6.5.s,
-                      ),
-                    ),
-                  );
-                }
                 return LineTooltipItem(
-                  formatted.text,
+                  formatChartMetricValue(spot.y),
                   styles.caption2.copyWith(color: colors.primaryText),
                 );
               },

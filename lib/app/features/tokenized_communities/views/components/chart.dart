@@ -16,8 +16,6 @@ import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_can
 import 'package:ion/app/features/tokenized_communities/providers/token_price_change_percent_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_metric_value_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
-import 'package:ion/app/features/tokenized_communities/utils/price_label_formatter.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/chart_formatted_value_text.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -283,12 +281,8 @@ class _ValueAndChange extends StatelessWidget {
     final texts = context.theme.appTextThemes;
     final priceValue = double.tryParse(price.toString()) ?? 0.0;
     final formattedValue = switch (selectedMetric) {
-      ChartMetric.close => formatChartMetricValueData(
-          priceValue,
-        ),
-      ChartMetric.marketCap => formatChartMetricValueData(
-          marketCap,
-        ),
+      ChartMetric.close => formatChartMetricValue(priceValue),
+      ChartMetric.marketCap => formatChartMetricValue(marketCap),
     };
     final valueTextStyle = texts.subtitle.copyWith(color: colors.primaryText);
 
@@ -300,25 +294,8 @@ class _ValueAndChange extends StatelessWidget {
             child: Row(
               children: [
                 Flexible(
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.baseline,
-                          baseline: TextBaseline.alphabetic,
-                          child: ChartFormattedValueText(
-                            parts: formattedValue.parts ??
-                                PriceLabelParts(fullText: formattedValue.text),
-                            style: valueTextStyle,
-                            subscriptStyle: valueTextStyle.copyWith(
-                              color: colors.primaryText,
-                              fontSize: 8.0.s,
-                            ),
-                          ),
-                        ),
-                        TextSpan(text: ' $label'),
-                      ],
-                    ),
+                  child: Text(
+                    '$formattedValue $label',
                     overflow: TextOverflow.ellipsis,
                     style: valueTextStyle,
                   ),
@@ -385,14 +362,10 @@ class ChartPriceLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final texts = context.theme.appTextThemes;
-    final formatted = formatChartMetricValueData(value);
-    final labelStyle = texts.caption5.copyWith(color: colors.tertiaryText);
 
-    return ChartFormattedValueText(
-      parts: formatted.parts ?? PriceLabelParts(fullText: formatted.text),
-      style: labelStyle,
-      subscriptStyle:
-          texts.caption5.copyWith(fontSize: 6.5.s, color: colors.tertiaryText),
+    return Text(
+      formatChartMetricValue(value),
+      style: texts.caption5.copyWith(color: colors.tertiaryText),
       textAlign: TextAlign.center,
     );
   }

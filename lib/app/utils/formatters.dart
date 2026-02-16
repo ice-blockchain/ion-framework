@@ -21,7 +21,15 @@ String toSubscript(int number) {
 
 // Formats a value using subscript notation for very small numbers.
 // Returns a string like "$0.0₂25" for very small values (or "0.0₂25" without symbol).
-String formatSubscriptNotation(double value, [String symbol = '']) {
+//
+// When [keepTrailingZeros] is true, trailing zeros in the significant digits
+// are preserved (e.g. "0.0₄10" instead of "0.0₄1"). Useful for chart Y-axis
+// labels where consistent label widths are needed.
+String formatSubscriptNotation(
+  double value, {
+  String symbol = '',
+  bool keepTrailingZeros = false,
+}) {
   final absValue = value.abs();
   final expStr = absValue.toStringAsExponential(12);
   final match = RegExp(r'^(\d(?:\.\d+)?)e([+-]\d+)$').firstMatch(expStr);
@@ -37,7 +45,9 @@ String formatSubscriptNotation(double value, [String symbol = '']) {
   final digits = mantissaStr.replaceAll('.', '');
   // Keep at most 2 significant digits for the trailing part
   var trailing = digits.length > 2 ? digits.substring(0, 2) : digits;
-  trailing = trailing.replaceAll(RegExp(r'0+$'), '');
+  if (!keepTrailingZeros) {
+    trailing = trailing.replaceAll(RegExp(r'0+$'), '');
+  }
   if (trailing.isEmpty) trailing = '0';
 
   final sign = value < 0 ? '-' : '';
