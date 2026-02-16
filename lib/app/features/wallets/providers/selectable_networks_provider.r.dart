@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/iterable.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/contact_wallets_provider.r.dart';
@@ -22,10 +23,12 @@ Future<SelectableNetworkState> selectableNetworks(
     contactWalletsAvailabilityProvider(contactPubkey: contactPubkey).future,
   );
 
+  final uniqueCoins = coins.distinctBy((coin) => coin.coin.network.id);
+
   final enabled = <CoinInWalletData>[];
   final disabled = <CoinInWalletData>[];
 
-  for (final coin in coins) {
+  for (final coin in uniqueCoins) {
     final networkId = coin.coin.network.id;
     final canReceive = contactAvailability.canReceiveOn(networkId);
     (canReceive ? enabled : disabled).add(coin);
