@@ -17,6 +17,7 @@ import 'package:ion/app/features/feed/create_post/views/components/reply_input_f
 import 'package:ion/app/features/feed/create_post/views/components/topics_button/topics_button.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/current_user_avatar.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/quote_close_button.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/quoted_entity.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/video_preview_cover.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_onelink_quoted_event.dart';
@@ -24,8 +25,11 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/ho
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
 import 'package:ion/app/features/feed/polls/view/components/poll.dart';
+import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/url_preview_content/url_preview_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
@@ -105,7 +109,10 @@ class CreatePostContent extends ConsumerWidget {
               hasStaticQuotedEvent: quotedEvent != null,
             ),
             if (effectiveQuotedEvent != null)
-              _QuotedEntitySection(eventReference: effectiveQuotedEvent),
+              _QuotedEntitySection(
+                eventReference: effectiveQuotedEvent,
+                isFromOneLink: quotedEvent == null,
+              ),
             SizedBox(height: 10.0.s),
           ],
         ),
@@ -292,18 +299,33 @@ class _TextInputSection extends HookConsumerWidget {
   }
 }
 
-class _QuotedEntitySection extends StatelessWidget {
+class _QuotedEntitySection extends ConsumerWidget {
   const _QuotedEntitySection({
     required this.eventReference,
+    required this.isFromOneLink,
   });
 
   final EventReference eventReference;
+  final bool isFromOneLink;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entity =
+        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+    final isTc = entity is CommunityTokenDefinitionEntity || entity is CommunityTokenActionEntity;
+
+    final closeButton = isFromOneLink
+        ? QuoteCloseButton(
+            isTc: isTc,
+            onTap: () =>
+                ref.read(oneLinkResolvedQuoteNotifierProvider.notifier).resolvedQuote = null,
+          )
+        : null;
+
     return ScreenSideOffset.small(
-      child: IgnorePointer(
-        child: QuotedEntity(eventReference: eventReference),
+      child: QuotedEntity(
+        eventReference: eventReference,
+        trailing: closeButton,
       ),
     );
   }
