@@ -33,9 +33,8 @@ ChartProcessedData chartProcessedData(
   final chartCandles = _mapOhlcvToChartCandles(candles);
   final isEmpty = chartCandles.isEmpty;
 
-  final normalizedCandles = chartCandles.isNotEmpty
-      ? normalizeCandles(chartCandles, selectedRange)
-      : chartCandles;
+  final normalizedCandles =
+      chartCandles.isNotEmpty ? normalizeCandles(chartCandles, selectedRange) : chartCandles;
 
   final candlesToShow = isEmpty
       ? _buildFlatCandles(
@@ -93,9 +92,7 @@ List<ChartCandle> _buildFlatCandles(
 
   // Start from the later of: tokenCreatedAt OR (now - maxCount * interval)
   final earliestAllowed = now.subtract(interval * maxCount);
-  final startDate = tokenCreatedAt.isAfter(earliestAllowed)
-      ? tokenCreatedAt
-      : earliestAllowed;
+  final startDate = tokenCreatedAt.isAfter(earliestAllowed) ? tokenCreatedAt : earliestAllowed;
 
   final candles = <ChartCandle>[];
 
@@ -191,8 +188,7 @@ List<ChartCandle> _expandSingleCandleToFlatLine(
 
   // If candle is already at "now" (or very close), expand backward to tokenCreatedAt
   // Otherwise expand forward to "now"
-  final candleIsAtNow =
-      now.difference(candle.date).abs() < const Duration(seconds: 1);
+  final candleIsAtNow = now.difference(candle.date).abs() < const Duration(seconds: 1);
 
   if (candleIsAtNow) {
     // Candle is at "now", expand backward to tokenCreatedAt

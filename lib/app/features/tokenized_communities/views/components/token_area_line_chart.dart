@@ -58,8 +58,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final yAxisLabelTextStyle =
-        styles.caption5.copyWith(color: colors.tertiaryText);
+    final yAxisLabelTextStyle = styles.caption5.copyWith(color: colors.tertiaryText);
     final reservedSize = useMemoized(
       () => _calculateReservedSize(
         calcData.chartMaxY,
@@ -84,15 +83,12 @@ class TokenAreaLineChart extends HookConsumerWidget {
       candles: candles,
     );
 
-    final targetLineColor = isLoading
-        ? colors.tertiaryText.withValues(alpha: 0.4)
-        : colors.primaryAccent;
+    final targetLineColor =
+        isLoading ? colors.tertiaryText.withValues(alpha: 0.4) : colors.primaryAccent;
     final canInteract = !isLoading;
 
-    final displayMinY =
-        visibleYRangeData.visibleYRange.value?.minY ?? calcData.chartMinY;
-    final displayMaxY =
-        visibleYRangeData.visibleYRange.value?.maxY ?? calcData.chartMaxY;
+    final displayMinY = visibleYRangeData.visibleYRange.value?.minY ?? calcData.chartMinY;
+    final displayMaxY = visibleYRangeData.visibleYRange.value?.maxY ?? calcData.chartMaxY;
     final hasVisibleRange = visibleYRangeData.visibleYRange.value != null;
 
     final gradient = useChartGradient(
@@ -103,9 +99,8 @@ class TokenAreaLineChart extends HookConsumerWidget {
     );
 
     // Only animate Y-axis changes triggered by scroll, not by data load
-    final duration = visibleYRangeData.isScrollTriggered.value
-        ? _scrollAnimationDuration
-        : Duration.zero;
+    final duration =
+        visibleYRangeData.isScrollTriggered.value ? _scrollAnimationDuration : Duration.zero;
 
     // Calculate adjusted maxX with padding for the endpoint dot
     final adjustedMaxX = useChartMaxXWithPadding(
@@ -169,8 +164,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
                   scaleAxis: FlScaleAxis.horizontal,
                   panEnabled: canInteract,
                   scaleEnabled: false,
-                  transformationController:
-                      transformation.transformationController,
+                  transformationController: transformation.transformationController,
                 ),
                 LineChartData(
                   minY: displayMinY,
@@ -230,8 +224,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
                       color: lineColor,
                       barWidth: 1.5.s,
                       dotData: FlDotData(
-                        checkToShowDot: (spot, barData) =>
-                            spot.x == barData.spots.last.x,
+                        checkToShowDot: (spot, barData) => spot.x == barData.spots.last.x,
                         getDotPainter: (spot, percent, barData, index) {
                           return FlDotCirclePainter(
                             radius: 3.0.s,

@@ -36,8 +36,7 @@ class Chart extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final createdAtOfToken = ref.watch(
-      tokenMarketInfoProvider(externalAddress)
-          .select((t) => t.valueOrNull?.createdAt),
+      tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.createdAt),
     );
 
     if (createdAtOfToken == null) {
@@ -64,8 +63,7 @@ class Chart extends HookConsumerWidget {
       ),
     );
 
-    final changePercent =
-        ref.watch(token24hPriceChangeProvider(externalAddress));
+    final changePercent = ref.watch(token24hPriceChangeProvider(externalAddress));
 
     // Cache the last successfully loaded candles to show during loading
     final cachedCandles = useRef<List<ChartCandle>?>(null);
@@ -73,8 +71,7 @@ class Chart extends HookConsumerWidget {
 
     // Keep latest renderable candles for subsequent loading states.
     final hasRenderableCandles = chartDisplayData.candlesToShow.isNotEmpty;
-    final shouldCacheLoadedCandles =
-        candlesAsync.hasValue && hasRenderableCandles;
+    final shouldCacheLoadedCandles = candlesAsync.hasValue && hasRenderableCandles;
 
     useEffect(
       () {
@@ -92,9 +89,8 @@ class Chart extends HookConsumerWidget {
 
     final isLoading = candlesAsync.isLoading;
     final useCached = hasLoadedOnce.value && cachedCandles.value != null;
-    final candlesToRender = isLoading
-        ? (useCached ? cachedCandles.value : null)
-        : chartDisplayData.candlesToShow;
+    final candlesToRender =
+        isLoading ? (useCached ? cachedCandles.value : null) : chartDisplayData.candlesToShow;
     final showEmptyPlaceholder = isLoading && !useCached;
 
     return _ChartContent(
@@ -588,8 +584,8 @@ List<ChartCandle> _generateDemoCandles() {
 
     // Group candles by day; time-of-day is not rendered in the axis label.
     final dayIndex = i ~/ candlesPerDay;
-    final date = DateTime(now.year, now.month, now.day)
-        .subtract(Duration(days: numDays - 1 - dayIndex));
+    final date =
+        DateTime(now.year, now.month, now.day).subtract(Duration(days: numDays - 1 - dayIndex));
 
     candles.add(
       ChartCandle(
