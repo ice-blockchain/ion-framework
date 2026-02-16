@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/views/components/time_ago/time_ago.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_initial_fade_in_visibility.dart';
+import 'package:ion/app/features/tokenized_communities/providers/chart_metric_preference_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_processed_data_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_olhcv_candles_provider.r.dart';
@@ -44,7 +45,7 @@ class Chart extends HookConsumerWidget {
     }
 
     final selectedRange = useState(calculateDefaultRange(createdAtOfToken));
-    final selectedMetric = useState(ChartMetric.close);
+    final selectedMetric = ref.watch(chartMetricPreferenceProvider);
 
     final candlesAsync = ref.watch(
       tokenOhlcvCandlesProvider(
@@ -102,8 +103,8 @@ class Chart extends HookConsumerWidget {
       candles: candlesToRender,
       isLoading: isLoading,
       showEmptyPlaceholder: showEmptyPlaceholder,
-      selectedMetric: selectedMetric.value,
-      onMetricChanged: (metric) => selectedMetric.value = metric,
+      selectedMetric: selectedMetric,
+      onMetricChanged: (metric) => ref.read(chartMetricPreferenceProvider.notifier).metric = metric,
       selectedRange: selectedRange.value,
       onRangeChanged: isLoading ? null : (range) => selectedRange.value = range,
     );
