@@ -416,7 +416,7 @@ class _TimeframeAndMetricRow extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         colors.secondaryBackground.withValues(alpha: 0),
-                        colors.secondaryBackground.withValues(alpha: 0.8),
+                        colors.secondaryBackground.withValues(alpha: 0.6),
                       ],
                     ),
                   ),
@@ -461,14 +461,16 @@ class _MetricIconSwitcher extends StatelessWidget {
         },
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.0.s, vertical: 2.0.s),
+          padding: EdgeInsets.symmetric(horizontal: 8.0.s),
           decoration: BoxDecoration(
             color: isSelected ? colors.primaryAccent : colors.primaryBackground,
             borderRadius: BorderRadius.circular(8.0.s),
           ),
-          child: metric.iconAsset.icon(
-            size: 16.0.s,
-            color: isSelected ? colors.onPrimaryAccent : colors.secondaryText,
+          child: Center(
+            child: metric.iconAsset.icon(
+              size: 16.0.s,
+              color: isSelected ? colors.onPrimaryAccent : colors.secondaryText,
+            ),
           ),
         ),
       );
@@ -478,6 +480,7 @@ class _MetricIconSwitcher extends StatelessWidget {
       padding: EdgeInsetsDirectional.only(end: 16.0.s),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           iconButton(ChartMetric.close),
           SizedBox(width: 4.0.s),
