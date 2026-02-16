@@ -13,8 +13,7 @@ class OhlcvCandle with _$OhlcvCandle {
     required double high,
     required double low,
     required double close,
-    @JsonKey(name: 'market_cap')
-    required double marketCap,
+    @JsonKey(name: 'market_cap') required double marketCap,
     required double volume,
   }) = _OhlcvCandle;
 
