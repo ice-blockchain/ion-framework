@@ -77,11 +77,10 @@ AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
 
 /// Result of resolving a OneLink URL asynchronously.
 ///
-/// Contains the decoded deep link value (encoded event reference like `ion:naddr1...`)
+/// Contains the decoded deep link value (encoded event reference)
 /// and the optional content type extracted from the link's click event.
 typedef OneLinkResolveResult = ({
   /// The resolved deep link value, typically an encoded event reference
-  /// (e.g. `ion:naddr1...` or `ion:nevent1...`).
   String? deepLinkValue,
 
   /// The content type of the shared content, if available.
