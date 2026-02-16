@@ -12,35 +12,35 @@ import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 
-part 'price_change_request.f.freezed.dart';
+part 'token_price_change_request.f.freezed.dart';
 
 @Freezed(equal: false)
-class PriceChangeRequestEntity
-    with _$PriceChangeRequestEntity, IonConnectEntity, ImmutableEntity, CacheableEntity {
-  const factory PriceChangeRequestEntity({
+class TokenPriceChangeRequestEntity
+    with _$TokenPriceChangeRequestEntity, IonConnectEntity, ImmutableEntity, CacheableEntity {
+  const factory TokenPriceChangeRequestEntity({
     required String id,
     required String pubkey,
     required String masterPubkey,
     required String signature,
     required int createdAt,
-    required PriceChangeRequestData data,
-  }) = _PriceChangeRequestEntity;
+    required TokenPriceChangeRequestData data,
+  }) = _TokenPriceChangeRequestEntity;
 
-  const PriceChangeRequestEntity._();
+  const TokenPriceChangeRequestEntity._();
 
   /// https://github.com/ice-blockchain/subzero/blob/master/.ion-connect-protocol/dvm/ICIP-5176.md
-  factory PriceChangeRequestEntity.fromEventMessage(EventMessage eventMessage) {
+  factory TokenPriceChangeRequestEntity.fromEventMessage(EventMessage eventMessage) {
     if (eventMessage.kind != kind) {
       throw IncorrectEventKindException(eventMessage.id, kind: kind);
     }
 
-    return PriceChangeRequestEntity(
+    return TokenPriceChangeRequestEntity(
       id: eventMessage.id,
       pubkey: eventMessage.pubkey,
       masterPubkey: eventMessage.masterPubkey,
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
-      data: PriceChangeRequestData.fromEventMessage(eventMessage),
+      data: TokenPriceChangeRequestData.fromEventMessage(eventMessage),
     );
   }
 
@@ -48,20 +48,21 @@ class PriceChangeRequestEntity
 }
 
 @freezed
-class PriceChangeRequestData with _$PriceChangeRequestData implements EventSerializable {
-  const factory PriceChangeRequestData({
-    required PriceChangeInput input,
-    required PriceChangeRequestParams params,
+class TokenPriceChangeRequestData with _$TokenPriceChangeRequestData implements EventSerializable {
+  const factory TokenPriceChangeRequestData({
+    required TokenPriceChangeInput input,
+    required TokenPriceChangeRequestParams params,
     String? output,
-  }) = _PriceChangeRequestData;
+  }) = _TokenPriceChangeRequestData;
 
-  const PriceChangeRequestData._();
+  const TokenPriceChangeRequestData._();
 
-  factory PriceChangeRequestData.fromEventMessage(EventMessage eventMessage) {
+  factory TokenPriceChangeRequestData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
-    return PriceChangeRequestData(
-      input: PriceChangeInput.fromTags(tags[PriceChangeInput.tagName] ?? []),
-      params: PriceChangeRequestParams.fromTags(tags[PriceChangeRequestParams.tagName] ?? []),
+    return TokenPriceChangeRequestData(
+      input: TokenPriceChangeInput.fromTags(tags[TokenPriceChangeInput.tagName] ?? []),
+      params:
+          TokenPriceChangeRequestParams.fromTags(tags[TokenPriceChangeRequestParams.tagName] ?? []),
       output: tags['output']?.firstOrNull?[1],
     );
   }
@@ -75,7 +76,7 @@ class PriceChangeRequestData with _$PriceChangeRequestData implements EventSeria
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt,
-      kind: PriceChangeRequestEntity.kind,
+      kind: TokenPriceChangeRequestEntity.kind,
       content: '',
       tags: [
         ...tags,
@@ -87,15 +88,15 @@ class PriceChangeRequestData with _$PriceChangeRequestData implements EventSeria
 }
 
 @freezed
-class PriceChangeRequestParams with _$PriceChangeRequestParams {
-  const factory PriceChangeRequestParams({
+class TokenPriceChangeRequestParams with _$TokenPriceChangeRequestParams {
+  const factory TokenPriceChangeRequestParams({
     required int timeWindow,
     required int deltaPercentage,
-  }) = _PriceChangeRequestParams;
+  }) = _TokenPriceChangeRequestParams;
 
-  const PriceChangeRequestParams._();
+  const TokenPriceChangeRequestParams._();
 
-  factory PriceChangeRequestParams.fromTags(List<List<String>> tags) {
+  factory TokenPriceChangeRequestParams.fromTags(List<List<String>> tags) {
     int? timeWindow;
     int? deltaPercentage;
     for (final tag in tags) {
@@ -112,7 +113,7 @@ class PriceChangeRequestParams with _$PriceChangeRequestParams {
       throw IncorrectEventTagException(tag: tags.toString());
     }
 
-    return PriceChangeRequestParams(
+    return TokenPriceChangeRequestParams(
       timeWindow: timeWindow,
       deltaPercentage: deltaPercentage,
     );
@@ -129,23 +130,24 @@ class PriceChangeRequestParams with _$PriceChangeRequestParams {
 }
 
 @freezed
-class PriceChangeInput with _$PriceChangeInput {
-  const factory PriceChangeInput({
+class TokenPriceChangeInput with _$TokenPriceChangeInput {
+  const factory TokenPriceChangeInput({
     required EventReference eventReference,
-  }) = _PriceChangeInput;
+  }) = _TokenPriceChangeInput;
 
-  const PriceChangeInput._();
+  const TokenPriceChangeInput._();
 
-  factory PriceChangeInput.fromTags(List<List<String>> tags) {
+  factory TokenPriceChangeInput.fromTags(List<List<String>> tags) {
     final tag = tags.firstWhereOrNull(
-      (tag) => tag[0] == PriceChangeInput.tagName && tag.length == 5 && tag[4] == 'priceChange',
+      (tag) =>
+          tag[0] == TokenPriceChangeInput.tagName && tag.length == 5 && tag[4] == 'priceChange',
     );
 
     if (tag == null) {
       throw IncorrectEventTagException(tag: tag);
     }
 
-    return PriceChangeInput(
+    return TokenPriceChangeInput(
       eventReference: ReplaceableEventReference.fromString(tag[1]),
     );
   }
