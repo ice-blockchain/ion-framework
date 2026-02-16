@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -23,11 +25,13 @@ import 'package:ion/app/features/video/views/components/video_not_found.dart';
 import 'package:ion/app/features/video/views/components/video_post_info.dart';
 import 'package:ion/app/features/video/views/hooks/use_status_bar_color.dart';
 import 'package:ion/app/features/video/views/hooks/use_wake_lock.dart';
+import 'package:ion/app/features/video/views/pages/ad_video_page.dart';
 import 'package:ion/app/features/video/views/pages/video_page.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class _FlattenedVideo {
@@ -56,6 +60,8 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
   final EventReference? framedEventReference;
 
   bool get hasMore => onLoadMore != null;
+
+  static const int showAdAfter = 7;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -159,6 +165,32 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
       [onVideoSeen, initialPage, flattenedVideos],
     );
 
+    final canShowNativeAds = ref.watch(ionAdClientProvider).valueOrNull?.isNativeLoaded ?? false;
+    final adPositionsRef = useRef<Set<int>>({});
+    final adPositions = useMemoized(
+      () {
+        if (flattenedVideos.length < showAdAfter || !canShowNativeAds) return adPositionsRef.value;
+
+        final rng = Random(flattenedVideos.length);
+        var currentPos = adPositionsRef.value.isEmpty ? 0 : adPositionsRef.value.reduce(max) + 1;
+
+        while (currentPos < flattenedVideos.length + adPositionsRef.value.length + 10) {
+          // Logic: next ad after 7 +/- 3 videos
+          final gap = (showAdAfter + rng.nextInt(showAdAfter) - showAdAfter / 2).toInt();
+          currentPos += max(3, gap);
+
+          adPositionsRef.value.add(currentPos);
+          currentPos++;
+        }
+        return adPositionsRef.value;
+      },
+      [flattenedVideos.length, canShowNativeAds],
+    );
+
+    final isAdVisible = useState(false);
+    final totalItemCount =
+        flattenedVideos.length + adPositions.where((p) => p < flattenedVideos.length + 10).length;
+
     final nextVideoParams = useMemoized(
       () {
         final currentIndex = flattenedVideos.indexWhere(
@@ -203,52 +235,72 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
             ),
           ),
           onBackPress: () => context.pop(),
-          actions: [
-            ContentBottomSheetMenu.forAppBar(
-              eventReference: currentEventReference.value,
-              entity: currentEntity,
-              iconColor: secondaryBackgroundColor,
-              onDelete: () {
-                if (context.canPop() && context.mounted) {
-                  context.pop();
-                }
-              },
-            ),
-          ],
+          actions: isAdVisible.value
+              ? null
+              : [
+                  ContentBottomSheetMenu.forAppBar(
+                    eventReference: currentEventReference.value,
+                    entity: currentEntity,
+                    iconColor: secondaryBackgroundColor,
+                    onDelete: () {
+                      if (context.canPop() && context.mounted) {
+                        context.pop();
+                      }
+                    },
+                  ),
+                ],
         ),
         body: QuickPageSwiper(
           pageController: userPageController,
           swipeDuration: animationDuration,
           child: PageView.builder(
             controller: userPageController,
-            itemCount: flattenedVideos.length,
+            itemCount: totalItemCount,
             scrollDirection: Axis.vertical,
             physics: const NeverScrollableScrollPhysics(),
             onPageChanged: (index) {
-              onVideoSeen?.call(flattenedVideos[index].entity);
-              _loadMore(ref, index, flattenedVideos.length);
-              currentEventReference.value = flattenedVideos[index].entity.toEventReference();
+              final adsBefore = adPositions.where((p) => p < index).length;
+              final videoIndex = index - adsBefore;
+              if (!adPositions.contains(index) && videoIndex < flattenedVideos.length) {
+                isAdVisible.value = false;
+                onVideoSeen?.call(flattenedVideos[videoIndex].entity);
+                _loadMore(ref, videoIndex, flattenedVideos.length);
+                currentEventReference.value = flattenedVideos[videoIndex].entity.toEventReference();
+              } else if (adPositions.contains(index) && canShowNativeAds) {
+                isAdVisible.value = true;
+              }
             },
             itemBuilder: (_, index) {
-              final flattenedVideo = flattenedVideos[index];
-              final perPageEventReference = flattenedVideo.entity.toEventReference();
-              final media = flattenedVideo.media;
+              if (adPositions.contains(index) && canShowNativeAds) {
+                final prevVideoIndex =
+                    max(0, index - adPositions.where((p) => p < index).length - 1);
+                return AdVideoViewer(flattenedVideos[prevVideoIndex].entity.id);
+              } else {
+                final adsBefore = adPositions.where((p) => p < index).length;
+                final videoIndex = index - adsBefore;
 
-              return VideoPage(
-                videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
-                bottomOverlay: VideoActions(
-                  eventReference: perPageEventReference,
-                  onReplyTap: () => PostDetailsRoute(
-                    eventReference: perPageEventReference.encode(),
-                  ).push<void>(context),
-                ),
-                videoUrl: media.url,
-                authorPubkey: perPageEventReference.masterPubkey,
-                thumbnailUrl: media.thumb,
-                blurhash: media.blurhash,
-                aspectRatio: media.aspectRatio,
-                framedEventReference: index == initialPage ? framedEventReference : null,
-              );
+                if (videoIndex >= flattenedVideos.length) return const SizedBox.shrink();
+
+                final flattenedVideo = flattenedVideos[videoIndex];
+                final perPageEventReference = flattenedVideo.entity.toEventReference();
+                final media = flattenedVideo.media;
+
+                return VideoPage(
+                  videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
+                  bottomOverlay: VideoActions(
+                    eventReference: perPageEventReference,
+                    onReplyTap: () => PostDetailsRoute(
+                      eventReference: perPageEventReference.encode(),
+                    ).push<void>(context),
+                  ),
+                  videoUrl: media.url,
+                  authorPubkey: perPageEventReference.masterPubkey,
+                  thumbnailUrl: media.thumb,
+                  blurhash: media.blurhash,
+                  aspectRatio: media.aspectRatio,
+                  framedEventReference: index == initialPage ? framedEventReference : null,
+                );
+              }
             },
           ),
         ),

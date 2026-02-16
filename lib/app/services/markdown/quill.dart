@@ -64,6 +64,9 @@ final deltaToMd = DeltaToMarkdown(
       final content = embed.value.data;
       out.write('\n```\n$content\n```\n');
     },
+    'text-editor-ad': (embed, out) {
+      out.write('\n--ad--\n');
+    },
   },
   visitLineHandleNewLine: (style, out) {
     out.write('\n');

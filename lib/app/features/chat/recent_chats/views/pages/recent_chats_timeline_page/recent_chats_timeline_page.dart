@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import 'package:ion/app/features/chat/community/providers/community_metadata_pro
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
+import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
@@ -27,9 +29,11 @@ import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -72,6 +76,25 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
         return null;
       },
       const [],
+    );
+
+    final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
+    useOnInit(
+      () {
+        if (conversations.length < 2 || !(ionAdClient?.isNativeLoaded ?? false)) return;
+
+        final rng = Random(conversations.length);
+        final adIndex = rng.nextInt(conversations.length - 1);
+        final lastConversation = conversations.last;
+
+        conversations.insert(
+          adIndex,
+          lastConversation.copyWith(
+            conversationId: '${ConversationMessages.adIdPrefix}${lastConversation.conversationId}',
+            type: ConversationType.ad,
+          ),
+        );
+      },
     );
 
     return NotificationListener<ScrollNotification>(
@@ -219,7 +242,9 @@ class ConversationList extends ConsumerWidget {
                 EncryptedGroupRecentChatTile(
                   conversation: conversation,
                   key: ValueKey(conversation.conversationId),
-                ),
+                )
+              else if (conversation.type == ConversationType.ad)
+                const AdChatTile(),
               if (index < conversations.length - 1)
                 const HorizontalSeparator(), // Add separator after each item except the last one
             ],
@@ -390,6 +415,24 @@ class EncryptedGroupRecentChatTile extends HookConsumerWidget {
       onTap: () {
         ConversationRoute(conversationId: conversation.conversationId).push<void>(context);
       },
+    );
+  }
+}
+
+class AdChatTile extends HookConsumerWidget {
+  const AdChatTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      height: 72.0.s,
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 8.0.s),
+      child: AppodealNativeAd(
+        options: NativeAdOptions.customOptions(
+          nativeAdType: NativeAdType.chat,
+        ),
+      ),
     );
   }
 }
