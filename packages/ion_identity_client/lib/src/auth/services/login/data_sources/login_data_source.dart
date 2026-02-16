@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
+import 'package:dio/dio.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/core/network/network_client.dart';
 import 'package:ion_identity_client/src/core/network/utils.dart';
@@ -33,16 +34,33 @@ class LoginDataSource {
   Future<Authentication> loginComplete({
     required AssertionRequestData assertion,
     required String challengeIdentifier,
-  }) {
+  }) async {
     final requestData = UserActionSigningCompleteRequest(
       challengeIdentifier: challengeIdentifier,
       firstFactor: assertion,
     );
 
-    return networkClient.post(
-      loginCompletePath,
-      data: requestData.toJson(),
-      decoder: (result, _) => parseJsonObject(result, fromJson: Authentication.fromJson),
-    );
+    try {
+      return await networkClient.post(
+        loginCompletePath,
+        data: requestData.toJson(),
+        decoder: (result, _) => parseJsonObject(result, fromJson: Authentication.fromJson),
+      );
+    } on RequestExecutionException catch (e) {
+      if (e.error is! DioException) rethrow;
+
+      final exception = e.error as DioException;
+      if (InvalidSignatureException.isMatch(exception)) {
+        throw InvalidSignatureException(
+          'Login signature rejected for credentialId: ${assertion.credentialAssertion.credId}',
+        );
+      }
+
+      throw RequestExecutionException(
+        e.error,
+        e.stackTrace,
+        'Login complete failed for credentialId: ${assertion.credentialAssertion.credId}',
+      );
+    }
   }
 }

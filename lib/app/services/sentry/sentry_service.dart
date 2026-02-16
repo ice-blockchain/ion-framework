@@ -38,12 +38,14 @@ mixin SentryService {
   /// [stackTrace] - Optional stack trace for the exception
   /// [level] - Optional severity level (defaults to SentryLevel.error)
   /// [tag] - Optional tag to categorize the exception
+  /// [tags] - Optional structured tags to improve event searchability
   /// [debugContext] - Optional map of additional context data for debugging
   static Future<SentryId> logException(
     dynamic exception, {
     StackTrace? stackTrace,
     SentryLevel? level,
     String? tag,
+    Map<String, String>? tags,
     Map<String, dynamic>? debugContext,
   }) async {
     return Sentry.captureException(
@@ -56,8 +58,41 @@ mixin SentryService {
         if (tag != null) {
           scope.setTag('manual_log', tag);
         }
+        if (tags != null) {
+          for (final entry in tags.entries) {
+            scope.setTag(entry.key, entry.value);
+          }
+        }
         if (debugContext != null) {
           scope.setContexts('debug_context', debugContext);
+        }
+      },
+    );
+  }
+
+  /// Manually log a diagnostic message to Sentry
+  ///
+  /// [message] - The message to log
+  /// [level] - Optional severity level (defaults to SentryLevel.info)
+  /// [tag] - Optional tag to categorize the message
+  /// [tags] - Optional structured tags to improve event searchability
+  static Future<SentryId> logMessage(
+    String message, {
+    SentryLevel level = SentryLevel.info,
+    String? tag,
+    Map<String, String>? tags,
+  }) async {
+    return Sentry.captureMessage(
+      message,
+      level: level,
+      withScope: (scope) {
+        if (tag != null) {
+          scope.setTag('manual_log', tag);
+        }
+        if (tags != null) {
+          for (final entry in tags.entries) {
+            scope.setTag(entry.key, entry.value);
+          }
         }
       },
     );

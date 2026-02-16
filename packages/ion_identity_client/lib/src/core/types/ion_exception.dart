@@ -215,7 +215,8 @@ class NicknameReservedException extends IONIdentityException {
 }
 
 class InvalidRecoveryCredentialsException extends IONIdentityException {
-  InvalidRecoveryCredentialsException() : super('Invalid recovery credentials');
+  InvalidRecoveryCredentialsException([String? message])
+      : super(message ?? 'Invalid recovery credentials');
 
   static bool isMatch(DioException dioException) {
     final responseData = dioException.response?.data;
@@ -238,7 +239,7 @@ class InvalidRecoveryCredentialsException extends IONIdentityException {
 }
 
 class InvalidSignatureException extends IONIdentityException {
-  InvalidSignatureException() : super('Invalid signature');
+  InvalidSignatureException([String? message]) : super(message ?? 'Invalid signature');
 
   static bool isMatch(DioException dioException) {
     final responseData = dioException.response?.data;
