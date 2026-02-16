@@ -70,7 +70,9 @@ class TokenTransactionService {
       final amounts = _calculateAmounts(
         amount: amount,
         paymentToken: paymentToken,
+        tokenCoin: tokenData.coin,
         expectedPricing: expectedPricing,
+        isSell: isSell,
       );
 
       final transactions = _createTransactions(
@@ -81,7 +83,6 @@ class TokenTransactionService {
         network: network,
         paymentToken: paymentToken,
         paymentCoinsGroup: paymentCoinsGroup,
-        paymentAmount: amount,
         tokenCoin: tokenData.coin,
         tokenCoinsGroup: communityTokenCoinsGroup ?? tokenData.coinsGroup,
         amounts: amounts,
@@ -446,6 +447,7 @@ class TokenTransactionService {
   }
 
   ({
+    double paymentAmount,
     String paymentRawAmount,
     double tokenAmount,
     String tokenRawAmount,
@@ -453,18 +455,23 @@ class TokenTransactionService {
   }) _calculateAmounts({
     required double amount,
     required CoinData paymentToken,
+    required CoinData tokenCoin,
     required PricingResponse expectedPricing,
+    required bool isSell,
   }) {
-    final paymentRawAmount = toBlockchainUnits(amount, paymentToken.decimals).toString();
-    final tokenAmount = fromBlockchainUnits(expectedPricing.amount);
-    final tokenRawAmount = expectedPricing.amount;
-    final amountUSD = expectedPricing.amountUSD;
+    // SELL: amount = token amount (input), pricing.amount = payment amount (output)
+    // BUY: amount = payment amount (input), pricing.amount = token amount (output)
+    final inputDecimals = isSell ? tokenCoin.decimals : paymentToken.decimals;
+    final inputRawAmount = toBlockchainUnits(amount, inputDecimals).toString();
+    final outputAmount = fromBlockchainUnits(expectedPricing.amount);
+    final outputRawAmount = expectedPricing.amount;
 
     return (
-      paymentRawAmount: paymentRawAmount,
-      tokenAmount: tokenAmount,
-      tokenRawAmount: tokenRawAmount,
-      amountUSD: amountUSD,
+      paymentAmount: isSell ? outputAmount : amount,
+      paymentRawAmount: isSell ? outputRawAmount : inputRawAmount,
+      tokenAmount: isSell ? amount : outputAmount,
+      tokenRawAmount: isSell ? inputRawAmount : outputRawAmount,
+      amountUSD: expectedPricing.amountUSD,
     );
   }
 
@@ -488,10 +495,10 @@ class TokenTransactionService {
     required NetworkData network,
     required CoinData paymentToken,
     required CoinsGroup? paymentCoinsGroup,
-    required double paymentAmount,
     required CoinData tokenCoin,
     required CoinsGroup tokenCoinsGroup,
     required ({
+      double paymentAmount,
       String paymentRawAmount,
       double tokenAmount,
       String tokenRawAmount,
@@ -510,7 +517,6 @@ class TokenTransactionService {
       network: network,
       paymentToken: paymentToken,
       paymentCoinsGroup: paymentCoinsGroup,
-      paymentAmount: paymentAmount,
       amounts: amounts,
       status: status,
       dateRequested: dateRequested,
@@ -548,8 +554,8 @@ class TokenTransactionService {
     required NetworkData network,
     required CoinData paymentToken,
     required CoinsGroup? paymentCoinsGroup,
-    required double paymentAmount,
     required ({
+      double paymentAmount,
       String paymentRawAmount,
       double tokenAmount,
       String tokenRawAmount,
@@ -573,7 +579,7 @@ class TokenTransactionService {
         ) ??
         CoinInWalletData(
           coin: paymentToken,
-          amount: paymentAmount,
+          amount: amounts.paymentAmount,
           rawAmount: amounts.paymentRawAmount,
           balanceUSD: amounts.amountUSD,
           walletId: wallet.id,
@@ -581,7 +587,7 @@ class TokenTransactionService {
 
     final paymentAssetData = CryptoAssetToSendData.coin(
       coinsGroup: paymentTokenCoinsGroup,
-      amount: paymentAmount,
+      amount: amounts.paymentAmount,
       rawAmount: amounts.paymentRawAmount,
       amountUSD: amounts.amountUSD,
       selectedOption: paymentSelectedOption,
@@ -617,6 +623,7 @@ class TokenTransactionService {
     required CoinData tokenCoin,
     required CoinsGroup tokenCoinsGroup,
     required ({
+      double paymentAmount,
       String paymentRawAmount,
       double tokenAmount,
       String tokenRawAmount,
