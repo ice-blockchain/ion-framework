@@ -35,6 +35,5 @@ String formatChartMetricValue(double value) {
     return value.toStringAsFixed(4);
   }
 
-  final result = formatSubscriptNotation(value, keepTrailingZeros: true);
-  return result.isNotEmpty ? result : value.toStringAsFixed(6);
+  return formatSubscriptNotation(value, keepTrailingZeros: true);
 }
