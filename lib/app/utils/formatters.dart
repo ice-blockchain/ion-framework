@@ -45,21 +45,27 @@ String formatSubscriptNotation(double value, [String symbol = '']) {
 }
 
 // Formats a large number into a compact string representation.
+// - 1000 -> 1K
 // - 1234 -> 1.23K
 // - 1234567 -> 1.23M
 // - 1234567890 -> 1.23B
 String formatCompactNumber(num value) {
   if (value >= 1e9) {
-    return '${(value / 1e9).toStringAsFixed(2)}B';
+    return '${_formatCompactValue(value / 1e9)}B';
   } else if (value >= 1e6) {
-    return '${(value / 1e6).toStringAsFixed(2)}M';
+    return '${_formatCompactValue(value / 1e6)}M';
   } else if (value >= 1e3) {
-    return '${(value / 1e3).toStringAsFixed(2)}K';
+    return '${_formatCompactValue(value / 1e3)}K';
   } else if (value < 1) {
     return value.toStringAsFixed(2);
   }
 
   return value.toStringAsFixed(0);
+}
+
+String _formatCompactValue(num value) {
+  final fixed = value.toStringAsFixed(2);
+  return fixed.replaceAll(RegExp(r'\.?0+$'), '');
 }
 
 String formatTokenAmountWithSubscript(double value) {
