@@ -861,8 +861,6 @@
   "suggestions_loading_description": "ابحث عن المستخدم الذي تريد ذكره",
   "tokenized_communities_top_tokens": "أفضل التوكنات",
   "tokenized_communities_trending_tokens": "التوكنات الرائجة",
-<<<<<<< HEAD
-=======
   "tokenized_community_bonding_curve": "منحنى الترابط",
   "tokenized_community_burned": "محروق",
   "tokenized_community_chart_tab": "المخطط",
@@ -889,7 +887,6 @@
   "tokenized_community_token_twitter": "رمز X",
   "tokenized_community_trade": "تداول",
   "tokenized_community_trades_tab": "الصفقات",
->>>>>>> 6c6493aca (feat(tc): add restricted region dialog (#3394))
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "أضف رابط",
   "topics_add": "أضف",

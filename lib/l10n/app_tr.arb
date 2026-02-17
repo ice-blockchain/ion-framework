@@ -848,8 +848,6 @@
   "suggestions_loading_description": "Bahsetmek istediğiniz kullanıcıyı arayın",
   "tokenized_communities_top_tokens": "En iyi tokenler",
   "tokenized_communities_trending_tokens": "Trend tokenler",
-<<<<<<< HEAD
-=======
   "tokenized_community_bonding_curve": "Bağlanma Eğrisi",
   "tokenized_community_burned": "Yakıldı",
   "tokenized_community_chart_tab": "Grafik",
@@ -876,7 +874,6 @@
   "tokenized_community_token_twitter": "X tokenı",
   "tokenized_community_trade": "işlem",
   "tokenized_community_trades_tab": "İşlemler",
->>>>>>> 6c6493aca (feat(tc): add restricted region dialog (#3394))
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Bağlantı ekle",
   "topics_add": "Ekle",

@@ -848,8 +848,6 @@
   "suggestions_loading_description": "Szukaj użytkownika, którego chcesz wspomnieć",
   "tokenized_communities_top_tokens": "Najlepsze tokeny",
   "tokenized_communities_trending_tokens": "Popularne tokeny",
-<<<<<<< HEAD
-=======
   "tokenized_community_bonding_curve": "Krzywa wiązania",
   "tokenized_community_burned": "Spalone",
   "tokenized_community_chart_tab": "Wykres",
@@ -876,7 +874,6 @@
   "tokenized_community_token_twitter": "Token X",
   "tokenized_community_trade": "handel",
   "tokenized_community_trades_tab": "Transakcje",
->>>>>>> 6c6493aca (feat(tc): add restricted region dialog (#3394))
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Dodaj link",
   "topics_add": "Dodaj",

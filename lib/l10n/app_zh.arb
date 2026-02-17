@@ -848,8 +848,6 @@
   "suggestions_loading_description": "搜索您想要提及的用户",
   "tokenized_communities_top_tokens": "顶级代币",
   "tokenized_communities_trending_tokens": "热门代币",
-<<<<<<< HEAD
-=======
   "tokenized_community_bonding_curve": "绑定曲线",
   "tokenized_community_burned": "已销毁",
   "tokenized_community_chart_tab": "图表",
@@ -876,7 +874,6 @@
   "tokenized_community_token_twitter": "X 代币",
   "tokenized_community_trade": "交易",
   "tokenized_community_trades_tab": "交易",
->>>>>>> 6c6493aca (feat(tc): add restricted region dialog (#3394))
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "添加链接",
   "topics_add": "添加",

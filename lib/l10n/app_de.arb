@@ -848,8 +848,6 @@
   "suggestions_loading_description": "Suche nach dem Benutzer, den du erwähnen möchtest",
   "tokenized_communities_top_tokens": "Top Tokens",
   "tokenized_communities_trending_tokens": "Trending Tokens",
-<<<<<<< HEAD
-=======
   "tokenized_community_bonding_curve": "Bonding-Kurve",
   "tokenized_community_burned": "Verbrannt",
   "tokenized_community_chart_tab": "Chart",
@@ -876,7 +874,6 @@
   "tokenized_community_token_twitter": "X-Token",
   "tokenized_community_trade": "Handel",
   "tokenized_community_trades_tab": "Trades",
->>>>>>> 6c6493aca (feat(tc): add restricted region dialog (#3394))
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Link hinzufügen",
   "topics_add": "Hinzufügen",

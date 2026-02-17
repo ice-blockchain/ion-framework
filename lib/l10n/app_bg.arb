@@ -848,8 +848,6 @@
   "suggestions_loading_description": "Търсете потребителя, който искате да споменете",
   "tokenized_communities_top_tokens": "Топ токени",
   "tokenized_communities_trending_tokens": "Популярни токени",
-<<<<<<< HEAD
-=======
   "tokenized_community_bonding_curve": "Крива на обвързване",
   "tokenized_community_burned": "Изгорени",
   "tokenized_community_chart_tab": "Графика",
@@ -876,7 +874,6 @@
   "tokenized_community_token_twitter": "Токен на X",
   "tokenized_community_trade": "търгуване",
   "tokenized_community_trades_tab": "Сделки",
->>>>>>> 6c6493aca (feat(tc): add restricted region dialog (#3394))
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Добави връзка",
   "topics_add": "Добави",

@@ -848,8 +848,6 @@
   "suggestions_loading_description": "Caută utilizatorul pe care vrei să-l menționezi",
   "tokenized_communities_top_tokens": "Tokenuri de top",
   "tokenized_communities_trending_tokens": "Tokenuri în tendință",
-<<<<<<< HEAD
-=======
   "tokenized_community_bonding_curve": "Curba de legătură",
   "tokenized_community_burned": "Arse",
   "tokenized_community_chart_tab": "Grafic",
@@ -876,7 +874,6 @@
   "tokenized_community_token_twitter": "Token X",
   "tokenized_community_trade": "tranzacționare",
   "tokenized_community_trades_tab": "Tranzacții",
->>>>>>> 6c6493aca (feat(tc): add restricted region dialog (#3394))
   "toolbar_link_placeholder": "https://example.com",
   "toolbar_link_title": "Adaugă un link",
   "topics_add": "Adaugă",
