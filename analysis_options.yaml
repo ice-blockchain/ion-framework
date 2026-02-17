@@ -10,6 +10,7 @@ analyzer:
     - build/**
     - scripts/**
     - lib/generated/**
+    - vendor/**
 
   errors:
     invalid_annotation_target: ignore

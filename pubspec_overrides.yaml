@@ -19,3 +19,5 @@ dependency_overrides:
   ion_lint_rules:
     path: packages/ion_lint_rules
   js: ^0.7.1
+  passkeys_android:
+    path: vendor/passkeys_android
