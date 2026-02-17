@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
-import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/nsfw/models/video_thumbnail.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
@@ -15,7 +14,6 @@ import 'package:ion/app/services/compressors/video_compressor.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/media_service/video_info_service.r.dart';
-import 'package:ion/app/utils/image_path.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nsfw_validation_service.r.g.dart';
@@ -46,8 +44,8 @@ class NsfwValidationService {
 
   // Combined validation: images + videos in single isolate call
   Future<Map<String, bool>> hasNsfwInMediaFiles(List<MediaFile> mediaFiles) async {
-    final gifFiles = mediaFiles.where(_isGifMediaFile).toList();
-    final nonGifFiles = mediaFiles.where((media) => !_isGifMediaFile(media)).toList();
+    final gifFiles = mediaFiles.where((m) => m.isGif).toList();
+    final nonGifFiles = mediaFiles.where((m) => !m.isGif).toList();
 
     // Check GIFs first: fail-closed if extraction failed
     final gifThumbnails = await _generateGifThumbnailsWithFallback(gifFiles);
@@ -125,28 +123,12 @@ class NsfwValidationService {
   }
 
   bool _isImageMedia(MediaFile media) {
-    final mime = media.mimeType ?? '';
-    if (_isGifMedia(media, mime)) {
+    if (media.isGif) {
       return false;
     }
+    final mime = media.mimeType ?? '';
     if (mime.startsWith('image/')) return true;
     return _isImageExtension(media.path);
-  }
-
-  bool _isGifMediaFile(MediaFile media) {
-    return _isGifMedia(media, media.mimeType ?? '');
-  }
-
-  bool _isGifMedia(MediaFile media, String mime) {
-    if (mime == LocalMimeType.gif.value || mime == MimeType.gif.value) {
-      return true;
-    }
-
-    if (mime.contains('gif')) {
-      return true;
-    }
-
-    return media.path.isGif;
   }
 
   bool _isImageExtension(String path) {
