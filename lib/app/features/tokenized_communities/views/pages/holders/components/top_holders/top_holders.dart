@@ -151,13 +151,17 @@ class _TopHolderList extends ConsumerWidget {
           return const TopHoldersEmpty();
         }
 
+        final sortedList = holders.sortedByPriority(
+          bondingCurveAddress: boundingCurveAddress ?? '',
+        );
+
         return ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
-          itemCount: holders.length,
+          itemCount: sortedList.length,
           itemBuilder: (context, index) {
-            final holder = holders[index];
+            final holder = sortedList[index];
 
             if (boundingCurveAddress != null && holder.isBoundingCurve(boundingCurveAddress)) {
               return BondingCurveHolderTile(

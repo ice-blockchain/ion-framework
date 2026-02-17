@@ -6,6 +6,21 @@ import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/formatters.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
+extension TopHolderListSorting on List<TopHolder> {
+  List<TopHolder> sortedByPriority({required String bondingCurveAddress}) {
+    return toList()
+      ..sort((a, b) {
+        int priority(TopHolder h) {
+          if (h.isBoundingCurve(bondingCurveAddress)) return 0;
+          if (h.isBurning) return 1;
+          return 2;
+        }
+
+        return priority(a).compareTo(priority(b));
+      });
+  }
+}
+
 extension TopHolderMapping on TopHolder {
   HolderTileData get tileData => HolderTileData(
         rank: position.rank,
