@@ -270,10 +270,12 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
       },
     ).toList();
 
+    final uniqueCoins = filteredCoins.distinctBy((coin) => coin.coin.network.id);
+
     return _NetworksList(
-      itemCount: filteredCoins.length,
+      itemCount: uniqueCoins.length,
       itemBuilder: (BuildContext context, int index) {
-        final coin = filteredCoins[index];
+        final coin = uniqueCoins[index];
         final network = coin.coin.network;
         return NetworkItem(
           coinInWallet: coin,
