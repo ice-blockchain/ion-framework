@@ -12,6 +12,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:ogp_data_extract/ogp_data_extract.dart';
 
 typedef PathWithKey = ({String key, String filePath});
 typedef MediaContentWithKey = ({
@@ -24,6 +25,7 @@ typedef MediaContentWithKey = ({
 typedef EntityWithKey = ({String key, IonConnectEntity entity});
 typedef MessageStatusWithKey = ({String key, MessageDeliveryStatus status});
 typedef ValueWithKey = ({String key, String value});
+typedef OgpDataWithKey = ({String key, OgpData meta});
 
 class ListCachedObjectsWrapper extends StatefulWidget {
   const ListCachedObjectsWrapper({required this.child, super.key});
@@ -57,6 +59,7 @@ class ListCachedObjects extends InheritedWidget {
       final MessageStatusWithKey statusMap => statusMap.key,
       final MediaContentWithKey mediaContentMap => mediaContentMap.key,
       final ValueWithKey valueWithKey => valueWithKey.key,
+      final OgpDataWithKey ogpDataWithKey => ogpDataWithKey.key,
       final EventMessage event => event.sharedId ?? event.id,
       final MessageMediaTableData media => media.messageEventReference,
       final UserMetadataEntity user => user.masterPubkey,
