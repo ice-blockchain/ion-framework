@@ -938,6 +938,8 @@
   "tokenized_community_onboarding_support_title": "Premium users support creators",
   "tokenized_community_onboarding_web3_description": "Every interaction with creator tokens, including buy, sell, and on/off-ramp actions, generates platform fees, and 50% of all of it goes to creators.",
   "tokenized_community_onboarding_web3_title": "Earn from Web3 activity",
+  "tokenized_community_restricted_region_unavailable_description": "Swaps aren't available in your region yet, but we're working on it. We'll notify you when it's live.",
+  "tokenized_community_restricted_region_unavailable_title": "Almost There!",
   "tokenized_community_token_content": "Content token",
   "tokenized_community_token_creator": "Creator token",
   "tokenized_community_token_twitter": "X token",

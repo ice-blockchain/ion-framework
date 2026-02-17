@@ -10,6 +10,7 @@ import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
 import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
 import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
@@ -27,6 +28,7 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_infrastru
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/restricted_region_unavailable_sheet.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/suggested_community_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
@@ -46,6 +48,7 @@ import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -124,30 +127,36 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
               error is StateError) {
             return;
           }
-          if (context.mounted) {
-            Logger.error(
-              error,
-              message: '[TradeCommunityTokenDialog] Swap failed | '
-                  'externalAddress=$resolvedExternalAddress | '
-                  'eventReference=$eventReference | '
-                  'mode=${state.mode} | '
-                  'errorType=${error.runtimeType} | '
-                  'errorMessage=$error',
-            );
-            final tokenInfo =
-                ref.read(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
-            final communityTokenName =
-                tokenInfo?.marketData.ticker ?? state.communityTokenCoinsGroup?.abbreviation;
-            final paymentTokenName = state.selectedPaymentToken?.abbreviation;
-
-            _showErrorMessage(
-              messageNotificationNotifier,
-              context,
-              state.mode,
-              paymentTokenName,
-              communityTokenName,
-            );
+          if (!context.mounted) {
+            return;
           }
+
+          if (error is RestrictedRegionException) {
+            _showRestrictedRegionDialog(context, error);
+            return;
+          }
+
+          Logger.error(
+            error,
+            message: '[TradeCommunityTokenDialog] Swap failed | '
+                'externalAddress=$resolvedExternalAddress | '
+                'eventReference=$eventReference | '
+                'mode=${state.mode} | '
+                'errorType=${error.runtimeType} | '
+                'errorMessage=$error',
+          );
+          final tokenInfo = ref.read(tokenMarketInfoProvider(resolvedExternalAddress)).valueOrNull;
+          final communityTokenName =
+              tokenInfo?.marketData.ticker ?? state.communityTokenCoinsGroup?.abbreviation;
+          final paymentTokenName = state.selectedPaymentToken?.abbreviation;
+
+          _showErrorMessage(
+            messageNotificationNotifier,
+            context,
+            state.mode,
+            paymentTokenName,
+            communityTokenName,
+          );
         },
       )
       ..listenSuccess<String?>(
@@ -467,6 +476,23 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
           sellCoinAbbreviation: sellCoinAbbreviation,
           buyCoinAbbreviation: buyCoinAbbreviation,
         ),
+      ),
+    );
+  }
+
+  void _showRestrictedRegionDialog(
+    BuildContext context,
+    RestrictedRegionException _,
+  ) {
+    showSimpleBottomSheet<void>(
+      context: context,
+      isDismissible: false,
+      child: RestrictedRegionUnavailableSheet(
+        onClose: () {
+          Navigator.of(context, rootNavigator: true)
+            ..pop()
+            ..pop();
+        },
       ),
     );
   }

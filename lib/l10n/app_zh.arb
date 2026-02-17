@@ -938,6 +938,8 @@
   "tokenized_community_onboarding_support_title": "高级用户支持创作者",
   "tokenized_community_onboarding_web3_description": "与创作者代币的每一次交互，包括买入、卖出以及出入金操作，都会产生平台费用，其中 50% 归创作者所有。",
   "tokenized_community_onboarding_web3_title": "通过 Web3 活动赚钱",
+  "tokenized_community_restricted_region_unavailable_description": "兑换功能目前在您所在的地区尚未开放，但我们正在推进中。上线后我们会通知您。",
+  "tokenized_community_restricted_region_unavailable_title": "即将上线！",
   "tokenized_community_token_content": "内容代币",
   "tokenized_community_token_creator": "创作者代币",
   "tokenized_community_token_twitter": "X 代币",

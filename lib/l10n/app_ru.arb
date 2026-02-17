@@ -938,6 +938,8 @@
   "tokenized_community_onboarding_support_title": "Премиум-пользователи поддерживают создателей",
   "tokenized_community_onboarding_web3_description": "Каждое взаимодействие с токенами создателей, включая покупку, продажу и операции on/off-ramp, приносит платформе комиссии, 50% которых получают создатели.",
   "tokenized_community_onboarding_web3_title": "Зарабатывайте на активности Web3",
+  "tokenized_community_restricted_region_unavailable_description": "Обмены пока недоступны в вашем регионе, но мы работаем над этим. Мы уведомим вас, когда функция станет доступной.",
+  "tokenized_community_restricted_region_unavailable_title": "Почти готово!",
   "tokenized_community_token_content": "Токен контента",
   "tokenized_community_token_creator": "Токен создателя",
   "tokenized_community_token_twitter": "Токен X",
