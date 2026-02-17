@@ -18,19 +18,18 @@ class SelectTwoFAOptionsState with _$SelectTwoFAOptionsState {
   }) = _SelectTwoFAOptionsState;
 }
 
-@Riverpod(dependencies: [availableTwoFaTypes])
+@Riverpod(keepAlive: true, dependencies: [availableTwoFaTypes])
 class SelectedTwoFAOptionsNotifier extends _$SelectedTwoFAOptionsNotifier {
   @override
   SelectTwoFAOptionsState build() {
-    final availableTwoFATypes = ref.watch(availableTwoFaTypesProvider);
+    final availableTwoFATypes = ref.read(availableTwoFaTypesProvider);
     // TODO: remove where filter when sms is supported during account recovery
     final filteredTypes = availableTwoFATypes.types.where((type) => type != TwoFaType.sms).toList();
     final optionsAmount = filteredTypes.length;
-
     return SelectTwoFAOptionsState(
       optionsAmount: optionsAmount,
       availableOptions: filteredTypes.toSet(),
-      selectedValues: List.generate(optionsAmount, (_) => null),
+      selectedValues: List<TwoFaType?>.filled(optionsAmount, null),
     );
   }
 
