@@ -2,7 +2,6 @@
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/object.dart';
-import 'package:ion/app/features/tokenized_communities/blockchain/ion_identity_error_mapper.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -12,12 +11,9 @@ typedef IonIdentityClientResolver = Future<IONIdentityClient> Function();
 class IonIdentityTransactionApi {
   IonIdentityTransactionApi({
     required IonIdentityClientResolver clientResolver,
-    IonIdentityErrorMapper errorMapper = const IonIdentityErrorMapper(),
-  })  : _clientResolver = clientResolver,
-        _errorMapper = errorMapper;
+  }) : _clientResolver = clientResolver;
 
   final IonIdentityClientResolver _clientResolver;
-  final IonIdentityErrorMapper _errorMapper;
 
   Future<Map<String, dynamic>> signAndBroadcast({
     required String walletId,
@@ -84,15 +80,11 @@ class IonIdentityTransactionApi {
         broadcastRequest,
         userActionSigner,
       );
-    } on RequestExecutionException catch (error) {
-      final restrictedRegionException = _errorMapper.mapRestrictedRegion(error);
-      if (restrictedRegionException != null) {
-        Logger.info(
-          '[IonIdentityTransactionApi] Restricted region detected for signAndBroadcast '
-          '($operation): $restrictedRegionException',
-        );
-        throw restrictedRegionException;
-      }
+    } on RestrictedRegionException catch (error) {
+      Logger.info(
+        '[IonIdentityTransactionApi] Restricted region detected for signAndBroadcast '
+        '($operation): $error',
+      );
       rethrow;
     }
   }

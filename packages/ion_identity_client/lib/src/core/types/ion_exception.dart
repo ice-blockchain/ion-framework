@@ -18,6 +18,21 @@ abstract class IONIdentityException implements Exception {
   }
 }
 
+class RestrictedRegionException extends IONIdentityException {
+  const RestrictedRegionException({
+    required String message,
+    this.country,
+    this.city,
+    this.region,
+    this.regionCode,
+  }) : super(message);
+
+  final String? country;
+  final String? city;
+  final String? region;
+  final String? regionCode;
+}
+
 class UnauthenticatedException extends IONIdentityException {
   const UnauthenticatedException() : super('User is not authenticated');
 }

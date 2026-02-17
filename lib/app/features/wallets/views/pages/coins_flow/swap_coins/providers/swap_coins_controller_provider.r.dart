@@ -398,7 +398,7 @@ class SwapCoinsController extends _$SwapCoinsController {
           }
         },
       );
-    } catch (e, stackTrace) {
+    } on Exception catch (e, stackTrace) {
       onSwapError();
 
       await SentryService.logException(
@@ -407,9 +407,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         tag: 'swap_coins_failure',
       );
 
-      throw Exception(
-        'Failed to swap coins: $e',
-      );
+      rethrow;
     } finally {
       state = state.copyWith(isSwapLoading: false);
     }
@@ -709,7 +707,7 @@ class SwapCoinsController extends _$SwapCoinsController {
       );
 
       onSwapSuccess();
-    } catch (e, stackTrace) {
+    } on Exception catch (e, stackTrace) {
       onSwapError();
 
       await SentryService.logException(
@@ -718,9 +716,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         tag: 'swap_coins_failure',
       );
 
-      throw Exception(
-        'Failed to swap coins: $e',
-      );
+      rethrow;
     }
   }
 

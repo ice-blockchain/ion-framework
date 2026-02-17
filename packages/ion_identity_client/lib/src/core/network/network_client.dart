@@ -144,6 +144,10 @@ class NetworkClient {
       if (UserAlreadyExistsException.isMatch(e)) {
         throw const UserAlreadyExistsException();
       }
+      final restrictedRegionException = const RestrictedRegionErrorParser().parseException(e);
+      if (restrictedRegionException != null) {
+        throw restrictedRegionException;
+      }
 
       throw RequestExecutionException(e, stackTrace);
     } on NetworkException {
