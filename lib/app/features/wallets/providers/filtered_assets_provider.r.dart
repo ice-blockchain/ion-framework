@@ -82,8 +82,8 @@ List<CoinsGroup> _filterCoins(List<CoinsGroup> coins, String query) {
   return coins
       .where(
         (group) =>
-            group.name.toLowerCase().contains(query) ||
-            group.abbreviation.toLowerCase().contains(query),
+            group.name.toLowerCase().contains(query.toLowerCase()) ||
+            group.abbreviation.toLowerCase().contains(query.toLowerCase()),
       )
       .toList();
 }
