@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:ion/app/features/tokenized_communities/providers/latest_trades_accumulator.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -11,11 +13,13 @@ part 'token_latest_trades_provider.r.g.dart';
 
 @riverpod
 class TokenLatestTrades extends _$TokenLatestTrades {
+  static const int _reconnectBaseDelayMs = 300;
+  static const int _reconnectMaxDelayMs = 5000;
+
   late String _masterPubkey;
   late int _pageSize;
 
-  // Trades we currently expose (newest -> oldest).
-  List<LatestTrade> _currentTrades = [];
+  final _accumulator = LatestTradesAccumulator();
 
   // REST pagination state.
   int _restOffset = 0;
@@ -42,7 +46,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
     _masterPubkey = masterPubkey;
     _pageSize = limit;
 
-    _currentTrades = [];
+    _accumulator.reset();
     _restOffset = offset;
     _disposed = false;
 
@@ -87,7 +91,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
       await _enqueue(() {
         if (generation != _generation) return;
-        _currentTrades.addAll(moreTrades);
+        _accumulator.appendUnique(moreTrades);
         _restOffset += moreTrades.length;
         _emit();
       });
@@ -113,18 +117,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
 
       await _enqueue(() {
         if (generation != _generation) return;
-
-        if (_currentTrades.isEmpty) {
-          // No SSE trades arrived yet — use the snapshot as-is.
-          _currentTrades.addAll(initialTrades);
-        } else {
-          // SSE trades already present — merge, deduplicating via structural equality
-          // (LatestTrade is a Freezed class with value-based == / hashCode).
-          final existingTrades = _currentTrades.toSet();
-          final newFromSnapshot =
-              initialTrades.where((t) => !existingTrades.contains(t)).toList(growable: false);
-          _currentTrades.addAll(newFromSnapshot);
-        }
+        _accumulator.appendUnique(initialTrades);
 
         _restOffset = offset + initialTrades.length;
         _emit();
@@ -135,6 +128,8 @@ class TokenLatestTrades extends _$TokenLatestTrades {
   }
 
   Future<void> _runSse(int generation) async {
+    var reconnectAttempt = 0;
+
     // Keep reconnecting forever while the provider is alive
     // and this is still the current build cycle.
     while (!_disposed && generation == _generation) {
@@ -153,6 +148,7 @@ class TokenLatestTrades extends _$TokenLatestTrades {
           await subscription.close();
           break;
         }
+        reconnectAttempt = 0;
         localSubscription = subscription;
         _activeSubscription = subscription;
 
@@ -164,18 +160,18 @@ class TokenLatestTrades extends _$TokenLatestTrades {
             if (generation != _generation) return;
 
             final updates = batch.whereType<LatestTrade>().toList(growable: false);
-            if (updates.isEmpty) return;
-
-            // We want newest at the top. If the backend ever sends a mixed order,
-            // sorting ascending + inserting at index 0 preserves correct ordering.
-            final sorted = List<LatestTrade>.of(updates)
-              ..sort(
-                (a, b) => _createdAtAsc(a.position.createdAt, b.position.createdAt),
-              );
-
-            for (final trade in sorted) {
-              _currentTrades.insert(0, trade);
+            if (updates.isNotEmpty) {
+              _accumulator.prependUnique(updates);
             }
+
+            var changed = updates.isNotEmpty;
+
+            final patches = batch.whereType<LatestTradePatch>();
+            for (final patch in patches) {
+              changed = _accumulator.applyPatch(patch) || changed;
+            }
+
+            if (!changed) return;
 
             _emit();
           });
@@ -204,6 +200,13 @@ class TokenLatestTrades extends _$TokenLatestTrades {
           _activeSubscription = null;
         }
       }
+
+      if (_disposed || generation != _generation) {
+        break;
+      }
+
+      await Future<void>.delayed(_reconnectDelay(reconnectAttempt));
+      reconnectAttempt++;
     }
   }
 
@@ -212,24 +215,17 @@ class TokenLatestTrades extends _$TokenLatestTrades {
   }
 
   void _emit() {
-    _sortTrades(); // Ensure consistent ordering
     final controller = _controller;
     if (controller == null || controller.isClosed) return;
-    controller.add(List<LatestTrade>.unmodifiable(_currentTrades));
+    controller.add(_accumulator.snapshot());
   }
 
-  int _createdAtAsc(String a, String b) {
-    final da = DateTime.tryParse(a);
-    final db = DateTime.tryParse(b);
-    if (da != null && db != null) {
-      return da.compareTo(db);
-    }
-    return a.compareTo(b);
-  }
-
-  void _sortTrades() {
-    _currentTrades.sort(
-      (a, b) => _createdAtAsc(b.position.createdAt, a.position.createdAt),
+  Duration _reconnectDelay(int attempt) {
+    final exponent = math.min(attempt, 5);
+    final millis = math.min(
+      _reconnectMaxDelayMs,
+      _reconnectBaseDelayMs * (1 << exponent),
     );
+    return Duration(milliseconds: millis);
   }
 }
