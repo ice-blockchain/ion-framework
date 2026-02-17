@@ -19,10 +19,12 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 class QuotedEntity extends HookConsumerWidget {
   const QuotedEntity({
     required this.eventReference,
+    this.trailing,
     super.key,
   });
 
   final EventReference eventReference;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,6 +45,12 @@ class QuotedEntity extends HookConsumerWidget {
                 displayQuote: false,
                 header: UserInfo(
                   pubkey: eventReference.masterPubkey,
+                  trailing: Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      end: ScreenSideOffset.defaultSmallMargin,
+                    ),
+                    child: trailing,
+                  ),
                   padding: EdgeInsetsDirectional.only(
                     start: ScreenSideOffset.defaultSmallMargin,
                     top: ScreenSideOffset.defaultSmallMargin,
@@ -52,21 +60,45 @@ class QuotedEntity extends HookConsumerWidget {
               ),
             );
           case ArticleEntity():
-            return QuotedEntityFrame.article(
-              child: Article.quoted(
-                eventReference: eventReference,
+            return _TrailingOverlay(
+              trailing: trailing,
+              child: QuotedEntityFrame.article(
+                child: Article.quoted(eventReference: eventReference),
               ),
             );
           default:
             return const SizedBox.shrink();
         }
       },
-      [ionConnectEntity],
+      [ionConnectEntity, trailing],
     );
 
     return Padding(
       padding: EdgeInsetsDirectional.only(start: 40.0.s, top: 16.0.s),
       child: quoteChild,
+    );
+  }
+}
+
+class _TrailingOverlay extends StatelessWidget {
+  const _TrailingOverlay({required this.child, this.trailing});
+
+  final Widget child;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    if (trailing == null) return child;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        PositionedDirectional(
+          top: ScreenSideOffset.defaultSmallMargin,
+          end: ScreenSideOffset.defaultSmallMargin,
+          child: trailing!,
+        ),
+      ],
     );
   }
 }
