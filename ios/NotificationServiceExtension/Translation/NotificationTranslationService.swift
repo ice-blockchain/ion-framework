@@ -245,10 +245,14 @@ class NotificationTranslationService {
                 return translations.yourFolloweeCreatorTokenIsLive
             case .yourFolloweeContentTokenIsLive:
                 return translations.yourFolloweeContentTokenIsLive
-            case .someoneBoughtYourToken:
-                return translations.someoneBoughtYourToken
-            case .someoneBoughtSomeRelevantToken:
-                return translations.someoneBoughtSomeRelevantToken
+            case .someoneBoughtYourCreatorToken:
+                return translations.someoneBoughtYourCreatorToken
+            case .someoneBoughtYourContentToken:
+                return translations.someoneBoughtYourContentToken
+            case .someoneBoughtSomeRelevantCreatorToken:
+                return translations.someoneBoughtSomeRelevantCreatorToken
+            case .someoneBoughtSomeRelevantContentToken:
+                return translations.someoneBoughtSomeRelevantContentToken
             case .yourCreatorTokenPriceIncreased:
                 return translations.yourCreatorTokenPriceIncreased
             case .moreBuyersJoined:

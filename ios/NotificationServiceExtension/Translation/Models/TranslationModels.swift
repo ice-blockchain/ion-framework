@@ -54,8 +54,10 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let yourContentTokenIsLive: NotificationTranslation?
     let yourFolloweeCreatorTokenIsLive: NotificationTranslation?
     let yourFolloweeContentTokenIsLive: NotificationTranslation?
-    let someoneBoughtYourToken: NotificationTranslation?
-    let someoneBoughtSomeRelevantToken: NotificationTranslation?
+    let someoneBoughtYourCreatorToken: NotificationTranslation?
+    let someoneBoughtYourContentToken: NotificationTranslation?
+    let someoneBoughtSomeRelevantCreatorToken: NotificationTranslation?
+    let someoneBoughtSomeRelevantContentToken: NotificationTranslation?
     let yourCreatorTokenPriceIncreased: NotificationTranslation?
     let moreBuyersJoined: NotificationTranslation?
     let trendingToken: NotificationTranslation?
@@ -82,7 +84,8 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
         case chatPaymentRequestMessage, chatPaymentReceivedMessage
         case yourCreatorTokenIsLive, yourContentTokenIsLive
         case yourFolloweeCreatorTokenIsLive, yourFolloweeContentTokenIsLive
-        case someoneBoughtYourToken, someoneBoughtSomeRelevantToken
+        case someoneBoughtYourCreatorToken, someoneBoughtYourContentToken
+        case someoneBoughtSomeRelevantCreatorToken, someoneBoughtSomeRelevantContentToken
         case yourCreatorTokenPriceIncreased, moreBuyersJoined
         case trendingToken
         case newPostSubscription, newStorySubscription

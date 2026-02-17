@@ -352,25 +352,27 @@ class IonConnectPushDataPayload: Decodable {
                 data["amountUSD"] = ""
             }
             data["ticker"] = entity.data.tokenTicker
+        }
+
+        // For community token definitions, "username" and "displayName" placeholders
+        // belong to the author of the original event.
+        // For example: "Community launched a token for @{{username}}'s post."
+        if let entity = mainEntity as? CommunityTokenDefinitionEntity {
+            let eventReferenceKey = ReplaceableEventReference(
+                masterPubkey: entity.data.eventReference.masterPubkey,
+                kind: UserMetadataEntity.kind
+            ).toString()
             
-            if type == .someoneBoughtSomeRelevantToken {
-                // Fetch the original author's metadata
-                let eventReference = ReplaceableEventReference(
-                    masterPubkey: entity.data.relatedPubkey.value,
-                    kind: UserMetadataEntity.kind
-                )
-                let eventReferenceKey = eventReference.toString()
-                
-                let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
-                guard cacheDB.openDatabase() else {
-                    NSLog("[NSE] Failed to open ion_connect_cache database for original author metadata")
-                    return data
-                }
-                defer { cacheDB.closeDatabase() }
-                
-                if let originalUserMetadata = cacheDB.getGenericEntity(for: eventReferenceKey) as? UserMetadataEntity {
-                    data["originalAuthorDisplayName"] = originalUserMetadata.data.trimmedDisplayName
-                }
+            let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+            guard cacheDB.openDatabase() else {
+                NSLog("[NSE] Failed to open ion_connect_cache database for community token definition metadata")
+                return data
+            }
+            defer { cacheDB.closeDatabase() }
+            
+            if let originalUserMetadata = cacheDB.getGenericEntity(for: eventReferenceKey) as? UserMetadataEntity {
+                data["username"] = originalUserMetadata.data.name
+                data["displayName"] = originalUserMetadata.data.displayName
             }
         }
 
@@ -750,9 +752,13 @@ class IonConnectPushDataPayload: Decodable {
         entity: CommunityTokenActionEntity
     ) -> PushNotificationType? {
         if entity.data.relatedPubkey.value == currentPubkey {
-            return .someoneBoughtYourToken
+            return entity.data.kind == UserMetadataEntity.kind
+                ? .someoneBoughtYourCreatorToken
+                : .someoneBoughtYourContentToken
         } else {
-            return .someoneBoughtSomeRelevantToken
+            return entity.data.kind == UserMetadataEntity.kind
+                ? .someoneBoughtSomeRelevantCreatorToken
+                : .someoneBoughtSomeRelevantContentToken
         }
     }
 
@@ -857,9 +863,11 @@ enum PushNotificationType: String, Decodable {
     case yourContentTokenIsLive
     case yourFolloweeCreatorTokenIsLive
     case yourFolloweeContentTokenIsLive
-    case someoneBoughtYourToken
-    case someoneBoughtSomeRelevantToken
     case yourCreatorTokenPriceIncreased
+    case someoneBoughtYourCreatorToken
+    case someoneBoughtYourContentToken
+    case someoneBoughtSomeRelevantCreatorToken
+    case someoneBoughtSomeRelevantContentToken
     case moreBuyersJoined
     case trendingToken
     case newPostSubscription
