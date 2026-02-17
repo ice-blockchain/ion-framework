@@ -11,6 +11,7 @@ export 'src/auth/services/twofa/models/twofa_type.f.dart';
 export 'src/coins/models/coin.f.dart';
 export 'src/coins/models/network.f.dart';
 export 'src/core/network/network_exception.dart';
+export 'src/core/network/restricted_region_error_parser.dart';
 export 'src/core/types/biometrics_state.dart';
 export 'src/core/types/ion_exception.dart';
 export 'src/core/types/local_passkey_creds_state.dart';
