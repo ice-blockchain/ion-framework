@@ -27,7 +27,7 @@ class FeedSimpleSearchListItem extends ConsumerWidget {
       userPreviewDataProvider(masterPubkey, network: false).select(userPreviewNameSelector),
     );
 
-    final marketCap = ref.watch(userTokenMarketCapProvider(masterPubkey));
+    final marketCap = ref.watch(userTokenMarketCapIfAvailableProvider(masterPubkey));
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
