@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/empty_list/empty_list.dart';
@@ -41,14 +42,22 @@ class ReplyList extends HookConsumerWidget {
     final entities = replies?.data.items;
     final hasMoreReplies =
         ref.watch(repliesProvider(eventReference).select((state) => (state?.hasMore).falseOrValue));
+    final firstReplyAnchorKey = useMemoized(GlobalKey.new);
 
     useOnInit(
       () {
-        if (isReply) {
-          scrollController.jumpTo(scrollController.position.maxScrollExtent - 80);
+        if (isReply && entities != null) {
+          final context = firstReplyAnchorKey.currentContext;
+          if (context != null && context.mounted && scrollController.hasClients) {
+            Scrollable.ensureVisible(
+              context,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutQuart,
+            );
+          }
         }
       },
-      [isReply],
+      [entities == null],
     );
 
     final isLoading = replies?.data is PagedLoading;
@@ -61,6 +70,7 @@ class ReplyList extends HookConsumerWidget {
         showIndicator: !isLoading,
         slivers: [
           if (headers != null) ...headers!,
+          SliverToBoxAdapter(key: firstReplyAnchorKey),
           if (entities == null)
             const EntitiesListSkeleton()
           else if (entities.isEmpty && !isKeyboardVisible && !isReply)
@@ -85,7 +95,7 @@ class ReplyList extends HookConsumerWidget {
                 framedEventReference: framedEventReference,
               ).push<void>(context),
             ),
-          SliverFillRemaining(
+          SliverToBoxAdapter(
             child: SizedBox(height: 60.0.s),
           ),
         ],
@@ -93,6 +103,7 @@ class ReplyList extends HookConsumerWidget {
           slivers: slivers,
           onRefresh: () => _onRefresh(ref),
           builder: (BuildContext context, List<Widget> slivers) => CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             controller: scrollController,
             slivers: slivers,
           ),
