@@ -22,16 +22,19 @@ class AccountNotificationsSyncStrategy implements SyncStrategy<AccountNotificati
     AccountNotificationsOption optimistic,
   ) async {
     const allSetTypes = AccountNotificationSetType.values;
-    for (final notificationSetType in allSetTypes) {
-      final notificationType = notificationSetType.toUserNotificationType();
-      final shouldIncludeUserInSet = optimistic.selected.contains(notificationType);
 
-      await syncNotificationSet(
-        notificationSetType,
-        optimistic.userPubkey,
-        shouldIncludeUser: shouldIncludeUserInSet,
-      );
-    }
+    await Future.wait(
+      allSetTypes.map((notificationSetType) async {
+        final notificationType = notificationSetType.toUserNotificationType();
+        final shouldIncludeUserInSet = optimistic.selected.contains(notificationType);
+
+        await syncNotificationSet(
+          notificationSetType,
+          optimistic.userPubkey,
+          shouldIncludeUser: shouldIncludeUserInSet,
+        );
+      }),
+    );
     return optimistic;
   }
 }
