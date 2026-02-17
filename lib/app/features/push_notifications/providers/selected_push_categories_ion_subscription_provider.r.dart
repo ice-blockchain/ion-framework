@@ -290,7 +290,9 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     return tokenizedCommunitiesTransactionsAccounts;
   }
 
-  Future<List<EventMessage>> _buildFilterForTokenUpdates() async {
+  // TODO[pushes] apply
+  // ignore: unused_element
+  Future<List<Object>> _buildFilterForTokenUpdates() async {
     final ionNotifier = ref.watch(ionConnectNotifierProvider.notifier);
     final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
@@ -312,7 +314,8 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       const TokensGlobalStatRequestData(),
     ];
 
-    return Future.wait(requests.map(ionNotifier.sign));
+    final events = await Future.wait(requests.map(ionNotifier.sign));
+    return events.map((event) => event.toJson().last as Object).toList();
   }
 
   RequestFilter? _buildFilterForMessages(List<PushNotificationCategory> categories) {
