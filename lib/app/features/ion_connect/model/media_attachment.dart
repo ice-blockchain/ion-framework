@@ -177,7 +177,6 @@ class MediaAttachment {
 
   late MediaType? mediaTypeEncrypted = MediaType.fromMimeType(originalMimeType ?? mimeType);
 
-  /// Whether this image is animated (GIF or WebP), for choosing GifPreview over static image.
   bool get isAnimatedImage => _isAnimatedImage(url: url, mimeType: mimeType);
 
   static bool _isAnimatedImage({required String url, required String mimeType}) {
