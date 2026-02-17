@@ -15,11 +15,11 @@ import 'package:ion/app/features/tokenized_communities/providers/token_action_fi
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
-import 'package:ion/app/features/tokenized_communities/utils/position_formatters.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
+import 'package:ion/app/utils/formatters.dart' as market_data_formatter;
 import 'package:ion/generated/assets.gen.dart';
 
 class PostTokenButton extends ConsumerWidget {
@@ -321,7 +321,7 @@ class _MarketCap extends ConsumerWidget {
           Padding(
             padding: EdgeInsetsDirectional.only(start: 4.0.s),
             child: Text(
-              defaultUsdCompact(tokenInfo.marketData.marketCap),
+              market_data_formatter.formatCompactNumber(tokenInfo.marketData.marketCap),
               style: context.theme.appTextThemes.caption2.copyWith(
                 color: effectiveColor,
                 height: 1.1,
