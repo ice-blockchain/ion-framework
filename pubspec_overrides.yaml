@@ -23,3 +23,8 @@ dependency_overrides:
   ion_token_analytics:
     path: packages/ion_token_analytics
   js: ^0.7.1
+  passkeys_android:
+    git:
+      url: https://github.com/ice-blockchain/flutter-passkeys.git
+      path: packages/passkeys/passkeys_android
+      ref: chore/proper-cancel-on-android

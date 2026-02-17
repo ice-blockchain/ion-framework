@@ -2019,12 +2019,13 @@ packages:
     source: hosted
     version: "2.16.0"
   passkeys_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: passkeys_android
-      sha256: "88aaab86a362cc2b562753680de5e2d346fec121e6b99032e329aba1fb83dcf0"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/passkeys/passkeys_android"
+      ref: "chore/proper-cancel-on-android"
+      resolved-ref: "40ce708e3183c5e1055aa37d60430274b0734f61"
+      url: "https://github.com/ice-blockchain/flutter-passkeys.git"
+    source: git
     version: "2.11.0"
   passkeys_darwin:
     dependency: transitive
