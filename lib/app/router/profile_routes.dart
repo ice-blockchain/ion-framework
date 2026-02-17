@@ -302,15 +302,16 @@ class TradeCommunityTokenRoute extends BaseRouteData with _$TradeCommunityTokenR
 
 class SelectTradePaymentTokenProfileRoute extends BaseRouteData
     with _$SelectTradePaymentTokenProfileRoute {
-  SelectTradePaymentTokenProfileRoute({required this.title})
-      : super(
+  SelectTradePaymentTokenProfileRoute({
+    this.contentTokenExternalAddress,
+  }) : super(
           child: SelectTradePaymentTokenModalPage(
-            title: title,
+            contentTokenExternalAddress: contentTokenExternalAddress,
           ),
           type: IceRouteType.bottomSheet,
         );
 
-  final String title;
+  final String? contentTokenExternalAddress;
 }
 
 class BookmarksRoute extends BaseRouteData with _$BookmarksRoute {
