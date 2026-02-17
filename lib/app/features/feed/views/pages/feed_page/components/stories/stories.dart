@@ -22,7 +22,7 @@ class Stories extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final (items: stories, :hasMore, :ready) = ref.watch(feedStoriesProvider);
+    final (items: stories, :hasMore, :ready) = ref.watch(feedStoriesProvider());
 
     final viewedStories = ref.watch(viewedStoriesProvider);
     final viewedStoriesReferences = useRef<Set<EventReference>>({});
@@ -88,6 +88,6 @@ class Stories extends HookConsumerWidget {
   }
 
   Future<void> _onLoadMore(WidgetRef ref) {
-    return ref.read(feedStoriesProvider.notifier).fetchEntities();
+    return ref.read(feedStoriesProvider().notifier).fetchEntities();
   }
 }

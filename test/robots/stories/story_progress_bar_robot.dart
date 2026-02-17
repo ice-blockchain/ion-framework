@@ -32,7 +32,7 @@ class StoryProgressBarRobot extends BaseRobot with ProviderScopeMixin, StoryStat
           body: StoryProgressBarContainer(pubkey: viewerPubkey, showOnlySelectedUser: true),
         ),
         overrides: [
-          feedStoriesProvider.overrideWith(() => FakeFeedStories(stories)),
+          feedStoriesProvider().overrideWith(() => FakeFeedStories(stories)),
           feedStoriesByPubkeyProvider(viewerPubkey).overrideWith((_) => stories),
         ],
       ),

@@ -62,7 +62,7 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
       childBuilder: (_) => const SizedBox(),
       router: router,
       overrides: [
-        feedStoriesProvider.overrideWith(() => FakeFeedStories(stories)),
+        feedStoriesProvider().overrideWith(() => FakeFeedStories(stories)),
         currentIdentityKeyNameSelectorProvider
             .overrideWith(() => _BackgroundIdentityKeyNameSelector(identity)),
         localStorageProvider.overrideWithValue(mockStorage),
@@ -156,7 +156,7 @@ class StoryViewerRobot extends BaseRobot with ProviderScopeMixin, StoryStateMixi
   }) {
     final posts = [post];
     return [
-      feedStoriesProvider.overrideWith(() => FakeFeedStories(posts)),
+      feedStoriesProvider().overrideWith(() => FakeFeedStories(posts)),
       feedStoriesByPubkeyProvider(pubkey).overrideWith((_) => posts),
       userStoriesProvider(pubkey).overrideWith(() => FakeUserStories(posts)),
     ];

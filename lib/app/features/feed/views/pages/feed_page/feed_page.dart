@@ -124,7 +124,7 @@ class FeedPage extends HookConsumerWidget {
       ref.read(feedTrendingVideosProvider.notifier).refresh();
     }
     if (showStories) {
-      ref.read(feedStoriesProvider.notifier).refresh();
+      ref.read(feedStoriesProvider().notifier).refresh();
       ref.read(currentUserFeedStoryProvider.notifier).refresh();
     }
   }
