@@ -251,6 +251,12 @@ class TwitterTokenHeader extends StatelessWidget {
                     text: MarketDataFormatter.formatCompactNumber(
                       token.marketData.marketCap,
                     ),
+                    onTap: showInfoModals
+                        ? () => showSimpleBottomSheet<void>(
+                              context: context,
+                              child: const InfoModal(infoType: InfoType.marketCap),
+                            )
+                        : null,
                   ),
                   TokenStatItem(
                     icon: Assets.svg.iconMemeMarkers,
@@ -258,10 +264,22 @@ class TwitterTokenHeader extends StatelessWidget {
                         MarketDataFormatter.formatCompactNumber(
                           token.marketData.volume,
                         ),
+                    onTap: showInfoModals
+                        ? () => showSimpleBottomSheet<void>(
+                              context: context,
+                              child: const InfoModal(infoType: InfoType.volume),
+                            )
+                        : null,
                   ),
                   TokenStatItem(
                     icon: Assets.svg.iconSearchGroups,
                     text: formatCount(token.marketData.holders),
+                    onTap: showInfoModals
+                        ? () => showSimpleBottomSheet<void>(
+                              context: context,
+                              child: const InfoModal(infoType: InfoType.holders),
+                            )
+                        : null,
                   ),
                 ],
               ),
