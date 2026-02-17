@@ -20,7 +20,9 @@ part 'feed_stories_provider.r.g.dart';
 @riverpod
 class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
-  ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build({FeedFilter? overrideFilter}) {
+  ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build({
+    FeedFilter? overrideFilter,
+  }) {
     final currentFilter = overrideFilter ?? ref.watch(feedCurrentFilterProvider).filter;
     final blockedUsersMasterPubkeys = ref.watch(blockedUsersPubkeysSelectorProvider);
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
