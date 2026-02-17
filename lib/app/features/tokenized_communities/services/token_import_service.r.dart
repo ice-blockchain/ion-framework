@@ -77,7 +77,8 @@ class TokenImportService {
               }
               return tokenAddress;
             },
-            maxRetries: 5,
+            maxRetries: 15,
+            minJitter: 1,
             initialDelay: const Duration(milliseconds: 500),
             maxDelay: const Duration(seconds: 2),
             retryWhen: (error) => error is TokenAddressNotFoundException,
