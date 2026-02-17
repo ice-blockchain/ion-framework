@@ -287,12 +287,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   }
 
   Future<List<RequestFilter>> _buildFilterForTokenUpdates() async {
-    return [
-      RequestFilter(
-        kinds: const [CommunityTokenActionEntity.kind],
-        search: TokenUpdatesSearchExtension().toString(),
-      ),
-    ];
+    return [];
   }
 
   RequestFilter? _buildFilterForMessages(List<PushNotificationCategory> categories) {
