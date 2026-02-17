@@ -111,8 +111,12 @@ class SwapService {
         swapQuoteInfo: swapQuoteInfo,
       );
     } on Exception catch (e) {
+      if (e is IonSwapException) {
+        rethrow;
+      }
       throw IonSwapException(
         'Failed to swap coins: $e',
+        e,
       );
     }
   }
