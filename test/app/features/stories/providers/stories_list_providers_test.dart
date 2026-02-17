@@ -103,7 +103,7 @@ void main() {
       ];
 
       final container = _containerWith(posts);
-      final result = container.read(feedStoriesProvider);
+      final result = container.read(feedStoriesProvider());
 
       expect(result.items.length, 3);
       expect(result.items.map((u) => u.masterPubkey).toSet(), equals({'alice', 'bob', 'carol'}));
@@ -140,7 +140,7 @@ void main() {
         ],
       );
 
-      final result = container.read(feedStoriesProvider);
+      final result = container.read(feedStoriesProvider());
 
       expect(result.items.length, 1);
       expect(result.items.map((story) => story.id).toSet(), equals({'active'}));
@@ -161,7 +161,7 @@ void main() {
     test('returns a list starting with the selected user', () {
       final container = createContainer(
         overrides: [
-          feedStoriesProvider.overrideWith(() => FakeFeedStories(dummyStories)),
+          feedStoriesProvider().overrideWith(() => FakeFeedStories(dummyStories)),
         ],
       );
 
@@ -174,7 +174,7 @@ void main() {
     test('returns an empty list if pubkey is not found', () {
       final container = createContainer(
         overrides: [
-          feedStoriesProvider.overrideWith(() => FakeFeedStories(dummyStories)),
+          feedStoriesProvider().overrideWith(() => FakeFeedStories(dummyStories)),
         ],
       );
 

@@ -115,7 +115,7 @@ class EntityDeleteConfirmationModal extends HookConsumerWidget {
           'Unsupported EventReference type: ${eventReference.runtimeType}',
         ),
     };
-    ref.read(feedStoriesProvider.notifier).refresh();
+    ref.read(feedStoriesProvider().notifier).refresh();
     ref.read(currentUserFeedStoryProvider.notifier).refresh();
     ref.read(userStoriesProvider(pubkey).notifier).removeStory(id);
     ref.read(ionConnectCacheProvider.notifier).remove(
