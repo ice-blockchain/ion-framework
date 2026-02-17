@@ -9,6 +9,3 @@ String defaultAbbreviate(num value) => NumberFormat.compact(locale: 'en_US').for
 
 String defaultUsd(double value) =>
     NumberFormat.currency(locale: 'en_US', symbol: r'$', decimalDigits: 2).format(value);
-
-String defaultUsdCompact(double value) =>
-    NumberFormat.compactCurrency(locale: 'en_US', symbol: r'$', decimalDigits: 1).format(value);
