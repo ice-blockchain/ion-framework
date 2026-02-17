@@ -35,7 +35,7 @@ import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/retry.dart';
-import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_identity_client/ion_identity.dart' hide UnauthenticatedException;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_notifier.r.g.dart';
@@ -596,15 +596,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
   }
 
   bool _isUnauthenticatedError(Object? error) {
-    if (error is IONIdentityException) {
-      return error.message == 'User is not authenticated';
-    }
-
-    if (error is IONException) {
-      return error.code == 10009 || error.code == 10010;
-    }
-
-    return false;
+    return error is UnauthenticatedException || error is CurrentUserNotFoundException;
   }
 
   void _dislikeRelayAndResetConnectUrls({
