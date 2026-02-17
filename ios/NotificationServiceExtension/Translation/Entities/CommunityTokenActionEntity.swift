@@ -24,6 +24,7 @@ struct CommunityTokenActionData {
     let relatedPubkey: RelatedPubkey
     let amounts: [TransactionAmount]
     let tokenTicker: String
+    let kind: Int
     
     func getAmountByCurrency(_ currency: String) -> TransactionAmount? {
         return amounts.first { $0.currency == currency }
@@ -42,6 +43,7 @@ struct CommunityTokenActionData {
         var relatedPubkey: RelatedPubkey?
         var amounts: [TransactionAmount] = []
         var tokenTicker = ""
+        var kind: Int?
         
         let tagsByType = Dictionary(grouping: eventMessage.tags, by: { $0.first ?? "" })
         
@@ -69,7 +71,12 @@ struct CommunityTokenActionData {
             tokenTicker = tickerTag[1]
         }
         
-        guard let eventReference = eventReference, let relatedPubkey = relatedPubkey else {
+        // Parse "k" tag (kind)
+        if let kTagValue = tagsByType["k"]?.first, kTagValue.count > 1 {
+            kind = Int(kTagValue[1])
+        }
+        
+        guard let eventReference = eventReference, let relatedPubkey = relatedPubkey, let kind = kind else {
             throw IncorrectEventTagsException(eventId: eventMessage.id)
         }
         
@@ -77,7 +84,8 @@ struct CommunityTokenActionData {
             definitionReference: eventReference,
             relatedPubkey: relatedPubkey,
             amounts: amounts,
-            tokenTicker: tokenTicker
+            tokenTicker: tokenTicker,
+            kind: kind
         )
     }
 }

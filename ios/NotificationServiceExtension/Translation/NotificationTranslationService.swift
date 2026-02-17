@@ -327,7 +327,7 @@ class NotificationTranslationService {
         guard let userMetadata: UserMetadataEntity = cacheDB.getEntity(for: eventReferenceKey) else {
             return nil
         }
-        
+
         return userMetadata.data
     }
     
