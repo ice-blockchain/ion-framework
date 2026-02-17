@@ -11,23 +11,29 @@ import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
+import 'package:ion/app/features/feed/create_post/providers/onelink_resolved_quote_provider.r.dart';
 import 'package:ion/app/features/feed/create_post/views/components/language_button/language_button.dart';
 import 'package:ion/app/features/feed/create_post/views/components/reply_input_field/attached_media_preview.dart';
 import 'package:ion/app/features/feed/create_post/views/components/topics_button/topics_button.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/current_user_avatar.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/parent_entity.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/quote_close_button.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/quoted_entity.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/video_preview_cover.dart';
+import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_onelink_quoted_event.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/hooks/use_url_links.dart';
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
 import 'package:ion/app/features/feed/polls/view/components/poll.dart';
+import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/url_preview_content/url_preview_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
-class CreatePostContent extends StatelessWidget {
+class CreatePostContent extends ConsumerWidget {
   const CreatePostContent({
     required this.scrollController,
     required this.attachedVideoNotifier,
@@ -52,7 +58,10 @@ class CreatePostContent extends StatelessWidget {
   final GlobalKey<TextEditorState> textEditorKey;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Effective quoted event: static quote takes priority, then dynamic onelink quote
+    final effectiveQuotedEvent = quotedEvent ?? ref.watch(oneLinkResolvedQuoteNotifierProvider);
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -78,13 +87,13 @@ class CreatePostContent extends StatelessWidget {
               _HeaderControls(
                 children: [
                   // Taking topics from the quoted event.
-                  if (quotedEvent == null)
+                  if (effectiveQuotedEvent == null)
                     _TopicsButton(
                       attachedMediaNotifier: attachedMediaNotifier,
                       attachedVideoNotifier: attachedVideoNotifier,
                       attachedMediaLinksNotifier: attachedMediaLinksNotifier,
                       parentEvent: parentEvent,
-                      quotedEvent: quotedEvent,
+                      quotedEvent: effectiveQuotedEvent,
                     ),
                   LanguageButton(createOption: createOption),
                 ],
@@ -97,8 +106,13 @@ class CreatePostContent extends StatelessWidget {
               attachedMediaLinksNotifier: attachedMediaLinksNotifier,
               textEditorKey: textEditorKey,
               scrollController: scrollController,
+              hasStaticQuotedEvent: quotedEvent != null,
             ),
-            if (quotedEvent != null) _QuotedEntitySection(eventReference: quotedEvent!),
+            if (effectiveQuotedEvent != null)
+              _QuotedEntitySection(
+                eventReference: effectiveQuotedEvent,
+                isFromOneLink: quotedEvent == null,
+              ),
             SizedBox(height: 10.0.s),
           ],
         ),
@@ -149,6 +163,7 @@ class _TextInputSection extends HookConsumerWidget {
     required this.attachedMediaLinksNotifier,
     required this.textEditorKey,
     required this.scrollController,
+    required this.hasStaticQuotedEvent,
   });
 
   final QuillController textEditorController;
@@ -157,6 +172,7 @@ class _TextInputSection extends HookConsumerWidget {
   final AttachedMediaLinksNotifier attachedMediaLinksNotifier;
   final GlobalKey<TextEditorState> textEditorKey;
   final ScrollController scrollController;
+  final bool hasStaticQuotedEvent;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -168,6 +184,17 @@ class _TextInputSection extends HookConsumerWidget {
       textEditorController: textEditorController,
       mediaFiles: mediaFiles,
     );
+
+    // Detect and resolve OneLink URLs to quoted posts
+    final oneLinkQuotedEvent = useOneLinkQuotedEvent(
+      ref: ref,
+      textEditorController: textEditorController,
+      detectedUrls: links,
+      enabled: !hasStaticQuotedEvent,
+    );
+
+    // Hide URL preview when a onelink URL was resolved to a quote
+    final hasOneLinkQuote = oneLinkQuotedEvent != null;
 
     useEffect(
       () {
@@ -253,7 +280,7 @@ class _TextInputSection extends HookConsumerWidget {
                     attachedMediaLinksNotifier: attachedMediaLinksNotifier,
                   ),
                 ],
-                if (mediaFiles.isEmpty && links.isNotEmpty)
+                if (mediaFiles.isEmpty && links.isNotEmpty && !hasOneLinkQuote)
                   Padding(
                     padding: EdgeInsetsDirectional.only(
                       top: 10.0.s,
@@ -272,18 +299,33 @@ class _TextInputSection extends HookConsumerWidget {
   }
 }
 
-class _QuotedEntitySection extends StatelessWidget {
+class _QuotedEntitySection extends ConsumerWidget {
   const _QuotedEntitySection({
     required this.eventReference,
+    required this.isFromOneLink,
   });
 
   final EventReference eventReference;
+  final bool isFromOneLink;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entity =
+        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+    final isTc = entity is CommunityTokenDefinitionEntity || entity is CommunityTokenActionEntity;
+
+    final closeButton = isFromOneLink
+        ? QuoteCloseButton(
+            isTc: isTc,
+            onTap: () =>
+                ref.read(oneLinkResolvedQuoteNotifierProvider.notifier).resolvedQuote = null,
+          )
+        : null;
+
     return ScreenSideOffset.small(
-      child: IgnorePointer(
-        child: QuotedEntity(eventReference: eventReference),
+      child: QuotedEntity(
+        eventReference: eventReference,
+        trailing: closeButton,
       ),
     );
   }

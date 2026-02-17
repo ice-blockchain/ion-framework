@@ -23,10 +23,12 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 class QuotedEntity extends HookConsumerWidget {
   const QuotedEntity({
     required this.eventReference,
+    this.trailing,
     super.key,
   });
 
   final EventReference eventReference;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,6 +49,12 @@ class QuotedEntity extends HookConsumerWidget {
                 displayQuote: false,
                 header: UserInfo(
                   pubkey: eventReference.masterPubkey,
+                  trailing: Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      end: ScreenSideOffset.defaultSmallMargin,
+                    ),
+                    child: trailing,
+                  ),
                   padding: EdgeInsetsDirectional.only(
                     start: ScreenSideOffset.defaultSmallMargin,
                     top: ScreenSideOffset.defaultSmallMargin,
@@ -56,31 +64,64 @@ class QuotedEntity extends HookConsumerWidget {
               ),
             );
           case ArticleEntity():
-            return QuotedEntityFrame.article(
-              child: Article.quoted(
-                eventReference: eventReference,
+            return _TrailingOverlay(
+              trailing: trailing,
+              child: QuotedEntityFrame.article(
+                child: Article.quoted(eventReference: eventReference),
               ),
             );
           case CommunityTokenDefinitionEntity():
-            return CommunityTokenLiveBody(
-              entity: ionConnectEntity,
-              sidePadding: 0,
+            return _TrailingOverlay(
+              trailing: trailing,
+              padding: 2.s,
+              child: CommunityTokenLiveBody(
+                entity: ionConnectEntity,
+                sidePadding: 0,
+              ),
             );
           case CommunityTokenActionEntity():
-            return CommunityTokenActionBody(
-              entity: ionConnectEntity,
-              sidePadding: 0,
+            return _TrailingOverlay(
+              trailing: trailing,
+              padding: 2.s,
+              child: CommunityTokenActionBody(
+                entity: ionConnectEntity,
+                sidePadding: 0,
+              ),
             );
           default:
             return const SizedBox.shrink();
         }
       },
-      [ionConnectEntity],
+      [ionConnectEntity, trailing],
     );
 
     return Padding(
       padding: EdgeInsetsDirectional.only(start: 40.0.s, top: 16.0.s),
       child: quoteChild,
+    );
+  }
+}
+
+class _TrailingOverlay extends StatelessWidget {
+  const _TrailingOverlay({required this.child, this.trailing, this.padding});
+
+  final Widget child;
+  final Widget? trailing;
+  final double? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    if (trailing == null) return child;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        PositionedDirectional(
+          top: padding ?? ScreenSideOffset.defaultSmallMargin,
+          end: padding ?? ScreenSideOffset.defaultSmallMargin,
+          child: trailing!,
+        ),
+      ],
     );
   }
 }

@@ -9,6 +9,7 @@ import 'package:ion/app/components/text_editor/hooks/use_process_mention_embeds.
 import 'package:ion/app/components/text_editor/text_editor.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
+import 'package:ion/app/features/feed/create_post/providers/onelink_resolved_quote_provider.r.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_app_bar.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_bottom_panel.dart';
 import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/components/create_post_content.dart';
@@ -24,6 +25,7 @@ import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/nsfw/hooks/use_nsfw_validation.dart';
 import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -193,6 +195,9 @@ class PostFormModal extends HookConsumerWidget {
       mediaFiles: attachedMediaFilesNotifier.value,
       videoFile: attachedVideoNotifier.value,
     );
+
+    // Reset the dynamically resolved onelink quote when the modal opens.
+    useOnInit(() => ref.invalidate(oneLinkResolvedQuoteNotifierProvider));
 
     if (textEditorController == null) {
       return const SizedBox.shrink();
