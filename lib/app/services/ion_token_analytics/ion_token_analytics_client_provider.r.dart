@@ -74,11 +74,12 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
 @riverpod
 Raw<Future<String?>> tokenAnalyticsAuthToken(Ref ref) async {
   keepAliveWhenAuthenticated(ref);
+  ref.watch(currentIdentityKeyNameSelectorProvider);
 
   final (delegationComplete, delegation, userAgent) = await (
-    ref.watch(cacheDelegationCompleteProvider.future),
-    ref.watch(currentUserCachedDelegationProvider.future),
-    ref.watch(currentUserAgentProvider.future),
+    ref.read(cacheDelegationCompleteProvider.future),
+    ref.read(currentUserCachedDelegationProvider.future),
+    ref.read(currentUserAgentProvider.future),
   ).wait;
 
   final authEvent = AuthEvent(
