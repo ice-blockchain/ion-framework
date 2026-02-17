@@ -46,7 +46,8 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   @override
   FeedForYouContentState build(FeedType feedType, {FeedModifier? feedModifier}) {
     // Needs for reload the feed when the user switches accounts
-    ref.watch(currentIdentityKeyNameSelectorProvider);
+    final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
+    if (identityKeyName == null) throw const UnauthenticatedException();
     Future.microtask(fetchEntities);
 
     _refreshOnContentLangChange();
