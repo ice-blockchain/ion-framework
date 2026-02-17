@@ -95,7 +95,7 @@ class TokenPriceChangeRequestData with _$TokenPriceChangeRequestData implements 
 class TokenPriceChangeRequestParams with _$TokenPriceChangeRequestParams {
   const factory TokenPriceChangeRequestParams({
     required ReplaceableEventReference token,
-    required int timeWindow,
+    required Duration timeWindow,
     required int deltaPercentage,
   }) = _TokenPriceChangeRequestParams;
 
@@ -103,7 +103,7 @@ class TokenPriceChangeRequestParams with _$TokenPriceChangeRequestParams {
 
   factory TokenPriceChangeRequestParams.fromTags(List<List<String>> tags) {
     ReplaceableEventReference? token;
-    int? timeWindow;
+    Duration? timeWindow;
     int? deltaPercentage;
     for (final tag in tags) {
       if (tag[0] == tagName) {
@@ -111,7 +111,7 @@ class TokenPriceChangeRequestParams with _$TokenPriceChangeRequestParams {
           throw IncorrectEventTagException(tag: tag.toString());
         }
         if (tag[1] == 'token') token = ReplaceableEventReference.fromString(tag[3]);
-        if (tag[1] == 'timeWindow') timeWindow = int.tryParse(tag[2]);
+        if (tag[1] == 'timeWindow') timeWindow = Duration(seconds: int.tryParse(tag[2]) ?? 0);
         if (tag[1] == 'deltaPercentage') deltaPercentage = int.tryParse(tag[2]);
       }
     }
@@ -130,7 +130,7 @@ class TokenPriceChangeRequestParams with _$TokenPriceChangeRequestParams {
   List<List<String>> toTags() {
     return [
       [tagName, 'token', token.toString()],
-      [tagName, 'timeWindow', timeWindow.toString()],
+      [tagName, 'timeWindow', timeWindow.inSeconds.toString()],
       [tagName, 'deltaPercentage', deltaPercentage.toString()],
     ];
   }

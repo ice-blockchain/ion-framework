@@ -12,10 +12,11 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_relay.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_token.f.dart';
-import 'package:ion/app/features/ion_connect/model/search_extension.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_notification_category.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription.f.dart';
 import 'package:ion/app/features/push_notifications/data/models/push_subscription_platform.f.dart';
@@ -27,6 +28,9 @@ import 'package:ion/app/features/push_notifications/providers/selected_push_cate
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_request.f.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -107,7 +111,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   }
 
   Future<List<RequestFilter>?> _buildFilterForCategory(PushNotificationCategory category) async {
-    return await switch (category) {
+    return switch (category) {
       PushNotificationCategory.mentionsAndReplies => _buildFilterForMentionsAndReplies(),
       PushNotificationCategory.reposts => _buildFilterForReposts(),
       PushNotificationCategory.likes => _buildFilterForLikes(),
@@ -116,7 +120,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       PushNotificationCategory.contentToken => _buildFilterForContentToken(),
       PushNotificationCategory.creatorTokenTrades => _buildFilterForCreatorTokenTrades(),
       PushNotificationCategory.contentTokenTrades => _buildFilterForContentTokenTrades(),
-      PushNotificationCategory.tokenUpdates => _buildFilterForTokenUpdates(),
+      // PushNotificationCategory.tokenUpdates => _buildFilterForTokenUpdates(),
       _ => null,
     };
   }
@@ -286,8 +290,29 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     return tokenizedCommunitiesTransactionsAccounts;
   }
 
-  Future<List<RequestFilter>> _buildFilterForTokenUpdates() async {
-    return [];
+  Future<List<EventMessage>> _buildFilterForTokenUpdates() async {
+    final ionNotifier = ref.watch(ionConnectNotifierProvider.notifier);
+    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+
+    final requests = [
+      TokenBuyingActivityRequestData(
+        params: TokenBuyingActivityRequestParams(authorMasterPubkey: currentUserPubkey),
+      ),
+      TokenPriceChangeRequestData(
+        params: TokenPriceChangeRequestParams(
+          token: ReplaceableEventReference(
+            masterPubkey: currentUserPubkey,
+            kind: CommunityTokenDefinitionEntity.kind,
+          ),
+          timeWindow: const Duration(minutes: 5),
+          deltaPercentage: 10,
+        ),
+      ),
+      const TokensGlobalStatRequestData(),
+    ];
+
+    return Future.wait(requests.map(ionNotifier.sign));
   }
 
   RequestFilter? _buildFilterForMessages(List<PushNotificationCategory> categories) {
