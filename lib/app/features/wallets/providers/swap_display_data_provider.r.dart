@@ -7,6 +7,7 @@ import 'package:ion/app/features/wallets/model/swap_display_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_side_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/providers/swap_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_display_data_provider.r.g.dart';
@@ -20,6 +21,25 @@ Future<SwapDisplayData?> swapDisplayData(Ref ref, String partTxHash) async {
   final buyData = _extractSwapSideData(swap.toTransaction, swap.expectedBuyData);
 
   if (sellData == null || buyData == null) return null;
+
+  final isSellIceBsc = SwapCoinIdentifier.isIceBsc(sellData.coins, sellData.network);
+  final isSelIonBsc = SwapCoinIdentifier.isIonBsc(sellData.coins, sellData.network);
+  final isBuyIceBsc = SwapCoinIdentifier.isIceBsc(buyData.coins, buyData.network);
+  final isBuyIonBsc = SwapCoinIdentifier.isIonBsc(buyData.coins, buyData.network);
+
+  final isIceToIonBsc = isSellIceBsc && isBuyIonBsc;
+  final isIonToIceBsc = isSelIonBsc && isBuyIceBsc;
+
+  if (isIceToIonBsc || isIonToIceBsc) {
+    return SwapDisplayData(
+      sellData: sellData,
+      buyData: buyData.copyWith(
+        amount: sellData.amount,
+      ),
+      exchangeRate: swap.exchangeRate,
+      hideBuyAmount: false,
+    );
+  }
 
   return SwapDisplayData(
     sellData: sellData,
