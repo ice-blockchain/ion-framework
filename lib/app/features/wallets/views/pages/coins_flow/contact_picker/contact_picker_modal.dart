@@ -50,8 +50,19 @@ class ContactPickerModal extends HookConsumerWidget {
         final network = await ref.read(networkByIdProvider(networkId!).future);
         if (network == null) return false;
 
-        final userMetadata = await ref.read(userMetadataProvider(masterPubkey).future);
-        if (userMetadata == null) return false;
+        // Try to get user metadata, first with cache, then without cache
+        var userMetadata = await ref.read(userMetadataProvider(masterPubkey).future);
+        userMetadata ??= await ref.read(userMetadataProvider(masterPubkey, cache: false).future);
+
+        // Check if user is deleted (userMetadata is null)
+        if (userMetadata == null) {
+          if (context.mounted) {
+            unawaited(
+              showContactDeletedUserError(ref.context),
+            );
+          }
+          return false;
+        }
 
         final isPrivateWallets = userMetadata.data.wallets == null;
         final walletAddress = _getWalletAddress(userMetadata, network.id) ??
