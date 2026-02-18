@@ -847,37 +847,11 @@ class LiquidityPoolNotFoundException extends IONException {
 class MainWalletViewNotFoundException extends IONException {
   MainWalletViewNotFoundException() : super(10151, 'Main wallet view not found');
 }
-<<<<<<< HEAD
-=======
-
-class RestrictedRegionException extends IONException {
-  RestrictedRegionException({
-    required String message,
-    this.country,
-    this.city,
-    this.region,
-    this.regionCode,
-  }) : super(
-          10152,
-          'Operation not allowed in your region'
-          '${country != null ? ', country: $country' : ''}'
-          '${city != null ? ', city: $city' : ''}'
-          '${region != null ? ', region: $region' : ''}'
-          '${regionCode != null ? ', regionCode: $regionCode' : ''}'
-          ', details: $message',
-        );
-
-  final String? country;
-  final String? city;
-  final String? region;
-  final String? regionCode;
-}
 
 class TokenTickerNotFoundException extends IONException {
   TokenTickerNotFoundException(String externalAddress)
       : super(
-          10153,
+          10152,
           'Token ticker not found for external address: $externalAddress',
         );
 }
->>>>>>> fa854a660 (feat: add kind tag to 1175)

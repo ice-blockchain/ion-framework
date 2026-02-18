@@ -279,15 +279,20 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   Future<List<String>?> _getTokenizedCommunitiesTransactionsAccounts() async {
     final accountNotificationSets =
         await ref.watch(currentUserAccountNotificationSetsProvider.future);
-    final tokenizedCommunitiesTransactionsAccounts = accountNotificationSets
-        .firstWhereOrNull(
-          (accountNotificationSet) =>
-              accountNotificationSet.data.type ==
-              AccountNotificationSetType.tokenizedCommunitiesTransactions,
-        )
-        ?.data
-        .userPubkeys;
-    return tokenizedCommunitiesTransactionsAccounts;
+
+    final tokenizedCommunitiesTransactionsSet = accountNotificationSets.firstWhereOrNull(
+      (accountNotificationSet) =>
+          accountNotificationSet.data.type ==
+          AccountNotificationSetType.tokenizedCommunitiesTransactions,
+    );
+
+    if (tokenizedCommunitiesTransactionsSet == null) {
+      return null;
+    }
+
+    return _getNotificationSetFollowedUsers(
+      accountNotificationSet: tokenizedCommunitiesTransactionsSet,
+    );
   }
 
   // TODO[pushes] apply
@@ -367,6 +372,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   }) async {
     final accountNotificationSets =
         await ref.watch(currentUserAccountNotificationSetsProvider.future);
+
     final accountNotificationsEnabled =
         selectedPushCategories.contains(PushNotificationCategory.posts);
     const accountsRelatedCategories = [
@@ -378,12 +384,36 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
 
     // Skip tokenized communities transactions category because it is handled
     // when building filters for creator token trades and content token trades categories
-    return [
-      for (final AccountNotificationSetEntity(:data) in accountNotificationSets)
-        if (accountsRelatedCategories.contains(data.type) &&
-            accountNotificationsEnabled &&
-            data.userPubkeys.isNotEmpty)
-          data.type.toUserNotificationType().toRequestFilter(masterPubkeys: data.userPubkeys),
-    ];
+    final filters = <RequestFilter>[];
+    for (final accountNotificationSet in accountNotificationSets) {
+      if (accountsRelatedCategories.contains(accountNotificationSet.data.type) &&
+          accountNotificationsEnabled) {
+        final notificationSetUsers =
+            await _getNotificationSetFollowedUsers(accountNotificationSet: accountNotificationSet);
+        if (notificationSetUsers.isNotEmpty) {
+          filters.add(
+            accountNotificationSet.data.type
+                .toUserNotificationType()
+                .toRequestFilter(masterPubkeys: notificationSetUsers),
+          );
+        }
+      }
+    }
+    return filters;
+  }
+
+  /// Gets the list of users that the current user wants to receive notifications from
+  /// for the provided [accountNotificationSet].
+  ///
+  /// Not followed users are filtered out from the resulting list.
+  Future<List<String>> _getNotificationSetFollowedUsers({
+    required AccountNotificationSetEntity accountNotificationSet,
+  }) async {
+    final currentUserFollowList = await ref.watch(currentUserFollowListProvider.future);
+    if (currentUserFollowList == null) throw FollowListNotFoundException();
+
+    return accountNotificationSet.data.userPubkeys
+        .where((userPubkey) => currentUserFollowList.masterPubkeys.contains(userPubkey))
+        .toList();
   }
 }
