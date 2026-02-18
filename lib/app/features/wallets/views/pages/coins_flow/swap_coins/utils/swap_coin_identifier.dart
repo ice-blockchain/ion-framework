@@ -44,4 +44,21 @@ class SwapCoinIdentifier {
   static bool isIceCoinGroup(CoinsGroup coinGroup) {
     return coinGroup.abbreviation == 'ICE';
   }
+
+  static bool isIonBscSwap({
+    required CoinsGroup sellCoin,
+    required NetworkData sellNetwork,
+    required CoinsGroup buyCoin,
+    required NetworkData buyNetwork,
+  }) {
+    final isSellIceBsc = isIceBsc(sellCoin, sellNetwork);
+    final isSelIonBsc = isIonBsc(sellCoin, sellNetwork);
+    final isBuyIceBsc = isIceBsc(buyCoin, buyNetwork);
+    final isBuyIonBsc = isIonBsc(buyCoin, buyNetwork);
+
+    final isIceToIonBsc = isSellIceBsc && isBuyIonBsc;
+    final isIonToIceBsc = isSelIonBsc && isBuyIceBsc;
+
+    return isIceToIonBsc || isIonToIceBsc;
+  }
 }

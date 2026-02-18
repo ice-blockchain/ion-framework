@@ -22,15 +22,14 @@ Future<SwapDisplayData?> swapDisplayData(Ref ref, String partTxHash) async {
 
   if (sellData == null || buyData == null) return null;
 
-  final isSellIceBsc = SwapCoinIdentifier.isIceBsc(sellData.coins, sellData.network);
-  final isSelIonBsc = SwapCoinIdentifier.isIonBsc(sellData.coins, sellData.network);
-  final isBuyIceBsc = SwapCoinIdentifier.isIceBsc(buyData.coins, buyData.network);
-  final isBuyIonBsc = SwapCoinIdentifier.isIonBsc(buyData.coins, buyData.network);
+  final isIonBscSwap = SwapCoinIdentifier.isIonBscSwap(
+    sellCoin: sellData.coins,
+    sellNetwork: sellData.network,
+    buyCoin: buyData.coins,
+    buyNetwork: buyData.network,
+  );
 
-  final isIceToIonBsc = isSellIceBsc && isBuyIonBsc;
-  final isIonToIceBsc = isSelIonBsc && isBuyIceBsc;
-
-  if (isIceToIonBsc || isIonToIceBsc) {
+  if (isIonBscSwap) {
     return SwapDisplayData(
       sellData: sellData,
       buyData: buyData.copyWith(
