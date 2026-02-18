@@ -2,7 +2,8 @@
 
 // Calculates Y-axis padding
 // Returns 20% of the range if values differ, or 20% of the minimum value
-// (with a minimum of 0.0001) when all values are identical to prevent bottom flat lines.
+// when all values are identical. For zero values, uses a small absolute minimum
+// to prevent zero-range chart.
 double calculateChartYPadding(double minY, double maxY) {
   final range = maxY - minY;
 
@@ -12,8 +13,13 @@ double calculateChartYPadding(double minY, double maxY) {
     return range * 0.20;
   }
 
-  // Minimum 20% padding when all values are identical
-  return (minY * 0.20).clamp(0.0001, double.infinity);
+  // Proportional 20% padding when all values are identical.
+  // For zero values: use a small absolute minimum to prevent zero-range chart.
+  // For any positive value (even extremely tiny like 0.000000000001), use proportional padding.
+  if (minY == 0) {
+    return 0.0001;
+  }
+  return minY * 0.20;
 }
 
 // Returns a record with minY and maxY values that include appropriate padding.
