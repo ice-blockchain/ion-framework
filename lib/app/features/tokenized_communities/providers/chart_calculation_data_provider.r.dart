@@ -54,9 +54,11 @@ ChartCalculationData? chartCalculationData(
     if (y > maxY) maxY = y;
   }
 
-  // Calculate Y-axis padding
+  // Calculate Y-axis padding.
+  // 1% extra bottom padding prevents chartMinY from landing exactly on fl_chart's
+  // auto tick step, which would otherwise drop the bottom Y-axis label.
   final yPadding = calculateChartYPadding(minY, maxY);
-  final chartMinY = (minY - yPadding).clamp(0.0, double.infinity);
+  final chartMinY = (minY - yPadding * 1.01).clamp(0.0, double.infinity);
   final chartMaxY = maxY + yPadding;
 
   // Transform candles to FlSpot
