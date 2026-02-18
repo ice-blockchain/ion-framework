@@ -12,6 +12,8 @@ import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.
 import 'package:ion/app/features/feed/stories/providers/stories_count_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import '../../../../fixtures/posts/post_fixtures.dart';
 import '../../../../fixtures/stories/story_fixtures.dart';
@@ -76,6 +78,10 @@ ProviderContainer _containerWith(List<ModifiablePostEntity> posts) {
 }
 
 void main() {
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
+  });
+  
   group('storiesProvider – transformation logic', () {
     test('returns N stories for N distinct authors', () async {
       final posts = [
