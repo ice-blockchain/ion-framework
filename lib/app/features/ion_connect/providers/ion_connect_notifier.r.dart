@@ -35,7 +35,7 @@ import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/uuid/uuid.dart';
 import 'package:ion/app/utils/retry.dart';
-import 'package:ion_identity_client/ion_identity.dart';
+import 'package:ion_identity_client/ion_identity.dart' hide UnauthenticatedException;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_notifier.r.g.dart';
@@ -107,7 +107,9 @@ class IonConnectNotifier extends _$IonConnectNotifier {
           Logger.log(
             '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: ${triedRelayUrl != null} for error: $error',
           );
-          return triedRelayUrl != null && !RelayAuthService.isRelayAuthoritativeError(error);
+          return triedRelayUrl != null &&
+              !RelayAuthService.isRelayAuthoritativeError(error) &&
+              !_isUnauthenticatedError(error);
         },
         onRetry: (error) async {
           final triedRelayUrl =
@@ -223,6 +225,8 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         subscriptionBuilder,
     VoidCallback? onEose,
   }) async* {
+    if (ref.read(authProvider).valueOrNull?.isAuthenticated != true) return;
+
     final sessionId = requestMessage.subscriptionId;
     final stopwatch = Stopwatch()..start();
 
@@ -322,7 +326,9 @@ class IonConnectNotifier extends _$IonConnectNotifier {
               error is RelayUnreachableException ? error.relayUrl : triedRelay?.url;
           // `SubscriptionNotFoundException` might be thrown if a relay closed the subscription on its own right after sending the `EOSE`.
           // App tries to send `CLOSE` message and get this exception. We should not retry in this case.
-          final shouldRetry = triedRelayUrl != null && error is! SubscriptionNotFoundException;
+          final shouldRetry = triedRelayUrl != null &&
+              error is! SubscriptionNotFoundException &&
+              !_isUnauthenticatedError(error);
           Logger.log(
             '[SESSION-RETRY] Session $sessionId - $triedRelayUrl retry: $shouldRetry for error: $error',
           );
@@ -352,6 +358,10 @@ class IonConnectNotifier extends _$IonConnectNotifier {
         },
       );
     } catch (e) {
+      if (_isUnauthenticatedError(e)) {
+        Logger.log('[SESSION] Session $sessionId ended: user not authenticated');
+        return;
+      }
       Logger.error(e, message: '[SESSION-ERROR] Session $sessionId failed: $e');
       // In some cases BE sends both `EOSE` and `CLOSED` events in quick succession, when all stored events are returned.
       // FE reacts to the `EOSE` and attempts to send `CLOSE`, but since `nostr_dart` removes the subscription from its list
@@ -583,6 +593,10 @@ class IonConnectNotifier extends _$IonConnectNotifier {
       final ClosedMessage closedMessage => !closedMessage.message.startsWith('processed'),
       _ => false,
     };
+  }
+
+  bool _isUnauthenticatedError(Object? error) {
+    return error is UnauthenticatedException || error is CurrentUserNotFoundException;
   }
 
   void _dislikeRelayAndResetConnectUrls({

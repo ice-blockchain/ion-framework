@@ -23,6 +23,7 @@ Raw<Stream<EventMessage>> ionConnectEventsSubscription(
 
   void unsubscribe() {
     if ((subscriptionRelay, subscription) case (final relay?, final sub?)) {
+      if (relay.socket.connection.state is Disconnected) return;
       try {
         relay.unsubscribe(sub.id);
       } catch (error, stackTrace) {

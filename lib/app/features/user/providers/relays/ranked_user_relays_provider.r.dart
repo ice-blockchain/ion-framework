@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
@@ -19,10 +20,11 @@ part 'ranked_user_relays_provider.r.g.dart';
 /// Latency is measured by pinging the relays (check [ionConnectRelaysRankerProvider] for details).
 /// Emits the ranked relays every time a relay ping is completed.
 /// That is done to avoid hanging the app while waiting for unreachable relays to respond.
-@Riverpod(keepAlive: true)
+@riverpod
 class RankedCurrentUserRelays extends _$RankedCurrentUserRelays {
   @override
   Stream<List<UserRelay>> build() async* {
+    keepAliveWhenAuthenticated(ref);
     final currentUserRelays = await ref.watch(currentUserIdentityConnectRelaysProvider.future);
 
     if (currentUserRelays == null) {
