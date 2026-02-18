@@ -81,7 +81,7 @@ void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
   });
-  
+
   group('storiesProvider – transformation logic', () {
     test('returns N stories for N distinct authors', () async {
       final posts = [
