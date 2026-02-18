@@ -847,26 +847,3 @@ class LiquidityPoolNotFoundException extends IONException {
 class MainWalletViewNotFoundException extends IONException {
   MainWalletViewNotFoundException() : super(10151, 'Main wallet view not found');
 }
-
-class RestrictedRegionException extends IONException {
-  RestrictedRegionException({
-    required String message,
-    this.country,
-    this.city,
-    this.region,
-    this.regionCode,
-  }) : super(
-          10152,
-          'Operation not allowed in your region'
-          '${country != null ? ', country: $country' : ''}'
-          '${city != null ? ', city: $city' : ''}'
-          '${region != null ? ', region: $region' : ''}'
-          '${regionCode != null ? ', regionCode: $regionCode' : ''}'
-          ', details: $message',
-        );
-
-  final String? country;
-  final String? city;
-  final String? region;
-  final String? regionCode;
-}
