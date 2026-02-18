@@ -11,7 +11,6 @@ import 'package:ion/app/features/feed/providers/feed_for_you_content_provider.m.
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
-import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -20,13 +19,11 @@ part 'feed_stories_provider.r.g.dart';
 @riverpod
 class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
-  ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build({
-    FeedFilter? overrideFilter,
-  }) {
-    final currentFilter = overrideFilter ?? ref.watch(feedCurrentFilterProvider).filter;
+  ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build() {
+    final filter = ref.watch(feedCurrentFilterProvider).filter;
     final blockedUsersMasterPubkeys = ref.watch(blockedUsersPubkeysSelectorProvider);
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
-    final data = switch (currentFilter) {
+    final data = switch (filter) {
       FeedFilter.following => ref.watch(
           feedFollowingContentProvider(FeedType.story).select(
             (data) => (items: data.items, hasMore: data.hasMore, isLoading: data.isLoading),
@@ -64,8 +61,8 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
 
   @override
   PagedNotifier getDelegate() {
-    final currentFilter = overrideFilter ?? ref.read(feedCurrentFilterProvider).filter;
-    return switch (currentFilter) {
+    final filter = ref.read(feedCurrentFilterProvider).filter;
+    return switch (filter) {
       FeedFilter.following => ref.read(feedFollowingContentProvider(FeedType.story).notifier),
       FeedFilter.forYou => ref.read(feedForYouContentProvider(FeedType.story).notifier),
     };
@@ -92,10 +89,8 @@ List<ModifiablePostEntity> feedStoriesByPubkey(
   String pubkey, {
   bool showOnlySelectedUser = false,
 }) {
-  final following = ref.watch(isCurrentUserFollowingSelectorProvider(pubkey));
   final stories = ref.watch(
-    feedStoriesProvider(overrideFilter: following ? FeedFilter.following : null)
-        .select((state) => state.items.toList()),
+    feedStoriesProvider.select((state) => state.items.toList()),
   );
   final userIndex = stories.indexWhere((userStories) => userStories.masterPubkey == pubkey);
 

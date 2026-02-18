@@ -27,7 +27,7 @@ class StoryList extends ConsumerWidget {
     final filteredPubkeys = pubkeys.where((pubkey) => pubkey != currentUserPubkey).toList();
 
     ref.listenSuccess(createPostNotifierProvider(CreatePostOption.story), (next) {
-      ref.read(feedStoriesProvider().notifier).refresh();
+      ref.read(feedStoriesProvider.notifier).refresh();
     });
 
     return SliverPadding(
