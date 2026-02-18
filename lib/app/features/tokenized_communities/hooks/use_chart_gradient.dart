@@ -32,7 +32,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
           // Position gradient based on where visible area is within global fill range
           final visibleTopInFill = ((chartMaxY - displayMaxY) / fillAreaRange).clamp(0.0, 0.99);
           gradientStops = [visibleTopInFill, 1.0];
-          // Alpha stays at 0.3 - gradient stops handle positioning, isFlat handles flat cases
         }
       }
 
