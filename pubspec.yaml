@@ -11,6 +11,7 @@ environment:
 
 dependencies:
   android_id: ^0.4.0
+  android_nav_setting: ^0.0.2+2
   android_play_install_referrer: ^0.4.0
   app_badge_plus: ^1.2.3
   app_links: ^6.4.0

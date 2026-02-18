@@ -1,4 +1,6 @@
 PODS:
+  - android_nav_setting (0.0.1):
+    - Flutter
   - app_badge_plus (1.2.3):
     - Flutter
   - app_links (6.4.1):
@@ -434,6 +436,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - android_nav_setting (from `.symlinks/plugins/android_nav_setting/ios`)
   - app_badge_plus (from `.symlinks/plugins/app_badge_plus/ios`)
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - appsflyer_sdk (from `.symlinks/plugins/appsflyer_sdk/ios`)
@@ -553,6 +556,8 @@ SPEC REPOS:
     - BNBSkin
 
 EXTERNAL SOURCES:
+  android_nav_setting:
+    :path: ".symlinks/plugins/android_nav_setting/ios"
   app_badge_plus:
     :path: ".symlinks/plugins/app_badge_plus/ios"
   app_links:
@@ -653,6 +658,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
+  android_nav_setting: b86d2622f4bd9af40000d96e2105b72b7ab9614a
   app_badge_plus: 0e3470f993dd08094e16463f57a7e0db04c6b587
   app_links: 3dbc685f76b1693c66a6d9dd1e9ab6f73d97dc0a
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73

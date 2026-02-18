@@ -19,6 +19,7 @@ import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/filter/creator_tokens_filter_bar.dart';
 import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_has_android_button_nav_bar.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
@@ -242,61 +243,67 @@ class CreatorTokensPage extends HookConsumerWidget {
       color: context.theme.appColors.onPrimaryAccent,
     );
 
+    final hasButtonNavBar = useHasAndroidButtonNavBar();
+
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: true,
-      body: KeyboardDismissOnTap(
-        child: ScrollToTopWrapper(
-          scrollController: scrollController,
-          child: Stack(
-            alignment: Alignment.topCenter,
-            children: [
-              NestedScrollView(
-                controller: scrollController,
-                headerSliverBuilder: (context, innerBoxIsScrolled) {
-                  return [
-                    CreatorTokensHeader(
-                      expandedHeight: _expandedHeaderHeight - MediaQuery.paddingOf(context).top,
-                      opacity: opacity,
-                      featuredTokensAsync: featuredTokensAsync,
-                      selectedToken: selectedToken,
-                      avatarColors: avatarColors,
-                      backButtonIcon: backButtonIcon,
-                      scrollController: scrollController,
-                      tabController: tabController,
-                      onPop: context.pop,
-                      onSearchToggle: () {
-                        final nextVisible = !isGlobalSearchVisible.value;
-                        isGlobalSearchVisible.value = nextVisible;
-                        if (!nextVisible) {
-                          resetGlobalSearch();
-                        }
-                      },
-                      carouselKey: carouselKey,
-                    ),
-                    SliverToBoxAdapter(
-                      child: CreatorTokensFilterBar(
+      body: SafeArea(
+        top: false,
+        bottom: hasButtonNavBar,
+        child: KeyboardDismissOnTap(
+          child: ScrollToTopWrapper(
+            scrollController: scrollController,
+            child: Stack(
+              alignment: Alignment.topCenter,
+              children: [
+                NestedScrollView(
+                  controller: scrollController,
+                  headerSliverBuilder: (context, innerBoxIsScrolled) {
+                    return [
+                      CreatorTokensHeader(
+                        expandedHeight: _expandedHeaderHeight - MediaQuery.paddingOf(context).top,
+                        opacity: opacity,
+                        featuredTokensAsync: featuredTokensAsync,
+                        selectedToken: selectedToken,
+                        avatarColors: avatarColors,
+                        backButtonIcon: backButtonIcon,
                         scrollController: scrollController,
+                        tabController: tabController,
+                        onPop: context.pop,
+                        onSearchToggle: () {
+                          final nextVisible = !isGlobalSearchVisible.value;
+                          isGlobalSearchVisible.value = nextVisible;
+                          if (!nextVisible) {
+                            resetGlobalSearch();
+                          }
+                        },
+                        carouselKey: carouselKey,
                       ),
-                    ),
-                    CreatorTokensSearchBar(
-                      isVisible: isGlobalSearchVisible.value,
-                      searchController: searchController,
-                      searchFocusNode: searchFocusNode,
-                      onCancelSearch: () {
-                        resetGlobalSearch();
-                        isGlobalSearchVisible.value = false;
-                      },
-                    ),
-                  ];
-                },
-                body: CreatorTokensBody(
-                  searchQuery: searchQuery.value,
-                  isGlobalSearchVisible: isGlobalSearchVisible.value,
-                  tabController: tabController,
+                      SliverToBoxAdapter(
+                        child: CreatorTokensFilterBar(
+                          scrollController: scrollController,
+                        ),
+                      ),
+                      CreatorTokensSearchBar(
+                        isVisible: isGlobalSearchVisible.value,
+                        searchController: searchController,
+                        searchFocusNode: searchFocusNode,
+                        onCancelSearch: () {
+                          resetGlobalSearch();
+                          isGlobalSearchVisible.value = false;
+                        },
+                      ),
+                    ];
+                  },
+                  body: CreatorTokensBody(
+                    searchQuery: searchQuery.value,
+                    isGlobalSearchVisible: isGlobalSearchVisible.value,
+                    tabController: tabController,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
