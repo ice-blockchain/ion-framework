@@ -54,7 +54,7 @@ class StoriesSwiper extends HookConsumerWidget {
       onPageChanged: userStoriesNotifier.moveTo,
       itemBuilder: (context, userIndex, pageNotifier) {
         final isCurrentUser = userIndex == currentUserIndex;
-        final userPubkey = userStoriesViewingState.pubkeyAtIndex(userIndex);
+        final userPubkey = userStoriesViewingState.pubkeyAtIndex(userIndex) ?? pubkey;
 
         void closeViewer() {
           if (context.mounted) {
@@ -65,47 +65,45 @@ class StoriesSwiper extends HookConsumerWidget {
         return CubeWidget(
           index: userIndex,
           pageNotifier: pageNotifier,
-          child: userPubkey == null
-              ? const SizedBox.shrink()
-              : UserStoryPageView(
-                  pubkey: userPubkey,
-                  isCurrentUser: isCurrentUser,
-                  onClose: closeViewer,
-                  onNextUser: () {
-                    if (userPageController.hasClients && userIndex < userStories.length - 1) {
-                      userPageController.nextPage(
-                        duration: _pageTransitionDuration,
-                        curve: Curves.easeInOut,
-                      );
-                      userStoriesNotifier.advance(
-                        onClose: () {
-                          if (context.mounted) {
-                            context.pop();
-                          }
-                        },
-                      );
-                    } else {
-                      closeViewer();
+          child: UserStoryPageView(
+            pubkey: userPubkey,
+            isCurrentUser: isCurrentUser,
+            onClose: closeViewer,
+            onNextUser: () {
+              if (userPageController.hasClients && userIndex < userStories.length - 1) {
+                userPageController.nextPage(
+                  duration: _pageTransitionDuration,
+                  curve: Curves.easeInOut,
+                );
+                userStoriesNotifier.advance(
+                  onClose: () {
+                    if (context.mounted) {
+                      context.pop();
                     }
                   },
-                  onPreviousUser: () {
-                    if (userPageController.hasClients && userIndex > 0) {
-                      userPageController.previousPage(
-                        duration: _pageTransitionDuration,
-                        curve: Curves.easeInOut,
-                      );
-                      userStoriesNotifier.rewind(
-                        onClose: () {
-                          if (context.mounted) {
-                            context.pop();
-                          }
-                        },
-                      );
-                    } else {
-                      closeViewer();
+                );
+              } else {
+                closeViewer();
+              }
+            },
+            onPreviousUser: () {
+              if (userPageController.hasClients && userIndex > 0) {
+                userPageController.previousPage(
+                  duration: _pageTransitionDuration,
+                  curve: Curves.easeInOut,
+                );
+                userStoriesNotifier.rewind(
+                  onClose: () {
+                    if (context.mounted) {
+                      context.pop();
                     }
                   },
-                ),
+                );
+              } else {
+                closeViewer();
+              }
+            },
+          ),
         );
       },
     );

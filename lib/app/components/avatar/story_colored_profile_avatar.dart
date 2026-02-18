@@ -9,7 +9,7 @@ import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/outlined_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
-import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_colored_border.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
@@ -18,7 +18,7 @@ import 'package:ion/app/router/app_routes.gr.dart';
 
 final _storyStatusProvider =
     Provider.family<({bool hasStories, bool allStoriesViewed}), String>((ref, pubkey) {
-  final userStories = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
+  final userStories = ref.watch(userStoriesProvider(pubkey))?.toList() ?? [];
   final allStoriesViewed = ref.watch(
     viewedStoriesProvider.select((viewedStories) {
       final storyReferences = userStories.map((story) => story.toEventReference());

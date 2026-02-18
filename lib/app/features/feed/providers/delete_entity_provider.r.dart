@@ -172,7 +172,7 @@ class DeleteEntityController extends _$DeleteEntityController {
             .notifier,
       ),
       ref.read(feedPostsProvider.notifier),
-      ref.read(feedStoriesProvider().notifier),
+      ref.read(feedStoriesProvider.notifier),
     ];
 
     for (final notifier in notifiers) {
