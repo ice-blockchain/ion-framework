@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:decimal/decimal.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
+import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 
 // Normalizes candles by filling gaps based on selectedRange interval.
 // Example: [10:00, 15:00] with 1h interval → [10:00, 11:00, 12:00, 13:00, 14:00, 15:00]
@@ -39,6 +39,7 @@ List<ChartCandle> normalizeCandles(
               high: current.close,
               low: current.close,
               close: current.close,
+              marketCap: current.marketCap,
               price: fillPrice,
               date: fillDate,
             ),
@@ -62,6 +63,7 @@ List<ChartCandle> normalizeCandles(
           high: lastCandle.close,
           low: lastCandle.close,
           close: lastCandle.close,
+          marketCap: lastCandle.marketCap,
           price: Decimal.parse(lastCandle.close.toStringAsFixed(4)),
           date: fillDate,
         ),

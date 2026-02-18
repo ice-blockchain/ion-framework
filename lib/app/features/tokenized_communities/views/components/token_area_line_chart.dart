@@ -10,6 +10,7 @@ import 'package:ion/app/features/tokenized_communities/hooks/use_chart_max_x_wit
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_transformation.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_visible_y_range.dart';
 import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_metric_value_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart_tooltip_listener.dart';
 import 'package:ion/app/utils/string.dart';
@@ -17,21 +18,27 @@ import 'package:ion/app/utils/string.dart';
 class TokenAreaLineChart extends HookConsumerWidget {
   const TokenAreaLineChart({
     required this.candles,
+    required this.selectedMetric,
     required this.selectedRange,
     this.isLoading = false,
     super.key,
   });
 
   final List<ChartCandle> candles;
+  final ChartMetric selectedMetric;
   final ChartTimeRange selectedRange;
   final bool isLoading;
 
   static const _scrollAnimationDuration = Duration(milliseconds: 250);
 
-  double _calculateReservedSize(double maxY, TextStyle style) {
+  double _calculateReservedSize(
+    double maxY,
+    TextStyle style,
+  ) {
     // Right padding: 4px dot gap + 6px reserved = 10px total
     final chartAnnotationPadding = 6.0.s;
-    return calculateTextWidth(maxY.toStringAsFixed(4), style) + chartAnnotationPadding;
+    final label = formatChartMetricValue(maxY);
+    return calculateTextWidth(label, style) + chartAnnotationPadding;
   }
 
   @override
@@ -40,7 +47,11 @@ class TokenAreaLineChart extends HookConsumerWidget {
     final styles = context.theme.appTextThemes;
 
     final calcData = ref.watch(
-      chartCalculationDataProvider(candles: candles, selectedRange: selectedRange),
+      chartCalculationDataProvider(
+        candles: candles,
+        selectedMetric: selectedMetric,
+        selectedRange: selectedRange,
+      ),
     );
 
     if (calcData == null) {
@@ -49,8 +60,11 @@ class TokenAreaLineChart extends HookConsumerWidget {
 
     final yAxisLabelTextStyle = styles.caption5.copyWith(color: colors.tertiaryText);
     final reservedSize = useMemoized(
-      () => _calculateReservedSize(calcData.chartMaxY, yAxisLabelTextStyle),
-      [calcData.chartMaxY, yAxisLabelTextStyle],
+      () => _calculateReservedSize(
+        calcData.chartMaxY,
+        yAxisLabelTextStyle,
+      ),
+      [calcData.chartMaxY, yAxisLabelTextStyle, selectedMetric],
     );
 
     // Chart transformation (scroll/zoom and initial positioning)
@@ -103,18 +117,20 @@ class TokenAreaLineChart extends HookConsumerWidget {
       child: ChartTooltipListener(
         canInteract: canInteract,
         builder: ({required tooltipEnabled, required handleChartTouch}) {
-          List<LineTooltipItem?> buildTooltipItems(List<LineBarSpot> touchedSpots) {
+          List<LineTooltipItem?> buildTooltipItems(
+            List<LineBarSpot> touchedSpots,
+          ) {
             if (!tooltipEnabled) {
               return touchedSpots.map((_) => null).toList();
             }
-            return touchedSpots
-                .map(
-                  (spot) => LineTooltipItem(
-                    spot.y.toStringAsFixed(4),
-                    styles.caption2.copyWith(color: colors.primaryText),
-                  ),
-                )
-                .toList();
+            return touchedSpots.map(
+              (spot) {
+                return LineTooltipItem(
+                  formatChartMetricValue(spot.y),
+                  styles.caption2.copyWith(color: colors.primaryText),
+                );
+              },
+            ).toList();
           }
 
           List<TouchedSpotIndicatorData?> buildTouchedSpotIndicators(
@@ -170,7 +186,9 @@ class TokenAreaLineChart extends HookConsumerWidget {
                         reservedSize: reservedSize,
                         getTitlesWidget: (value, meta) => Align(
                           alignment: AlignmentDirectional.centerEnd,
-                          child: ChartPriceLabel(value: value),
+                          child: ChartPriceLabel(
+                            value: value,
+                          ),
                         ),
                       ),
                     ),
@@ -223,7 +241,9 @@ class TokenAreaLineChart extends HookConsumerWidget {
                           end: Alignment.bottomCenter,
                           stops: gradient.gradientStops,
                           colors: [
-                            lineColor.withValues(alpha: gradient.gradientTopAlpha),
+                            lineColor.withValues(
+                              alpha: gradient.gradientTopAlpha,
+                            ),
                             lineColor.withValues(alpha: 0),
                           ],
                         ),

@@ -26,6 +26,8 @@ mixin _$OhlcvCandle {
   double get high => throw _privateConstructorUsedError;
   double get low => throw _privateConstructorUsedError;
   double get close => throw _privateConstructorUsedError;
+  @JsonKey(name: 'market_cap')
+  double get marketCap => throw _privateConstructorUsedError;
   double get volume => throw _privateConstructorUsedError;
 
   /// Serializes this OhlcvCandle to a JSON map.
@@ -51,6 +53,7 @@ abstract class $OhlcvCandleCopyWith<$Res> {
     double high,
     double low,
     double close,
+    @JsonKey(name: 'market_cap') double marketCap,
     double volume,
   });
 }
@@ -75,6 +78,7 @@ class _$OhlcvCandleCopyWithImpl<$Res, $Val extends OhlcvCandle>
     Object? high = null,
     Object? low = null,
     Object? close = null,
+    Object? marketCap = null,
     Object? volume = null,
   }) {
     return _then(
@@ -98,6 +102,10 @@ class _$OhlcvCandleCopyWithImpl<$Res, $Val extends OhlcvCandle>
             close: null == close
                 ? _value.close
                 : close // ignore: cast_nullable_to_non_nullable
+                      as double,
+            marketCap: null == marketCap
+                ? _value.marketCap
+                : marketCap // ignore: cast_nullable_to_non_nullable
                       as double,
             volume: null == volume
                 ? _value.volume
@@ -124,6 +132,7 @@ abstract class _$$OhlcvCandleImplCopyWith<$Res>
     double high,
     double low,
     double close,
+    @JsonKey(name: 'market_cap') double marketCap,
     double volume,
   });
 }
@@ -147,6 +156,7 @@ class __$$OhlcvCandleImplCopyWithImpl<$Res>
     Object? high = null,
     Object? low = null,
     Object? close = null,
+    Object? marketCap = null,
     Object? volume = null,
   }) {
     return _then(
@@ -171,6 +181,10 @@ class __$$OhlcvCandleImplCopyWithImpl<$Res>
             ? _value.close
             : close // ignore: cast_nullable_to_non_nullable
                   as double,
+        marketCap: null == marketCap
+            ? _value.marketCap
+            : marketCap // ignore: cast_nullable_to_non_nullable
+                  as double,
         volume: null == volume
             ? _value.volume
             : volume // ignore: cast_nullable_to_non_nullable
@@ -189,6 +203,7 @@ class _$OhlcvCandleImpl implements _OhlcvCandle {
     required this.high,
     required this.low,
     required this.close,
+    @JsonKey(name: 'market_cap') required this.marketCap,
     required this.volume,
   });
 
@@ -206,11 +221,14 @@ class _$OhlcvCandleImpl implements _OhlcvCandle {
   @override
   final double close;
   @override
+  @JsonKey(name: 'market_cap')
+  final double marketCap;
+  @override
   final double volume;
 
   @override
   String toString() {
-    return 'OhlcvCandle(timestamp: $timestamp, open: $open, high: $high, low: $low, close: $close, volume: $volume)';
+    return 'OhlcvCandle(timestamp: $timestamp, open: $open, high: $high, low: $low, close: $close, marketCap: $marketCap, volume: $volume)';
   }
 
   @override
@@ -224,13 +242,23 @@ class _$OhlcvCandleImpl implements _OhlcvCandle {
             (identical(other.high, high) || other.high == high) &&
             (identical(other.low, low) || other.low == low) &&
             (identical(other.close, close) || other.close == close) &&
+            (identical(other.marketCap, marketCap) ||
+                other.marketCap == marketCap) &&
             (identical(other.volume, volume) || other.volume == volume));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, timestamp, open, high, low, close, volume);
+  int get hashCode => Object.hash(
+    runtimeType,
+    timestamp,
+    open,
+    high,
+    low,
+    close,
+    marketCap,
+    volume,
+  );
 
   /// Create a copy of OhlcvCandle
   /// with the given fields replaced by the non-null parameter values.
@@ -253,6 +281,7 @@ abstract class _OhlcvCandle implements OhlcvCandle {
     required final double high,
     required final double low,
     required final double close,
+    @JsonKey(name: 'market_cap') required final double marketCap,
     required final double volume,
   }) = _$OhlcvCandleImpl;
 
@@ -269,6 +298,9 @@ abstract class _OhlcvCandle implements OhlcvCandle {
   double get low;
   @override
   double get close;
+  @override
+  @JsonKey(name: 'market_cap')
+  double get marketCap;
   @override
   double get volume;
 

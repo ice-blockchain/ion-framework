@@ -56,7 +56,7 @@ class MarketDataFormatter {
 
     // For very small values, use subscript notation with symbol prefix
     if (absValue < 0.01) {
-      final subscriptResult = base_formatters.formatSubscriptNotation(value, symbol);
+      final subscriptResult = base_formatters.formatSubscriptNotation(value, symbol: symbol);
       if (subscriptResult.isEmpty) {
         // Fallback to price format for edge cases
         return formatPrice(value, symbol: symbol);

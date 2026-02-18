@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:intl/intl.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
+import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 import 'package:ion/app/utils/formatters.dart' as base_formatters;
 import 'package:ion/app/utils/num.dart';
 
@@ -22,7 +22,7 @@ String formatPrice(double price, {String symbol = r'$'}) {
   if (price >= 1) {
     return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 2).format(price);
   }
-  // Handle small prices with subscript notation similar to PriceLabelFormatter
+  // Handle small prices with subscript notation
   final abs = price.abs();
   if (abs == 0) return '${symbol}0.00';
 
@@ -67,7 +67,7 @@ String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
   if (absPrice == 0) return '${symbol}0.00';
 
   // For very small values, use subscript notation
-  final subscriptResult = base_formatters.formatSubscriptNotation(price, symbol);
+  final subscriptResult = base_formatters.formatSubscriptNotation(price, symbol: symbol);
   if (subscriptResult.isEmpty) {
     // Fallback if subscript formatting fails
     return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 4).format(price);

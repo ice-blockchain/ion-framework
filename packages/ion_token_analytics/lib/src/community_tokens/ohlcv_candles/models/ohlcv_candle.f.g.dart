@@ -13,6 +13,7 @@ _$OhlcvCandleImpl _$$OhlcvCandleImplFromJson(Map<String, dynamic> json) =>
       high: (json['high'] as num).toDouble(),
       low: (json['low'] as num).toDouble(),
       close: (json['close'] as num).toDouble(),
+      marketCap: (json['market_cap'] as num).toDouble(),
       volume: (json['volume'] as num).toDouble(),
     );
 
@@ -23,5 +24,6 @@ Map<String, dynamic> _$$OhlcvCandleImplToJson(_$OhlcvCandleImpl instance) =>
       'high': instance.high,
       'low': instance.low,
       'close': instance.close,
+      'market_cap': instance.marketCap,
       'volume': instance.volume,
     };

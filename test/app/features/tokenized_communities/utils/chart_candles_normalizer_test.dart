@@ -2,8 +2,8 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_candles_normalizer.dart';
-import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 
 void main() {
   group('normalizeCandles', () {
@@ -63,6 +63,7 @@ void main() {
         high: high ?? price,
         low: low ?? price,
         close: closePrice,
+        marketCap: closePrice,
         price: Decimal.parse(closePrice.toStringAsFixed(4)),
         date: date,
       );
