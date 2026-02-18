@@ -491,6 +491,58 @@ void main() {
         expect(result.tags[1].start, 7); // Start of second line
       });
 
+      test('emits numbered markers for 6 consecutive ordered list items', () async {
+        final delta = Delta()
+          ..insert('Step 1')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 2')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 3')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 4')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 5')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 6')
+          ..insert('\n', {'list': 'ordered'});
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        final listMarkerTags = result.tags
+            .where((t) => RegExp(r'^\d+\. ').hasMatch(t.replacement) || t.replacement == '- ')
+            .toList()
+          ..sort((a, b) => a.start.compareTo(b.start));
+        expect(listMarkerTags.length, 6);
+        expect(
+          listMarkerTags.map((t) => t.replacement).toList(),
+          ['1. ', '2. ', '3. ', '4. ', '5. ', '6. '],
+        );
+      });
+
+      test('resets ordered list index after non-list line', () async {
+        final delta = Delta()
+          ..insert('First')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Second')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Paragraph between lists')
+          ..insert('\n')
+          ..insert('One')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Two')
+          ..insert('\n', {'list': 'ordered'});
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        final orderedMarkerTags = result.tags
+            .where((t) => RegExp(r'^\d+\. ').hasMatch(t.replacement))
+            .toList()
+          ..sort((a, b) => a.start.compareTo(b.start));
+        expect(orderedMarkerTags.length, 4);
+        expect(
+          orderedMarkerTags.map((t) => t.replacement).toList(),
+          ['1. ', '2. ', '1. ', '2. '],
+        );
+      });
+
       test('converts blockquote', () async {
         final delta = Delta()
           ..insert('Quote')
@@ -1510,6 +1562,36 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         final listCounts = _countListItemsByType(result.resultDelta);
         expect(listCounts['bullet'], equals(3), reason: 'Should have 3 bullet list items');
         expect(listCounts['ordered'], equals(2), reason: 'Should have 2 ordered list items');
+      });
+
+      test('round-trip with 6 ordered list items preserves numbering', () async {
+        final expectedDelta = Delta()
+          ..insert('Step 1')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 2')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 3')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 4')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 5')
+          ..insert('\n', {'list': 'ordered'})
+          ..insert('Step 6')
+          ..insert('\n', {'list': 'ordered'});
+
+        final result = await _performRoundTripConversion(expectedDelta);
+
+        final orderedReplacements = result.pmoResult.tags
+            .where((t) => RegExp(r'^\d+\. ').hasMatch(t.replacement))
+            .map((t) => t.replacement)
+            .toList();
+        expect(
+          orderedReplacements,
+          ['1. ', '2. ', '3. ', '4. ', '5. ', '6. '],
+          reason: 'Stored PMO tags must have correct ordered list numbering for display',
+        );
+        final listCounts = _countListItemsByType(result.resultDelta);
+        expect(listCounts['ordered'], equals(6), reason: 'Should have 6 ordered list items');
       });
 
       test('round-trip with code blocks (for Posts/ModifiablePosts)', () async {
