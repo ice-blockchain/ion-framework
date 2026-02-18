@@ -108,7 +108,6 @@ class ProfileShareMessage extends HookConsumerWidget {
                           _ProfileSummary(isMe: isMe, userMetadata: userMetadata),
                           SizedBox(height: 8.0.s),
                           Button.compact(
-                            type: ButtonType.outlined,
                             backgroundColor: context.theme.appColors.tertiaryBackground,
                             onPressed: () {
                               ProfileRoute(pubkey: profilePubkey).push<void>(context);
