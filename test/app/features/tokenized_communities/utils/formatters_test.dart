@@ -10,7 +10,8 @@ void main() {
   parameterizedGroup('formatTokenAmountWithSubscript', [
     (value: 0.0, expected: '0.00'),
     (value: 1234.56, expected: '1.23K'),
-    (value: 1000000.0, expected: '1.00M'),
+    (value: 1000.0, expected: '1K'),
+    (value: 1000000.0, expected: '1M'),
     (value: 1.0, expected: '1.00'),
     (value: 999.99, expected: '999.99'),
     (value: 0.1, expected: '0.10'),
