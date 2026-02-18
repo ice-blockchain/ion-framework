@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
@@ -15,9 +15,10 @@ class CurrentUserAccountNotificationSets extends _$CurrentUserAccountNotificatio
   @override
   Future<List<AccountNotificationSetEntity>> build() async {
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    if (currentPubkey == null) {
-      throw UserMasterPubkeyNotFoundException();
-    }
+    if (currentPubkey == null) return [];
+
+    final delegationComplete = await ref.watch(delegationCompleteProvider.future);
+    if (!delegationComplete) return [];
 
     final fetches = <Future<AccountNotificationSetEntity?>>[];
     for (final contentType in UserNotificationsType.values) {
