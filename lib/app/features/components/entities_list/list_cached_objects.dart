@@ -10,6 +10,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
 import 'package:ion/app/features/user_block/optimistic_ui/model/blocked_user.f.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ogp_data_extract/ogp_data_extract.dart';
 
 typedef PathWithKey = ({String key, String filePath});
 typedef ValueWithKey = ({String key, String value});
@@ -18,6 +19,7 @@ typedef ValueWithKey = ({String key, String value});
 // we want to cache kind 30175 with key of kind 16 event reference
 typedef EntityWithKey = ({String key, IonConnectEntity entity});
 typedef MessageStatusWithKey = ({String key, MessageDeliveryStatus status});
+typedef OgpDataWithKey = ({String key, OgpData meta});
 
 class ListCachedObjectsWrapper extends StatefulWidget {
   const ListCachedObjectsWrapper({required this.child, super.key});
@@ -50,6 +52,7 @@ class ListCachedObjects extends InheritedWidget {
       final EntityWithKey entityMap => entityMap.key,
       final MessageStatusWithKey statusMap => statusMap.key,
       final ValueWithKey valueWithKey => valueWithKey.key,
+      final OgpDataWithKey ogpDataWithKey => ogpDataWithKey.key,
       final EventMessage event => event.sharedId ?? event.id,
       final MessageMediaTableData media => media.messageEventReference,
       final UserMetadataEntity user => user.masterPubkey,
