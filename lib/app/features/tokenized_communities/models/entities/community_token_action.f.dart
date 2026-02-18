@@ -8,6 +8,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_kind.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -70,6 +71,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     required String network,
     required String bondingCurveAddress,
     required String tokenAddress,
+    required String tokenTicker,
     required String transactionAddress,
     required CommunityTokenActionType type,
     required List<TransactionAmount> amounts,
@@ -90,6 +92,8 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     final network = tags['network']?.firstOrNull?.lastOrNull;
     final bondingCurveAddress = tags['bonding_curve_address']?.firstOrNull?.lastOrNull;
     final tokenAddress = tags['token_address']?.firstOrNull?.lastOrNull;
+    final tokenTicker =
+        tags['token_symbol']?.firstOrNull?.lastOrNull ?? ''; // For backward compatibility
     final transactionAddress = tags['tx_address']?.firstOrNull?.lastOrNull;
     final typeRaw = tags['tx_type']?.firstOrNull?.lastOrNull;
     final type = typeRaw != null
@@ -118,6 +122,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       network: network,
       bondingCurveAddress: bondingCurveAddress,
       tokenAddress: tokenAddress,
+      tokenTicker: tokenTicker,
       transactionAddress: transactionAddress,
       type: type,
       amounts: amounts,
@@ -146,6 +151,9 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     /// Address of the community token on the blockchain
     required String tokenAddress,
 
+    /// Ticker/symbol of the community token on the blockchain
+    required String tokenTicker,
+
     /// Address of the specific transaction for that community token on the blockchain
     required String transactionAddress,
 
@@ -173,6 +181,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       network: network,
       bondingCurveAddress: bondingCurveAddress,
       tokenAddress: tokenAddress,
+      tokenTicker: tokenTicker,
       transactionAddress: transactionAddress,
       type: type,
       amounts: [amountBase, amountQuote, amountUsd],
@@ -187,6 +196,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     List<List<String>> tags = const [],
     int? createdAt,
   }) async {
+    final definitionKind = definitionReference.kind;
     return EventMessage.fromData(
       signer: signer,
       createdAt: createdAt,
@@ -201,8 +211,10 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         ['network', network],
         ['bonding_curve_address', bondingCurveAddress],
         ['token_address', tokenAddress],
+        ['token_symbol', tokenTicker],
         ['tx_address', transactionAddress],
         ['tx_type', type.name],
+        if (definitionKind != null) EventKind(value: definitionKind).toTag(),
       ],
     );
   }
