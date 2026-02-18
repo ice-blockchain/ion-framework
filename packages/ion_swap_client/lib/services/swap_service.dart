@@ -5,6 +5,7 @@ import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
+import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/services/bridge_service.dart';
 import 'package:ion_swap_client/services/cex_service.dart';
 import 'package:ion_swap_client/services/dex_service.dart';
@@ -110,10 +111,11 @@ class SwapService {
         sendCoinCallback: sendCoinCallback,
         swapQuoteInfo: swapQuoteInfo,
       );
+    } on RestrictedRegionException {
+      rethrow;
+    } on IonSwapException {
+      rethrow;
     } on Exception catch (e) {
-      if (e is IonSwapException) {
-        rethrow;
-      }
       throw IonSwapException(
         'Failed to swap coins: $e',
         e,
@@ -185,11 +187,11 @@ class SwapService {
       );
 
       return quote;
+    } on RestrictedRegionException {
+      rethrow;
+    } on IonSwapException {
+      rethrow;
     } on Exception catch (e) {
-      if (e is IonSwapException) {
-        rethrow;
-      }
-
       throw IonSwapException(
         'Failed to get swap quote: $e',
       );
