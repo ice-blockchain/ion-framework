@@ -16,7 +16,7 @@ class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
         )
         .valueOrNull;
 
-    if (networksValue == null) return null;
+    if (networksValue == null) return state.valueOrNull;
 
     final networks = networksValue.map((e) => e.coin.network).toSet().toList();
     final wrappedNetworks = networks.map((e) => SelectedNetworkItem.network(network: e));
