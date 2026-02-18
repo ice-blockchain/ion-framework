@@ -27,7 +27,9 @@ double calculateChartYPadding(double minY, double maxY) {
 ({double minY, double maxY}) calculatePaddedYRange(double minY, double maxY) {
   final padding = calculateChartYPadding(minY, maxY);
   return (
-    minY: (minY - padding).clamp(0.0, double.infinity),
+    // 1% extra bottom padding prevents paddedMinY from landing exactly on
+    // fl_chart's auto-calculated label interval (which excludes it via minIncluded: false).
+    minY: (minY - padding * 1.01).clamp(0.0, double.infinity),
     maxY: maxY + padding,
   );
 }
