@@ -30,10 +30,23 @@ import 'package:flutter_hooks/flutter_hooks.dart';
     initialValue: Matrix4.identity()..scaleByDouble(initialScale, initialScale, 1, 1),
   );
   final isPositioned = useState(false);
+  final previousScaleRef = useRef(initialScale);
 
   useEffect(
     () {
-      isPositioned.value = false;
+      final oldScale = previousScaleRef.value;
+      previousScaleRef.value = initialScale;
+
+      final scaleChangeRatio = oldScale > 0 ? (initialScale - oldScale).abs() / oldScale : 1.0;
+
+      // Hide on initial positioning or significant scale change (>5%),
+      // e.g. a timeframe switch, to prevent 1-frame glitch with wrong
+      // transform. Small changes from realtime candle additions (~1-3%)
+      // reposition silently to avoid flicker.
+      if (!isPositioned.value || scaleChangeRatio > 0.05) {
+        isPositioned.value = false;
+      }
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = chartKey.currentContext;
         if (ctx == null) return;
