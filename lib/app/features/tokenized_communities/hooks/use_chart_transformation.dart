@@ -37,8 +37,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
       final oldScale = previousScaleRef.value;
       previousScaleRef.value = initialScale;
 
-      final scaleChangeRatio =
-          oldScale > 0 ? (initialScale - oldScale).abs() / oldScale : 1.0;
+      final scaleChangeRatio = oldScale > 0 ? (initialScale - oldScale).abs() / oldScale : 1.0;
 
       // Hide on initial positioning or significant scale change (>5%),
       // e.g. a timeframe switch, to prevent 1-frame glitch with wrong
