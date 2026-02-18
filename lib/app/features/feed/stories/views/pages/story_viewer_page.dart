@@ -61,11 +61,8 @@ class StoryViewerPage extends HookConsumerWidget {
     final singleUserStoriesViewerState = ref.watch(
       singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey),
     );
-    final stories = ref
-            .watch(userStoriesProvider(storyViewerState.currentStory?.masterPubkey ?? pubkey))
-            ?.toList() ??
-        [];
     final viewedStories = ref.watch(viewedStoriesProvider) ?? {};
+    final stories = storyViewerState.userStories;
 
     // Prefetch next user's stories when approaching the end of current user's stories
     final currentUserStoriesLeft =
@@ -80,9 +77,7 @@ class StoryViewerPage extends HookConsumerWidget {
     useEffect(
       () {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (initialStoryReference != null &&
-              storyViewerState.userStories.isEmpty &&
-              context.mounted) {
+          if (initialStoryReference != null && stories.isEmpty && context.mounted) {
             ref
                 .read(
                   userStoriesViewingNotifierProvider(
@@ -95,14 +90,14 @@ class StoryViewerPage extends HookConsumerWidget {
         });
         return null;
       },
-      [initialStoryReference, storyViewerState.userStories.isEmpty],
+      [initialStoryReference, stories.isEmpty],
     );
 
     final routeAnimation = ModalRoute.of(context)?.animation;
 
     useEffect(
       () {
-        if (storyViewerState.userStories.isNotEmpty) {
+        if (stories.isNotEmpty) {
           return null;
         }
 
@@ -127,7 +122,7 @@ class StoryViewerPage extends HookConsumerWidget {
         routeAnimation.addStatusListener(listener);
         return () => routeAnimation.removeStatusListener(listener);
       },
-      [storyViewerState.userStories.isEmpty, routeAnimation],
+      [stories.isEmpty, routeAnimation],
     );
 
     final visitedUsers = useRef<Set<String>>(<String>{});
@@ -206,7 +201,7 @@ class StoryViewerPage extends HookConsumerWidget {
                     height: size.height - fixedTop - footerHeight,
                     child: StoriesSwiper(
                       pubkey: pubkey,
-                      userStories: storyViewerState.userStories,
+                      userStories: stories,
                       currentUserIndex: storyViewerState.currentUserIndex,
                       showOnlySelectedUser: showOnlySelectedUser,
                     ),
