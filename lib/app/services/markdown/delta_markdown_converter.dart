@@ -28,6 +28,7 @@ abstract class DeltaMarkdownConverter {
     var currentIndex = 0;
     var lineStartIndex = 0;
     var inCodeBlock = false;
+    var orderedListIndex = 0;
 
     for (final op in mergedOps) {
       if (op.key == 'insert') {
@@ -41,6 +42,7 @@ abstract class DeltaMarkdownConverter {
             currentIndex: currentIndex,
             lineStartIndex: lineStartIndex,
             inCodeBlock: inCodeBlock,
+            orderedListIndex: orderedListIndex,
             pmoTags: pmoTags,
           );
 
@@ -48,6 +50,7 @@ abstract class DeltaMarkdownConverter {
           currentIndex += data.length;
           lineStartIndex = result.lineStartIndex;
           inCodeBlock = result.inCodeBlock;
+          orderedListIndex = result.orderedListIndex;
         } else if (data is Map) {
           final placeholder = _processEmbed(
             data: data,
@@ -58,6 +61,7 @@ abstract class DeltaMarkdownConverter {
           buffer.write(placeholder);
           currentIndex += placeholder.length;
           lineStartIndex = currentIndex;
+          orderedListIndex = 0;
         }
       }
     }
@@ -202,16 +206,19 @@ abstract class DeltaMarkdownConverter {
   static ({
     int lineStartIndex,
     bool inCodeBlock,
+    int orderedListIndex,
   }) _processStringContent({
     required String content,
     required Map<String, dynamic>? attributes,
     required int currentIndex,
     required int lineStartIndex,
     required bool inCodeBlock,
+    required int orderedListIndex,
     required List<PmoTag> pmoTags,
   }) {
     var lineStart = lineStartIndex;
     var inCodeBlockState = inCodeBlock;
+    var currentOrderedListIndex = orderedListIndex;
     var segmentStart = 0;
 
     // Process character by character to detect newlines.
@@ -229,14 +236,17 @@ abstract class DeltaMarkdownConverter {
           );
         }
 
-        inCodeBlockState = _processBlockAttributes(
+        final blockResult = _processBlockAttributes(
           attributes: attributes,
           lineStartIndex: lineStart,
           currentIndex: currentIndex,
           charIndex: i,
           inCodeBlock: inCodeBlockState,
+          orderedListIndex: currentOrderedListIndex,
           pmoTags: pmoTags,
         );
+        inCodeBlockState = blockResult.inCodeBlock;
+        currentOrderedListIndex = blockResult.nextOrderedListIndex;
 
         lineStart = currentIndex + i + 1;
         segmentStart = i + 1;
@@ -257,20 +267,23 @@ abstract class DeltaMarkdownConverter {
     return (
       lineStartIndex: lineStart,
       inCodeBlock: inCodeBlockState,
+      orderedListIndex: currentOrderedListIndex,
     );
   }
 
   /// Processes block-level attributes (headers, lists, blockquotes, code blocks).
-  /// Returns the updated [inCodeBlock] state.
-  static bool _processBlockAttributes({
+  /// Returns the updated [inCodeBlock] state and [nextOrderedListIndex] for ordered list numbering.
+  static ({bool inCodeBlock, int nextOrderedListIndex}) _processBlockAttributes({
     required Map<String, dynamic>? attributes,
     required int lineStartIndex,
     required int currentIndex,
     required int charIndex,
     required bool inCodeBlock,
+    required int orderedListIndex,
     required List<PmoTag> pmoTags,
   }) {
     var updatedInCodeBlock = inCodeBlock;
+    var nextOrderedListIndex = 0;
 
     // Check for code block transitions (must check even when attributes is null)
     final isCodeBlockLine = attributes?.containsKey('code-block') ?? false;
@@ -301,8 +314,13 @@ abstract class DeltaMarkdownConverter {
       if (attributes.containsKey('list')) {
         final listType = attributes['list'];
         if (listType != null) {
-          final marker = listType == 'ordered' ? '1. ' : '- ';
-          pmoTags.add(PmoTag(start: lineStartIndex, end: lineStartIndex, replacement: marker));
+          if (listType == 'ordered') {
+            nextOrderedListIndex = orderedListIndex + 1;
+            final marker = '$nextOrderedListIndex. ';
+            pmoTags.add(PmoTag(start: lineStartIndex, end: lineStartIndex, replacement: marker));
+          } else {
+            pmoTags.add(PmoTag(start: lineStartIndex, end: lineStartIndex, replacement: '- '));
+          }
         }
       }
       if (attributes.containsKey('blockquote')) {
@@ -310,7 +328,7 @@ abstract class DeltaMarkdownConverter {
       }
     }
 
-    return updatedInCodeBlock;
+    return (inCodeBlock: updatedInCodeBlock, nextOrderedListIndex: nextOrderedListIndex);
   }
 
   /// Processes inline attributes (bold, italic, strike, underline, code, link).
