@@ -30,11 +30,10 @@ List<EntitiesDataSource>? searchFollowingUsersDataSource(
       requestFilter: RequestFilter(
         kinds: const [UserMetadataEntity.kind],
         authors: followingList.masterPubkeys,
-        search: SearchExtensions(
-          [
-            QuerySearchExtension(searchQuery: query),
-          ],
-        ).toString(),
+        search: SearchExtensions([
+          QuerySearchExtension(searchQuery: query),
+          ...SearchExtensions.forUserMetadata().extensions,
+        ]).toString(),
         limit: 20,
       ),
     ),

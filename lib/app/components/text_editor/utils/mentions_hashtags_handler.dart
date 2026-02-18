@@ -157,7 +157,7 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
 
   // Gets cached market cap value (non-blocking for optimistic behavior, returns null if not cached).
   double? _getCachedMarketCap(String pubkey) {
-    return ref.read(userTokenMarketCapProvider(pubkey));
+    return ref.read(userTokenMarketCapIfAvailableProvider(pubkey));
   }
 
   // Gets cached market cap for a tokenized community token by external address.

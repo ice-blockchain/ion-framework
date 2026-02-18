@@ -133,10 +133,17 @@ void processMentionEmbeds(QuillController controller, WidgetRef ref) {
   }
 }
 
+class _MentionRecord {
+  _MentionRecord({required this.pubkey, required this.showMarketCap});
+
+  final String pubkey;
+  final bool showMarketCap;
+}
+
 // Extracts mention pubkeys from a document delta.
 // Returns list of unique pubkeys found in both mention embeds and text mentions with attributes.
-List<String> _extractMentionPubkeys(Delta delta) {
-  final pubkeys = <String>{};
+List<_MentionRecord> _extractMentionPubkeys(Delta delta) {
+  final mentions = <_MentionRecord>[];
 
   for (final op in delta.operations) {
     final data = op.data;
@@ -148,7 +155,7 @@ List<String> _extractMentionPubkeys(Delta delta) {
         final mentionData = MentionEmbedData.fromJson(
           Map<String, dynamic>.from(data[mentionEmbedKey] as Map),
         );
-        pubkeys.add(mentionData.pubkey);
+        mentions.add(_MentionRecord(pubkey: mentionData.pubkey, showMarketCap: true));
       } catch (_) {
         // Skip invalid mention data
       }
@@ -158,14 +165,16 @@ List<String> _extractMentionPubkeys(Delta delta) {
       try {
         final encodedRef = attrs[MentionAttribute.attributeKey] as String;
         final eventReference = EventReference.fromEncoded(encodedRef);
-        pubkeys.add(eventReference.masterPubkey);
+        final showMarketCap = attrs[MentionAttribute.showMarketCapKey] == true;
+        mentions
+            .add(_MentionRecord(pubkey: eventReference.masterPubkey, showMarketCap: showMarketCap));
       } catch (_) {
         // Skip invalid references
       }
     }
   }
 
-  return pubkeys.toList();
+  return mentions.toList();
 }
 
 // Hook that processes mention embeds bidirectionally based on market cap availability.
@@ -182,7 +191,7 @@ void useProcessMentionEmbeds(
   bool enabled = true,
 }) {
   // Store current pubkeys and only update when they actually change
-  final mentionPubkeys = useState<List<String>>([]);
+  final mentionRecords = useState<List<_MentionRecord>>([]);
 
   // Guard to prevent feedback loops during processing
   final isProcessing = useRef(false);
@@ -197,12 +206,12 @@ void useProcessMentionEmbeds(
         final delta = controller.document.toDelta();
         final newPubkeys = _extractMentionPubkeys(delta);
         final newPubkeysSet = newPubkeys.toSet();
-        final currentPubkeysSet = mentionPubkeys.value.toSet();
+        final currentPubkeysSet = mentionRecords.value.toSet();
 
         // Only update if pubkeys actually changed
         if (newPubkeysSet.length != currentPubkeysSet.length ||
             !newPubkeysSet.containsAll(currentPubkeysSet)) {
-          mentionPubkeys.value = newPubkeys;
+          mentionRecords.value = newPubkeys;
         }
       }
 
@@ -220,13 +229,15 @@ void useProcessMentionEmbeds(
   );
 
   // Watch all market cap providers reactively
-  final marketCapStates =
-      mentionPubkeys.value.map((pubkey) => ref.watch(userTokenMarketCapProvider(pubkey))).toList();
+  final marketCapStates = mentionRecords.value
+      .where((record) => record.showMarketCap)
+      .map((record) => ref.watch(userTokenMarketCapProvider(record.pubkey)))
+      .toList();
 
   // Re-run processing when providers finish loading (reactive to provider changes)
   useEffect(
     () {
-      if (!enabled || controller == null || mentionPubkeys.value.isEmpty) return null;
+      if (!enabled || controller == null || mentionRecords.value.isEmpty) return null;
 
       // Skip if already processing (prevents feedback loops)
       if (isProcessing.value) return null;

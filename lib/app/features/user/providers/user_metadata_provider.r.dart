@@ -134,10 +134,7 @@ class UserMetadataInvalidatorNotifier extends _$UserMetadataInvalidatorNotifier 
 }
 
 String _buildSearchForDependencies() {
-  return SearchExtensions([
-    ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
-    ...SearchExtensions.withTokens(forKind: UserMetadataEntity.kind).extensions,
-  ]).toString();
+  return SearchExtensions.forUserMetadata().toString();
 }
 
 @riverpod

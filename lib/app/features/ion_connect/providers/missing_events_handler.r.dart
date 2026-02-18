@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
+import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -50,6 +51,7 @@ class MissingEventsHandler implements EventsMetadataHandler {
           eventReferences: userMetadataEvents,
           cacheStrategy: DatabaseCacheStrategy.returnIfNotExpired,
           expirationDuration: _userMetadataExpirationDuration,
+          search: SearchExtensions.forUserMetadata().toString(),
         ),
       if (restEvents.isNotEmpty) _ionConnectEntitiesManager.fetch(eventReferences: restEvents),
     ]);

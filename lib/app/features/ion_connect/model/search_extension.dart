@@ -64,6 +64,15 @@ class SearchExtensions {
     ]);
   }
 
+  /// Search to use whenever fetching user metadata so that token definitions
+  /// (and first-buy) are always requested and cached together with profile data.
+  factory SearchExtensions.forUserMetadata() {
+    return SearchExtensions([
+      ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
+      ...SearchExtensions.withTokens(forKind: UserMetadataEntity.kind).extensions,
+    ]);
+  }
+
   final List<SearchExtension> extensions;
 
   @override

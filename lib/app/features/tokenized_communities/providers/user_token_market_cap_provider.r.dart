@@ -10,7 +10,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'user_token_market_cap_provider.r.g.dart';
 
 @riverpod
-double? userTokenMarketCap(Ref ref, String masterPubkey) {
+double? userTokenMarketCapIfAvailable(Ref ref, String masterPubkey) {
   final eventReference = ReplaceableEventReference(
     masterPubkey: masterPubkey,
     kind: UserMetadataEntity.kind,
@@ -18,6 +18,19 @@ double? userTokenMarketCap(Ref ref, String masterPubkey) {
 
   return ref.watch(
     tokenMarketInfoIfAvailableProvider(eventReference)
+        .select((AsyncValue<CommunityToken?> state) => state.valueOrNull?.marketData.marketCap),
+  );
+}
+
+@riverpod
+double? userTokenMarketCap(Ref ref, String masterPubkey) {
+  final eventReference = ReplaceableEventReference(
+    masterPubkey: masterPubkey,
+    kind: UserMetadataEntity.kind,
+  );
+
+  return ref.watch(
+    tokenMarketInfoProvider(eventReference.toString())
         .select((AsyncValue<CommunityToken?> state) => state.valueOrNull?.marketData.marketCap),
   );
 }

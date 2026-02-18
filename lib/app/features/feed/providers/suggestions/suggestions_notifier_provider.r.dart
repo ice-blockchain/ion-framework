@@ -68,7 +68,7 @@ class SuggestionsNotifier extends _$SuggestionsNotifier {
     }
 
     if (query.isEmpty) {
-      ref.invalidate(suggestionsNotifierProvider);
+      state = const SuggestionsState();
       return;
     }
 

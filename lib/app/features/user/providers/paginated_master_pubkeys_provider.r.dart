@@ -90,10 +90,7 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
                     ),
                   )
                   .toList(),
-              search: SearchExtensions([
-                ProfileBadgesSearchExtension(forKind: UserMetadataEntity.kind),
-                ...SearchExtensions.withTokens(forKind: UserMetadataEntity.kind).extensions,
-              ]).toString(),
+              search: SearchExtensions.forUserMetadata().toString(),
             ),
       );
 
