@@ -3,7 +3,21 @@
 import 'package:decimal/decimal.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-enum ChartTimeRange { m1, m3, m5, m15, m30, h1, d1 }
+enum ChartTimeRange {
+  m1('1m', '1m', Duration(minutes: 1)),
+  m3('3m', '3m', Duration(minutes: 3)),
+  m5('5m', '5m', Duration(minutes: 5)),
+  m15('15m', '15m', Duration(minutes: 15)),
+  m30('30m', '30m', Duration(minutes: 30)),
+  h1('1h', '1h', Duration(hours: 1)),
+  d1('1d', '24h', Duration(days: 1)); // Different intervalString here (24h)
+
+  const ChartTimeRange(this.label, this.intervalString, this.duration);
+
+  final String label;
+  final String intervalString;
+  final Duration duration;
+}
 
 enum ChartMetric { close, marketCap }
 
@@ -11,38 +25,6 @@ extension ChartMetricExtension on ChartMetric {
   String get iconAsset => switch (this) {
         ChartMetric.close => Assets.svg.iconTagPriceLinear,
         ChartMetric.marketCap => Assets.svg.iconMemeMarketcap,
-      };
-}
-
-extension ChartTimeRangeExtension on ChartTimeRange {
-  String get label => switch (this) {
-        ChartTimeRange.m1 => '1m',
-        ChartTimeRange.m3 => '3m',
-        ChartTimeRange.m5 => '5m',
-        ChartTimeRange.m15 => '15m',
-        ChartTimeRange.m30 => '30m',
-        ChartTimeRange.h1 => '1h',
-        ChartTimeRange.d1 => '1d',
-      };
-
-  String get intervalString => switch (this) {
-        ChartTimeRange.m1 => '1m',
-        ChartTimeRange.m3 => '3m',
-        ChartTimeRange.m5 => '5m',
-        ChartTimeRange.m15 => '15m',
-        ChartTimeRange.m30 => '30m',
-        ChartTimeRange.h1 => '1h',
-        ChartTimeRange.d1 => '24h',
-      };
-
-  Duration get duration => switch (this) {
-        ChartTimeRange.m1 => const Duration(minutes: 1),
-        ChartTimeRange.m3 => const Duration(minutes: 3),
-        ChartTimeRange.m5 => const Duration(minutes: 5),
-        ChartTimeRange.m15 => const Duration(minutes: 15),
-        ChartTimeRange.m30 => const Duration(minutes: 30),
-        ChartTimeRange.h1 => const Duration(hours: 1),
-        ChartTimeRange.d1 => const Duration(days: 1),
       };
 }
 
