@@ -358,11 +358,11 @@ PODS:
   - SecureBiometricSwift (0.0.2)
   - sensors_plus (0.0.1):
     - Flutter
-  - Sentry/HybridSDK (8.46.0)
-  - sentry_flutter (8.14.2):
+  - Sentry/HybridSDK (8.56.2)
+  - sentry_flutter (9.13.0):
     - Flutter
     - FlutterMacOS
-    - Sentry/HybridSDK (= 8.46.0)
+    - Sentry/HybridSDK (= 8.56.2)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -742,8 +742,8 @@ SPEC CHECKSUMS:
   SDWebImage: 1bb6a1b84b6fe87b972a102bdc77dd589df33477
   SecureBiometricSwift: f8a373c07fb46c9ca1b2b53be51a485d2828a3d8
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
-  Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
-  sentry_flutter: 27892878729f42701297c628eb90e7c6529f3684
+  Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7
+  sentry_flutter: dbed9a62ae39716b685a80140705c330d200d941
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   social_sharing_plus: e6024862e5a4be59ef8c97a93558cba1043628bf
