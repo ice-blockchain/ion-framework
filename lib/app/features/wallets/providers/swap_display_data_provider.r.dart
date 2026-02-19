@@ -7,6 +7,7 @@ import 'package:ion/app/features/wallets/model/swap_display_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_side_data.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_details.f.dart';
 import 'package:ion/app/features/wallets/providers/swap_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'swap_display_data_provider.r.g.dart';
@@ -20,6 +21,24 @@ Future<SwapDisplayData?> swapDisplayData(Ref ref, String partTxHash) async {
   final buyData = _extractSwapSideData(swap.toTransaction, swap.expectedBuyData);
 
   if (sellData == null || buyData == null) return null;
+
+  final isIonBscSwap = SwapCoinIdentifier.isIonBscSwap(
+    sellCoin: sellData.coins,
+    sellNetwork: sellData.network,
+    buyCoin: buyData.coins,
+    buyNetwork: buyData.network,
+  );
+
+  if (isIonBscSwap) {
+    return SwapDisplayData(
+      sellData: sellData,
+      buyData: buyData.copyWith(
+        amount: sellData.amount,
+      ),
+      exchangeRate: swap.exchangeRate,
+      hideBuyAmount: false,
+    );
+  }
 
   return SwapDisplayData(
     sellData: sellData,
