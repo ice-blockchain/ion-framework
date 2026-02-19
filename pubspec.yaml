@@ -171,7 +171,7 @@ dependencies:
   rxdart: ^0.28.0
   screenshot: ^3.0.0
   sensors_plus: ^6.1.1
-  sentry_flutter: ^8.14.2
+  sentry_flutter: ^9.13.0
   share_plus: ^10.0.2
   shared_preferences: ^2.3.5
   shared_preferences_foundation: ^2.5.4
@@ -217,7 +217,7 @@ dev_dependencies:
   melos: ^6.1.0
   riverpod_generator: ^2.6.1
   riverpod_lint: ^2.6.1
-  sentry_dart_plugin: ^2.4.1
+  sentry_dart_plugin: ^3.2.1
   very_good_analysis: ^6.0.0
   video_player_platform_interface: ^6.6.0
 
@@ -285,7 +285,11 @@ dependency_overrides:
   js: ^0.7.1
 
 sentry:
-  upload_debug_symbols: true
+  upload_debug_symbols: false
   upload_source_maps: true
   project: ion-app-testnet
   org: sentry
+  symbols_path: build/flutter_symbols
+  dsyms_path: build/ios/archive/Runner.xcarchive/dSYMs
+  # Enables readable obfuscated issue titles (requires --extra-gen-snapshot-options=--save-obfuscation-map=...)
+  dart_symbol_map_path: build/app/obfuscation.map.json
