@@ -9,8 +9,13 @@ abstract class CoinTransferRequestBody {
   String get amount;
 }
 
-@Freezed(unionKey: 'kind')
+@Freezed(unionKey: 'kind', fallbackUnion: 'unknown')
 class TransferRequestBody with _$TransferRequestBody {
+  @FreezedUnionValue('unknown')
+  const factory TransferRequestBody.unknown({
+    required String kind,
+  }) = UnknownTransferRequestBody;
+
   @FreezedUnionValue('Native')
   @Implements<CoinTransferRequestBody>()
   const factory TransferRequestBody.native({

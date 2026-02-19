@@ -22,9 +22,9 @@ ExolixNetwork _$ExolixNetworkFromJson(Map<String, dynamic> json) {
 mixin _$ExolixNetwork {
   String get network => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String get shortName => throw _privateConstructorUsedError;
   bool get isDefault => throw _privateConstructorUsedError;
   String? get contract => throw _privateConstructorUsedError;
+  String get shortName => throw _privateConstructorUsedError;
 
   /// Serializes this ExolixNetwork to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -45,9 +45,9 @@ abstract class $ExolixNetworkCopyWith<$Res> {
   $Res call(
       {String network,
       String name,
-      String shortName,
       bool isDefault,
-      String? contract});
+      String? contract,
+      String shortName});
 }
 
 /// @nodoc
@@ -67,9 +67,9 @@ class _$ExolixNetworkCopyWithImpl<$Res, $Val extends ExolixNetwork>
   $Res call({
     Object? network = null,
     Object? name = null,
-    Object? shortName = null,
     Object? isDefault = null,
     Object? contract = freezed,
+    Object? shortName = null,
   }) {
     return _then(_value.copyWith(
       network: null == network
@@ -80,10 +80,6 @@ class _$ExolixNetworkCopyWithImpl<$Res, $Val extends ExolixNetwork>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      shortName: null == shortName
-          ? _value.shortName
-          : shortName // ignore: cast_nullable_to_non_nullable
-              as String,
       isDefault: null == isDefault
           ? _value.isDefault
           : isDefault // ignore: cast_nullable_to_non_nullable
@@ -92,6 +88,10 @@ class _$ExolixNetworkCopyWithImpl<$Res, $Val extends ExolixNetwork>
           ? _value.contract
           : contract // ignore: cast_nullable_to_non_nullable
               as String?,
+      shortName: null == shortName
+          ? _value.shortName
+          : shortName // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -107,9 +107,9 @@ abstract class _$$ExolixNetworkImplCopyWith<$Res>
   $Res call(
       {String network,
       String name,
-      String shortName,
       bool isDefault,
-      String? contract});
+      String? contract,
+      String shortName});
 }
 
 /// @nodoc
@@ -127,9 +127,9 @@ class __$$ExolixNetworkImplCopyWithImpl<$Res>
   $Res call({
     Object? network = null,
     Object? name = null,
-    Object? shortName = null,
     Object? isDefault = null,
     Object? contract = freezed,
+    Object? shortName = null,
   }) {
     return _then(_$ExolixNetworkImpl(
       network: null == network
@@ -140,10 +140,6 @@ class __$$ExolixNetworkImplCopyWithImpl<$Res>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      shortName: null == shortName
-          ? _value.shortName
-          : shortName // ignore: cast_nullable_to_non_nullable
-              as String,
       isDefault: null == isDefault
           ? _value.isDefault
           : isDefault // ignore: cast_nullable_to_non_nullable
@@ -152,6 +148,10 @@ class __$$ExolixNetworkImplCopyWithImpl<$Res>
           ? _value.contract
           : contract // ignore: cast_nullable_to_non_nullable
               as String?,
+      shortName: null == shortName
+          ? _value.shortName
+          : shortName // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -162,9 +162,9 @@ class _$ExolixNetworkImpl implements _ExolixNetwork {
   _$ExolixNetworkImpl(
       {required this.network,
       required this.name,
-      required this.shortName,
       required this.isDefault,
-      required this.contract});
+      this.contract,
+      this.shortName = ''});
 
   factory _$ExolixNetworkImpl.fromJson(Map<String, dynamic> json) =>
       _$$ExolixNetworkImplFromJson(json);
@@ -174,15 +174,16 @@ class _$ExolixNetworkImpl implements _ExolixNetwork {
   @override
   final String name;
   @override
-  final String shortName;
-  @override
   final bool isDefault;
   @override
   final String? contract;
+  @override
+  @JsonKey()
+  final String shortName;
 
   @override
   String toString() {
-    return 'ExolixNetwork(network: $network, name: $name, shortName: $shortName, isDefault: $isDefault, contract: $contract)';
+    return 'ExolixNetwork(network: $network, name: $name, isDefault: $isDefault, contract: $contract, shortName: $shortName)';
   }
 
   @override
@@ -192,18 +193,18 @@ class _$ExolixNetworkImpl implements _ExolixNetwork {
             other is _$ExolixNetworkImpl &&
             (identical(other.network, network) || other.network == network) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.shortName, shortName) ||
-                other.shortName == shortName) &&
             (identical(other.isDefault, isDefault) ||
                 other.isDefault == isDefault) &&
             (identical(other.contract, contract) ||
-                other.contract == contract));
+                other.contract == contract) &&
+            (identical(other.shortName, shortName) ||
+                other.shortName == shortName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, network, name, shortName, isDefault, contract);
+      Object.hash(runtimeType, network, name, isDefault, contract, shortName);
 
   /// Create a copy of ExolixNetwork
   /// with the given fields replaced by the non-null parameter values.
@@ -225,9 +226,9 @@ abstract class _ExolixNetwork implements ExolixNetwork {
   factory _ExolixNetwork(
       {required final String network,
       required final String name,
-      required final String shortName,
       required final bool isDefault,
-      required final String? contract}) = _$ExolixNetworkImpl;
+      final String? contract,
+      final String shortName}) = _$ExolixNetworkImpl;
 
   factory _ExolixNetwork.fromJson(Map<String, dynamic> json) =
       _$ExolixNetworkImpl.fromJson;
@@ -237,11 +238,11 @@ abstract class _ExolixNetwork implements ExolixNetwork {
   @override
   String get name;
   @override
-  String get shortName;
-  @override
   bool get isDefault;
   @override
   String? get contract;
+  @override
+  String get shortName;
 
   /// Create a copy of ExolixNetwork
   /// with the given fields replaced by the non-null parameter values.
