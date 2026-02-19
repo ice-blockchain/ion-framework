@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
@@ -20,25 +21,29 @@ part 'swap_transaction_linker.r.g.dart';
 
 @Riverpod(keepAlive: true)
 Future<SwapTransactionLinker> swapTransactionLinker(Ref ref) async {
+  final env = ref.watch(envProvider.notifier);
   return SwapTransactionLinker(
-    await ref.watch(swapsRepositoryProvider.future),
-    await ref.watch(transactionsRepositoryProvider.future),
+    swapsRepository: await ref.watch(swapsRepositoryProvider.future),
+    transactionsRepository: await ref.watch(transactionsRepositoryProvider.future),
+    ionSwapContractAddress: env.get(EnvVariable.CRYPTOCURRENCIES_ION_SWAP_CONTRACT_ADDRESS),
   );
 }
 
 class SwapTransactionLinker {
-  SwapTransactionLinker(
-    this._swapsRepository,
-    this._transactionsRepository,
-  );
+  SwapTransactionLinker({
+    required SwapsRepository swapsRepository,
+    required TransactionsRepository transactionsRepository,
+    required String ionSwapContractAddress,
+  })  : _swapsRepository = swapsRepository,
+        _transactionsRepository = transactionsRepository,
+        _identifiers = [
+          IonSwapTxIdentifier(),
+          BscSwapTxIdentifier(ionSwapContractAddress: ionSwapContractAddress),
+        ];
 
   final SwapsRepository _swapsRepository;
   final TransactionsRepository _transactionsRepository;
-
-  final List<SwapTransactionIdentifier> _identifiers = [
-    IonSwapTxIdentifier(),
-    BscSwapTxIdentifier(),
-  ];
+  final List<SwapTransactionIdentifier> _identifiers;
 
   StreamSubscription<List<SwapTransactions>>? _swapSubscription;
   StreamSubscription<List<TransactionData>>? _incomingTxSubscription;
