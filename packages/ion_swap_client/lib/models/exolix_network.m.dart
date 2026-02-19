@@ -10,9 +10,9 @@ class ExolixNetwork with _$ExolixNetwork {
   factory ExolixNetwork({
     required String network,
     required String name,
-    @Default('') String shortName,
     required bool isDefault,
-    required String? contract,
+    String? contract,
+    @Default('') String shortName,
   }) = _ExolixNetwork;
 
   factory ExolixNetwork.fromJson(Map<String, dynamic> json) => _$ExolixNetworkFromJson(json);
