@@ -15,7 +15,6 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/provi
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
-// TODO(ice-erebus): add recent coins
 class SwapSelectCoinPage extends ConsumerWidget {
   const SwapSelectCoinPage({
     required this.selectNetworkRouteLocationBuilder,
@@ -45,23 +44,8 @@ class SwapSelectCoinPage extends ConsumerWidget {
         CoinSwapType.buy => sellNetwork,
       };
 
-      //todo restricts swap coins to ION/ICE only, needed for release, remove after
-      // if (otherCoin == null || otherNetwork == null) {
-      //   return coinGroups;
-      // }
-      //
-      // if (type == CoinSwapType.sell && !SwapCoinIdentifier.isInternalCoin(buyCoin, buyNetwork)) {
-      //   return coinGroups;
-      // }
-      // if (type == CoinSwapType.buy && !SwapCoinIdentifier.isInternalCoin(sellCoin, sellNetwork)) {
-      //   return coinGroups;
-      // }
-
       return coinGroups.whenData((coinList) {
         return coinList.where((coin) {
-          if (!SwapCoinIdentifier.isInternalCoinGroup(coin)) {
-            return false;
-          }
           if (otherCoin == null || otherNetwork == null) {
             return true;
           }

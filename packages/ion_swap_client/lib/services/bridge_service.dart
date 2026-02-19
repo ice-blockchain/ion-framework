@@ -4,24 +4,27 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/exceptions/relay_exception.dart';
+import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/relay_quote.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
-import 'package:ion_swap_client/services/swap_service.dart';
 import 'package:ion_swap_client/utils/crypto_amount_converter.dart';
+import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 
 class BridgeService {
   BridgeService({
     required RelayApiRepository relayApiRepository,
-  }) : _relayApiRepository = relayApiRepository;
-
+    required IonIdentityTransactionApi ionIdentityTransactionApi,
+  })  : _relayApiRepository = relayApiRepository,
+        _ionIdentityTransactionApi = ionIdentityTransactionApi;
   final RelayApiRepository _relayApiRepository;
+  final IonIdentityTransactionApi _ionIdentityTransactionApi;
 
-  Future<void> tryToBridge({
+  Future<String?> tryToBridge({
     required SwapCoinParameters swapCoinData,
-    required SendCoinCallback sendCoinCallback,
     required SwapQuoteInfo swapQuoteInfo,
+    required IonSwapRequest ionSwapRequest,
   }) async {
     if (swapQuoteInfo.source == SwapQuoteInfoSource.relay) {
       final relayQuote = swapQuoteInfo.relayQuote;
@@ -36,11 +39,25 @@ class BridgeService {
         throw const IonSwapException('Relay: Deposit step is required');
       }
 
-      await sendCoinCallback(
-        depositAddress: depositStep.data.to,
-        amount: num.parse(relayDepositAmount),
+      final sendableAsset = ionSwapRequest.sendableAsset;
+      if (sendableAsset == null) {
+        throw const IonSwapException('Lets Exchange: Sendable asset is required');
+      }
+
+      final hash = await _ionIdentityTransactionApi.makeTransfer(
+        walletId: ionSwapRequest.wallet.id,
+        userActionSigner: ionSwapRequest.userActionSigner,
+        to: depositStep.data.to,
+        amount: double.parse(
+          relayDepositAmount,
+        ),
+        sendableAsset: sendableAsset,
       );
+
+      return hash;
     }
+
+    return null;
   }
 
   Future<RelayQuote> getQuote(SwapCoinParameters swapCoinData) async {

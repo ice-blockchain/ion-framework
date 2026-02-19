@@ -70,15 +70,19 @@ class SwapControllerLocator {
       ),
       okxService: DexService(
         swapOkxRepository: okxRepository,
+        evmTxBuilder: evmTxBuilder,
         chainsIdsRepository: ChainsIdsRepository(),
+        ionIdentityTransactionApi: ionIdentityTransactionApi,
       ),
       cexService: CexService(
         letsExchangeRepository: letsExchangeRepository,
         exolixRepository: exolixRepository,
         config: config,
+        ionIdentityTransactionApi: ionIdentityTransactionApi,
       ),
       bridgeService: BridgeService(
         relayApiRepository: relayApiRepository,
+        ionIdentityTransactionApi: ionIdentityTransactionApi,
       ),
     );
 

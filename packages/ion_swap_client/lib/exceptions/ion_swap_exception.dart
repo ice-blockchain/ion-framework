@@ -7,7 +7,7 @@ class IonSwapException implements Exception {
   final Object? originalError;
 
   @override
-  String toString() => 'IonSwapException: $message';
+  String toString() => 'IonSwapException: $message, originalError: $originalError';
 }
 
 class IonSwapCoinPairNotFoundException extends IonSwapException {

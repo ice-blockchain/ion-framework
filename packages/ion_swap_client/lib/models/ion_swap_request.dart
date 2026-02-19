@@ -9,9 +9,11 @@ class IonSwapRequest {
     required this.identityClient,
     required this.wallet,
     required this.userActionSigner,
+    required this.sendableAsset,
   });
 
   final IONIdentityClient identityClient;
   final Wallet wallet;
   final UserActionSignerNew userActionSigner;
+  final WalletAsset? sendableAsset;
 }
