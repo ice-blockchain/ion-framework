@@ -6,6 +6,7 @@ import 'package:ion_swap_client/ion_swap_config.dart';
 import 'package:ion_swap_client/models/exolix_coin.m.dart';
 import 'package:ion_swap_client/models/exolix_network.m.dart';
 import 'package:ion_swap_client/models/exolix_rate.m.dart';
+import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/lets_exchange_coin.m.dart';
 import 'package:ion_swap_client/models/lets_exchange_info.m.dart';
 import 'package:ion_swap_client/models/lets_exchange_network.m.dart';
@@ -13,25 +14,28 @@ import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/exolix_repository.dart';
 import 'package:ion_swap_client/repositories/lets_exchange_repository.dart';
-import 'package:ion_swap_client/services/swap_service.dart';
+import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 
 class CexService {
   CexService({
     required LetsExchangeRepository letsExchangeRepository,
     required ExolixRepository exolixRepository,
     required IONSwapConfig config,
+    required IonIdentityTransactionApi ionIdentityTransactionApi,
   })  : _letsExchangeRepository = letsExchangeRepository,
         _exolixRepository = exolixRepository,
-        _config = config;
+        _config = config,
+        _ionIdentityTransactionApi = ionIdentityTransactionApi;
 
   final LetsExchangeRepository _letsExchangeRepository;
   final ExolixRepository _exolixRepository;
   final IONSwapConfig _config;
+  final IonIdentityTransactionApi _ionIdentityTransactionApi;
 
-  Future<void> tryToCexSwap({
+  Future<String> tryToCexSwap({
     required SwapCoinParameters swapCoinData,
-    required SendCoinCallback sendCoinCallback,
     required SwapQuoteInfo swapQuoteInfo,
+    required IonSwapRequest ionSwapRequest,
   }) async {
     try {
       if (swapQuoteInfo.source == SwapQuoteInfoSource.exolix) {
@@ -40,10 +44,10 @@ class CexService {
           throw const IonSwapException('Exolix: Rate is required');
         }
 
-        await _swapOnExolix(
+        return _swapOnExolix(
           swapCoinData,
-          sendCoinCallback,
           exolixRate,
+          ionSwapRequest,
         );
       } else if (swapQuoteInfo.source == SwapQuoteInfoSource.letsExchange) {
         final letsExchangeInfo = swapQuoteInfo.letsExchangeQuote;
@@ -51,10 +55,10 @@ class CexService {
           throw const IonSwapException('Lets Exchange: Rate is required');
         }
 
-        await _swapOnLetsExchange(
+        return _swapOnLetsExchange(
           swapCoinData,
-          sendCoinCallback,
           letsExchangeInfo,
+          ionSwapRequest,
         );
       } else {
         throw const IonSwapException('Failed to swap on Cex: Invalid quote source');
@@ -160,10 +164,10 @@ class CexService {
     }
   }
 
-  Future<void> _swapOnLetsExchange(
+  Future<String> _swapOnLetsExchange(
     SwapCoinParameters swapCoinData,
-    SendCoinCallback sendCoinCallback,
     LetsExchangeInfo letsExchangeInfo,
+    IonSwapRequest ionSwapRequest,
   ) async {
     final withdrawalAddress = swapCoinData.userBuyAddress;
     if (withdrawalAddress == null) {
@@ -185,10 +189,20 @@ class CexService {
       withdrawalExtraId: swapCoinData.buyCoin.extraId,
     );
 
-    await sendCoinCallback(
-      depositAddress: transaction.deposit,
-      amount: num.parse(transaction.depositAmount),
+    final sendableAsset = ionSwapRequest.sendableAsset;
+    if (sendableAsset == null) {
+      throw const IonSwapException('Lets Exchange: Sendable asset is required');
+    }
+
+    final hash = await _ionIdentityTransactionApi.makeTransfer(
+      walletId: ionSwapRequest.wallet.id,
+      userActionSigner: ionSwapRequest.userActionSigner,
+      to: transaction.deposit,
+      amount: double.parse(transaction.depositAmount),
+      sendableAsset: sendableAsset,
     );
+
+    return hash;
   }
 
   Future<LetsExchangeInfo?> _getQuoteOnLetsExchange({
@@ -214,10 +228,10 @@ class CexService {
     }
   }
 
-  Future<void> _swapOnExolix(
+  Future<String> _swapOnExolix(
     SwapCoinParameters swapCoinData,
-    SendCoinCallback sendCoinCallback,
     ExolixRate exolixRate,
+    IonSwapRequest ionSwapRequest,
   ) async {
     final (sellCoin, buyCoin, sellNetwork, buyNetwork) =
         await _getSwapDataExolix(swapCoinData: swapCoinData);
@@ -239,10 +253,20 @@ class CexService {
           swapCoinData.buyCoin.extraId.isNotEmpty ? swapCoinData.buyCoin.extraId : null,
     );
 
-    await sendCoinCallback(
-      depositAddress: transaction.depositAddress,
-      amount: transaction.amount,
+    final sendableAsset = ionSwapRequest.sendableAsset;
+    if (sendableAsset == null) {
+      throw const IonSwapException('Exolix: Sendable asset is required');
+    }
+
+    final hash = await _ionIdentityTransactionApi.makeTransfer(
+      walletId: ionSwapRequest.wallet.id,
+      userActionSigner: ionSwapRequest.userActionSigner,
+      to: transaction.depositAddress,
+      amount: transaction.amount.toDouble(),
+      sendableAsset: sendableAsset,
     );
+
+    return hash;
   }
 
   Future<ExolixRate?> _getQuoteOnExolix({

@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -18,6 +17,7 @@ import 'package:ion/app/features/wallets/model/wallet_view_data.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/utils/find_coin_util.r.dart';
 import 'package:ion/app/features/wallets/utils/wallet_asset_utils.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
@@ -91,22 +91,6 @@ class SendAssetFormController extends _$SendAssetFormController {
     );
   }
 
-  Future<CoinData?> _findCoinDataForNetwork({
-    required NetworkData network,
-    required CoinAssetToSendData coin,
-  }) async {
-    final existingOption = coin.coinsGroup.coins.firstWhereOrNull(
-      (e) => e.coin.network == network,
-    );
-
-    return existingOption?.coin ??
-        await _getCoinDataForNetwork(
-          network: network,
-          symbolGroup: coin.coinsGroup.symbolGroup,
-          abbreviation: coin.coinsGroup.abbreviation,
-        );
-  }
-
   Future<void> _updateNetworkFeeState({
     required CoinAssetToSendData coin,
     required CoinInWalletData selectedOption,
@@ -155,7 +139,11 @@ class SendAssetFormController extends _$SendAssetFormController {
       );
 
       if (selectedOption == null) {
-        final coinData = await _findCoinDataForNetwork(network: network, coin: coin);
+        final findCoinUtil = await ref.read(findCoinUtilProvider.future);
+        final coinData = await findCoinUtil.findCoinDataForNetwork(
+          network: network,
+          coin: coin,
+        );
 
         if (coinData != null) {
           selectedOption = CoinInWalletData(coin: coinData);
@@ -191,7 +179,11 @@ class SendAssetFormController extends _$SendAssetFormController {
     _resetNetworkState(network: network, senderWallet: wallet);
 
     if (state.assetData case final CoinAssetToSendData coin) {
-      final coinData = await _findCoinDataForNetwork(network: network, coin: coin);
+      final findCoinUtil = await ref.read(findCoinUtilProvider.future);
+      final coinData = await findCoinUtil.findCoinDataForNetwork(
+        network: network,
+        coin: coin,
+      );
 
       if (coinData == null) return;
 
@@ -223,18 +215,6 @@ class SendAssetFormController extends _$SendAssetFormController {
         coinData: coinData,
       );
     }
-  }
-
-  Future<CoinData?> _getCoinDataForNetwork({
-    required NetworkData network,
-    required String symbolGroup,
-    required String abbreviation,
-  }) async {
-    final coins = await (await ref.read(coinsServiceProvider.future)).getCoinsByFilters(
-      network: network,
-      symbolGroup: symbolGroup,
-    );
-    return coins.firstWhereOrNull((e) => e.abbreviation == abbreviation) ?? coins.firstOrNull;
   }
 
   void _checkIfUserCanCoverFee(CoinAssetToSendData coin) {
