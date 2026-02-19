@@ -9,36 +9,27 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'community_token_analytics_provider.r.g.dart';
 
-/// Fetches community token analytics for all intervals (24h, 7d, 30d) and maps
-/// to [CreatorTokensAnalyticsMetrics] for the analytics sheet.
+/// Fetches community token analytics for the given [range] (24h, 7d, or 30d)
+/// and maps to [CreatorTokensAnalyticsMetrics]. Only the requested interval
+/// is fetched so the result returns as soon as possible.
 @riverpod
-Future<Map<CreatorTokensAnalyticsRange, CreatorTokensAnalyticsMetrics>>
-    creatorTokensAnalyticsMetrics(Ref ref) async {
+Future<CreatorTokensAnalyticsMetrics> creatorTokensAnalyticsMetrics(
+  Ref ref,
+  CreatorTokensAnalyticsRange range,
+) async {
   const analyticsType = 'global';
-
-  final results = await Future.wait<
-      ({CreatorTokensAnalyticsRange range, CreatorTokensAnalyticsMetrics? metrics})>(
-    CreatorTokensAnalyticsRange.values.map((range) async {
-      final response = await ref.read(
-        communityTokenAnalyticsProvider(
-          (
-            analyticsType: analyticsType,
-            interval: range.label,
-          ),
-        ).future,
-      );
-      final metrics = response != null
-          ? CreatorTokensAnalyticsMetrics(
-              tokensLaunched: formatCompactNumber(response.launched),
-              migrated: formatCompactNumber(response.migrated),
-              volume: MarketDataFormatter.formatPrice(response.volume),
-            )
-          : null;
-      return (range: range, metrics: metrics);
-    }),
+  final response = await ref.read(
+    communityTokenAnalyticsProvider(
+      (
+        analyticsType: analyticsType,
+        interval: range.label,
+      ),
+    ).future,
   );
-
-  return Map.fromEntries(
-    results.map((e) => MapEntry(e.range, e.metrics ?? const CreatorTokensAnalyticsMetrics())),
+  if (response == null) return const CreatorTokensAnalyticsMetrics();
+  return CreatorTokensAnalyticsMetrics(
+    tokensLaunched: formatCompactNumber(response.launched),
+    migrated: formatCompactNumber(response.migrated),
+    volume: MarketDataFormatter.formatPrice(response.volume),
   );
 }
