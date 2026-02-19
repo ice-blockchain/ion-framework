@@ -12,7 +12,18 @@ part 'cloud_stored_recovery_keys_names_provider.r.g.dart';
 Future<Set<String>> cloudStoredRecoveryKeysNames(Ref ref) async {
   final cloudStorage = ref.watch(cloudStorageProvider);
   final files = await cloudStorage.listFilesPaths(directory: 'ion');
-  return files.map((file) => file.split('/').last.split('.').first).toSet();
+
+  Logger.info('[CloudStorage] Processing ${files.length} file(s) from cloud storage');
+
+  final identityKeys = files.where((file) => file.endsWith('.json')).map((file) {
+    // Extract filename from path and remove .json extension
+    final filename = file.split('/').last;
+    return filename.replaceAll('.json', '');
+  }).toSet();
+
+  Logger.info('[CloudStorage] Extracted ${identityKeys.length} unique identity key name(s)');
+
+  return identityKeys;
 }
 
 @riverpod

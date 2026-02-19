@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:icloud_storage/icloud_storage.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 final class ICloudStorageService extends CloudStorageService {
@@ -37,11 +38,22 @@ final class ICloudStorageService extends CloudStorageService {
   @override
   Future<List<String>> listFilesPaths({String? directory}) async {
     try {
+      Logger.info(
+        '[iCloud] Fetching files from container: $containerId${directory != null ? ' (directory: $directory)' : ''}',
+      );
+
       final fileList = await ICloudStorage.gather(
         containerId: containerId,
       );
+      Logger.info('[iCloud] Found ${fileList.length} total file(s) in container');
+
       return fileList.map((file) => file.relativePath).toList();
     } catch (e) {
+      Logger.error(
+        e,
+        message:
+            '[iCloud] Failed to list files${directory != null ? ' in directory "$directory"' : ''}',
+      );
       if (e is PlatformException && e.code == PlatformExceptionCode.iCloudConnectionOrPermission) {
         throw CloudPermissionFailedException();
       }
