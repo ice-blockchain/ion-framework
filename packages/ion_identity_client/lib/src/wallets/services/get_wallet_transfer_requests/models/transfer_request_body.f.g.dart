@@ -6,6 +6,18 @@ part of 'transfer_request_body.f.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_$UnknownTransferRequestBodyImpl _$$UnknownTransferRequestBodyImplFromJson(
+        Map<String, dynamic> json) =>
+    _$UnknownTransferRequestBodyImpl(
+      kind: json['kind'] as String,
+    );
+
+Map<String, dynamic> _$$UnknownTransferRequestBodyImplToJson(
+        _$UnknownTransferRequestBodyImpl instance) =>
+    <String, dynamic>{
+      'kind': instance.kind,
+    };
+
 _$NativeTransferRequestBodyImpl _$$NativeTransferRequestBodyImplFromJson(
         Map<String, dynamic> json) =>
     _$NativeTransferRequestBodyImpl(

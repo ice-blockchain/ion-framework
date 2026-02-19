@@ -8,7 +8,13 @@ import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
 abstract class SwapTransactionIdentifier {
   List<String> get networkIds;
 
-  String get bridgeAddress;
+  List<String> get swapIndicatorAddresses;
+
+  bool _isSwapIndicatorAddress(String? address) {
+    if (address == null) return false;
+    final lower = address.toLowerCase();
+    return swapIndicatorAddresses.any((a) => a.toLowerCase() == lower);
+  }
 
   bool matchesNetwork(String networkId) =>
       networkIds.any((id) => id.toLowerCase() == networkId.toLowerCase());
@@ -35,7 +41,7 @@ abstract class SwapTransactionIdentifier {
     if (!matchesNetwork(swap.fromNetworkId)) return false;
     if (!matchesNetwork(tx.network.id)) return false;
     if (tx.senderWalletAddress != swap.fromWalletAddress) return false;
-    if (tx.receiverWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) return false;
+    if (!_isSwapIndicatorAddress(tx.receiverWalletAddress)) return false;
 
     final txDate = tx.dateConfirmed ?? tx.dateRequested;
     if (!isWithinFromTxTimeWindow(swap.createdAt, txDate)) return false;
@@ -51,12 +57,17 @@ abstract class SwapTransactionIdentifier {
     if (!matchesNetwork(swap.toNetworkId)) return false;
     if (!matchesNetwork(tx.network.id)) return false;
     if (tx.receiverWalletAddress != swap.toWalletAddress) return false;
-    if (tx.senderWalletAddress?.toLowerCase() != bridgeAddress.toLowerCase()) return false;
+    if (!_isSwapIndicatorAddress(tx.senderWalletAddress)) return false;
     if (!isWithinTimeWindow(swap.createdAt, tx.dateConfirmed)) return false;
     if (!isInTxAmountMatch(swap.toAmount, tx, crossChainFee: crossChainFee)) return false;
 
     return true;
   }
+
+  /// Time window tolerance for to-tx matching.
+  /// The to-tx can be confirmed slightly before the swap record is saved to DB,
+  /// especially in same-network swaps where both legs happen in the same block.
+  Duration get toTxLookbackWindow => const Duration(minutes: 10);
 
   bool isWithinTimeWindow(DateTime swapCreatedAt, DateTime? txConfirmedAt) {
     if (txConfirmedAt == null) return true;
@@ -65,7 +76,7 @@ abstract class SwapTransactionIdentifier {
     final txUtc = txConfirmedAt.toUtc();
 
     final difference = txUtc.difference(swapUtc);
-    return difference >= Duration.zero && difference <= matchingTimeWindow;
+    return difference >= -toTxLookbackWindow && difference <= matchingTimeWindow;
   }
 
   bool isWithinFromTxTimeWindow(DateTime swapCreatedAt, DateTime? txDate) {

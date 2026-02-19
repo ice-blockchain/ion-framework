@@ -42,17 +42,16 @@ TransferRequestBody _$TransferRequestBodyFromJson(Map<String, dynamic> json) {
       return Aip21TransferRequestBody.fromJson(json);
 
     default:
-      throw CheckedFromJsonException(json, 'kind', 'TransferRequestBody',
-          'Invalid union type "${json['kind']}"!');
+      return UnknownTransferRequestBody.fromJson(json);
   }
 }
 
 /// @nodoc
 mixin _$TransferRequestBody {
   String get kind => throw _privateConstructorUsedError;
-  String get to => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -93,6 +92,7 @@ mixin _$TransferRequestBody {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -121,6 +121,7 @@ mixin _$TransferRequestBody {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -150,6 +151,7 @@ mixin _$TransferRequestBody {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -166,6 +168,7 @@ mixin _$TransferRequestBody {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -182,6 +185,7 @@ mixin _$TransferRequestBody {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -214,7 +218,7 @@ abstract class $TransferRequestBodyCopyWith<$Res> {
           TransferRequestBody value, $Res Function(TransferRequestBody) then) =
       _$TransferRequestBodyCopyWithImpl<$Res, TransferRequestBody>;
   @useResult
-  $Res call({String kind, String to});
+  $Res call({String kind});
 }
 
 /// @nodoc
@@ -233,19 +237,292 @@ class _$TransferRequestBodyCopyWithImpl<$Res, $Val extends TransferRequestBody>
   @override
   $Res call({
     Object? kind = null,
-    Object? to = null,
   }) {
     return _then(_value.copyWith(
       kind: null == kind
           ? _value.kind
           : kind // ignore: cast_nullable_to_non_nullable
               as String,
-      to: null == to
-          ? _value.to
-          : to // ignore: cast_nullable_to_non_nullable
-              as String,
     ) as $Val);
   }
+}
+
+/// @nodoc
+abstract class _$$UnknownTransferRequestBodyImplCopyWith<$Res>
+    implements $TransferRequestBodyCopyWith<$Res> {
+  factory _$$UnknownTransferRequestBodyImplCopyWith(
+          _$UnknownTransferRequestBodyImpl value,
+          $Res Function(_$UnknownTransferRequestBodyImpl) then) =
+      __$$UnknownTransferRequestBodyImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String kind});
+}
+
+/// @nodoc
+class __$$UnknownTransferRequestBodyImplCopyWithImpl<$Res>
+    extends _$TransferRequestBodyCopyWithImpl<$Res,
+        _$UnknownTransferRequestBodyImpl>
+    implements _$$UnknownTransferRequestBodyImplCopyWith<$Res> {
+  __$$UnknownTransferRequestBodyImplCopyWithImpl(
+      _$UnknownTransferRequestBodyImpl _value,
+      $Res Function(_$UnknownTransferRequestBodyImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of TransferRequestBody
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? kind = null,
+  }) {
+    return _then(_$UnknownTransferRequestBodyImpl(
+      kind: null == kind
+          ? _value.kind
+          : kind // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$UnknownTransferRequestBodyImpl implements UnknownTransferRequestBody {
+  const _$UnknownTransferRequestBodyImpl({required this.kind});
+
+  factory _$UnknownTransferRequestBodyImpl.fromJson(
+          Map<String, dynamic> json) =>
+      _$$UnknownTransferRequestBodyImplFromJson(json);
+
+  @override
+  final String kind;
+
+  @override
+  String toString() {
+    return 'TransferRequestBody.unknown(kind: $kind)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UnknownTransferRequestBodyImpl &&
+            (identical(other.kind, kind) || other.kind == kind));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, kind);
+
+  /// Create a copy of TransferRequestBody
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UnknownTransferRequestBodyImplCopyWith<_$UnknownTransferRequestBodyImpl>
+      get copyWith => __$$UnknownTransferRequestBodyImplCopyWithImpl<
+          _$UnknownTransferRequestBodyImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
+    required TResult Function(
+            String kind, String to, String amount, String? memo)
+        native,
+    required TResult Function(
+            String kind, String contract, String to, String tokenId)
+        erc721,
+    required TResult Function(
+            String kind, String assetId, String to, String amount)
+        asa,
+    required TResult Function(
+            String kind, String contract, String amount, String to)
+        erc20,
+    required TResult Function(
+            String kind, String mint, String to, String amount)
+        spl,
+    required TResult Function(
+            String kind, String mint, String to, String amount)
+        spl2022,
+    required TResult Function(String kind, String issuer, String assetCode,
+            String to, String amount, String? memo)
+        sep41,
+    required TResult Function(
+            String kind, String master, String to, String amount)
+        tep74,
+    required TResult Function(
+            String kind, String tokenId, String to, String amount)
+        trc10,
+    required TResult Function(
+            String kind, String contract, String to, String amount)
+        trc20,
+    required TResult Function(
+            String kind, String contract, String to, String tokenId)
+        trc721,
+    required TResult Function(
+            String kind, String to, String amount, String metadata)
+        aip21,
+  }) {
+    return unknown(kind);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
+    TResult? Function(String kind, String to, String amount, String? memo)?
+        native,
+    TResult? Function(String kind, String contract, String to, String tokenId)?
+        erc721,
+    TResult? Function(String kind, String assetId, String to, String amount)?
+        asa,
+    TResult? Function(String kind, String contract, String amount, String to)?
+        erc20,
+    TResult? Function(String kind, String mint, String to, String amount)? spl,
+    TResult? Function(String kind, String mint, String to, String amount)?
+        spl2022,
+    TResult? Function(String kind, String issuer, String assetCode, String to,
+            String amount, String? memo)?
+        sep41,
+    TResult? Function(String kind, String master, String to, String amount)?
+        tep74,
+    TResult? Function(String kind, String tokenId, String to, String amount)?
+        trc10,
+    TResult? Function(String kind, String contract, String to, String amount)?
+        trc20,
+    TResult? Function(String kind, String contract, String to, String tokenId)?
+        trc721,
+    TResult? Function(String kind, String to, String amount, String metadata)?
+        aip21,
+  }) {
+    return unknown?.call(kind);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
+    TResult Function(String kind, String to, String amount, String? memo)?
+        native,
+    TResult Function(String kind, String contract, String to, String tokenId)?
+        erc721,
+    TResult Function(String kind, String assetId, String to, String amount)?
+        asa,
+    TResult Function(String kind, String contract, String amount, String to)?
+        erc20,
+    TResult Function(String kind, String mint, String to, String amount)? spl,
+    TResult Function(String kind, String mint, String to, String amount)?
+        spl2022,
+    TResult Function(String kind, String issuer, String assetCode, String to,
+            String amount, String? memo)?
+        sep41,
+    TResult Function(String kind, String master, String to, String amount)?
+        tep74,
+    TResult Function(String kind, String tokenId, String to, String amount)?
+        trc10,
+    TResult Function(String kind, String contract, String to, String amount)?
+        trc20,
+    TResult Function(String kind, String contract, String to, String tokenId)?
+        trc721,
+    TResult Function(String kind, String to, String amount, String metadata)?
+        aip21,
+    required TResult orElse(),
+  }) {
+    if (unknown != null) {
+      return unknown(kind);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
+    required TResult Function(NativeTransferRequestBody value) native,
+    required TResult Function(Erc721TransferRequestBody value) erc721,
+    required TResult Function(AsaTransferRequestBody value) asa,
+    required TResult Function(Erc20TransferRequestBody value) erc20,
+    required TResult Function(SplTransferRequestBody value) spl,
+    required TResult Function(Spl2022TransferRequestBody value) spl2022,
+    required TResult Function(Sep41TransferRequestBody value) sep41,
+    required TResult Function(Tep74TransferRequestBody value) tep74,
+    required TResult Function(Trc10TransferRequestBody value) trc10,
+    required TResult Function(Trc20TransferRequestBody value) trc20,
+    required TResult Function(Trc721TransferRequestBody value) trc721,
+    required TResult Function(Aip21TransferRequestBody value) aip21,
+  }) {
+    return unknown(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
+    TResult? Function(NativeTransferRequestBody value)? native,
+    TResult? Function(Erc721TransferRequestBody value)? erc721,
+    TResult? Function(AsaTransferRequestBody value)? asa,
+    TResult? Function(Erc20TransferRequestBody value)? erc20,
+    TResult? Function(SplTransferRequestBody value)? spl,
+    TResult? Function(Spl2022TransferRequestBody value)? spl2022,
+    TResult? Function(Sep41TransferRequestBody value)? sep41,
+    TResult? Function(Tep74TransferRequestBody value)? tep74,
+    TResult? Function(Trc10TransferRequestBody value)? trc10,
+    TResult? Function(Trc20TransferRequestBody value)? trc20,
+    TResult? Function(Trc721TransferRequestBody value)? trc721,
+    TResult? Function(Aip21TransferRequestBody value)? aip21,
+  }) {
+    return unknown?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
+    TResult Function(NativeTransferRequestBody value)? native,
+    TResult Function(Erc721TransferRequestBody value)? erc721,
+    TResult Function(AsaTransferRequestBody value)? asa,
+    TResult Function(Erc20TransferRequestBody value)? erc20,
+    TResult Function(SplTransferRequestBody value)? spl,
+    TResult Function(Spl2022TransferRequestBody value)? spl2022,
+    TResult Function(Sep41TransferRequestBody value)? sep41,
+    TResult Function(Tep74TransferRequestBody value)? tep74,
+    TResult Function(Trc10TransferRequestBody value)? trc10,
+    TResult Function(Trc20TransferRequestBody value)? trc20,
+    TResult Function(Trc721TransferRequestBody value)? trc721,
+    TResult Function(Aip21TransferRequestBody value)? aip21,
+    required TResult orElse(),
+  }) {
+    if (unknown != null) {
+      return unknown(this);
+    }
+    return orElse();
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$UnknownTransferRequestBodyImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class UnknownTransferRequestBody implements TransferRequestBody {
+  const factory UnknownTransferRequestBody({required final String kind}) =
+      _$UnknownTransferRequestBodyImpl;
+
+  factory UnknownTransferRequestBody.fromJson(Map<String, dynamic> json) =
+      _$UnknownTransferRequestBodyImpl.fromJson;
+
+  @override
+  String get kind;
+
+  /// Create a copy of TransferRequestBody
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$UnknownTransferRequestBodyImplCopyWith<_$UnknownTransferRequestBodyImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -351,6 +628,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -394,6 +672,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -425,6 +704,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -460,6 +740,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -479,6 +760,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -498,6 +780,7 @@ class _$NativeTransferRequestBodyImpl implements NativeTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -539,7 +822,6 @@ abstract class NativeTransferRequestBody
 
   @override
   String get kind;
-  @override
   String get to;
   String get amount;
   String? get memo;
@@ -659,6 +941,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -702,6 +985,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -733,6 +1017,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -768,6 +1053,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -787,6 +1073,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -806,6 +1093,7 @@ class _$Erc721TransferRequestBodyImpl implements Erc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -847,7 +1135,6 @@ abstract class Erc721TransferRequestBody implements TransferRequestBody {
   @override
   String get kind;
   String get contract;
-  @override
   String get to;
   String get tokenId;
 
@@ -965,6 +1252,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -1008,6 +1296,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -1039,6 +1328,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -1074,6 +1364,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -1093,6 +1384,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -1112,6 +1404,7 @@ class _$AsaTransferRequestBodyImpl implements AsaTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -1154,7 +1447,6 @@ abstract class AsaTransferRequestBody
   @override
   String get kind;
   String get assetId;
-  @override
   String get to;
   String get amount;
 
@@ -1273,6 +1565,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -1316,6 +1609,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -1347,6 +1641,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -1382,6 +1677,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -1401,6 +1697,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -1420,6 +1717,7 @@ class _$Erc20TransferRequestBodyImpl implements Erc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -1463,7 +1761,6 @@ abstract class Erc20TransferRequestBody
   String get kind;
   String get contract;
   String get amount;
-  @override
   String get to;
 
   /// Create a copy of TransferRequestBody
@@ -1580,6 +1877,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -1623,6 +1921,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -1654,6 +1953,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -1689,6 +1989,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -1708,6 +2009,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -1727,6 +2029,7 @@ class _$SplTransferRequestBodyImpl implements SplTransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -1769,7 +2072,6 @@ abstract class SplTransferRequestBody
   @override
   String get kind;
   String get mint;
-  @override
   String get to;
   String get amount;
 
@@ -1888,6 +2190,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -1931,6 +2234,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -1962,6 +2266,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -1997,6 +2302,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -2016,6 +2322,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -2035,6 +2342,7 @@ class _$Spl2022TransferRequestBodyImpl implements Spl2022TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -2077,7 +2385,6 @@ abstract class Spl2022TransferRequestBody
   @override
   String get kind;
   String get mint;
-  @override
   String get to;
   String get amount;
 
@@ -2221,6 +2528,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -2264,6 +2572,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -2295,6 +2604,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -2330,6 +2640,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -2349,6 +2660,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -2368,6 +2680,7 @@ class _$Sep41TransferRequestBodyImpl implements Sep41TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -2413,7 +2726,6 @@ abstract class Sep41TransferRequestBody
   String get kind;
   String get issuer;
   String get assetCode;
-  @override
   String get to;
   String get amount;
   String? get memo;
@@ -2532,6 +2844,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -2575,6 +2888,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -2606,6 +2920,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -2641,6 +2956,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -2660,6 +2976,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -2679,6 +2996,7 @@ class _$Tep74TransferRequestBodyImpl implements Tep74TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -2721,7 +3039,6 @@ abstract class Tep74TransferRequestBody
   @override
   String get kind;
   String get master;
-  @override
   String get to;
   String get amount;
 
@@ -2839,6 +3156,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -2882,6 +3200,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -2913,6 +3232,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -2948,6 +3268,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -2967,6 +3288,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -2986,6 +3308,7 @@ class _$Trc10TransferRequestBodyImpl implements Trc10TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -3028,7 +3351,6 @@ abstract class Trc10TransferRequestBody
   @override
   String get kind;
   String get tokenId;
-  @override
   String get to;
   String get amount;
 
@@ -3147,6 +3469,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -3190,6 +3513,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -3221,6 +3545,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -3256,6 +3581,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -3275,6 +3601,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -3294,6 +3621,7 @@ class _$Trc20TransferRequestBodyImpl implements Trc20TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -3336,7 +3664,6 @@ abstract class Trc20TransferRequestBody
   @override
   String get kind;
   String get contract;
-  @override
   String get to;
   String get amount;
 
@@ -3455,6 +3782,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -3498,6 +3826,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -3529,6 +3858,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -3564,6 +3894,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -3583,6 +3914,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -3602,6 +3934,7 @@ class _$Trc721TransferRequestBodyImpl implements Trc721TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -3643,7 +3976,6 @@ abstract class Trc721TransferRequestBody implements TransferRequestBody {
   @override
   String get kind;
   String get contract;
-  @override
   String get to;
   String get tokenId;
 
@@ -3762,6 +4094,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String kind) unknown,
     required TResult Function(
             String kind, String to, String amount, String? memo)
         native,
@@ -3805,6 +4138,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String kind)? unknown,
     TResult? Function(String kind, String to, String amount, String? memo)?
         native,
     TResult? Function(String kind, String contract, String to, String tokenId)?
@@ -3836,6 +4170,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String kind)? unknown,
     TResult Function(String kind, String to, String amount, String? memo)?
         native,
     TResult Function(String kind, String contract, String to, String tokenId)?
@@ -3871,6 +4206,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(UnknownTransferRequestBody value) unknown,
     required TResult Function(NativeTransferRequestBody value) native,
     required TResult Function(Erc721TransferRequestBody value) erc721,
     required TResult Function(AsaTransferRequestBody value) asa,
@@ -3890,6 +4226,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UnknownTransferRequestBody value)? unknown,
     TResult? Function(NativeTransferRequestBody value)? native,
     TResult? Function(Erc721TransferRequestBody value)? erc721,
     TResult? Function(AsaTransferRequestBody value)? asa,
@@ -3909,6 +4246,7 @@ class _$Aip21TransferRequestBodyImpl implements Aip21TransferRequestBody {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(UnknownTransferRequestBody value)? unknown,
     TResult Function(NativeTransferRequestBody value)? native,
     TResult Function(Erc721TransferRequestBody value)? erc721,
     TResult Function(AsaTransferRequestBody value)? asa,
@@ -3949,7 +4287,6 @@ abstract class Aip21TransferRequestBody implements TransferRequestBody {
 
   @override
   String get kind;
-  @override
   String get to;
   String get amount;
   String get metadata;

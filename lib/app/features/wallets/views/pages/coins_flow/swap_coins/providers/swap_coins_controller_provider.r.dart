@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -13,6 +14,7 @@ import 'package:ion/app/features/wallets/model/send_asset_form_data.f.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
+import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
@@ -552,11 +554,25 @@ class SwapCoinsController extends _$SwapCoinsController {
     final coins = walletView.coins;
     final bscCoin = coins.firstWhereOrNull((coin) => coin.coin.native && coin.coin.network.isBsc);
     final rawAmount = bscCoin?.rawAmount;
-    if (rawAmount == null) {
-      return null;
+    if (rawAmount != null) {
+      return BigInt.parse(rawAmount);
     }
 
-    return BigInt.parse(rawAmount);
+    // Fallback in case the user doesn't have a native BSC coin in the Wallet View
+    final networks = await ref.read(networksProvider.future);
+    final bscNetwork = networks.firstWhereOrNull((n) => n.isBsc);
+    if (bscNetwork == null) return null;
+
+    final wallets = await ref.read(walletsNotifierProvider.future);
+    final bscWallet = wallets.firstWhereOrNull((w) => w.network == bscNetwork.id);
+    if (bscWallet == null) return null;
+
+    final client = await ref.read(ionIdentityClientProvider.future);
+    final walletAssets = await client.wallets.getWalletAssets(bscWallet.id);
+    final nativeAsset = walletAssets.assets.firstWhereOrNull((a) => a.isNative);
+    if (nativeAsset == null) return null;
+
+    return BigInt.tryParse(nativeAsset.balance);
   }
 
   Future<IonSwapRequest?> _buildIonSwapRequest(

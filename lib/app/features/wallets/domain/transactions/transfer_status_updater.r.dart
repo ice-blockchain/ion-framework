@@ -58,8 +58,7 @@ class TransferStatusUpdater {
         );
         nextPageToken = result.nextPageToken;
 
-        final filtered =
-            result.items.where((e) => e.txHash != null && e.requestBody is CoinTransferRequestBody);
+        final filtered = result.items.where((e) => e.txHash != null);
 
         for (final transfer in filtered) {
           final matching = broadcasted
