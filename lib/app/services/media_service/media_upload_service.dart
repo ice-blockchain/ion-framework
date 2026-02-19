@@ -73,7 +73,7 @@ class MediaUploadService {
           settings: imageCompressionSettings,
         );
     var thumbSourceFile = compressedImage;
-    if (compressedImage.mimeType == MimeType.gif.value) {
+    if (compressedImage.isGif) {
       thumbSourceFile = await _getGifThumbnailSource(file, compressedImage);
     }
 

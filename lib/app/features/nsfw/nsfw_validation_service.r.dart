@@ -42,6 +42,12 @@ class NsfwValidationService {
   /// Timeout for GIF thumbnail extraction to avoid simulator hang / infinite loading.
   static const _gifThumbnailTimeout = Duration(seconds: 2);
 
+  /// Fallback timestamp when GIF duration is unknown or extraction fails.
+  static const _gifFallbackTimestamp = '00:00:00.000';
+
+  /// Relative positions (0..1) to sample GIF frames for NSFW check.
+  static const _gifThumbnailSamplePositions = [0.05, 0.40, 0.80];
+
   // Combined validation: images + videos in single isolate call
   Future<Map<String, bool>> hasNsfwInMediaFiles(List<MediaFile> mediaFiles) async {
     final gifFiles = mediaFiles.where((m) => m.isGif).toList();
@@ -71,21 +77,13 @@ class NsfwValidationService {
 
     final nsfwResults = await _checkMediaBytesForNsfw(mediaBytesToCheck);
 
-    final results = _buildMediaCheckResultsMap(
+    return _buildMediaCheckResultsMap(
       nsfwResults: nsfwResults,
       images: imageFiles,
       videos: videoFiles,
       gifs: gifFiles,
       thumbnails: allThumbnails,
     );
-
-    for (final gif in gifFiles) {
-      if (!results.containsKey(gif.path)) {
-        results[gif.path] = true;
-      }
-    }
-
-    return results;
   }
 
   Future<Map<String, bool>> hasNsfwInImagePaths(List<String> paths) async {
@@ -216,13 +214,14 @@ class NsfwValidationService {
       final info = await videoInfoService.getVideoInformation(gif.path);
       final durationMs = info.duration.inMilliseconds;
       if (durationMs <= 0) {
-        return ['00:00:00.000'];
+        return [_gifFallbackTimestamp];
       }
 
-      final positions = [0.05, 0.40, 0.80];
-      return positions.map((p) => _formatTimestamp((durationMs * p).round())).toList();
+      return _gifThumbnailSamplePositions
+          .map((p) => _formatTimestamp((durationMs * p).round()))
+          .toList();
     } catch (_) {
-      return ['00:00:00.000'];
+      return [_gifFallbackTimestamp];
     }
   }
 
@@ -245,8 +244,11 @@ class NsfwValidationService {
             ),
           );
         } catch (e, st) {
-          Logger.warning('Failed to extract GIF frame for NSFW check at $ts: ${gif.path}');
-          Logger.error(e, stackTrace: st, message: 'GIF thumbnail extraction failed');
+          Logger.error(
+            e,
+            stackTrace: st,
+            message: 'Failed to extract GIF frame for NSFW check at $ts: ${gif.path}',
+          );
         }
       }
     }
@@ -316,11 +318,11 @@ class NsfwValidationService {
       thumbsByVideo.putIfAbsent(thumb.videoPath, () => []).add(thumb);
     }
 
-    // Aggregate per video (fail-closed: no thumbs => block)
-    for (final video in videos) {
-      final relatedThumbs = thumbsByVideo[video.path];
+    // Aggregate per video/gif (fail-closed: no thumbs => block)
+    for (final media in [...videos, ...gifs]) {
+      final relatedThumbs = thumbsByVideo[media.path];
       if (relatedThumbs == null || relatedThumbs.isEmpty) {
-        finalResults[video.path] = true;
+        finalResults[media.path] = true;
         continue;
       }
 
@@ -328,22 +330,7 @@ class NsfwValidationService {
         (t) => nsfwResults[t.path]?.decision == NsfwDecision.block,
       );
 
-      finalResults[video.path] = hasNsfw;
-    }
-
-    // Aggregate per gif (fail-closed: no thumbs => block)
-    for (final gif in gifs) {
-      final relatedThumbs = thumbsByVideo[gif.path];
-      if (relatedThumbs == null || relatedThumbs.isEmpty) {
-        finalResults[gif.path] = true;
-        continue;
-      }
-
-      final hasNsfw = relatedThumbs.any(
-        (t) => nsfwResults[t.path]?.decision == NsfwDecision.block,
-      );
-
-      finalResults[gif.path] = hasNsfw;
+      finalResults[media.path] = hasNsfw;
     }
 
     return finalResults;
