@@ -46,6 +46,9 @@ class SwapSelectCoinPage extends ConsumerWidget {
 
       return coinGroups.whenData((coinList) {
         return coinList.where((coin) {
+          if (!SwapCoinIdentifier.isInternalCoinGroup(coin)) {
+            return false;
+          }
           if (otherCoin == null || otherNetwork == null) {
             return true;
           }
