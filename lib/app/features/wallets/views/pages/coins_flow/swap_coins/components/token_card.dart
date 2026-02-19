@@ -33,16 +33,14 @@ class TokenCard extends HookConsumerWidget {
     this.showSelectButton = true,
     this.showArrow = true,
     this.skipValidation = false,
-    this.enabled = true,
     this.skipAmountFormatting = false,
-    this.isError = false,
     this.isCoinNameLoading = false,
     this.customIconWidget,
     this.formattedAmount,
     this.skipFocusValidationWhenFormatting = false,
     super.key,
     this.isInsufficientFundsError = false,
-    this.skipAmountFormatting = false,
+    this.onValidationError,
   });
 
   final CoinSwapType type;
@@ -63,6 +61,17 @@ class TokenCard extends HookConsumerWidget {
   final Widget? customIconWidget;
   final String? formattedAmount;
   final bool skipFocusValidationWhenFormatting;
+
+  void _onPercentageChanged(int percentage, WidgetRef ref) {
+    final coin = coinsGroup?.coins.firstWhereOrNull(
+      (c) => c.coin.network.id == network?.id,
+    );
+    final amount = coin?.amount;
+    if (amount == null) return;
+
+    final newAmount = amount * (percentage / 100);
+    ref.read(swapCoinsControllerProvider.notifier).setAmount(newAmount);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -143,9 +152,7 @@ class TokenCard extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                type == CoinSwapType.sell
-                    ? context.i18n.wallet_swap_coins_sell
-                    : context.i18n.wallet_swap_coins_buy,
+                type == CoinSwapType.sell ? context.i18n.wallet_swap_coins_sell : context.i18n.wallet_swap_coins_buy,
                 style: textStyles.subtitle3.copyWith(
                   color: colors.onTertiaryBackground,
                 ),
@@ -374,17 +381,14 @@ class TokenCard extends HookConsumerWidget {
                       child: Builder(
                         builder: (context) {
                           final maxValue = coinForNetwork?.amount;
-                          final decimals =
-                              coinForNetwork?.coin.decimals ?? SwapConstants.defaultDecimals;
+                          final decimals = coinForNetwork?.coin.decimals ?? SwapConstants.defaultDecimals;
 
                           return Text(
                             maxValue != null
                                 ? '${maxValue.formatWithDecimals(decimals)} ${coinsGroup!.abbreviation}'
                                 : '0.00',
                             style: textStyles.caption2.copyWith(
-                              color: isInsufficientFundsError
-                                  ? colors.attentionRed
-                                  : colors.tertiaryText,
+                              color: isInsufficientFundsError ? colors.attentionRed : colors.tertiaryText,
                             ),
                             overflow: TextOverflow.ellipsis,
                           );
