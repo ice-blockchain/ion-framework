@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/core/providers/ion_connect_media_url_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -72,6 +73,7 @@ AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
     templateId: templateId,
     brandDomain: brandDomain,
     baseHost: baseHost,
+    resolveShareImageUrl: (url) => ref.read(resolvedShareImageUrlProvider(url).future),
   );
 }
 
@@ -93,15 +95,18 @@ final class AppsFlyerDeepLinkService {
     required String templateId,
     required String brandDomain,
     required String baseHost,
+    required Future<String?> Function(String? imageUrl) resolveShareImageUrl,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
-        _baseHost = baseHost;
+        _baseHost = baseHost,
+        _resolveShareImageUrl = resolveShareImageUrl;
 
   final AppsflyerSdk _appsflyerSdk;
 
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
+  final Future<String?> Function(String? imageUrl) _resolveShareImageUrl;
 
   static final oneLinkUrlRegex = RegExp(
     r'@?(https://(ion\.onelink\.me|app\.online\.io|testnet\.app\.online\.io)/[A-Za-z0-9\-_/\?&%=#]*)',
@@ -280,7 +285,7 @@ final class AppsFlyerDeepLinkService {
     final completer = Completer<String>();
 
     try {
-      final ogParams = _buildOgParams(
+      final ogParams = await _buildOgParams(
         ogTitle: ogTitle,
         ogImageUrl: ogImageUrl,
         ogDescription: ogDescription,
@@ -310,11 +315,11 @@ final class AppsFlyerDeepLinkService {
     );
   }
 
-  Map<String, String>? _buildOgParams({
+  Future<Map<String, String>?> _buildOgParams({
     String? ogTitle,
     String? ogImageUrl,
     String? ogDescription,
-  }) {
+  }) async {
     // Covers the case when deep link is being used for the reporting
     if (ogImageUrl == null && ogDescription == null && ogTitle == null) {
       return null;
@@ -329,7 +334,8 @@ final class AppsFlyerDeepLinkService {
     final description = ogDescription.isEmpty
         ? ' '
         : _truncateText(text: ogDescription!, maxLength: maxOpenGraphDescriptionLength);
-    final image = ogImageUrl.isEmpty ? ' ' : ogImageUrl!;
+    final rawImage = ogImageUrl.isEmpty ? ' ' : ogImageUrl!;
+    final image = rawImage == ' ' ? ' ' : await _ogImageUrlForDeeplink(rawImage);
 
     if (ogTitle case final title?) {
       return {
@@ -347,6 +353,14 @@ final class AppsFlyerDeepLinkService {
       return text.substring(0, maxLength);
     }
     return text;
+  }
+
+  /// Resolves to CDN URL for share then appends format=png for ION media so CDN serves PNG for og:image.
+  Future<String> _ogImageUrlForDeeplink(String url) async {
+    final resolved = await _resolveShareImageUrl(url);
+    final urlToUse = resolved ?? url;
+    if (!isIonMediaUrl(urlToUse)) return urlToUse;
+    return urlToUse.contains('?') ? '$urlToUse&format=png' : '$urlToUse?format=png';
   }
 
   void _handleInviteLinkSuccess(dynamic data, Completer<String> completer) {
