@@ -118,7 +118,6 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                         skipAmountFormatting: true,
                         isInsufficientFundsError: isInsufficientFundsErrorState.value,
                         skipValidation: true,
-                        isError: buttonError.value != null,
                         controller: amountController,
                         type: CoinSwapType.sell,
                         coinsGroup: sellNetwork != null ? sellCoins : null,
