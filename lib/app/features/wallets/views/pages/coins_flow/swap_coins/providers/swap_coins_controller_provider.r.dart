@@ -6,7 +6,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
-import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -17,6 +16,7 @@ import 'package:ion/app/features/wallets/providers/network_fee_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/utils/find_coin_util.r.dart';
 import 'package:ion/app/features/wallets/utils/wallet_asset_utils.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
@@ -459,9 +459,10 @@ class SwapCoinsController extends _$SwapCoinsController {
     if (sellCoin == null || sellNetwork == null) {
       throw Exception('Sell coin is required');
     }
-    final coinData = await _findCoinData(
-      coinsGroup: sellCoin,
+    final findCoinUtil = await ref.read(findCoinUtilProvider.future);
+    final coinData = await findCoinUtil.findCoinDataForNetworkByCoinsGroup(
       network: sellNetwork,
+      coinsGroup: sellCoin,
     );
 
     final identityClient = await ref.read(ionIdentityClientProvider.future);
@@ -475,20 +476,6 @@ class SwapCoinsController extends _$SwapCoinsController {
       userActionSigner: userActionSigner,
       sendableAsset: asset,
     );
-  }
-
-  Future<CoinData?> _findCoinData({
-    required CoinsGroup coinsGroup,
-    required NetworkData network,
-  }) async {
-    var coin = coinsGroup.coins.firstWhereOrNull((coin) => coin.coin.network.id == network.id);
-    if (coin == null) {
-      final coinsList =
-          await ref.read(syncedCoinsBySymbolGroupProvider(coinsGroup.symbolGroup).future);
-      coin = coinsList.firstWhereOrNull((coin) => coin.coin.network.id == network.id);
-    }
-
-    return coin?.coin;
   }
 
   ({double? minAmount, String minAmountStr}) _getMinAmountFromQuote(SwapQuoteInfo quoteInfo) {
