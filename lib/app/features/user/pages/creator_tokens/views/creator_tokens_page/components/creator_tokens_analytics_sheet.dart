@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/segmented_control/segmented_control.dart';
+import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/providers/community_token_analytics_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -61,10 +62,20 @@ class CreatorTokensAnalyticsSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final range = useState(CreatorTokensAnalyticsRange.day);
+    final requestedRanges = useState<Set<CreatorTokensAnalyticsRange>>({});
     final colors = context.theme.appColors;
     final textThemes = context.theme.appTextThemes;
-    final metricsAsync = ref.watch(creatorTokensAnalyticsMetricsProvider);
-    final metrics = metricsAsync.valueOrNull?[range.value];
+
+    // Track which ranges the user has selected; each stays in [requestedRanges] so we keep
+    // watching its provider and avoid refetching when switching back. We watch all requested
+    // ranges and build [metricsMap] from them; closing the sheet disposes state so we refetch on reopen.
+    if (!requestedRanges.value.contains(range.value)) requestedRanges.value.add(range.value);
+    final metricsMap = <CreatorTokensAnalyticsRange, AsyncValue<CreatorTokensAnalyticsMetrics>>{};
+    for (final requestedMetricRange in requestedRanges.value) {
+      metricsMap[requestedMetricRange] =
+          ref.watch(creatorTokensAnalyticsMetricsProvider(requestedMetricRange));
+    }
+    final metrics = metricsMap[range.value];
 
     return SafeArea(
       child: Column(
@@ -87,36 +98,47 @@ class CreatorTokensAnalyticsSheet extends HookConsumerWidget {
                   onSelected: (i) => range.value = CreatorTokensAnalyticsRange.values[i],
                 ),
                 SizedBox(height: 12.0.s),
-                metricsAsync.when(
-                  data: (_) => _CreatorTokensAnalyticsMetricsContent(metrics: metrics),
-                  loading: () => Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32.0.s),
-                    child: Center(
-                      child: SizedBox(
-                        width: 24.0.s,
-                        height: 24.0.s,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: colors.primaryAccent,
+                if (metrics != null)
+                  metrics.when(
+                    data: (metrics) => _CreatorTokensAnalyticsMetricsContent(metrics: metrics),
+                    loading: () => const _CreatorTokensAnalyticsSkeleton(),
+                    error: (_, __) => Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32.0.s),
+                      child: Center(
+                        child: Text(
+                          context.i18n.creator_tokens_analytics_load_failed,
+                          style: textThemes.caption.copyWith(color: colors.tertiaryText),
                         ),
                       ),
                     ),
                   ),
-                  error: (_, __) => Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32.0.s),
-                    child: Center(
-                      child: Text(
-                        context.i18n.creator_tokens_analytics_load_failed,
-                        style: textThemes.caption.copyWith(color: colors.tertiaryText),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CreatorTokensAnalyticsSkeleton extends StatelessWidget {
+  const _CreatorTokensAnalyticsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 9.0.s,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          spacing: 9.0.s,
+          children: const [
+            Expanded(child: _AnalyticsStatCardSkeleton()),
+            Expanded(child: _AnalyticsStatCardSkeleton()),
+          ],
+        ),
+        const _AnalyticsStatCardSkeleton(),
+      ],
     );
   }
 }
@@ -157,6 +179,39 @@ class _CreatorTokensAnalyticsMetricsContent extends StatelessWidget {
           trailingIcon: Assets.svg.iconMemeMarkers,
         ),
       ],
+    );
+  }
+}
+
+class _AnalyticsStatCardSkeleton extends StatelessWidget {
+  const _AnalyticsStatCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.appColors;
+    return Container(
+      padding: EdgeInsetsDirectional.fromSTEB(12.0.s, 22.0.s, 12.0.s, 14.0.s),
+      decoration: BoxDecoration(
+        color: colors.primaryBackground,
+        borderRadius: BorderRadius.circular(16.0.s),
+      ),
+      child: Skeleton(
+        baseColor: colors.attentionBlock,
+        child: Column(
+          spacing: 8.0.s,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SkeletonBox(height: 19.5.s, width: 97.0.s),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SkeletonBox(height: 32.0.s, width: 95.0.s),
+                SkeletonBox(height: 32.0.s, width: 32.0.s),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
