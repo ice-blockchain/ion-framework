@@ -422,6 +422,21 @@ class _TimeframeAndMetricRow extends StatelessWidget {
                   ),
                 ),
               ),
+              IgnorePointer(
+                child: Container(
+                  width: fadeWidth * 0.6,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      stops: const [0.0, 0.5, 1.0],
+                      colors: [
+                        colors.secondaryBackground.withValues(alpha: 0.6),
+                        colors.secondaryBackground.withValues(alpha: 0.8),
+                        colors.secondaryBackground,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               ColoredBox(
                 color: colors.secondaryBackground,
                 child: _MetricIconSwitcher(
