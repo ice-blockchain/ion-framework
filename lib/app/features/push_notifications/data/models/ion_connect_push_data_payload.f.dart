@@ -572,10 +572,9 @@ class IonConnectPushDataPayload {
 
   Future<bool> validate({required String currentPubkey}) async {
     final signaturesValid = await _checkEventsSignatures();
-    final isMainEventRelevant = _checkMainEventRelevant(currentPubkey: currentPubkey);
     final requiredEventsPresent = _checkRequiredRelevantEvents();
 
-    return signaturesValid && isMainEventRelevant && requiredEventsPresent;
+    return signaturesValid && requiredEventsPresent;
   }
 
   static String _decompress({required String input, required Compression compression}) {
@@ -593,42 +592,6 @@ class IonConnectPushDataPayload {
       ],
     );
     return valid.every((valid) => valid);
-  }
-
-  bool _checkMainEventRelevant({required String currentPubkey}) {
-    final entity = mainEntity;
-    if (entity is ModifiablePostEntity || entity is PostEntity) {
-      final relatedPubkeys = switch (entity) {
-        ModifiablePostEntity() => entity.data.relatedPubkeys,
-        PostEntity() => entity.data.relatedPubkeys,
-        _ => null
-      };
-
-      final event = switch (entity) {
-        ModifiablePostEntity() => entity.data.quotedEvent,
-        PostEntity() => entity.data.quotedEvent,
-        _ => null
-      };
-
-      final isInRelatedPubkeys = relatedPubkeys != null &&
-          relatedPubkeys.any((relatedPubkey) => relatedPubkey.value == currentPubkey);
-
-      final isPostAuthor = event != null && event.eventReference.masterPubkey == currentPubkey;
-
-      return isInRelatedPubkeys || isPostAuthor;
-    } else if (entity is GenericRepostEntity) {
-      return entity.data.eventReference.masterPubkey == currentPubkey;
-    } else if (entity is RepostEntity) {
-      return entity.data.eventReference.masterPubkey == currentPubkey;
-    } else if (entity is ReactionEntity) {
-      return entity.data.eventReference.masterPubkey == currentPubkey;
-    } else if (entity is FollowListEntity) {
-      return entity.masterPubkeys.lastOrNull == currentPubkey;
-    } else if (entity is IonConnectGiftWrapEntity) {
-      return entity.data.relatedPubkeys
-          .any((relatedPubkey) => relatedPubkey.value == currentPubkey);
-    }
-    return false;
   }
 
   bool _checkRequiredRelevantEvents() {

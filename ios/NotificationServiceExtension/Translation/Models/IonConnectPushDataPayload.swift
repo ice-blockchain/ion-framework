@@ -431,7 +431,6 @@ class IonConnectPushDataPayload: Decodable {
 
     func validate(currentPubkey: String) -> Bool {
         return checkEventsSignatures()
-            && checkMainEventRelevant(currentPubkey: currentPubkey)
             && checkRequiredRelevantEvents()
     }
 
@@ -442,48 +441,6 @@ class IonConnectPushDataPayload: Decodable {
         let relevantEventsValid = relevantEvents.allSatisfy { $0.validate() }
 
         return mainEventValid && relevantEventsValid
-    }
-
-    private func checkMainEventRelevant(currentPubkey: String) -> Bool {
-        guard let entity = mainEntity else {
-            return false
-        }
-
-        if let modifiablePost = entity as? ModifiablePostEntity {
-            let event = modifiablePost.data.quotedEvent
-            
-            let isInRelatedPubkeys = modifiablePost.data.relatedPubkeys.contains { pubkey in
-                return pubkey.value == currentPubkey
-            }
-            
-            let isPostAuthor = event != nil && event!.eventReference.masterPubkey == currentPubkey
-            
-            return isInRelatedPubkeys || isPostAuthor
-        } else if let post = entity as? PostEntity {
-            let event = post.data.quotedEvent
-            
-            let isInRelatedPubkeys = post.data.relatedPubkeys.contains { pubkey in
-                return pubkey.value == currentPubkey
-            }
-            
-            let isPostAuthor = event != nil && event!.eventReference.masterPubkey == currentPubkey
-            
-            return isInRelatedPubkeys || isPostAuthor
-        } else if let genericRepost = entity as? GenericRepostEntity {
-            return genericRepost.data.eventReference.masterPubkey == currentPubkey
-        } else if let repost = entity as? RepostEntity {
-            return repost.data.eventReference.masterPubkey == currentPubkey
-        } else if let reaction = entity as? ReactionEntity {
-            return reaction.data.eventReference.masterPubkey == currentPubkey
-        } else if let followList = entity as? FollowListEntity {
-            return followList.pubkeys.last == currentPubkey
-        } else if let giftWrap = entity as? IonConnectGiftWrapEntity {
-            return giftWrap.data.relatedPubkeys.contains { pubkey in
-                return pubkey.value == currentPubkey
-            }
-        }
-
-        return false
     }
 
     private func checkRequiredRelevantEvents() -> Bool {
