@@ -118,10 +118,12 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                         skipAmountFormatting: true,
                         isInsufficientFundsError: isInsufficientFundsErrorState.value,
                         skipValidation: true,
+                        isError: buttonError.value != null,
                         controller: amountController,
                         type: CoinSwapType.sell,
                         coinsGroup: sellNetwork != null ? sellCoins : null,
                         network: sellNetwork,
+                        skipFocusValidationWhenFormatting: true,
                         onTap: () {
                           SwapSelectCoinRoute(
                             coinType: CoinSwapType.sell,
@@ -132,8 +134,8 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                         height: 10.0.s,
                       ),
                       TokenCard(
-                        skipAmountFormatting: true,
                         skipValidation: true,
+                        skipFocusValidationWhenFormatting: true,
                         isReadOnly: true,
                         controller: quoteController,
                         type: CoinSwapType.buy,

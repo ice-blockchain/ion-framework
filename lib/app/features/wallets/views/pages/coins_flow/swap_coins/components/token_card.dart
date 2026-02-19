@@ -33,6 +33,13 @@ class TokenCard extends HookConsumerWidget {
     this.showSelectButton = true,
     this.showArrow = true,
     this.skipValidation = false,
+    this.enabled = true,
+    this.skipAmountFormatting = false,
+    this.isError = false,
+    this.isCoinNameLoading = false,
+    this.customIconWidget,
+    this.formattedAmount,
+    this.skipFocusValidationWhenFormatting = false,
     super.key,
     this.isInsufficientFundsError = false,
     this.skipAmountFormatting = false,
@@ -51,17 +58,11 @@ class TokenCard extends HookConsumerWidget {
   final bool skipValidation;
   final bool isInsufficientFundsError;
   final bool skipAmountFormatting;
-
-  void _onPercentageChanged(int percentage, WidgetRef ref) {
-    final coin = coinsGroup?.coins.firstWhereOrNull(
-      (c) => c.coin.network.id == network?.id,
-    );
-    final amount = coin?.amount;
-    if (amount == null) return;
-
-    final newAmount = amount * (percentage / 100);
-    ref.read(swapCoinsControllerProvider.notifier).setAmount(newAmount);
-  }
+  final ValueChanged<String?>? onValidationError;
+  final bool isCoinNameLoading;
+  final Widget? customIconWidget;
+  final String? formattedAmount;
+  final bool skipFocusValidationWhenFormatting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,8 +90,9 @@ class TokenCard extends HookConsumerWidget {
       () {
         void formatAmount() {
           if (skipAmountFormatting) return;
+          final formatCondition = !focusNode.hasFocus && !(isReadOnly ?? false);
 
-          if (!focusNode.hasFocus && !(isReadOnly ?? false)) {
+          if (skipFocusValidationWhenFormatting || formatCondition) {
             // Format to 2 decimal places when focus is lost
             WidgetsBinding.instance.addPostFrameCallback((_) {
               // Check controller != null inside callback to handle async cases
