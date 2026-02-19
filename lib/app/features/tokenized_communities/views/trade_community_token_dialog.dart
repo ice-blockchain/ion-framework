@@ -24,7 +24,6 @@ import 'package:ion/app/features/tokenized_communities/providers/community_token
 import 'package:ion/app/features/tokenized_communities/providers/external_address_type_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/trade_infrastructure_providers.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
@@ -303,25 +302,6 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     required CommunityTokenTradeMode mode,
     required String externalAddress,
   }) async {
-    List<CoinData> tokens;
-    try {
-      tokens = await ref.read(supportedSwapTokensProvider.future);
-      if (!context.mounted) return;
-    } catch (error, stackTrace) {
-      Logger.error(
-        error,
-        stackTrace: stackTrace,
-        message: '[TradeCommunityTokenDialog] Failed to load supported swap tokens',
-      );
-      return;
-    }
-    if (tokens.isEmpty) {
-      Logger.warning(
-        '[TradeCommunityTokenDialog] Supported swap tokens list is empty',
-      );
-      return;
-    }
-
     if (!context.mounted) return;
     final selectedCoin = await SelectTradePaymentTokenProfileRoute(
       contentTokenExternalAddress: mode == CommunityTokenTradeMode.buy ? externalAddress : null,
