@@ -9,7 +9,6 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
 import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
-import 'package:ion/app/components/restricted_region_unavailable_sheet.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
@@ -19,7 +18,6 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SwapCoinsConfirmationPage extends HookConsumerWidget {
@@ -137,35 +135,39 @@ class _SwapButton extends ConsumerWidget {
     final isDisabled = isSwapLoading || isSwapDisabled;
     final swapCoinsData = ref.watch(swapCoinsControllerProvider);
 
-    ref.listenError<void>(
-      swapCoinsWithIonBscSwapProvider,
-      (error) {
-        if (error is! RestrictedRegionException || !context.mounted) {
-          return;
-        }
-
-        showSimpleBottomSheet<void>(
-          context: context,
-          isDismissible: false,
-          child: RestrictedRegionUnavailableSheet(
-            onClose: () {
-              unawaited(_pop(context));
-            },
-          ),
-        );
-      },
-    );
-
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
         disabled: isDisabled,
-        onPressed: () => _onPressed(
-          context: context,
-          ref: ref,
-          messageNotificationNotifier: messageNotificationNotifier,
-          swapCoinsData: swapCoinsData,
-        ),
+        onPressed: () async {
+          await guardPasskeyDialog(
+            context,
+            (child) => RiverpodUserActionSignerRequestBuilder(
+              provider: swapCoinsWithIonBscSwapProvider,
+              request: (signer) async {
+                await ref.read(swapCoinsWithIonBscSwapProvider.notifier).run(
+                      userActionSigner: signer,
+                      onSwapSuccess: () {
+                        _showSuccessMessage(
+                          messageNotificationNotifier,
+                          context,
+                          swapCoinsData,
+                        );
+                      },
+                      onSwapError: () {
+                        _showErrorMessage(
+                          messageNotificationNotifier,
+                          context,
+                          swapCoinsData,
+                        );
+                      },
+                      onSwapStart: () {},
+                    );
+              },
+              child: child,
+            ),
+          );
+        },
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,
           style: textStyles.body.copyWith(
@@ -184,154 +186,6 @@ class _SwapButton extends ConsumerWidget {
             horizontal: 109.0.s,
             vertical: 16.0.s,
           ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _onPressed({
-    required BuildContext context,
-    required WidgetRef ref,
-    required MessageNotificationNotifier messageNotificationNotifier,
-    required SwapCoinData swapCoinsData,
-  }) async {
-    final notifier = ref.read(swapCoinsControllerProvider.notifier);
-    final isIonBscSwap = await notifier.getIsIonBscSwap();
-    if (!context.mounted) return;
-
-    try {
-      if (isIonBscSwap) {
-        await _runIonBscSwap(
-          context: context,
-          ref: ref,
-          messageNotificationNotifier: messageNotificationNotifier,
-          swapCoinsData: swapCoinsData,
-        );
-        return;
-      }
-
-      await _runRegularSwap(
-        context: context,
-        ref: ref,
-        notifier: notifier,
-        messageNotificationNotifier: messageNotificationNotifier,
-        swapCoinsData: swapCoinsData,
-      );
-    } on RestrictedRegionException {
-      if (!context.mounted) return;
-      await showSimpleBottomSheet<void>(
-        isDismissible: false,
-        child: RestrictedRegionUnavailableSheet(
-          onClose: () {
-            unawaited(_pop(context));
-          },
-        ),
-      );
-    }
-  }
-
-  Future<void> _runIonBscSwap({
-    required BuildContext context,
-    required WidgetRef ref,
-    required MessageNotificationNotifier messageNotificationNotifier,
-    required SwapCoinData swapCoinsData,
-  }) async {
-    if (!context.mounted) return;
-    await guardPasskeyDialog(
-      context,
-      (child) => RiverpodUserActionSignerRequestBuilder(
-        provider: swapCoinsWithIonBscSwapProvider,
-        request: (signer) async {
-          await ref.read(swapCoinsWithIonBscSwapProvider.notifier).run(
-                userActionSigner: signer,
-                onSwapSuccess: () {
-                  _showSuccessMessage(
-                    messageNotificationNotifier,
-                    context,
-                    swapCoinsData,
-                  );
-                },
-                onSwapError: () {
-                  _showErrorMessage(
-                    messageNotificationNotifier,
-                    context,
-                    swapCoinsData,
-                  );
-                },
-                onSwapStart: () {},
-              );
-        },
-        child: child,
-      ),
-    );
-  }
-
-  Future<void> _runRegularSwap({
-    required BuildContext context,
-    required WidgetRef ref,
-    required SwapCoinsController notifier,
-    required MessageNotificationNotifier messageNotificationNotifier,
-    required SwapCoinData swapCoinsData,
-  }) async {
-    await notifier.swapCoins(
-      onVerifyIdentitySwapCallback: (sendAssetFormData) async {
-        await guardPasskeyDialog(
-          ref.context,
-          (child) {
-            return RiverpodVerifyIdentityRequestBuilder(
-              provider: sendCoinsNotifierProvider,
-              requestWithVerifyIdentity: (
-                OnVerifyIdentity<Map<String, dynamic>> onVerifyIdentity,
-              ) async {
-                await ref.read(sendCoinsNotifierProvider.notifier).send(
-                      onVerifyIdentity,
-                      form: sendAssetFormData,
-                    );
-              },
-              child: child,
-            );
-          },
-        );
-      },
-      onSwapError: () {
-        _showErrorMessage(
-          messageNotificationNotifier,
-          context,
-          swapCoinsData,
-        );
-      },
-      onSwapSuccess: () {
-        _showSuccessMessage(
-          messageNotificationNotifier,
-          context,
-          swapCoinsData,
-        );
-      },
-      onSwapStart: () {
-        _showStartMessage(
-          messageNotificationNotifier,
-          context,
-          swapCoinsData,
-        );
-      },
-    );
-  }
-
-  Future<void> _showStartMessage(
-    MessageNotificationNotifier messageNotificationNotifier,
-    BuildContext context,
-    SwapCoinData swapCoinsData,
-  ) async {
-    final colors = context.theme.appColors;
-
-    unawaited(
-      _showMessage(
-        swapCoinsData: swapCoinsData,
-        messageNotificationNotifier,
-        message: context.i18n.wallet_swapping_coins,
-        icon: Assets.svg.iconSwap.icon(
-          color: colors.secondaryBackground,
-          size: 24.0.s,
         ),
       ),
     );
@@ -367,6 +221,8 @@ class _SwapButton extends ConsumerWidget {
       context.maybePop();
     }
   }
+
+  Future<void> _showErrorMessage(
     MessageNotificationNotifier messageNotificationNotifier,
     BuildContext context,
     SwapCoinData swapCoinsData,
