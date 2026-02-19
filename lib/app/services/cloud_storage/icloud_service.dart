@@ -8,6 +8,7 @@ import 'package:icloud_storage/icloud_storage.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:path_provider/path_provider.dart';
 
 final class ICloudStorageService extends CloudStorageService {
@@ -48,11 +49,19 @@ final class ICloudStorageService extends CloudStorageService {
       Logger.info('[iCloud] Found ${fileList.length} total file(s) in container');
 
       return fileList.map((file) => file.relativePath).toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
       Logger.error(
         e,
+        stackTrace: stackTrace,
         message:
             '[iCloud] Failed to list files${directory != null ? ' in directory "$directory"' : ''}',
+      );
+      unawaited(
+        SentryService.logException(
+          e,
+          stackTrace: stackTrace,
+          tag: 'icloud_list_files',
+        ),
       );
       if (e is PlatformException && e.code == PlatformExceptionCode.iCloudConnectionOrPermission) {
         throw CloudPermissionFailedException();
