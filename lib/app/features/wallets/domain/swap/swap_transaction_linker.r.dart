@@ -45,10 +45,13 @@ class SwapTransactionLinker {
   StreamSubscription<List<TransactionData>>? _outgoingTxSubscription;
   bool _isRunning = false;
   List<SwapTransactions> _pendingSwaps = [];
+  List<TransactionData> _lastIncomingTransactions = [];
 
   void startWatching() {
     if (_isRunning) return;
     _isRunning = true;
+
+    unawaited(_reconcileExistingTransactions());
 
     _swapSubscription = _swapsRepository
         .watchSwaps(toTxHashes: [null])
@@ -80,6 +83,38 @@ class SwapTransactionLinker {
     _outgoingTxSubscription?.cancel();
     _outgoingTxSubscription = null;
     _pendingSwaps = [];
+    _lastIncomingTransactions = [];
+  }
+
+  // Matches pending swaps against transactions that were already in the DB
+  // before the live stream subscriptions started (e.g. after a history sync).
+  Future<void> _reconcileExistingTransactions() async {
+    final pendingSwaps = await _swapsRepository.getSwaps(toTxHashes: [null]);
+    if (pendingSwaps.isNotEmpty) {
+      final toWalletAddresses = pendingSwaps.map((s) => s.toWalletAddress).toSet().toList();
+      final existingReceiveTxs = await _transactionsRepository.getTransactions(
+        type: TransactionType.receive,
+        walletAddresses: toWalletAddresses,
+        limit: 100,
+      );
+      for (final tx in existingReceiveTxs) {
+        await _tryMatchToTx(tx);
+      }
+    }
+
+    final swapsWithoutFromTx = await _swapsRepository.getSwaps(fromTxHashes: [null]);
+    if (swapsWithoutFromTx.isNotEmpty) {
+      final fromWalletAddresses =
+          swapsWithoutFromTx.map((s) => s.fromWalletAddress).toSet().toList();
+      final existingSendTxs = await _transactionsRepository.getTransactions(
+        type: TransactionType.send,
+        walletAddresses: fromWalletAddresses,
+        limit: 100,
+      );
+      for (final tx in existingSendTxs) {
+        await _tryMatchFromTx(tx);
+      }
+    }
   }
 
   SwapTransactionIdentifier? _getIdentifier(String networkId) =>
@@ -101,13 +136,18 @@ class SwapTransactionLinker {
   void _onPendingSwapsChanged(List<SwapTransactions> pendingSwaps) {
     if (!_isRunning) return;
     _pendingSwaps = pendingSwaps;
+
+    if (_pendingSwaps.isNotEmpty && _lastIncomingTransactions.isNotEmpty) {
+      _matchIncomingTransactions(_lastIncomingTransactions);
+    }
   }
 
   void _onNewIncomingTransactions(List<TransactionData> transactions) {
-    if (!_isRunning || _pendingSwaps.isEmpty) return;
+    if (!_isRunning) return;
+    _lastIncomingTransactions = transactions;
 
-    for (final tx in transactions) {
-      _tryMatchToTx(tx);
+    if (_pendingSwaps.isNotEmpty) {
+      _matchIncomingTransactions(transactions);
     }
   }
 
@@ -116,6 +156,12 @@ class SwapTransactionLinker {
 
     for (final tx in transactions) {
       _tryMatchFromTx(tx);
+    }
+  }
+
+  void _matchIncomingTransactions(List<TransactionData> transactions) {
+    for (final tx in transactions) {
+      _tryMatchToTx(tx);
     }
   }
 
@@ -128,23 +174,35 @@ class SwapTransactionLinker {
       toTxHashes: [null],
     );
 
-    for (final swap in pendingSwapsForWallet) {
-      final destIdentifier = _getIdentifier(swap.toNetworkId);
-      if (destIdentifier == null) continue;
+    if (pendingSwapsForWallet.isEmpty) return;
 
+    final matchedSwap = _findMatchingToSwap(pendingSwapsForWallet, tx);
+    if (matchedSwap != null) {
+      await _swapsRepository.updateSwap(
+        swapId: matchedSwap.swapId,
+        toTxHash: tx.txHash,
+        status: SwapStatus.succeeded,
+      );
+    }
+  }
+
+  SwapTransactions? _findMatchingToSwap(
+    List<SwapTransactions> swaps,
+    TransactionData tx,
+  ) {
+    for (final swap in swaps.reversed) {
+      final destIdentifier = _getIdentifier(swap.toNetworkId);
       final crossChainFee = _calculateCrossChainFee(
         fromNetworkId: swap.fromNetworkId,
         toNetworkId: swap.toNetworkId,
       );
 
-      if (destIdentifier.isToTxMatch(swap, tx, crossChainFee: crossChainFee)) {
-        await _swapsRepository.updateSwap(
-          swapId: swap.swapId,
-          toTxHash: tx.txHash,
-          status: SwapStatus.succeeded,
-        );
+      if (destIdentifier != null &&
+          destIdentifier.isToTxMatch(swap, tx, crossChainFee: crossChainFee)) {
+        return swap;
       }
     }
+    return null;
   }
 
   Future<void> _tryMatchFromTx(TransactionData tx) async {
@@ -152,16 +210,26 @@ class SwapTransactionLinker {
       fromTxHashes: [null],
     );
 
-    for (final swap in swapsWithoutFromTx) {
-      final identifier = _getIdentifier(swap.fromNetworkId);
-      if (identifier == null) continue;
+    final matchedSwap = _findMatchingFromSwap(swapsWithoutFromTx, tx);
+    if (matchedSwap != null) {
+      await _swapsRepository.updateSwap(
+        swapId: matchedSwap.swapId,
+        fromTxHash: tx.txHash,
+      );
+    }
+  }
 
-      if (identifier.isFromTxMatch(swap, tx)) {
-        await _swapsRepository.updateSwap(
-          swapId: swap.swapId,
-          fromTxHash: tx.txHash,
-        );
+  SwapTransactions? _findMatchingFromSwap(
+    List<SwapTransactions> swaps,
+    TransactionData tx,
+  ) {
+    for (final swap in swaps.reversed) {
+      final identifier = _getIdentifier(swap.fromNetworkId);
+
+      if (identifier != null && identifier.isFromTxMatch(swap, tx)) {
+        return swap;
       }
     }
+    return null;
   }
 }
