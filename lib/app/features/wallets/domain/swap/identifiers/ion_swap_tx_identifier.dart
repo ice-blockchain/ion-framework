@@ -17,7 +17,7 @@ class IonSwapTxIdentifier extends SwapTransactionIdentifier {
   List<String> get networkIds => ['Ion', 'IonTestnet'];
 
   @override
-  String get bridgeAddress => _bridgeMultisigAddress;
+  List<String> get swapIndicatorAddresses => [_bridgeMultisigAddress];
 
   @override
   BigInt getCrossChainFee({required bool isSource}) =>
