@@ -54,7 +54,9 @@ class StoriesSwiper extends HookConsumerWidget {
       onPageChanged: userStoriesNotifier.moveTo,
       itemBuilder: (context, userIndex, pageNotifier) {
         final isCurrentUser = userIndex == currentUserIndex;
-        final userPubkey = userStoriesViewingState.pubkeyAtIndex(userIndex) ?? pubkey;
+        final pubkeyAtIndex = userStoriesViewingState.pubkeyAtIndex(userIndex);
+        final userPubkey =
+            pubkeyAtIndex != null && pubkeyAtIndex.isNotEmpty ? pubkeyAtIndex : pubkey;
 
         void closeViewer() {
           if (context.mounted) {
