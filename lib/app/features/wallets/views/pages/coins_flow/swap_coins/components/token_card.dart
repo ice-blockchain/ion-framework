@@ -43,6 +43,7 @@ class TokenCard extends HookConsumerWidget {
     this.isCoinNameLoading = false,
     this.customIconWidget,
     this.formattedAmount,
+    this.skipFocusValidationWhenFormatting = false,
     super.key,
   });
 
@@ -64,6 +65,7 @@ class TokenCard extends HookConsumerWidget {
   final bool isCoinNameLoading;
   final Widget? customIconWidget;
   final String? formattedAmount;
+  final bool skipFocusValidationWhenFormatting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,8 +104,9 @@ class TokenCard extends HookConsumerWidget {
       () {
         void formatAmount() {
           if (skipAmountFormatting) return;
+          final formatCondition = !focusNode.hasFocus && !(isReadOnly ?? false);
 
-          if (!focusNode.hasFocus && !(isReadOnly ?? false)) {
+          if (skipFocusValidationWhenFormatting || formatCondition) {
             // Format to 2 decimal places when focus is lost
             WidgetsBinding.instance.addPostFrameCallback((_) {
               // Check controller != null inside callback to handle async cases

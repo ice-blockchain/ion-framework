@@ -41,7 +41,20 @@ extension DoubleNullableExtension on double? {
     final d = Decimal.parse(noNullVal.toString());
     final truncated = d.truncate(scale: decimals);
     final fixed = truncated.toStringAsFixed(decimals);
-    return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
+    final res = fixed.replaceFirst(RegExp(r'\.?0+$'), '');
+
+    if (!res.contains('.')) {
+      // It's an integer, format to 2 decimals
+      return '$res.00';
+    } else {
+      final parts = res.split('.');
+      if (parts.length == 2 && parts[1].length == 1) {
+        // Has only one decimal place, pad to 2 decimals
+        return '${parts[0]}.${parts[1]}0';
+      }
+    }
+
+    return res;
   }
 }
 
