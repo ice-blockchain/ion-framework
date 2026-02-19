@@ -162,7 +162,7 @@ class _$ExolixNetworkImpl implements _ExolixNetwork {
   _$ExolixNetworkImpl(
       {required this.network,
       required this.name,
-      required this.shortName,
+      this.shortName = '',
       required this.isDefault,
       required this.contract});
 
@@ -174,6 +174,7 @@ class _$ExolixNetworkImpl implements _ExolixNetwork {
   @override
   final String name;
   @override
+  @JsonKey()
   final String shortName;
   @override
   final bool isDefault;
@@ -225,7 +226,7 @@ abstract class _ExolixNetwork implements ExolixNetwork {
   factory _ExolixNetwork(
       {required final String network,
       required final String name,
-      required final String shortName,
+      final String shortName,
       required final bool isDefault,
       required final String? contract}) = _$ExolixNetworkImpl;
 

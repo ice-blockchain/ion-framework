@@ -10,7 +10,7 @@ _$ExolixNetworkImpl _$$ExolixNetworkImplFromJson(Map<String, dynamic> json) =>
     _$ExolixNetworkImpl(
       network: json['network'] as String,
       name: json['name'] as String,
-      shortName: json['shortName'] as String,
+      shortName: json['shortName'] as String? ?? '',
       isDefault: json['isDefault'] as bool,
       contract: json['contract'] as String?,
     );

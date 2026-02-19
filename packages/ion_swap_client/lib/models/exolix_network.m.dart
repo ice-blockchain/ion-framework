@@ -10,7 +10,7 @@ class ExolixNetwork with _$ExolixNetwork {
   factory ExolixNetwork({
     required String network,
     required String name,
-    required String shortName,
+    @Default('') String shortName,
     required bool isDefault,
     required String? contract,
   }) = _ExolixNetwork;
