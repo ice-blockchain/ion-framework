@@ -6,6 +6,7 @@ import 'package:ion/app/features/tokenized_communities/providers/web3client_prov
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_swap_client/ion_swap_config.dart';
+import 'package:ion_swap_client/models/okx_fee_address.m.dart';
 import 'package:ion_swap_client/service_locator/swap_controller_locator.dart';
 import 'package:ion_swap_client/services/swap_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,6 +41,20 @@ IONSwapConfig ionSwapConfig(Ref ref) {
     interceptors: [
       if (logger != null) logger,
     ],
+    defaultSwapPercentFee: env.get(EnvVariable.DEFAULT_SWAP_PERCENT_FEE),
+    relayEvmFeeAddress: env.get(EnvVariable.RELAY_SWAP_FEE_ADDRESS),
+    okxFeeAddress: OkxFeeAddress(
+      avalanceAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_AVALANCE),
+      arbitrumAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_ARBITRUM),
+      optimistAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_OPTIMIST),
+      polygonAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_POLYGON),
+      solAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_SOL),
+      baseAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_BASE),
+      tonAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_TON),
+      tronAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_TRON),
+      ethAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_ETH),
+      bnbAddress: env.get(EnvVariable.OKX_SWAP_FEE_ADDRESS_BNB),
+    ),
   );
 }
 

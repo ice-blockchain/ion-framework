@@ -93,6 +93,8 @@ class SwapOkxRepository {
     required String fromTokenAddress,
     required String userWalletAddress,
     required String slippagePercent,
+    required String fromTokenReferrerWalletAddress,
+    required String feePercent,
   }) async {
     final response = await _dio.get<dynamic>(
       '$_aggregatorBaseUrl/swap',
@@ -104,6 +106,8 @@ class SwapOkxRepository {
         'toTokenAddress': toTokenAddress,
         'userWalletAddress': userWalletAddress,
         'slippagePercent': slippagePercent,
+        'fromTokenReferrerWalletAddress': fromTokenReferrerWalletAddress,
+        'feePercent': feePercent,
       },
     );
 

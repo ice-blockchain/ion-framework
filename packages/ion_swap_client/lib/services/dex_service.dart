@@ -6,6 +6,7 @@ import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/models/chain_data.m.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
+import 'package:ion_swap_client/models/okx_fee_address.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
@@ -24,15 +25,21 @@ class DexService {
     required ChainsIdsRepository chainsIdsRepository,
     required EvmTxBuilder evmTxBuilder,
     required IonIdentityTransactionApi ionIdentityTransactionApi,
+    required String defaultSwapPercentFee,
+    required OkxFeeAddress okxFeeAddress,
   })  : _swapOkxRepository = swapOkxRepository,
         _ionIdentityTransactionApi = ionIdentityTransactionApi,
         _chainsIdsRepository = chainsIdsRepository,
-        _evmTxBuilder = evmTxBuilder;
+        _evmTxBuilder = evmTxBuilder,
+        _defaultSwapPercentFee = defaultSwapPercentFee,
+        _okxFeeAddress = okxFeeAddress;
 
   final SwapOkxRepository _swapOkxRepository;
   final ChainsIdsRepository _chainsIdsRepository;
   final IonIdentityTransactionApi _ionIdentityTransactionApi;
   final EvmTxBuilder _evmTxBuilder;
+  final String _defaultSwapPercentFee;
+  final OkxFeeAddress _okxFeeAddress;
 
   // Returns transaction data if swap was successful, null otherwise
   Future<String?> tryToSwapDex({
@@ -88,6 +95,8 @@ class DexService {
         fromTokenAddress: sellTokenAddress,
         userWalletAddress: userSellAddress,
         slippagePercent: swapCoinData.slippage,
+        feePercent: _defaultSwapPercentFee,
+        fromTokenReferrerWalletAddress: _getFeeAddressByChainIndex(okxQuote.chainIndex),
       );
 
       final swapDataList = _processOkxResponse(swapResponse);
@@ -187,5 +196,25 @@ class DexService {
   bool isNeedToApproveToken(String chainIndex) {
     final chainIndexInt = int.parse(chainIndex);
     return SwapConstants.okxEvmChainsIds.contains(chainIndexInt);
+  }
+
+  String _getFeeAddressByChainIndex(String chainIndex) {
+    final chainIndexInt = int.parse(chainIndex);
+
+    final feeAddress = switch (chainIndexInt) {
+      43114 => _okxFeeAddress.avalanceAddress,
+      42161 => _okxFeeAddress.arbitrumAddress,
+      10 => _okxFeeAddress.optimistAddress,
+      137 => _okxFeeAddress.polygonAddress,
+      501 => _okxFeeAddress.solAddress,
+      8453 => _okxFeeAddress.baseAddress,
+      607 => _okxFeeAddress.tonAddress,
+      195 => _okxFeeAddress.tronAddress,
+      1 => _okxFeeAddress.ethAddress,
+      56 => _okxFeeAddress.bnbAddress,
+      _ => throw IonSwapException('Invalid chain index: $chainIndex'),
+    };
+
+    return feeAddress;
   }
 }
