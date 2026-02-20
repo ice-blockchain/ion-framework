@@ -55,7 +55,9 @@ class SecureAccountModal extends HookConsumerWidget {
     final maybeCloseIfAlreadySecured = useCallback(
       () async {
         final isSecured = await ref.read(isCurrentUserSecuredProvider.future);
-        if (context.mounted && isSecured) {
+        // Only pop if this modal is still the current route
+        // This prevents popping when user has navigated away (e.g., after recovery keys flow)
+        if (context.mounted && isSecured && context.isCurrentRoute) {
           context.maybePop();
         }
       },
@@ -76,7 +78,9 @@ class SecureAccountModal extends HookConsumerWidget {
       isCurrentUserSecuredProvider,
       (_, next) {
         final secured = next.maybeWhen(data: (value) => value, orElse: () => false);
-        if (secured && context.mounted) {
+        // Only pop if this modal is still the current route
+        // This prevents popping when user has navigated away (e.g., after recovery keys flow)
+        if (secured && context.mounted && context.isCurrentRoute) {
           context.maybePop();
         }
       },
