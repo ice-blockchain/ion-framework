@@ -159,11 +159,54 @@ class _SwapButton extends ConsumerWidget {
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
         disabled: isDisabled,
+<<<<<<< HEAD
         onPressed: () => _onPressed(
           context: context,
           ref: ref,
           messageNotificationNotifier: messageNotificationNotifier,
         ),
+=======
+        onPressed: () async {
+          final restrictedRegionException = await ref
+              .read(swapCoinsControllerProvider.notifier)
+              .waitRestrictedRegionProbeResult();
+
+          if (!context.mounted) return;
+
+          if (restrictedRegionException != null) {
+            _showRestrictedRegionSheet(context);
+            return;
+          }
+
+          await guardPasskeyDialog(
+            context,
+            (child) => RiverpodUserActionSignerRequestBuilder(
+              provider: swapCoinsWithIonBscSwapProvider,
+              request: (signer) async {
+                await ref.read(swapCoinsWithIonBscSwapProvider.notifier).run(
+                      userActionSigner: signer,
+                      onSwapSuccess: () {
+                        _showSuccessMessage(
+                          messageNotificationNotifier,
+                          context,
+                          swapCoinsData,
+                        );
+                      },
+                      onSwapError: () {
+                        _showErrorMessage(
+                          messageNotificationNotifier,
+                          context,
+                          swapCoinsData,
+                        );
+                      },
+                      onSwapStart: () {},
+                    );
+              },
+              child: child,
+            ),
+          );
+        },
+>>>>>>> 64379db73 (feat(swap): add restricted region probe request when user opens Swap dialog (#3455))
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,
           style: textStyles.body.copyWith(
@@ -342,6 +385,18 @@ class _SwapButton extends ConsumerWidget {
     if (context.mounted) {
       await _pop(context);
     }
+  }
+
+  void _showRestrictedRegionSheet(BuildContext context) {
+    showSimpleBottomSheet<void>(
+      context: context,
+      isDismissible: false,
+      child: RestrictedRegionUnavailableSheet(
+        onClose: () {
+          unawaited(_pop(context));
+        },
+      ),
+    );
   }
 
   Future<void> _pop(BuildContext context) async {
