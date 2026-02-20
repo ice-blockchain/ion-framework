@@ -272,6 +272,8 @@ class IonConnectPushDataPayload: Decodable {
                     return nil
                 }
             }
+        } else if entity is WalletAssetEntity {
+            return .paymentReceived
         }
 
         return nil
@@ -313,6 +315,15 @@ class IonConnectPushDataPayload: Decodable {
                         data["documentExt"] = FileTypeMapper.getFileType(mimeType: media.originalMimeType)
                     }
                 }
+            }
+        }
+
+        // Handle non-encrypted WalletAssetEntity events (from external sources)
+        if type == .paymentReceived, event.kind == WalletAssetEntity.kind {
+            let txData = IonConnectPushDataPayload.buildTransactionData(from: event)
+            if let tx = txData {
+                data["coinAmount"] = tx.coinAmount
+                data["coinSymbol"] = tx.coinSymbol
             }
         }
 
