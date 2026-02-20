@@ -88,11 +88,14 @@ class PasskeysSigner {
   /// The registration process involves interacting with a passkey authenticator
   /// and relies on the options specified in [PasskeysOptions].
   Future<CredentialRequestData> register(UserRegistrationChallenge challenge) async {
+    final relyingPartyId = _resolveRelyingId(challenge.rp);
+    final residentKey = challenge.authenticatorSelection?.residentKey ?? 'required';
+
     final requestType = RegisterRequestType(
       challenge: challenge.challenge,
       relyingParty: RelyingPartyType(
         name: challenge.rp.name,
-        id: challenge.rp.id,
+        id: relyingPartyId,
       ),
       user: UserType(
         displayName: challenge.user.displayName,
@@ -102,8 +105,9 @@ class PasskeysSigner {
       authSelectionType: AuthenticatorSelectionType(
         authenticatorAttachment:
             challenge.authenticatorSelection?.authenticatorAttachment ?? 'platform',
-        requireResidentKey: challenge.authenticatorSelection?.requireResidentKey ?? false,
-        residentKey: challenge.authenticatorSelection?.residentKey ?? 'required',
+        requireResidentKey:
+            challenge.authenticatorSelection?.requireResidentKey ?? residentKey == 'required',
+        residentKey: residentKey,
         userVerification: challenge.authenticatorSelection?.userVerification ?? 'required',
       ),
       pubKeyCredParams: List<PubKeyCredParamType>.from(
@@ -217,14 +221,14 @@ class PasskeysSigner {
     }
   }
 
-  String _resolveRelyingId(UserActionChallenge challenge) {
-    final direct = challenge.rp.id.trim();
+  String _resolveRelyingId(RelyingParty rp) {
+    final direct = rp.id.trim();
     if (direct.isNotEmpty) {
       return direct;
     }
 
     throw PasskeyValidationException(
-      'Invalid passkey assertion challenge: relying party id (rp.id) is empty',
+      'Invalid passkey challenge: relying party id (rp.id) is empty',
     );
   }
 
@@ -237,7 +241,7 @@ class PasskeysSigner {
     UserActionChallenge challenge, {
     bool localCredsOnly = false,
   }) async {
-    final relyingPartyId = _resolveRelyingId(challenge);
+    final relyingPartyId = _resolveRelyingId(challenge.rp);
     final timeoutMs = localCredsOnly == true ? options.timeout : options.otherDeviceTimeout;
     try {
       final fido2Assertion = await _withWatchdog(
@@ -271,7 +275,7 @@ class PasskeysSigner {
           credId: fido2Assertion.rawId,
           signature: fido2Assertion.signature,
           authenticatorData: fido2Assertion.authenticatorData,
-          userHandle: fido2Assertion.userHandle,
+          userHandle: fido2Assertion.userHandle.trim().isEmpty ? null : fido2Assertion.userHandle,
         ),
       );
     } on NoCredentialsAvailableException {

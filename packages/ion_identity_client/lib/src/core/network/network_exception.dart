@@ -16,13 +16,17 @@ class NetworkException implements IONIdentityException {
 /// Represents an exception that occurs during the execution of a network request,
 /// such as connection issues or request timeouts.
 class RequestExecutionException extends NetworkException {
-  RequestExecutionException(this.error, this.stackTrace) : super('Request execution failed');
+  RequestExecutionException(
+    this.error,
+    this.stackTrace, [
+    String? message,
+  ]) : super(message ?? 'Request execution failed');
 
   final Object error;
   final StackTrace stackTrace;
 
   @override
-  String toString() => 'RequestExecutionException: $error';
+  String toString() => 'RequestExecutionException: $message; error: $error';
 }
 
 /// Represents an exception due to an unexpected response format from the network request.

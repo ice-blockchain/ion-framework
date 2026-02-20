@@ -42,7 +42,10 @@ class RecoverUserService {
     final attestation = await identitySigner.registerWithPasskey(challenge);
 
     final signedRecoveryPackage = await _signNewCredentials(
-      encryptedKey: challenge.allowedRecoveryCredentials![0].encryptedRecoveryKey,
+      encryptedKey: _resolveEncryptedRecoveryKey(
+        challenge: challenge,
+        credentialId: credentialId,
+      ),
       recoveryKey: recoveryKey,
       credentialId: credentialId,
       newCredentials: {
@@ -74,5 +77,35 @@ class RecoverUserService {
       credentialId: credentialId,
       credentialKind: CredentialKind.RecoveryKey,
     );
+  }
+
+  String _resolveEncryptedRecoveryKey({
+    required UserRegistrationChallenge challenge,
+    required String credentialId,
+  }) {
+    final allowedRecoveryCredentials = challenge.allowedRecoveryCredentials;
+    if (allowedRecoveryCredentials == null || allowedRecoveryCredentials.isEmpty) {
+      throw InvalidRecoveryCredentialsException(
+        'Recovery challenge has no allowed recovery credentials. requestedCredentialId: '
+        '${credentialId.trim().isEmpty ? '<empty>' : credentialId.trim()}',
+      );
+    }
+
+    final normalizedCredentialId = credentialId.trim();
+    if (normalizedCredentialId.isEmpty) {
+      throw InvalidRecoveryCredentialsException(
+        'Recovery credential id is empty',
+      );
+    }
+
+    final recoveryCredential = allowedRecoveryCredentials.firstWhere(
+      (recoveryCredential) => recoveryCredential.id.trim() == normalizedCredentialId,
+      orElse: () => throw InvalidRecoveryCredentialsException(
+        'Recovery credential id mismatch. requestedCredentialId: $normalizedCredentialId, '
+        'allowedCredentialIds: ${allowedRecoveryCredentials.map((credential) => credential.id).join(',')}',
+      ),
+    );
+
+    return recoveryCredential.encryptedRecoveryKey;
   }
 }
