@@ -24,11 +24,11 @@ import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 class ShowLinkNewDeviceDialogEvent extends UiEvent {
-  const ShowLinkNewDeviceDialogEvent();
+  const ShowLinkNewDeviceDialogEvent() : super(id: 'link_new_device_dialog');
 
   @override
-  void performAction(BuildContext context) {
-    showSimpleBottomSheet<void>(
+  Future<void> performAction(BuildContext context) async {
+    await showSimpleBottomSheet<void>(
       context: context,
       isDismissible: false,
       child: const LinkNewDeviceDialog(),
@@ -112,8 +112,9 @@ class LinkNewDeviceDialog extends HookConsumerWidget {
   Future<bool> _hasUploadedKeypair(WidgetRef ref) async {
     try {
       final currentUserMetadata = await ref.read(currentUserMetadataProvider.future);
-      final keypairAttachment =
-          DeviceKeypairUtils.extractDeviceKeypairAttachmentFromMetadata(currentUserMetadata);
+      final keypairAttachment = DeviceKeypairUtils.extractDeviceKeypairAttachmentFromMetadata(
+        currentUserMetadata,
+      );
       return keypairAttachment != null;
     } catch (e) {
       Logger.error(
