@@ -9,6 +9,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -16,57 +17,75 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'token_market_info_provider.r.g.dart';
 
 @riverpod
-Stream<CommunityToken?> tokenMarketInfo(
-  Ref ref,
-  String externalAddress,
-) async* {
-  // Read cache once at startup - yield directly without reprocessing
-  // since cache already contains the adjusted value from previous session
-  final cachedToken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
-  if (cachedToken != null && cachedToken.isMarketValid) {
-    yield cachedToken;
-  }
+class TokenMarketInfo extends _$TokenMarketInfo {
+  StreamSubscription<CommunityTokenBase>? _streamSubscription;
+  NetworkSubscription<CommunityTokenBase>? _networkSubscription;
+  CommunityToken? _activeTokenState;
+  bool _disposed = false;
 
-  final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
+  @override
+  Future<CommunityToken?> build(String externalAddress) async {
+    _disposed = false;
+    _streamSubscription = null;
+    _networkSubscription = null;
 
-  // 1. Fetch initial data via REST
-  final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
+    ref.onDispose(() {
+      Logger.log('[TokenMarketInfo] Disposing for $externalAddress');
+      _disposed = true;
+      _streamSubscription?.cancel();
+      _networkSubscription?.close();
+    });
 
-  if (currentToken == null) {
-    yield null;
-  } else {
+    final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
+
+    final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
+
+    if (currentToken == null) {
+      unawaited(_subscribeSse(client, externalAddress, null));
+      return null;
+    }
+
     final adjusted = _processAndCacheToken(currentToken, ref);
-    if (adjusted != null) {
-      yield adjusted;
-    }
+    unawaited(_subscribeSse(client, externalAddress, currentToken));
+    return adjusted;
   }
 
-  // 2. Subscribe to real-time updates
-  final subscription = await client.communityTokens.subscribeToTokenInfo(externalAddress);
-
-  if (subscription == null) return;
-
-  var activeTokenState = currentToken;
-
-  try {
-    await for (final update in subscription.stream) {
-      if (update is CommunityToken) {
-        activeTokenState = update;
-      } else if (update is CommunityTokenPatch && activeTokenState != null) {
-        activeTokenState = activeTokenState.merge(update);
-      } else {
-        continue;
+  Future<void> _subscribeSse(
+    IonTokenAnalyticsClient client,
+    String externalAddress,
+    CommunityToken? initialToken,
+  ) async {
+    _activeTokenState = initialToken;
+    try {
+      final subscription = await client.communityTokens.subscribeToTokenInfo(externalAddress);
+      if (subscription == null || _disposed) {
+        await subscription?.close();
+        return;
       }
 
-      final adjusted = _processAndCacheToken(activeTokenState, ref);
-      if (adjusted != null) {
-        yield adjusted;
-      }
+      _networkSubscription = subscription;
+      _streamSubscription = subscription.stream.listen(
+        (update) {
+          if (update is CommunityToken) {
+            _activeTokenState = update;
+          } else if (update is CommunityTokenPatch && _activeTokenState != null) {
+            _activeTokenState = _activeTokenState!.merge(update);
+          } else {
+            return;
+          }
+
+          final adjusted = _processAndCacheToken(_activeTokenState!, ref);
+          if (adjusted != null) {
+            state = AsyncData(adjusted);
+          }
+        },
+        onError: (Object e, StackTrace stackTrace) {
+          unawaited(SentryService.logException(e, stackTrace: stackTrace));
+        },
+      );
+    } catch (e, stackTrace) {
+      unawaited(SentryService.logException(e, stackTrace: stackTrace));
     }
-  } catch (e, stackTrace) {
-    unawaited(SentryService.logException(e, stackTrace: stackTrace));
-  } finally {
-    await subscription.close();
   }
 }
 

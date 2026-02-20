@@ -4,11 +4,18 @@ import 'dart:async';
 
 import 'package:ion_token_analytics/src/core/extensions/http_status_code.dart';
 import 'package:ion_token_analytics/src/core/logger.dart';
+import 'package:ion_token_analytics/src/core/models/network_response.dart';
+import 'package:ion_token_analytics/src/core/models/network_subscription.dart';
 import 'package:ion_token_analytics/src/core/network_exceptions.dart';
 import 'package:ion_token_analytics/src/core/reconnecting_sse.dart';
 import 'package:ion_token_analytics/src/http2_client/http2_client.dart';
 import 'package:ion_token_analytics/src/http2_client/models/http2_request_options.dart';
 
+export 'package:ion_token_analytics/src/core/models/network_response.dart';
+export 'package:ion_token_analytics/src/core/models/network_subscription.dart';
+
+/// Thin HTTP client that adds auth headers, query-param handling,
+/// status-code validation, and reconnecting-SSE wrapping on top of [Http2Client].
 class NetworkClient {
   NetworkClient.fromBaseUrl(String baseUrl, {required String? authToken, AnalyticsLogger? logger})
     : _client = Http2Client.fromBaseUrl(baseUrl, logger: logger),
@@ -16,9 +23,7 @@ class NetworkClient {
       _logger = logger;
 
   final Http2Client _client;
-
   final String? _authToken;
-
   final AnalyticsLogger? _logger;
 
   AnalyticsLogger? get logger => _logger;
@@ -132,17 +137,6 @@ class NetworkClient {
       '[NetworkClient] Opening initial SSE subscription: $path with query: $queryParams',
     );
 
-    // Some SSE endpoints use a marker event with `Data: nil` (Go), which may be
-    // delivered as a literal `<nil>` string. If the SSE decoder attempts to
-    // `jsonDecode('<nil>')`, it throws a FormatException and would otherwise
-    // terminate the stream.
-    //
-    // We intercept that error and convert it into an empty map event for
-    // map-typed subscriptions. Downstream repositories can
-    // interpret an empty map as the EOSE marker.
-    //
-    // Also handles automatic reconnection on connection errors during stream processing,
-    // including stale connection detection (e.g., "Bad file descriptor" after app backgrounding).
     final reconnectingSse = ReconnectingSse<T>(
       initialSubscription: initialSubscription,
       createSubscription: () => _client.subscribeSse<T>(
@@ -162,47 +156,23 @@ class NetworkClient {
     return _client.dispose();
   }
 
-  /// Forces the underlying HTTP/2 client to drop the current connection.
-  ///
-  /// Use this when the connection is suspected to be stale (e.g., after
-  /// backgrounding) to ensure the next request/subscription reconnects.
   Future<void> forceDisconnect() {
     return _client.forceDisconnect();
   }
 
-  /// Builds a map of query parameters suitable for HTTP requests.
-  ///
-  /// Converts the input [queryParameters] map into a string-based map where:
-  /// - List values are joined with commas and the key is suffixed with '[]'
-  /// - All other values are converted to strings using [toString()]
-  ///
-  /// Example:
-  /// ```dart
-  /// _buildQueryParameters({
-  ///   'id': 123,
-  ///   'tags': ['dart', 'flutter'],
-  ///   'active': true
-  /// })
-  /// // Returns: {'id': '123', 'tags[]': 'dart,flutter', 'active': 'true'}
-  /// ```
   Map<String, String> _buildQueryParameters(Map<String, dynamic>? queryParameters) {
-    if (queryParameters == null) {
-      return {};
-    }
+    if (queryParameters == null) return {};
 
     final result = <String, String>{};
-
     for (final entry in queryParameters.entries) {
       final key = entry.key;
       final value = entry.value;
-
       if (value is List) {
         result['$key[]'] = value.join(',');
       } else {
         result[key] = value.toString();
       }
     }
-
     return result;
   }
 
@@ -211,21 +181,6 @@ class NetworkClient {
     if (_authToken != null) {
       reqHeaders['Authorization'] = 'Nostr $_authToken';
     }
-
     return reqHeaders;
   }
-}
-
-class NetworkResponse<T> {
-  NetworkResponse({required this.data, this.headers});
-
-  final T data;
-  final Map<String, String>? headers;
-}
-
-class NetworkSubscription<T> {
-  NetworkSubscription({required this.stream, required this.close});
-
-  final Stream<T> stream;
-  final Future<void> Function() close;
 }
