@@ -333,7 +333,7 @@ jobs:
         if: ${{ env.IS_RELEASE_BUILD == 'true' }}
         run: |
           cd main-repo
-          dart run sentry_dart_plugin --sentry-define=commits=false
+          dart run sentry_dart_plugin
       - name: Archive Flutter symbols and dSYMs (iOS)
         if: ${{ env.IS_RELEASE_BUILD == 'true' }}
         uses: actions/upload-artifact@v4
@@ -493,7 +493,7 @@ jobs:
         if: ${{ env.IS_RELEASE_BUILD == 'true' }}
         run: |
           cd main-repo
-          dart run sentry_dart_plugin --sentry-define=commits=false
+          dart run sentry_dart_plugin
       - name: Archive Flutter symbols (Android)
         if: ${{ env.IS_RELEASE_BUILD == 'true' }}
         uses: actions/upload-artifact@v4
