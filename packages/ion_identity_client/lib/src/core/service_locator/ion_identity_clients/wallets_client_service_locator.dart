@@ -23,6 +23,8 @@ import 'package:ion_identity_client/src/wallets/services/get_wallets/data_source
 import 'package:ion_identity_client/src/wallets/services/get_wallets/get_wallets_service.dart';
 import 'package:ion_identity_client/src/wallets/services/make_transfer/data_sources/make_transfer_data_source.dart';
 import 'package:ion_identity_client/src/wallets/services/make_transfer/make_transfer_service.dart';
+import 'package:ion_identity_client/src/wallets/services/probe_restricted_region/data_sources/probe_restricted_region_data_source.dart';
+import 'package:ion_identity_client/src/wallets/services/probe_restricted_region/probe_restricted_region_service.dart';
 import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/data_sources/sign_and_broadcast_data_source.dart';
 import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/data_sources/sign_data_source.dart';
 import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/sign_and_broadcast_service.dart';
@@ -89,6 +91,9 @@ class WalletsClientServiceLocator {
         username: username,
         config: config,
         signer: identitySigner,
+      ),
+      probeRestrictedRegionService: probeRestrictedRegionService(
+        config: config,
       ),
     );
   }
@@ -243,6 +248,17 @@ class WalletsClientServiceLocator {
   }) {
     return SignService(
       signDataSource: SignDataSource(username),
+    );
+  }
+
+  ProbeRestrictedRegionService probeRestrictedRegionService({
+    required IONIdentityConfig config,
+  }) {
+    return ProbeRestrictedRegionService(
+      probeRestrictedRegionDataSource: ProbeRestrictedRegionDataSource(
+        config.origin,
+        interceptors: config.interceptors ?? const [],
+      ),
     );
   }
 }

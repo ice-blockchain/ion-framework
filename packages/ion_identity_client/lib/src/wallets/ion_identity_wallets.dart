@@ -11,6 +11,7 @@ import 'package:ion_identity_client/src/wallets/services/get_wallet_nfts/get_wal
 import 'package:ion_identity_client/src/wallets/services/get_wallet_transfer_requests/get_wallet_transfer_requests_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_wallets/get_wallets_service.dart';
 import 'package:ion_identity_client/src/wallets/services/make_transfer/make_transfer_service.dart';
+import 'package:ion_identity_client/src/wallets/services/probe_restricted_region/probe_restricted_region_service.dart';
 import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/sign_and_broadcast_service.dart';
 import 'package:ion_identity_client/src/wallets/services/sign_and_broadcast/sign_service.dart';
 import 'package:ion_identity_client/src/wallets/services/wallet_views/wallet_views_service.dart';
@@ -40,6 +41,7 @@ class IONIdentityWallets {
     required GetFeesService getFeesService,
     required SignAndBroadcastService signAndBroadcastService,
     required SignService signService,
+    required ProbeRestrictedRegionService probeRestrictedRegionService,
   })  : _createWalletService = createWalletService,
         _getWalletsService = getWalletsService,
         _getWalletAssetsService = getWalletAssetsService,
@@ -52,7 +54,8 @@ class IONIdentityWallets {
         _makeTransferService = makeTransferService,
         _signAndBroadcastService = signAndBroadcastService,
         _getFeesService = getFeesService,
-        _signService = signService;
+        _signService = signService,
+        _probeRestrictedRegionService = probeRestrictedRegionService;
 
   final String username;
 
@@ -69,6 +72,7 @@ class IONIdentityWallets {
   final SignAndBroadcastService _signAndBroadcastService;
   final GetFeesService _getFeesService;
   final SignService _signService;
+  final ProbeRestrictedRegionService _probeRestrictedRegionService;
 
   Future<Wallet> createWallet({
     required String network,
@@ -251,4 +255,8 @@ class IONIdentityWallets {
         message: message,
         signer: signer,
       );
+
+  Future<void> probeRestrictedRegion() {
+    return _probeRestrictedRegionService.probe();
+  }
 }

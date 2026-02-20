@@ -136,25 +136,6 @@ class _SwapButton extends ConsumerWidget {
     final isSwapDisabled = ref.watch(swapDisabledNotifierProvider).value ?? true;
     final isDisabled = isSwapLoading || isSwapDisabled;
 
-    ref.listenError<void>(
-      swapCoinsWithIonBscSwapProvider,
-      (error) {
-        if (error is! RestrictedRegionException || !context.mounted) {
-          return;
-        }
-
-        showSimpleBottomSheet<void>(
-          context: context,
-          isDismissible: false,
-          child: RestrictedRegionUnavailableSheet(
-            onClose: () {
-              unawaited(_pop(context));
-            },
-          ),
-        );
-      },
-    );
-
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
@@ -192,6 +173,16 @@ class _SwapButton extends ConsumerWidget {
     required WidgetRef ref,
     required MessageNotificationNotifier messageNotificationNotifier,
   }) async {
+    final restrictedRegionException =
+        await ref.read(swapCoinsControllerProvider.notifier).waitRestrictedRegionProbeResult();
+
+    if (!context.mounted) return;
+
+    if (restrictedRegionException != null) {
+      _showRestrictedRegionSheet(context);
+      return;
+    }
+
     final notifier = ref.read(swapCoinsControllerProvider.notifier);
     final isIonBscSwap = await notifier.getIsIonBscSwap();
     if (!context.mounted) return;
@@ -342,6 +333,18 @@ class _SwapButton extends ConsumerWidget {
     if (context.mounted) {
       await _pop(context);
     }
+  }
+
+  void _showRestrictedRegionSheet(BuildContext context) {
+    showSimpleBottomSheet<void>(
+      context: context,
+      isDismissible: false,
+      child: RestrictedRegionUnavailableSheet(
+        onClose: () {
+          unawaited(_pop(context));
+        },
+      ),
+    );
   }
 
   Future<void> _pop(BuildContext context) async {
