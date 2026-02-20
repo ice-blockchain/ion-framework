@@ -15,17 +15,29 @@ import 'package:ion_token_analytics/src/http2_client/models/http2_connection_sta
 /// await connection.connect();
 /// await connection.disconnect();
 /// ```
-///
-/// TODO: Add reconnect logic
 class Http2Connection {
   /// Creates an HTTP/2 connection manager.
   ///
   /// Does not automatically connect. Call [connect] to establish the connection.
-  Http2Connection(this.host, {this.port = 443, this.scheme = 'https'});
+  Http2Connection(
+    this.host, {
+    this.port = 443,
+    this.scheme = 'https',
+    this.clientSettings,
+    this.onGoAway,
+  });
 
   final String host;
   final int port;
   final String scheme;
+
+  /// Optional HTTP/2 client settings (e.g., stream window size).
+  /// Passed through to [ClientTransportConnection.viaSocket].
+  final ClientSettings? clientSettings;
+
+  /// Called when the server sends a GOAWAY frame.
+  /// The [lastStreamId] and [errorCode] from the frame are provided.
+  final void Function(int lastStreamId, int errorCode)? onGoAway;
 
   ClientTransportConnection? _transport;
   SecureSocket? _socket;
@@ -90,7 +102,12 @@ class Http2Connection {
 
     try {
       _socket = await SecureSocket.connect(host, port, supportedProtocols: const ['h2']);
-      _transport = ClientTransportConnection.viaSocket(_socket!);
+
+      final transport = ClientTransportConnection.viaSocket(_socket!, settings: clientSettings);
+      _transport = transport;
+
+      _listenForGoAway(transport);
+
       _updateStatus(const ConnectionStatusConnected());
     } catch (e) {
       final exception = Http2ConnectionException(host, port, e.toString());
@@ -99,6 +116,14 @@ class Http2Connection {
       _transport = null;
       rethrow;
     }
+  }
+
+  void _listenForGoAway(ClientTransportConnection transport) {
+    transport.onActiveStateChanged = (active) {
+      if (!active && _currentStatus is ConnectionStatusConnected) {
+        onGoAway?.call(-1, -1);
+      }
+    };
   }
 
   /// Disconnects the HTTP/2 connection.
