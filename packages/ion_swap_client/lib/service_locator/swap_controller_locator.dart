@@ -85,6 +85,8 @@ class SwapControllerLocator {
       bridgeService: BridgeService(
         relayApiRepository: relayApiRepository,
         ionIdentityTransactionApi: ionIdentityTransactionApi,
+        relayEvmFeeAddress: config.relayEvmFeeAddress,
+        relayAppFee: config.defaultSwapPercentFee,
       ),
     );
 
