@@ -63,9 +63,7 @@ class ReconnectingSse<T> {
     try {
       await _currentSubscription.close();
     } catch (e) {
-      _logger?.log(
-        '[ReconnectingSse] Error closing subscription (ignored) for path: $_path: $e',
-      );
+      _logger?.log('[ReconnectingSse] Error closing subscription (ignored) for path: $_path: $e');
     }
     if (!_controller.isClosed) await _controller.close();
   }
@@ -172,9 +170,7 @@ class ReconnectingSse<T> {
         _maxRetryDelayMs,
         (200 * math.pow(2, _reconnectAttempts - 1)).toInt(),
       );
-      _logger?.log(
-        '[ReconnectingSse] Waiting ${delayMs}ms before retry for path: $_path',
-      );
+      _logger?.log('[ReconnectingSse] Waiting ${delayMs}ms before retry for path: $_path');
       await Future<void>.delayed(Duration(milliseconds: delayMs));
 
       if (_state == _SseState.closed) return;
@@ -187,9 +183,7 @@ class ReconnectingSse<T> {
           return;
         }
 
-        _logger?.log(
-          '[ReconnectingSse] New subscription created successfully for path: $_path',
-        );
+        _logger?.log('[ReconnectingSse] New subscription created successfully for path: $_path');
 
         // Listen to the new subscription - this will handle future errors via _reconnectionLoop
         // _listenToSubscription will update _currentSubscription
@@ -217,9 +211,7 @@ class ReconnectingSse<T> {
   /// Returns true if [error] is a disposed exception — closes the stream gracefully.
   bool _handleDisposed(Object error) {
     if (error is Http2ClientDisposedException) {
-      _logger?.log(
-        '[ReconnectingSse] Client disposed, closing stream gracefully for path: $_path',
-      );
+      _logger?.log('[ReconnectingSse] Client disposed, closing stream gracefully for path: $_path');
       _state = _SseState.closed;
       if (!_controller.isClosed) _controller.close();
       return true;

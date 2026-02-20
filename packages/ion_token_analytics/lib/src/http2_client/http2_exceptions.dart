@@ -33,9 +33,7 @@ class WebSocketHandshakeStatusException extends Http2ClientException {
 /// Exception thrown when sec-websocket-accept header validation fails.
 class WebSocketHandshakeAcceptException extends Http2ClientException {
   const WebSocketHandshakeAcceptException(String expected, String received)
-    : super(
-        'Invalid sec-websocket-accept header (expected: $expected, received: $received)',
-      );
+    : super('Invalid sec-websocket-accept header (expected: $expected, received: $received)');
 }
 
 /// Exception thrown when the WebSocket stream closes before handshake completion.
@@ -52,26 +50,22 @@ class WebSocketHandshakeException extends Http2ClientException {
 
 /// Exception thrown when a WebSocket frame is too short.
 class WebSocketFrameTooShortException extends Http2ClientException {
-  const WebSocketFrameTooShortException()
-    : super('Frame too short: minimum 2 bytes required');
+  const WebSocketFrameTooShortException() : super('Frame too short: minimum 2 bytes required');
 }
 
 /// Exception thrown when a 16-bit length frame is incomplete.
 class WebSocketFrame16BitLengthException extends Http2ClientException {
-  const WebSocketFrame16BitLengthException()
-    : super('Incomplete frame: expected 16-bit length');
+  const WebSocketFrame16BitLengthException() : super('Incomplete frame: expected 16-bit length');
 }
 
 /// Exception thrown when a 64-bit length frame is incomplete.
 class WebSocketFrame64BitLengthException extends Http2ClientException {
-  const WebSocketFrame64BitLengthException()
-    : super('Incomplete frame: expected 64-bit length');
+  const WebSocketFrame64BitLengthException() : super('Incomplete frame: expected 64-bit length');
 }
 
 /// Exception thrown when a frame is missing the mask key.
 class WebSocketFrameMissingMaskException extends Http2ClientException {
-  const WebSocketFrameMissingMaskException()
-    : super('Incomplete frame: missing mask key');
+  const WebSocketFrameMissingMaskException() : super('Incomplete frame: missing mask key');
 }
 
 /// Exception thrown when frame payload length doesn't match.
@@ -130,8 +124,7 @@ class WebSocketDecompressionException extends Http2ClientException {
 /// - Close any associated streams to allow providers to restart
 /// - Create a new client instance if needed
 class Http2ClientDisposedException extends Http2ClientException {
-  const Http2ClientDisposedException()
-    : super('Cannot perform operation on disposed Http2Client');
+  const Http2ClientDisposedException() : super('Cannot perform operation on disposed Http2Client');
 }
 
 /// HTTP/2 GOAWAY error code for ENHANCE_YOUR_CALM.
@@ -192,19 +185,16 @@ class Http2StaleConnectionException extends Http2ClientException {
     }
 
     // Check for HTTP/2 GOAWAY with errorCode 10
-    if (error is TransportConnectionException &&
-        error.errorCode == _goAwayEnhanceYourCalm) {
+    if (error is TransportConnectionException && error.errorCode == _goAwayEnhanceYourCalm) {
       return true;
     }
 
     // Fallback string matching for cases where typed check isn't available
     final errorString = error.toString();
-    if (errorString.contains('Bad file descriptor') ||
-        errorString.contains('errno = 9')) {
+    if (errorString.contains('Bad file descriptor') || errorString.contains('errno = 9')) {
       return true;
     }
-    if (errorString.contains('forcefully terminated') ||
-        errorString.contains('errorCode: 10')) {
+    if (errorString.contains('forcefully terminated') || errorString.contains('errorCode: 10')) {
       return true;
     }
 
