@@ -16,6 +16,9 @@ import 'package:ion_token_analytics/src/http2_client/models/http2_connection_sta
 /// await connection.disconnect();
 /// ```
 class Http2Connection {
+  /// Creates an HTTP/2 connection manager.
+  ///
+  /// Does not automatically connect. Call [connect] to establish the connection.
   Http2Connection(
     this.host, {
     this.port = 443,
@@ -44,16 +47,21 @@ class Http2Connection {
 
   /// Gets the underlying HTTP/2 transport connection.
   ///
+  /// This is exposed for creating WebSocket connections.
   /// Returns null if the connection is not yet established.
   ClientTransportConnection? get transport => _transport;
 
   /// Stream of connection status changes.
+  ///
+  /// Emits status updates as the connection progresses through its lifecycle.
   Stream<ConnectionStatus> get statusStream => _statusController.stream;
 
   /// Gets the current connection status.
   ConnectionStatus get status => _currentStatus;
 
   /// Waits for the connection to be established.
+  ///
+  /// Completes when the connection is ready or throws the exception if connection fails.
   Future<void> _waitForConnected() async {
     if (_currentStatus is ConnectionStatusConnected) {
       return;
@@ -95,10 +103,7 @@ class Http2Connection {
     try {
       _socket = await SecureSocket.connect(host, port, supportedProtocols: const ['h2']);
 
-      final transport = ClientTransportConnection.viaSocket(
-        _socket!,
-        settings: clientSettings,
-      );
+      final transport = ClientTransportConnection.viaSocket(_socket!, settings: clientSettings);
       _transport = transport;
 
       _listenForGoAway(transport);
@@ -152,25 +157,39 @@ class Http2Connection {
   /// - Does not check current status before disconnecting
   /// - Silently ignores all errors during cleanup
   /// - Always transitions to disconnected state
+  ///
+  /// Use this when you detect a stale connection (e.g., SocketException with
+  /// errno 9 "Bad file descriptor").
   Future<void> forceDisconnect() async {
+    // Immediately mark as disconnected so any pending operations fail fast
     _updateStatus(const ConnectionStatusDisconnected());
 
+    // Best-effort cleanup - socket may already be closed by OS
     try {
       await _transport?.terminate();
-    } catch (_) {}
+    } catch (_) {
+      // Ignore - socket may be in invalid state
+    }
     _transport = null;
 
     try {
       await _socket?.close();
-    } catch (_) {}
+    } catch (_) {
+      // Ignore - socket may be in invalid state
+    }
     _socket = null;
   }
 
   /// Returns true if the connection appears to be active.
+  ///
+  /// Note: This only checks the connection status, not whether the underlying
+  /// socket is still valid. The socket could have been closed by the OS
+  /// (e.g., when the app was backgrounded) without updating this status.
   bool get isActive => _currentStatus is ConnectionStatusConnected;
 
   /// Closes the connection and releases all resources.
   ///
+  /// This should be called when the connection is no longer needed.
   /// After calling this method, the connection cannot be reused.
   Future<void> dispose() async {
     await disconnect();

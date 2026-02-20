@@ -22,7 +22,26 @@ import 'package:ion_token_analytics/src/http2_client/sse_stream_parser.dart';
 /// Uses [Http2StreamPool] for concurrency limiting instead of a raw counter,
 /// an idle timer to prevent connection churn, and delegates SSE parsing
 /// to [SseStreamParser].
+///
+/// Manages a single HTTP/2 connection to a host and port, automatically
+/// establishing the connection when needed and closing it when all active
+/// requests and subscriptions are complete.
+///
+/// Example usage:
+/// ```dart
+/// final client = Http2Client('example.com');
+///
+/// // Make a request
+/// final response = await client.request<String>('/api/data');
+/// print(response.data);
+///
+/// // Subscribe to a stream
+/// await for (final message in client.subscribe<String>('/api/stream')) {
+///   print(message);
+/// }
+/// ```
 class Http2Client {
+  /// Creates an HTTP/2 client for the specified host and port.
   Http2Client(this.host, {this.port = 443, this.scheme = 'https', AnalyticsLogger? logger})
     : _logger = logger;
 
@@ -34,13 +53,20 @@ class Http2Client {
     return Http2Client(host, port: port, scheme: scheme, logger: logger);
   }
 
-  /// Keepalive messages to ignore in WebSocket streams.
+  /// SSE keepalive message types that should be ignored.
   static const String _keepalivePing = 'ping';
   static const String _keepalivePong = 'pong';
 
+  /// The server hostname.
   final String host;
+
+  /// The server port.
   final int port;
+
+  /// The connection scheme (http or https).
   final String scheme;
+
+  /// Optional logger for requests and responses.
   final AnalyticsLogger? _logger;
 
   late final Http2Connection _connection = Http2Connection(
@@ -49,9 +75,7 @@ class Http2Client {
     scheme: scheme,
     onGoAway: _handleGoAway,
   );
-  late final Http2StreamPool _streamPool = Http2StreamPool(
-    onLog: _logger?.log,
-  );
+  late final Http2StreamPool _streamPool = Http2StreamPool(onLog: _logger?.log);
 
   Future<void>? _connectionFuture;
   bool _disposed = false;
@@ -59,6 +83,7 @@ class Http2Client {
 
   static const Duration _idleTimeout = Duration(seconds: 30);
 
+  /// Gets the current HTTP/2 connection.
   Http2Connection get connection => _connection;
 
   void _handleGoAway(int lastStreamId, int errorCode) {
@@ -71,6 +96,24 @@ class Http2Client {
   // Request
   // ---------------------------------------------------------------------------
 
+  /// Makes an HTTP/2 request.
+  ///
+  /// The [path] specifies the endpoint to request.
+  /// The [data] is the request body (will be JSON-encoded if provided).
+  /// The [queryParameters] will be appended to the path as a query string.
+  /// The [options] configures the request method, timeout, and headers.
+  ///
+  /// Returns a [Response] containing the parsed response data.
+  ///
+  /// Example:
+  /// ```dart
+  /// final response = await client.request<Map<String, dynamic>>(
+  ///   '/api/users',
+  ///   data: {'name': 'John'},
+  ///   queryParameters: {'filter': 'active'},
+  ///   options: Http2RequestOptions(method: 'POST', timeout: Duration(seconds: 10)),
+  /// );
+  /// ```
   Future<Http2RequestResponse<T>> request<T>(
     String path, {
     Object? data,
@@ -83,6 +126,7 @@ class Http2Client {
 
       final lease = await _streamPool.acquire();
 
+      // Build method and URL for logging (needed in both try and catch blocks)
       final opts = options ?? Http2RequestOptions();
       final uri = Uri(
         path: path.startsWith('/') ? path : '/$path',
@@ -93,6 +137,7 @@ class Http2Client {
       final method = opts.method.toUpperCase();
 
       try {
+        // Build request headers
         final requestHeaders = [
           Header.ascii(':method', method),
           Header.ascii(':scheme', scheme),
@@ -100,12 +145,14 @@ class Http2Client {
           Header.ascii(':authority', host),
         ];
 
+        // Add custom headers
         if (opts.headers != null) {
           for (final entry in opts.headers!.entries) {
             requestHeaders.add(Header.ascii(entry.key.toLowerCase(), entry.value));
           }
         }
 
+        // Add content-type and encode data if provided
         Uint8List? bodyData;
         if (data != null) {
           final jsonData = jsonEncode(data);
@@ -115,22 +162,25 @@ class Http2Client {
             ..add(Header.ascii('content-length', bodyData.length.toString()));
         }
 
+        // Log request
         _logger?.logHttpRequest(method, url, data);
 
+        // Make the request
         // Only set endStream on makeRequest when there is no body to send.
         final hasBody = bodyData != null && bodyData.isNotEmpty;
-        final stream = _connection.transport!.makeRequest(
-          requestHeaders,
-          endStream: !hasBody,
-        );
+        final stream = _connection.transport!.makeRequest(requestHeaders, endStream: !hasBody);
 
+        // Send body if present
         if (hasBody) {
           stream.sendData(bodyData, endStream: true);
         }
 
+        // Wait for response with optional timeout
+        // The response future will complete once the stream is fully read
         final responseFuture = _readResponse<T>(stream);
-        final response =
-            opts.timeout != null ? await responseFuture.timeout(opts.timeout!) : await responseFuture;
+        final response = opts.timeout != null
+            ? await responseFuture.timeout(opts.timeout!)
+            : await responseFuture;
 
         _logger?.logHttpResponse(method, url, response.statusCode, response.data);
         return response;
@@ -148,6 +198,32 @@ class Http2Client {
   // WebSocket subscribe
   // ---------------------------------------------------------------------------
 
+  /// Creates a WebSocket subscription over HTTP/2.
+  ///
+  /// The [path] specifies the WebSocket endpoint.
+  /// The [queryParameters] will be appended to the path as a query string.
+  /// The [headers] can contain custom headers for the WebSocket handshake.
+  ///
+  /// Returns an [Http2Subscription] containing a stream of messages and a close method.
+  /// The subscription will automatically increment the active operations counter,
+  /// keeping the connection alive until the subscription is closed.
+  ///
+  /// To receive messages, listen to the [Http2Subscription.stream]:
+  /// ```dart
+  /// final subscription = await client.subscribe<String>(
+  ///   '/api/updates',
+  ///   queryParameters: {'channel': 'news'},
+  ///   headers: {'authorization': 'Bearer token'},
+  /// );
+  ///
+  /// // Listen to messages
+  /// subscription.stream.listen((message) {
+  ///   print('Received: $message');
+  /// });
+  ///
+  /// // Close when done
+  /// await subscription.close();
+  /// ```
   Future<Http2Subscription<T>> subscribe<T>(
     String path, {
     Map<String, String>? queryParameters,
@@ -169,18 +245,22 @@ class Http2Client {
 
         return _createManagedStream<T>(
           lease: lease,
-          sourceStream: ws.stream.map((message) {
-            if (message.type == WebSocketMessageType.text) {
-              if (T == String) return message.data as T;
-              final text = message.data as String;
-              final trimmed = text.trim();
-              if (trimmed == _keepalivePing || trimmed == _keepalivePong) return null;
-              return jsonDecode(text) as T;
-            } else if (message.type == WebSocketMessageType.binary) {
-              if (message.data is T) return message.data as T;
-            }
-            return null;
-          }).where((e) => e != null).cast<T>(),
+          sourceStream: ws.stream
+              .map((message) {
+                if (message.type == WebSocketMessageType.text) {
+                  if (T == String) return message.data as T;
+                  final text = message.data as String;
+                  // Skip ping/pong keepalive messages
+                  final trimmed = text.trim();
+                  if (trimmed == _keepalivePing || trimmed == _keepalivePong) return null;
+                  return jsonDecode(text) as T;
+                } else if (message.type == WebSocketMessageType.binary) {
+                  if (message.data is T) return message.data as T;
+                }
+                return null;
+              })
+              .where((e) => e != null)
+              .cast<T>(),
           onClose: ws.close,
         );
       } catch (e) {
@@ -195,6 +275,15 @@ class Http2Client {
   // SSE subscribe
   // ---------------------------------------------------------------------------
 
+  /// Creates a Server-Sent Events (SSE) subscription over HTTP/2.
+  ///
+  /// The [path] specifies the SSE endpoint.
+  /// The [queryParameters] will be appended to the path as a query string.
+  /// The [headers] can contain custom headers.
+  ///
+  /// Returns an [Http2Subscription] containing a stream of messages and a close method.
+  /// The subscription will automatically increment the active operations counter,
+  /// keeping the connection alive until the subscription is closed.
   Future<Http2Subscription<T>> subscribeSse<T>(
     String path, {
     Map<String, String>? queryParameters,
@@ -207,12 +296,14 @@ class Http2Client {
       final lease = await _streamPool.acquire();
 
       try {
+        // Build the full path with query parameters
         final uri = Uri(
           path: path.startsWith('/') ? path : '/$path',
           queryParameters: queryParameters,
         );
         final fullPath = uri.toString();
 
+        // Build request headers
         final requestHeaders = [
           Header.ascii(':method', 'GET'),
           Header.ascii(':scheme', scheme),
@@ -233,10 +324,7 @@ class Http2Client {
 
         final parsedStream = SseStreamParser<T>().parse(stream.incomingMessages);
 
-        return _createManagedStream<T>(
-          lease: lease,
-          sourceStream: parsedStream,
-        );
+        return _createManagedStream<T>(lease: lease, sourceStream: parsedStream);
       } catch (e) {
         lease.release();
         _scheduleIdleDisconnect();
@@ -291,6 +379,11 @@ class Http2Client {
   // Connection management
   // ---------------------------------------------------------------------------
 
+  /// Ensures an HTTP/2 connection is established.
+  ///
+  /// If a connection already exists, this method returns immediately.
+  /// Otherwise, it creates a new connection. Prevents multiple simultaneous
+  /// connection attempts by reusing the same connection Future.
   Future<void> _ensureConnection() async {
     _cancelIdleTimer();
 
@@ -300,18 +393,21 @@ class Http2Client {
       await forceDisconnect();
     }
 
+    // Capture the future to avoid race conditions
     final currentFuture = _connectionFuture;
     if (currentFuture != null) {
       await currentFuture;
       return;
     }
 
+    // Create and store the connection future
     final newFuture = _connection.connect();
     _connectionFuture = newFuture;
 
     try {
       await newFuture;
     } finally {
+      // Only clear if this is still the current future
       if (_connectionFuture == newFuture) _connectionFuture = null;
     }
   }
@@ -335,15 +431,30 @@ class Http2Client {
 
   /// Forces disconnection of the underlying HTTP/2 connection.
   ///
+  /// Use this when you detect that the connection has become stale
+  /// (e.g., after receiving a SocketException with errno 9 "Bad file descriptor",
+  /// or when the app transitions from background to foreground).
+  ///
+  /// After calling this method:
+  /// - All active streams are considered invalid
+  /// - The next request/subscription will establish a new connection
+  /// - The client is NOT disposed and can still be used
+  ///
   /// All active stream leases are force-released. The client is NOT disposed
   /// and can still be used — the next operation will reconnect.
   Future<void> forceDisconnect() async {
+    // Clear the connection future to allow reconnection
     _connectionFuture = null;
     _cancelIdleTimer();
     _streamPool.forceReleaseAll();
+    // Force disconnect the underlying connection
     await _connection.forceDisconnect();
   }
 
+  /// Disposes the client and its underlying connection.
+  ///
+  /// After calling this method, no new requests or subscriptions can be made.
+  /// Any active operations will continue until completion.
   Future<void> dispose() async {
     _disposed = true;
     _connectionFuture = null;
@@ -360,6 +471,10 @@ class Http2Client {
   // Response reading
   // ---------------------------------------------------------------------------
 
+  /// Reads the response from an HTTP/2 stream.
+  ///
+  /// Collects all data frames and headers, then parses the response body
+  /// based on the content-type header.
   Future<Http2RequestResponse<T>> _readResponse<T>(ClientTransportStream stream) async {
     final completer = Completer<Http2RequestResponse<T>>();
     final dataBuffer = <int>[];
@@ -386,6 +501,7 @@ class Http2Client {
         }
       },
       onDone: () {
+        // Don't try to complete if already completed (e.g., by onError)
         if (completer.isCompleted) return;
 
         try {
@@ -395,17 +511,22 @@ class Http2Client {
             final contentType = responseHeaders?['content-type'] ?? '';
 
             if (contentType.contains('application/json')) {
+              // Parse JSON response
               final jsonString = utf8.decode(dataBuffer);
               parsedData = jsonDecode(jsonString) as T?;
             } else if (T == String) {
+              // Return as string
               parsedData = utf8.decode(dataBuffer) as T;
             } else if (T == Uint8List || T == List<int>) {
+              // Return as bytes
               parsedData = Uint8List.fromList(dataBuffer) as T;
             } else {
+              // Try JSON parsing as fallback
               try {
                 final jsonString = utf8.decode(dataBuffer);
                 parsedData = jsonDecode(jsonString) as T?;
               } catch (_) {
+                // If all else fails, try to return the raw data
                 parsedData = dataBuffer as T?;
               }
             }
@@ -427,6 +548,7 @@ class Http2Client {
     return completer.future;
   }
 
+  /// Parses HTTP/2 headers into a map.
   Map<String, String> _parseHeaders(List<Header> headers) {
     final result = <String, String>{};
     for (final header in headers) {

@@ -8,10 +8,17 @@ import 'package:http2/http2.dart';
 sealed class Http2ClientException implements Exception {
   const Http2ClientException(this.message);
 
+  /// The error message describing what went wrong.
   final String message;
 }
 
 /// Exception thrown when establishing an HTTP/2 connection fails.
+///
+/// This typically occurs when:
+/// - The server is unreachable
+/// - Network connectivity issues
+/// - TLS/SSL handshake failures
+/// - HTTP/2 negotiation failures
 class Http2ConnectionException extends Http2ClientException {
   const Http2ConnectionException(String host, int port, dynamic error)
     : super('Failed to establish HTTP/2 connection to $host:$port: $error');
@@ -83,6 +90,9 @@ class WebSocketFrameUnsupportedOpcodeException extends Http2ClientException {
 }
 
 /// Exception thrown when an operation is attempted on a closed connection.
+///
+/// This occurs when trying to send data or perform operations on a
+/// WebSocket connection that has already been closed.
 class WebSocketClosedException extends Http2ClientException {
   const WebSocketClosedException()
     : super('Cannot perform operation on a closed WebSocket connection');
@@ -101,6 +111,9 @@ class WebSocketDecodingException extends Http2ClientException {
 }
 
 /// Exception thrown when decompression of compressed messages fails.
+///
+/// This occurs when permessage-deflate extension is used and
+/// the compressed data cannot be decompressed properly.
 class WebSocketDecompressionException extends Http2ClientException {
   const WebSocketDecompressionException(dynamic error)
     : super('Failed to decompress WebSocket message: $error');
@@ -108,9 +121,14 @@ class WebSocketDecompressionException extends Http2ClientException {
 
 /// Exception thrown when an operation is attempted on a disposed Http2Client.
 ///
+/// This occurs when trying to create a subscription or make a request
+/// on a client that has already been disposed (e.g., due to provider rebuild
+/// or app lifecycle changes).
+///
 /// When this exception is caught, callers should:
 /// - Stop attempting reconnection
 /// - Close any associated streams to allow providers to restart
+/// - Create a new client instance if needed
 class Http2ClientDisposedException extends Http2ClientException {
   const Http2ClientDisposedException()
     : super('Cannot perform operation on disposed Http2Client');
@@ -146,24 +164,34 @@ class Http2StreamLimitException extends Http2ClientException {
 
 /// Exception thrown when the HTTP/2 connection has become stale.
 ///
-/// Indicates the underlying socket is dead (OS closed it, network interruption,
-/// or server sent GOAWAY). Callers should `forceDisconnect()` and retry.
+/// This typically occurs when:
+/// - The app was backgrounded and the OS closed the socket
+/// - The network connection was interrupted
+/// - A SocketException with errno 9 "Bad file descriptor" was received
+/// - An HTTP/2 GOAWAY frame with error code 10 was received
+///
+/// When this exception is caught, callers should:
+/// 1. Call `forceDisconnect()` on the client to clean up the stale connection
+/// 2. Retry the operation after a delay (with exponential backoff)
 class Http2StaleConnectionException extends Http2ClientException {
   const Http2StaleConnectionException(this.originalError)
     : super('HTTP/2 connection is stale (socket closed by OS or network interruption)');
 
+  /// The original error that indicated the connection was stale.
   final Object originalError;
 
-  /// Checks if an error indicates a stale connection using typed checks
-  /// where possible, with string-matching fallback.
+  /// Checks if an error indicates a stale connection.
+  ///
+  /// Returns true if the error is a SocketException with errno 9 (Bad file descriptor)
+  /// or an HTTP/2 connection error with errorCode 10 (ENHANCE_YOUR_CALM / connection forcefully terminated).
   static bool isStaleConnectionError(Object error) {
-    // Typed check: SocketException with errno 9 (Bad file descriptor)
+    // Check for "Bad file descriptor" (errno = 9)
     if (error is SocketException) {
       final osError = error.osError;
       if (osError != null && osError.errorCode == 9) return true;
     }
 
-    // Typed check: HTTP/2 GOAWAY with errorCode 10 (ENHANCE_YOUR_CALM)
+    // Check for HTTP/2 GOAWAY with errorCode 10
     if (error is TransportConnectionException &&
         error.errorCode == _goAwayEnhanceYourCalm) {
       return true;
