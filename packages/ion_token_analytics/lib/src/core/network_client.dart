@@ -137,6 +137,17 @@ class NetworkClient {
       '[NetworkClient] Opening initial SSE subscription: $path with query: $queryParams',
     );
 
+    // Some SSE endpoints use a marker event with `Data: nil` (Go), which may be
+    // delivered as a literal `<nil>` string. If the SSE decoder attempts to
+    // `jsonDecode('<nil>')`, it throws a FormatException and would otherwise
+    // terminate the stream.
+    //
+    // We intercept that error and convert it into an empty map event for
+    // map-typed subscriptions. Downstream repositories can
+    // interpret an empty map as the EOSE marker.
+    //
+    // Also handles automatic reconnection on connection errors during stream processing,
+    // including stale connection detection (e.g., "Bad file descriptor" after app backgrounding).
     final reconnectingSse = ReconnectingSse<T>(
       initialSubscription: initialSubscription,
       createSubscription: () => _client.subscribeSse<T>(
@@ -156,10 +167,29 @@ class NetworkClient {
     return _client.dispose();
   }
 
+  /// Forces the underlying HTTP/2 client to drop the current connection.
+  ///
+  /// Use this when the connection is suspected to be stale (e.g., after
+  /// backgrounding) to ensure the next request/subscription reconnects.
   Future<void> forceDisconnect() {
     return _client.forceDisconnect();
   }
 
+  /// Builds a map of query parameters suitable for HTTP requests.
+  ///
+  /// Converts the input [queryParameters] map into a string-based map where:
+  /// - List values are joined with commas and the key is suffixed with '[]'
+  /// - All other values are converted to strings using [toString()]
+  ///
+  /// Example:
+  /// ```dart
+  /// _buildQueryParameters({
+  ///   'id': 123,
+  ///   'tags': ['dart', 'flutter'],
+  ///   'active': true
+  /// })
+  /// // Returns: {'id': '123', 'tags[]': 'dart,flutter', 'active': 'true'}
+  /// ```
   Map<String, String> _buildQueryParameters(Map<String, dynamic>? queryParameters) {
     if (queryParameters == null) return {};
 

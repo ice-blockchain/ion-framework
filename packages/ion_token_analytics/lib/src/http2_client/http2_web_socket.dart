@@ -16,11 +16,16 @@ import 'package:ion_token_analytics/src/http2_client/web_socket/web_socket_frame
 
 /// A WebSocket implementation over HTTP/2 using the RFC 8441 extended CONNECT method.
 ///
+/// This class provides WebSocket functionality over HTTP/2 connections,
+/// supporting text and binary messages, compression (permessage-deflate),
+/// and proper connection lifecycle management.
+///
 /// Delegates frame parsing to [WebSocketFrameParser] and frame building
 /// to [WebSocketFrameBuilder], keeping this class focused on connection
 /// lifecycle and message routing.
 class Http2WebSocket {
   Http2WebSocket._(this._requestStream, this._subscription) {
+    // Set up handler to process incoming messages
     _subscription
       ..onData(_handleIncomingMessage)
       ..onError(_controller.addError)
@@ -30,9 +35,29 @@ class Http2WebSocket {
         }
       });
 
+    // Send initial empty DATA to activate bidirectional stream (per RFC 8441)
     _requestStream.sendData(Uint8List(0));
   }
 
+  /// Creates a WebSocket connection over HTTP/2 using an existing [Http2Connection].
+  ///
+  /// The [connection] must be an active HTTP/2 connection.
+  /// The [path] specifies the WebSocket endpoint (defaults to '/').
+  /// The [queryParameters] can be provided to append to the path.
+  /// Additional [headers] can be provided for custom values.
+  /// The [timeout] specifies how long to wait for the handshake (defaults to 30 seconds).
+  ///
+  /// Example:
+  /// ```dart
+  /// final connection = Http2Connection('example.com');
+  /// await connection.connect();
+  /// final ws = await Http2WebSocket.fromHttp2Connection(
+  ///   connection,
+  ///   path: '/api/stream',
+  ///   queryParameters: {'channel': 'updates'},
+  ///   headers: {'authorization': 'Bearer token'},
+  /// );
+  /// ```
   static Future<Http2WebSocket> fromHttp2Connection(
     Http2Connection connection, {
     String path = '/',
@@ -43,12 +68,14 @@ class Http2WebSocket {
     try {
       final wsKey = _generateWebSocketKey();
 
+      // Build the full path with query parameters
       final uri = Uri(
         path: path.startsWith('/') ? path : '/$path',
         queryParameters: queryParameters,
       );
       final fullPath = uri.toString();
 
+      // Build extended CONNECT request headers (RFC 8441)
       final requestHeaders = [
         Header.ascii(':method', 'CONNECT'),
         Header.ascii(':protocol', 'websocket'),
@@ -60,6 +87,7 @@ class Http2WebSocket {
         Header.ascii('sec-websocket-extensions', WebSocketConstants.webSocketExtension),
       ];
 
+      // Add custom headers if provided
       if (headers != null) {
         for (final entry in headers.entries) {
           requestHeaders.add(Header.ascii(entry.key, entry.value));
@@ -148,6 +176,12 @@ class Http2WebSocket {
     return base64Encode(hash.bytes);
   }
 
+  /// Verifies the WebSocket handshake and completes the connection.
+  ///
+  /// Checks the `sec-websocket-accept` header from the server against the expected
+  /// value computed from [wsKey]. If verification succeeds or the header is missing
+  /// (for compatibility), creates an [Http2WebSocket] instance and completes the
+  /// [completer] with it. Otherwise, cancels the [subscription] and throws an exception.
   static void _verifyHandshakeAndComplete({
     required Map<String, String> headers,
     required String wsKey,
@@ -157,6 +191,8 @@ class Http2WebSocket {
   }) {
     final accept = headers['sec-websocket-accept'];
 
+    // Note: Some servers may not include sec-websocket-accept header.
+    // While RFC 6455 requires it, we can proceed without verification for compat
     if (accept == null) {
       completer.complete(Http2WebSocket._(requestStream, subscription));
       return;
@@ -182,8 +218,10 @@ class Http2WebSocket {
   final WebSocketFrameBuilder _frameBuilder = WebSocketFrameBuilder();
   bool _closed = false;
 
+  /// Stream of WebSocket messages (text and binary).
   Stream<Http2WebSocketMessage> get stream => _controller.stream;
 
+  /// Sends a text message over the WebSocket.
   void add(String message) {
     _ensureNotClosed();
     final payload = utf8.encode(message);
@@ -194,12 +232,14 @@ class Http2WebSocket {
     _requestStream.sendData(frame);
   }
 
+  /// Sends a binary message over the WebSocket.
   void addBinary(Uint8List data) {
     _ensureNotClosed();
     final frame = _frameBuilder.build(data, opcode: WebSocketConstants.opcodeBinary);
     _requestStream.sendData(frame);
   }
 
+  /// Closes the WebSocket connection with the given [code] and [reason].
   void close([int code = WebSocketConstants.closeCodeNormal, String reason = '']) {
     if (_closed) return;
     _closed = true;
@@ -223,10 +263,17 @@ class Http2WebSocket {
     _controller.close();
   }
 
+  /// Ensures the connection is not closed before performing operations.
   void _ensureNotClosed() {
     if (_closed) throw const WebSocketClosedException();
   }
 
+  /// Handles incoming stream messages from the HTTP/2 connection.
+  ///
+  /// Processes data frames by parsing WebSocket frames and emitting messages
+  /// to the controller stream. Additional headers after handshake are logged
+  /// but ignored. The [message] can be either a [DataStreamMessage] containing
+  /// WebSocket frame data or a [HeadersStreamMessage].
   void _handleIncomingMessage(StreamMessage message) {
     if (message is DataStreamMessage) {
       final frameBytes = message.bytes;
@@ -245,6 +292,7 @@ class Http2WebSocket {
     }
   }
 
+  /// Sends a pong frame in response to a ping.
   void _sendPong(Uint8List payload) {
     if (_closed) return;
     final pong = _frameBuilder.build(payload, opcode: WebSocketConstants.opcodePong);

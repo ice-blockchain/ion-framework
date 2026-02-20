@@ -16,7 +16,8 @@ enum _SseState { listening, reconnecting, closed }
 /// - Automatic reconnection with exponential backoff (capped at [maxRetries])
 /// - `<nil>` marker handling for Go-based SSE endpoints
 /// - Concurrent reconnection attempt prevention
-/// - Stale connection detection
+/// - Stream lifecycle management
+/// - Stale connection detection and automatic force disconnect
 class ReconnectingSse<T> {
   ReconnectingSse({
     required Http2Subscription<T> initialSubscription,
@@ -45,13 +46,15 @@ class ReconnectingSse<T> {
   late Http2Subscription<T> _currentSubscription;
   StreamSubscription<T>? _currentListener;
 
-  _SseState _state = _SseState.listening;
+  _SseState _state = _SseState.listening; // Guard to prevent concurrent reconnection attempts
   int _reconnectAttempts = 0;
 
-  static const _maxRetryDelayMs = 10000;
+  static const _maxRetryDelayMs = 10000; // 10 seconds max delay
 
+  /// The reconnecting stream that automatically handles reconnections.
   Stream<T> get stream => _controller.stream;
 
+  /// Closes the reconnecting SSE stream and cancels all subscriptions.
   Future<void> close() async {
     if (_state == _SseState.closed) return;
     _logger?.log('[ReconnectingSse] Closing SSE subscription for path: $_path');
@@ -69,6 +72,8 @@ class ReconnectingSse<T> {
 
   void _listenToSubscription(Http2Subscription<T> sub) {
     _currentSubscription = sub;
+
+    // Cancel previous listener if exists
     _currentListener?.cancel();
 
     _currentListener = sub.stream.listen(
@@ -80,11 +85,13 @@ class ReconnectingSse<T> {
           );
         }
         _controller.add(data);
-        _reconnectAttempts = 0;
+        _reconnectAttempts = 0; // Reset on successful data
       },
       onError: (Object error, StackTrace stackTrace) async {
         if (_state == _SseState.closed) return;
 
+        // If client was disposed, close stream gracefully so provider can restart
+        // The provider watches the client provider, so it will restart when client changes
         if (_handleDisposed(error)) return;
 
         // Handle <nil> marker from Go SSE endpoints
@@ -102,6 +109,8 @@ class ReconnectingSse<T> {
         }
 
         _logger?.log('[ReconnectingSse] Connection error for path: $_path: $error');
+
+        // Handle stale connection errors by forcing disconnect before reconnection
         await _handleStaleConnectionIfNeeded(error);
         _triggerReconnection();
       },
@@ -123,6 +132,8 @@ class ReconnectingSse<T> {
     unawaited(_reconnectionLoop());
   }
 
+  /// Attempts reconnection using an iterative loop instead of recursion.
+  /// This prevents stack overflow from accumulating frames during unlimited retries.
   Future<void> _reconnectionLoop() async {
     _state = _SseState.reconnecting;
 
@@ -147,6 +158,7 @@ class ReconnectingSse<T> {
         '[ReconnectingSse] Attempting reconnection $_reconnectAttempts/$maxRetries for path: $_path',
       );
 
+      // Close the old subscription
       try {
         await _currentSubscription.close();
       } catch (e) {
@@ -155,6 +167,7 @@ class ReconnectingSse<T> {
         );
       }
 
+      // Wait before retrying using exponential backoff (capped at maxRetryDelayMs)
       final delayMs = math.min(
         _maxRetryDelayMs,
         (200 * math.pow(2, _reconnectAttempts - 1)).toInt(),
@@ -166,6 +179,7 @@ class ReconnectingSse<T> {
 
       if (_state == _SseState.closed) return;
 
+      // Create a new subscription
       try {
         final newSub = await _createSubscription();
         if (_state == _SseState.closed) {
@@ -177,17 +191,25 @@ class ReconnectingSse<T> {
           '[ReconnectingSse] New subscription created successfully for path: $_path',
         );
 
+        // Listen to the new subscription - this will handle future errors via _reconnectionLoop
+        // _listenToSubscription will update _currentSubscription
         _state = _SseState.listening;
         _listenToSubscription(newSub);
+        // Note: Do NOT reset _reconnectAttempts here - it will be reset in onData when first data arrives
+        // This ensures the success log appears when data arrives after reconnection
         return;
       } catch (e) {
+        // If client was disposed, close stream gracefully so provider can restart
+        // The provider watches the client provider, so it will restart when client changes
         if (_handleDisposed(e)) return;
 
         _logger?.log(
           '[ReconnectingSse] Reconnection attempt $_reconnectAttempts failed for path: $_path: $e',
         );
+
+        // Handle stale connection errors during reconnection
         await _handleStaleConnectionIfNeeded(e);
-        // Loop continues
+        // Loop will continue and retry
       }
     }
   }
@@ -205,6 +227,12 @@ class ReconnectingSse<T> {
     return false;
   }
 
+  /// Handles stale connection errors by forcing disconnect if needed.
+  ///
+  /// This is called when a connection error occurs, either during normal
+  /// stream processing or during reconnection attempts. If the error indicates
+  /// a stale connection (e.g., "Bad file descriptor" from OS closing the socket),
+  /// we force disconnect the client to ensure a clean state for the next attempt.
   Future<void> _handleStaleConnectionIfNeeded(Object error) async {
     if (_onStaleConnection == null) return;
 
