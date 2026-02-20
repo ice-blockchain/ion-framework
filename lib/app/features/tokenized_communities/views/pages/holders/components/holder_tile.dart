@@ -5,6 +5,7 @@ import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/models/holder_tile_data.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
 import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/app/utils/crypto.dart';
@@ -88,14 +89,7 @@ class HolderTile extends StatelessWidget {
     final texts = context.theme.appTextThemes;
 
     return GestureDetector(
-      onTap: data.badge.isXUser
-          ? () => openUrlInAppBrowser('https://x.com/${data.basicInfo.username}')
-          : data.holderAddress != null
-              ? () => ProfileNavigationUtils.navigateToProfile(
-                    context,
-                    pubkey: data.holderAddress,
-                  )
-              : null,
+      onTap: () => _onTap(context),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -136,6 +130,16 @@ class HolderTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _onTap(BuildContext context) {
+    if (data.badge.isXUser) {
+      openUrlInAppBrowser('https://x.com/${data.basicInfo.username}');
+    } else if (data.tokenExternalAddress != null) {
+      TokenizedCommunityRoute(externalAddress: data.tokenExternalAddress!).push<void>(context);
+    } else if (data.holderAddress != null) {
+      ProfileNavigationUtils.navigateToProfile(context, pubkey: data.holderAddress);
+    }
   }
 }
 
