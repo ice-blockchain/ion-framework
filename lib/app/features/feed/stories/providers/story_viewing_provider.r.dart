@@ -31,7 +31,7 @@ class UserStoriesViewingNotifier extends _$UserStoriesViewingNotifier {
       );
     }
 
-    final userStories = ref.watch(userStoriesProvider(initialPubkey))?.toList() ?? [];
+    final userStories = ref.watch(userStoriesProvider(initialPubkey))?.toList();
 
     return UserStoriesViewerState(
       userStories: userStories,

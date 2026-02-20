@@ -139,7 +139,9 @@ class SharedStoryMessage extends HookConsumerWidget {
                   ),
                 );
 
-                if (storyViewerState.userStories.isEmpty) {
+                if (storyViewerState.isLoading) return;
+
+                if (storyViewerState.isEmpty) {
                   await ref
                       .read(
                         userStoriesViewingNotifierProvider(
@@ -159,7 +161,7 @@ class SharedStoryMessage extends HookConsumerWidget {
                   }
                 }
 
-                if (context.mounted && storyViewerState.userStories.isNotEmpty) {
+                if (context.mounted && !storyViewerState.isEmpty) {
                   unawaited(
                     StoryViewerRoute(
                       pubkey: storyEntity.masterPubkey,
