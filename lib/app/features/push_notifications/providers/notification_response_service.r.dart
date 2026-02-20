@@ -22,6 +22,8 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -189,6 +191,19 @@ class NotificationResponseService {
             notificationPayload.event,
             isInitialNotification: isInitialNotification,
           );
+        case CommunityTokenDefinitionEntity():
+          await _openTokenDetail(
+            entity.data.externalAddress,
+            isInitialNotification: isInitialNotification,
+          );
+        case CommunityTokenActionEntity():
+          final tokenDefinition = await _getEntityData(entity.data.definitionReference);
+          if (tokenDefinition is CommunityTokenDefinitionEntity) {
+            await _openTokenDetail(
+              tokenDefinition.data.externalAddress,
+              isInitialNotification: isInitialNotification,
+            );
+          }
         default:
           throw UnsupportedEntityType(entity);
       }
@@ -374,6 +389,37 @@ class NotificationResponseService {
     if (routePath == currentPath) {
       final currentLocation = _currentRouteMatchList.uri.toString();
 
+      if (route.location == currentLocation) {
+        return;
+      }
+
+      route.pushReplacement(context);
+      return;
+    }
+
+    await route.push<void>(context);
+  }
+
+  Future<void> _openTokenDetail(
+    String externalAddress, {
+    bool isInitialNotification = false,
+  }) async {
+    final context = _getNavigatorContext();
+    if (context == null) {
+      return;
+    }
+
+    final route = TokenizedCommunityRoute(externalAddress: externalAddress);
+    final routePath = route.location.split('?').first;
+    final currentPath = _currentRouteMatchList.fullPath;
+
+    if (isInitialNotification) {
+      route.pushReplacement(context);
+      return;
+    }
+
+    if (routePath == currentPath) {
+      final currentLocation = _currentRouteMatchList.uri.toString();
       if (route.location == currentLocation) {
         return;
       }

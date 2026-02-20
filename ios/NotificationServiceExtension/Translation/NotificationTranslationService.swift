@@ -91,7 +91,7 @@ class NotificationTranslationService {
             return nil
         }
 
-        let placeholders = data.placeholders(type: notificationType)
+        let placeholders = await data.placeholders(type: notificationType, keysStorage: keysStorage)
         
         let result = (
             title: replacePlaceholders(title, placeholders),
@@ -237,6 +237,36 @@ class NotificationTranslationService {
                 return translations.chatPaymentRequestMessage
             case .chatPaymentReceivedMessage:
                 return translations.chatPaymentReceivedMessage
+            case .yourCreatorTokenIsLive:
+                return translations.yourCreatorTokenIsLive
+            case .yourContentTokenIsLive:
+                return translations.yourContentTokenIsLive
+            case .yourFolloweeCreatorTokenIsLive:
+                return translations.yourFolloweeCreatorTokenIsLive
+            case .yourFolloweeContentTokenIsLive:
+                return translations.yourFolloweeContentTokenIsLive
+            case .someoneBoughtYourCreatorToken:
+                return translations.someoneBoughtYourCreatorToken
+            case .someoneBoughtYourContentToken:
+                return translations.someoneBoughtYourContentToken
+            case .someoneBoughtSomeRelevantCreatorToken:
+                return translations.someoneBoughtSomeRelevantCreatorToken
+            case .someoneBoughtSomeRelevantContentToken:
+                return translations.someoneBoughtSomeRelevantContentToken
+            case .yourCreatorTokenPriceIncreased:
+                return translations.yourCreatorTokenPriceIncreased
+            case .moreBuyersJoined:
+                return translations.moreBuyersJoined
+            case .trendingToken:
+                return translations.trendingToken
+            case .newPostSubscription:
+                return translations.newPostSubscription
+            case .newStorySubscription:
+                return translations.newStorySubscription
+            case .newVideoSubscription:
+                return translations.newVideoSubscription
+            case .newArticleSubscription:
+                return translations.newArticleSubscription
             }
         }
 
@@ -293,11 +323,11 @@ class NotificationTranslationService {
         
         let eventReference = ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind)
         let eventReferenceKey = eventReference.toString()
-        
+
         guard let userMetadata: UserMetadataEntity = cacheDB.getEntity(for: eventReferenceKey) else {
             return nil
         }
-        
+
         return userMetadata.data
     }
     
@@ -379,13 +409,13 @@ class NotificationTranslationService {
             if let quotedEvent = modifiablePost.data.quotedEvent {
                 return quotedEvent.eventReference.toString()
             } else if let parentEvent = modifiablePost.data.parentEvent {
-                return parentEvent.eventReference
+                return parentEvent.eventReference.toString()
             }
         } else if let post = entity as? PostEntity {
             if let quotedEvent = post.data.quotedEvent {
                 return quotedEvent.eventReference.toString()
             } else if let parentEvent = post.data.parentEvent {
-                return parentEvent.eventReference
+                return parentEvent.eventReference.toString()
             }
         }
         

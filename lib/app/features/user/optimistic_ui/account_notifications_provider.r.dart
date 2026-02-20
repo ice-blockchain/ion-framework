@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/core/operation_manager.dart';
 import 'package:ion/app/features/optimistic_ui/core/optimistic_service.dart';
-import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
+import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/optimistic_ui/account_notifications_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/user/optimistic_ui/model/account_notifications_option.f.dart';
@@ -22,46 +19,15 @@ Future<List<AccountNotificationsOption>> loadInitialNotifications(
   Ref ref,
   String userPubkey,
 ) async {
-  final currentMasterPubkey = ref.read(currentPubkeySelectorProvider);
-  if (currentMasterPubkey == null) {
-    throw UserMasterPubkeyNotFoundException();
-  }
+  final accountNotificationSets =
+      await ref.watch(currentUserAccountNotificationSetsProvider.future);
 
-  final notificationTypes = <UserNotificationsType>[];
-  final fetches = <Future<UserNotificationsType?>>[];
+  final selectedTypes = accountNotificationSets
+      .where((notificationSet) => notificationSet.data.userPubkeys.contains(userPubkey))
+      .map((notificationSet) => notificationSet.data.type.toUserNotificationType())
+      .toSet();
 
-  for (final type in UserNotificationsType.values) {
-    if (type == UserNotificationsType.none) continue;
-
-    final setType = AccountNotificationSetType.fromUserNotificationType(type);
-    if (setType == null) continue;
-
-    fetches.add(() async {
-      final accountNotificationSet = await ref.read(
-        ionConnectEntityProvider(
-          eventReference: ReplaceableEventReference(
-            masterPubkey: currentMasterPubkey,
-            kind: AccountNotificationSetEntity.kind,
-            dTag: setType.dTagName,
-          ),
-        ).future,
-      );
-
-      if (accountNotificationSet is AccountNotificationSetEntity &&
-          accountNotificationSet.data.userPubkeys.contains(userPubkey)) {
-        return type;
-      }
-      return null;
-    }());
-  }
-
-  if (fetches.isNotEmpty) {
-    final resolvedTypes = await Future.wait(fetches);
-    notificationTypes.addAll(resolvedTypes.whereType<UserNotificationsType>());
-  }
-
-  final selected =
-      notificationTypes.isEmpty ? {UserNotificationsType.none} : notificationTypes.toSet();
+  final selected = selectedTypes.isEmpty ? {UserNotificationsType.none} : selectedTypes;
 
   return [
     AccountNotificationsOption(
@@ -78,7 +44,7 @@ OptimisticOperationManager<AccountNotificationsOption> accountNotificationsManag
 ) {
   keepAliveWhenAuthenticated(ref);
 
-  final strategy = ref.watch(accountNotificationsSyncStrategyProvider);
+  final strategy = ref.watch(accountNotificationsSyncStrategyNotifierProvider);
   final localEnabled = ref.watch(envProvider.notifier).get<bool>(EnvVariable.OPTIMISTIC_UI_ENABLED);
 
   final manager = OptimisticOperationManager<AccountNotificationsOption>(

@@ -51,6 +51,52 @@ enum SocialNotificationOption implements SelectableOption, PushNotificationOptio
       };
 }
 
+enum TokenizedCommunityNotificationOption implements SelectableOption, PushNotificationOption {
+  creatorToken,
+  contentToken,
+  creatorTokenTrades,
+  contentTokenTrades,
+  tokenUpdates;
+
+  @override
+  String getLabel(BuildContext context) => switch (this) {
+        TokenizedCommunityNotificationOption.creatorToken =>
+          context.i18n.push_notification_tc_option_creator_token,
+        TokenizedCommunityNotificationOption.contentToken =>
+          context.i18n.push_notification_tc_option_content_token,
+        TokenizedCommunityNotificationOption.creatorTokenTrades =>
+          context.i18n.push_notification_tc_option_creator_token_trades,
+        TokenizedCommunityNotificationOption.contentTokenTrades =>
+          context.i18n.push_notification_tc_option_content_token_trades,
+        TokenizedCommunityNotificationOption.tokenUpdates =>
+          context.i18n.push_notification_tc_option_token_updates,
+      };
+
+  @override
+  Widget getIcon(BuildContext context) {
+    final icon = switch (this) {
+      TokenizedCommunityNotificationOption.creatorToken => Assets.svg.iconSearchCreatonewrtoken,
+      TokenizedCommunityNotificationOption.contentToken => Assets.svg.iconSearchContenttoken,
+      TokenizedCommunityNotificationOption.creatorTokenTrades => Assets.svg.iconSearchCreatortrades,
+      TokenizedCommunityNotificationOption.contentTokenTrades => Assets.svg.iconSearchContenttrades,
+      TokenizedCommunityNotificationOption.tokenUpdates => Assets.svg.iconTokenupdates,
+    };
+
+    return icon.icon(color: context.theme.appColors.primaryAccent);
+  }
+
+  @override
+  PushNotificationCategory get category => switch (this) {
+        TokenizedCommunityNotificationOption.creatorToken => PushNotificationCategory.creatorToken,
+        TokenizedCommunityNotificationOption.contentToken => PushNotificationCategory.contentToken,
+        TokenizedCommunityNotificationOption.creatorTokenTrades =>
+          PushNotificationCategory.creatorTokenTrades,
+        TokenizedCommunityNotificationOption.contentTokenTrades =>
+          PushNotificationCategory.contentTokenTrades,
+        TokenizedCommunityNotificationOption.tokenUpdates => PushNotificationCategory.tokenUpdates,
+      };
+}
+
 enum ChatNotificationOption implements SelectableOption, PushNotificationOption {
   directMessages,
   groupChats,

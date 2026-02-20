@@ -19,6 +19,7 @@ import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
@@ -40,6 +41,7 @@ class NotificationItem extends HookConsumerWidget {
       final ContentIonNotification content => content.eventReference,
       final MentionIonNotification mention => mention.eventReference,
       final TokenLaunchIonNotification tokenLaunch => tokenLaunch.eventReference,
+      final TokenTransactionIonNotification tokenTransaction => tokenTransaction.eventReference,
       _ => null,
     };
 
@@ -53,6 +55,17 @@ class NotificationItem extends HookConsumerWidget {
           case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
         entity = ref
             .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
+      } else if (relatedEntity is CommunityTokenActionEntity) {
+        final definition = ref.watch(
+          ionConnectSyncEntityWithCountersProvider(
+            eventReference: relatedEntity.data.definitionReference,
+          ),
+        );
+        if (definition
+            case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
+          entity = ref
+              .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
+        }
       } else {
         entity = relatedEntity;
       }

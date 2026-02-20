@@ -7,8 +7,10 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/views/notification_icon/outlined_notification_icon.dart';
 import 'package:ion/app/features/feed/notifications/views/notification_icon/token_notification_icon.dart';
+import 'package:ion/app/features/feed/notifications/views/notification_icon/token_transaction_icon.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -206,6 +208,44 @@ final class TokenLaunchIonNotification extends IonNotification {
       ModifiablePostEntity() || PostEntity() => context.i18n.notifications_token_launched_post,
       ArticleEntity() => context.i18n.notifications_token_launched_article,
       UserMetadataEntity() => context.i18n.notifications_token_launched_creator,
+      _ => ''
+    };
+  }
+}
+
+final class TokenTransactionIonNotification extends IonNotification {
+  TokenTransactionIonNotification({
+    required this.eventReference,
+    required super.timestamp,
+  }) : super(pubkeys: [eventReference.masterPubkey]);
+
+  final EventReference eventReference;
+
+  @override
+  Widget getIcon(BuildContext context, {required double size}) =>
+      TokenTransactionIcon(size: size, eventReference: eventReference);
+
+  @override
+  String getDescription(BuildContext context, [IonConnectEntity? entity]) {
+    return switch (entity) {
+      CommunityTokenActionEntity() => switch (entity.data.type) {
+          CommunityTokenActionType.buy => switch (entity.data.kind) {
+              ModifiablePostEntity.kind ||
+              PostEntity.kind =>
+                context.i18n.notifications_token_transaction_buy_post,
+              ArticleEntity.kind => context.i18n.notifications_token_transaction_buy_article,
+              UserMetadataEntity.kind => context.i18n.notifications_token_transaction_buy_creator,
+              _ => '',
+            },
+          CommunityTokenActionType.sell => switch (entity.data.kind) {
+              ModifiablePostEntity.kind ||
+              PostEntity.kind =>
+                context.i18n.notifications_token_transaction_sell_post,
+              ArticleEntity.kind => context.i18n.notifications_token_transaction_sell_article,
+              UserMetadataEntity.kind => context.i18n.notifications_token_transaction_sell_creator,
+              _ => '',
+            }
+        },
       _ => ''
     };
   }

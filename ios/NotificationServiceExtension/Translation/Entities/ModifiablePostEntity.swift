@@ -59,12 +59,17 @@ struct ModifiablePostData {
     let relatedPubkeys: [RelatedPubkey]
     let quotedEvent: QuotedEvent?
     let richText: RichText?
+    let media: [MediaItem]
     let expiration: EntityExpiration?
     
     var content: String {
         return richText?.content ?? textContent
     }
     
+    var hasVideo: Bool {
+        return media.contains { $0.mediaType == .video }
+    }
+
     var parentEvent: RelatedEvent? {
         var rootParent: RelatedEvent? = nil
         var replyParent: RelatedEvent? = nil
@@ -145,7 +150,10 @@ struct ModifiablePostData {
                 }
             }
         }
-        
+
+        // Parse media from imeta tags
+        let mediaItems = MediaItem.parseImeta(eventMessage.tags.filter { $0.count >= 2 && $0[0] == "imeta" })
+
         // Parse expiration from expiration tags
         var expiration: EntityExpiration? = nil
         for tag in eventMessage.tags {
@@ -162,6 +170,7 @@ struct ModifiablePostData {
             relatedPubkeys: relatedPubkeys,
             quotedEvent: quotedEvent,
             richText: richText,
+            media: mediaItems,
             expiration: expiration
         )
     }

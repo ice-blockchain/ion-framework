@@ -847,3 +847,11 @@ class LiquidityPoolNotFoundException extends IONException {
 class MainWalletViewNotFoundException extends IONException {
   MainWalletViewNotFoundException() : super(10151, 'Main wallet view not found');
 }
+
+class TokenTickerNotFoundException extends IONException {
+  TokenTickerNotFoundException(String externalAddress)
+      : super(
+          10152,
+          'Token ticker not found for external address: $externalAddress',
+        );
+}

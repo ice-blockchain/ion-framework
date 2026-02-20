@@ -49,14 +49,20 @@ class SelectedPushCategories extends _$SelectedPushCategories {
 
     final userPreferencesService =
         ref.watch(userPreferencesServiceProvider(identityKeyName: identityKeyName));
-    final savedState = userPreferencesService.getValue<String>(_selectedPushCategoriesKey);
+    final encodedSavedState = userPreferencesService.getValue<String>(_selectedPushCategoriesKey);
 
-    if (savedState == null) {
+    if (encodedSavedState == null) {
       return _defaultState;
     }
 
     try {
-      return SelectedPushCategoriesState.fromJson(jsonDecode(savedState) as Map<String, dynamic>);
+      final savedState = SelectedPushCategoriesState.fromJson(
+        jsonDecode(encodedSavedState) as Map<String, dynamic>,
+      );
+      if (savedState.requiresTokenizedCommunitiesMigration) {
+        return _migrateTokenizedCommunitiesCategories(currentState: savedState);
+      }
+      return savedState;
     } catch (error, stackTrace) {
       Logger.error(
         error,
@@ -67,9 +73,27 @@ class SelectedPushCategories extends _$SelectedPushCategories {
     }
   }
 
+  SelectedPushCategoriesState _migrateTokenizedCommunitiesCategories({
+    required SelectedPushCategoriesState currentState,
+  }) {
+    return currentState.copyWith(
+      requiresTokenizedCommunitiesMigration: false,
+      categories: [
+        ...currentState.categories,
+        PushNotificationCategory.creatorToken,
+        PushNotificationCategory.contentToken,
+        PushNotificationCategory.creatorTokenTrades,
+        PushNotificationCategory.contentTokenTrades,
+        PushNotificationCategory.tokenUpdates,
+      ],
+    );
+  }
+
   static const _defaultState = SelectedPushCategoriesState(
     categories: PushNotificationCategory.values,
     suspended: false,
+    requiresTokenizedCommunitiesMigration:
+        false, // By default all the categories are enabled, so no need to migrate
   );
 
   static const _selectedPushCategoriesKey = 'selected_push_categories';
@@ -78,8 +102,14 @@ class SelectedPushCategories extends _$SelectedPushCategories {
 @freezed
 class SelectedPushCategoriesState with _$SelectedPushCategoriesState {
   const factory SelectedPushCategoriesState({
+    /// List of selected categories
     required List<PushNotificationCategory> categories,
+
+    /// If push notifications can't be received
     required bool suspended,
+
+    /// All the saved states require the migration
+    @Default(true) bool requiresTokenizedCommunitiesMigration,
   }) = _SelectedPushCategoriesState;
 
   const SelectedPushCategoriesState._();
