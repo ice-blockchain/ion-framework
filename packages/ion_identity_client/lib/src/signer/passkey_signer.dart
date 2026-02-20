@@ -48,6 +48,14 @@ class PasskeysSigner {
   final PasskeysOptions options;
   final LocalPasskeyCredsStateStorage localPasskeyCredsStateStorage;
 
+  Future<void> _cancelCurrentAuthenticatorOperation() async {
+    try {
+      await PasskeyAuthenticator().cancelCurrentAuthenticatorOperation();
+    } catch (_) {
+      // Ignore cancellation failures, as timeout handling proceeds in Dart.
+    }
+  }
+
   /// Races the platform authentication against a Dart-side watchdog timer.
   ///
   /// Some Android devices (notably with Samsung Pass / Credential Manager)
@@ -63,6 +71,7 @@ class PasskeysSigner {
       return await future.timeout(
         timeout,
         onTimeout: () {
+          unawaited(_cancelCurrentAuthenticatorOperation());
           throw TimeoutException(
             'Passkey signer timed out after ${timeout.inSeconds} seconds',
           );
