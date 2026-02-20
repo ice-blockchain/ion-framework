@@ -10,10 +10,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'current_user_identity_provider.r.g.dart';
 
-@Riverpod(keepAlive: true)
+@riverpod
 class CurrentUserIdentity extends _$CurrentUserIdentity {
   @override
   Future<UserDetails?> build() async {
+    keepAliveWhenAuthenticated(ref);
     final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
     if (currentIdentityKeyName != null) {
       final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
@@ -31,16 +32,18 @@ class CurrentUserIdentity extends _$CurrentUserIdentity {
   }
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 Future<List<UserRelay>?> currentUserIdentityConnectRelays(Ref ref) async {
+  keepAliveWhenAuthenticated(ref);
   final identity = await ref.watch(currentUserIdentityProvider.future);
   return identity?.ionConnectRelays?.map((relay) => relay.toUserRelay()).toList();
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class CurrentUserIndexers extends _$CurrentUserIndexers {
   @override
   Future<List<String>?> build() async {
+    keepAliveWhenAuthenticated(ref);
     final userIdentity = await ref.watch(currentUserIdentityProvider.future);
     if (userIdentity != null) {
       return userIdentity.ionConnectIndexerRelays;

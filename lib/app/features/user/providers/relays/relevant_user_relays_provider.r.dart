@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
 import 'package:ion/app/services/ion_connect/ion_connect_relays_ranker.r.dart';
@@ -18,8 +19,9 @@ part 'relevant_user_relays_provider.r.g.dart';
 ///
 /// They are fetched from identity based on the top relay URL from the ranked user relays.
 
-@Riverpod(keepAlive: true)
+@riverpod
 Future<List<String>> relevantCurrentUserRelays(Ref ref) async {
+  keepAliveWhenAuthenticated(ref);
   final topRelayUrl = await ref.watch(
     rankedCurrentUserRelaysProvider.selectAsync((state) => state.firstOrNull?.url),
   );
@@ -36,13 +38,15 @@ Future<List<String>> relevantRelays(Ref ref, String relayUrl) async {
   return availableRelays.map((relay) => relay.url).toList();
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class RankedRelevantCurrentUserRelaysUrls extends _$RankedRelevantCurrentUserRelaysUrls {
   static const _cacheKey = '_RankedRelevantCurrentUserRelaysCache';
   static const _cacheCreatedAtKey = '_RankedRelevantCurrentUserRelaysCacheCreatedAt';
 
   @override
   Stream<List<String>> build() async* {
+    keepAliveWhenAuthenticated(ref);
+
     // If cache is available, always yield it first to speed up the feed loading, even tho it is expired
     final cached = _loadSavedState();
     if (cached != null) {

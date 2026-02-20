@@ -44,6 +44,9 @@ part 'feed_for_you_content_provider.m.g.dart';
 class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   @override
   FeedForYouContentState build(FeedType feedType, {FeedModifier? feedModifier}) {
+    // Needs for reload the feed when the user switches accounts
+    final identityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
+    if (identityKeyName == null) throw const UnauthenticatedException();
     Future.microtask(fetchEntities);
 
     _refreshOnContentLangChange();
