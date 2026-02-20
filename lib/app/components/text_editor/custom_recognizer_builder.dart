@@ -4,7 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/components/text_editor/utils/mention_delta_converter.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 GestureRecognizer? customRecognizerBuilder(
@@ -35,8 +35,12 @@ GestureRecognizer? customRecognizerBuilder(
       ..onTap = isEditing
           ? null
           : () {
-              final reference = EventReference.fromEncoded(attribute.value as String);
-              ProfileRoute(pubkey: reference.masterPubkey).push<void>(context);
+              final pubkey = MentionDeltaConverter.tryGetMentionPubkey(
+                attribute.value as String,
+              );
+              if (pubkey != null) {
+                ProfileRoute(pubkey: pubkey).push<void>(context);
+              }
             };
   }
   return null;

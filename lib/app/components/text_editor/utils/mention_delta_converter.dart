@@ -6,6 +6,10 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/mention/
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/text_editor_mention_embed_builder.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/services/bech32/bech32_service.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_protocol_identifier_type.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_uri_identifier_service.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_uri_protocol_service.r.dart';
 
 class MentionDeltaConverter {
   MentionDeltaConverter._();
@@ -134,14 +138,50 @@ class MentionDeltaConverter {
     } catch (_) {
       // Invalid data, return null
     }
+
     return null;
   }
 
   static String? _tryDecodePubkey(String encoded) {
-    try {
-      return EventReference.fromEncoded(encoded).masterPubkey;
-    } catch (_) {
+    return tryGetMentionPubkey(encoded);
+  }
+
+  /// Extracts pubkey from mention attribute or link value.
+  /// Supports: ion:/nostr:nprofile, ion:/nostr:npub.
+  static String? tryGetMentionPubkey(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+
+    // 1. ion:/nostr:nprofile
+    if (IonConnectProtocolIdentifierTypeValidator.isProfileIdentifier(trimmed)) {
+      try {
+        return EventReference.fromEncoded(trimmed).masterPubkey;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    // 2. ion:/nostr:npub
+    if (IonConnectProtocolIdentifierTypeValidator.isPublicKeyIdentifier(trimmed)) {
+      return _npubPayloadToPubkey(IonConnectUriProtocolService().decode(trimmed));
+    }
+
+    return null;
+  }
+
+  static String? _npubPayloadToPubkey(String? payload) {
+    const type = IonConnectProtocolIdentifierType.npub;
+    if (payload == null || !payload.toLowerCase().startsWith(type.name)) {
       return null;
     }
+    try {
+      final decoded = IonConnectUriIdentifierService(
+        bech32Service: Bech32Service(),
+      ).decode(payload: payload);
+      if (decoded.prefix == type) {
+        return decoded.data;
+      }
+    } catch (_) {}
+    return null;
   }
 }
