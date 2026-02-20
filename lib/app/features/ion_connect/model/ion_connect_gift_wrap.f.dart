@@ -19,6 +19,7 @@ class IonConnectGiftWrapEntity with IonConnectEntity, ImmutableEntity, _$IonConn
     required String signature,
     required int createdAt,
     required IonConnectGiftWrapData data,
+    EventMessage? eventMessage,
   }) = _IonConnectGiftWrapEntity;
 
   const IonConnectGiftWrapEntity._();
@@ -35,6 +36,7 @@ class IonConnectGiftWrapEntity with IonConnectEntity, ImmutableEntity, _$IonConn
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: IonConnectGiftWrapData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

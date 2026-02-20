@@ -23,6 +23,7 @@ class FollowListEntity
     required String signature,
     required int createdAt,
     required FollowListData data,
+    EventMessage? eventMessage,
   }) = _FollowListEntity;
 
   const FollowListEntity._();
@@ -40,6 +41,7 @@ class FollowListEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: FollowListData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

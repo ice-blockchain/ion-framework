@@ -42,6 +42,7 @@ class ReplaceablePrivateDirectMessageEntity
     required String masterPubkey,
     required int createdAt,
     required ReplaceablePrivateDirectMessageData data,
+    EventMessage? eventMessage,
   }) = _ReplaceablePrivateDirectMessageEntity;
 
   const ReplaceablePrivateDirectMessageEntity._();
@@ -53,6 +54,7 @@ class ReplaceablePrivateDirectMessageEntity
       createdAt: eventMessage.createdAt,
       masterPubkey: eventMessage.masterPubkey,
       data: ReplaceablePrivateDirectMessageData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

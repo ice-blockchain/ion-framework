@@ -24,6 +24,7 @@ class PrivateMessageReactionEntity
     required String masterPubkey,
     required int createdAt,
     required PrivateMessageReactionEntityData data,
+    EventMessage? eventMessage,
   }) = _PrivateMessageReactionEntity;
 
   const PrivateMessageReactionEntity._();
@@ -39,6 +40,7 @@ class PrivateMessageReactionEntity
       createdAt: eventMessage.createdAt,
       masterPubkey: eventMessage.masterPubkey,
       data: PrivateMessageReactionEntityData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

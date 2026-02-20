@@ -25,6 +25,7 @@ class BadgeAwardEntity
     required String signature,
     required int createdAt,
     required BadgeAwardData data,
+    EventMessage? eventMessage,
   }) = _BadgeAwardEntity;
 
   const BadgeAwardEntity._();
@@ -41,11 +42,12 @@ class BadgeAwardEntity
       signature: ev.sig!,
       createdAt: ev.createdAt,
       data: BadgeAwardData.fromEventMessage(ev),
+      eventMessage: ev,
     );
   }
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 
   static const int kind = 8;
 }

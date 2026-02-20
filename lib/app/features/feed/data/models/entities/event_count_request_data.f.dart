@@ -24,6 +24,7 @@ class EventCountRequestEntity
     required String signature,
     required int createdAt,
     required EventCountRequestData data,
+    EventMessage? eventMessage,
   }) = _EventCountRequestEntity;
 
   const EventCountRequestEntity._();
@@ -41,6 +42,7 @@ class EventCountRequestEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: EventCountRequestData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

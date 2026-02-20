@@ -9,6 +9,7 @@ import 'package:ion/app/constants/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -70,6 +71,12 @@ Future<IonConnectCacheService> ionConnectPersistentCacheService(Ref ref) async {
 class IonConnectDatabaseCache extends _$IonConnectDatabaseCache {
   @override
   void build() {}
+
+  Future<void> saveEventMessage(EventMessage eventMessage) async {
+    final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);
+
+    await cacheService.save((cacheKey: eventMessage.id, eventMessage: eventMessage));
+  }
 
   Future<void> saveEntity(DbCacheableEntity entity) async {
     final cacheService = await ref.read(ionConnectPersistentCacheServiceProvider.future);

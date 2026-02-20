@@ -18,6 +18,7 @@ class PollVoteEntity with _$PollVoteEntity, IonConnectEntity, ImmutableEntity, C
     required String signature,
     required int createdAt,
     required PollVoteData data,
+    EventMessage? eventMessage,
   }) = _PollVoteEntity;
 
   const PollVoteEntity._();
@@ -34,6 +35,7 @@ class PollVoteEntity with _$PollVoteEntity, IonConnectEntity, ImmutableEntity, C
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: PollVoteData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

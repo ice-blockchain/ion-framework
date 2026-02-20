@@ -20,6 +20,7 @@ class NotAuthoritativeEvent with _$NotAuthoritativeEvent, IonConnectEntity, Immu
     required String signature,
     required int createdAt,
     required NotAuthoritativeEventData data,
+    EventMessage? eventMessage,
   }) = _NotAuthoritativeEvent;
 
   const NotAuthoritativeEvent._();
@@ -36,6 +37,7 @@ class NotAuthoritativeEvent with _$NotAuthoritativeEvent, IonConnectEntity, Immu
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: NotAuthoritativeEventData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

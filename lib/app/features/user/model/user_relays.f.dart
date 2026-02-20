@@ -25,6 +25,7 @@ class UserRelaysEntity
     required String signature,
     required int createdAt,
     required UserRelaysData data,
+    EventMessage? eventMessage,
   }) = _UserRelaysEntity;
 
   const UserRelaysEntity._();
@@ -42,11 +43,12 @@ class UserRelaysEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: UserRelaysData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 
   @override
-  FutureOr<EventMessage> toEntityEventMessage() => toEventMessage(data);
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage ?? toEventMessage(data);
 
   List<String> get urls => data.list.map((relay) => relay.url).toList();
 

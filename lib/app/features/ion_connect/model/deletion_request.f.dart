@@ -25,6 +25,7 @@ class DeletionRequestEntity with IonConnectEntity, ImmutableEntity, _$DeletionRe
     required String signature,
     required int createdAt,
     required DeletionRequest data,
+    EventMessage? eventMessage,
   }) = _DeletionRequestEntity;
 
   const DeletionRequestEntity._();
@@ -46,6 +47,7 @@ class DeletionRequestEntity with IonConnectEntity, ImmutableEntity, _$DeletionRe
       signature: eventMessage.sig ?? '',
       createdAt: eventMessage.createdAt,
       data: DeletionRequest.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
 

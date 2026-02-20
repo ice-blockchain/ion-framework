@@ -32,6 +32,7 @@ class CommunityDefinitionEntity
     required String signature,
     required int createdAt,
     required CommunityDefinitionData data,
+    EventMessage? eventMessage,
   }) = _CommunityDefinitionEntity;
 
   const CommunityDefinitionEntity._();
@@ -48,6 +49,7 @@ class CommunityDefinitionEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: CommunityDefinitionData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
   String get ownerPubkey => masterPubkey;
