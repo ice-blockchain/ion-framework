@@ -16,6 +16,7 @@ import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/transaction_amount.f.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 part 'community_token_action.f.freezed.dart';
 
@@ -112,6 +113,14 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         relatedPubkey == null) {
       throw IncorrectEventTagsException(eventId: eventMessage.id);
     }
+
+    Logger.info(
+      '[CommunityTokenActionData.fromEventMessage] Parsing event ${eventMessage.id}, '
+      'type=$typeRaw, '
+      'txAddress=$transactionAddress, '
+      'rawAmountTags=${tags[TransactionAmount.tagName]}, '
+      'parsedAmounts=${amounts.map((a) => '${a.currency}: ${a.value}').join(', ')}',
+    );
 
     return CommunityTokenActionData(
       definitionReference: eventReference,

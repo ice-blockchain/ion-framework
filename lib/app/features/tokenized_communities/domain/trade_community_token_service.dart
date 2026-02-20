@@ -57,7 +57,8 @@ class TradeCommunityTokenService {
     required PricingResponse expectedPricing,
     required bool shouldSendEvents,
     FatAddressV2Data? fatAddressData,
-    double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
+    double slippagePercent =
+        TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
     Logger.info(
       '[TradeCommunityTokenService] buyCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
@@ -70,11 +71,16 @@ class TradeCommunityTokenService {
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
     final firstBuy = await _isFirstBuy(externalAddress, externalAddressType);
     final hasUserPosition = _hasUserPosition(tokenInfo);
+
+    final previousPositionRaw = tokenInfo?.marketData.position?.amount != null
+        ? BigInt.tryParse(tokenInfo!.marketData.position!.amount)
+        : null;
     Logger.info(
       '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
     );
 
-    final isCreatorTokenMissingForContentFirstBuy = _isCreatorTokenMissingForContentFirstBuy(
+    final isCreatorTokenMissingForContentFirstBuy =
+        _isCreatorTokenMissingForContentFirstBuy(
       externalAddressType: externalAddressType,
       isFirstBuy: firstBuy,
       fatAddressData: fatAddressData,
@@ -101,7 +107,8 @@ class TradeCommunityTokenService {
       mode: CommunityTokenTradeMode.buy,
       paymentTokenAddress: baseTokenAddress,
       paymentRoleOverride: paymentRoleOverride,
-      isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+      isCreatorTokenMissingForContentFirstBuy:
+          isCreatorTokenMissingForContentFirstBuy,
       pricingIdentifier: pricingIdentifier,
       amountIn: amountIn,
       slippagePercent: slippagePercent,
@@ -116,10 +123,12 @@ class TradeCommunityTokenService {
       walletAddress: walletAddress,
       paymentTokenAddress: baseTokenAddress,
       paymentTokenDecimals: tokenDecimals,
-      communityTokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
+      communityTokenDecimals:
+          TokenizedCommunitiesConstants.creatorTokenDecimals,
       fatAddressData: fatAddressData,
     );
-    Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
+    Logger.info(
+        '[TradeCommunityTokenService] Signing and broadcasting user operations');
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
@@ -144,9 +153,10 @@ class TradeCommunityTokenService {
         try {
           // Only resolve master pubkey for Ion Connect tokens (not external/X tokens)
           masterPubkey = MasterPubkeyResolver.resolve(externalAddress);
-          profileEventReference =
-              ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind);
-          hasProfileToken = await ionConnectService.ionConnectEntityHasToken(profileEventReference);
+          profileEventReference = ReplaceableEventReference(
+              masterPubkey: masterPubkey, kind: UserMetadataEntity.kind);
+          hasProfileToken = await ionConnectService
+              .ionConnectEntityHasToken(profileEventReference);
           Logger.info(
             '[TradeCommunityTokenService] Master pubkey resolved | masterPubkey=$masterPubkey | hasProfileToken=$hasProfileToken',
           );
@@ -169,8 +179,11 @@ class TradeCommunityTokenService {
         if (firstBuy)
           // First-buy events are always sent, regardless of [shouldSendEvents].
           _sendFirstBuyEvents(externalAddress: externalAddress),
-        if (externalAddressType.isContentToken && !hasProfileToken && profileEventReference != null)
-          _sendFirstBuyEvents(externalAddress: profileEventReference.toString()),
+        if (externalAddressType.isContentToken &&
+            !hasProfileToken &&
+            profileEventReference != null)
+          _sendFirstBuyEvents(
+              externalAddress: profileEventReference.toString()),
         if (shouldSendEvents)
           _trySendBuyEvents(
             externalAddress: externalAddress,
@@ -184,11 +197,13 @@ class TradeCommunityTokenService {
             tokenDecimals: tokenDecimals,
             existingTokenAddress: existingTokenAddress,
             tokenInfo: tokenInfo,
+            previousPositionRaw: previousPositionRaw,
           ),
       ]);
     }
 
-    Logger.info('[TradeCommunityTokenService] buyCommunityToken completed successfully');
+    Logger.info(
+        '[TradeCommunityTokenService] buyCommunityToken completed successfully');
     return transaction;
   }
 
@@ -207,7 +222,8 @@ class TradeCommunityTokenService {
     required UserActionSignerNew userActionSigner,
     required PricingResponse expectedPricing,
     required bool shouldSendEvents,
-    double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
+    double slippagePercent =
+        TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
     Logger.info(
       '[TradeCommunityTokenService] sellCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
@@ -230,6 +246,10 @@ class TradeCommunityTokenService {
     Logger.info('[TradeCommunityTokenService] Fetching token info');
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
 
+    final previousPositionRaw = tokenInfo?.marketData.position?.amount != null
+        ? BigInt.tryParse(tokenInfo!.marketData.position!.amount)
+        : null;
+
     Logger.info(
       '[TradeCommunityTokenService] Building quote | pricingIdentifier=$externalAddress | amountIn=$amountIn | slippagePercent=$slippagePercent',
     );
@@ -250,7 +270,8 @@ class TradeCommunityTokenService {
       communityTokenDecimals: tokenDecimals,
       communityTokenAddress: communityTokenAddress,
     );
-    Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
+    Logger.info(
+        '[TradeCommunityTokenService] Signing and broadcasting user operations');
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
@@ -263,7 +284,8 @@ class TradeCommunityTokenService {
     );
 
     if (shouldSendEvents && _isBroadcasted(transaction)) {
-      Logger.info('[TradeCommunityTokenService] Transaction broadcasted, sending sell events');
+      Logger.info(
+          '[TradeCommunityTokenService] Transaction broadcasted, sending sell events');
       await _trySendSellEvents(
         externalAddress: externalAddress,
         transaction: transaction,
@@ -274,11 +296,13 @@ class TradeCommunityTokenService {
         paymentTokenTicker: paymentTokenTicker,
         paymentTokenDecimals: paymentTokenDecimals,
         tokenInfo: tokenInfo,
+        previousPositionRaw: previousPositionRaw,
       );
       Logger.info('[TradeCommunityTokenService] Sell events sent successfully');
     }
 
-    Logger.info('[TradeCommunityTokenService] sellCommunityToken completed successfully');
+    Logger.info(
+        '[TradeCommunityTokenService] sellCommunityToken completed successfully');
     return transaction;
   }
 
@@ -290,14 +314,16 @@ class TradeCommunityTokenService {
     required String amount,
     required String paymentTokenAddress,
     FatAddressV2Data? fatAddressData,
-    Future<FatAddressV2Data> Function(PricingResponse pricing)? fatAddressDataWithPricingResolver,
+    Future<FatAddressV2Data> Function(PricingResponse pricing)?
+        fatAddressDataWithPricingResolver,
   }) async {
     final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
       paymentTokenAddress: paymentTokenAddress,
     );
-    final isCreatorTokenMissingForContentFirstBuy = _isCreatorTokenMissingForContentFirstBuy(
+    final isCreatorTokenMissingForContentFirstBuy =
+        _isCreatorTokenMissingForContentFirstBuy(
       externalAddressType: externalAddressType,
       isFirstBuy: mode == CommunityTokenTradeMode.buy && fatAddressData != null,
       fatAddressData: fatAddressData,
@@ -309,11 +335,13 @@ class TradeCommunityTokenService {
       mode: mode,
       paymentTokenAddress: paymentTokenAddress,
       paymentRoleOverride: paymentRoleOverride,
-      isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+      isCreatorTokenMissingForContentFirstBuy:
+          isCreatorTokenMissingForContentFirstBuy,
       pricingIdentifier: pricingIdentifier,
       amountIn: amountIn,
       slippagePercent: 0,
-      fatAddressHex: _looksLikeHex(pricingIdentifier) ? pricingIdentifier : null,
+      fatAddressHex:
+          _looksLikeHex(pricingIdentifier) ? pricingIdentifier : null,
     );
 
     return _resolveQuoteWithEnrichedFatAddress(
@@ -322,7 +350,8 @@ class TradeCommunityTokenService {
       mode: mode,
       paymentTokenAddress: paymentTokenAddress,
       paymentRoleOverride: paymentRoleOverride,
-      isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+      isCreatorTokenMissingForContentFirstBuy:
+          isCreatorTokenMissingForContentFirstBuy,
       pricingIdentifier: pricingIdentifier,
       amountIn: amountIn,
       initialRouteQuote: initialRouteQuote,
@@ -350,7 +379,8 @@ class TradeCommunityTokenService {
       return {'status': 'skipped'};
     }
 
-    final metadataOwner = await repository.fetchTokenMetadataOwner(tokenAddress);
+    final metadataOwner =
+        await repository.fetchTokenMetadataOwner(tokenAddress);
     if (!_sameAddress(metadataOwner, walletAddress)) {
       return {'status': 'skipped'};
     }
@@ -377,7 +407,8 @@ class TradeCommunityTokenService {
   }
 
   void _ensureAccountNotProtected(String externalAddress) {
-    if (protectedAccountsService.isProtectedAccountFromExternalAddress(externalAddress)) {
+    if (protectedAccountsService
+        .isProtectedAccountFromExternalAddress(externalAddress)) {
       throw const TokenOperationProtectedException();
     }
   }
@@ -395,7 +426,8 @@ class TradeCommunityTokenService {
     if (fatHex.isNotEmpty) {
       return fatHex;
     }
-    throw StateError('fatAddressData is required for first buy of $externalAddress');
+    throw StateError(
+        'fatAddressData is required for first buy of $externalAddress');
   }
 
   Future<_RouteQuote> _buildRouteAndQuote({
@@ -417,7 +449,8 @@ class TradeCommunityTokenService {
       mode: mode,
       paymentTokenAddress: paymentTokenAddress,
       paymentTokenRoleOverride: paymentRoleOverride,
-      isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+      isCreatorTokenMissingForContentFirstBuy:
+          isCreatorTokenMissingForContentFirstBuy,
     );
     Logger.info(
       '[TradeCommunityTokenService] Building quote | pricingIdentifier=$pricingIdentifier | amountIn=$amountIn | slippagePercent=$slippagePercent',
@@ -468,7 +501,8 @@ class TradeCommunityTokenService {
       mode: mode,
       paymentTokenAddress: paymentTokenAddress,
       paymentRoleOverride: paymentRoleOverride,
-      isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+      isCreatorTokenMissingForContentFirstBuy:
+          isCreatorTokenMissingForContentFirstBuy,
       pricingIdentifier: enrichedHex,
       amountIn: amountIn,
       slippagePercent: 0,
@@ -486,9 +520,12 @@ class TradeCommunityTokenService {
       return null;
     }
     final creatorExternalAddress =
-        MasterPubkeyResolver.creatorExternalAddressFromExternal(externalAddress);
-    final creatorTokenInfo = await repository.fetchTokenInfo(creatorExternalAddress);
-    final creatorTokenAddress = creatorTokenInfo?.addresses.blockchain?.trim() ?? '';
+        MasterPubkeyResolver.creatorExternalAddressFromExternal(
+            externalAddress);
+    final creatorTokenInfo =
+        await repository.fetchTokenInfo(creatorExternalAddress);
+    final creatorTokenAddress =
+        creatorTokenInfo?.addresses.blockchain?.trim() ?? '';
     if (creatorTokenAddress.isEmpty) {
       return null;
     }
@@ -533,7 +570,8 @@ class TradeCommunityTokenService {
   Future<void> _sendFirstBuyEvents({
     required String externalAddress,
   }) async {
-    return ionConnectService.sendFirstBuyEvents(externalAddress: externalAddress);
+    return ionConnectService.sendFirstBuyEvents(
+        externalAddress: externalAddress);
   }
 
   Future<void> _trySendBuyEvents({
@@ -548,6 +586,7 @@ class TradeCommunityTokenService {
     required int tokenDecimals,
     required String? existingTokenAddress,
     required CommunityToken? tokenInfo,
+    required BigInt? previousPositionRaw,
   }) async {
     Logger.info(
       '[TradeCommunityTokenService] _trySendBuyEvents called | externalAddress=$externalAddress | firstBuy=$firstBuy',
@@ -555,10 +594,12 @@ class TradeCommunityTokenService {
     try {
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
-        Logger.error('[TradeCommunityTokenService] Transaction hash is missing');
+        Logger.error(
+            '[TradeCommunityTokenService] Transaction hash is missing');
         throw TransactionHashNotFoundException(externalAddress);
       }
-      Logger.info('[TradeCommunityTokenService] Transaction hash extracted | txHash=$txHash');
+      Logger.info(
+          '[TradeCommunityTokenService] Transaction hash extracted | txHash=$txHash');
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
       Logger.info(
@@ -568,9 +609,10 @@ class TradeCommunityTokenService {
       final tokenAddress = existingTokenAddress ??
           await withRetry<String>(
             ({Object? error}) async {
-              Logger.info('[TradeCommunityTokenService] Retrying to fetch token address');
-              final tokenAddress =
-                  _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
+              Logger.info(
+                  '[TradeCommunityTokenService] Retrying to fetch token address');
+              final tokenAddress = _extractTokenAddress(
+                  await repository.fetchTokenInfoFresh(externalAddress));
               if (tokenAddress == null || tokenAddress.isEmpty) {
                 throw TokenAddressNotFoundException(externalAddress);
               }
@@ -582,15 +624,29 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
       );
 
+      final actualAmountRaw = await _pollForPositionDelta(
+        externalAddress: externalAddress,
+        previousPositionRaw: previousPositionRaw,
+      );
+
+      final tokenAmountRaw = actualAmountRaw?.toString() ?? pricing.amount;
+      final communityTokenAmountValue = fromBlockchainUnits(tokenAmountRaw);
+
+      Logger.info(
+        '[TradeCommunityTokenService] Using amount | '
+        'actual=$actualAmountRaw | fallback=${pricing.amount} | '
+        'final=$tokenAmountRaw',
+      );
+
       final usdAmountValue = pricing.amountUSD;
-      final communityTokenAmountValue = fromBlockchainUnits(pricing.amount);
       final baseTokenAmountValue = fromBlockchainUnits(
         amountIn.toString(),
         decimals: tokenDecimals,
       );
 
       Logger.info(
-        '[TradeCommunityTokenService] Amounts calculated | baseTokenAmountValue=$baseTokenAmountValue | communityTokenAmountValue=$communityTokenAmountValue | usdAmountValue=$usdAmountValue',
+        '[TradeCommunityTokenService] Amounts calculated | baseTokenAmountValue=$baseTokenAmountValue | '
+        'communityTokenAmountValue=$communityTokenAmountValue | usdAmountValue=$usdAmountValue',
       );
 
       final amountBase = TransactionAmount(
@@ -601,8 +657,16 @@ class TradeCommunityTokenService {
         value: communityTokenAmountValue,
         currency: externalAddress,
       );
-      final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+      final amountUsd =
+          TransactionAmount(value: usdAmountValue, currency: 'USD');
 
+      Logger.info(
+        '[TradeCommunityTokenService] BUY EVENT AMOUNTS | '
+        'externalAddress=$externalAddress | '
+        'amountBase: ${amountBase.value} ${amountBase.currency} | '
+        'amountQuote: ${amountQuote.value} ${amountQuote.currency} | '
+        'amountUsd: ${amountUsd.value} ${amountUsd.currency}',
+      );
       Logger.info(
         '[TradeCommunityTokenService] Calling sendBuyActionEvents | externalAddress=$externalAddress | network=$walletNetwork | hasUserPosition=$hasUserPosition | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$tokenAddress | transactionAddress=$txHash',
       );
@@ -619,12 +683,14 @@ class TradeCommunityTokenService {
         amountUsd: amountUsd,
       );
 
-      Logger.info('[TradeCommunityTokenService] sendBuyActionEvents completed successfully');
+      Logger.info(
+          '[TradeCommunityTokenService] sendBuyActionEvents completed successfully');
     } catch (error, stackTrace) {
       Logger.error(
         error,
         stackTrace: stackTrace,
-        message: '[TradeCommunityTokenService] Failed to send buy events for $externalAddress',
+        message:
+            '[TradeCommunityTokenService] Failed to send buy events for $externalAddress',
       );
       unawaited(SentryService.logException(error, stackTrace: stackTrace));
     }
@@ -640,6 +706,7 @@ class TradeCommunityTokenService {
     required String paymentTokenTicker,
     required int paymentTokenDecimals,
     required CommunityToken? tokenInfo,
+    required BigInt? previousPositionRaw,
   }) async {
     Logger.info(
       '[TradeCommunityTokenService] _trySendSellEvents called | externalAddress=$externalAddress',
@@ -647,36 +714,59 @@ class TradeCommunityTokenService {
     try {
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
-        Logger.error('[TradeCommunityTokenService] Transaction hash is missing');
+        Logger.error(
+            '[TradeCommunityTokenService] Transaction hash is missing');
         throw TransactionHashNotFoundException(externalAddress);
       }
-      Logger.info('[TradeCommunityTokenService] Transaction hash extracted | txHash=$txHash');
+      Logger.info(
+          '[TradeCommunityTokenService] Transaction hash extracted | txHash=$txHash');
 
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
       Logger.info(
         '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
       );
 
-      final communityTokenAmountValue = fromBlockchainUnits(amountIn.toString());
+      final actualDelta = await _pollForPositionDelta(
+        externalAddress: externalAddress,
+        previousPositionRaw: previousPositionRaw,
+      );
+
+      if (actualDelta != null) {
+        Logger.info(
+          '[TradeCommunityTokenService] Sell verified | '
+          'position delta=$actualDelta | expected=$amountIn',
+        );
+      }
+
+      final communityTokenAmountValue =
+          fromBlockchainUnits(amountIn.toString());
       final paymentTokenAmountValue = fromBlockchainUnits(
         pricing.amount,
         decimals: paymentTokenDecimals,
       );
-
       final usdAmountValue = pricing.amountUSD;
 
       Logger.info(
-        '[TradeCommunityTokenService] Amounts calculated | communityTokenAmountValue=$communityTokenAmountValue | paymentTokenAmountValue=$paymentTokenAmountValue | usdAmountValue=$usdAmountValue',
+        '[TradeCommunityTokenService] Amounts calculated | communityTokenAmountValue=$communityTokenAmountValue | '
+        'paymentTokenAmountValue=$paymentTokenAmountValue | usdAmountValue=$usdAmountValue',
       );
 
-      final amountBase =
-          TransactionAmount(value: communityTokenAmountValue, currency: externalAddress);
+      final amountBase = TransactionAmount(
+          value: communityTokenAmountValue, currency: externalAddress);
       final amountQuote = TransactionAmount(
         value: paymentTokenAmountValue,
         currency: paymentTokenTicker,
       );
-      final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
+      final amountUsd =
+          TransactionAmount(value: usdAmountValue, currency: 'USD');
 
+      Logger.info(
+        '[TradeCommunityTokenService] SELL EVENT AMOUNTS | '
+        'externalAddress=$externalAddress | '
+        'amountBase: ${amountBase.value} ${amountBase.currency} | '
+        'amountQuote: ${amountQuote.value} ${amountQuote.currency} | '
+        'amountUsd: ${amountUsd.value} ${amountUsd.currency}',
+      );
       Logger.info(
         '[TradeCommunityTokenService] Calling sendSellActionEvents | externalAddress=$externalAddress | network=$walletNetwork | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$communityTokenAddress | transactionAddress=$txHash',
       );
@@ -692,12 +782,14 @@ class TradeCommunityTokenService {
         amountUsd: amountUsd,
       );
 
-      Logger.info('[TradeCommunityTokenService] sendSellActionEvents completed successfully');
+      Logger.info(
+          '[TradeCommunityTokenService] sendSellActionEvents completed successfully');
     } catch (error, stackTrace) {
       Logger.error(
         error,
         stackTrace: stackTrace,
-        message: '[TradeCommunityTokenService] Failed to send sell events for $externalAddress',
+        message:
+            '[TradeCommunityTokenService] Failed to send sell events for $externalAddress',
       );
       unawaited(SentryService.logException(error, stackTrace: stackTrace));
     }
@@ -708,16 +800,19 @@ class TradeCommunityTokenService {
     return status.toLowerCase() == 'broadcasted';
   }
 
-  bool _hasUserPosition(CommunityToken? tokenInfo) => tokenInfo?.marketData.position != null;
+  bool _hasUserPosition(CommunityToken? tokenInfo) =>
+      tokenInfo?.marketData.position != null;
 
   bool _sameAddress(String? left, String? right) {
     if (left == null || right == null) return false;
     return left.toLowerCase() == right.toLowerCase();
   }
 
-  String? _extractTokenAddress(CommunityToken? tokenInfo) => tokenInfo?.addresses.blockchain;
+  String? _extractTokenAddress(CommunityToken? tokenInfo) =>
+      tokenInfo?.addresses.blockchain;
 
-  Future<bool> _isFirstBuy(String externalAddress, ExternalAddressType externalAddressType) async {
+  Future<bool> _isFirstBuy(
+      String externalAddress, ExternalAddressType externalAddressType) async {
     if (externalAddressType.isXToken) {
       return false;
     }
@@ -727,12 +822,67 @@ class TradeCommunityTokenService {
     try {
       eventReference = ReplaceableEventReference.fromString(externalAddress);
     } catch (e) {
-      eventReference = ImmutableEventReference(eventId: externalAddress, masterPubkey: '');
+      eventReference =
+          ImmutableEventReference(eventId: externalAddress, masterPubkey: '');
     }
 
     final hasFirstBuyDefinitionEvent =
         await ionConnectService.hasFirstBuyDefinitionEvent(eventReference);
     return !hasFirstBuyDefinitionEvent;
+  }
+
+  Future<BigInt?> _pollForPositionDelta({
+    required String externalAddress,
+    required BigInt? previousPositionRaw,
+    int maxAttempts = 15,
+    Duration pollInterval = const Duration(seconds: 2),
+  }) async {
+    Logger.info(
+      '[TradeCommunityTokenService] Polling for position change | '
+      'externalAddress=$externalAddress | previousPosition=$previousPositionRaw',
+    );
+
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      if (attempt > 0) {
+        await Future<void>.delayed(pollInterval);
+      }
+
+      try {
+        final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+        final newPositionAmount = tokenInfo?.marketData.position?.amount;
+        final newPositionRaw = newPositionAmount != null
+            ? BigInt.tryParse(newPositionAmount)
+            : null;
+
+        Logger.info(
+          '[TradeCommunityTokenService] Poll attempt $attempt | '
+          'previousPosition=$previousPositionRaw | newPosition=$newPositionRaw',
+        );
+
+        if (newPositionRaw != previousPositionRaw) {
+          final previous = previousPositionRaw ?? BigInt.zero;
+          final delta = (newPositionRaw ?? BigInt.zero) - previous;
+
+          Logger.info(
+            '[TradeCommunityTokenService] Position changed | '
+            'delta=$delta | previous=$previous | new=$newPositionRaw',
+          );
+
+          return delta.abs();
+        }
+      } catch (e, stackTrace) {
+        Logger.error(
+          e,
+          stackTrace: stackTrace,
+          message: '[TradeCommunityTokenService] Error polling for position',
+        );
+      }
+    }
+
+    Logger.warning(
+      '[TradeCommunityTokenService] Position unchanged after $maxAttempts attempts',
+    );
+    return null;
   }
 }
 

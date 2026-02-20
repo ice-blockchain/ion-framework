@@ -42,9 +42,7 @@ class ProfileBalance extends StatelessWidget {
                     width: 4.0.s,
                   ),
                   Text(
-                    coins >= 1
-                        ? formatCount(coins.toInt())
-                        : market_data_formatters.formatPriceWithSubscript(coins, symbol: ''),
+                    formatDouble(coins),
                     style: context.theme.appTextThemes.body2.copyWith(
                       color: context.theme.appColors.primaryBackground,
                     ),
