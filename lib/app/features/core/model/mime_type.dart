@@ -38,6 +38,16 @@ enum MimeType {
   static bool isSupported(String mimeType) => _supportedValues.contains(mimeType);
 }
 
+/// Returns true if [mime] indicates a GIF media type.
+/// Use with [MediaFile.isGif] for full detection (mime + path).
+bool isGifMimeType(String? mime) {
+  if (mime == null || mime.isEmpty) return false;
+  final m = mime.toLowerCase();
+  if (m == LocalMimeType.gif.value || m == MimeType.gif.value) return true;
+  if (m.contains('gif')) return true;
+  return false;
+}
+
 /// MIME types used internally within the app for local processing.
 ///
 /// These MIME types are used for runtime operations, local file handling,

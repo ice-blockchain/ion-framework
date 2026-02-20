@@ -46,6 +46,24 @@ class MediaUploadService {
     }
   }
 
+  /// Thumbnail for GIF: try video-compress → thumbnail, else extract frame at 0s, else scale image.
+  Future<MediaFile> _getGifThumbnailSource(MediaFile file, MediaFile compressedImage) async {
+    final videoCompressor = ref.read(videoCompressorProvider);
+
+    try {
+      final compressedVideo = await videoCompressor.compress(file);
+      return await videoCompressor.getThumbnail(compressedVideo, thumb: file.thumb);
+    } catch (e, _) {
+      try {
+        return await videoCompressor.getThumbnail(file, timestamp: '00:00:00.000');
+      } catch (e2, _) {
+        return ref.read(imageCompressorProvider).scaleImage(
+              compressedImage.copyWith(mimeType: MimeType.image.value),
+            );
+      }
+    }
+  }
+
   Future<({List<FileMetadata> fileMetadatas, MediaAttachment mediaAttachment})> uploadImage(
     MediaFile file,
   ) async {
@@ -55,11 +73,8 @@ class MediaUploadService {
           settings: imageCompressionSettings,
         );
     var thumbSourceFile = compressedImage;
-    //handling animated gif files as videos to extract thumb image
-    if (compressedImage.mimeType == MimeType.gif.value) {
-      final videoCompressor = ref.read(videoCompressorProvider);
-      final compressedVideo = await videoCompressor.compress(file);
-      thumbSourceFile = await videoCompressor.getThumbnail(compressedVideo, thumb: file.thumb);
+    if (compressedImage.isGif) {
+      thumbSourceFile = await _getGifThumbnailSource(file, compressedImage);
     }
 
     final thumbImage = await ref.read(imageCompressorProvider).scaleImage(

@@ -3,7 +3,9 @@
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
+import 'package:ion/app/features/core/model/mime_type.dart' show isGifMimeType;
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/image_path.dart';
 import 'package:ion/app/utils/validators.dart';
 
 /// Media attachments (images, videos, and other files) may be added to events by including
@@ -174,6 +176,16 @@ class MediaAttachment {
   late MediaType mediaType = _parseMediaType(url: url, mimeType: mimeType);
 
   late MediaType? mediaTypeEncrypted = MediaType.fromMimeType(originalMimeType ?? mimeType);
+
+  bool get isAnimatedImage => _isAnimatedImage(url: url, mimeType: mimeType);
+
+  static bool _isAnimatedImage({required String url, required String mimeType}) {
+    if (isGifMimeType(mimeType) || url.isGif) return true;
+    if (url.toLowerCase().endsWith('.webp') || mimeType.toLowerCase().contains('webp')) {
+      return true;
+    }
+    return false;
+  }
 
   final String? blurhash;
 

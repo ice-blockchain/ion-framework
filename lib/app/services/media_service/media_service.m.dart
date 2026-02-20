@@ -13,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/model/mime_type.dart' show isGifMimeType;
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
@@ -46,6 +47,10 @@ class MediaFile with _$MediaFile {
   factory MediaFile.fromJson(Map<String, dynamic> json) => _$MediaFileFromJson(json);
 
   String get basename => p.basename(path);
+}
+
+extension MediaFileGifExtension on MediaFile {
+  bool get isGif => isGifMimeType(mimeType) || path.isGif;
 }
 
 typedef CropImageUiSettings = List<PlatformUiSettings>;
