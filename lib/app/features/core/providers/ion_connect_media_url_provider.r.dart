@@ -10,6 +10,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_connect_media_url_provider.r.g.dart';
 
+String _buildCdnUrl(String cdnBaseUrl, String url) {
+  final cdnBase = Uri.parse(cdnBaseUrl);
+  final filePath = Uri.parse(url).pathSegments.last;
+  return cdnBase.replace(pathSegments: [...cdnBase.pathSegments, filePath]).toString();
+}
+
 /// A provider that resolves ION Connect media URLs.
 ///
 /// We first try the CDN URL.
@@ -19,15 +25,11 @@ part 'ion_connect_media_url_provider.r.g.dart';
 class IonConnectMediaUrl extends _$IonConnectMediaUrl {
   @override
   String build(String url) {
-    if (!isIonMediaUrl(url)) {
-      return url;
-    }
+    if (!isIonMediaUrl(url)) return url;
 
     final fallbackUrl = ref.watch(ionConnectMediaUrlFallbackProvider.select((state) => state[url]));
 
-    if (fallbackUrl != null) {
-      return fallbackUrl;
-    }
+    if (fallbackUrl != null) return fallbackUrl;
 
     return ref.watch(ionConnectCdnUrlProvider(url));
   }
@@ -59,15 +61,25 @@ String ionConnectCdnUrl(Ref ref, String url) {
   final failedMediaHosts = ref.watch(failedMediaHostsProvider);
   if (config == null) return url;
   try {
-    final cdnBase = Uri.parse(config.cdnBaseUrl);
-    final cdnHost = cdnBase.host;
-    if (failedMediaHosts.contains(FailedMediaHost(host: cdnHost))) {
-      return url;
-    }
-    final filePath = Uri.parse(url).pathSegments.last;
-    return cdnBase.replace(pathSegments: [...cdnBase.pathSegments, filePath]).toString();
+    final cdnHost = Uri.parse(config.cdnBaseUrl).host;
+    if (failedMediaHosts.contains(FailedMediaHost(host: cdnHost))) return url;
+    return _buildCdnUrl(config.cdnBaseUrl, url);
   } catch (error, stackTrace) {
     Logger.error(error, stackTrace: stackTrace, message: 'Failed to use CDN URL for $url');
     return url;
+  }
+}
+
+/// Resolved CDN URL for share/og:image. Returns null when [imageUrl] is null or empty.
+@riverpod
+Future<String?> resolvedShareImageUrl(Ref ref, String? imageUrl) async {
+  if (imageUrl == null || imageUrl.isEmpty) return null;
+  if (!isIonMediaUrl(imageUrl)) return imageUrl;
+  final config = await ref.read(feedConfigProvider.future);
+  try {
+    return _buildCdnUrl(config.cdnBaseUrl, imageUrl);
+  } catch (error, stackTrace) {
+    Logger.error(error, stackTrace: stackTrace, message: 'Failed to use CDN URL for $imageUrl');
+    return imageUrl;
   }
 }
