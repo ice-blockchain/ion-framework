@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/data/repository/swaps_repository.r.dart';
+import 'package:ion/app/features/wallets/domain/swap_restricted_region_probe_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/crypto_asset_to_send_data.f.dart';
@@ -42,6 +43,8 @@ typedef OnVerifyIdentitySwapCallback = Future<void> Function(SendAssetFormData);
 class SwapCoinsController extends _$SwapCoinsController {
   Timer? _debounceTimer;
   static const _lastSellCoinKey = 'Swap:lastSellCoinSymbolGroup';
+  Future<void>? _restrictedRegionProbeFuture;
+  RestrictedRegionException? _restrictedRegionProbeResult;
 
   @override
   SwapCoinData build() => SwapCoinData();
@@ -216,6 +219,24 @@ class SwapCoinsController extends _$SwapCoinsController {
       }
       return (coin: null, network: null);
     }
+  }
+
+  Future<void> startRestrictedRegionProbe() {
+    return _restrictedRegionProbeFuture ??= _runRestrictedRegionProbe();
+  }
+
+  Future<RestrictedRegionException?> waitRestrictedRegionProbeResult() async {
+    await (_restrictedRegionProbeFuture ??= _runRestrictedRegionProbe());
+    return _restrictedRegionProbeResult;
+  }
+
+  void resetRestrictedRegionProbe() {
+    _restrictedRegionProbeFuture = null;
+    _restrictedRegionProbeResult = null;
+  }
+
+  Future<void> _runRestrictedRegionProbe() async {
+    _restrictedRegionProbeResult = await ref.read(swapRestrictedRegionProbeServiceProvider).probe();
   }
 
   NetworkData? _initSellNetwork(CoinsGroup? coin, NetworkData? network) {
