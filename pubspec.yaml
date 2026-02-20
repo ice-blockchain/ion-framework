@@ -285,9 +285,8 @@ dependency_overrides:
   js: ^0.7.1
 
 sentry:
-  upload_debug_symbols: false
+  upload_debug_symbols: true
   upload_source_maps: true
-  project: ion-app-testnet
   org: sentry
   symbols_path: build/flutter_symbols
   dsyms_path: build/ios/archive/Runner.xcarchive/dSYMs
