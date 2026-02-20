@@ -3,7 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_analytics_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_analytics_sheet.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_analytics_metrics.dart';
 import 'package:ion/app/utils/formatters.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
