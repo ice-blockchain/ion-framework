@@ -91,15 +91,10 @@ class SwapCoinsModalPage extends HookConsumerWidget {
 
     useResetSwapStateOnClose(controller);
 
-<<<<<<< HEAD
-=======
     useOnInit(
       () => unawaited(controller.startRestrictedRegionProbe()),
     );
 
-    final state = ref.watch(swapCoinsControllerProvider);
-
->>>>>>> 64379db73 (feat(swap): add restricted region probe request when user opens Swap dialog (#3455))
     return SheetContent(
       body: SingleChildScrollView(
         child: GestureDetector(

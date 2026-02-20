@@ -136,77 +136,15 @@ class _SwapButton extends ConsumerWidget {
     final isSwapDisabled = ref.watch(swapDisabledNotifierProvider).value ?? true;
     final isDisabled = isSwapLoading || isSwapDisabled;
 
-    ref.listenError<void>(
-      swapCoinsWithIonBscSwapProvider,
-      (error) {
-        if (error is! RestrictedRegionException || !context.mounted) {
-          return;
-        }
-
-        showSimpleBottomSheet<void>(
-          context: context,
-          isDismissible: false,
-          child: RestrictedRegionUnavailableSheet(
-            onClose: () {
-              unawaited(_pop(context));
-            },
-          ),
-        );
-      },
-    );
-
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0.s),
       child: Button(
         disabled: isDisabled,
-<<<<<<< HEAD
         onPressed: () => _onPressed(
           context: context,
           ref: ref,
           messageNotificationNotifier: messageNotificationNotifier,
         ),
-=======
-        onPressed: () async {
-          final restrictedRegionException = await ref
-              .read(swapCoinsControllerProvider.notifier)
-              .waitRestrictedRegionProbeResult();
-
-          if (!context.mounted) return;
-
-          if (restrictedRegionException != null) {
-            _showRestrictedRegionSheet(context);
-            return;
-          }
-
-          await guardPasskeyDialog(
-            context,
-            (child) => RiverpodUserActionSignerRequestBuilder(
-              provider: swapCoinsWithIonBscSwapProvider,
-              request: (signer) async {
-                await ref.read(swapCoinsWithIonBscSwapProvider.notifier).run(
-                      userActionSigner: signer,
-                      onSwapSuccess: () {
-                        _showSuccessMessage(
-                          messageNotificationNotifier,
-                          context,
-                          swapCoinsData,
-                        );
-                      },
-                      onSwapError: () {
-                        _showErrorMessage(
-                          messageNotificationNotifier,
-                          context,
-                          swapCoinsData,
-                        );
-                      },
-                      onSwapStart: () {},
-                    );
-              },
-              child: child,
-            ),
-          );
-        },
->>>>>>> 64379db73 (feat(swap): add restricted region probe request when user opens Swap dialog (#3455))
         label: Text(
           context.i18n.wallet_swap_confirmation_swap_button,
           style: textStyles.body.copyWith(
@@ -235,6 +173,16 @@ class _SwapButton extends ConsumerWidget {
     required WidgetRef ref,
     required MessageNotificationNotifier messageNotificationNotifier,
   }) async {
+    final restrictedRegionException =
+        await ref.read(swapCoinsControllerProvider.notifier).waitRestrictedRegionProbeResult();
+
+    if (!context.mounted) return;
+
+    if (restrictedRegionException != null) {
+      _showRestrictedRegionSheet(context);
+      return;
+    }
+
     final notifier = ref.read(swapCoinsControllerProvider.notifier);
     final isIonBscSwap = await notifier.getIsIonBscSwap();
     if (!context.mounted) return;
