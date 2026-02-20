@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -19,6 +21,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/provi
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_constants.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
@@ -69,7 +72,13 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     );
 
     useResetSwapStateOnClose(controller);
+
+    useOnInit(
+      () => unawaited(controller.startRestrictedRegionProbe()),
+    );
+
     final state = ref.watch(swapCoinsControllerProvider);
+
     return SheetContent(
       body: SingleChildScrollView(
         child: GestureDetector(
@@ -267,6 +276,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
         // Reset slippage and clear buy coin when modal is closed
         return () {
           controller
+            ..resetRestrictedRegionProbe()
             ..setSlippage(SwapCoinData.defaultSlippage)
             ..setBuyCoin(null)
             ..setBuyNetwork(null);

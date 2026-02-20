@@ -9,6 +9,7 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
 import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
+import 'package:ion/app/components/restricted_region_unavailable_sheet.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
@@ -18,6 +19,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/compo
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class SwapCoinsConfirmationPage extends HookConsumerWidget {
@@ -140,6 +142,17 @@ class _SwapButton extends ConsumerWidget {
       child: Button(
         disabled: isDisabled,
         onPressed: () async {
+          final restrictedRegionException = await ref
+              .read(swapCoinsControllerProvider.notifier)
+              .waitRestrictedRegionProbeResult();
+
+          if (!context.mounted) return;
+
+          if (restrictedRegionException != null) {
+            _showRestrictedRegionSheet(context);
+            return;
+          }
+
           await guardPasskeyDialog(
             context,
             (child) => RiverpodUserActionSignerRequestBuilder(
@@ -211,6 +224,18 @@ class _SwapButton extends ConsumerWidget {
     if (context.mounted) {
       await _pop(context);
     }
+  }
+
+  void _showRestrictedRegionSheet(BuildContext context) {
+    showSimpleBottomSheet<void>(
+      context: context,
+      isDismissible: false,
+      child: RestrictedRegionUnavailableSheet(
+        onClose: () {
+          unawaited(_pop(context));
+        },
+      ),
+    );
   }
 
   Future<void> _pop(BuildContext context) async {
