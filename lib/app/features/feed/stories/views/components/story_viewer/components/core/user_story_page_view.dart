@@ -37,14 +37,13 @@ class UserStoryPageView extends HookConsumerWidget {
       singleUserStoryViewingControllerProvider(pubkey).notifier,
     );
     final stories = ref.watch(userStoriesProvider(pubkey))?.toList() ?? [];
-    final currentIndex = singleUserStoriesViewingState.currentStoryIndex;
-
     if (stories.isEmpty) {
       return const Center(
         child: IONLoadingIndicator(),
       );
     }
 
+    final currentIndex = singleUserStoriesViewingState.currentStoryIndex;
     final currentStory = isCurrentUser ? stories[currentIndex] : stories.first;
     useOnInit(
       () {
