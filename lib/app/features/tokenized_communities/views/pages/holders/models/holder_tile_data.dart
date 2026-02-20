@@ -12,6 +12,11 @@ class HolderBasicInfo {
   final String displayName;
   final String? username;
   final String? address;
+
+  @override
+  String toString() {
+    return 'HolderBasicInfo(displayName: $displayName, username: $username, address: $address)';
+  }
 }
 
 class HolderBadge {
@@ -24,6 +29,11 @@ class HolderBadge {
   final bool verified;
   final bool isCreator;
   final bool isXUser;
+
+  @override
+  String toString() {
+    return 'HolderBadge(verified: $verified, isCreator: $isCreator, isXUser: $isXUser)';
+  }
 }
 
 class HolderTileData {
@@ -35,6 +45,7 @@ class HolderTileData {
     this.badge = const HolderBadge(),
     this.avatarUrl,
     this.holderAddress,
+    this.tokenExternalAddress,
     this.badgeType = RankBadgeType.regular,
     this.isIonConnectUser = false,
   });
@@ -45,6 +56,14 @@ class HolderTileData {
   final double supplyShare;
   final String? avatarUrl;
   final String? holderAddress;
+
+  /// When set, this holder is a content token (e.g. pool);
+  final String? tokenExternalAddress;
   final RankBadgeType badgeType;
   final bool isIonConnectUser;
+
+  @override
+  String toString() {
+    return 'HolderTileData(basicInfo: $basicInfo, badge: $badge, rank: $rank, amountText: $amountText, supplyShare: $supplyShare, avatarUrl: $avatarUrl, holderAddress: $holderAddress, tokenExternalAddress: $tokenExternalAddress, badgeType: $badgeType, isIonConnectUser: $isIonConnectUser)';
+  }
 }
