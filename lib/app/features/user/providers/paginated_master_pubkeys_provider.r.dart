@@ -37,6 +37,7 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
   static const int _limit = 20;
   bool _initialized = false;
   int _offset = 0;
+  int _fetchRequestId = 0;
 
   @override
   Future<PaginatedMasterPubkeysData> build(UserInfoFetcher fetcher) async {
@@ -67,11 +68,13 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
   }
 
   Future<void> _fetch({bool clearCurrent = false}) async {
-    state = const AsyncValue.loading();
-    final currentData = clearCurrent ? <String>[] : (state.valueOrNull?.items ?? <String>[]);
-    state = await AsyncValue.guard(() async {
+    final requestId = ++_fetchRequestId;
+    final requestOffset = _offset;
+    final currentData = clearCurrent ? <String>[] : (state.valueOrNull?.items ?? const <String>[]);
+    state = const AsyncLoading<PaginatedMasterPubkeysData>().copyWithPrevious(state);
+    final result = await AsyncValue.guard(() async {
       final ionIdentityClient = await ref.read(ionIdentityClientProvider.future);
-      final usersInfo = await fetcher(_limit, _offset, currentData, ionIdentityClient);
+      final usersInfo = await fetcher(_limit, requestOffset, currentData, ionIdentityClient);
 
       await Future.wait([
         ref.read(userRelaysManagerProvider.notifier).cacheFromIdentity(usersInfo),
@@ -104,7 +107,15 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
       ];
       return PaginatedMasterPubkeysData(items: merged, hasMore: usersInfo.length == _limit);
     });
-    _offset += _limit;
+
+    if (requestId != _fetchRequestId) {
+      return;
+    }
+
+    state = result;
+    if (!result.hasError) {
+      _offset = requestOffset + _limit;
+    }
   }
 }
 
