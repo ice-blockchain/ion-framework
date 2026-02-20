@@ -5,6 +5,8 @@ import 'package:ion_token_analytics/src/community_tokens/bonding_curve_progress/
 import 'package:ion_token_analytics/src/community_tokens/bonding_curve_progress/bonding_curve_progress_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/category_tokens/category_tokens_repository_impl.dart';
+import 'package:ion_token_analytics/src/community_tokens/community_token_analytics/community_token_analytics_repository.dart';
+import 'package:ion_token_analytics/src/community_tokens/community_token_analytics/community_token_analytics_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository.dart';
 import 'package:ion_token_analytics/src/community_tokens/featured_tokens/featured_tokens_repository_impl.dart';
 import 'package:ion_token_analytics/src/community_tokens/global_search_tokens/global_search_tokens_repository.dart';
@@ -28,6 +30,7 @@ import 'package:ion_token_analytics/src/core/network_client.dart';
 class IonCommunityTokensService {
   IonCommunityTokensService._({
     required TokenInfoRepository tokenInfoRepository,
+    required CommunityTokenAnalyticsRepository communityTokenAnalyticsRepository,
     required OhlcvCandlesRepository ohlcvCandlesRepository,
     required TradingStatsRepository tradingStatsRepository,
     required TopHoldersRepository topHoldersRepository,
@@ -39,6 +42,7 @@ class IonCommunityTokensService {
     required BondingCurveProgressRepository bondingCurveProgressRepository,
     required UserHoldingsRepository userHoldingsRepository,
   }) : _tokenInfoRepository = tokenInfoRepository,
+       _communityTokenAnalyticsRepository = communityTokenAnalyticsRepository,
        _ohlcvCandlesRepository = ohlcvCandlesRepository,
        _tradingStatsRepository = tradingStatsRepository,
        _topHoldersRepository = topHoldersRepository,
@@ -51,6 +55,7 @@ class IonCommunityTokensService {
        _userHoldingsRepository = userHoldingsRepository;
 
   final TokenInfoRepository _tokenInfoRepository;
+  final CommunityTokenAnalyticsRepository _communityTokenAnalyticsRepository;
   final OhlcvCandlesRepository _ohlcvCandlesRepository;
   final TradingStatsRepository _tradingStatsRepository;
   final TopHoldersRepository _topHoldersRepository;
@@ -65,6 +70,7 @@ class IonCommunityTokensService {
   static Future<IonCommunityTokensService> create({required NetworkClient networkClient}) async {
     final service = IonCommunityTokensService._(
       tokenInfoRepository: TokenInfoRepositoryImpl(networkClient),
+      communityTokenAnalyticsRepository: CommunityTokenAnalyticsRepositoryImpl(networkClient),
       ohlcvCandlesRepository: OhlcvCandlesRepositoryImpl(networkClient),
       tradingStatsRepository: TradingStatsRepositoryImpl(networkClient),
       topHoldersRepository: TopHoldersRepositoryImpl(networkClient),
@@ -238,5 +244,16 @@ class IonCommunityTokensService {
     SuggestCreationDetailsRequest request,
   ) {
     return _tokenInfoRepository.suggestCreationDetails(request);
+  }
+
+  /// GET /v1/community-token-analytics/{analyticsType}?interval={interval}
+  Future<CommunityTokenAnalyticsResponse?> getCommunityTokenAnalytics({
+    required String analyticsType,
+    required String interval,
+  }) {
+    return _communityTokenAnalyticsRepository.getCommunityTokenAnalytics(
+      analyticsType: analyticsType,
+      interval: interval,
+    );
   }
 }
