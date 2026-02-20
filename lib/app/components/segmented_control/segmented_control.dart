@@ -85,9 +85,9 @@ class _SegmentPill extends StatelessWidget {
     final colors = context.theme.appColors;
     final textThemes = context.theme.appTextThemes;
     return Expanded(
-      child: InkWell(
+      child: GestureDetector(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(12.0.s),
+        behavior: HitTestBehavior.opaque,
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 10.0.s, horizontal: 16.0.s),
           child: Center(

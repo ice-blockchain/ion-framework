@@ -7,54 +7,11 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/segmented_control/segmented_control.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_analytics_metrics.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/providers/community_token_analytics_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/generated/assets.gen.dart';
-
-enum CreatorTokensAnalyticsRange {
-  day,
-  week,
-  month,
-}
-
-extension CreatorTokensAnalyticsRangeLabel on CreatorTokensAnalyticsRange {
-  String get label {
-    switch (this) {
-      case CreatorTokensAnalyticsRange.day:
-        return '24h';
-      case CreatorTokensAnalyticsRange.week:
-        return '7d';
-      case CreatorTokensAnalyticsRange.month:
-        return '30d';
-    }
-  }
-}
-
-extension CreatorTokensAnalyticsRangeDisplayLabel on CreatorTokensAnalyticsRange {
-  String displayLabel(BuildContext context) {
-    switch (this) {
-      case CreatorTokensAnalyticsRange.day:
-        return context.i18n.creator_tokens_analytics_range_day;
-      case CreatorTokensAnalyticsRange.week:
-        return context.i18n.creator_tokens_analytics_range_week;
-      case CreatorTokensAnalyticsRange.month:
-        return context.i18n.creator_tokens_analytics_range_month;
-    }
-  }
-}
-
-class CreatorTokensAnalyticsMetrics {
-  const CreatorTokensAnalyticsMetrics({
-    this.tokensLaunched,
-    this.migrated,
-    this.volume,
-  });
-
-  final String? tokensLaunched;
-  final String? migrated;
-  final String? volume;
-}
 
 class CreatorTokensAnalyticsSheet extends HookConsumerWidget {
   const CreatorTokensAnalyticsSheet({super.key});
@@ -91,9 +48,7 @@ class CreatorTokensAnalyticsSheet extends HookConsumerWidget {
             child: Column(
               children: [
                 SegmentedControl(
-                  labels: CreatorTokensAnalyticsRange.values
-                      .map((r) => r.displayLabel(context))
-                      .toList(),
+                  labels: CreatorTokensAnalyticsRange.values.map((r) => r.label).toList(),
                   selectedIndex: range.value.index,
                   onSelected: (i) => range.value = CreatorTokensAnalyticsRange.values[i],
                 ),
