@@ -847,3 +847,8 @@ class LiquidityPoolNotFoundException extends IONException {
 class MainWalletViewNotFoundException extends IONException {
   MainWalletViewNotFoundException() : super(10151, 'Main wallet view not found');
 }
+
+class PancakeSwapRouterMisconfiguredException extends IONException {
+  PancakeSwapRouterMisconfiguredException(String reason)
+      : super(10152, 'PancakeSwap router misconfigured: $reason');
+}

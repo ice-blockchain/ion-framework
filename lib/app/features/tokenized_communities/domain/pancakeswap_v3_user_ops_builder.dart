@@ -76,16 +76,19 @@ class PancakeSwapV3UserOpsBuilder {
 ]
 ''';
 
-  List<EvmUserOperation> buildSwapOperations({
+  Future<List<EvmUserOperation>> buildSwapOperations({
     required String tokenIn,
     required String tokenOut,
+    required int feeTier,
     required BigInt amountIn,
     required BigInt amountOutMinimum,
     required String recipient,
     required bool isNativeIn,
     required bool isNativeOut,
     EvmUserOperation? approvalOperation,
-  }) {
+  }) async {
+    await _pancakeSwapService.ensureRouterCompatibility();
+
     final effectiveTokenIn = isNativeIn ? _pancakeSwapService.wbnbTokenAddress : tokenIn;
     final effectiveTokenOut = isNativeOut ? _pancakeSwapService.wbnbTokenAddress : tokenOut;
 
@@ -102,6 +105,7 @@ class PancakeSwapV3UserOpsBuilder {
           recipient: recipient,
           tokenIn: effectiveTokenIn,
           tokenOut: effectiveTokenOut,
+          feeTier: feeTier,
           amountIn: amountIn,
           amountOutMinimum: amountOutMinimum,
           isNativeIn: isNativeIn,
@@ -135,6 +139,7 @@ class PancakeSwapV3UserOpsBuilder {
     required String recipient,
     required String tokenIn,
     required String tokenOut,
+    required int feeTier,
     required BigInt amountIn,
     required BigInt amountOutMinimum,
     required bool isNativeIn,
@@ -149,7 +154,7 @@ class PancakeSwapV3UserOpsBuilder {
       [
         EthereumAddress.fromHex(tokenIn),
         EthereumAddress.fromHex(tokenOut),
-        BigInt.from(_pancakeSwapService.feeTier),
+        BigInt.from(feeTier),
         EthereumAddress.fromHex(recipient),
         deadline,
         amountIn,
