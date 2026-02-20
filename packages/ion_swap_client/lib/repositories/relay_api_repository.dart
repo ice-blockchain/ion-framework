@@ -27,6 +27,8 @@ class RelayApiRepository {
     required String destinationCurrency,
     required String amount,
     required String recipient,
+    required String appFeeRecipient,
+    required String appFee,
   }) async {
     final response = await _dio.post<dynamic>(
       '/quote',
@@ -39,6 +41,12 @@ class RelayApiRepository {
         'destinationCurrency': destinationCurrency,
         'amount': amount,
         'recipient': recipient,
+        'appFees': [
+          {
+            'recipient': appFeeRecipient,
+            'fee': appFee,
+          }
+        ],
       },
     );
 
