@@ -116,9 +116,7 @@ class Http2WebSocket {
             } else {
               subscription.cancel();
               if (!completer.isCompleted) {
-                completer.completeError(
-                  WebSocketHandshakeStatusException(status ?? 'unknown'),
-                );
+                completer.completeError(WebSocketHandshakeStatusException(status ?? 'unknown'));
               }
             }
           }
@@ -126,10 +124,7 @@ class Http2WebSocket {
         onError: (Object error, StackTrace stackTrace) {
           subscription.cancel();
           if (!completer.isCompleted) {
-            completer.completeError(
-              WebSocketStreamException('$error\n$stackTrace'),
-              stackTrace,
-            );
+            completer.completeError(WebSocketStreamException('$error\n$stackTrace'), stackTrace);
           }
         },
         onDone: () {
@@ -143,9 +138,7 @@ class Http2WebSocket {
         timeout,
         onTimeout: () {
           subscription.cancel();
-          throw WebSocketHandshakeException(
-            'Handshake timeout after ${timeout.inSeconds}s',
-          );
+          throw WebSocketHandshakeException('Handshake timeout after ${timeout.inSeconds}s');
         },
       );
     } catch (e, stackTrace) {
@@ -201,9 +194,7 @@ class Http2WebSocket {
     final expectedAccept = _computeWebSocketAccept(wsKey);
     if (accept != expectedAccept) {
       subscription.cancel();
-      completer.completeError(
-        WebSocketHandshakeAcceptException(expectedAccept, accept),
-      );
+      completer.completeError(WebSocketHandshakeAcceptException(expectedAccept, accept));
       return;
     }
 
@@ -254,10 +245,7 @@ class Http2WebSocket {
     }
     payload.add(utf8.encode(reason));
 
-    final frame = _frameBuilder.build(
-      payload.toBytes(),
-      opcode: WebSocketConstants.opcodeClose,
-    );
+    final frame = _frameBuilder.build(payload.toBytes(), opcode: WebSocketConstants.opcodeClose);
     _requestStream.sendData(frame, endStream: true);
     _subscription.cancel();
     _controller.close();

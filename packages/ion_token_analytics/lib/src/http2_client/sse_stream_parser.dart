@@ -40,9 +40,7 @@ class SseStreamParser<T> {
           final headers = _parseHeaders(message.headers);
           final status = headers[':status'];
           if (status != null && status != '200') {
-            controller.addError(
-              Exception('SSE connection failed with status $status'),
-            );
+            controller.addError(Exception('SSE connection failed with status $status'));
           }
         }
       },

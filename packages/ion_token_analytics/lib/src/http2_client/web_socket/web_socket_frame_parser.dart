@@ -84,8 +84,7 @@ class WebSocketFrameParser {
     }
 
     if (rsv1 &&
-        (opcode == WebSocketConstants.opcodeText ||
-            opcode == WebSocketConstants.opcodeBinary)) {
+        (opcode == WebSocketConstants.opcodeText || opcode == WebSocketConstants.opcodeBinary)) {
       unmasked = _decompressPayload(unmasked);
     }
 
@@ -106,8 +105,7 @@ class WebSocketFrameParser {
     }
 
     // Data frames
-    if (opcode == WebSocketConstants.opcodeText ||
-        opcode == WebSocketConstants.opcodeBinary) {
+    if (opcode == WebSocketConstants.opcodeText || opcode == WebSocketConstants.opcodeBinary) {
       if (!fin) {
         _fragmentOpcode = opcode;
         _fragmentBuffer.add(unmasked);
