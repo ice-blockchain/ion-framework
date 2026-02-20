@@ -158,7 +158,9 @@ class NotificationItem extends HookConsumerWidget {
         userStoriesViewingNotifierProvider(entity.masterPubkey),
       );
 
-      if (storyViewerState.userStories.isEmpty) {
+      if (storyViewerState.isLoading) return;
+
+      if (storyViewerState.isEmpty) {
         await ref
             .read(
               userStoriesViewingNotifierProvider(entity.masterPubkey).notifier,
@@ -172,7 +174,7 @@ class NotificationItem extends HookConsumerWidget {
         }
       }
 
-      if (context.mounted && storyViewerState.userStories.isNotEmpty) {
+      if (context.mounted && !storyViewerState.isEmpty) {
         await StoryViewerRoute(
           pubkey: entity.masterPubkey,
           initialStoryReference: eventReference.encode(),

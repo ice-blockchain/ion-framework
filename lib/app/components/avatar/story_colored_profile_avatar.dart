@@ -18,15 +18,16 @@ import 'package:ion/app/router/app_routes.gr.dart';
 
 final _storyStatusProvider =
     Provider.family<({bool hasStories, bool allStoriesViewed}), String>((ref, pubkey) {
-  final userStories = ref.watch(userStoriesProvider(pubkey))?.toList() ?? [];
-  final allStoriesViewed = ref.watch(
-    viewedStoriesProvider.select((viewedStories) {
-      final storyReferences = userStories.map((story) => story.toEventReference());
-      return viewedStories?.containsAll(storyReferences) ?? false;
-    }),
-  );
+  final lastUserStory = ref.watch(userLastStoryProvider(pubkey));
+  final hasStories = lastUserStory != null;
 
-  final hasStories = userStories.isNotEmpty;
+  final allStoriesViewed = hasStories &&
+      ref.watch(
+        viewedStoriesProvider.select((viewedStories) {
+          final storyReference = lastUserStory.toEventReference();
+          return viewedStories?.contains(storyReference) ?? false;
+        }),
+      );
 
   return (hasStories: hasStories, allStoriesViewed: allStoriesViewed);
 });
