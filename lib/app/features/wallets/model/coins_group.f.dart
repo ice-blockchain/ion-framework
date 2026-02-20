@@ -35,7 +35,7 @@ class CoinsGroup with _$CoinsGroup {
       iconUrl: coin.iconUrl,
       symbolGroup: coin.symbolGroup,
       abbreviation: coin.abbreviation,
-      coins: coins.map((coin) => CoinInWalletData(coin: coin)).toList(),
+      coins: coins.map((c) => CoinInWalletData(coin: c)).toList(),
     );
   }
 

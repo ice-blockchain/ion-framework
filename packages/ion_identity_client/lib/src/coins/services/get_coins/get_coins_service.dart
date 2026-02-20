@@ -44,4 +44,18 @@ class GetCoinsService {
       symbolGroup: symbolGroup,
     );
   }
+
+  Future<List<Coin>> searchCoins({
+    required String username,
+    required String keyword,
+    int limit = 10,
+    int offset = 0,
+  }) {
+    return _getCoinsDataSource.searchCoins(
+      username: username,
+      keyword: keyword,
+      limit: limit,
+      offset: offset,
+    );
+  }
 }

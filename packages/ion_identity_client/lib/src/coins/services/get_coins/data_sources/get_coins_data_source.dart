@@ -84,4 +84,27 @@ class GetCoinsDataSource {
       decoder: (result, _) => parseList(result, fromJson: Coin.fromJson),
     );
   }
+
+  Future<List<Coin>> searchCoins({
+    required String username,
+    required String keyword,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    final token = _getToken(username);
+
+    return _networkClient.get(
+      '/v2/coins',
+      queryParams: {
+        'keyword': keyword,
+        'limit': limit,
+        'offset': offset,
+      },
+      headers: RequestHeaders.getAuthorizationHeaders(
+        token: token,
+        username: username,
+      ),
+      decoder: (result, _) => parseList(result, fromJson: Coin.fromJson),
+    );
+  }
 }
