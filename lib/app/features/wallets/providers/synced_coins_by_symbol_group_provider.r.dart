@@ -9,6 +9,7 @@ import 'package:ion/app/features/wallets/domain/coins/coins_comparator.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
+import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -38,18 +39,14 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     await ref.watch(authProvider.selectAsync((state) => state.isAuthenticated));
     await ref.watch(currentWalletViewIdProvider.future);
 
+    final previousCache = state.valueOrNull;
+
     _lastRequestTimes.clear();
     _activeRequests.clear();
 
-    // Init cache from data we have in the current wallet view
     final walletViewData = await ref.watch(currentWalletViewDataProvider.future);
 
-    final initialCache = <String, List<CoinInWalletData>>{};
-    for (final group in walletViewData.coinGroups) {
-      initialCache[group.symbolGroup] = group.coins.toList()..sort(_coinsComparator.compareCoins);
-    }
-
-    return initialCache;
+    return _buildCache(walletViewData.coinGroups, previousCache);
   }
 
   Future<List<CoinInWalletData>> getCoins(String symbolGroup) async {
@@ -57,75 +54,86 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
 
     if (cachedData != null) {
       if (_canMakeRequest(symbolGroup) && _activeRequests[symbolGroup] == null) {
-        // Trigger the request in background
-        unawaited(
-          _executeUpdateRequest(symbolGroup),
-        );
+        unawaited(_executeUpdateRequest(symbolGroup));
       }
-
       return cachedData;
     }
 
-    return _getOrExecuteRequest(symbolGroup);
+    return _getOrCreateRequest(symbolGroup);
   }
 
   Future<void> refresh({List<String>? symbolGroups, bool force = false}) async {
     final currentCache = state.valueOrNull ?? {};
     final groupsToUpdate = symbolGroups ?? currentCache.keys.toList();
 
-    // Skip refresh if cache is empty and no specific symbol groups provided
-    if (symbolGroups == null && currentCache.isEmpty) {
-      return;
-    }
+    if (symbolGroups == null && currentCache.isEmpty) return;
 
     final updates = await Future.wait(
       groupsToUpdate.map((group) async {
         if (!force && !_canMakeRequest(group)) {
           final cachedData = currentCache[group];
-          if (cachedData != null) {
-            return MapEntry(group, cachedData);
-          }
+          if (cachedData != null) return MapEntry(group, cachedData);
         }
 
-        // Force refresh: bypass deduplication and debounce
         if (force) {
           unawaited(_activeRequests.remove(group));
           final coins = await _executeUpdateRequest(group, updateCache: false);
           return MapEntry(group, coins);
         }
 
-        final coins = await _getOrExecuteRequest(group);
+        final coins = await _getOrCreateRequest(group);
         return MapEntry(group, coins);
       }),
     );
 
-    _updateCache(
-      Map.fromEntries(updates),
-    );
+    _updateCache(Map.fromEntries(updates));
+  }
+
+  SyncedCoinsCache _buildCache(
+    Iterable<CoinsGroup> coinGroups,
+    SyncedCoinsCache? previousCache,
+  ) {
+    final cache = <String, List<CoinInWalletData>>{};
+
+    for (final group in coinGroups) {
+      final previousCoins = previousCache?[group.symbolGroup];
+      cache[group.symbolGroup] = previousCoins != null && previousCoins.isNotEmpty
+          ? _mergeCoins(previousCoins, group.coins)
+          : (group.coins.toList()..sort(_coinsComparator.compareCoins));
+    }
+
+    return cache;
+  }
+
+  List<CoinInWalletData> _mergeCoins(
+    List<CoinInWalletData> cached,
+    Iterable<CoinInWalletData> walletViewCoins,
+  ) {
+    final walletCoinsById = {for (final c in walletViewCoins) c.coin.id: c};
+    final merged = cached.map((coin) => walletCoinsById.remove(coin.coin.id) ?? coin).toList()
+      ..addAll(walletCoinsById.values)
+      ..sort(_coinsComparator.compareCoins);
+    return merged;
   }
 
   Future<List<CoinInWalletData>> _fetchAndProcessCoins(String symbolGroup) async {
     final service = await ref.read(coinsServiceProvider.future);
     final coins = await service.getSyncedCoinsBySymbolGroup(symbolGroup);
-    final walletCoins = await _getWalletViewCoins();
+    final walletCoins =
+        await ref.read(currentWalletViewDataProvider.future).then((walletView) => walletView.coins);
 
     return _processCoins(coins, walletCoins);
-  }
-
-  Future<List<CoinInWalletData>> _getWalletViewCoins() async {
-    return ref.read(currentWalletViewDataProvider.future).then((walletView) => walletView.coins);
   }
 
   List<CoinInWalletData> _processCoins(
     Iterable<CoinData> coins,
     Iterable<CoinInWalletData> walletCoins,
   ) {
-    final result = coins.map((coin) {
+    return coins.map((coin) {
       final fromWallet = walletCoins.firstWhereOrNull((e) => e.coin.id == coin.id);
       return fromWallet?.copyWith(coin: coin) ?? CoinInWalletData(coin: coin);
-    }).toList();
-
-    return result..sort(_coinsComparator.compareCoins);
+    }).toList()
+      ..sort(_coinsComparator.compareCoins);
   }
 
   Future<List<CoinInWalletData>> _executeUpdateRequest(
@@ -137,7 +145,7 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
 
     try {
       final updatedCoins = await requestFuture;
-      _updateRequestTime(symbolGroup);
+      _lastRequestTimes[symbolGroup] = DateTime.now();
       if (updateCache) {
         _updateCache({symbolGroup: updatedCoins});
       }
@@ -147,25 +155,16 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     }
   }
 
-  Future<List<CoinInWalletData>> _getOrExecuteRequest(String symbolGroup) async {
+  Future<List<CoinInWalletData>> _getOrCreateRequest(String symbolGroup) async {
     final activeRequest = _activeRequests[symbolGroup];
-    if (activeRequest != null) {
-      return activeRequest;
-    }
-
+    if (activeRequest != null) return activeRequest;
     return _executeUpdateRequest(symbolGroup);
   }
 
   bool _canMakeRequest(String symbolGroup) {
     final lastRequestTime = _lastRequestTimes[symbolGroup];
     if (lastRequestTime == null) return true;
-
-    final timeSinceLastRequest = DateTime.now().difference(lastRequestTime);
-    return timeSinceLastRequest >= _debounceDuration;
-  }
-
-  void _updateRequestTime(String symbolGroup) {
-    _lastRequestTimes[symbolGroup] = DateTime.now();
+    return DateTime.now().difference(lastRequestTime) >= _debounceDuration;
   }
 
   void _updateCache(Map<String, List<CoinInWalletData>> updates) {
