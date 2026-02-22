@@ -203,6 +203,42 @@ abstract class AppEnv {
 
   @EnviedField(varName: 'RPC_PROXY_DOMAINS')
   static final String rpcProxyDomains = _AppEnv.rpcProxyDomains;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_AVALANCE')
+  static final String okxSwapFeeAddressAvalance = _AppEnv.okxSwapFeeAddressAvalance;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_ARBITRUM')
+  static final String okxSwapFeeAddressArbitrum = _AppEnv.okxSwapFeeAddressArbitrum;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_OPTIMIST')
+  static final String okxSwapFeeAddressOptimist = _AppEnv.okxSwapFeeAddressOptimist;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_POLYGON')
+  static final String okxSwapFeeAddressPolygon = _AppEnv.okxSwapFeeAddressPolygon;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_SOL')
+  static final String okxSwapFeeAddressSol = _AppEnv.okxSwapFeeAddressSol;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_BASE')
+  static final String okxSwapFeeAddressBase = _AppEnv.okxSwapFeeAddressBase;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_TON')
+  static final String okxSwapFeeAddressTon = _AppEnv.okxSwapFeeAddressTon;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_TRON')
+  static final String okxSwapFeeAddressTron = _AppEnv.okxSwapFeeAddressTron;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_ETH')
+  static final String okxSwapFeeAddressEth = _AppEnv.okxSwapFeeAddressEth;
+
+  @EnviedField(varName: 'OKX_SWAP_FEE_ADDRESS_BNB')
+  static final String okxSwapFeeAddressBnb = _AppEnv.okxSwapFeeAddressBnb;
+
+  @EnviedField(varName: 'RELAY_SWAP_FEE_ADDRESS')
+  static final String relaySwapFeeAddress = _AppEnv.relaySwapFeeAddress;
+
+  @EnviedField(varName: 'DEFAULT_SWAP_PERCENT_FEE')
+  static final String defaultSwapPercentFee = _AppEnv.defaultSwapPercentFee;
 }
 
 enum EnvVariable {
@@ -260,7 +296,19 @@ enum EnvVariable {
   CRYPTOCURRENCIES_ION_TRADE_URL,
   CRYPTOCURRENCIES_ION_JRPC_URL,
   RELAY_PROXY_DOMAINS,
-  RPC_PROXY_DOMAINS
+  RPC_PROXY_DOMAINS,
+  OKX_SWAP_FEE_ADDRESS_AVALANCE,
+  OKX_SWAP_FEE_ADDRESS_ARBITRUM,
+  OKX_SWAP_FEE_ADDRESS_OPTIMIST,
+  OKX_SWAP_FEE_ADDRESS_POLYGON,
+  OKX_SWAP_FEE_ADDRESS_SOL,
+  OKX_SWAP_FEE_ADDRESS_BASE,
+  OKX_SWAP_FEE_ADDRESS_TON,
+  OKX_SWAP_FEE_ADDRESS_TRON,
+  OKX_SWAP_FEE_ADDRESS_ETH,
+  OKX_SWAP_FEE_ADDRESS_BNB,
+  RELAY_SWAP_FEE_ADDRESS,
+  DEFAULT_SWAP_PERCENT_FEE,
 }
 
 @Riverpod(keepAlive: true)
@@ -373,6 +421,18 @@ class Env extends _$Env {
       EnvVariable.CRYPTOCURRENCIES_ION_JRPC_URL => AppEnv.cryptocurrenciesIonJrpcUrl as T,
       EnvVariable.RELAY_PROXY_DOMAINS => AppEnv.relayProxyDomains as T,
       EnvVariable.RPC_PROXY_DOMAINS => AppEnv.rpcProxyDomains as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_AVALANCE => AppEnv.okxSwapFeeAddressAvalance as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_ARBITRUM => AppEnv.okxSwapFeeAddressArbitrum as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_OPTIMIST => AppEnv.okxSwapFeeAddressOptimist as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_POLYGON => AppEnv.okxSwapFeeAddressPolygon as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_SOL => AppEnv.okxSwapFeeAddressSol as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_BASE => AppEnv.okxSwapFeeAddressBase as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_TON => AppEnv.okxSwapFeeAddressTon as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_TRON => AppEnv.okxSwapFeeAddressTron as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_ETH => AppEnv.okxSwapFeeAddressEth as T,
+      EnvVariable.OKX_SWAP_FEE_ADDRESS_BNB => AppEnv.okxSwapFeeAddressBnb as T,
+      EnvVariable.RELAY_SWAP_FEE_ADDRESS => AppEnv.relaySwapFeeAddress as T,
+      EnvVariable.DEFAULT_SWAP_PERCENT_FEE => AppEnv.defaultSwapPercentFee as T,
     };
   }
 }
