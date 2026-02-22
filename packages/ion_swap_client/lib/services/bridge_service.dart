@@ -16,10 +16,16 @@ class BridgeService {
   BridgeService({
     required RelayApiRepository relayApiRepository,
     required IonIdentityTransactionApi ionIdentityTransactionApi,
+    required String relayEvmFeeAddress,
+    required String relayAppFee,
   })  : _relayApiRepository = relayApiRepository,
-        _ionIdentityTransactionApi = ionIdentityTransactionApi;
+        _ionIdentityTransactionApi = ionIdentityTransactionApi,
+        _relayEvmFeeAddress = relayEvmFeeAddress,
+        _relayAppFee = relayAppFee;
   final RelayApiRepository _relayApiRepository;
   final IonIdentityTransactionApi _ionIdentityTransactionApi;
+  final String _relayEvmFeeAddress;
+  final String _relayAppFee;
 
   Future<String?> tryToBridge({
     required SwapCoinParameters swapCoinData,
@@ -92,6 +98,8 @@ class BridgeService {
         destinationCurrency: _getTokenAddress(swapCoinData.buyCoin.contractAddress),
         originChainId: sellChain.id,
         destinationChainId: buyChain.id,
+        appFeeRecipient: _relayEvmFeeAddress,
+        appFee: _relayAppFee * 100, // Convert to BPS
       );
 
       return quote;

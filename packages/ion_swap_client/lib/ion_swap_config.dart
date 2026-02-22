@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:dio/dio.dart';
+import 'package:ion_swap_client/models/okx_fee_address.m.dart';
 
 class IONSwapConfig {
   IONSwapConfig({
@@ -20,6 +21,9 @@ class IONSwapConfig {
     required this.ionBridgeRouterContractAddress,
     required this.ionBridgeContractAddress,
     required this.ionJrpcUrl,
+    required this.defaultSwapPercentFee,
+    required this.relayEvmFeeAddress,
+    required this.okxFeeAddress,
     this.interceptors = const [],
   });
 
@@ -45,4 +49,8 @@ class IONSwapConfig {
   final String ionJrpcUrl;
 
   final List<Interceptor> interceptors;
+
+  final String defaultSwapPercentFee;
+  final String relayEvmFeeAddress;
+  final OkxFeeAddress okxFeeAddress;
 }

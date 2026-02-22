@@ -73,6 +73,8 @@ class SwapControllerLocator {
         evmTxBuilder: evmTxBuilder,
         chainsIdsRepository: ChainsIdsRepository(),
         ionIdentityTransactionApi: ionIdentityTransactionApi,
+        defaultSwapPercentFee: config.defaultSwapPercentFee,
+        okxFeeAddress: config.okxFeeAddress,
       ),
       cexService: CexService(
         letsExchangeRepository: letsExchangeRepository,
@@ -83,6 +85,8 @@ class SwapControllerLocator {
       bridgeService: BridgeService(
         relayApiRepository: relayApiRepository,
         ionIdentityTransactionApi: ionIdentityTransactionApi,
+        relayEvmFeeAddress: config.relayEvmFeeAddress,
+        relayAppFee: config.defaultSwapPercentFee,
       ),
     );
 
