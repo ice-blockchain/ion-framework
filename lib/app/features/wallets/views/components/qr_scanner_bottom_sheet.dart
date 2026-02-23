@@ -30,7 +30,10 @@ class QRScannerBottomSheet extends HookConsumerWidget {
     final hasCameraPermission = ref.watch(hasPermissionProvider(Permission.camera));
 
     useEffect(
-      () => subscriptionRef.value?.cancel,
+      () {
+        ref.read(permissionsProvider.notifier).requestPermission(Permission.camera);
+        return () => subscriptionRef.value?.cancel();
+      },
       const [],
     );
 
@@ -45,30 +48,36 @@ class QRScannerBottomSheet extends HookConsumerWidget {
         Expanded(
           child: Stack(
             children: [
-              QRView(
-                onQRViewCreated: (controller) {
-                  subscriptionRef.value = controller.scannedDataStream.listen(
-                    (scanData) {
-                      if (context.mounted) {
-                        subscriptionRef.value?.cancel();
-                        scanData.code
-                            ?.map((code) => shouldTrimPrefix ? trimPrefix(code) : code)
-                            .let(context.pop);
-                      }
-                    },
-                  );
-                },
-                overlay: QrScannerOverlayShape(
-                  borderColor: context.theme.appColors.primaryAccent,
-                  borderRadius: 10.0.s,
-                  borderLength: 30.0.s,
-                  borderWidth: 6.0.s,
-                  cutOutSize: 238.0.s,
-                  cutOutBottomOffset: !hasCameraPermission ? 48.0.s : 0,
-                  overlayColor: context.theme.appColors.backgroundSheet,
+              if (hasCameraPermission)
+                QRView(
+                  onQRViewCreated: (controller) {
+                    subscriptionRef.value = controller.scannedDataStream.listen(
+                      (scanData) {
+                        if (context.mounted) {
+                          subscriptionRef.value?.cancel();
+                          scanData.code
+                              ?.map((code) => shouldTrimPrefix ? trimPrefix(code) : code)
+                              .let(context.pop);
+                        }
+                      },
+                    );
+                  },
+                  overlay: QrScannerOverlayShape(
+                    borderColor: context.theme.appColors.primaryAccent,
+                    borderRadius: 10.0.s,
+                    borderLength: 30.0.s,
+                    borderWidth: 6.0.s,
+                    cutOutSize: 238.0.s,
+                    overlayColor: context.theme.appColors.backgroundSheet,
+                  ),
+                  key: qrKey,
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: context.theme.appColors.asphalt,
                 ),
-                key: qrKey,
-              ),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Column(
@@ -94,7 +103,7 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                         padding: EdgeInsets.all(16.0.s),
                         child: _InfoMessageCard(
                           onPressed: () {
-                            ref.read(permissionStrategyProvider(Permission.cloud)).openSettings();
+                            ref.read(permissionStrategyProvider(Permission.camera)).openSettings();
                           },
                         ),
                       ),
