@@ -206,6 +206,7 @@ class CoinDetailsPage extends HookConsumerWidget {
                           txHash: transaction.txHash,
                           typeValue: transaction.type.value,
                           walletViewId: transaction.walletViewId,
+                          transactionIndex: transaction.index,
                         ).push<void>(context);
                       },
                     ),

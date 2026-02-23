@@ -42,6 +42,7 @@ class TransactionDetailsPage extends HookConsumerWidget {
     required this.txHash,
     required this.type,
     required this.exploreRouteLocationBuilder,
+    this.transactionIndex,
     super.key,
   });
 
@@ -49,11 +50,17 @@ class TransactionDetailsPage extends HookConsumerWidget {
   final String walletViewId;
   final TransactionType type;
   final String Function(String url) exploreRouteLocationBuilder;
+  final String? transactionIndex;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionAsync = ref.watch(
-      transactionNotifierProvider(walletViewId: walletViewId, txHash: txHash, type: type),
+      transactionNotifierProvider(
+        walletViewId: walletViewId,
+        txHash: txHash,
+        type: type,
+        transactionIndex: transactionIndex,
+      ),
     );
 
     final onViewOnExplorer = useCallback((TransactionDetails data) {

@@ -27,6 +27,7 @@ class TransactionNotifier extends _$TransactionNotifier {
     required String txHash,
     required String walletViewId,
     required TransactionType type,
+    String? transactionIndex,
   }) async {
     await _subscription?.cancel();
 
@@ -37,6 +38,7 @@ class TransactionNotifier extends _$TransactionNotifier {
       externalHashes: [txHash],
       walletViewIds: [walletViewId],
       type: type,
+      index: transactionIndex,
       limit: 1,
     );
 
@@ -46,6 +48,7 @@ class TransactionNotifier extends _$TransactionNotifier {
             txHashes: [txHash],
             walletViewIds: [walletViewId],
             type: type,
+            index: transactionIndex,
             limit: 1,
           );
 
@@ -58,6 +61,7 @@ class TransactionNotifier extends _$TransactionNotifier {
           externalHashes: [txHash],
           walletViewIds: [walletViewId],
           type: type,
+          index: transactionIndex,
           limit: 1,
         )
         .combineLatest(
@@ -65,6 +69,7 @@ class TransactionNotifier extends _$TransactionNotifier {
             txHashes: [txHash],
             walletViewIds: [walletViewId],
             type: type,
+            index: transactionIndex,
             limit: 1,
           ),
           (externalHashData, directHashData) {
