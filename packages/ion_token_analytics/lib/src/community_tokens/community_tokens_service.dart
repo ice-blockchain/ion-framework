@@ -89,6 +89,10 @@ class IonCommunityTokensService {
     return _tokenInfoRepository.getTokenInfo(externalAddress);
   }
 
+  Future<List<CommunityToken>> getTokenInfoBulk(List<String> externalAddresses) {
+    return _tokenInfoRepository.getTokenInfoBulk(externalAddresses);
+  }
+
   Future<NetworkSubscription<CommunityTokenBase>?> subscribeToTokenInfo(String externalAddress) {
     return _tokenInfoRepository.subscribeToTokenInfo(externalAddress);
   }

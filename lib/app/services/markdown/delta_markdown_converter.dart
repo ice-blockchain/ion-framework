@@ -2,10 +2,19 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/features/ion_connect/model/pmo_tag.f.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 
 typedef _ParsedPmoTag = ({int start, int end, String replacement});
+
+typedef _CashtagExtraction = ({
+  int start,
+  int end,
+  String ticker,
+  String? externalAddress,
+  String? coinId,
+});
 
 /// Result of the conversion containing plain text and PMO tags.
 typedef PmoConversionResult = ({String text, List<PmoTag> tags});
@@ -36,10 +45,25 @@ abstract class DeltaMarkdownConverter {
         final attributes = op.attributes;
 
         if (data is String) {
-          // For mentions, use the bech32 encoded value instead of display text
-          final contentToWrite = (attributes != null && attributes.containsKey('mention'))
+          // For mentions, use the bech32 encoded value instead of display text.
+          // For cashtags with externalAddress, use the externalAddress.
+          // For cashtags with coinId, use the coinId.
+          final hasMentionAttr = attributes != null && attributes.containsKey('mention');
+          final hasCashtagAddress = attributes != null &&
+              attributes.containsKey(CashtagAttribute.attributeKey) &&
+              attributes[CashtagAttribute.showMarketCapKey] == true &&
+              attributes[CashtagAttribute.attributeKey] is String &&
+              (attributes[CashtagAttribute.attributeKey] as String).isNotEmpty &&
+              attributes[CashtagAttribute.attributeKey] != data;
+          final hasCashtagCoinId = _hasCashtagCoinId(attributes);
+
+          final contentToWrite = hasMentionAttr
               ? (attributes['mention'] as String? ?? data)
-              : data;
+              : hasCashtagAddress
+                  ? (attributes[CashtagAttribute.attributeKey] as String)
+                  : hasCashtagCoinId
+                      ? (attributes![CashtagCoinIdAttribute.attributeKey] as String)
+                      : data;
 
           final result = _processStringContent(
             content: contentToWrite,
@@ -166,7 +190,8 @@ abstract class DeltaMarkdownConverter {
 
   /// Determines if two operations can be merged based on their styling attributes.
   /// Mentions require exact matching (both present or both absent with same value).
-  /// Hashtags and cashtags don't prevent merging.
+  /// Cashtags with showMarketCap require exact matching (they have identity via externalAddress).
+  /// Hashtags don't prevent merging.
   static bool _canMergeStylingAttributes(
     Map<String, dynamic>? attrs1,
     Map<String, dynamic>? attrs2,
@@ -184,7 +209,18 @@ abstract class DeltaMarkdownConverter {
       return false;
     }
 
-    // Neither has mention, they can be merged (hashtags/cashtags don't matter)
+    // Cashtags with showMarketCap or coinId have identity — don't merge across boundaries
+    bool conflictsOnKey(String key, bool Function(Map<String, dynamic>?) hasIt) {
+      final has1 = hasIt(attrs1);
+      final has2 = hasIt(attrs2);
+      if (!has1 && !has2) return false;
+      if (has1 != has2) return true;
+      return attrs1?[key] != attrs2?[key];
+    }
+
+    if (conflictsOnKey(CashtagAttribute.attributeKey, _hasCashtagWithMarketCap)) return false;
+    if (conflictsOnKey(CashtagCoinIdAttribute.attributeKey, _hasCashtagCoinId)) return false;
+
     return true;
   }
 
@@ -387,20 +423,34 @@ abstract class DeltaMarkdownConverter {
     // Allow processing links even if content is whitespace-only (needed for media attachments)
     final hasLink = attributes.containsKey('link');
     final hasMention = attributes.containsKey('mention');
-    if (content.trim().isEmpty && !hasLink && !hasMention) {
-      return; // Skip empty or whitespace-only content without links or mentions
+    final hasCashtag = attributes.containsKey(CashtagAttribute.attributeKey) &&
+        attributes[CashtagAttribute.showMarketCapKey] == true;
+    final hasCashtagCoinId = _hasCashtagCoinId(attributes);
+    if (content.trim().isEmpty && !hasLink && !hasMention && !hasCashtag && !hasCashtagCoinId) {
+      return; // Skip empty or whitespace-only content without links, mentions, or cashtags
     }
 
     var replacement = content;
     final hasBold = attributes.containsKey('bold');
     final hasItalic = attributes.containsKey('italic');
-    final skipInlineStyles = hasLink || hasMention;
+    final skipInlineStyles = hasLink || hasMention || hasCashtag || hasCashtagCoinId;
 
     // Handle mentions first (format: [@username](encoded_ref))
     // Use originalContent for the display text (e.g., @username)
     if (hasMention) {
       final encodedRef = content; // content is already the encoded reference
       replacement = '[$originalContent]($encodedRef)';
+    }
+
+    // Handle cashtags with external address (format: [$TICKER](externalAddress))
+    if (hasCashtag && !hasMention) {
+      final externalAddress = content; // content is the externalAddress (written to buffer)
+      replacement = '[$originalContent]($externalAddress)';
+    }
+
+    // Handle cashtags with coin ID (format: [$TICKER](coin:coinId))
+    if (hasCashtagCoinId && !hasCashtag && !hasMention) {
+      replacement = '[$originalContent](coin:$content)';
     }
 
     // Apply formatting in order: code, bold, italic, strike, underline, link
@@ -644,7 +694,11 @@ abstract class DeltaMarkdownConverter {
     final delta = markdownToDelta(markdownWithNewline);
 
     // Now add mention attributes to the Delta for the extracted mentions
-    return _addMentionAttributes(delta, mentionExtractions);
+    final deltaWithMentions = _addMentionAttributes(delta, mentionExtractions);
+
+    // Extract cashtag addresses from PMO tags and add cashtag attributes
+    final cashtagExtractions = _extractCashtagAddresses(plainText, parsedTags);
+    return _addCashtagAttributes(deltaWithMentions, cashtagExtractions);
   }
 
   /// Extracts bech32 encoded mentions from plain text.
@@ -671,16 +725,92 @@ abstract class DeltaMarkdownConverter {
     return extractions;
   }
 
-  /// Adds mention attributes to Delta operations based on extracted mentions.
+  /// Extracts cashtag data from PMO tags.
   ///
-  /// This processes the Delta to find bech32 values and adds mention attributes.
-  /// The bech32 values remain in the text and will be replaced with @username
-  /// by a higher-level function that has access to user metadata.
+  /// Identifies PMO replacements matching the pattern `[$TICKER](value)` where
+  /// value is either an externalAddress or `coin:coinId`.
+  static List<_CashtagExtraction> _extractCashtagAddresses(
+    String plainText,
+    List<_ParsedPmoTag> pmoTags,
+  ) {
+    final extractions = <_CashtagExtraction>[];
+    final cashtagPmoPattern = RegExp(r'^\[\$([^\]]+)\]\(([^)]+)\)$');
+
+    for (final tag in pmoTags) {
+      final match = cashtagPmoPattern.firstMatch(tag.replacement);
+      if (match != null) {
+        final value = match.group(2)!;
+        final isCoinId = value.startsWith('coin:');
+        extractions.add(
+          (
+            start: tag.start,
+            end: tag.end,
+            ticker: match.group(1)!,
+            externalAddress: isCoinId ? null : value,
+            coinId: isCoinId ? value.substring(5) : null,
+          ),
+        );
+      }
+    }
+
+    return extractions;
+  }
+
+  /// Adds mention attributes to Delta operations based on extracted mentions.
   static Delta _addMentionAttributes(
     Delta delta,
     List<({int start, int end, String bech32Value})> mentions,
   ) {
-    if (mentions.isEmpty) {
+    return _addAttributesAtPositions(
+      delta,
+      mentions.map((m) => (start: m.start, end: m.end, expectedText: m.bech32Value)).toList(),
+      (expectedText, existingAttrs) => {...?existingAttrs, 'mention': expectedText},
+    );
+  }
+
+  /// Adds cashtag attributes to Delta operations based on extracted cashtag data.
+  ///
+  /// For tokenized coins (externalAddress): sets `{cashtag: externalAddress, showMarketCap: true}`.
+  /// For non-tokenized coins (coinId): sets `{cashtagCoinId: coinId}`.
+  static Delta _addCashtagAttributes(Delta delta, List<_CashtagExtraction> cashtags) {
+    // Split into two groups and process separately with the shared helper.
+    final externalAddressEntries = cashtags.where((ct) => ct.externalAddress != null).toList();
+    final coinIdEntries = cashtags.where((ct) => ct.coinId != null).toList();
+
+    final withExternalAddresses = _addAttributesAtPositions(
+      delta,
+      externalAddressEntries
+          .map((ct) => (start: ct.start, end: ct.end, expectedText: ct.externalAddress!))
+          .toList(),
+      (expectedText, existingAttrs) => {
+        ...?existingAttrs,
+        CashtagAttribute.attributeKey: expectedText,
+        CashtagAttribute.showMarketCapKey: true,
+      },
+    );
+
+    return _addAttributesAtPositions(
+      withExternalAddresses,
+      coinIdEntries.map((ct) => (start: ct.start, end: ct.end, expectedText: ct.coinId!)).toList(),
+      (expectedText, existingAttrs) => {
+        ...?existingAttrs,
+        CashtagCoinIdAttribute.attributeKey: expectedText,
+      },
+    );
+  }
+
+  /// Splits Delta operations at the given positions and applies attributes via [buildAttrs].
+  ///
+  /// Each entry in [positions] specifies a region in the Delta's text where the
+  /// [expectedText] should be found. If the text matches, [buildAttrs] is called
+  /// to produce the attributes for that segment; otherwise the text is kept as-is.
+  static Delta _addAttributesAtPositions(
+    Delta delta,
+    List<({int start, int end, String expectedText})> positions,
+    Map<String, dynamic> Function(String expectedText, Map<String, dynamic>? existingAttrs)
+        buildAttrs,
+  ) {
+    if (positions.isEmpty) {
       return delta;
     }
 
@@ -697,43 +827,27 @@ abstract class DeltaMarkdownConverter {
       final opStart = textPosition;
       final opEnd = textPosition + text.length;
 
-      // Collect all mentions that are entirely within this operation
-      final opMentions = mentions
-          .where((mention) => mention.start >= opStart && mention.end <= opEnd)
-          .toList()
+      final opPositions = positions.where((p) => p.start >= opStart && p.end <= opEnd).toList()
         ..sort((a, b) => a.start.compareTo(b.start));
-      if (opMentions.isEmpty) {
-        // No mentions in this operation: keep it as-is
+
+      if (opPositions.isEmpty) {
         newDelta.insert(text, op.attributes);
       } else {
         var cursor = 0;
-        for (final mention in opMentions) {
-          final mentionStartInOp = mention.start - opStart;
-          final mentionEndInOp = mention.end - opStart;
-          // Insert text before the mention, if any
-          if (mentionStartInOp > cursor) {
-            newDelta.insert(
-              text.substring(cursor, mentionStartInOp),
-              op.attributes,
-            );
+        for (final pos in opPositions) {
+          final startInOp = pos.start - opStart;
+          final endInOp = pos.end - opStart;
+          if (startInOp > cursor) {
+            newDelta.insert(text.substring(cursor, startInOp), op.attributes);
           }
-          // Extract the mention text from this operation
-          final mentionText = text.substring(mentionStartInOp, mentionEndInOp);
-          // Verify the extracted text matches the bech32 value
-          if (mentionText == mention.bech32Value) {
-            // Mention with attribute
-            final attrs = {
-              ...?op.attributes,
-              'mention': mention.bech32Value,
-            };
-            newDelta.insert(mentionText, attrs);
+          final segment = text.substring(startInOp, endInOp);
+          if (segment == pos.expectedText) {
+            newDelta.insert(segment, buildAttrs(pos.expectedText, op.attributes));
           } else {
-            // If the text does not match, fall back to plain text
-            newDelta.insert(mentionText, op.attributes);
+            newDelta.insert(segment, op.attributes);
           }
-          cursor = mentionEndInOp;
+          cursor = endInOp;
         }
-        // Insert any remaining text after the last mention
         if (cursor < text.length) {
           newDelta.insert(text.substring(cursor), op.attributes);
         }
@@ -796,4 +910,12 @@ abstract class DeltaMarkdownConverter {
 
     return normalized;
   }
+
+  static bool _hasCashtagCoinId(Map<String, dynamic>? attrs) {
+    final v = attrs?[CashtagCoinIdAttribute.attributeKey];
+    return v is String && v.isNotEmpty;
+  }
+
+  static bool _hasCashtagWithMarketCap(Map<String, dynamic>? attrs) =>
+      attrs?[CashtagAttribute.showMarketCapKey] == true;
 }

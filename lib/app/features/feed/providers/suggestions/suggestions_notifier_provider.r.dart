@@ -20,7 +20,7 @@ class SuggestionsState {
   /// Suggestions payload depends on [taggingCharacter]:
   /// - '@' => List<String> (pubkeys)
   /// - '#' => List<String> (hashtags)
-  /// - '$' => List<CoinsGroup>
+  /// - '$' => List<CoinData>
   final List<Object> suggestions;
   final String taggingCharacter;
   final bool isVisible;

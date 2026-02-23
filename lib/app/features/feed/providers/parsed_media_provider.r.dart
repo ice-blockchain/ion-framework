@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -13,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_media_content.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_related_pubkeys.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/features/tokenized_communities/providers/bulk_token_market_info_prefetch_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/markdown/mention_label_utils.dart';
 import 'package:ion/app/services/markdown/quill.dart';
@@ -79,6 +81,17 @@ Future<Delta> mentionsOverlay(
   final pubkeyInstanceShowMarketCap = buildInstanceMapFromLabel(mentionMarketCapLabel);
   final cashtagInstanceExternalAddress =
       buildCashtagExternalAddressMapFromLabel(cashtagMarketCapLabel);
+
+  // Bulk prefetch all cashtag token market info in a single API call
+  final allCashtagExternalAddresses = cashtagInstanceExternalAddress.values
+      .expand((instanceMap) => instanceMap.values)
+      .toSet()
+      .toList();
+  if (allCashtagExternalAddresses.isNotEmpty) {
+    unawaited(
+      ref.read(bulkTokenMarketInfoPrefetchProvider(allCashtagExternalAddresses).future),
+    );
+  }
 
   // If there are no mentions to restore, still apply cashtag marketcap restoration.
   if (relatedPubkeys == null || relatedPubkeys.isEmpty) {
