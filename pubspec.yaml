@@ -121,6 +121,7 @@ dependencies:
   icloud_storage: ^2.2.0
   image: ^4.7.2
   image_cropper: ^11.0.0
+  in_app_review: ^2.0.11
   in_app_update: ^4.2.5
   intl: any
   ion_connect_cache:

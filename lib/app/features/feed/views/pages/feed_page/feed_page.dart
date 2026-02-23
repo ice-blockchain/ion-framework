@@ -26,6 +26,7 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_cont
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
+import 'package:ion/app/hooks/use_app_review_prompt.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -47,6 +48,8 @@ class FeedPage extends HookConsumerWidget {
     final showStories = feedCategory != FeedCategory.articles;
     final showTrendingVideos = showTrendingVideosFeatureFlag.value &&
         (feedCategory == FeedCategory.feed || feedCategory == FeedCategory.videos);
+
+    useAppReviewPrompt(ref);
 
     final slivers = [
       if (showTrendingVideos)

@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart' as db;
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -17,6 +19,7 @@ import 'package:ion/app/features/wallets/data/database/wallets_database.m.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/review/app_review_controller.r.dart';
 import 'package:ion/app/services/share/share.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -89,6 +92,7 @@ class DebugPage extends ConsumerWidget {
                       onTap: () => _showExportDatabaseDialog(context, ref),
                     ),
                   ),
+                  const _AppReviewDebugItem(),
                   SizedBox(height: 16.0.s),
                   ExpansionTile(
                     title: const Text('Feature Flags'),
@@ -296,4 +300,25 @@ enum _DebugPageDatabaseType {
 
   const _DebugPageDatabaseType(this.displayName);
   final String displayName;
+}
+
+class _AppReviewDebugItem extends ConsumerWidget {
+  const _AppReviewDebugItem();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Material(
+      child: Card(
+        child: ListTile(
+          title: const Text('Reset AppReview Prompt Logic'),
+          subtitle: const Text('Clears version and close counts'),
+          trailing: const Icon(Icons.refresh),
+          onTap: () async {
+            await HapticFeedback.lightImpact();
+            await ref.read(appReviewControllerProvider.notifier).debugReset();
+          },
+        ),
+      ),
+    );
+  }
 }
