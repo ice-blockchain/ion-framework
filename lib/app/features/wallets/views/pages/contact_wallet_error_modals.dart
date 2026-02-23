@@ -113,3 +113,40 @@ Future<void> showContactWalletError(
     ),
   );
 }
+
+Future<void> showContactDeletedUserError(BuildContext context) {
+  return showSimpleBottomSheet<void>(
+    context: context,
+    child: ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsetsDirectional.only(start: 29.0.s, end: 28.0.s, top: 30.0.s),
+              child: InfoCard(
+                iconAsset: Assets.svg.actionwalleterrorwallet,
+                title: context.i18n.profile_no_account_found,
+                descriptionWidget: Text(
+                  context.i18n.profile_no_account_found,
+                  style: context.theme.appTextThemes.body2,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            SizedBox(height: 24.0.s),
+            ScreenSideOffset.small(
+              child: Button(
+                label: Text(context.i18n.button_continue),
+                mainAxisSize: MainAxisSize.max,
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            ScreenBottomOffset(),
+          ],
+        ),
+      ),
+    ),
+  );
+}
