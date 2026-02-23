@@ -186,6 +186,15 @@ class DeleteEntityController extends _$DeleteEntityController {
     }
   }
 
+  void _decrementRepliesCountForParent(EventReference parentEventReference) {
+    ref
+        .read(repliesCountProvider(parentEventReference).notifier)
+        .removeOne();
+    ref
+        .read(repliesCountProvider(parentEventReference, network: true).notifier)
+        .removeOne();
+  }
+
   Future<void> _deleteFromCounters(IonConnectEntity entity) async {
     switch (entity) {
       case RepostEntity():
@@ -194,14 +203,16 @@ class DeleteEntityController extends _$DeleteEntityController {
         break;
       case ModifiablePostEntity():
         if (entity.data.parentEvent != null) {
-          ref
-              .read(repliesCountProvider(entity.data.parentEvent!.eventReference).notifier)
-              .removeOne();
+          _decrementRepliesCountForParent(entity.data.parentEvent!.eventReference);
         } else if (entity.data.quotedEvent != null) {
           await ref.read(quoteCounterUpdaterProvider).updateQuoteCounter(
                 entity.data.quotedEvent!.eventReference,
                 isAdding: false,
               );
+        }
+      case PostEntity():
+        if (entity.data.parentEvent != null) {
+          _decrementRepliesCountForParent(entity.data.parentEvent!.eventReference);
         }
       default:
         break;
