@@ -187,12 +187,8 @@ class DeleteEntityController extends _$DeleteEntityController {
   }
 
   void _decrementRepliesCountForParent(EventReference parentEventReference) {
-    ref
-        .read(repliesCountProvider(parentEventReference).notifier)
-        .removeOne();
-    ref
-        .read(repliesCountProvider(parentEventReference, network: true).notifier)
-        .removeOne();
+    ref.read(repliesCountProvider(parentEventReference).notifier).removeOne();
+    ref.read(repliesCountProvider(parentEventReference, network: true).notifier).removeOne();
   }
 
   Future<void> _deleteFromCounters(IonConnectEntity entity) async {
