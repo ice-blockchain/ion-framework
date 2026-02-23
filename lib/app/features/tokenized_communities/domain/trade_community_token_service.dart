@@ -70,6 +70,8 @@ class TradeCommunityTokenService {
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
     final firstBuy = await _isFirstBuy(externalAddress, externalAddressType);
     final hasUserPosition = _hasUserPosition(tokenInfo);
+
+    final previousPositionRaw = _extractPositionRaw(tokenInfo);
     Logger.info(
       '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
     );
@@ -184,6 +186,7 @@ class TradeCommunityTokenService {
             tokenDecimals: tokenDecimals,
             existingTokenAddress: existingTokenAddress,
             tokenInfo: tokenInfo,
+            previousPositionRaw: previousPositionRaw,
           ),
       ]);
     }
@@ -230,6 +233,8 @@ class TradeCommunityTokenService {
     Logger.info('[TradeCommunityTokenService] Fetching token info');
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
 
+    final previousPositionRaw = _extractPositionRaw(tokenInfo);
+
     Logger.info(
       '[TradeCommunityTokenService] Building quote | pricingIdentifier=$externalAddress | amountIn=$amountIn | slippagePercent=$slippagePercent',
     );
@@ -274,6 +279,7 @@ class TradeCommunityTokenService {
         paymentTokenTicker: paymentTokenTicker,
         paymentTokenDecimals: paymentTokenDecimals,
         tokenInfo: tokenInfo,
+        previousPositionRaw: previousPositionRaw,
       );
       Logger.info('[TradeCommunityTokenService] Sell events sent successfully');
     }
@@ -548,6 +554,7 @@ class TradeCommunityTokenService {
     required int tokenDecimals,
     required String? existingTokenAddress,
     required CommunityToken? tokenInfo,
+    required BigInt? previousPositionRaw,
   }) async {
     Logger.info(
       '[TradeCommunityTokenService] _trySendBuyEvents called | externalAddress=$externalAddress | firstBuy=$firstBuy',
@@ -582,15 +589,23 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
       );
 
+      final actualAmountRaw = await _fetchPositionDelta(
+        externalAddress: externalAddress,
+        previousPositionRaw: previousPositionRaw,
+      );
+
+      final tokenAmountRaw = actualAmountRaw?.toString() ?? pricing.amount;
+      final communityTokenAmountValue = fromBlockchainUnits(tokenAmountRaw);
+
       final usdAmountValue = pricing.amountUSD;
-      final communityTokenAmountValue = fromBlockchainUnits(pricing.amount);
       final baseTokenAmountValue = fromBlockchainUnits(
         amountIn.toString(),
         decimals: tokenDecimals,
       );
 
       Logger.info(
-        '[TradeCommunityTokenService] Amounts calculated | baseTokenAmountValue=$baseTokenAmountValue | communityTokenAmountValue=$communityTokenAmountValue | usdAmountValue=$usdAmountValue',
+        '[TradeCommunityTokenService] Amounts calculated | baseTokenAmountValue=$baseTokenAmountValue | '
+        'communityTokenAmountValue=$communityTokenAmountValue | usdAmountValue=$usdAmountValue',
       );
 
       final amountBase = TransactionAmount(
@@ -640,6 +655,7 @@ class TradeCommunityTokenService {
     required String paymentTokenTicker,
     required int paymentTokenDecimals,
     required CommunityToken? tokenInfo,
+    required BigInt? previousPositionRaw,
   }) async {
     Logger.info(
       '[TradeCommunityTokenService] _trySendSellEvents called | externalAddress=$externalAddress',
@@ -666,7 +682,8 @@ class TradeCommunityTokenService {
       final usdAmountValue = pricing.amountUSD;
 
       Logger.info(
-        '[TradeCommunityTokenService] Amounts calculated | communityTokenAmountValue=$communityTokenAmountValue | paymentTokenAmountValue=$paymentTokenAmountValue | usdAmountValue=$usdAmountValue',
+        '[TradeCommunityTokenService] Amounts calculated | communityTokenAmountValue=$communityTokenAmountValue | '
+        'paymentTokenAmountValue=$paymentTokenAmountValue | usdAmountValue=$usdAmountValue',
       );
 
       final amountBase =
@@ -710,6 +727,11 @@ class TradeCommunityTokenService {
 
   bool _hasUserPosition(CommunityToken? tokenInfo) => tokenInfo?.marketData.position != null;
 
+  BigInt? _extractPositionRaw(CommunityToken? tokenInfo) {
+    final amount = tokenInfo?.marketData.position?.amount;
+    return amount != null ? BigInt.tryParse(amount) : null;
+  }
+
   bool _sameAddress(String? left, String? right) {
     if (left == null || right == null) return false;
     return left.toLowerCase() == right.toLowerCase();
@@ -733,6 +755,36 @@ class TradeCommunityTokenService {
     final hasFirstBuyDefinitionEvent =
         await ionConnectService.hasFirstBuyDefinitionEvent(eventReference);
     return !hasFirstBuyDefinitionEvent;
+  }
+
+  Future<BigInt?> _fetchPositionDelta({
+    required String externalAddress,
+    required BigInt? previousPositionRaw,
+  }) async {
+    try {
+      return await withRetry<BigInt>(
+        ({Object? error}) async {
+          final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+          final newPositionRaw = _extractPositionRaw(tokenInfo);
+
+          if (newPositionRaw == previousPositionRaw) {
+            throw PositionUnchangedException();
+          }
+
+          final previous = previousPositionRaw ?? BigInt.zero;
+          final delta = (newPositionRaw ?? BigInt.zero) - previous;
+
+          return delta.abs();
+        },
+        maxRetries: 15,
+        initialDelay: const Duration(seconds: 2),
+        maxDelay: const Duration(seconds: 2),
+        multiplier: 1,
+        retryWhen: (e) => e is PositionUnchangedException,
+      );
+    } on PositionUnchangedException {
+      return null;
+    }
   }
 }
 
