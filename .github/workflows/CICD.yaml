@@ -283,8 +283,7 @@ jobs:
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
 
-          # TEMP: Enable symbol generation & upload for both store (prod) and firebase (staging) builds for CI/CD testing
-          if [[ ${{ env.DEPLOYMENT_TYPE == 'store' || env.DEPLOYMENT_TYPE == 'firebase' }} == true ]]; then
+          if [[ ${{ env.DEPLOYMENT_TYPE == 'store' }} == true ]]; then
             echo "IS_RELEASE_BUILD=true" >> $GITHUB_ENV
             echo "SYMBOLS_PATH=build/flutter_symbols" >> $GITHUB_ENV
           else
@@ -446,8 +445,7 @@ jobs:
           fi
           echo "BUILD_NUMBER=$(echo $((GITHUB_RUN_NUMBER)))" >> $GITHUB_ENV
 
-          # TEMP: Enable symbol generation & upload for both store (prod) and firebase (staging) builds for CI/CD testing
-          if [[ ${{ env.DEPLOYMENT_TYPE == 'store' || env.DEPLOYMENT_TYPE == 'firebase' }} == true ]]; then
+          if [[ ${{ env.DEPLOYMENT_TYPE == 'store' }} == true ]]; then
             echo "IS_RELEASE_BUILD=true" >> $GITHUB_ENV
             echo "SYMBOLS_PATH=build/flutter_symbols" >> $GITHUB_ENV
           else

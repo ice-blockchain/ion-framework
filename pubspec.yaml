@@ -293,4 +293,3 @@ sentry:
   # Enables readable obfuscated issue titles (requires --extra-gen-snapshot-options=--save-obfuscation-map=...)
   dart_symbol_map_path: build/app/obfuscation.map.json
   ignore_missing: true
-  log_level: debug
