@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
+// ignore_for_file: avoid_print
+import 'dart:convert';
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/object.dart';
@@ -49,6 +51,13 @@ class IonIdentityTransactionApi {
     required UserActionSignerNew userActionSigner,
     String? externalId,
   }) async {
+    print(
+      'XXX: identity.tx.userOps.req walletId=$walletId feeSponsorId=$feeSponsorId externalId=$externalId userOpsCount=${userOperations.length}',
+    );
+    _printUserOperationsXxx(
+      scope: 'identity.tx.userOps.req.userOps',
+      userOperations: userOperations,
+    );
     final client = await _clientResolver();
     final wallet = await _resolveWallet(client, walletId);
 
@@ -74,16 +83,43 @@ class IonIdentityTransactionApi {
     required UserActionSignerNew userActionSigner,
     required String operation,
   }) async {
+    print(
+      'XXX: identity.tx.broadcast.req operation=$operation walletId=${wallet.id}',
+    );
+    _printXxxChunks(
+      'identity.tx.broadcast.req.body',
+      broadcastRequest.toString(),
+    );
+    final stopwatch = Stopwatch()..start();
     try {
-      return await client.wallets.signAndBroadcast(
+      final response = await client.wallets.signAndBroadcast(
         wallet,
         broadcastRequest,
         userActionSigner,
       );
+      stopwatch.stop();
+      print(
+        'XXX: identity.tx.broadcast.res ms=${stopwatch.elapsedMilliseconds} operation=$operation walletId=${wallet.id} id=${response['id']} network=${response['network']} txHash=${response['txHash']}',
+      );
+      _printXxxChunks(
+        'identity.tx.broadcast.res.body',
+        _formatXxxValue(response),
+      );
+      return response;
     } on RestrictedRegionException catch (error) {
+      stopwatch.stop();
+      print(
+        'XXX: IonIdentityTransactionApi._signAndBroadcast restrictedRegion operation=$operation walletId=${wallet.id} durationMs=${stopwatch.elapsedMilliseconds} error=$error',
+      );
       Logger.info(
         '[IonIdentityTransactionApi] Restricted region detected for signAndBroadcast '
         '($operation): $error',
+      );
+      rethrow;
+    } catch (error) {
+      stopwatch.stop();
+      print(
+        'XXX: IonIdentityTransactionApi._signAndBroadcast error operation=$operation walletId=${wallet.id} durationMs=${stopwatch.elapsedMilliseconds} error=$error',
       );
       rethrow;
     }
@@ -104,5 +140,47 @@ class IonIdentityTransactionApi {
     }
     final encoded = value.toRadixString(16);
     return '0x$encoded';
+  }
+
+  void _printUserOperationsXxx({
+    required String scope,
+    required List<EvmUserOperation> userOperations,
+  }) {
+    for (var i = 0; i < userOperations.length; i++) {
+      final op = userOperations[i];
+      final data = op.data;
+      print(
+        'XXX: $scope[$i] to=${op.to} value=${op.value} dataLen=${data?.length ?? 0}',
+      );
+      if (data != null && data.isNotEmpty) {
+        _printXxxChunks('$scope[$i].data', data);
+      }
+    }
+  }
+
+  void _printXxxChunks(String scope, String text, {int chunkSize = 700}) {
+    if (text.isEmpty) {
+      print('XXX: $scope chunk=1/1 value=');
+      return;
+    }
+
+    final totalChunks = (text.length / chunkSize).ceil();
+    for (var index = 0; index < totalChunks; index++) {
+      final start = index * chunkSize;
+      final end = (start + chunkSize < text.length) ? start + chunkSize : text.length;
+      final chunk = text.substring(start, end);
+      print('XXX: $scope chunk=${index + 1}/$totalChunks $chunk');
+    }
+  }
+
+  String _formatXxxValue(Object? value) {
+    if (value is Map || value is List) {
+      try {
+        return const JsonEncoder.withIndent('  ').convert(value);
+      } catch (_) {
+        return value.toString();
+      }
+    }
+    return value.toString();
   }
 }

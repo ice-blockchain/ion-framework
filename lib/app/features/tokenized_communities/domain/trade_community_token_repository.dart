@@ -10,6 +10,7 @@ import 'package:ion/app/features/tokenized_communities/enums/community_token_tra
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
+import 'package:web3dart/web3dart.dart';
 
 class TradeCommunityTokenRepository {
   TradeCommunityTokenRepository({
@@ -161,6 +162,10 @@ class TradeCommunityTokenRepository {
       userActionSigner: userActionSigner,
       externalId: externalId,
     );
+  }
+
+  Future<TransactionReceipt?> fetchTransactionReceipt(String txHash) {
+    return txBuilder.web3Client.getTransactionReceipt(txHash);
   }
 
   EvmUserOperation toUserOperation(EvmTransaction transaction) {

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ice License 1.0
+// ignore_for_file: avoid_print
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -59,16 +61,30 @@ class TradeCommunityTokenService {
     FatAddressV2Data? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
+    final buyStopwatch = Stopwatch()..start();
+    print(
+      'XXX: buyCommunityToken start externalAddress=$externalAddress externalAddressType=$externalAddressType amountIn=$amountIn walletId=$walletId shouldSendEvents=$shouldSendEvents',
+    );
     Logger.info(
       '[TradeCommunityTokenService] buyCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
     );
     _ensureAccountNotProtected(externalAddress);
 
+    final fetchTokenInfoStopwatch = Stopwatch()..start();
     final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+    fetchTokenInfoStopwatch.stop();
+    print(
+      'XXX: buyCommunityToken stage=fetchTokenInfoFresh durationMs=${fetchTokenInfoStopwatch.elapsedMilliseconds} externalAddress=$externalAddress tokenInfo=$tokenInfo',
+    );
 
     Logger.info('[TradeCommunityTokenService] Fetched token info');
     final existingTokenAddress = _extractTokenAddress(tokenInfo);
+    final isFirstBuyStopwatch = Stopwatch()..start();
     final firstBuy = await _isFirstBuy(externalAddress, externalAddressType);
+    isFirstBuyStopwatch.stop();
+    print(
+      'XXX: buyCommunityToken stage=_isFirstBuy durationMs=${isFirstBuyStopwatch.elapsedMilliseconds} externalAddress=$externalAddress firstBuy=$firstBuy',
+    );
     final hasUserPosition = _hasUserPosition(tokenInfo);
     Logger.info(
       '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
@@ -90,11 +106,17 @@ class TradeCommunityTokenService {
     Logger.info(
       '[TradeCommunityTokenService] Pricing identifier resolved | pricingIdentifier=$pricingIdentifier',
     );
+    final paymentRoleOverrideStopwatch = Stopwatch()..start();
     final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
       paymentTokenAddress: baseTokenAddress,
     );
+    paymentRoleOverrideStopwatch.stop();
+    print(
+      'XXX: buyCommunityToken stage=_resolvePaymentTokenRoleOverride durationMs=${paymentRoleOverrideStopwatch.elapsedMilliseconds} externalAddress=$externalAddress paymentTokenAddress=$baseTokenAddress paymentRoleOverride=$paymentRoleOverride',
+    );
+    final routeQuoteStopwatch = Stopwatch()..start();
     final routeQuote = await _buildRouteAndQuote(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
@@ -107,9 +129,14 @@ class TradeCommunityTokenService {
       slippagePercent: slippagePercent,
       fatAddressHex: fatAddressData?.toHex(),
     );
+    routeQuoteStopwatch.stop();
+    print(
+      'XXX: buyCommunityToken stage=_buildRouteAndQuote durationMs=${routeQuoteStopwatch.elapsedMilliseconds} externalAddress=$externalAddress pricingIdentifier=$pricingIdentifier',
+    );
     Logger.info(
       '[TradeCommunityTokenService] Building user operations | quoteAmount=${routeQuote.quote.finalPricing.amount} | quoteAmountUSD=${routeQuote.quote.finalPricing.amountUSD}',
     );
+    final buildUserOpsStopwatch = Stopwatch()..start();
     final userOps = await userOpsBuilder.buildUserOps(
       route: routeQuote.route,
       quote: routeQuote.quote,
@@ -119,12 +146,32 @@ class TradeCommunityTokenService {
       communityTokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
       fatAddressData: fatAddressData,
     );
+    buildUserOpsStopwatch.stop();
+    print(
+      'XXX: buyCommunityToken stage=buildUserOps durationMs=${buildUserOpsStopwatch.elapsedMilliseconds} externalAddress=$externalAddress userOpsCount=${userOps.length}',
+    );
     Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
+    print(
+      'XXX: tx.signAndBroadcast.req externalAddress=$externalAddress walletId=$walletId feeSponsorId=${routeQuote.quote.finalPricing.feeSponsorId} userOpsCount=${userOps.length}',
+    );
+    _printUserOperationsXxx(
+      scope: 'tx.signAndBroadcast.req.userOps',
+      userOperations: userOps,
+    );
+    final signBroadcastStopwatch = Stopwatch()..start();
     final transaction = await repository.signAndBroadcastUserOperations(
       walletId: walletId,
       userOperations: userOps,
       feeSponsorId: routeQuote.quote.finalPricing.feeSponsorId,
       userActionSigner: userActionSigner,
+    );
+    signBroadcastStopwatch.stop();
+    print(
+      'XXX: tx.signAndBroadcast.res ms=${signBroadcastStopwatch.elapsedMilliseconds} externalAddress=$externalAddress status=${transaction['status']} txHash=${transaction['txHash']} id=${transaction['id']}',
+    );
+    _printXxxChunks(
+      'tx.signAndBroadcast.res.body',
+      _formatXxxValue(transaction),
     );
 
     Logger.info(
@@ -143,10 +190,15 @@ class TradeCommunityTokenService {
         );
         try {
           // Only resolve master pubkey for Ion Connect tokens (not external/X tokens)
+          final profileResolutionStopwatch = Stopwatch()..start();
           masterPubkey = MasterPubkeyResolver.resolve(externalAddress);
           profileEventReference =
               ReplaceableEventReference(masterPubkey: masterPubkey, kind: UserMetadataEntity.kind);
           hasProfileToken = await ionConnectService.ionConnectEntityHasToken(profileEventReference);
+          profileResolutionStopwatch.stop();
+          print(
+            'XXX: buyCommunityToken stage=resolveProfileToken durationMs=${profileResolutionStopwatch.elapsedMilliseconds} externalAddress=$externalAddress masterPubkey=$masterPubkey hasProfileToken=$hasProfileToken',
+          );
           Logger.info(
             '[TradeCommunityTokenService] Master pubkey resolved | masterPubkey=$masterPubkey | hasProfileToken=$hasProfileToken',
           );
@@ -165,6 +217,7 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Sending events | firstBuy=$firstBuy | shouldSendEvents=$shouldSendEvents | isContentToken=${externalAddressType.isContentToken}',
       );
 
+      final sendEventsStopwatch = Stopwatch()..start();
       await Future.wait([
         if (firstBuy)
           // First-buy events are always sent, regardless of [shouldSendEvents].
@@ -186,8 +239,16 @@ class TradeCommunityTokenService {
             tokenInfo: tokenInfo,
           ),
       ]);
+      sendEventsStopwatch.stop();
+      print(
+        'XXX: buyCommunityToken stage=sendEvents(Future.wait) durationMs=${sendEventsStopwatch.elapsedMilliseconds} externalAddress=$externalAddress firstBuy=$firstBuy shouldSendEvents=$shouldSendEvents',
+      );
     }
 
+    buyStopwatch.stop();
+    print(
+      'XXX: buyCommunityToken done externalAddress=$externalAddress totalDurationMs=${buyStopwatch.elapsedMilliseconds} status=${transaction['status']}',
+    );
     Logger.info('[TradeCommunityTokenService] buyCommunityToken completed successfully');
     return transaction;
   }
@@ -533,7 +594,21 @@ class TradeCommunityTokenService {
   Future<void> _sendFirstBuyEvents({
     required String externalAddress,
   }) async {
-    return ionConnectService.sendFirstBuyEvents(externalAddress: externalAddress);
+    final stopwatch = Stopwatch()..start();
+    print('XXX: _sendFirstBuyEvents start externalAddress=$externalAddress');
+    try {
+      await ionConnectService.sendFirstBuyEvents(externalAddress: externalAddress);
+      stopwatch.stop();
+      print(
+        'XXX: _sendFirstBuyEvents success externalAddress=$externalAddress durationMs=${stopwatch.elapsedMilliseconds}',
+      );
+    } catch (error) {
+      stopwatch.stop();
+      print(
+        'XXX: _sendFirstBuyEvents error externalAddress=$externalAddress durationMs=${stopwatch.elapsedMilliseconds} error=$error',
+      );
+      rethrow;
+    }
   }
 
   Future<void> _trySendBuyEvents({
@@ -549,35 +624,79 @@ class TradeCommunityTokenService {
     required String? existingTokenAddress,
     required CommunityToken? tokenInfo,
   }) async {
+    final stopwatch = Stopwatch()..start();
+    print(
+      'XXX: _trySendBuyEvents start externalAddress=$externalAddress firstBuy=$firstBuy hasUserPosition=$hasUserPosition pricingAmount=${pricing.amount} pricingAmountUSD=${pricing.amountUSD} amountIn=$amountIn transaction=$transaction',
+    );
     Logger.info(
       '[TradeCommunityTokenService] _trySendBuyEvents called | externalAddress=$externalAddress | firstBuy=$firstBuy',
     );
     try {
+      final txHashStageStopwatch = Stopwatch()..start();
       final txHash = transaction['txHash'] as String?;
       if (txHash == null || txHash.isEmpty) {
         Logger.error('[TradeCommunityTokenService] Transaction hash is missing');
         throw TransactionHashNotFoundException(externalAddress);
       }
+      txHashStageStopwatch.stop();
+      print(
+        'XXX: _trySendBuyEvents stage=extractTxHash durationMs=${txHashStageStopwatch.elapsedMilliseconds} externalAddress=$externalAddress txHash=$txHash',
+      );
       Logger.info('[TradeCommunityTokenService] Transaction hash extracted | txHash=$txHash');
 
+      final bondingCurveStopwatch = Stopwatch()..start();
       final bondingCurveAddress = await repository.fetchBondingCurveAddress();
+      bondingCurveStopwatch.stop();
+      print(
+        'XXX: _trySendBuyEvents stage=fetchBondingCurveAddress durationMs=${bondingCurveStopwatch.elapsedMilliseconds} externalAddress=$externalAddress bondingCurveAddress=$bondingCurveAddress',
+      );
       Logger.info(
         '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
       );
 
+      var tokenAddressRetryAttempt = 0;
+      final tokenAddressStopwatch = Stopwatch()..start();
       final tokenAddress = existingTokenAddress ??
           await withRetry<String>(
             ({Object? error}) async {
+              tokenAddressRetryAttempt++;
+              final retryAttemptStopwatch = Stopwatch()..start();
+              print(
+                'XXX: _trySendBuyEvents stage=fetchTokenInfoFresh.retryStart externalAddress=$externalAddress attempt=$tokenAddressRetryAttempt previousError=$error',
+              );
               Logger.info('[TradeCommunityTokenService] Retrying to fetch token address');
               final tokenAddress =
                   _extractTokenAddress(await repository.fetchTokenInfoFresh(externalAddress));
+              retryAttemptStopwatch.stop();
+              print(
+                'XXX: _trySendBuyEvents stage=fetchTokenInfoFresh.retryEnd externalAddress=$externalAddress attempt=$tokenAddressRetryAttempt durationMs=${retryAttemptStopwatch.elapsedMilliseconds} tokenAddress=$tokenAddress',
+              );
               if (tokenAddress == null || tokenAddress.isEmpty) {
+                final receiptStopwatch = Stopwatch()..start();
+                final receipt = await repository.fetchTransactionReceipt(txHash);
+                receiptStopwatch.stop();
+                final receiptStatus = receipt == null
+                    ? 'pending'
+                    : ((receipt.status ?? false) ? 'success' : 'failed');
+                final receiptBlock = receipt?.blockNumber?.blockNum;
+                print(
+                  'XXX: _trySendBuyEvents stage=txReceiptWhileTokenInfoMissing externalAddress=$externalAddress attempt=$tokenAddressRetryAttempt durationMs=${receiptStopwatch.elapsedMilliseconds} txHash=$txHash receiptStatus=$receiptStatus blockNumber=$receiptBlock',
+                );
+                if (receiptStatus == 'success') {
+                  print(
+                    'XXX: _trySendBuyEvents signal=onChainSuccessButTokenInfoMissing externalAddress=$externalAddress attempt=$tokenAddressRetryAttempt txHash=$txHash',
+                  );
+                }
                 throw TokenAddressNotFoundException(externalAddress);
               }
               return tokenAddress;
             },
             retryWhen: (error) => error is TokenAddressNotFoundException,
           );
+      tokenAddressStopwatch.stop();
+      print(
+        'XXX: _trySendBuyEvents stage=resolveTokenAddress durationMs=${tokenAddressStopwatch.elapsedMilliseconds} externalAddress=$externalAddress usedExisting=${existingTokenAddress != null} retryAttempts=$tokenAddressRetryAttempt tokenAddress=$tokenAddress',
+      );
       Logger.info(
         '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
       );
@@ -607,6 +726,10 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Calling sendBuyActionEvents | externalAddress=$externalAddress | network=$walletNetwork | hasUserPosition=$hasUserPosition | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$tokenAddress | transactionAddress=$txHash',
       );
 
+      print(
+        'XXX: buyEvents request externalAddress=$externalAddress network=$walletNetwork hasUserPosition=$hasUserPosition bondingCurveAddress=$bondingCurveAddress tokenAddress=$tokenAddress transactionAddress=$txHash amountBase=$amountBase amountQuote=$amountQuote amountUsd=$amountUsd',
+      );
+      final sendBuyActionEventsStopwatch = Stopwatch()..start();
       await ionConnectService.sendBuyActionEvents(
         externalAddress: externalAddress,
         network: walletNetwork,
@@ -618,9 +741,21 @@ class TradeCommunityTokenService {
         amountQuote: amountQuote,
         amountUsd: amountUsd,
       );
+      sendBuyActionEventsStopwatch.stop();
+      print(
+        'XXX: buyEvents response externalAddress=$externalAddress durationMs=${sendBuyActionEventsStopwatch.elapsedMilliseconds} result=success',
+      );
 
+      stopwatch.stop();
+      print(
+        'XXX: _trySendBuyEvents success externalAddress=$externalAddress totalDurationMs=${stopwatch.elapsedMilliseconds}',
+      );
       Logger.info('[TradeCommunityTokenService] sendBuyActionEvents completed successfully');
     } catch (error, stackTrace) {
+      stopwatch.stop();
+      print(
+        'XXX: _trySendBuyEvents error externalAddress=$externalAddress totalDurationMs=${stopwatch.elapsedMilliseconds} error=$error',
+      );
       Logger.error(
         error,
         stackTrace: stackTrace,
@@ -733,6 +868,48 @@ class TradeCommunityTokenService {
     final hasFirstBuyDefinitionEvent =
         await ionConnectService.hasFirstBuyDefinitionEvent(eventReference);
     return !hasFirstBuyDefinitionEvent;
+  }
+
+  void _printUserOperationsXxx({
+    required String scope,
+    required List<EvmUserOperation> userOperations,
+  }) {
+    for (var i = 0; i < userOperations.length; i++) {
+      final op = userOperations[i];
+      final data = op.data;
+      print(
+        'XXX: $scope[$i] to=${op.to} value=${op.value} dataLen=${data?.length ?? 0}',
+      );
+      if (data != null && data.isNotEmpty) {
+        _printXxxChunks('$scope[$i].data', data);
+      }
+    }
+  }
+
+  void _printXxxChunks(String scope, String text, {int chunkSize = 700}) {
+    if (text.isEmpty) {
+      print('XXX: $scope chunk=1/1 value=');
+      return;
+    }
+
+    final totalChunks = (text.length / chunkSize).ceil();
+    for (var index = 0; index < totalChunks; index++) {
+      final start = index * chunkSize;
+      final end = (start + chunkSize < text.length) ? start + chunkSize : text.length;
+      final chunk = text.substring(start, end);
+      print('XXX: $scope chunk=${index + 1}/$totalChunks $chunk');
+    }
+  }
+
+  String _formatXxxValue(Object? value) {
+    if (value is Map || value is List) {
+      try {
+        return const JsonEncoder.withIndent('  ').convert(value);
+      } catch (_) {
+        return value.toString();
+      }
+    }
+    return value.toString();
   }
 }
 
