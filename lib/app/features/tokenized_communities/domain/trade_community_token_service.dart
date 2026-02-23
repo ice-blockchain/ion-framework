@@ -22,7 +22,6 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/retry.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
