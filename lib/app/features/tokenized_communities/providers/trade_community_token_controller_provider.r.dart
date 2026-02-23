@@ -408,8 +408,8 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     );
   }
 
-  void setAmount(double amount) {
-    state = state.copyWith(amount: amount);
+  void setAmount(double amount, {bool useFullAmount = false}) {
+    state = state.copyWith(amount: amount, useFullAmount: useFullAmount);
     _scheduleQuoteUpdates();
     _refreshFormattedAmounts();
   }
@@ -422,17 +422,31 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
       if (coinsGroup == null) return;
 
       final totalAmount = coinsGroup.totalAmount;
+      // For 100%, use the total amount directly to avoid floating-point precision issues
+      final isFullAmount = percentage == TokenizedCommunitiesConstants.percentageDivisor;
       final amount = (totalAmount * percentage / TokenizedCommunitiesConstants.percentageDivisor)
           .clamp(0.0, totalAmount);
-      setAmount(amount);
+
+      Logger.info(
+        '[TradeCommunityTokenController] setAmountByPercentage (buy) | percentage=$percentage | totalAmount=$totalAmount | calculatedAmount=$amount | useFullAmount=$isFullAmount',
+      );
+      setAmount(amount, useFullAmount: isFullAmount);
     } else {
       // Sell mode: use community token balance
       final balance = state.communityTokenBalance;
       if (balance <= 0) return;
 
-      final amount = (balance * percentage / TokenizedCommunitiesConstants.percentageDivisor)
-          .clamp(0.0, balance);
-      setAmount(amount);
+      // For 100%, use the balance directly to avoid floating-point precision issues
+      final isFullAmount = percentage == TokenizedCommunitiesConstants.percentageDivisor;
+      final amount = isFullAmount
+          ? balance
+          : (balance * percentage / TokenizedCommunitiesConstants.percentageDivisor)
+              .clamp(0.0, balance);
+
+      Logger.info(
+        '[TradeCommunityTokenController] setAmountByPercentage (sell) | percentage=$percentage | balance=$balance | calculatedAmount=$amount | useFullAmount=$isFullAmount',
+      );
+      setAmount(amount, useFullAmount: isFullAmount);
     }
   }
 
