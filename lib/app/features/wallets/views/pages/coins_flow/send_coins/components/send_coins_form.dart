@@ -189,7 +189,7 @@ class SendCoinsForm extends HookConsumerWidget {
                       ],
                       SizedBox(height: 12.0.s),
                       CoinAmountInput(
-                        maxValue: 2000000,
+                        maxValue: maxAmount,
                         balanceUSD: usdAmount,
                         controller: amountController,
                         coin: coin?.selectedOption?.coin,
