@@ -601,12 +601,6 @@ class TradeCommunityTokenService {
       final tokenAmountRaw = actualAmountRaw?.toString() ?? pricing.amount;
       final communityTokenAmountValue = fromBlockchainUnits(tokenAmountRaw);
 
-      Logger.info(
-        '[TradeCommunityTokenService] Using amount | '
-        'actual=$actualAmountRaw | fallback=${pricing.amount} | '
-        'final=$tokenAmountRaw',
-      );
-
       final usdAmountValue = pricing.amountUSD;
       final baseTokenAmountValue = fromBlockchainUnits(
         amountIn.toString(),
@@ -628,13 +622,6 @@ class TradeCommunityTokenService {
       );
       final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
 
-      Logger.info(
-        '[TradeCommunityTokenService] BUY EVENT AMOUNTS | '
-        'externalAddress=$externalAddress | '
-        'amountBase: ${amountBase.value} ${amountBase.currency} | '
-        'amountQuote: ${amountQuote.value} ${amountQuote.currency} | '
-        'amountUsd: ${amountUsd.value} ${amountUsd.currency}',
-      );
       Logger.info(
         '[TradeCommunityTokenService] Calling sendBuyActionEvents | externalAddress=$externalAddress | network=$walletNetwork | hasUserPosition=$hasUserPosition | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$tokenAddress | transactionAddress=$txHash',
       );
@@ -690,23 +677,12 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Bonding curve address fetched | bondingCurveAddress=$bondingCurveAddress',
       );
 
-      final actualDelta = await _pollForPositionDelta(
-        externalAddress: externalAddress,
-        previousPositionRaw: previousPositionRaw,
-      );
-
-      if (actualDelta != null) {
-        Logger.info(
-          '[TradeCommunityTokenService] Sell verified | '
-          'position delta=$actualDelta | expected=$amountIn',
-        );
-      }
-
       final communityTokenAmountValue = fromBlockchainUnits(amountIn.toString());
       final paymentTokenAmountValue = fromBlockchainUnits(
         pricing.amount,
         decimals: paymentTokenDecimals,
       );
+
       final usdAmountValue = pricing.amountUSD;
 
       Logger.info(
@@ -722,13 +698,6 @@ class TradeCommunityTokenService {
       );
       final amountUsd = TransactionAmount(value: usdAmountValue, currency: 'USD');
 
-      Logger.info(
-        '[TradeCommunityTokenService] SELL EVENT AMOUNTS | '
-        'externalAddress=$externalAddress | '
-        'amountBase: ${amountBase.value} ${amountBase.currency} | '
-        'amountQuote: ${amountQuote.value} ${amountQuote.currency} | '
-        'amountUsd: ${amountUsd.value} ${amountUsd.currency}',
-      );
       Logger.info(
         '[TradeCommunityTokenService] Calling sendSellActionEvents | externalAddress=$externalAddress | network=$walletNetwork | bondingCurveAddress=$bondingCurveAddress | tokenAddress=$communityTokenAddress | transactionAddress=$txHash',
       );
@@ -793,11 +762,6 @@ class TradeCommunityTokenService {
     int maxAttempts = 15,
     Duration pollInterval = const Duration(seconds: 2),
   }) async {
-    Logger.info(
-      '[TradeCommunityTokenService] Polling for position change | '
-      'externalAddress=$externalAddress | previousPosition=$previousPositionRaw',
-    );
-
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
       if (attempt > 0) {
         await Future<void>.delayed(pollInterval);
@@ -809,19 +773,9 @@ class TradeCommunityTokenService {
         final newPositionRaw =
             newPositionAmount != null ? BigInt.tryParse(newPositionAmount) : null;
 
-        Logger.info(
-          '[TradeCommunityTokenService] Poll attempt $attempt | '
-          'previousPosition=$previousPositionRaw | newPosition=$newPositionRaw',
-        );
-
         if (newPositionRaw != previousPositionRaw) {
           final previous = previousPositionRaw ?? BigInt.zero;
           final delta = (newPositionRaw ?? BigInt.zero) - previous;
-
-          Logger.info(
-            '[TradeCommunityTokenService] Position changed | '
-            'delta=$delta | previous=$previous | new=$newPositionRaw',
-          );
 
           return delta.abs();
         }

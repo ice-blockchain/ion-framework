@@ -6,7 +6,6 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/components/holder_avatar.dart';
 import 'package:ion/app/router/utils/profile_navigation_utils.dart';
 import 'package:ion/app/services/browser/browser.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/date.dart';
@@ -32,19 +31,10 @@ class LatestTradeRow extends StatelessWidget {
     final i18n = context.i18n;
 
     final timeText = formatShortTimestamp(DateTime.parse(trade.position.createdAt));
-    final convertedAmount = fromBlockchainUnits(trade.position.amount);
-    final amountText = formatTokenAmountWithSubscript(convertedAmount);
-    final usdText = formatUSD(trade.position.amountUSD);
-
-    Logger.info(
-      '[LatestTradeRow] '
-      'Type: ${trade.position.type.name}, '
-      'HolderName: ${trade.position.holder.name}, '
-      'RawAmount: ${trade.position.amount}, '
-      'ConvertedAmount: $convertedAmount, '
-      'AmountUSD: ${trade.position.amountUSD}, '
-      'CreatedAt: ${trade.position.createdAt}',
+    final amountText = formatTokenAmountWithSubscript(
+      fromBlockchainUnits(trade.position.amount),
     );
+    final usdText = formatUSD(trade.position.amountUSD);
 
     final badgeColor = trade.position.type == TradeType.buy ? colors.success : colors.lossRed;
     final badgeText = trade.position.type == TradeType.buy
