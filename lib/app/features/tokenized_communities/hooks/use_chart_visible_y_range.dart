@@ -95,6 +95,7 @@ const _debounceDelay = Duration(milliseconds: 150);
   useEffect(
     () {
       isScrollTriggered.value = false; // Data change, not scroll - no animation
+      visibleYRange.value = null; // Clear stale range so fallback uses current calcData
 
       if (!isLoading) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
