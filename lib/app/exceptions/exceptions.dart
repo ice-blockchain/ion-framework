@@ -847,3 +847,7 @@ class LiquidityPoolNotFoundException extends IONException {
 class MainWalletViewNotFoundException extends IONException {
   MainWalletViewNotFoundException() : super(10151, 'Main wallet view not found');
 }
+
+class PositionUnchangedException extends IONException {
+  PositionUnchangedException() : super(10152, 'Position unchanged');
+}

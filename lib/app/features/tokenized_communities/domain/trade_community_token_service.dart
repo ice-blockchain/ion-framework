@@ -22,6 +22,7 @@ import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/retry.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -71,9 +72,7 @@ class TradeCommunityTokenService {
     final firstBuy = await _isFirstBuy(externalAddress, externalAddressType);
     final hasUserPosition = _hasUserPosition(tokenInfo);
 
-    final previousPositionRaw = tokenInfo?.marketData.position?.amount != null
-        ? BigInt.tryParse(tokenInfo!.marketData.position!.amount)
-        : null;
+    final previousPositionRaw = _extractPositionRaw(tokenInfo);
     Logger.info(
       '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
     );
@@ -235,9 +234,7 @@ class TradeCommunityTokenService {
     Logger.info('[TradeCommunityTokenService] Fetching token info');
     final tokenInfo = await repository.fetchTokenInfo(externalAddress);
 
-    final previousPositionRaw = tokenInfo?.marketData.position?.amount != null
-        ? BigInt.tryParse(tokenInfo!.marketData.position!.amount)
-        : null;
+    final previousPositionRaw = _extractPositionRaw(tokenInfo);
 
     Logger.info(
       '[TradeCommunityTokenService] Building quote | pricingIdentifier=$externalAddress | amountIn=$amountIn | slippagePercent=$slippagePercent',
@@ -593,7 +590,7 @@ class TradeCommunityTokenService {
         '[TradeCommunityTokenService] Token address obtained | tokenAddress=$tokenAddress',
       );
 
-      final actualAmountRaw = await _pollForPositionDelta(
+      final actualAmountRaw = await _fetchPositionDelta(
         externalAddress: externalAddress,
         previousPositionRaw: previousPositionRaw,
       );
@@ -731,6 +728,11 @@ class TradeCommunityTokenService {
 
   bool _hasUserPosition(CommunityToken? tokenInfo) => tokenInfo?.marketData.position != null;
 
+  BigInt? _extractPositionRaw(CommunityToken? tokenInfo) {
+    final amount = tokenInfo?.marketData.position?.amount;
+    return amount != null ? BigInt.tryParse(amount) : null;
+  }
+
   bool _sameAddress(String? left, String? right) {
     if (left == null || right == null) return false;
     return left.toLowerCase() == right.toLowerCase();
@@ -756,42 +758,34 @@ class TradeCommunityTokenService {
     return !hasFirstBuyDefinitionEvent;
   }
 
-  Future<BigInt?> _pollForPositionDelta({
+  Future<BigInt?> _fetchPositionDelta({
     required String externalAddress,
     required BigInt? previousPositionRaw,
-    int maxAttempts = 15,
-    Duration pollInterval = const Duration(seconds: 2),
   }) async {
-    for (var attempt = 0; attempt < maxAttempts; attempt++) {
-      if (attempt > 0) {
-        await Future<void>.delayed(pollInterval);
-      }
+    try {
+      return await withRetry<BigInt>(
+        ({Object? error}) async {
+          final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+          final newPositionRaw = _extractPositionRaw(tokenInfo);
 
-      try {
-        final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
-        final newPositionAmount = tokenInfo?.marketData.position?.amount;
-        final newPositionRaw =
-            newPositionAmount != null ? BigInt.tryParse(newPositionAmount) : null;
+          if (newPositionRaw == previousPositionRaw) {
+            throw PositionUnchangedException();
+          }
 
-        if (newPositionRaw != previousPositionRaw) {
           final previous = previousPositionRaw ?? BigInt.zero;
           final delta = (newPositionRaw ?? BigInt.zero) - previous;
 
           return delta.abs();
-        }
-      } catch (e, stackTrace) {
-        Logger.error(
-          e,
-          stackTrace: stackTrace,
-          message: '[TradeCommunityTokenService] Error polling for position',
-        );
-      }
+        },
+        maxRetries: 15,
+        initialDelay: const Duration(seconds: 2),
+        maxDelay: const Duration(seconds: 2),
+        multiplier: 1,
+        retryWhen: (e) => e is PositionUnchangedException,
+      );
+    } on PositionUnchangedException {
+      return null;
     }
-
-    Logger.warning(
-      '[TradeCommunityTokenService] Position unchanged after $maxAttempts attempts',
-    );
-    return null;
   }
 }
 
