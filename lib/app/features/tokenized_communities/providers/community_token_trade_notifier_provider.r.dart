@@ -284,9 +284,10 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final token = formState.selectedPaymentToken;
       final wallet = formState.targetWallet;
       final amount = formState.amount;
+      final useFullAmount = formState.useFullAmount;
 
       Logger.info(
-        '[CommunityTokenTradeNotifier] Form state | token=${token?.abbreviation} | wallet=${wallet?.id} | amount=$amount',
+        '[CommunityTokenTradeNotifier] Form state | token=${token?.abbreviation} | wallet=${wallet?.id} | amount=$amount | useFullAmount=$useFullAmount',
       );
 
       if (token == null || wallet == null || amount <= 0) {
@@ -317,10 +318,20 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       );
 
       Logger.info('[CommunityTokenTradeNotifier] Step 4: Converting amount to blockchain units');
-      final amountIn =
-          toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
+
+      // Get the actual wallet balance in blockchain units
+      final walletBalanceRaw = tokenInfo?.marketData.position?.amount;
+      final walletBalanceBigInt =
+          walletBalanceRaw != null ? BigInt.tryParse(walletBalanceRaw) ?? BigInt.zero : BigInt.zero;
+
+      // If useFullAmount is true, use raw blockchain balance directly
+      // to avoid floating-point precision errors when converting from double
+      final amountIn = useFullAmount && walletBalanceBigInt > BigInt.zero
+          ? walletBalanceBigInt
+          : toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
+
       Logger.info(
-        '[CommunityTokenTradeNotifier] Amount converted | amount=$amount | amountIn=$amountIn | decimals=${TokenizedCommunitiesConstants.creatorTokenDecimals}',
+        '[CommunityTokenTradeNotifier] Amount converted | amount=$amount | amountIn=$amountIn | useFullAmount=$useFullAmount | walletBalanceRaw=$walletBalanceRaw | usingRawBalance=${useFullAmount && walletBalanceBigInt > BigInt.zero} | decimals=${TokenizedCommunitiesConstants.creatorTokenDecimals}',
       );
 
       Logger.info('[CommunityTokenTradeNotifier] Step 5: Getting trade service');

@@ -34,6 +34,7 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
     @Default(TokenizedCommunitiesConstants.defaultSlippagePercent) double slippage,
     @Default(false) bool shouldWaitSuggestedDetails,
     SuggestedTokenDetails? suggestedDetails,
+    @Default(false) bool useFullAmount,
   }) = _TradeCommunityTokenState;
 
   const TradeCommunityTokenState._();

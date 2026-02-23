@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/providers/trade_community_token_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/utils/amount_parser.dart';
 import 'package:ion/app/utils/crypto.dart';
+import 'package:ion/app/utils/num.dart';
 
 void useAmountListener(
   TextEditingController amountController,
@@ -33,7 +34,12 @@ void useAmountListener(
       final currentText = parseAmount(amountController.text) ?? 0;
       if ((currentText - currentAmount).abs() > 0.0001) {
         isUpdatingFromState.value = true;
-        amountController.text = currentAmount.toString();
+        // Format with thousands separators only, preserving decimal representation
+        amountController.text = formatDouble(
+          currentAmount,
+          maximumFractionDigits: 8,
+          minimumFractionDigits: 0,
+        );
         isUpdatingFromState.value = false;
       }
       return null;
