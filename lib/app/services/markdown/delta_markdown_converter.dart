@@ -448,9 +448,9 @@ abstract class DeltaMarkdownConverter {
       replacement = '[$originalContent]($externalAddress)';
     }
 
-    // Handle cashtags with coin ID (format: [$TICKER](coin:coinId))
+    // Handle cashtags with coin ID (format: [$TICKER](ncoin1...))
     if (hasCashtagCoinId && !hasCashtag && !hasMention) {
-      replacement = '[$originalContent](coin:$content)';
+      replacement = '[$originalContent]($content)';
     }
 
     // Apply formatting in order: code, bold, italic, strike, underline, link
@@ -728,7 +728,7 @@ abstract class DeltaMarkdownConverter {
   /// Extracts cashtag data from PMO tags.
   ///
   /// Identifies PMO replacements matching the pattern `[$TICKER](value)` where
-  /// value is either an externalAddress or `coin:coinId`.
+  /// value is either an externalAddress or a bech32-encoded coin ID (`ncoin1...`).
   static List<_CashtagExtraction> _extractCashtagAddresses(
     String plainText,
     List<_ParsedPmoTag> pmoTags,
@@ -740,14 +740,14 @@ abstract class DeltaMarkdownConverter {
       final match = cashtagPmoPattern.firstMatch(tag.replacement);
       if (match != null) {
         final value = match.group(2)!;
-        final isCoinId = value.startsWith('coin:');
+        final isCoinId = value.startsWith('ncoin1');
         extractions.add(
           (
             start: tag.start,
             end: tag.end,
             ticker: match.group(1)!,
             externalAddress: isCoinId ? null : value,
-            coinId: isCoinId ? value.substring(5) : null,
+            coinId: isCoinId ? value : null,
           ),
         );
       }

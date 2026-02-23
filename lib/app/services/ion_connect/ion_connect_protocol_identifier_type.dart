@@ -6,7 +6,8 @@ enum IonConnectProtocolIdentifierType {
   note,
   nprofile,
   nevent,
-  naddr;
+  naddr,
+  ncoin;
 
   static IonConnectProtocolIdentifierType from(String name) =>
       IonConnectProtocolIdentifierType.values.byName(name.toLowerCase());
