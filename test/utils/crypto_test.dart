@@ -393,7 +393,7 @@ void main() {
         (value: 2567890.0, currency: 'SATS', expected: '2.567M SATS'),
       ], (t) {
         test('formatCryptoFull(${t.value}, ${t.currency}) returns ${t.expected}', () {
-          expect(formatCryptoFull(t.value, t.currency), t.expected);
+          expect(formatCryptoFull(t.value, currency: t.currency), t.expected);
         });
       });
 
