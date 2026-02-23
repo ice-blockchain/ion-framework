@@ -17,6 +17,8 @@ import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
+import 'package:ion/app/services/bech32/bech32_service.r.dart';
+import 'package:ion/app/services/ion_connect/ion_connect_protocol_identifier_type.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 
 class MentionsHashtagsHandler extends TextEditorTypingListener {
@@ -157,7 +159,7 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
         ..formatText(
           tag.start,
           suggestionWithTagChar.length,
-          CashtagCoinIdAttribute.withValue(suggestion.id),
+          CashtagCoinIdAttribute.withValue(_encodeCoinId(suggestion.id)),
         )
         ..replaceText(tag.start + suggestionWithTagChar.length, 0, ' ', null)
         ..updateSelection(
@@ -170,6 +172,11 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
 
     _reapplyAllTags(controller.document.toPlainText());
     ref.invalidate(suggestionsNotifierProvider);
+  }
+
+  String _encodeCoinId(String uuid) {
+    final hexId = uuid.replaceAll('-', '');
+    return ref.read(bech32ServiceProvider).encode(IonConnectProtocolIdentifierType.ncoin, hexId);
   }
 
   // Gets cached market cap value (non-blocking for optimistic behavior, returns null if not cached).
