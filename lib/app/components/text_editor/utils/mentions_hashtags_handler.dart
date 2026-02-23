@@ -16,7 +16,7 @@ import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
-import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 
 class MentionsHashtagsHandler extends TextEditorTypingListener {
@@ -109,7 +109,7 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     ref.invalidate(suggestionsNotifierProvider);
   }
 
-  Future<void> onCashtagSuggestionSelected(CoinsGroup suggestion) async {
+  Future<void> onCashtagSuggestionSelected(CoinData suggestion) async {
     final fullText = controller.document.toPlainText();
     final cursorIndex = controller.selection.baseOffset;
     final tag = _findTagAtCursor(fullText, cursorIndex);
@@ -117,36 +117,53 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
 
     // Use abbreviation (uppercase ticker like "ETH") for display.
     final ticker = suggestion.abbreviation.toUpperCase();
-    final externalAddress = suggestion.coins.isNotEmpty
-        ? suggestion.coins.first.coin.tokenizedCommunityExternalAddress
-        : null;
+    final externalAddress = suggestion.tokenizedCommunityExternalAddress;
 
-    // Non-tokenized coins: keep existing behavior (plain attributed text insertion).
-    if (externalAddress == null || externalAddress.isEmpty) {
-      onSuggestionSelected(ticker);
-      return;
+    // Tokenized coins with cached market cap: insert as embed (widget).
+    if (externalAddress != null && externalAddress.isNotEmpty) {
+      final cachedMarketCap = _getCachedTokenMarketCap(externalAddress);
+      if (cachedMarketCap != null) {
+        controller.removeListener(editorListener);
+        try {
+          CashtagInsertionService.insertCashtag(
+            controller,
+            tag.start,
+            tag.length,
+            CashtagEmbedData(
+              ticker: ticker,
+              externalAddress: externalAddress,
+            ),
+          );
+        } finally {
+          controller.addListener(editorListener);
+        }
+        _reapplyAllTags(controller.document.toPlainText());
+        ref.invalidate(suggestionsNotifierProvider);
+        return;
+      }
     }
 
-    // Non-blocking optimistic behavior: only insert as embed when market cap is already cached.
-    final cachedMarketCap = _getCachedTokenMarketCap(externalAddress);
-
+    // All other cases: insert as text with coin ID attribute for future-proof identification.
     controller.removeListener(editorListener);
     try {
-      if (cachedMarketCap != null) {
-        CashtagInsertionService.insertCashtag(
-          controller,
+      final suggestionWithTagChar = '\$$ticker';
+      controller
+        ..replaceText(tag.start, tag.length, suggestionWithTagChar, null)
+        ..formatText(
           tag.start,
-          tag.length,
-          CashtagEmbedData(
-            ticker: ticker,
-            externalAddress: externalAddress,
-          ),
+          suggestionWithTagChar.length,
+          const CashtagAttribute.withValue(r'$'),
+        )
+        ..formatText(
+          tag.start,
+          suggestionWithTagChar.length,
+          CashtagCoinIdAttribute.withValue(suggestion.id),
+        )
+        ..replaceText(tag.start + suggestionWithTagChar.length, 0, ' ', null)
+        ..updateSelection(
+          TextSelection.collapsed(offset: tag.start + suggestionWithTagChar.length + 1),
+          ChangeSource.local,
         );
-      } else {
-        // Insert as plain attributed text; this will not upgrade automatically
-        // until we add the showMarketCap persistence + processing loop.
-        onSuggestionSelected(ticker);
-      }
     } finally {
       controller.addListener(editorListener);
     }

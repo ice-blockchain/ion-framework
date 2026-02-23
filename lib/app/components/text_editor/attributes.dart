@@ -25,6 +25,16 @@ class CashtagAttribute extends Attribute<String?> {
   static const String showMarketCapKey = 'showMarketCap';
 }
 
+class CashtagCoinIdAttribute extends Attribute<String?> {
+  const CashtagCoinIdAttribute(String? value) : super(attributeKey, AttributeScope.inline, value);
+
+  const CashtagCoinIdAttribute.withValue(String value) : this(value);
+
+  const CashtagCoinIdAttribute.unset() : this(null);
+
+  static const String attributeKey = 'cashtagCoinId';
+}
+
 class MentionAttribute extends Attribute<String?> {
   const MentionAttribute(String? mentionValue)
       : super(attributeKey, AttributeScope.inline, mentionValue);
