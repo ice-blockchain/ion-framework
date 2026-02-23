@@ -15,10 +15,14 @@ import 'package:ion/app/components/text_editor/custom_recognizer_builder.dart';
 import 'package:ion/app/components/text_editor/hooks/use_process_cashtag_embeds.dart';
 import 'package:ion/app/components/text_editor/hooks/use_process_mention_embeds.dart';
 import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
+import 'package:ion/app/components/text_editor/utils/mention_delta_converter.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/delta.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/browser/browser.dart';
+import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/url.dart';
 
 class TextEditorPreview extends HookWidget {
   const TextEditorPreview({
@@ -151,7 +155,19 @@ class _QuillFormattedContent extends HookConsumerWidget {
     return QuillEditor.basic(
       controller: controller,
       config: QuillEditorConfig(
-        onLaunchUrl: (url) => openDeepLinkOrInAppBrowser(url, ref),
+        onLaunchUrl: (url) {
+          final rawUrl = removeHttpsPrefix(url) ?? url;
+          final pubkey = MentionDeltaConverter.tryGetMentionPubkey(rawUrl);
+          if (pubkey != null) {
+            ProfileRoute(pubkey: pubkey).push<void>(context);
+            return;
+          }
+          try {
+            openDeepLinkOrInAppBrowser(url, ref);
+          } on FormatException catch (e) {
+            Logger.error(e, message: 'Invalid URL: $url');
+          }
+        },
         floatingCursorDisabled: true,
         showCursor: false,
         scrollable: scrollable,
