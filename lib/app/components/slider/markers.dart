@@ -52,13 +52,13 @@ class Markers extends HookWidget {
     );
   }
 
-  Alignment _getAlignment(double stop) {
+  AlignmentDirectional _getAlignment(double stop) {
     if (stop == stops.first) {
-      return Alignment.centerLeft;
+      return AlignmentDirectional.centerStart;
     } else if (stop == stops.last) {
-      return Alignment.centerRight;
+      return AlignmentDirectional.centerEnd;
     }
 
-    return Alignment.center;
+    return AlignmentDirectional.center;
   }
 }
