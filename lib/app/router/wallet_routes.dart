@@ -518,11 +518,13 @@ class CoinTransactionDetailsRoute extends BaseRouteData with _$CoinTransactionDe
     required this.walletViewId,
     required this.txHash,
     required this.typeValue,
+    this.transactionIndex,
   }) : super(
           child: TransactionDetailsPage(
             txHash: txHash,
             walletViewId: walletViewId,
             type: TransactionType.fromValue(typeValue),
+            transactionIndex: transactionIndex,
             exploreRouteLocationBuilder: (url) => ExploreTransactionDetailsRoute(url: url).location,
           ),
           type: IceRouteType.bottomSheet,
@@ -531,6 +533,7 @@ class CoinTransactionDetailsRoute extends BaseRouteData with _$CoinTransactionDe
   final String walletViewId;
   final String txHash;
   final String typeValue;
+  final String? transactionIndex;
 }
 
 class ExploreTransactionDetailsRoute extends BaseRouteData with _$ExploreTransactionDetailsRoute {

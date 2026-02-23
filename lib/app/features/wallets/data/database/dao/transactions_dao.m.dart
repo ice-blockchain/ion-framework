@@ -313,6 +313,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     DateTime? confirmedSince,
     String? networkId,
     CryptoAssetType? assetType,
+    String? index,
   }) {
     return _createTransactionQuery(
       where: (tbl, transactionCoinAlias, nativeCoinAlias) => _buildTransactionWhereClause(
@@ -331,6 +332,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         confirmedSince: confirmedSince,
         transactionCoinAlias: transactionCoinAlias,
         assetType: assetType,
+        index: index,
       ),
       limit: limit,
       offset: offset,
@@ -353,6 +355,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     DateTime? confirmedSince,
     TransactionType? type,
     CryptoAssetType? assetType,
+    String? index,
   }) async {
     final result = await _createTransactionQuery(
       where: (tbl, transactionCoinAlias, nativeCoinAlias) => _buildTransactionWhereClause(
@@ -371,6 +374,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
         type: type,
         transactionCoinAlias: transactionCoinAlias,
         assetType: assetType,
+        index: index,
       ),
       limit: limit,
       offset: offset,
@@ -458,6 +462,7 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
     $CoinsTableTable? transactionCoinAlias,
     DateTime? confirmedSince,
     CryptoAssetType? assetType,
+    String? index,
   }) {
     Expression<bool> expr = const Constant(true);
 
@@ -492,6 +497,10 @@ class TransactionsDao extends DatabaseAccessor<WalletsDatabase> with _$Transacti
 
     if (walletViewIds.isNotEmpty) {
       expr = expr & tbl.walletViewId.isIn(walletViewIds);
+    }
+
+    if (index != null && index.isNotEmpty) {
+      expr = expr & tbl.index.equals(index);
     }
 
     if (symbol != null && transactionCoinAlias != null) {

@@ -273,6 +273,7 @@ class TransactionsRepository {
     DateTime? confirmedSince,
     CryptoAssetType? assetType,
     TransactionType? type,
+    String? index,
   }) {
     return _transactionsDao.watchTransactions(
       walletAddresses: walletAddresses,
@@ -288,6 +289,7 @@ class TransactionsRepository {
       confirmedSince: confirmedSince,
       assetType: assetType,
       type: type,
+      index: index,
     );
   }
 
@@ -305,7 +307,9 @@ class TransactionsRepository {
     NetworkData? network,
     CryptoAssetType? assetType,
     TransactionType? type,
+    String? index,
   }) {
+    // Missing or empty index is ignored in the DAO and not used in the query.
     return _transactionsDao.getTransactions(
       walletAddresses: walletAddresses,
       txHashes: txHashes,
@@ -320,6 +324,7 @@ class TransactionsRepository {
       statuses: statuses,
       assetType: assetType,
       type: type,
+      index: index,
     );
   }
 
