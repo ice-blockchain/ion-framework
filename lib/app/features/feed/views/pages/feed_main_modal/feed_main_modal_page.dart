@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -159,56 +157,43 @@ class _ShareVideoButton extends HookConsumerWidget {
     return PermissionAwareWidget(
       permissionType: Permission.photos,
       onGranted: () async {
-        Future<void> showMediaPickerAndCreatePost() async {
-          await showSimpleBottomSheet<List<MediaFile>>(
-            context: context,
-            child: MediaPickerPage(
-              maxSelection: 1,
-              isBottomSheet: true,
-              isNeedFilterVideoByFormat: true,
-              type: MediaPickerType.video,
-              onSelectCallback: (result) async {
-                if (context.mounted) {
-                  if (result.isNotEmpty) {
-                    final editedMedia = await ref.read(
-                      editMediaProvider(
-                        result[0],
-                        maxVideoDuration: VideoConstants.feedVideoMaxDuration,
-                      ).future,
-                    );
-                    if (!context.mounted) return;
-                    if (editedMedia == null) {
-                      return;
-                    } else {
-                      final finishEditing = await CreateVideoRoute(
-                        videoPath: editedMedia.path,
-                        videoThumbPath: editedMedia.thumb,
-                        mimeType: result[0].mimeType ?? '',
-                      ).push<bool?>(context);
+        // Pop media picker sheet immediately on selection so it's not left under post-editor.
+        final selected = await showSimpleBottomSheet<List<MediaFile>>(
+          context: context,
+          child: MediaPickerPage(
+            maxSelection: 1,
+            isBottomSheet: true,
+            isNeedFilterVideoByFormat: true,
+            type: MediaPickerType.video,
+            onSelectCallback: (result) {
+              if (context.mounted) {
+                context.pop(result);
+              }
+            },
+          ),
+        );
+        if (!context.mounted || selected == null || selected.isEmpty) return;
 
-                      if (finishEditing.falseOrValue) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (context.mounted) {
-                            context.pop();
-                          }
-                        });
-                      }
-                    }
-                  } else {
-                    context.pop();
-                  }
-                }
-              },
-            ),
-          );
+        final editedMedia = await ref.read(
+          editMediaProvider(
+            selected[0],
+            maxVideoDuration: VideoConstants.feedVideoMaxDuration,
+          ).future,
+        );
+        if (!context.mounted || editedMedia == null) return;
+
+        final finishEditing = await CreateVideoRoute(
+          videoPath: editedMedia.path,
+          videoThumbPath: editedMedia.thumb,
+          mimeType: selected[0].mimeType ?? '',
+        ).push<bool?>(context);
+        if (finishEditing.falseOrValue && context.mounted && context.canPop()) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (context.mounted) {
               context.pop();
             }
           });
         }
-
-        await showMediaPickerAndCreatePost();
       },
       requestDialog: const PermissionRequestSheet(permission: Permission.photos),
       settingsDialog: SettingsRedirectSheet.fromType(context, Permission.photos),
