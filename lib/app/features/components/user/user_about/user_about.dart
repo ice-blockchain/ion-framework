@@ -36,9 +36,7 @@ class UserAbout extends HookConsumerWidget {
 
     final customStyles = textEditorStyles(
       context,
-      color: profileMode == ProfileMode.dark
-          ? context.theme.appColors.secondaryBackground
-          : null,
+      color: profileMode == ProfileMode.dark ? context.theme.appColors.secondaryBackground : null,
       baseTextStyle: context.theme.appTextThemes.caption2,
     );
 
