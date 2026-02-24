@@ -37,6 +37,21 @@ class UserStories extends _$UserStories {
 }
 
 @riverpod
+ModifiablePostEntity? userLastStory(Ref ref, String pubkey) {
+  final dataSources = ref.watch(userStoriesDataSourceProvider(pubkey: pubkey, limit: 1));
+  if (dataSources == null) {
+    return null;
+  }
+
+  return ref
+      .watch(entitiesPagedDataProvider(dataSources))
+      ?.data
+      .items
+      ?.whereType<ModifiablePostEntity>()
+      .firstOrNull;
+}
+
+@riverpod
 List<EntitiesDataSource>? userStoriesDataSource(
   Ref ref, {
   required String pubkey,
