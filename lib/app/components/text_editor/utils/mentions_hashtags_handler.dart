@@ -145,7 +145,10 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
       }
     }
 
-    // All other cases: insert as text with coin ID attribute for future-proof identification.
+    // All other cases: insert as text.
+    // Keep coin ID attribute only for tokenized-community suggestions so we can preserve
+    // token identity through PMO tags when market-cap embed is not available yet.
+    final isTokenizedCommunity = externalAddress != null && externalAddress.isNotEmpty;
     controller.removeListener(editorListener);
     try {
       final suggestionWithTagChar = '\$$ticker';
@@ -159,7 +162,9 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
         ..formatText(
           tag.start,
           suggestionWithTagChar.length,
-          CashtagCoinIdAttribute.withValue(_encodeCoinId(suggestion.id)),
+          isTokenizedCommunity
+              ? CashtagCoinIdAttribute.withValue(_encodeCoinId(suggestion.id))
+              : const CashtagCoinIdAttribute.unset(),
         )
         ..replaceText(tag.start + suggestionWithTagChar.length, 0, ' ', null)
         ..updateSelection(
