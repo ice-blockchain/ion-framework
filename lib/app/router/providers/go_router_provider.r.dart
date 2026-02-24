@@ -152,7 +152,8 @@ Future<String?> _mainRedirect({
       }
     }
 
-    final hasUserMetadata = ref.read(currentUserMetadataProvider).valueOrNull != null;
+    final userMetadata = await ref.read(currentUserMetadataProvider.future);
+    final hasUserMetadata = userMetadata != null;
     final delegationComplete = ref.read(delegationCompleteProvider).valueOrNull.falseOrValue;
     final relaysAssigned = ref.read(relaysAssignedProvider).valueOrNull.falseOrValue;
 
