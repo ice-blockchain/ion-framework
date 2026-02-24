@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/nsfw/models/video_thumbnail.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector.dart';
 import 'package:ion/app/features/nsfw/nsfw_detector_factory.r.dart';
@@ -38,16 +39,41 @@ class NsfwValidationService {
   final VideoInfoService videoInfoService;
   final NsfwModelManager nsfwModelManager;
 
+  /// Timeout for GIF thumbnail extraction to avoid simulator hang / infinite loading.
+  static const _gifThumbnailTimeout = Duration(seconds: 2);
+
+  /// Fallback timestamp when GIF duration is unknown or extraction fails.
+  static const _gifFallbackTimestamp = '00:00:00.000';
+
+  /// Relative positions (0..1) to sample GIF frames for NSFW check.
+  static const _gifThumbnailSamplePositions = [0.05, 0.40, 0.80];
+
   // Combined validation: images + videos in single isolate call
   Future<Map<String, bool>> hasNsfwInMediaFiles(List<MediaFile> mediaFiles) async {
-    final imageFiles = mediaFiles.where(_isImageMedia).toList();
-    final videoFiles = _extractVideoFiles(mediaFiles);
+    final gifFiles = mediaFiles.where((m) => m.isGif).toList();
+    final nonGifFiles = mediaFiles.where((m) => !m.isGif).toList();
 
-    final thumbnails = await _generateVideoThumbnails(videoFiles);
+    // Check GIFs first: fail-closed if extraction failed
+    final gifThumbnails = await _generateGifThumbnailsWithFallback(gifFiles);
+    if (gifFiles.isNotEmpty && gifThumbnails.isEmpty) {
+      throw NSFWProcessingException();
+    }
+
+    final imageFiles = nonGifFiles.where(_isImageMedia).toList();
+    final videoFiles = _extractVideoFiles(nonGifFiles);
+    final videoThumbnails = await _generateVideoThumbnails(videoFiles);
+    final allThumbnails = [...videoThumbnails, ...gifThumbnails];
+
+    if (imageFiles.isEmpty && allThumbnails.isEmpty) {
+      throw NSFWProcessingException();
+    }
+
     final mediaBytesToCheck =
-        await _prepareMediaBytes(imageFiles: imageFiles, thumbnails: thumbnails);
+        await _prepareMediaBytes(imageFiles: imageFiles, thumbnails: allThumbnails);
 
-    if (mediaBytesToCheck.isEmpty) return {};
+    if (mediaBytesToCheck.isEmpty) {
+      throw NSFWProcessingException();
+    }
 
     final nsfwResults = await _checkMediaBytesForNsfw(mediaBytesToCheck);
 
@@ -55,7 +81,8 @@ class NsfwValidationService {
       nsfwResults: nsfwResults,
       images: imageFiles,
       videos: videoFiles,
-      thumbnails: thumbnails,
+      gifs: gifFiles,
+      thumbnails: allThumbnails,
     );
   }
 
@@ -94,6 +121,9 @@ class NsfwValidationService {
   }
 
   bool _isImageMedia(MediaFile media) {
+    if (media.isGif) {
+      return false;
+    }
     final mime = media.mimeType ?? '';
     if (mime.startsWith('image/')) return true;
     return _isImageExtension(media.path);
@@ -158,6 +188,74 @@ class NsfwValidationService {
     return thumbnails;
   }
 
+  Future<List<VideoThumbnail>> _generateGifThumbnailsWithFallback(
+    List<MediaFile> gifFiles,
+  ) async {
+    if (gifFiles.isEmpty) return [];
+
+    try {
+      return await _generateGifThumbnails(gifFiles).timeout(
+        _gifThumbnailTimeout,
+        onTimeout: () {
+          Logger.warning(
+            'GIF thumbnail extraction timed out after ${_gifThumbnailTimeout.inSeconds}s, '
+            'will fail-closed (block)',
+          );
+          return <VideoThumbnail>[];
+        },
+      );
+    } catch (e, _) {
+      return [];
+    }
+  }
+
+  Future<List<String>> _buildGifTimestamps(MediaFile gif) async {
+    try {
+      final info = await videoInfoService.getVideoInformation(gif.path);
+      final durationMs = info.duration.inMilliseconds;
+      if (durationMs <= 0) {
+        return [_gifFallbackTimestamp];
+      }
+
+      return _gifThumbnailSamplePositions
+          .map((p) => _formatTimestamp((durationMs * p).round()))
+          .toList();
+    } catch (_) {
+      return [_gifFallbackTimestamp];
+    }
+  }
+
+  Future<List<VideoThumbnail>> _generateGifThumbnails(List<MediaFile> gifs) async {
+    final thumbnails = <VideoThumbnail>[];
+
+    for (final gif in gifs) {
+      final timestamps = await _buildGifTimestamps(gif);
+
+      for (final ts in timestamps) {
+        try {
+          final thumbMedia = await videoCompressor.getThumbnail(gif, timestamp: ts);
+          final bytes = await File(thumbMedia.path).readAsBytes();
+
+          thumbnails.add(
+            VideoThumbnail(
+              path: thumbMedia.path,
+              bytes: bytes,
+              videoPath: gif.path,
+            ),
+          );
+        } catch (e, st) {
+          Logger.error(
+            e,
+            stackTrace: st,
+            message: 'Failed to extract GIF frame for NSFW check at $ts: ${gif.path}',
+          );
+        }
+      }
+    }
+
+    return thumbnails;
+  }
+
   Future<Map<String, Uint8List>> _prepareMediaBytes({
     List<MediaFile>? imageFiles,
     List<VideoThumbnail>? thumbnails,
@@ -204,6 +302,7 @@ class NsfwValidationService {
     required List<VideoThumbnail> thumbnails,
     required List<MediaFile> images,
     required List<MediaFile> videos,
+    required List<MediaFile> gifs,
   }) {
     final finalResults = <String, bool>{};
 
@@ -219,11 +318,11 @@ class NsfwValidationService {
       thumbsByVideo.putIfAbsent(thumb.videoPath, () => []).add(thumb);
     }
 
-    // Aggregate per video
-    for (final video in videos) {
-      final relatedThumbs = thumbsByVideo[video.path];
+    // Aggregate per video/gif (fail-closed: no thumbs => block)
+    for (final media in [...videos, ...gifs]) {
+      final relatedThumbs = thumbsByVideo[media.path];
       if (relatedThumbs == null || relatedThumbs.isEmpty) {
-        finalResults[video.path] = false;
+        finalResults[media.path] = true;
         continue;
       }
 
@@ -231,7 +330,7 @@ class NsfwValidationService {
         (t) => nsfwResults[t.path]?.decision == NsfwDecision.block,
       );
 
-      finalResults[video.path] = hasNsfw;
+      finalResults[media.path] = hasNsfw;
     }
 
     return finalResults;
