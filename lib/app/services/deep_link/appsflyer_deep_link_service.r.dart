@@ -73,10 +73,7 @@ AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
     templateId: templateId,
     brandDomain: brandDomain,
     baseHost: baseHost,
-    resolveShareImageUrl: (url) async {
-      if (url == null || url.isEmpty) return null;
-      return ref.read(ionConnectMediaUrlProvider(url));
-    },
+    resolveShareImageUrl: (url) => ref.read(resolvedShareImageUrlForOgImageProvider(url).future),
   );
 }
 
@@ -98,7 +95,7 @@ final class AppsFlyerDeepLinkService {
     required String templateId,
     required String brandDomain,
     required String baseHost,
-    required Future<String?> Function(String? imageUrl) resolveShareImageUrl,
+    required Future<String?> Function(String imageUrl) resolveShareImageUrl,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
         _baseHost = baseHost,
@@ -109,7 +106,7 @@ final class AppsFlyerDeepLinkService {
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
-  final Future<String?> Function(String? imageUrl) _resolveShareImageUrl;
+  final Future<String?> Function(String imageUrl) _resolveShareImageUrl;
 
   static final oneLinkUrlRegex = RegExp(
     r'@?(https://(ion\.onelink\.me|app\.online\.io|testnet\.app\.online\.io)/[A-Za-z0-9\-_/\?&%=#]*)',
@@ -337,8 +334,7 @@ final class AppsFlyerDeepLinkService {
     final description = ogDescription.isEmpty
         ? ' '
         : _truncateText(text: ogDescription!, maxLength: maxOpenGraphDescriptionLength);
-    final rawImage = ogImageUrl.isEmpty ? ' ' : ogImageUrl!;
-    final image = rawImage == ' ' ? ' ' : await _ogImageUrlForDeeplink(rawImage);
+    final image = await _getEffectiveOgImageUrl(ogImageUrl);
 
     if (ogTitle case final title?) {
       return {
@@ -358,12 +354,14 @@ final class AppsFlyerDeepLinkService {
     return text;
   }
 
-  /// Resolves to CDN URL for share then appends format=png for ION media so CDN serves PNG for og:image.
-  Future<String> _ogImageUrlForDeeplink(String url) async {
+  /// Resolves share image URL for og:image via injected callback (provider handles fallback).
+  ///
+  /// AppsFlyer requires a non-null or empty og:image because otherwise all og params
+  /// will be not set at all; returns ' ' when [url] is null or empty.
+  Future<String> _getEffectiveOgImageUrl(String? url) async {
+    if (url == null || url.isEmpty) return ' ';
     final resolved = await _resolveShareImageUrl(url);
-    final urlToUse = resolved ?? url;
-    if (!isIonMediaUrl(urlToUse)) return urlToUse;
-    return urlToUse.contains('?') ? '$urlToUse&format=png' : '$urlToUse?format=png';
+    return resolved ?? url;
   }
 
   void _handleInviteLinkSuccess(dynamic data, Completer<String> completer) {

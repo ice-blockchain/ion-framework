@@ -69,3 +69,14 @@ String ionConnectCdnUrl(Ref ref, String url) {
     return url;
   }
 }
+
+/// Resolved share/og:image URL: resolves via [ionConnectMediaUrlProvider] then appends
+/// format=png for ION media so the CDN serves PNG for og:image. Returns null when
+/// [imageUrl] is null or empty.
+@riverpod
+Future<String?> resolvedShareImageUrlForOgImage(Ref ref, String imageUrl) async {
+  if (imageUrl.isEmpty) return null;
+  final resolved = ref.watch(ionConnectMediaUrlProvider(imageUrl));
+  if (!isIonMediaUrl(resolved)) return resolved;
+  return resolved.contains('?') ? '$resolved&format=png' : '$resolved?format=png';
+}
