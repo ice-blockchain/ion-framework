@@ -4,9 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
-import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/models/cashtag_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/services/cashtag_insertion_service.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
@@ -14,11 +12,8 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/mention/
 import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
-import 'package:ion/app/services/bech32/bech32_service.r.dart';
-import 'package:ion/app/services/ion_connect/ion_connect_protocol_identifier_type.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
 
 class MentionsHashtagsHandler extends TextEditorTypingListener {
@@ -121,34 +116,28 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     final ticker = suggestion.abbreviation.toUpperCase();
     final externalAddress = suggestion.tokenizedCommunityExternalAddress;
 
-    // Tokenized coins with cached market cap: insert as embed (widget).
+    // Tokenized coins: persist as attributed text with external address.
+    // The embed-upgrade hook will render market-cap inline as soon as data is available.
     if (externalAddress != null && externalAddress.isNotEmpty) {
-      final cachedMarketCap = _getCachedTokenMarketCap(externalAddress);
-      if (cachedMarketCap != null) {
-        controller.removeListener(editorListener);
-        try {
-          CashtagInsertionService.insertCashtag(
-            controller,
-            tag.start,
-            tag.length,
-            CashtagEmbedData(
-              ticker: ticker,
-              externalAddress: externalAddress,
-            ),
-          );
-        } finally {
-          controller.addListener(editorListener);
-        }
-        _reapplyAllTags(controller.document.toPlainText());
-        ref.invalidate(suggestionsNotifierProvider);
-        return;
+      controller.removeListener(editorListener);
+      try {
+        CashtagInsertionService.insertCashtagAsText(
+          controller,
+          tag.start,
+          tag.length,
+          ticker,
+          externalAddress,
+        );
+      } finally {
+        controller.addListener(editorListener);
       }
+
+      _reapplyAllTags(controller.document.toPlainText());
+      ref.invalidate(suggestionsNotifierProvider);
+      return;
     }
 
-    // All other cases: insert as text.
-    // Keep coin ID attribute only for tokenized-community suggestions so we can preserve
-    // token identity through PMO tags when market-cap embed is not available yet.
-    final isTokenizedCommunity = externalAddress != null && externalAddress.isNotEmpty;
+    // Non-tokenized coins: plain cashtag only.
     controller.removeListener(editorListener);
     try {
       final suggestionWithTagChar = '\$$ticker';
@@ -158,13 +147,6 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
           tag.start,
           suggestionWithTagChar.length,
           const CashtagAttribute.withValue(r'$'),
-        )
-        ..formatText(
-          tag.start,
-          suggestionWithTagChar.length,
-          isTokenizedCommunity
-              ? CashtagCoinIdAttribute.withValue(_encodeCoinId(suggestion.id))
-              : const CashtagCoinIdAttribute.unset(),
         )
         ..replaceText(tag.start + suggestionWithTagChar.length, 0, ' ', null)
         ..updateSelection(
@@ -179,23 +161,9 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     ref.invalidate(suggestionsNotifierProvider);
   }
 
-  String _encodeCoinId(String uuid) {
-    final hexId = uuid.replaceAll('-', '');
-    return ref.read(bech32ServiceProvider).encode(IonConnectProtocolIdentifierType.ncoin, hexId);
-  }
-
   // Gets cached market cap value (non-blocking for optimistic behavior, returns null if not cached).
   double? _getCachedMarketCap(String pubkey) {
     return ref.read(userTokenMarketCapIfAvailableProvider(pubkey));
-  }
-
-  // Gets cached market cap for a tokenized community token by external address.
-  // Returns null if the info isn't cached yet.
-  double? _getCachedTokenMarketCap(String? externalAddress) {
-    if (externalAddress == null || externalAddress.isEmpty) return null;
-    final tokenAsync = ref.read(tokenMarketInfoProvider(externalAddress));
-    final token = tokenAsync.asData?.value;
-    return token?.marketData.marketCap;
   }
 
   void onSuggestionSelected(String suggestion) {
@@ -259,9 +227,30 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
   void _applyTagAttributes(List<_TagInfo> tags) {
     final docLength = controller.document.length;
 
-    controller
-      ..formatText(0, docLength, const HashtagAttribute.unset())
-      ..formatText(0, docLength, const CashtagAttribute.unset());
+    controller.formatText(0, docLength, const HashtagAttribute.unset());
+
+    var offset = 0;
+    for (final op in controller.document.toDelta().toList()) {
+      final opLength = op.length ?? 0;
+      final attrs = op.attributes;
+
+      if (attrs != null && attrs.containsKey(CashtagAttribute.attributeKey) && opLength > 0) {
+        final cashtagAttr = attrs[CashtagAttribute.attributeKey];
+        final showMarketCap = attrs[CashtagAttribute.showMarketCapKey] == true;
+        final hasCoinId = attrs[CashtagCoinIdAttribute.attributeKey] is String &&
+            (attrs[CashtagCoinIdAttribute.attributeKey] as String).isNotEmpty;
+        final hasExternalAddress =
+            cashtagAttr is String && cashtagAttr.trim().isNotEmpty && cashtagAttr.trim() != r'$';
+
+        final isTokenizedCashtag = showMarketCap && hasExternalAddress;
+
+        if (!isTokenizedCashtag && !hasCoinId) {
+          controller.formatText(offset, opLength, const CashtagAttribute.unset());
+        }
+      }
+
+      offset += opLength;
+    }
 
     final deltaOps = controller.document.toDelta().toList();
 

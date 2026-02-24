@@ -11,6 +11,36 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/
 class CashtagInsertionService {
   CashtagInsertionService._();
 
+  static String insertCashtagAsText(
+    QuillController controller,
+    int tagStart,
+    int tagLength,
+    String ticker,
+    String externalAddress, {
+    bool showMarketCap = true,
+  }) {
+    final cashtagText = r'$' + ticker.toUpperCase();
+
+    final attributes = <String, dynamic>{
+      CashtagAttribute.attributeKey: externalAddress.trim(),
+      CashtagAttribute.showMarketCapKey: showMarketCap,
+    };
+
+    final replaceDelta = Delta()
+      ..retain(tagStart)
+      ..delete(tagLength)
+      ..insert(cashtagText, attributes)
+      ..insert(' ');
+
+    controller.compose(
+      replaceDelta,
+      TextSelection.collapsed(offset: tagStart + cashtagText.length + 1),
+      ChangeSource.local,
+    );
+
+    return cashtagText;
+  }
+
   static int insertCashtag(
     QuillController controller,
     int tagStart,
