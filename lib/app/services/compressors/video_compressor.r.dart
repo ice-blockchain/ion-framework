@@ -110,6 +110,14 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     return '${seconds.toStringAsFixed(2)} s';
   }
 
+  bool _isCodecRelatedError(Object error) {
+    if (error is! PlatformException || error.code != 'COMPRESSION_FAILED') {
+      return false;
+    }
+    final details = error.details;
+    return details is Map && details['type'] == 'codec';
+  }
+
   Future<void> _logVideoError(
     Object error,
     StackTrace stackTrace,
@@ -145,14 +153,23 @@ class VideoCompressor implements Compressor<VideoCompressionSettings> {
     final duration = videoInfo.duration.inSeconds;
 
     if (duration > hardwareCompressionThreshold.inSeconds) {
-      final nativeSettings = Platform.isAndroid
-          ? AndroidNativeVideoCompressionSettings.balanced
-          : IosNativeVideoCompressionSettings.balanced;
+      try {
+        final nativeSettings = Platform.isAndroid
+            ? AndroidNativeVideoCompressionSettings.balanced
+            : IosNativeVideoCompressionSettings.balanced;
 
-      return nativeVideoCompressor.compress(
-        file,
-        settings: nativeSettings,
-      );
+        return await nativeVideoCompressor.compress(
+          file,
+          settings: nativeSettings,
+        );
+      } catch (e) {
+        if (!_isCodecRelatedError(e)) {
+          rethrow;
+        }
+        Logger.warning(
+          'Native video compression failed (codec), falling back to FFmpeg: $e',
+        );
+      }
     }
 
     settings ??= VideoCompressionSettings.balanced;
