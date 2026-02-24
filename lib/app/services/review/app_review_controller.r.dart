@@ -12,6 +12,9 @@ class AppReviewController extends _$AppReviewController {
   static const _keyCloseCount = 'review_close_count';
   static const _keyIsCompleted = 'review_is_completed';
 
+  static const _maxCloseCountBeforeNoPrompt = 3;
+  static const _debugVersionTag = 'debug';
+
   @override
   void build() {}
 
@@ -40,8 +43,8 @@ class AppReviewController extends _$AppReviewController {
       return true;
     }
 
-    // Don't show if already rated/feedback given or closed 3 times
-    if (isCompleted || closeCount >= 3) return false;
+    // Don't show if already rated/feedback given or closed _maxCloseCountBeforeNoPrompt times
+    if (isCompleted || closeCount >= _maxCloseCountBeforeNoPrompt) return false;
 
     return true;
   }
@@ -63,6 +66,6 @@ class AppReviewController extends _$AppReviewController {
     await localStorage.remove(_keyCloseCount);
     await localStorage.remove(_keyIsCompleted);
 
-    await localStorage.setString(_keyLastVersion, 'debug');
+    await localStorage.setString(_keyLastVersion, _debugVersionTag);
   }
 }

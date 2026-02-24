@@ -13,7 +13,7 @@ void useAppReviewPrompt(WidgetRef ref) {
 
   useEffect(
     () {
-      final timer = Timer(const Duration(seconds: 5), () async {
+      final timer = Timer(AppReviewModal.showReviewModalDelay, () async {
         final controller = ref.read(appReviewControllerProvider.notifier);
 
         if (await controller.shouldShowReview()) {

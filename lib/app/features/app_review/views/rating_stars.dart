@@ -11,6 +11,8 @@ class RatingStars extends StatelessWidget {
     super.key,
   });
 
+  static const _maxStars = 5;
+
   final int rating;
   final ValueChanged<int> onRatingChanged;
 
@@ -18,7 +20,7 @@ class RatingStars extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(5, (index) {
+      children: List.generate(_maxStars, (index) {
         final starValue = index + 1;
         return IconButton(
           onPressed: () => onRatingChanged(starValue),

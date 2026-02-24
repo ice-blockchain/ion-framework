@@ -17,6 +17,11 @@ import 'package:ion/generated/assets.gen.dart';
 class AppReviewModal extends HookConsumerWidget {
   const AppReviewModal({super.key});
 
+  static const showReviewModalDelay = Duration(seconds: 5);
+  static const _thanksDurationSeconds = Duration(seconds: 2);
+  static const _thanksAnimationDuration = Duration(milliseconds: 300);
+  static const _requestReviewRating = 5;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rating = useState<int>(0);
@@ -27,12 +32,12 @@ class AppReviewModal extends HookConsumerWidget {
 
       await ref.read(appReviewControllerProvider.notifier).recordComplete();
 
-      if (starRating == 5) {
+      if (starRating == _requestReviewRating) {
         await ref.read(appReviewServiceProvider).requestReview();
         if (context.mounted) Navigator.pop(context);
       } else {
         isSubmitted.value = true;
-        Future.delayed(const Duration(seconds: 2), () {
+        Future.delayed(_thanksDurationSeconds, () {
           if (context.mounted) Navigator.pop(context);
         });
       }
@@ -50,7 +55,7 @@ class AppReviewModal extends HookConsumerWidget {
           ],
         ),
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+          duration: _thanksAnimationDuration,
           child: isSubmitted.value
               ? const _ThanksView(key: ValueKey('thanks'))
               : _RatingView(
