@@ -35,13 +35,12 @@ class PaginatedMasterPubkeysData {
 @riverpod
 class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
   static const int _limit = 20;
-  late UserInfoFetcher _fetcher;
   bool _initialized = false;
   int _offset = 0;
+  int _fetchRequestId = 0;
 
   @override
   Future<PaginatedMasterPubkeysData> build(UserInfoFetcher fetcher) async {
-    _fetcher = fetcher;
     if (!_initialized) {
       await _init();
       return state.value ?? const PaginatedMasterPubkeysData();
@@ -57,17 +56,25 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
     return _fetch();
   }
 
+  Future<void> refresh() async {
+    _offset = 0;
+    _initialized = true;
+    return _fetch(clearCurrent: true);
+  }
+
   Future<void> _init() async {
     _initialized = true;
     return _fetch();
   }
 
-  Future<void> _fetch() async {
-    state = const AsyncValue.loading();
-    final currentData = state.valueOrNull?.items ?? <String>[];
-    state = await AsyncValue.guard(() async {
+  Future<void> _fetch({bool clearCurrent = false}) async {
+    final requestId = ++_fetchRequestId;
+    final requestOffset = _offset;
+    final currentData = clearCurrent ? <String>[] : (state.valueOrNull?.items ?? const <String>[]);
+    state = const AsyncLoading<PaginatedMasterPubkeysData>().copyWithPrevious(state);
+    final result = await AsyncValue.guard(() async {
       final ionIdentityClient = await ref.read(ionIdentityClientProvider.future);
-      final usersInfo = await _fetcher(_limit, _offset, currentData, ionIdentityClient);
+      final usersInfo = await fetcher(_limit, requestOffset, currentData, ionIdentityClient);
 
       await Future.wait([
         ref.read(userRelaysManagerProvider.notifier).cacheFromIdentity(usersInfo),
@@ -100,7 +107,15 @@ class PaginatedMasterPubkeys extends _$PaginatedMasterPubkeys {
       ];
       return PaginatedMasterPubkeysData(items: merged, hasMore: usersInfo.length == _limit);
     });
-    _offset += _limit;
+
+    if (requestId != _fetchRequestId) {
+      return;
+    }
+
+    state = result;
+    if (!result.hasError) {
+      _offset = requestOffset + _limit;
+    }
   }
 }
 
