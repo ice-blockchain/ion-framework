@@ -49,6 +49,7 @@ class IONIdentity {
 
     final passkeySigner = PasskeysSigner(
       localPasskeyCredsStateStorage: localPasskeyCredsStateStorage,
+      logger: config.logger,
     );
     final passwordSigner = PasswordSigner(
       config: config,

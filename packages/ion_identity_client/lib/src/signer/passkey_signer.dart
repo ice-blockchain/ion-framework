@@ -42,11 +42,14 @@ class PasskeysSigner {
   PasskeysSigner({
     required this.localPasskeyCredsStateStorage,
     this.options = const PasskeysOptions(),
+    this.logger,
   });
 
   /// The configuration options for passkey operations.
   final PasskeysOptions options;
   final LocalPasskeyCredsStateStorage localPasskeyCredsStateStorage;
+
+  final IonIdentityLogger? logger;
 
   Future<void> _cancelCurrentAuthenticatorOperation() async {
     try {
@@ -176,6 +179,7 @@ class PasskeysSigner {
       return await sign(
         challenge,
         localCredsOnly: localCredsOnly,
+        username: username,
       );
     } on NoCredentialsAvailableException {
       if (localCredsOnly) {
@@ -258,6 +262,18 @@ class PasskeysSigner {
       final duration = errorTime.difference(authStartTime);
       final durationMs = duration.inMilliseconds;
 
+      final allowCredentialsNotEmpty = challenge.allowCredentials.webauthn.isNotEmpty;
+      final usernameOk = username != null && username.isNotEmpty;
+      final workaroundApplies =
+          localCredsOnly && usernameOk && allowCredentialsNotEmpty && durationMs < 200;
+
+      logger?.log(
+        '[PasskeysSigner] PasskeyAuthCancelledException workaround check: '
+        'localCredsOnly=$localCredsOnly, usernamePresent=$usernameOk, '
+        'allowCredentials.webauthn.isNotEmpty=$allowCredentialsNotEmpty, '
+        'durationMs=$durationMs, workaroundApplies=$workaroundApplies',
+      );
+
       // iOS inconsistency: sometimes throws PasskeyAuthCancelledException instead of
       // NoCredentialsAvailableException when no local credentials exist but backend expects them.
       // https://github.com/corbado/flutter-passkeys/issues/161
@@ -269,11 +285,7 @@ class PasskeysSigner {
       // 3. challenge.allowCredentials.webauthn.isNotEmpty (backend expects credentials to exist)
       // 4. duration < 200ms (fast failure suggests iOS bug, not user cancellation)
       // Then throw NoCredentialsAvailableException to let login() handle retry logic
-      if (localCredsOnly &&
-          username != null &&
-          username.isNotEmpty &&
-          challenge.allowCredentials.webauthn.isNotEmpty &&
-          durationMs < 200) {
+      if (workaroundApplies) {
         throw NoCredentialsAvailableException();
       }
 

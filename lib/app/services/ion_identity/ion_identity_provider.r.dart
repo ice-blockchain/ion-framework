@@ -14,6 +14,25 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ion_identity_provider.r.g.dart';
 
+/// Forwards ION Identity client logs to the app [Logger].
+class _IonIdentityLoggerImpl implements IonIdentityLogger {
+  @override
+  void log(String message, {Object? error, StackTrace? stackTrace}) {
+    Logger.log(message, error: error, stackTrace: stackTrace);
+  }
+
+  @override
+  void info(String message) => Logger.info(message);
+
+  @override
+  void warning(String message) => Logger.warning(message);
+
+  @override
+  void error(Object error, {StackTrace? stackTrace, String? message}) {
+    Logger.error(error, stackTrace: stackTrace, message: message);
+  }
+}
+
 @Riverpod(keepAlive: true)
 Future<Raw<IONIdentity>> ionIdentity(Ref ref) async {
   final env = ref.watch(envProvider.notifier);
@@ -29,6 +48,7 @@ Future<Raw<IONIdentity>> ionIdentity(Ref ref) async {
   final config = IONIdentityConfig(
     appId: appId,
     origin: env.get(EnvVariable.ION_ORIGIN),
+    logger: logIonIdentityClient ? _IonIdentityLoggerImpl() : null,
     interceptors: [
       if (baseLogger != null) baseLogger,
       ConnectivitySideEffectInterceptor(
