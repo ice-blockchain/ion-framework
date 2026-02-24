@@ -2,18 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/common/quill_embed_text_scale_fix.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/mention/mention_embed_utils.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/mention_inline_widget.dart';
-import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
-import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 
-const String mentionEmbedKey = 'mention';
-const String mentionPrefix = '@';
+export 'package:ion/app/components/text_editor/components/custom_blocks/mention/mention_embed_utils.dart'
+    show mentionEmbedKey, mentionPrefix;
 
 class TextEditorMentionEmbedBuilder extends EmbedBuilder {
   const TextEditorMentionEmbedBuilder({this.showClose = true});
@@ -25,7 +22,7 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
 
   @override
   String toPlainText(Embed node) {
-    final mentionData = _parseMentionData(node.value.data);
+    final mentionData = parseMentionEmbedData(node.value.data);
     if (mentionData != null) {
       return '$mentionPrefix${mentionData.username}';
     }
@@ -45,7 +42,7 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
     BuildContext context,
     EmbedContext embedContext,
   ) {
-    final mentionData = _parseMentionData(embedContext.node.value.data);
+    final mentionData = parseMentionEmbedData(embedContext.node.value.data);
 
     if (mentionData == null) {
       return const SizedBox.shrink();
@@ -58,27 +55,6 @@ class TextEditorMentionEmbedBuilder extends EmbedBuilder {
       embedNode: embedContext.node,
       showClose: showClose,
     );
-  }
-
-  static MentionEmbedData? _parseMentionData(dynamic data) {
-    try {
-      if (data is Map) {
-        // Quill can pass mention data either as {pubkey, username} (edit mode)
-        // or {mention: {pubkey, username}} (view mode). Normalize by unwrapping
-        // the wrapped form so downstream parsing always receives {pubkey, username}.
-        final unwrappedData =
-            data.containsKey(mentionEmbedKey) && data.length == 1 ? data[mentionEmbedKey] : data;
-
-        if (unwrappedData is Map) {
-          return MentionEmbedData.fromJson(
-            Map<String, dynamic>.from(unwrappedData),
-          );
-        }
-      }
-    } catch (_) {
-      // Invalid data
-    }
-    return null;
   }
 }
 
@@ -110,27 +86,7 @@ class _MentionInlineWidgetWithMarketCap extends ConsumerWidget {
                 MentionInsertionService.removeMentionEmbed(controller, embedNode);
               }
             : null,
-        onTap: showClose
-            ? null
-            : () {
-                final currentLocation = GoRouterState.of(context).uri.toString();
-                final targetLocation = ProfileRoute(pubkey: pubkey).location;
-
-                if (currentLocation == targetLocation) {
-                  // already on this profile page
-                  return;
-                }
-
-                //don't navigate to your profile from selfProfile page
-                if (currentLocation == SelfProfileRoute().location) {
-                  final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-                  if (currentPubkey == pubkey) {
-                    return;
-                  }
-                }
-
-                ProfileRoute(pubkey: pubkey).push<void>(context);
-              },
+        onTap: showClose ? null : () => navigateToMentionProfile(context, ref, pubkey),
       ),
     );
   }

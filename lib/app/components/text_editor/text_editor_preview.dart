@@ -37,6 +37,7 @@ class TextEditorPreview extends HookWidget {
     this.eventReference,
     this.ignoreInlineBoldItalic = false,
     this.convertMentionsToEmbeds = true,
+    this.mentionEmbedBuilder,
     super.key,
   });
 
@@ -51,6 +52,10 @@ class TextEditorPreview extends HookWidget {
   final String? eventReference;
   final bool ignoreInlineBoldItalic;
   final bool convertMentionsToEmbeds;
+
+  /// Optional override for the mention embed builder.
+  /// When provided, replaces the default [TextEditorMentionEmbedBuilder].
+  final EmbedBuilder? mentionEmbedBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +89,7 @@ class TextEditorPreview extends HookWidget {
       tagsColor: tagsColor,
       controller: controller,
       convertMentionsToEmbeds: convertMentionsToEmbeds,
+      mentionEmbedBuilder: mentionEmbedBuilder,
       customStyles: customStyles,
       media: media,
       maxHeight: maxHeight,
@@ -101,6 +107,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
     required this.controller,
     required this.enableInteractiveSelection,
     required this.convertMentionsToEmbeds,
+    this.mentionEmbedBuilder,
     this.customStyles,
     this.media,
     this.maxHeight,
@@ -114,6 +121,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
   final QuillController controller;
   final bool enableInteractiveSelection;
   final bool convertMentionsToEmbeds;
+  final EmbedBuilder? mentionEmbedBuilder;
   final DefaultStyles? customStyles;
   final Map<String, MediaAttachment>? media;
   final double? maxHeight;
@@ -182,7 +190,8 @@ class _QuillFormattedContent extends HookConsumerWidget {
           ),
           TextEditorSeparatorBuilder(readOnly: true),
           TextEditorCodeBuilder(readOnly: true),
-          if (convertMentionsToEmbeds) const TextEditorMentionEmbedBuilder(showClose: false),
+          if (convertMentionsToEmbeds)
+            mentionEmbedBuilder ?? const TextEditorMentionEmbedBuilder(showClose: false),
           if (convertMentionsToEmbeds) const TextEditorCashtagEmbedBuilder(showClose: false),
         ],
         unknownEmbedBuilder: TextEditorUnknownEmbedBuilder(),
