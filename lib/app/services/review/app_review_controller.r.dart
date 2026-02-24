@@ -16,7 +16,7 @@ class AppReviewController extends _$AppReviewController {
   void build() {}
 
   Future<bool> shouldShowReview() async {
-    final packageInfo = await ref.watch(appInfoProvider.future);
+    final packageInfo = await ref.read(appInfoProvider.future);
     final localStorage = ref.read(localStorageProvider);
 
     final currentVersion = packageInfo.version;
