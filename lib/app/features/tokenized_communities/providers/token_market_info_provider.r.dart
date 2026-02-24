@@ -24,7 +24,7 @@ class TokenMarketInfo extends _$TokenMarketInfo {
   bool _disposed = false;
 
   @override
-  Future<CommunityToken?> build(String externalAddress) async {
+  Stream<CommunityToken?> build(String externalAddress) async* {
     _disposed = false;
     _streamSubscription = null;
     _networkSubscription = null;
@@ -36,18 +36,27 @@ class TokenMarketInfo extends _$TokenMarketInfo {
       _networkSubscription?.close();
     });
 
+    final cachedtoken = ref.read(cachedTokenMarketInfoNotifierProvider(externalAddress));
+
+    if (cachedtoken != null) {
+      yield cachedtoken;
+    }
+
     final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
 
     final currentToken = await client.communityTokens.getTokenInfo(externalAddress);
 
     if (currentToken == null) {
       unawaited(_subscribeSse(client, externalAddress, null));
-      return null;
+      yield null;
+    } else {
+      final adjusted = _processAndCacheToken(currentToken, ref);
+      if (adjusted != null) {
+        yield adjusted;
+      }
     }
 
-    final adjusted = _processAndCacheToken(currentToken, ref);
     unawaited(_subscribeSse(client, externalAddress, currentToken));
-    return adjusted;
   }
 
   Future<void> _subscribeSse(
