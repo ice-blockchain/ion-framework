@@ -109,6 +109,7 @@ class AppSlider extends HookWidget {
                   stops: stops,
                   sliderValue: sliderValue,
                   markerSize: markerSize.s,
+                  tapAreaSize: sliderHeight.s,
                   markerRadius: markerRadius.s,
                   onMarkerTapped: (double stop) {
                     sliderValue.value = stop;

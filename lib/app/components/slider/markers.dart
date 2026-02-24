@@ -11,6 +11,7 @@ class Markers extends HookWidget {
     required this.markerSize,
     required this.markerRadius,
     required this.onMarkerTapped,
+    required this.tapAreaSize,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class Markers extends HookWidget {
   final double markerSize;
   final double markerRadius;
   final void Function(double) onMarkerTapped;
+  final double tapAreaSize;
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +32,33 @@ class Markers extends HookWidget {
         return GestureDetector(
           onTap: () => onMarkerTapped(stop),
           child: Container(
-            width: markerSize.s,
-            height: markerSize.s,
-            decoration: BoxDecoration(
-              color: stop <= currentSliderValue
-                  ? context.theme.appColors.primaryAccent
-                  : context.theme.appColors.onTertiaryFill,
-              borderRadius: BorderRadius.circular(markerRadius.s),
+            width: tapAreaSize.s,
+            height: tapAreaSize.s,
+            color: Colors.transparent,
+            alignment: _getAlignment(stop),
+            child: Container(
+              width: markerSize.s,
+              height: markerSize.s,
+              decoration: BoxDecoration(
+                color: stop <= currentSliderValue
+                    ? context.theme.appColors.primaryAccent
+                    : context.theme.appColors.onTertiaryFill,
+                borderRadius: BorderRadius.circular(markerRadius.s),
+              ),
             ),
           ),
         );
       }).toList(),
     );
+  }
+
+  AlignmentDirectional _getAlignment(double stop) {
+    if (stop == stops.first) {
+      return AlignmentDirectional.centerStart;
+    } else if (stop == stops.last) {
+      return AlignmentDirectional.centerEnd;
+    }
+
+    return AlignmentDirectional.center;
   }
 }
