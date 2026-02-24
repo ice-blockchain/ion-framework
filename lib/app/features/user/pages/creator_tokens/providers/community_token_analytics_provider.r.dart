@@ -27,9 +27,14 @@ Future<CreatorTokensAnalyticsMetrics> creatorTokensAnalyticsMetrics(
     ).future,
   );
   if (response == null) return const CreatorTokensAnalyticsMetrics();
+
+  final tokensLaunched = response.launched;
+  final migrated = response.migrated;
+  final volume = response.volume;
+
   return CreatorTokensAnalyticsMetrics(
-    tokensLaunched: formatCompactNumber(response.launched),
-    migrated: formatCompactNumber(response.migrated),
-    volume: MarketDataFormatter.formatPrice(response.volume),
+    tokensLaunched: tokensLaunched != null ? formatCompactNumber(tokensLaunched) : null,
+    migrated: migrated != null ? formatCompactNumber(migrated) : null,
+    volume: volume != null ? MarketDataFormatter.formatPrice(volume) : null,
   );
 }

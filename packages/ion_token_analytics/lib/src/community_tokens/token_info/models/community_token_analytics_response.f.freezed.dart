@@ -23,9 +23,9 @@ CommunityTokenAnalyticsResponse _$CommunityTokenAnalyticsResponseFromJson(
 
 /// @nodoc
 mixin _$CommunityTokenAnalyticsResponse {
-  int get launched => throw _privateConstructorUsedError;
-  int get migrated => throw _privateConstructorUsedError;
-  double get volume => throw _privateConstructorUsedError;
+  int? get launched => throw _privateConstructorUsedError;
+  int? get migrated => throw _privateConstructorUsedError;
+  double? get volume => throw _privateConstructorUsedError;
 
   /// Serializes this CommunityTokenAnalyticsResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -48,7 +48,7 @@ abstract class $CommunityTokenAnalyticsResponseCopyWith<$Res> {
         CommunityTokenAnalyticsResponse
       >;
   @useResult
-  $Res call({int launched, int migrated, double volume});
+  $Res call({int? launched, int? migrated, double? volume});
 }
 
 /// @nodoc
@@ -69,24 +69,24 @@ class _$CommunityTokenAnalyticsResponseCopyWithImpl<
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? launched = null,
-    Object? migrated = null,
-    Object? volume = null,
+    Object? launched = freezed,
+    Object? migrated = freezed,
+    Object? volume = freezed,
   }) {
     return _then(
       _value.copyWith(
-            launched: null == launched
+            launched: freezed == launched
                 ? _value.launched
                 : launched // ignore: cast_nullable_to_non_nullable
-                      as int,
-            migrated: null == migrated
+                      as int?,
+            migrated: freezed == migrated
                 ? _value.migrated
                 : migrated // ignore: cast_nullable_to_non_nullable
-                      as int,
-            volume: null == volume
+                      as int?,
+            volume: freezed == volume
                 ? _value.volume
                 : volume // ignore: cast_nullable_to_non_nullable
-                      as double,
+                      as double?,
           )
           as $Val,
     );
@@ -102,7 +102,7 @@ abstract class _$$CommunityTokenAnalyticsResponseImplCopyWith<$Res>
   ) = __$$CommunityTokenAnalyticsResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int launched, int migrated, double volume});
+  $Res call({int? launched, int? migrated, double? volume});
 }
 
 /// @nodoc
@@ -123,24 +123,24 @@ class __$$CommunityTokenAnalyticsResponseImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? launched = null,
-    Object? migrated = null,
-    Object? volume = null,
+    Object? launched = freezed,
+    Object? migrated = freezed,
+    Object? volume = freezed,
   }) {
     return _then(
       _$CommunityTokenAnalyticsResponseImpl(
-        launched: null == launched
+        launched: freezed == launched
             ? _value.launched
             : launched // ignore: cast_nullable_to_non_nullable
-                  as int,
-        migrated: null == migrated
+                  as int?,
+        migrated: freezed == migrated
             ? _value.migrated
             : migrated // ignore: cast_nullable_to_non_nullable
-                  as int,
-        volume: null == volume
+                  as int?,
+        volume: freezed == volume
             ? _value.volume
             : volume // ignore: cast_nullable_to_non_nullable
-                  as double,
+                  as double?,
       ),
     );
   }
@@ -151,9 +151,9 @@ class __$$CommunityTokenAnalyticsResponseImplCopyWithImpl<$Res>
 class _$CommunityTokenAnalyticsResponseImpl
     implements _CommunityTokenAnalyticsResponse {
   const _$CommunityTokenAnalyticsResponseImpl({
-    this.launched = 0,
-    this.migrated = 0,
-    this.volume = 0.0,
+    this.launched,
+    this.migrated,
+    this.volume,
   });
 
   factory _$CommunityTokenAnalyticsResponseImpl.fromJson(
@@ -161,14 +161,11 @@ class _$CommunityTokenAnalyticsResponseImpl
   ) => _$$CommunityTokenAnalyticsResponseImplFromJson(json);
 
   @override
-  @JsonKey()
-  final int launched;
+  final int? launched;
   @override
-  @JsonKey()
-  final int migrated;
+  final int? migrated;
   @override
-  @JsonKey()
-  final double volume;
+  final double? volume;
 
   @override
   String toString() {
@@ -213,20 +210,20 @@ class _$CommunityTokenAnalyticsResponseImpl
 abstract class _CommunityTokenAnalyticsResponse
     implements CommunityTokenAnalyticsResponse {
   const factory _CommunityTokenAnalyticsResponse({
-    final int launched,
-    final int migrated,
-    final double volume,
+    final int? launched,
+    final int? migrated,
+    final double? volume,
   }) = _$CommunityTokenAnalyticsResponseImpl;
 
   factory _CommunityTokenAnalyticsResponse.fromJson(Map<String, dynamic> json) =
       _$CommunityTokenAnalyticsResponseImpl.fromJson;
 
   @override
-  int get launched;
+  int? get launched;
   @override
-  int get migrated;
+  int? get migrated;
   @override
-  double get volume;
+  double? get volume;
 
   /// Create a copy of CommunityTokenAnalyticsResponse
   /// with the given fields replaced by the non-null parameter values.
