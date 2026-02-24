@@ -10,6 +10,7 @@ export 'src/auth/services/login/login_auth_config.dart';
 export 'src/auth/services/twofa/models/twofa_type.f.dart';
 export 'src/coins/models/coin.f.dart';
 export 'src/coins/models/network.f.dart';
+export 'src/core/logger/ion_identity_logger.dart';
 export 'src/core/network/network_exception.dart';
 export 'src/core/network/restricted_region_error_parser.dart';
 export 'src/core/types/biometrics_state.dart';

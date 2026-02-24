@@ -2,6 +2,8 @@
 
 import 'package:dio/dio.dart';
 
+import 'package:ion_identity_client/src/core/logger/ion_identity_logger.dart';
+
 /// A configuration class for the ION Identity client, containing the necessary
 /// identifiers and origin information required to initialize the client.
 class IONIdentityConfig {
@@ -11,6 +13,7 @@ class IONIdentityConfig {
     required this.appId,
     required this.origin,
     this.interceptors,
+    this.logger,
   });
 
   /// The application identifier used to uniquely identify the app within the ION Identity API.
@@ -22,6 +25,9 @@ class IONIdentityConfig {
 
   /// The extra interceptors to use inside the ION Identity client.
   final List<Interceptor>? interceptors;
+
+  /// Optional logger for passkey-related and diagnostic messages (e.g. workaround checks).
+  final IonIdentityLogger? logger;
 
   @override
   String toString() =>
