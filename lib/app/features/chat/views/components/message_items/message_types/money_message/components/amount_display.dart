@@ -38,7 +38,7 @@ class _AmountDisplay extends HookWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
-              formatCryptoFull(amount, coin.emptyOrValue.isEmpty ? '' : '$coin '),
+              formatCryptoFull(amount, currency: coin.emptyOrValue.isEmpty ? '' : '$coin '),
               style: context.theme.appTextThemes.subtitle3.copyWith(color: textColor),
               softWrap: false,
             ),

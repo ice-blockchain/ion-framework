@@ -41,7 +41,11 @@ const List<({double value, String suffix})> _scaleInfo = [
   (value: _million, suffix: 'M'),
 ];
 
-String formatCryptoFull(double value, [String? currency]) {
+String formatCryptoFull(
+  double value, {
+  bool isNeedAbbreviation = true,
+  String? currency,
+}) {
   // Normalize input values
   final normalized = switch (value) {
     _ when value <= 0 => 0.0,
@@ -51,7 +55,13 @@ String formatCryptoFull(double value, [String? currency]) {
 
   final formatted = switch (normalized) {
     0.0 => formatDouble(normalized),
-    _ when normalized >= _million => _formatWithAbbreviation(normalized),
+    _ when normalized >= _million => isNeedAbbreviation
+        ? _formatWithAbbreviation(normalized)
+        : _formatWithSmartTruncation(
+            normalized,
+            maxDecimals: 2,
+            minDecimals: 2,
+          ),
     _ when normalized >= 10 =>
       _formatWithSmartTruncation(normalized, maxDecimals: 2, minDecimals: 2),
     // For values 1-9.99: max 6 decimals, min 2 decimals

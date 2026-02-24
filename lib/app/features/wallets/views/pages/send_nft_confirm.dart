@@ -101,7 +101,7 @@ class SendNftConfirmPage extends ConsumerWidget {
                       SizedBox(height: 12.0.s),
                     ],
                     ListItemNetworkFee(
-                      value: formatCryptoFull(fee.amount, fee.symbol),
+                      value: formatCryptoFull(fee.amount, currency: fee.symbol),
                     ),
                   ],
                   SizedBox(height: 12.0.s),

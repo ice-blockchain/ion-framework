@@ -37,7 +37,7 @@ class TransactionAmountSummary extends StatelessWidget {
             icon,
             SizedBox(width: 8.0.s),
             Text(
-              '${transactionType.sign}${formatCryptoFull(amount, currency)}',
+              '${transactionType.sign}${formatCryptoFull(amount, currency: currency)}',
               style: textTheme.headline2.copyWith(
                 color: transactionType == TransactionType.receive && !isFailed
                     ? colors.success
