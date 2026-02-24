@@ -73,7 +73,10 @@ AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
     templateId: templateId,
     brandDomain: brandDomain,
     baseHost: baseHost,
-    resolveShareImageUrl: (url) => ref.read(resolvedShareImageUrlProvider(url).future),
+    resolveShareImageUrl: (url) async {
+      if (url == null || url.isEmpty) return null;
+      return ref.read(ionConnectMediaUrlProvider(url));
+    },
   );
 }
 

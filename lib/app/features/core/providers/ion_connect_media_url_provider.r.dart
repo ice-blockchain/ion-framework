@@ -69,17 +69,3 @@ String ionConnectCdnUrl(Ref ref, String url) {
     return url;
   }
 }
-
-/// Resolved CDN URL for share/og:image. Returns null when [imageUrl] is null or empty.
-@riverpod
-Future<String?> resolvedShareImageUrl(Ref ref, String? imageUrl) async {
-  if (imageUrl == null || imageUrl.isEmpty) return null;
-  if (!isIonMediaUrl(imageUrl)) return imageUrl;
-  final config = await ref.read(feedConfigProvider.future);
-  try {
-    return _buildCdnUrl(config.cdnBaseUrl, imageUrl);
-  } catch (error, stackTrace) {
-    Logger.error(error, stackTrace: stackTrace, message: 'Failed to use CDN URL for $imageUrl');
-    return imageUrl;
-  }
-}
