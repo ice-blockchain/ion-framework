@@ -21,6 +21,22 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
         private const val DEFAULT_FRAME_RATE = 30
         private const val DEFAULT_I_FRAME_INTERVAL = 1
         private val compressionSemaphore = Semaphore(2, true)
+        private const val WAKE_LOCK_TIMEOUT_MS = 10 * 60 * 1000L
+
+        private fun isCodecError(e: Exception): Boolean {
+            return when {
+                e is MediaCodec.CodecException -> true
+                else -> {
+                    val msg = (e.message ?: "").lowercase()
+                    val causeMsg = (e.cause?.message ?: "").lowercase()
+                    val combined = "$msg $causeMsg"
+                        combined.contains("codec") ||
+                        combined.contains("0x8000") ||
+                        combined.contains("decoder") ||
+                        combined.contains("encoder")
+                }
+            }
+        }
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -48,7 +64,8 @@ class VideoCompressionPlugin() : MethodChannel.MethodCallHandler {
                         result.success(null)
                     } catch (e: Exception) {
                         Log.e(TAG, "Compression failed", e)
-                        result.error("COMPRESSION_FAILED", e.message, null)
+                        val details = if (isCodecError(e)) mapOf("type" to "codec") else null
+                        result.error("COMPRESSION_FAILED", e.message, details)
                     } finally {
                         compressionSemaphore.release()
                         Log.d(TAG, "Compression completed: $inputPath (${compressionSemaphore.availablePermits()} slots available)")
