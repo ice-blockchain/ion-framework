@@ -20,10 +20,10 @@ part 'feed_stories_provider.r.g.dart';
 class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
   @override
   ({Iterable<ModifiablePostEntity> items, bool hasMore, bool ready}) build() {
-    final filter = ref.watch(feedCurrentFilterProvider);
+    final filter = ref.watch(feedCurrentFilterProvider).filter;
     final blockedUsersMasterPubkeys = ref.watch(blockedUsersPubkeysSelectorProvider);
     final currentUserStory = ref.watch(currentUserFeedStoryProvider);
-    final data = switch (filter.filter) {
+    final data = switch (filter) {
       FeedFilter.following => ref.watch(
           feedFollowingContentProvider(FeedType.story).select(
             (data) => (items: data.items, hasMore: data.hasMore, isLoading: data.isLoading),
@@ -61,8 +61,8 @@ class FeedStories extends _$FeedStories with DelegatedPagedNotifier {
 
   @override
   PagedNotifier getDelegate() {
-    final filter = ref.read(feedCurrentFilterProvider);
-    return switch (filter.filter) {
+    final filter = ref.read(feedCurrentFilterProvider).filter;
+    return switch (filter) {
       FeedFilter.following => ref.read(feedFollowingContentProvider(FeedType.story).notifier),
       FeedFilter.forYou => ref.read(feedForYouContentProvider(FeedType.story).notifier),
     };
@@ -89,7 +89,9 @@ List<ModifiablePostEntity> feedStoriesByPubkey(
   String pubkey, {
   bool showOnlySelectedUser = false,
 }) {
-  final stories = ref.watch(feedStoriesProvider.select((state) => state.items.toList()));
+  final stories = ref.watch(
+    feedStoriesProvider.select((state) => state.items.toList()),
+  );
   final userIndex = stories.indexWhere((userStories) => userStories.masterPubkey == pubkey);
 
   if (userIndex == -1) return [];

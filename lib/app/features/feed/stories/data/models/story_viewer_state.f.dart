@@ -20,25 +20,28 @@ class SingleUserStoriesViewerState with _$SingleUserStoriesViewerState {
 @freezed
 class UserStoriesViewerState with _$UserStoriesViewerState {
   const factory UserStoriesViewerState({
-    required List<ModifiablePostEntity> userStories,
     required int currentUserIndex,
+    List<ModifiablePostEntity>? userStories,
   }) = _UserStoriesViewerState;
 
   const UserStoriesViewerState._();
 
-  bool get hasNextUser => currentUserIndex < userStories.length - 1;
+  bool get hasNextUser => userStories != null && currentUserIndex < userStoriesCount - 1;
+
   bool get hasPreviousUser => currentUserIndex > 0;
 
-  ModifiablePostEntity? get currentStory {
-    if (userStories.isEmpty) return null;
+  bool get isLoading => userStories == null;
 
-    return userStories.elementAtOrNull(currentUserIndex);
+  int get userStoriesCount => userStories?.length ?? 0;
+
+  bool get isEmpty => userStoriesCount == 0;
+
+  ModifiablePostEntity? get currentStory {
+    return userStories?.elementAtOrNull(currentUserIndex);
   }
 
   String get currentUserPubkey {
-    if (userStories.isEmpty) return '';
-
-    return userStories[currentUserIndex].masterPubkey;
+    return pubkeyAtIndex(currentUserIndex) ?? '';
   }
 
   String? get nextUserPubkey {
@@ -46,6 +49,8 @@ class UserStoriesViewerState with _$UserStoriesViewerState {
   }
 
   String? pubkeyAtIndex(int index) {
-    return userStories.elementAtOrNull(index)?.masterPubkey;
+    if (userStories == null) return null;
+
+    return userStories!.elementAtOrNull(index)?.masterPubkey;
   }
 }

@@ -61,15 +61,14 @@ class StoryViewerPage extends HookConsumerWidget {
     final singleUserStoriesViewerState = ref.watch(
       singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey),
     );
-    final stories = ref
-            .watch(userStoriesProvider(storyViewerState.currentStory?.masterPubkey ?? pubkey))
-            ?.toList() ??
-        [];
     final viewedStories = ref.watch(viewedStoriesProvider) ?? {};
+    final userStoriesCount = storyViewerState.userStoriesCount;
+    final isEmpty = userStoriesCount == 0;
+    final isLoading = storyViewerState.isLoading;
 
     // Prefetch next user's stories when approaching the end of current user's stories
     final currentUserStoriesLeft =
-        stories.length - singleUserStoriesViewerState.currentStoryIndex - 1;
+        userStoriesCount - singleUserStoriesViewerState.currentStoryIndex - 1;
     final nextUserPubkey = storyViewerState.nextUserPubkey;
     final shouldPrefetch = currentUserStoriesLeft < 10 && nextUserPubkey != null;
 
@@ -80,9 +79,7 @@ class StoryViewerPage extends HookConsumerWidget {
     useEffect(
       () {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (initialStoryReference != null &&
-              storyViewerState.userStories.isEmpty &&
-              context.mounted) {
+          if (initialStoryReference != null && !isLoading && isEmpty && context.mounted) {
             ref
                 .read(
                   userStoriesViewingNotifierProvider(
@@ -95,14 +92,14 @@ class StoryViewerPage extends HookConsumerWidget {
         });
         return null;
       },
-      [initialStoryReference, storyViewerState.userStories.isEmpty],
+      [initialStoryReference, isLoading, isEmpty],
     );
 
     final routeAnimation = ModalRoute.of(context)?.animation;
 
     useEffect(
       () {
-        if (storyViewerState.userStories.isNotEmpty) {
+        if (isLoading || !isEmpty) {
           return null;
         }
 
@@ -127,21 +124,23 @@ class StoryViewerPage extends HookConsumerWidget {
         routeAnimation.addStatusListener(listener);
         return () => routeAnimation.removeStatusListener(listener);
       },
-      [storyViewerState.userStories.isEmpty, routeAnimation],
+      [isLoading, isEmpty, routeAnimation],
     );
 
     final visitedUsers = useRef<Set<String>>(<String>{});
 
     useOnInit(
       () {
-        if (stories.isEmpty) {
+        if (isLoading || isEmpty) {
           return;
         }
-        final firstNotViewedStoryIndex = stories.indexWhere(
-          (story) => !viewedStories.contains(story.toEventReference()),
-        );
+        final firstNotViewedStoryIndex = storyViewerState.userStories?.indexWhere(
+              (story) => !viewedStories.contains(story.toEventReference()),
+            ) ??
+            -1;
         final initialStoryIndex = initialStoryReference != null
-            ? stories.indexWhere((story) => story.toEventReference() == initialStoryReference)
+            ? storyViewerState.userStories
+                ?.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
         final currentUserPubkey = storyViewerState.currentUserPubkey;
 
@@ -158,7 +157,7 @@ class StoryViewerPage extends HookConsumerWidget {
         final moveToIndex = initialStoryIndex ??
             (firstNotViewedStoryIndex != -1 ? firstNotViewedStoryIndex : fallbackWhenAllViewed);
 
-        if (moveToIndex != -1 && moveToIndex < stories.length) {
+        if (moveToIndex != -1 && moveToIndex < userStoriesCount) {
           ref
               .watch(singleUserStoryViewingControllerProvider(currentUserPubkey).notifier)
               .moveToStoryIndex(moveToIndex);
@@ -172,7 +171,7 @@ class StoryViewerPage extends HookConsumerWidget {
       // Do not include [viewedStories] to dependencies intentionally.
       // Opening a story leads to marking it as viewed,
       // that triggers [viewedStories] update which would re-trigger [moveToStoryIndex].
-      [stories.length, storyViewerState.currentUserPubkey],
+      [isLoading, userStoriesCount, storyViewerState.currentUserPubkey],
     );
 
     useRoutePresence(
