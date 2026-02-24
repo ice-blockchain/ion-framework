@@ -45,10 +45,15 @@ abstract class DeltaMarkdownConverter {
         final attributes = op.attributes;
 
         if (data is String) {
+          final trimmedDataLeft = data.trimLeft();
+
           // For mentions, use the bech32 encoded value instead of display text.
           // For cashtags with coinId, use the coinId.
-          final hasMentionAttr = attributes != null && attributes.containsKey('mention');
-          final hasCashtagCoinId = _hasCashtagCoinId(attributes);
+          final hasMentionAttr = attributes != null &&
+              attributes.containsKey('mention') &&
+              trimmedDataLeft.startsWith('@');
+          final hasCashtagCoinId =
+              _hasCashtagCoinId(attributes) && trimmedDataLeft.startsWith(r'$');
 
           final contentToWrite = hasMentionAttr
               ? (attributes['mention'] as String? ?? data)
@@ -411,18 +416,22 @@ abstract class DeltaMarkdownConverter {
     required int currentIndex,
     required List<PmoTag> pmoTags,
   }) {
+    final trimmedOriginalLeft = originalContent.trimLeft();
+
     // Allow processing links even if content is whitespace-only (needed for media attachments)
     final hasLink = attributes.containsKey('link');
-    final hasMention = attributes.containsKey('mention');
+    final hasMention = attributes.containsKey('mention') && trimmedOriginalLeft.startsWith('@');
     final cashtagAttrValue = attributes[CashtagAttribute.attributeKey];
     final hasValidCashtagExternalAddress = cashtagAttrValue is String &&
         cashtagAttrValue.trim().isNotEmpty &&
         cashtagAttrValue.trim() != r'$';
-    final hasCashtag =
-        attributes[CashtagAttribute.showMarketCapKey] == true && hasValidCashtagExternalAddress;
-    final hasCashtagCoinId = _hasCashtagCoinId(attributes);
+    final hasCashtag = attributes[CashtagAttribute.showMarketCapKey] == true &&
+        hasValidCashtagExternalAddress &&
+        trimmedOriginalLeft.startsWith(r'$');
+    final hasCashtagCoinId = _hasCashtagCoinId(attributes) && trimmedOriginalLeft.startsWith(r'$');
+
     if (content.trim().isEmpty && !hasLink && !hasMention && !hasCashtag && !hasCashtagCoinId) {
-      return; // Skip empty or whitespace-only content without links, mentions, or cashtags
+      return;
     }
 
     var replacement = content;
@@ -430,35 +439,28 @@ abstract class DeltaMarkdownConverter {
     final hasItalic = attributes.containsKey('italic');
     final skipInlineStyles = hasLink || hasMention || hasCashtag || hasCashtagCoinId;
 
-    // Handle mentions first (format: [@username](encoded_ref))
-    // Use originalContent for the display text (e.g., @username)
     if (hasMention) {
-      final encodedRef = content; // content is already the encoded reference
+      final encodedRef = content;
       replacement = '[$originalContent]($encodedRef)';
     }
 
-    // Handle cashtags with external address (format: [$TICKER](externalAddress))
     if (hasCashtag && !hasMention) {
       final externalAddress = cashtagAttrValue.trim();
-      final displayCashtag = RegExp(r'^\$[^\s]+').firstMatch(originalContent)?.group(0);
-
+      final displayCashtag = RegExp(r'\$[^\s]+').firstMatch(originalContent)?.group(0);
       if (displayCashtag != null && displayCashtag.isNotEmpty) {
         replacement = '[$displayCashtag]($externalAddress)';
       }
     }
 
-    // Handle cashtags with coin ID (format: [$TICKER](ncoin1...))
     if (hasCashtagCoinId && !hasCashtag && !hasMention) {
       replacement = '[$originalContent]($content)';
     }
 
-    // Apply formatting in order: code, bold, italic, strike, underline, link
     if (!skipInlineStyles) {
       if (attributes.containsKey('code')) {
         replacement = '`$replacement`';
       }
 
-      // Handle bold and italic together (must be before individual checks)
       if (hasBold && hasItalic) {
         replacement = '***$replacement***';
       } else if (hasBold) {
@@ -474,6 +476,7 @@ abstract class DeltaMarkdownConverter {
         replacement = '<u>$replacement</u>';
       }
     }
+
     if (hasLink) {
       final link = attributes['link'] ?? '';
       replacement = '[$originalContent]($link)';
@@ -484,7 +487,6 @@ abstract class DeltaMarkdownConverter {
         replacement = '`$replacement`';
       }
 
-      // Handle bold and italic together (must be before individual checks)
       if (hasBold && hasItalic) {
         replacement = '***$replacement***';
       } else if (hasBold) {
