@@ -46,24 +46,15 @@ abstract class DeltaMarkdownConverter {
 
         if (data is String) {
           // For mentions, use the bech32 encoded value instead of display text.
-          // For cashtags with externalAddress, use the externalAddress.
           // For cashtags with coinId, use the coinId.
           final hasMentionAttr = attributes != null && attributes.containsKey('mention');
-          final hasCashtagAddress = attributes != null &&
-              attributes.containsKey(CashtagAttribute.attributeKey) &&
-              attributes[CashtagAttribute.showMarketCapKey] == true &&
-              attributes[CashtagAttribute.attributeKey] is String &&
-              (attributes[CashtagAttribute.attributeKey] as String).isNotEmpty &&
-              attributes[CashtagAttribute.attributeKey] != data;
           final hasCashtagCoinId = _hasCashtagCoinId(attributes);
 
           final contentToWrite = hasMentionAttr
               ? (attributes['mention'] as String? ?? data)
-              : hasCashtagAddress
-                  ? (attributes[CashtagAttribute.attributeKey] as String)
-                  : hasCashtagCoinId
-                      ? (attributes![CashtagCoinIdAttribute.attributeKey] as String)
-                      : data;
+              : hasCashtagCoinId
+                  ? (attributes![CashtagCoinIdAttribute.attributeKey] as String)
+                  : data;
 
           final result = _processStringContent(
             content: contentToWrite,
@@ -423,8 +414,12 @@ abstract class DeltaMarkdownConverter {
     // Allow processing links even if content is whitespace-only (needed for media attachments)
     final hasLink = attributes.containsKey('link');
     final hasMention = attributes.containsKey('mention');
-    final hasCashtag = attributes.containsKey(CashtagAttribute.attributeKey) &&
-        attributes[CashtagAttribute.showMarketCapKey] == true;
+    final cashtagAttrValue = attributes[CashtagAttribute.attributeKey];
+    final hasValidCashtagExternalAddress = cashtagAttrValue is String &&
+        cashtagAttrValue.trim().isNotEmpty &&
+        cashtagAttrValue.trim() != r'$';
+    final hasCashtag =
+        attributes[CashtagAttribute.showMarketCapKey] == true && hasValidCashtagExternalAddress;
     final hasCashtagCoinId = _hasCashtagCoinId(attributes);
     if (content.trim().isEmpty && !hasLink && !hasMention && !hasCashtag && !hasCashtagCoinId) {
       return; // Skip empty or whitespace-only content without links, mentions, or cashtags
@@ -444,8 +439,12 @@ abstract class DeltaMarkdownConverter {
 
     // Handle cashtags with external address (format: [$TICKER](externalAddress))
     if (hasCashtag && !hasMention) {
-      final externalAddress = content; // content is the externalAddress (written to buffer)
-      replacement = '[$originalContent]($externalAddress)';
+      final externalAddress = cashtagAttrValue.trim();
+      final displayCashtag = RegExp(r'^\$[^\s]+').firstMatch(originalContent)?.group(0);
+
+      if (displayCashtag != null && displayCashtag.isNotEmpty) {
+        replacement = '[$displayCashtag]($externalAddress)';
+      }
     }
 
     // Handle cashtags with coin ID (format: [$TICKER](ncoin1...))
@@ -917,5 +916,8 @@ abstract class DeltaMarkdownConverter {
   }
 
   static bool _hasCashtagWithMarketCap(Map<String, dynamic>? attrs) =>
-      attrs?[CashtagAttribute.showMarketCapKey] == true;
+      attrs?[CashtagAttribute.showMarketCapKey] == true &&
+      attrs?[CashtagAttribute.attributeKey] is String &&
+      (attrs?[CashtagAttribute.attributeKey] as String).trim().isNotEmpty &&
+      (attrs?[CashtagAttribute.attributeKey] as String).trim() != r'$';
 }

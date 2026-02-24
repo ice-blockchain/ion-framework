@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/components/text_editor/utils/build_empty_delta.dart';
 import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -108,7 +109,8 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       }.toList();
 
-      final conversion = await convertDeltaToPmoTags(postContent.toJson());
+      final pmoPreparedContent = await _prepareContentForPmo(postContent);
+      final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
 
       final contentMediaLinks = media.values.isNotEmpty
           ? media.values.map((mediaItem) => ' ${mediaItem.url}').join()
@@ -216,7 +218,8 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       ];
 
-      final conversion = await convertDeltaToPmoTags(postContent.toJson());
+      final pmoPreparedContent = await _prepareContentForPmo(postContent);
+      final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
 
       final contentMediaLinks = modifiedMedia.values.isNotEmpty
           ? modifiedMedia.values.map((mediaItem) => ' ${mediaItem.url}').join()
@@ -754,5 +757,62 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       kind: ModifiablePostEntity.kind,
       type: CommunityTokenDefinitionIonType.original,
     );
+  }
+
+  Future<Delta> _prepareContentForPmo(Delta content) async {
+    final out = Delta();
+    final tokenDefinitionAddressByExternalAddress = <String, String>{};
+
+    for (final op in content.operations) {
+      final data = op.data;
+      final attrs = op.attributes;
+
+      if (data is! String || attrs == null || !attrs.containsKey(CashtagAttribute.attributeKey)) {
+        out.push(op);
+        continue;
+      }
+
+      final showMarketCap = attrs[CashtagAttribute.showMarketCapKey] == true;
+      final externalAddressRaw = attrs[CashtagAttribute.attributeKey];
+      final externalAddress = externalAddressRaw is String ? externalAddressRaw.trim() : '';
+
+      if (!showMarketCap || externalAddress.isEmpty || externalAddress == r'$') {
+        out.push(op);
+        continue;
+      }
+
+      var tokenDefinitionAddress = tokenDefinitionAddressByExternalAddress[externalAddress];
+      if (tokenDefinitionAddress == null) {
+        tokenDefinitionAddress = await _resolveTokenDefinitionAddress(externalAddress);
+        tokenDefinitionAddressByExternalAddress[externalAddress] = tokenDefinitionAddress ?? '';
+      }
+
+      if (tokenDefinitionAddress == null || tokenDefinitionAddress.isEmpty) {
+        out.push(op);
+        continue;
+      }
+
+      final normalizedData = data.trimRight();
+      final enrichedText = normalizedData.contains(tokenDefinitionAddress)
+          ? data
+          : '$normalizedData $tokenDefinitionAddress';
+
+      out.insert(enrichedText, attrs);
+    }
+
+    return out;
+  }
+
+  Future<String?> _resolveTokenDefinitionAddress(String externalAddress) async {
+    final cached = await ref.read(
+      cachedTokenDefinitionProvider(externalAddress: externalAddress).future,
+    );
+
+    final definition = cached ??
+        await ref.read(
+          tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress).future,
+        );
+
+    return definition?.toEventReference().encode();
   }
 }
