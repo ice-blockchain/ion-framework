@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/stories/data/models/story_viewer_state.f.dart';
@@ -22,13 +23,19 @@ class StoriesSwiper extends HookConsumerWidget {
     Key? key,
   }) : super(key: key ?? storiesSwiperKey);
 
-  final List<ModifiablePostEntity> userStories;
+  final List<ModifiablePostEntity>? userStories;
   final int currentUserIndex;
   final String pubkey;
   final bool showOnlySelectedUser;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (userStories == null) {
+      return const Center(
+        child: IONLoadingIndicator(),
+      );
+    }
+
     final userPageController = usePageController(initialPage: currentUserIndex);
     final userStoriesViewingState = ref.watch(
       userStoriesViewingNotifierProvider(pubkey, showOnlySelectedUser: showOnlySelectedUser),
@@ -50,7 +57,7 @@ class StoriesSwiper extends HookConsumerWidget {
 
     return CubePageView.builder(
       controller: userPageController,
-      itemCount: userStories.length,
+      itemCount: userStories?.length,
       onPageChanged: userStoriesNotifier.moveTo,
       itemBuilder: (context, userIndex, pageNotifier) {
         final isCurrentUser = userIndex == currentUserIndex;
@@ -72,7 +79,9 @@ class StoriesSwiper extends HookConsumerWidget {
                   isCurrentUser: isCurrentUser,
                   onClose: closeViewer,
                   onNextUser: () {
-                    if (userPageController.hasClients && userIndex < userStories.length - 1) {
+                    if (userPageController.hasClients &&
+                        userStories != null &&
+                        userIndex < userStories!.length - 1) {
                       userPageController.nextPage(
                         duration: _pageTransitionDuration,
                         curve: Curves.easeInOut,

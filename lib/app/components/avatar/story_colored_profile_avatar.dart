@@ -9,7 +9,7 @@ import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/outlined_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
-import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
+import 'package:ion/app/features/feed/stories/providers/user_stories_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/viewed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/components/story_colored_border.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/mock.dart';
@@ -18,15 +18,16 @@ import 'package:ion/app/router/app_routes.gr.dart';
 
 final _storyStatusProvider =
     Provider.family<({bool hasStories, bool allStoriesViewed}), String>((ref, pubkey) {
-  final userStories = ref.watch(feedStoriesByPubkeyProvider(pubkey, showOnlySelectedUser: true));
-  final allStoriesViewed = ref.watch(
-    viewedStoriesProvider.select((viewedStories) {
-      final storyReferences = userStories.map((story) => story.toEventReference());
-      return viewedStories?.containsAll(storyReferences) ?? false;
-    }),
-  );
+  final lastUserStory = ref.watch(userLastStoryProvider(pubkey));
+  final hasStories = lastUserStory != null;
 
-  final hasStories = userStories.isNotEmpty;
+  final allStoriesViewed = hasStories &&
+      ref.watch(
+        viewedStoriesProvider.select((viewedStories) {
+          final storyReference = lastUserStory.toEventReference();
+          return viewedStories?.contains(storyReference) ?? false;
+        }),
+      );
 
   return (hasStories: hasStories, allStoriesViewed: allStoriesViewed);
 });
