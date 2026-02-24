@@ -63,6 +63,8 @@ Future<IonConnectEntity?> ionConnectEntityWithCounters(
     throw const CurrentUserNotFoundException();
   }
 
+  await _syncTokenDefinitions(ref, eventReference);
+
   final kind = eventReference.kind;
 
   if (kind == null || !_hasCounters(kind)) {
@@ -84,6 +86,42 @@ Future<IonConnectEntity?> ionConnectEntityWithCounters(
       eventReference: eventReference,
     ).future,
   );
+}
+
+///
+/// Ensures counters for token definitions and their referenced original events are up-to-date.
+///
+/// If [eventReference] is a community token definition, fetch its referenced/origin event
+/// and trigger counter fetching for that as well.
+///
+Future<void> _syncTokenDefinitions(Ref ref, EventReference eventReference) async {
+  if (eventReference.kind == CommunityTokenDefinitionEntity.kind) {
+    final entity =
+        (await ref.watch(ionConnectEntityProvider(eventReference: eventReference).future))
+            as CommunityTokenDefinitionEntity?;
+
+    if (entity == null) {
+      return;
+    }
+
+    EventReference? relatedEventReference;
+
+    if (entity.data is CommunityTokenDefinitionIon) {
+      final definition = entity.data as CommunityTokenDefinitionIon;
+      relatedEventReference = definition.eventReference;
+    }
+
+    if (relatedEventReference == null) {
+      return;
+    }
+
+    await ref.read(
+      ionConnectEntityWithCountersProvider(
+        eventReference: relatedEventReference,
+        cache: false,
+      ).future,
+    );
+  }
 }
 
 // Do not query counters and deps if the entity doesn't need it (e.g. a repost)
