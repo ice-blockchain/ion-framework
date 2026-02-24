@@ -20,6 +20,9 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -94,16 +97,17 @@ class IonConnectPushDataPayload {
   bool isSelfInteraction({required String currentPubkey}) {
     final entity = mainEntity;
 
-    if (entity.masterPubkey == currentPubkey) {
-      if (entity is ReactionEntity ||
-          entity is GenericRepostEntity ||
-          entity is RepostEntity ||
-          (entity is ModifiablePostEntity &&
-              (entity.data.quotedEvent != null || entity.data.parentEvent != null)) ||
-          (entity is PostEntity &&
-              (entity.data.quotedEvent != null || entity.data.parentEvent != null))) {
-        return true;
-      }
+    if (entity.masterPubkey == currentPubkey &&
+        (entity is ReactionEntity ||
+            entity is GenericRepostEntity ||
+            entity is RepostEntity ||
+            (entity is ModifiablePostEntity &&
+                (entity.data.quotedEvent != null || entity.data.parentEvent != null)) ||
+            (entity is PostEntity &&
+                (entity.data.quotedEvent != null || entity.data.parentEvent != null)) ||
+            entity is CommunityTokenActionEntity ||
+            entity is CommunityTokenDefinitionEntity)) {
+      return true;
     }
 
     return false;
@@ -117,33 +121,65 @@ class IonConnectPushDataPayload {
 
     if (entity is GenericRepostEntity || entity is RepostEntity) {
       return _getRepostNotificationType(entity, getRelatedEntity);
-    } else if ((entity is ModifiablePostEntity && entity.data.quotedEvent != null) ||
-        (entity is PostEntity && entity.data.quotedEvent != null)) {
-      return _getQuoteNotificationType(entity, getRelatedEntity);
     } else if (entity is ReactionEntity) {
       return _getLikeNotificationType(entity, getRelatedEntity);
     } else if (entity is IonConnectGiftWrapEntity) {
       return _getGiftWrapNotificationType(entity);
     } else if (entity is FollowListEntity) {
       return PushNotificationType.follower;
-    } else if (entity is ModifiablePostEntity || entity is PostEntity) {
-      final currentUserMention =
-          ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind)
-              .encode();
-
-      final content = switch (entity) {
-        ModifiablePostEntity() => entity.data.content,
-        PostEntity() => entity.data.content,
-        _ => null
-      };
-
-      if (content?.contains(currentUserMention) ?? false) {
+    } else if (entity is ModifiablePostEntity || entity is PostEntity || entity is ArticleEntity) {
+      if (_isQuoteOfCurrentUser(currentPubkey: currentPubkey, entity: entity)) {
+        return _getQuoteOfCurrentUserNotificationType(entity, getRelatedEntity);
+      } else if (_isCurrentUserMentioned(currentPubkey: currentPubkey, entity: entity)) {
         return PushNotificationType.mention;
+      } else if (_isReplyToCurrentUserPost(currentPubkey: currentPubkey, entity: entity)) {
+        return _getReplyToCurrentUserNotificationType(entity, currentPubkey, getRelatedEntity);
+      } else {
+        return _getAccountNotificationType(entity);
       }
-      return _getReplyNotificationType(entity, currentPubkey, getRelatedEntity);
+    } else if (entity is CommunityTokenDefinitionEntity) {
+      return _getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity);
+    } else if (entity is CommunityTokenActionEntity) {
+      return _getTokenIsBoughtNotificationType(currentPubkey: currentPubkey, entity: entity);
     }
 
     return null;
+  }
+
+  bool _isCurrentUserMentioned({required String currentPubkey, required IonConnectEntity entity}) {
+    final currentUserMention =
+        ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind)
+            .encode();
+
+    final content = switch (entity) {
+      ModifiablePostEntity() => entity.data.content,
+      PostEntity() => entity.data.content,
+      ArticleEntity() => entity.data.content,
+      _ => null
+    };
+
+    if (content != null && content.contains(currentUserMention)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool _isQuoteOfCurrentUser({required String currentPubkey, required IonConnectEntity entity}) {
+    return (entity is ModifiablePostEntity &&
+            entity.data.quotedEvent?.eventReference.masterPubkey == currentPubkey) ||
+        (entity is PostEntity &&
+            entity.data.quotedEvent?.eventReference.masterPubkey == currentPubkey);
+  }
+
+  bool _isReplyToCurrentUserPost({
+    required String currentPubkey,
+    required IonConnectEntity entity,
+  }) {
+    return (entity is ModifiablePostEntity &&
+            entity.data.parentEvent?.eventReference.masterPubkey == currentPubkey) ||
+        (entity is PostEntity &&
+            entity.data.parentEvent?.eventReference.masterPubkey == currentPubkey);
   }
 
   Future<PushNotificationType> _getRepostNotificationType(
@@ -167,7 +203,7 @@ class IonConnectPushDataPayload {
     return PushNotificationType.repost;
   }
 
-  Future<PushNotificationType> _getQuoteNotificationType(
+  Future<PushNotificationType> _getQuoteOfCurrentUserNotificationType(
     IonConnectEntity entity,
     Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
   ) async {
@@ -191,7 +227,7 @@ class IonConnectPushDataPayload {
     return PushNotificationType.quote;
   }
 
-  Future<PushNotificationType> _getReplyNotificationType(
+  Future<PushNotificationType> _getReplyToCurrentUserNotificationType(
     IonConnectEntity entity,
     String currentPubkey,
     Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
@@ -334,14 +370,72 @@ class IonConnectPushDataPayload {
     return PushNotificationType.chatMultiMediaMessage;
   }
 
+  PushNotificationType? _getAccountNotificationType(
+    IonConnectEntity entity,
+  ) {
+    return switch (entity) {
+      ModifiablePostEntity(data: final postData) => switch (postData) {
+          _ when postData.expiration != null => PushNotificationType.newStorySubscription,
+          _ when postData.hasVideo => PushNotificationType.newVideoSubscription,
+          _ => PushNotificationType.newPostSubscription,
+        },
+      PostEntity(data: final postData) => switch (postData) {
+          _ when postData.expiration != null => PushNotificationType.newStorySubscription,
+          _ when postData.hasVideo => PushNotificationType.newVideoSubscription,
+          _ => PushNotificationType.newPostSubscription,
+        },
+      ArticleEntity() => PushNotificationType.newArticleSubscription,
+      _ => null,
+    };
+  }
+
+  PushNotificationType? _getTokenIsLiveNotificationType({
+    required String currentPubkey,
+    required CommunityTokenDefinitionEntity entity,
+  }) {
+    if (entity case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
+      if (data.eventReference.masterPubkey == currentPubkey) {
+        return switch (data.kind) {
+          UserMetadataEntity.kind => PushNotificationType.yourCreatorTokenIsLive,
+          _ => PushNotificationType.yourContentTokenIsLive,
+        };
+      } else {
+        return switch (data.kind) {
+          UserMetadataEntity.kind => PushNotificationType.yourFolloweeCreatorTokenIsLive,
+          _ => PushNotificationType.yourFolloweeContentTokenIsLive,
+        };
+      }
+    }
+    return null;
+  }
+
+  PushNotificationType? _getTokenIsBoughtNotificationType({
+    required String currentPubkey,
+    required CommunityTokenActionEntity entity,
+  }) {
+    if (entity.data.relatedPubkey.value == currentPubkey) {
+      return switch (entity.data.kind) {
+        UserMetadataEntity.kind => PushNotificationType.someoneBoughtYourCreatorToken,
+        _ => PushNotificationType.someoneBoughtYourContentToken,
+      };
+    } else {
+      return switch (entity.data.kind) {
+        UserMetadataEntity.kind => PushNotificationType.someoneBoughtSomeRelevantCreatorToken,
+        _ => PushNotificationType.someoneBoughtSomeRelevantContentToken,
+      };
+    }
+  }
+
   Future<Map<String, String>> placeholders(
     PushNotificationType notificationType, {
     required Future<MoneyDisplayData?> Function(EventMessage) getFundsRequestData,
     required Future<MoneyDisplayData?> Function(EventMessage) getTransactionData,
+    required Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
   }) async {
     final mainEntityUserMetadata = _getUserMetadata(pubkey: mainEntity.masterPubkey);
 
     final data = <String, String>{};
+    final entity = mainEntity;
 
     if (mainEntityUserMetadata != null) {
       data.addAll({
@@ -358,7 +452,6 @@ class IonConnectPushDataPayload {
     if (decryptedEvent != null) {
       data['messageContent'] = decryptedEvent!.content;
       data['reactionContent'] = decryptedEvent!.content;
-      final entity = mainEntity;
 
       if (entity is IonConnectGiftWrapEntity) {
         if (entity.data.kinds
@@ -400,6 +493,34 @@ class IonConnectPushDataPayload {
             data['documentExt'] = fileType;
           }
         }
+      }
+    }
+
+    if (entity is CommunityTokenActionEntity) {
+      final amountUsd = entity.data.getUsdAmount();
+      data['amountUSD'] =
+          amountUsd != null ? formatPriceWithSubscript(amountUsd.value, symbol: '') : '';
+      data['ticker'] = entity.data.tokenTicker;
+    }
+
+    // For community token definitions, "username" and "displayName" placeholders belong
+    // to the author of the original event.
+    // For example: "Community launched a token for @{{username}}’s post.""
+    if (entity
+        case CommunityTokenDefinitionEntity(
+          data: final CommunityTokenDefinitionIon definitionData
+        )) {
+      final originalUserMetadata = await getRelatedEntity(
+        ReplaceableEventReference(
+          masterPubkey: definitionData.eventReference.masterPubkey,
+          kind: UserMetadataEntity.kind,
+        ),
+      ) as UserMetadataEntity?;
+      if (originalUserMetadata != null) {
+        data.addAll({
+          'username': originalUserMetadata.data.name,
+          'displayName': originalUserMetadata.data.displayName,
+        });
       }
     }
 
@@ -452,10 +573,9 @@ class IonConnectPushDataPayload {
 
   Future<bool> validate({required String currentPubkey}) async {
     final signaturesValid = await _checkEventsSignatures();
-    final isMainEventRelevant = _checkMainEventRelevant(currentPubkey: currentPubkey);
     final requiredEventsPresent = _checkRequiredRelevantEvents();
 
-    return signaturesValid && isMainEventRelevant && requiredEventsPresent;
+    return signaturesValid && requiredEventsPresent;
   }
 
   static String _decompress({required String input, required Compression compression}) {
@@ -473,42 +593,6 @@ class IonConnectPushDataPayload {
       ],
     );
     return valid.every((valid) => valid);
-  }
-
-  bool _checkMainEventRelevant({required String currentPubkey}) {
-    final entity = mainEntity;
-    if (entity is ModifiablePostEntity || entity is PostEntity) {
-      final relatedPubkeys = switch (entity) {
-        ModifiablePostEntity() => entity.data.relatedPubkeys,
-        PostEntity() => entity.data.relatedPubkeys,
-        _ => null
-      };
-
-      final event = switch (entity) {
-        ModifiablePostEntity() => entity.data.quotedEvent,
-        PostEntity() => entity.data.quotedEvent,
-        _ => null
-      };
-
-      final isInRelatedPubkeys = relatedPubkeys != null &&
-          relatedPubkeys.any((relatedPubkey) => relatedPubkey.value == currentPubkey);
-
-      final isPostAuthor = event != null && event.eventReference.masterPubkey == currentPubkey;
-
-      return isInRelatedPubkeys || isPostAuthor;
-    } else if (entity is GenericRepostEntity) {
-      return entity.data.eventReference.masterPubkey == currentPubkey;
-    } else if (entity is RepostEntity) {
-      return entity.data.eventReference.masterPubkey == currentPubkey;
-    } else if (entity is ReactionEntity) {
-      return entity.data.eventReference.masterPubkey == currentPubkey;
-    } else if (entity is FollowListEntity) {
-      return entity.masterPubkeys.lastOrNull == currentPubkey;
-    } else if (entity is IonConnectGiftWrapEntity) {
-      return entity.data.relatedPubkeys
-          .any((relatedPubkey) => relatedPubkey.value == currentPubkey);
-    }
-    return false;
   }
 
   bool _checkRequiredRelevantEvents() {
@@ -603,7 +687,22 @@ enum PushNotificationType {
   chatMultiPhotoMessage,
   chatMultiVideoMessage,
   chatPaymentRequestMessage,
-  chatPaymentReceivedMessage;
+  chatPaymentReceivedMessage,
+  yourCreatorTokenIsLive,
+  yourContentTokenIsLive,
+  yourFolloweeCreatorTokenIsLive,
+  yourFolloweeContentTokenIsLive,
+  yourCreatorTokenPriceIncreased,
+  someoneBoughtYourCreatorToken,
+  someoneBoughtYourContentToken,
+  someoneBoughtSomeRelevantCreatorToken,
+  someoneBoughtSomeRelevantContentToken,
+  moreBuyersJoined,
+  trendingToken,
+  newPostSubscription,
+  newStorySubscription,
+  newVideoSubscription,
+  newArticleSubscription;
 
   bool get isChat => const {
         chatDocumentMessage,

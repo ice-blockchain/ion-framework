@@ -131,6 +131,21 @@ class PushNotificationTranslations
     NotificationTranslation? chatMultiVideoMessage,
     NotificationTranslation? chatPaymentRequestMessage,
     NotificationTranslation? chatPaymentReceivedMessage,
+    NotificationTranslation? yourCreatorTokenIsLive,
+    NotificationTranslation? yourContentTokenIsLive,
+    NotificationTranslation? yourFolloweeCreatorTokenIsLive,
+    NotificationTranslation? yourFolloweeContentTokenIsLive,
+    NotificationTranslation? someoneBoughtYourCreatorToken,
+    NotificationTranslation? someoneBoughtYourContentToken,
+    NotificationTranslation? someoneBoughtSomeRelevantCreatorToken,
+    NotificationTranslation? someoneBoughtSomeRelevantContentToken,
+    NotificationTranslation? yourCreatorTokenPriceIncreased,
+    NotificationTranslation? moreBuyersJoined,
+    NotificationTranslation? trendingToken,
+    NotificationTranslation? newPostSubscription,
+    NotificationTranslation? newStorySubscription,
+    NotificationTranslation? newVideoSubscription,
+    NotificationTranslation? newArticleSubscription,
   }) = _PushNotificationTranslations;
 
   factory PushNotificationTranslations.fromJson(Map<String, dynamic> json) =>

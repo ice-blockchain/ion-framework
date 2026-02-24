@@ -4,7 +4,8 @@ enum ContentType {
   posts(0),
   stories(1),
   articles(2),
-  videos(3);
+  videos(3),
+  tokenizedCommunitiesTransactions(4);
 
   const ContentType(this.value);
   final int value;

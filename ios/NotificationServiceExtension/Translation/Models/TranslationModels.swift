@@ -50,6 +50,21 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let chatMultiVideoMessage: NotificationTranslation?
     let chatPaymentRequestMessage: NotificationTranslation?
     let chatPaymentReceivedMessage: NotificationTranslation?
+    let yourCreatorTokenIsLive: NotificationTranslation?
+    let yourContentTokenIsLive: NotificationTranslation?
+    let yourFolloweeCreatorTokenIsLive: NotificationTranslation?
+    let yourFolloweeContentTokenIsLive: NotificationTranslation?
+    let someoneBoughtYourCreatorToken: NotificationTranslation?
+    let someoneBoughtYourContentToken: NotificationTranslation?
+    let someoneBoughtSomeRelevantCreatorToken: NotificationTranslation?
+    let someoneBoughtSomeRelevantContentToken: NotificationTranslation?
+    let yourCreatorTokenPriceIncreased: NotificationTranslation?
+    let moreBuyersJoined: NotificationTranslation?
+    let trendingToken: NotificationTranslation?
+    let newPostSubscription: NotificationTranslation?
+    let newStorySubscription: NotificationTranslation?
+    let newVideoSubscription: NotificationTranslation?
+    let newArticleSubscription: NotificationTranslation?
     
     enum CodingKeys: String, CodingKey {
         case version = "_version"
@@ -67,5 +82,13 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
         case chatGifMessage, chatMultiGifMessage, chatMultiMediaMessage
         case chatMultiPhotoMessage, chatMultiVideoMessage
         case chatPaymentRequestMessage, chatPaymentReceivedMessage
+        case yourCreatorTokenIsLive, yourContentTokenIsLive
+        case yourFolloweeCreatorTokenIsLive, yourFolloweeContentTokenIsLive
+        case someoneBoughtYourCreatorToken, someoneBoughtYourContentToken
+        case someoneBoughtSomeRelevantCreatorToken, someoneBoughtSomeRelevantContentToken
+        case yourCreatorTokenPriceIncreased, moreBuyersJoined
+        case trendingToken
+        case newPostSubscription, newStorySubscription
+        case newVideoSubscription, newArticleSubscription
     }
 }

@@ -8,6 +8,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/event_kind.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -70,11 +71,13 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     required String network,
     required String bondingCurveAddress,
     required String tokenAddress,
+    required String tokenTicker,
     required String transactionAddress,
     required CommunityTokenActionType type,
     required List<TransactionAmount> amounts,
     required List<RelatedHashtag> relatedHashtags,
     required RelatedPubkey relatedPubkey,
+    required int kind,
   }) = _CommunityTokenActionData;
 
   const CommunityTokenActionData._();
@@ -90,6 +93,8 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     final network = tags['network']?.firstOrNull?.lastOrNull;
     final bondingCurveAddress = tags['bonding_curve_address']?.firstOrNull?.lastOrNull;
     final tokenAddress = tags['token_address']?.firstOrNull?.lastOrNull;
+    final tokenTicker =
+        tags['token_symbol']?.firstOrNull?.lastOrNull ?? ''; // For backward compatibility
     final transactionAddress = tags['tx_address']?.firstOrNull?.lastOrNull;
     final typeRaw = tags['tx_type']?.firstOrNull?.lastOrNull;
     final type = typeRaw != null
@@ -99,6 +104,8 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     final relatedPubkey = tags[RelatedPubkey.tagName]?.map(RelatedPubkey.fromTag).firstOrNull;
     final relatedHashtags =
         tags[RelatedHashtag.tagName]?.map(RelatedHashtag.fromTag).toList() ?? [];
+    final kind = tags[EventKind.tagName]?.map(EventKind.fromTag).firstOrNull?.value ??
+        -1; // For backward compatibility
 
     if (eventReference == null ||
         network == null ||
@@ -118,11 +125,13 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       network: network,
       bondingCurveAddress: bondingCurveAddress,
       tokenAddress: tokenAddress,
+      tokenTicker: tokenTicker,
       transactionAddress: transactionAddress,
       type: type,
       amounts: amounts,
       relatedHashtags: relatedHashtags,
       relatedPubkey: relatedPubkey,
+      kind: kind,
     );
   }
 
@@ -146,6 +155,9 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     /// Address of the community token on the blockchain
     required String tokenAddress,
 
+    /// Ticker/symbol of the community token on the blockchain
+    required String tokenTicker,
+
     /// Address of the specific transaction for that community token on the blockchain
     required String transactionAddress,
 
@@ -160,6 +172,9 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
 
     /// Amount in USD
     required TransactionAmount amountUsd,
+
+    /// Kind of the related event
+    required int kind,
   }) {
     if (amountUsd.currency != TransactionAmount.usdCurrency) {
       throw ArgumentError.value(
@@ -173,11 +188,13 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
       network: network,
       bondingCurveAddress: bondingCurveAddress,
       tokenAddress: tokenAddress,
+      tokenTicker: tokenTicker,
       transactionAddress: transactionAddress,
       type: type,
       amounts: [amountBase, amountQuote, amountUsd],
       relatedHashtags: _buildRelatedHashtags(hasUserPosition: hasUserPosition, type: type),
       relatedPubkey: RelatedPubkey(value: definitionReference.masterPubkey),
+      kind: kind,
     );
   }
 
@@ -201,14 +218,24 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
         ['network', network],
         ['bonding_curve_address', bondingCurveAddress],
         ['token_address', tokenAddress],
+        ['token_symbol', tokenTicker],
         ['tx_address', transactionAddress],
         ['tx_type', type.name],
+        EventKind(value: kind).toTag(),
       ],
     );
   }
 
   TransactionAmount? getAmountByCurrency(String currency) {
     return amounts.firstWhereOrNull((amount) => amount.currency == currency);
+  }
+
+  TransactionAmount? getUsdAmount() {
+    return getAmountByCurrency(TransactionAmount.usdCurrency);
+  }
+
+  TransactionAmount? getTokenAmount() {
+    return amounts.firstWhereOrNull((amount) => amount.currency == tokenTicker);
   }
 
   static List<RelatedHashtag> _buildRelatedHashtags({

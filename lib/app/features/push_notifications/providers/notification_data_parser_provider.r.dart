@@ -90,6 +90,7 @@ class NotificationDataParser {
       notificationType,
       getFundsRequestData: getFundsRequestData,
       getTransactionData: getTransactionData,
+      getRelatedEntity: getRelatedEntity,
     );
 
     final result = (
@@ -325,6 +326,66 @@ class NotificationDataParser {
         PushNotificationType.chatPaymentReceivedMessage => (
             await translator.translate((t) => t.chatPaymentReceivedMessage?.title),
             await translator.translate((t) => t.chatPaymentReceivedMessage?.body)
+          ),
+        PushNotificationType.yourCreatorTokenIsLive => (
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.yourContentTokenIsLive => (
+            await translator.translate((t) => t.yourContentTokenIsLive?.title),
+            await translator.translate((t) => t.yourContentTokenIsLive?.body)
+          ),
+        PushNotificationType.yourFolloweeCreatorTokenIsLive => (
+            await translator.translate((t) => t.yourFolloweeCreatorTokenIsLive?.title),
+            await translator.translate((t) => t.yourFolloweeCreatorTokenIsLive?.body)
+          ),
+        PushNotificationType.yourFolloweeContentTokenIsLive => (
+            await translator.translate((t) => t.yourFolloweeContentTokenIsLive?.title),
+            await translator.translate((t) => t.yourFolloweeContentTokenIsLive?.body)
+          ),
+        PushNotificationType.someoneBoughtYourCreatorToken => (
+            await translator.translate((t) => t.someoneBoughtYourCreatorToken?.title),
+            await translator.translate((t) => t.someoneBoughtYourCreatorToken?.body)
+          ),
+        PushNotificationType.someoneBoughtYourContentToken => (
+            await translator.translate((t) => t.someoneBoughtYourContentToken?.title),
+            await translator.translate((t) => t.someoneBoughtYourContentToken?.body)
+          ),
+        PushNotificationType.someoneBoughtSomeRelevantCreatorToken => (
+            await translator.translate((t) => t.someoneBoughtSomeRelevantCreatorToken?.title),
+            await translator.translate((t) => t.someoneBoughtSomeRelevantCreatorToken?.body)
+          ),
+        PushNotificationType.someoneBoughtSomeRelevantContentToken => (
+            await translator.translate((t) => t.someoneBoughtSomeRelevantContentToken?.title),
+            await translator.translate((t) => t.someoneBoughtSomeRelevantContentToken?.body)
+          ),
+        PushNotificationType.yourCreatorTokenPriceIncreased => (
+            await translator.translate((t) => t.yourCreatorTokenPriceIncreased?.title),
+            await translator.translate((t) => t.yourCreatorTokenPriceIncreased?.body)
+          ),
+        PushNotificationType.moreBuyersJoined => (
+            await translator.translate((t) => t.moreBuyersJoined?.title),
+            await translator.translate((t) => t.moreBuyersJoined?.body)
+          ),
+        PushNotificationType.trendingToken => (
+            await translator.translate((t) => t.trendingToken?.title),
+            await translator.translate((t) => t.trendingToken?.body)
+          ),
+        PushNotificationType.newPostSubscription => (
+            await translator.translate((t) => t.newPostSubscription?.title),
+            await translator.translate((t) => t.newPostSubscription?.body)
+          ),
+        PushNotificationType.newStorySubscription => (
+            await translator.translate((t) => t.newStorySubscription?.title),
+            await translator.translate((t) => t.newStorySubscription?.body)
+          ),
+        PushNotificationType.newVideoSubscription => (
+            await translator.translate((t) => t.newVideoSubscription?.title),
+            await translator.translate((t) => t.newVideoSubscription?.body)
+          ),
+        PushNotificationType.newArticleSubscription => (
+            await translator.translate((t) => t.newArticleSubscription?.title),
+            await translator.translate((t) => t.newArticleSubscription?.body)
           ),
       };
     } catch (error) {
