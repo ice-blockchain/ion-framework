@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 0.1
 
 import Foundation
+import os.log
 
 struct ModifiablePostEntity: IonConnectEntity {
     let id: String
@@ -133,7 +134,7 @@ struct ModifiablePostData {
                     quotedEvent = try QuotedEventFactory.fromTag(tag)
                     break
                 } catch {
-                    NSLog("[NSE] Error parsing quoted event: \(error)")
+                    nseLogger.error("Error parsing quoted event: \(error)")
                 }
             }
         }
@@ -146,7 +147,7 @@ struct ModifiablePostData {
                     richText = try RichText.fromTag(tag)
                     break
                 } catch {
-                    NSLog("[NSE] Error parsing rich text: \(error)")
+                    nseLogger.error("Error parsing rich text: \(error)")
                 }
             }
         }

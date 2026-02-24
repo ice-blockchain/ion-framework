@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import Foundation
+import os.log
 
 struct TransactionData {
     let coinAmount: String
@@ -121,7 +122,7 @@ class IonConnectPushDataPayload: Decodable {
                     relevantEvents = []
                 }
             } catch {
-                NSLog("[NSE] Error decompressing data: \(error)")
+                nseLogger.error("Error decompressing data: \(error)")
                 throw error
             }
         } else {
@@ -245,7 +246,7 @@ class IonConnectPushDataPayload: Decodable {
                         return getVisualMediaNotificationType(message: message)
                     }
                 } catch {
-                    NSLog("[NSE] Error parsing decrypted message: \(error)")
+                    nseLogger.error("Error parsing decrypted message: \(error)")
                     return nil
                 }
             }
@@ -367,7 +368,7 @@ class IonConnectPushDataPayload: Decodable {
             
             let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
             guard cacheDB.openDatabase() else {
-                NSLog("[NSE] Failed to open ion_connect_cache database for community token definition metadata")
+                nseLogger.error("Failed to open ion_connect_cache database for community token definition metadata")
                 return data
             }
             defer { cacheDB.closeDatabase() }
@@ -423,7 +424,7 @@ class IonConnectPushDataPayload: Decodable {
                 )
                 avatarFilePath = outputFileURL.path
             } catch {
-                NSLog("[NSE] Conversion failed: \(error)")
+                nseLogger.error("Conversion failed: \(error)")
             }
 
         }
@@ -464,7 +465,7 @@ class IonConnectPushDataPayload: Decodable {
                     try UserDelegationEntity.fromEventMessage(delegationEvent)
                 return delegationEntity.data.validate(event)
             } catch {
-                NSLog("[NSE] Error parsing delegation entity: \(error)")
+                nseLogger.error("Error parsing delegation entity: \(error)")
                 return false
             }
         }
@@ -475,13 +476,13 @@ class IonConnectPushDataPayload: Decodable {
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for like notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for like notification type")
             return .like
         }
         defer { cacheDB.closeDatabase() }
         
         guard let relatedEntity = cacheDB.getGenericEntity(for: eventReference) else {
-            NSLog("[NSE] No related entity found in cache for: \(eventReference)")
+            nseLogger.error("No related entity found in cache for: \(eventReference)")
             return .like
         }
         
@@ -521,13 +522,13 @@ class IonConnectPushDataPayload: Decodable {
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for repost notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for repost notification type")
             return .repost
         }
         defer { cacheDB.closeDatabase() }
         
         guard let repostedEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
+            nseLogger.error("No related entity found in cache for: \(eventReferenceKey)")
             return .repost
         }
         
@@ -569,13 +570,13 @@ class IonConnectPushDataPayload: Decodable {
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for quote notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for quote notification type")
             return .quote
         }
         defer { cacheDB.closeDatabase() }
         
         guard let quotedEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
+            nseLogger.error("No related entity found in cache for: \(eventReferenceKey)")
             return .quote
         }
         
@@ -617,13 +618,13 @@ class IonConnectPushDataPayload: Decodable {
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for reply notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for reply notification type")
             return .reply
         }
         defer { cacheDB.closeDatabase() }
         
         guard let parentEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
+            nseLogger.error("No related entity found in cache for: \(eventReferenceKey)")
             return .reply
         }
         

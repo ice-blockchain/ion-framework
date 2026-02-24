@@ -2,6 +2,7 @@
 
 import CryptoKit
 import Foundation
+import os.log
 
 class SignatureVerifier {
     static let ed25519SignaturePrefix = "eddsa/curve25519"
@@ -45,7 +46,7 @@ class SignatureVerifier {
             let publicKey = try Curve25519.Signing.PublicKey(rawRepresentation: publicKeyData)
             return publicKey.isValidSignature(signatureData, for: messageData)
         } catch {
-            NSLog("[NSE] Ed25519 verification error: \(error)")
+            nseLogger.error("Ed25519 verification error: \(error)")
             return false
         }
     }

@@ -2,6 +2,7 @@
 
 import Foundation
 import SQLite3
+import os.log
 
 struct FundsRequestDisplayData {
     let amount: String?
@@ -33,7 +34,7 @@ final class WalletsDatabase: DatabaseManager {
         LIMIT 1
         """
         guard let rows = executeQuery(query), let row = rows.first else {
-            NSLog("[NSE] [WALLETDB] funds request not found for eventId=%@", eventId)
+            nseLogger.error("[WALLETDB] funds request not found for eventId=\(eventId)")
             return nil
         }
         let assetId = row["asset_id"] as? String
@@ -52,18 +53,18 @@ final class WalletsDatabase: DatabaseManager {
         LIMIT 1
         """
         guard let rows = executeQuery(query), let row = rows.first else {
-            NSLog("[NSE] [WALLETDB] coin not found for assetId=%@", assetId)
+            nseLogger.error("[WALLETDB] coin not found for assetId=\(assetId)")
             return nil
         }
         guard let symbol = row["symbol"] as? String, !symbol.isEmpty else {
-            NSLog("[NSE] [WALLETDB] coin symbol missing for assetId=%@", assetId)
+            nseLogger.error("[WALLETDB] coin symbol missing for assetId=\(assetId)")
             return nil
         }
         var decimalsValue: Int?
         if let d = row["decimals"] as? Int { decimalsValue = d }
         if let d = row["decimals"] as? Int64 { decimalsValue = Int(d) }
         guard let decimals = decimalsValue else {
-            NSLog("[NSE] [WALLETDB] coin decimals missing for assetId=%@", assetId)
+            nseLogger.error("[WALLETDB] coin decimals missing for assetId=\(assetId)")
             return nil
         }
         return CoinDBInfo(abbreviation: symbol.uppercased(), decimals: decimals)

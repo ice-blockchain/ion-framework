@@ -2,13 +2,14 @@
 
 import Foundation
 import Darwin
+import os.log
 
 public enum CryptoAmountFormatter {
     public static func parse(_ input: String, decimals: Int) -> Double {
         if let parsed = Double(input) {
             return parsed / pow(10.0, Double(decimals))
         } else {
-            NSLog("[NSE] [CryptoAmountFormatter] Failed to parse coins amount with `%@` value.", input)
+            nseLogger.error("[CryptoAmountFormatter] Failed to parse coins amount with \(input) value.")
             return 0
         }
     }

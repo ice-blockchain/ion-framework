@@ -2,6 +2,7 @@
 
 import Foundation
 import SQLite3
+import os.log
 
 /// Represents the message delivery status enum values from Dart
 enum MessageDeliveryStatus: Int {
@@ -40,7 +41,7 @@ final class ChatDatabase: DatabaseManager {
         """
         
         guard let rows = executeQuery(query) else {
-            NSLog("[NSE] [CHATDB] failed to check conversation existence for id: %@", conversationId)
+            nseLogger.error("[CHATDB] failed to check conversation existence for id: \(conversationId)")
             return false
         }
         

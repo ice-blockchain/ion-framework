@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import UserNotifications
+import os.log
 
 class NotificationService: UNNotificationServiceExtension {
     /// Key for the deep link parameter in push notification payloads
@@ -35,7 +36,7 @@ class NotificationService: UNNotificationServiceExtension {
                     request.content.userInfo
                 ) else {
                     // Hide notification if translation fails
-                    NSLog("[NSE] Translation failed, hiding notification")
+                    nseLogger.error("Translation failed, hiding notification")
                     contentHandler(UNNotificationContent())
                     return
                 }
@@ -72,7 +73,7 @@ class NotificationService: UNNotificationServiceExtension {
                 )
             } catch {
                 // Hide notification if any error occurs during processing
-                NSLog("[NSE] Failed to process notification: \(error)")
+                nseLogger.error("Failed to process notification: \(error)")
                 contentHandler(UNNotificationContent())
                 return
             }
@@ -87,12 +88,12 @@ class NotificationService: UNNotificationServiceExtension {
                     contentHandler(communicationStyle)
                 } else {
                     // Hide notification if communication style building fails
-                    NSLog("[NSE] Failed to build communication style, hiding notification")
+                    nseLogger.error("Failed to build communication style, hiding notification")
                     contentHandler(UNNotificationContent())
                 }
             } else {
                 // Hide notification if no communication data
-                NSLog("[NSE] No communication data, hiding notification")
+                nseLogger.error("No communication data, hiding notification")
                 contentHandler(UNNotificationContent())
             }
         }
@@ -101,7 +102,7 @@ class NotificationService: UNNotificationServiceExtension {
     override func serviceExtensionTimeWillExpire() {
         if let contentHandler = contentHandler {
             // Hide notification if processing times out
-            NSLog("[NSE] Service extension time expired, hiding notification")
+            nseLogger.error("Service extension time expired, hiding notification")
             contentHandler(UNNotificationContent())
         }
     }
@@ -128,7 +129,7 @@ class NotificationService: UNNotificationServiceExtension {
     ) {
         let chatDB = ChatDatabase(keysStorage: keysStorage)
         guard chatDB.openDatabase() else {
-            NSLog("[NSE] Failed to open chat database")
+            nseLogger.error("Failed to open chat database")
             return
         }
         defer { chatDB.closeDatabase() }
