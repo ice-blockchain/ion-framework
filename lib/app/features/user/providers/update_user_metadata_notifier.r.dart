@@ -119,8 +119,9 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
     }
 
     if (data.about != null) {
+      final trimmedAbout = QuillTextUtils.trimBioDeltaJson(data.about);
       data = data.copyWith(
-        about: QuillTextUtils.trimBioDeltaJson(data.about),
+        about: trimmedAbout != null ? QuillTextUtils.normalizeBioDeltaMentions(trimmedAbout) : null,
       );
     }
 

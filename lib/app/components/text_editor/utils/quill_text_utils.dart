@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter_quill/flutter_quill.dart' show Attribute, Document;
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/features/feed/providers/content_conversion.dart';
 
 class QuillTextUtils {
@@ -359,6 +360,21 @@ class QuillTextUtils {
     }
 
     return jsonOps;
+  }
+
+  // Normalizes mention embeds in a bio Delta JSON to attribute format,
+  // identical to how posts/articles store mentions.
+  static String normalizeBioDeltaMentions(String jsonDelta) {
+    try {
+      final raw = jsonDecode(jsonDelta);
+      if (raw is! List) return jsonDelta;
+
+      final delta = Delta.fromJson(raw.cast<Map<String, dynamic>>());
+      final normalized = DeltaBridge.normalizeToAttributeFormat(delta);
+      return jsonEncode(normalized.toJson());
+    } catch (_) {
+      return jsonDelta;
+    }
   }
 
   /// Converts bio Delta JSON to trimmed plain text for API submission.

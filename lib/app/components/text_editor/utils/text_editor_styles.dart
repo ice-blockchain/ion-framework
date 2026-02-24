@@ -5,11 +5,16 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
-DefaultStyles textEditorStyles(BuildContext context, {Color? color}) {
+DefaultStyles textEditorStyles(
+  BuildContext context, {
+  Color? color,
+  TextStyle? baseTextStyle,
+}) {
   final textColor = color ?? context.theme.appColors.postContent;
+  final base = baseTextStyle ?? context.theme.appTextThemes.body2;
   return DefaultStyles(
     paragraph: DefaultTextBlockStyle(
-      context.theme.appTextThemes.body2.copyWith(
+      base.copyWith(
         color: textColor,
         leadingDistribution: TextLeadingDistribution.even,
       ),
@@ -18,16 +23,16 @@ DefaultStyles textEditorStyles(BuildContext context, {Color? color}) {
       VerticalSpacing.zero,
       null,
     ),
-    bold: context.theme.appTextThemes.body2.copyWith(
+    bold: base.copyWith(
       fontWeight: FontWeight.bold,
       color: textColor,
     ),
-    italic: context.theme.appTextThemes.body2.copyWith(
+    italic: base.copyWith(
       fontStyle: FontStyle.italic,
       color: textColor,
     ),
     placeHolder: DefaultTextBlockStyle(
-      context.theme.appTextThemes.body2.copyWith(
+      base.copyWith(
         color: context.theme.appColors.tertiaryText,
       ),
       HorizontalSpacing.zero,
@@ -36,9 +41,9 @@ DefaultStyles textEditorStyles(BuildContext context, {Color? color}) {
       null,
     ),
     lists: DefaultListBlockStyle(
-      context.theme.appTextThemes.body2.copyWith(
+      base.copyWith(
         color: textColor,
-        fontSize: context.theme.appTextThemes.body2.fontSize,
+        fontSize: base.fontSize,
       ),
       HorizontalSpacing.zero,
       VerticalSpacing.zero,
@@ -47,7 +52,7 @@ DefaultStyles textEditorStyles(BuildContext context, {Color? color}) {
       null,
     ),
     quote: DefaultTextBlockStyle(
-      context.theme.appTextThemes.body2.copyWith(
+      base.copyWith(
         color: context.theme.appColors.primaryText,
         fontStyle: FontStyle.italic,
       ),

@@ -6,6 +6,7 @@ import 'package:ion/app/components/text_editor/hooks/use_text_delta.dart';
 import 'package:ion/app/components/text_editor/text_editor_preview.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_styles.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/user/user_about/bio_mention_embed_builder.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 
@@ -33,12 +34,11 @@ class UserAbout extends HookConsumerWidget {
 
     final content = useTextDelta(about);
 
-    final customStyles = profileMode == ProfileMode.dark
-        ? textEditorStyles(
-            context,
-            color: context.theme.appColors.secondaryBackground,
-          )
-        : null;
+    final customStyles = textEditorStyles(
+      context,
+      color: profileMode == ProfileMode.dark ? context.theme.appColors.secondaryBackground : null,
+      baseTextStyle: context.theme.appTextThemes.caption2,
+    );
 
     return Padding(
       padding: padding,
@@ -46,6 +46,8 @@ class UserAbout extends HookConsumerWidget {
         scrollable: false,
         content: content,
         customStyles: customStyles,
+        tagsColor: context.theme.appColors.lightBlue,
+        mentionEmbedBuilder: const BioMentionEmbedBuilder(),
       ),
     );
   }
