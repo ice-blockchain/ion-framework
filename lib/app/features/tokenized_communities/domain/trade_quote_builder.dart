@@ -12,12 +12,14 @@ class TradeQuoteStep {
     required this.amountIn,
     required this.amountOut,
     required this.minReturn,
+    this.pancakeSwapFeeTier,
   });
 
   final TradeRouteStep step;
   final BigInt amountIn;
   final BigInt amountOut;
   final BigInt minReturn;
+  final int? pancakeSwapFeeTier;
 }
 
 class TradeQuotePlan {
@@ -181,6 +183,7 @@ class TradeQuoteBuilder {
       amountIn: amountIn,
       amountOut: amountOut,
       minReturn: minReturn,
+      pancakeSwapFeeTier: quote.fee,
     );
   }
 
@@ -191,6 +194,7 @@ class TradeQuoteBuilder {
   }) {
     return switch (role) {
       TradeTokenRole.payment => paymentTokenAddress,
+      TradeTokenRole.wrappedNative => _pancakeSwapService.wbnbTokenAddress,
       TradeTokenRole.ion => _pancakeSwapService.ionTokenAddress,
       TradeTokenRole.creator => route.creatorExternalAddress ?? route.externalAddress,
       TradeTokenRole.content => route.externalAddress,
@@ -246,6 +250,7 @@ class TradeQuoteBuilder {
 
 class _QuoteBuildState {
   const _QuoteBuildState({
+    required this.initialAmount,
     required this.currentAmount,
     required this.steps,
     required this.lastBondingCurvePricing,
@@ -253,12 +258,14 @@ class _QuoteBuildState {
 
   factory _QuoteBuildState.initial(BigInt amountIn) {
     return _QuoteBuildState(
+      initialAmount: amountIn,
       currentAmount: amountIn,
       steps: const [],
       lastBondingCurvePricing: null,
     );
   }
 
+  final BigInt initialAmount;
   final BigInt currentAmount;
   final List<TradeQuoteStep> steps;
   final PricingResponse? lastBondingCurvePricing;
@@ -269,6 +276,7 @@ class _QuoteBuildState {
     PricingResponse? lastBondingCurvePricing,
   }) {
     return _QuoteBuildState(
+      initialAmount: initialAmount,
       currentAmount: nextAmount,
       steps: [...steps, step],
       lastBondingCurvePricing: lastBondingCurvePricing ?? this.lastBondingCurvePricing,

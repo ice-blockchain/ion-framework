@@ -7,6 +7,7 @@ import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resol
 
 enum TradeTokenRole {
   payment,
+  wrappedNative,
   ion,
   creator,
   content,
@@ -71,6 +72,7 @@ class TradeRouteBuilder {
     final paymentRole = paymentTokenRoleOverride ?? TradeTokenRole.payment;
     final isPaymentIon =
         paymentRole == TradeTokenRole.ion || _tokenResolver.isIonTokenAddress(paymentTokenAddress);
+    final isPaymentNative = _tokenResolver.isNativeTokenAddress(paymentTokenAddress);
     final creatorExternalAddress = externalAddressType.isContentToken
         ? MasterPubkeyResolver.creatorExternalAddressFromExternal(externalAddress)
         : null;
@@ -81,6 +83,7 @@ class TradeRouteBuilder {
             creatorExternalAddress: creatorExternalAddress,
             paymentRole: paymentRole,
             isPaymentIon: isPaymentIon,
+            isPaymentNative: isPaymentNative,
             isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
           )
         : _buildSellSteps(
@@ -89,6 +92,7 @@ class TradeRouteBuilder {
             creatorExternalAddress: creatorExternalAddress,
             paymentRole: paymentRole,
             isPaymentIon: isPaymentIon,
+            isPaymentNative: isPaymentNative,
           );
 
     return TradeRoutePlan(
@@ -105,6 +109,7 @@ class TradeRouteBuilder {
     required String? creatorExternalAddress,
     required TradeTokenRole paymentRole,
     required bool isPaymentIon,
+    required bool isPaymentNative,
     required bool isCreatorTokenMissingForContentFirstBuy,
   }) {
     if (paymentRole == TradeTokenRole.creator && externalAddressType.isContentToken) {
@@ -119,9 +124,19 @@ class TradeRouteBuilder {
     }
 
     final steps = <TradeRouteStep>[
-      if (!isPaymentIon)
+      if (!isPaymentIon && isPaymentNative)
         const TradeRouteStep.pancakeSwap(
           fromRole: TradeTokenRole.payment,
+          toRole: TradeTokenRole.ion,
+        ),
+      if (!isPaymentIon && !isPaymentNative)
+        const TradeRouteStep.pancakeSwap(
+          fromRole: TradeTokenRole.payment,
+          toRole: TradeTokenRole.wrappedNative,
+        ),
+      if (!isPaymentIon && !isPaymentNative)
+        const TradeRouteStep.pancakeSwap(
+          fromRole: TradeTokenRole.wrappedNative,
           toRole: TradeTokenRole.ion,
         ),
       ..._buildBuyBondingCurveSteps(
@@ -184,6 +199,7 @@ class TradeRouteBuilder {
     required String? creatorExternalAddress,
     required TradeTokenRole paymentRole,
     required bool isPaymentIon,
+    required bool isPaymentNative,
   }) {
     final steps = <TradeRouteStep>[
       ..._buildSellBondingCurveSteps(
@@ -192,9 +208,19 @@ class TradeRouteBuilder {
         creatorExternalAddress: creatorExternalAddress,
         paymentRole: paymentRole,
       ),
-      if (!isPaymentIon && paymentRole != TradeTokenRole.creator)
+      if (!isPaymentIon && paymentRole != TradeTokenRole.creator && isPaymentNative)
         const TradeRouteStep.pancakeSwap(
           fromRole: TradeTokenRole.ion,
+          toRole: TradeTokenRole.payment,
+        ),
+      if (!isPaymentIon && paymentRole != TradeTokenRole.creator && !isPaymentNative)
+        const TradeRouteStep.pancakeSwap(
+          fromRole: TradeTokenRole.ion,
+          toRole: TradeTokenRole.wrappedNative,
+        ),
+      if (!isPaymentIon && paymentRole != TradeTokenRole.creator && !isPaymentNative)
+        const TradeRouteStep.pancakeSwap(
+          fromRole: TradeTokenRole.wrappedNative,
           toRole: TradeTokenRole.payment,
         ),
     ];
