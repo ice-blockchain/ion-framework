@@ -32,6 +32,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
+import 'package:ion/app/utils/url.dart';
 
 class CreatePostContent extends ConsumerWidget {
   const CreatePostContent({
@@ -280,7 +281,11 @@ class _TextInputSection extends HookConsumerWidget {
                     attachedMediaLinksNotifier: attachedMediaLinksNotifier,
                   ),
                 ],
-                if (mediaFiles.isEmpty && links.isNotEmpty && !hasOneLinkQuote)
+                // Prefer quote over URL preview: do not show preview when the link is a OneLink (will become quote).
+                if (mediaFiles.isEmpty &&
+                    links.isNotEmpty &&
+                    !hasOneLinkQuote &&
+                    !isOneLinkUrl(links.first))
                   Padding(
                     padding: EdgeInsetsDirectional.only(
                       top: 10.0.s,
