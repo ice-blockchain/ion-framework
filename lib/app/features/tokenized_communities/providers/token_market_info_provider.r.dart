@@ -90,10 +90,12 @@ class TokenMarketInfo extends _$TokenMarketInfo {
         },
         onError: (Object e, StackTrace stackTrace) {
           unawaited(SentryService.logException(e, stackTrace: stackTrace));
+          Logger.error(e, stackTrace: stackTrace, message: '[TokenMarketInfo] Stream error');
         },
       );
     } catch (e, stackTrace) {
       unawaited(SentryService.logException(e, stackTrace: stackTrace));
+      Logger.error(e, stackTrace: stackTrace, message: '[TokenMarketInfo] Failed to subscribe');
     }
   }
 }
