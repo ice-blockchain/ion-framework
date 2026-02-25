@@ -192,8 +192,7 @@ class _StoryShareButton extends HookConsumerWidget {
                   mediaType: mediaType,
                   eventReference: eventReference,
                 );
-                if (!context.mounted) return;
-                if (mediaFiles == null) return;
+                if (!context.mounted || mediaFiles == null) return;
 
                 // NSFW validation before publishing (stories: image or video)
                 final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, mediaFiles);
