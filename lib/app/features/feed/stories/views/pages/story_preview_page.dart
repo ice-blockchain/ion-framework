@@ -29,6 +29,7 @@ import 'package:ion/app/features/feed/stories/views/components/story_preview/med
 import 'package:ion/app/features/feed/stories/views/components/story_preview/media/story_video_preview.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
+import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -183,42 +184,50 @@ class _StoryShareButton extends HookConsumerWidget {
               }
 
               isPublishing.value = true;
-
-              final createPostNotifier = ref.read(
-                createPostNotifierProvider(CreatePostOption.story).notifier,
-              );
-
-              if (eventReference != null || mediaType == MediaType.image) {
-                final dimensions =
-                    await ref.read(imageCompressorProvider).getImageDimension(path: path);
-
-                await createPostNotifier.create(
-                  mediaFiles: [
-                    MediaFile(
-                      path: path,
-                      mimeType: mimeType,
-                      width: dimensions.width,
-                      height: dimensions.height,
-                    ),
-                  ],
-                  whoCanReply: whoCanReply,
-                  quotedEvent: isPostScreenshot ? null : eventReference,
-                  sourcePostReference: isPostScreenshot ? eventReference : null,
-                  topics: ref.read(selectedInterestsNotifierProvider),
-                  language: language.value,
+              try {
+                final mediaFiles = await _buildStoryMediaFiles(
+                  ref,
+                  path: path,
+                  mimeType: mimeType,
+                  mediaType: mediaType,
+                  eventReference: eventReference,
                 );
-              } else if (mediaType == MediaType.video) {
-                await createPostNotifier.create(
-                  mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
-                  whoCanReply: whoCanReply,
-                  topics: ref.read(selectedInterestsNotifierProvider),
-                  language: language.value,
-                );
-              }
-              if (context.mounted) {
-                refreshProviders(ref);
+                if (!context.mounted || mediaFiles == null) return;
 
-                isPublishing.value = false;
+                // NSFW validation before publishing (stories: image or video)
+                final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, mediaFiles);
+                if (!context.mounted) return;
+                if (isBlocked) return;
+
+                final createPostNotifier = ref.read(
+                  createPostNotifierProvider(CreatePostOption.story).notifier,
+                );
+
+                if (eventReference != null || mediaType == MediaType.image) {
+                  await createPostNotifier.create(
+                    mediaFiles: mediaFiles,
+                    whoCanReply: whoCanReply,
+                    quotedEvent: isPostScreenshot ? null : eventReference,
+                    sourcePostReference: isPostScreenshot ? eventReference : null,
+                    topics: ref.read(selectedInterestsNotifierProvider),
+                    language: language.value,
+                  );
+                } else if (mediaType == MediaType.video) {
+                  await createPostNotifier.create(
+                    mediaFiles: mediaFiles,
+                    whoCanReply: whoCanReply,
+                    topics: ref.read(selectedInterestsNotifierProvider),
+                    language: language.value,
+                  );
+                }
+
+                if (context.mounted) {
+                  refreshProviders(ref);
+                }
+              } finally {
+                if (context.mounted) {
+                  isPublishing.value = false;
+                }
               }
             },
     );
@@ -236,4 +245,30 @@ class _StoryShareButton extends HookConsumerWidget {
           ),
         );
   }
+}
+
+// Builds the MediaFile list for the story (image or video). Returns null for
+// unsupported types (e.g. audio, unknown).
+Future<List<MediaFile>?> _buildStoryMediaFiles(
+  WidgetRef ref, {
+  required String path,
+  required String? mimeType,
+  required MediaType mediaType,
+  EventReference? eventReference,
+}) async {
+  if (eventReference != null || mediaType == MediaType.image) {
+    final dimensions = await ref.read(imageCompressorProvider).getImageDimension(path: path);
+    return [
+      MediaFile(
+        path: path,
+        mimeType: mimeType,
+        width: dimensions.width,
+        height: dimensions.height,
+      ),
+    ];
+  }
+  if (mediaType == MediaType.video) {
+    return [MediaFile(path: path, mimeType: mimeType)];
+  }
+  return null;
 }
