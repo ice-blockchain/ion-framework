@@ -28,20 +28,6 @@ def ensure_temp_keychain(name, password)
 end
 
 platform :ios do
-    before_all do
-        xcode_version = sh("xcodebuild -version | head -1", log: false).strip
-        UI.important("Xcode version: #{xcode_version}")
-
-        version_file = File.join(File.dirname(__FILE__), "../.xcode-version")
-        if File.exist?(version_file)
-            required = File.read(version_file).strip
-            current = xcode_version.sub("Xcode ", "")
-            if current != required
-                UI.user_error!("Xcode version mismatch! Required: #{required}, Current: #{current}. Check .xcode-version")
-            end
-        end
-    end
-
     desc "Fetch code signing identity"
     lane :fetch_code_identity do |options|
         temp_keystore_user = 'match_keystore_user'
