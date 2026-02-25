@@ -38,16 +38,12 @@ class ContentNotificationInfo extends HookConsumerWidget {
       ContentIonNotificationType.videos => context.i18n.notifications_posted_new_video,
     };
 
-    final displayName = userData.data.trimmedDisplayName.isEmpty
-        ? userData.data.name
-        : userData.data.trimmedDisplayName;
-
     final textSpan = replaceString(
       description,
       tagRegex('username'),
       (match, index) => buildUsernameTextSpan(
         context,
-        displayName: displayName,
+        userData: userData.data,
         recognizer: recognizer,
       ),
     );

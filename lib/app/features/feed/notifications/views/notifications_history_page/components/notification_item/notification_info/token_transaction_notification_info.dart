@@ -31,10 +31,14 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pubkeys = notification.pubkeys;
-    final recognizers = useTapGestureRecognizers();
     final relatedEntity = _getRelatedEntity(ref);
+    final relatedPubkey = _getRelatedEntityPubkey(relatedEntity);
     final isCurrentUserTokenTransaction = _isCurrentUserTokenTransaction(ref);
+    final pubkeys = [
+      notification.eventReference.masterPubkey,
+      relatedPubkey,
+    ].nonNulls.toList();
+    final recognizers = useTapGestureRecognizers();
 
     final userDatas = pubkeys.map((pubkey) {
       return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
@@ -89,12 +93,9 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
           final recognizer = TapGestureRecognizer()
             ..onTap = () => ProfileRoute(pubkey: pubkey).push<void>(context);
           recognizers.add(recognizer);
-          final displayName = userData.data.trimmedDisplayName.isEmpty
-              ? userData.data.name
-              : userData.data.trimmedDisplayName;
           return buildUsernameTextSpan(
             context,
-            displayName: displayName,
+            userData: userData.data,
             recognizer: recognizer,
           );
         } else if (match.namedGroup('green') != null) {
@@ -141,13 +142,17 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
   }
 
   IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
-    final eventReference = notification.eventReference;
-
-    final entity = ref.watch(
+    return ref.watch(
       ionConnectSyncEntityWithCountersProvider(
-        eventReference: eventReference,
+        eventReference: notification.eventReference,
       ),
     );
-    return entity;
+  }
+
+  String? _getRelatedEntityPubkey(IonConnectEntity? relatedEntity) {
+    return switch (relatedEntity) {
+      CommunityTokenActionEntity() => relatedEntity.data.definitionReference.masterPubkey,
+      _ => relatedEntity?.masterPubkey,
+    };
   }
 }
