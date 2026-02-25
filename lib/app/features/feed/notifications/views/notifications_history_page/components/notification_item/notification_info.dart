@@ -12,6 +12,7 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
+import 'package:ion/app/features/feed/notifications/notification_type_phrase.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
@@ -36,7 +37,7 @@ class NotificationInfo extends HookConsumerWidget {
     final locale = ref.watch(appLocaleProvider);
 
     final relatedEntity = _getRelatedEntity(ref, notification: notification);
-    final eventTypeLabel = _getEventTypeLabel(ref, notification: notification);
+    final eventType = _getEventType(ref, notification: notification);
     final isAuthor = _getIsAuthor(ref, notification: notification);
 
     final pubkeys = [...notification.pubkeys, _getRelatedEntityPubkey(relatedEntity)].nonNulls;
@@ -50,20 +51,34 @@ class NotificationInfo extends HookConsumerWidget {
     }
 
     final description = switch (notification) {
-      final LikesIonNotification notification =>
-        notification.getDescription(context, eventTypeLabel),
-      final CommentIonNotification notification =>
-        notification.type == CommentIonNotificationType.quote &&
-                relatedEntity is CommunityTokenDefinitionEntity
-            ? notification.getDescription(
-                context,
-                eventTypeLabel,
-                _isOwnToken(ref, tokenDefinition: relatedEntity),
-              )
-            : notification.getDescription(context, eventTypeLabel, isAuthor),
+      final LikesIonNotification notification => () {
+          final typePhrase = getNotificationTypePhrase(
+            context.i18n,
+            NotificationTypeContext.liked,
+            eventType ?? NotificationEventType.post,
+          );
+          return notification.getDescription(context, typePhrase);
+        }(),
+      final CommentIonNotification notification => () {
+          final typeContext = switch (notification.type) {
+            CommentIonNotificationType.reply =>
+              isAuthor ? NotificationTypeContext.replyToYour : NotificationTypeContext.replyToThe,
+            CommentIonNotificationType.quote => relatedEntity is CommunityTokenDefinitionEntity
+                ? (_isOwnToken(ref, tokenDefinition: relatedEntity)
+                    ? NotificationTypeContext.share
+                    : NotificationTypeContext.shareThe)
+                : (isAuthor ? NotificationTypeContext.share : NotificationTypeContext.shareThe),
+            CommentIonNotificationType.repost => NotificationTypeContext.repost,
+          };
+          final typePhrase = getNotificationTypePhrase(
+            context.i18n,
+            typeContext,
+            eventType ?? NotificationEventType.post,
+          );
+          return notification.getDescription(context, typePhrase, isAuthor);
+        }(),
       final ContentIonNotification notification => notification.getDescription(context),
-      final MentionIonNotification notification =>
-        notification.getDescription(context, eventTypeLabel),
+      final MentionIonNotification notification => notification.getDescription(context),
       final TokenLaunchIonNotification notification =>
         notification.getDescription(context, relatedEntity),
       final TokenTransactionIonNotification notification => notification.getDescription(
@@ -173,22 +188,16 @@ class NotificationInfo extends HookConsumerWidget {
     );
   }
 
-  String _getEventTypeLabel(WidgetRef ref, {required IonNotification notification}) {
+  NotificationEventType? _getEventType(WidgetRef ref, {required IonNotification notification}) {
     final relatedEntity = _getRelatedEntity(ref, notification: notification);
 
     return switch (relatedEntity) {
-      ModifiablePostEntity() when relatedEntity.isStory => ref.context.i18n.common_story,
+      ModifiablePostEntity() when relatedEntity.isStory => NotificationEventType.story,
       ModifiablePostEntity(:final data) when data.parentEvent != null =>
-        ref.context.i18n.notifications_comment,
-      ModifiablePostEntity() => ref.context.i18n.notifications_post,
-      ArticleEntity() => ref.context.i18n.common_article,
-      CommunityTokenDefinitionEntity() =>
-        ref.context.i18n.tokenized_community_token_creator.toLowerCase(),
-      GenericRepostEntity() => ref.context.i18n.notifications_post,
-      CommunityTokenActionEntity() => notification is LikesIonNotification
-          ? ref.context.i18n.notifications_post
-          : ref.context.i18n.tokenized_community_trade,
-      _ => '',
+        NotificationEventType.comment,
+      ModifiablePostEntity() => NotificationEventType.post,
+      ArticleEntity() => NotificationEventType.article,
+      _ => null,
     };
   }
 
