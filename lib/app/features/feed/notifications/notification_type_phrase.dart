@@ -31,52 +31,52 @@ String getNotificationTypePhrase(
   // We cannot reuse one string across contexts for case languages (e.g. RU: acc vs gen vs instr).
   return switch ((context, eventType)) {
     (NotificationTypeContext.liked, NotificationEventType.post) =>
-        l10n.notifications_type_your_post_liked,
+      l10n.notifications_type_your_post_liked,
     (NotificationTypeContext.liked, NotificationEventType.comment) =>
-        l10n.notifications_type_your_comment_liked,
+      l10n.notifications_type_your_comment_liked,
     (NotificationTypeContext.liked, NotificationEventType.story) =>
-        l10n.notifications_type_your_story_liked,
+      l10n.notifications_type_your_story_liked,
     (NotificationTypeContext.liked, NotificationEventType.article) =>
-        l10n.notifications_type_your_article_liked,
+      l10n.notifications_type_your_article_liked,
     (NotificationTypeContext.replyToYour, NotificationEventType.post) =>
-        l10n.notifications_type_your_post_reply_to,
+      l10n.notifications_type_your_post_reply_to,
     (NotificationTypeContext.replyToYour, NotificationEventType.comment) =>
-        l10n.notifications_type_your_comment_reply_to,
+      l10n.notifications_type_your_comment_reply_to,
     (NotificationTypeContext.replyToYour, NotificationEventType.story) =>
-        l10n.notifications_type_your_story_reply_to,
+      l10n.notifications_type_your_story_reply_to,
     (NotificationTypeContext.replyToYour, NotificationEventType.article) =>
-        l10n.notifications_type_your_article_reply_to,
+      l10n.notifications_type_your_article_reply_to,
     (NotificationTypeContext.replyToThe, NotificationEventType.post) =>
-        l10n.notifications_type_the_post_reply_to,
+      l10n.notifications_type_the_post_reply_to,
     (NotificationTypeContext.replyToThe, NotificationEventType.comment) =>
-        l10n.notifications_type_the_comment_reply_to,
+      l10n.notifications_type_the_comment_reply_to,
     (NotificationTypeContext.replyToThe, NotificationEventType.story) =>
-        l10n.notifications_type_the_story_reply_to,
+      l10n.notifications_type_the_story_reply_to,
     (NotificationTypeContext.replyToThe, NotificationEventType.article) =>
-        l10n.notifications_type_the_article_reply_to,
+      l10n.notifications_type_the_article_reply_to,
     (NotificationTypeContext.repost, NotificationEventType.post) =>
-        l10n.notifications_type_your_post_repost,
+      l10n.notifications_type_your_post_repost,
     (NotificationTypeContext.repost, NotificationEventType.comment) =>
-        l10n.notifications_type_your_comment_repost,
+      l10n.notifications_type_your_comment_repost,
     (NotificationTypeContext.repost, NotificationEventType.story) =>
-        l10n.notifications_type_your_story_repost,
+      l10n.notifications_type_your_story_repost,
     (NotificationTypeContext.repost, NotificationEventType.article) =>
-        l10n.notifications_type_your_article_repost,
+      l10n.notifications_type_your_article_repost,
     (NotificationTypeContext.share, NotificationEventType.post) =>
-        l10n.notifications_type_your_post_share,
+      l10n.notifications_type_your_post_share,
     (NotificationTypeContext.share, NotificationEventType.comment) =>
-        l10n.notifications_type_your_comment_share,
+      l10n.notifications_type_your_comment_share,
     (NotificationTypeContext.share, NotificationEventType.story) =>
-        l10n.notifications_type_your_story_share,
+      l10n.notifications_type_your_story_share,
     (NotificationTypeContext.share, NotificationEventType.article) =>
-        l10n.notifications_type_your_article_share,
+      l10n.notifications_type_your_article_share,
     (NotificationTypeContext.shareThe, NotificationEventType.post) =>
-        l10n.notifications_type_the_post_share,
+      l10n.notifications_type_the_post_share,
     (NotificationTypeContext.shareThe, NotificationEventType.comment) =>
-        l10n.notifications_type_the_comment_share,
+      l10n.notifications_type_the_comment_share,
     (NotificationTypeContext.shareThe, NotificationEventType.story) =>
-        l10n.notifications_type_the_story_share,
+      l10n.notifications_type_the_story_share,
     (NotificationTypeContext.shareThe, NotificationEventType.article) =>
-        l10n.notifications_type_the_article_share,
+      l10n.notifications_type_the_article_share,
   };
 }
