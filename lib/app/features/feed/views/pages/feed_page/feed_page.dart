@@ -9,6 +9,7 @@ import 'package:ion/app/components/scroll_to_top_wrapper/scroll_to_top_wrapper.d
 import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/app_review/hooks/use_app_review_prompt.dart';
 import 'package:ion/app/features/core/model/feature_flags.dart';
 import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/feed_category.dart';
@@ -47,6 +48,8 @@ class FeedPage extends HookConsumerWidget {
     final showStories = feedCategory != FeedCategory.articles;
     final showTrendingVideos = showTrendingVideosFeatureFlag.value &&
         (feedCategory == FeedCategory.feed || feedCategory == FeedCategory.videos);
+
+    useAppReviewPrompt(ref);
 
     final slivers = [
       if (showTrendingVideos)
