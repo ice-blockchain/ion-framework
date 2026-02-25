@@ -46,10 +46,6 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
       _ => ''
     };
 
-    final displayName = userData.data.trimmedDisplayName.isEmpty
-        ? userData.data.name
-        : userData.data.trimmedDisplayName;
-
     final textSpan = replaceString(
       description,
       RegExp(
@@ -59,7 +55,7 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
         if (match.namedGroup('username') != null) {
           return buildUsernameTextSpan(
             context,
-            displayName: displayName,
+            userData: userData.data,
             recognizer: recognizer,
           );
         } else if (match.namedGroup('purple') != null) {
@@ -79,11 +75,9 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
   }
 
   IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
-    final eventReference = notification.eventReference;
-
     final entity = ref.watch(
       ionConnectSyncEntityWithCountersProvider(
-        eventReference: eventReference,
+        eventReference: notification.eventReference,
       ),
     );
     if (entity == null) return null;

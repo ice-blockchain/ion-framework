@@ -47,10 +47,11 @@ class NotificationItem extends HookConsumerWidget {
 
     final entity = _resolveEntity(eventReference, ref);
 
-    final isHidden = entity == null ||
-        _isDeleted(ref, entity) ||
-        _isRepostedEntityDeleted(ref, entity) ||
-        ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity);
+    final isHidden = eventReference != null &&
+        (entity == null ||
+            _isDeleted(ref, entity) ||
+            _isRepostedEntityDeleted(ref, entity) ||
+            ListEntityHelper.isUserBlockedOrBlocking(context, ref, entity));
 
     useEffect(
       () {
@@ -61,7 +62,7 @@ class NotificationItem extends HookConsumerWidget {
         }
         return null;
       },
-      [entity],
+      [eventReference, entity],
     );
 
     if (isHidden) {
@@ -93,18 +94,17 @@ class NotificationItem extends HookConsumerWidget {
                         notification: notification,
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsetsGeometry.only(top: 6.s),
-                      child: ScreenSideOffset.small(
-                        child: NotificationContent(entity: entity),
+                    if (entity != null)
+                      Padding(
+                        padding: EdgeInsetsGeometry.only(top: 6.s),
+                        child: ScreenSideOffset.small(
+                          child: NotificationContent(entity: entity),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
-              NotificationMedia(
-                entity: entity,
-              ),
+              if (entity != null) NotificationMedia(entity: entity),
             ],
           ),
           SizedBox(height: 16.0.s),

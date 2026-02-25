@@ -40,7 +40,7 @@ class CommentNotificationInfo extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final isAuthor = _computeIsAuthor(ref, relatedEntity);
+    final isAuthor = _isAuthor(ref, relatedEntity);
 
     final description = switch (notification.type) {
       CommentIonNotificationType.reply => isAuthor
@@ -52,16 +52,12 @@ class CommentNotificationInfo extends HookConsumerWidget {
       CommentIonNotificationType.repost => context.i18n.notifications_repost(eventTypeLabel),
     };
 
-    final displayName = userData.data.trimmedDisplayName.isEmpty
-        ? userData.data.name
-        : userData.data.trimmedDisplayName;
-
     final textSpan = replaceString(
       description,
       tagRegex('username'),
       (match, index) => buildUsernameTextSpan(
         context,
-        displayName: displayName,
+        userData: userData.data,
         recognizer: recognizer,
       ),
     );
@@ -87,11 +83,9 @@ class CommentNotificationInfo extends HookConsumerWidget {
   }
 
   IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
-    final eventReference = notification.eventReference;
-
     final entity = ref.watch(
       ionConnectSyncEntityWithCountersProvider(
-        eventReference: eventReference,
+        eventReference: notification.eventReference,
       ),
     );
     if (entity == null) return null;
@@ -114,7 +108,7 @@ class CommentNotificationInfo extends HookConsumerWidget {
     return null;
   }
 
-  bool _computeIsAuthor(WidgetRef ref, IonConnectEntity? relatedEntity) {
+  bool _isAuthor(WidgetRef ref, IonConnectEntity? relatedEntity) {
     if (notification.type == CommentIonNotificationType.quote &&
         relatedEntity is CommunityTokenDefinitionEntity) {
       return _isOwnToken(ref, tokenDefinition: relatedEntity);
@@ -122,10 +116,9 @@ class CommentNotificationInfo extends HookConsumerWidget {
 
     if (relatedEntity == null) return false;
 
-    final authorPubkey = relatedEntity.masterPubkey;
     final currentUserPubkey = ref.read(currentPubkeySelectorProvider);
 
-    return authorPubkey == currentUserPubkey;
+    return relatedEntity.masterPubkey == currentUserPubkey;
   }
 
   bool _isOwnToken(

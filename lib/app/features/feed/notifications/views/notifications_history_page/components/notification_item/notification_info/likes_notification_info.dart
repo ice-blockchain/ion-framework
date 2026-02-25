@@ -57,12 +57,9 @@ class LikesNotificationInfo extends HookConsumerWidget {
         final recognizer = TapGestureRecognizer()
           ..onTap = () => ProfileRoute(pubkey: pubkey).push<void>(context);
         recognizers.add(recognizer);
-        final displayName = userData.data.trimmedDisplayName.isEmpty
-            ? userData.data.name
-            : userData.data.trimmedDisplayName;
         return buildUsernameTextSpan(
           context,
-          displayName: displayName,
+          userData: userData.data,
           recognizer: recognizer,
         );
       },
@@ -88,14 +85,10 @@ class LikesNotificationInfo extends HookConsumerWidget {
   }
 
   IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
-    final eventReference = notification.eventReference;
-
-    final entity = ref.watch(
+    return ref.watch(
       ionConnectSyncEntityWithCountersProvider(
-        eventReference: eventReference,
+        eventReference: notification.eventReference,
       ),
     );
-
-    return entity;
   }
 }

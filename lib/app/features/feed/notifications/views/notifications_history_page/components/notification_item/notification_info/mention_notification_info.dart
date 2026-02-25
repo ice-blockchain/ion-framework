@@ -33,16 +33,12 @@ class MentionNotificationInfo extends HookConsumerWidget {
 
     final description = context.i18n.notifications_mentioned;
 
-    final displayName = userData.data.trimmedDisplayName.isEmpty
-        ? userData.data.name
-        : userData.data.trimmedDisplayName;
-
     final textSpan = replaceString(
       description,
       tagRegex('username'),
       (match, index) => buildUsernameTextSpan(
         context,
-        displayName: displayName,
+        userData: userData.data,
         recognizer: recognizer,
       ),
     );
