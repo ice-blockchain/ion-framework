@@ -239,8 +239,9 @@ class VideoPlayerControllerFactory {
 
   final String sourcePath;
   static final _initGate = _ConcurrencyGate(Platform.isAndroid ? 1 : 2);
-  static const _maxRetryAttempts = 5;
-  static const _initTimeout = Duration(seconds: 8);
+  static final _maxRetryAttempts = Platform.isAndroid ? 3 : 5;
+  static const _playerInitTimeout = Duration(seconds: 8);
+  static const _networkInitTimeout = Duration(seconds: 20);
 
   Future<VideoPlayerController> createController({
     required Completer<void> cancelToken,
@@ -273,11 +274,14 @@ class VideoPlayerControllerFactory {
           throw StateError('video_init_cancelled');
         }
         try {
+          final initTimeout = lastType == DataSourceType.network
+              ? (_networkInitTimeout + _playerInitTimeout)
+              : _playerInitTimeout;
           await player.initialize().timeout(
-                _initTimeout,
+                initTimeout,
                 onTimeout: () => throw TimeoutException(
                   'player.initialize() timed out',
-                  _initTimeout,
+                  initTimeout,
                 ),
               );
           if (cancelToken.isCompleted) {
