@@ -8,7 +8,7 @@ import 'package:ion/app/features/feed/notifications/data/model/ion_notification.
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/username_text_span.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/hooks/use_tap_gesture_recognizers.dart';
+import 'package:ion/app/hooks/use_tap_gesture_recognizer.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/l10n/i10n.dart';
 

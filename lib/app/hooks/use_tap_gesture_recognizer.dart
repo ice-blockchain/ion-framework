@@ -16,3 +16,20 @@ TapGestureRecognizer useTapGestureRecognizer({
   }
   return tapGestureRecognizer;
 }
+
+List<TapGestureRecognizer> useTapGestureRecognizers() {
+  final recognizers = useState<List<TapGestureRecognizer>>([]);
+
+  useEffect(
+    () {
+      return () {
+        for (final recognizer in recognizers.value) {
+          recognizer.dispose();
+        }
+      };
+    },
+    [recognizers.value],
+  );
+
+  return recognizers.value;
+}

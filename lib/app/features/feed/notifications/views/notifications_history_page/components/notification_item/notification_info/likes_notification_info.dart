@@ -13,7 +13,7 @@ import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/hooks/use_tap_gesture_recognizers.dart';
+import 'package:ion/app/hooks/use_tap_gesture_recognizer.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/l10n/i10n.dart';
 
