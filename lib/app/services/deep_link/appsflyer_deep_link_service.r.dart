@@ -10,11 +10,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/ion_connect_media_url_provider.r.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/deep_link/internal_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -26,28 +21,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'appsflyer_deep_link_service.r.g.dart';
 
 const _contentTypeKey = 'content_type';
-
-/// Maps an IonConnectEntity to its corresponding SharedContentType
-/// based on entity properties like isStory and hasVideo
-///
-/// Priority order:
-/// 1. Stories (regardless of media type) -> story
-/// 2. Regular posts with video -> postWithVideo
-/// 3. Regular posts -> post
-/// 4. Articles -> article
-/// 5. User profiles -> profile
-/// 6. Community tokens -> communityToken
-SharedContentType mapEntityToSharedContentType(IonConnectEntity entity) {
-  return switch (entity) {
-    ModifiablePostEntity() when entity.isStory => SharedContentType.story,
-    ModifiablePostEntity() when entity.data.hasVideo => SharedContentType.postWithVideo,
-    ModifiablePostEntity() => SharedContentType.post,
-    ArticleEntity() => SharedContentType.article,
-    UserMetadataEntity() => SharedContentType.profile,
-    CommunityTokenDefinitionEntity() => SharedContentType.communityToken,
-    _ => throw UnsupportedError('Unsupported IonConnectEntity: $entity'),
-  };
-}
 
 @Riverpod(keepAlive: true)
 AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
@@ -92,31 +65,37 @@ typedef OneLinkResolveResult = ({
   SharedContentType? contentType,
 });
 
+/// Resolves a share image URL to a final URL (e.g. CDN or signed).
+typedef ResolveShareImageUrl = Future<String?> Function(String imageUrl);
+
+/// Callback invoked when a deep link is opened (path and optional content type).
+typedef OnDeeplinkCallback = void Function(String path, SharedContentType? contentType);
+
 final class AppsFlyerDeepLinkService {
   AppsFlyerDeepLinkService(
     this._appsflyerSdk, {
     required String templateId,
     required String brandDomain,
     required String baseHost,
-    required Future<String?> Function(String imageUrl) resolveShareImageUrl,
     required LocalStorage localStorage,
+    required ResolveShareImageUrl resolveShareImageUrl,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
         _baseHost = baseHost,
-        _resolveShareImageUrl = resolveShareImageUrl,
-        _localStorage = localStorage;
+        _localStorage = localStorage,
+        _resolveShareImageUrl = resolveShareImageUrl;
 
   final AppsflyerSdk _appsflyerSdk;
 
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
-  final Future<String?> Function(String imageUrl) _resolveShareImageUrl;
   final LocalStorage _localStorage;
+  final ResolveShareImageUrl _resolveShareImageUrl;
 
   static const _cacheKeyPrefix = 'af_link_';
   static const _cacheGenPrefix = 'af_gen_';
-  void Function(String path, SharedContentType? contentType)? _onDeeplink;
+  OnDeeplinkCallback? _onDeeplink;
 
   static final oneLinkUrlRegex = RegExp(
     r'@?(https://(ion\.onelink\.me|app\.online\.io|testnet\.app\.online\.io)/[A-Za-z0-9\-_/\?&%=#]*)',
@@ -192,7 +171,7 @@ final class AppsFlyerDeepLinkService {
   }
 
   Future<void> init({
-    required void Function(String path, SharedContentType? contentType) onDeeplink,
+    required OnDeeplinkCallback onDeeplink,
     required InternalDeepLinkService internalDeepLinkService,
   }) async {
     _onDeeplink = onDeeplink;
