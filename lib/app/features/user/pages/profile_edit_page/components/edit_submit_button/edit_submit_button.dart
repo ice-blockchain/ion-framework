@@ -8,6 +8,7 @@ import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_action_first_buy_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart' as user_model;
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
@@ -53,6 +54,15 @@ class EditSubmitButton extends ConsumerWidget {
           final bannerFile = ref
               .read(imageProcessorNotifierProvider(ImageProcessingType.banner))
               .whenOrNull(processed: (file) => file);
+
+          final mediaToCheck = [
+            if (avatarFile != null) avatarFile,
+            if (bannerFile != null) bannerFile,
+          ];
+          if (mediaToCheck.isNotEmpty) {
+            final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, mediaToCheck);
+            if (!context.mounted || isBlocked) return;
+          }
 
           final isPublished = await _publishChanges(
             context: context,
