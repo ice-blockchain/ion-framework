@@ -13,6 +13,8 @@ import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/optimistic_ui/account_notifications_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/user/optimistic_ui/model/account_notifications_option.f.dart';
 import 'package:ion/app/features/user/optimistic_ui/toggle_account_notifications_intent.dart';
+import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/retry.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'account_notifications_provider.r.g.dart';
@@ -37,19 +39,32 @@ Future<List<AccountNotificationsOption>> loadInitialNotifications(
     if (setType == null) continue;
 
     fetches.add(() async {
-      final accountNotificationSet = await ref.read(
-        ionConnectEntityProvider(
-          eventReference: ReplaceableEventReference(
-            masterPubkey: currentMasterPubkey,
-            kind: AccountNotificationSetEntity.kind,
-            dTag: setType.dTagName,
+      try {
+        final accountNotificationSet = await withRetry(
+          ({error}) => ref.read(
+            ionConnectEntityProvider(
+              eventReference: ReplaceableEventReference(
+                masterPubkey: currentMasterPubkey,
+                kind: AccountNotificationSetEntity.kind,
+                dTag: setType.dTagName,
+              ),
+            ).future,
           ),
-        ).future,
-      );
+          maxRetries: 3,
+          initialDelay: const Duration(seconds: 1),
+          maxDelay: const Duration(seconds: 5),
+          retryWhen: (error) => error is! CurrentUserNotFoundException,
+        );
 
-      if (accountNotificationSet is AccountNotificationSetEntity &&
-          accountNotificationSet.data.userPubkeys.contains(userPubkey)) {
-        return type;
+        if (accountNotificationSet is AccountNotificationSetEntity &&
+            accountNotificationSet.data.userPubkeys.contains(userPubkey)) {
+          return type;
+        }
+      } catch (error) {
+        Logger.warning(
+          '[Account notifications] Failed to load notifications settings set '
+          '(${setType.dTagName}) after retries: $error',
+        );
       }
       return null;
     }());
