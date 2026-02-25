@@ -6,7 +6,6 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
-import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/coin_usd_amount.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
@@ -18,15 +17,21 @@ import 'package:ion/app/router/app_routes.gr.dart';
 class Balance extends ConsumerWidget {
   const Balance({
     required this.coinsGroup,
-    this.currentNetwork,
     super.key,
   });
 
   final CoinsGroup coinsGroup;
-  final NetworkData? currentNetwork;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentNetwork = ref.watch(
+      networkSelectorNotifierProvider(symbolGroup: coinsGroup.symbolGroup).select(
+        (asyncState) => asyncState.valueOrNull?.selected.mapOrNull(
+          network: (item) => item.network,
+        ),
+      ),
+    );
+
     final cryptoWalletData = ref.watch(
       selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
     );

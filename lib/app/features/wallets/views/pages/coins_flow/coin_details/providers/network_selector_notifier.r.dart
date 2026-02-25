@@ -10,15 +10,16 @@ part 'network_selector_notifier.r.g.dart';
 class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
   @override
   Future<NetworkSelectorData?> build({required String symbolGroup}) async {
-    final networksValue = ref
-        .watch(
-          syncedCoinsBySymbolGroupProvider(symbolGroup),
-        )
-        .valueOrNull;
+    // Use .select() to only watch the network list, not all coin data.
+    // This prevents unnecessary rebuilds when coin data changes but network list stays the same.
+    final networks = ref.watch(
+      syncedCoinsBySymbolGroupProvider(symbolGroup).select(
+        (asyncValue) => asyncValue.valueOrNull?.map((e) => e.coin.network).toSet().toList(),
+      ),
+    );
 
-    if (networksValue == null) return state.valueOrNull;
+    if (networks == null) return state.valueOrNull;
 
-    final networks = networksValue.map((e) => e.coin.network).toSet().toList();
     final wrappedNetworks = networks.map((e) => SelectedNetworkItem.network(network: e));
     final items = [
       if (wrappedNetworks.length > 1) SelectedNetworkItem.all(networks: networks),
