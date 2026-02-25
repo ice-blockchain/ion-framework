@@ -16,7 +16,6 @@ import 'package:ion/app/utils/url.dart';
 import 'package:ion/app/utils/video_codec_detector.r.dart';
 import 'package:path/path.dart' as path;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:uri_to_file/uri_to_file.dart';
 
 part 'banuba_service.r.g.dart';
 
@@ -73,8 +72,8 @@ class BanubaService {
         }
 
         if (Platform.isAndroid) {
-          final file = await toFile(exportedPhotoFilePath as String);
-          return file.path;
+          final path = fileUriToPath(exportedPhotoFilePath as String);
+          return path;
         }
 
         return exportedPhotoFilePath as String;
