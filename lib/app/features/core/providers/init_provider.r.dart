@@ -13,6 +13,7 @@ import 'package:ion/app/features/core/providers/template_provider.r.dart';
 import 'package:ion/app/features/core/providers/window_manager_provider.r.dart';
 import 'package:ion/app/features/core/views/components/widget_error_builder.dart';
 import 'package:ion/app/features/feed/nft/providers/nft_collection_sync_provider.r.dart';
+import 'package:ion/app/features/feed/notifications/providers/account_notifications_sync_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/feed_feature_initializer.dart';
 import 'package:ion/app/features/force_update/providers/force_update_provider.r.dart';
@@ -21,7 +22,6 @@ import 'package:ion/app/features/push_notifications/background/firebase_messagin
 import 'package:ion/app/features/push_notifications/providers/pushes_init_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/migrate_token_definitions_service.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/tokenized_community_onboarding_provider.m.dart';
-import 'package:ion/app/features/user/providers/account_notifications_sync_provider.r.dart';
 import 'package:ion/app/features/user/providers/force_account_security_notifier.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_chat_relays_sync_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_file_storage_relays_sync_provider.r.dart';
