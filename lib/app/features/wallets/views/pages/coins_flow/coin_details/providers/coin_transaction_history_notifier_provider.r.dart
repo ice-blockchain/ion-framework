@@ -16,6 +16,7 @@ import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/coin_history_intermediate_swap_transfer_collapser.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -29,6 +30,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
   static const int _pageSize = 20;
   static const String _tag = 'CoinTransactionHistory: ';
   static const String _ionBridgeWalletAddress = 'Uf8PSnTugXPqSS9HgrEWdrU1yOoy2wH4qCaqsZhCaV2HSIEw';
+  static const _intermediateSwapTransferCollapser = CoinHistoryIntermediateSwapTransferCollapser();
 
   late List<String> _coinWalletAddresses;
   late List<CoinInWalletData> _coins;
@@ -227,7 +229,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     if (hasChanges) {
       // Sort to maintain chronological order (newest first)
       updatedHistory.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      _history = updatedHistory;
+      _history = _collapseIntermediateSwapTransfers(updatedHistory);
       _updateState();
     }
   }
@@ -296,6 +298,17 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
         .toList();
 
     _history.addAll(validTransactions);
+    _history = _collapseIntermediateSwapTransfers(_history);
+  }
+
+  List<CoinTransactionData> _collapseIntermediateSwapTransfers(
+    List<CoinTransactionData> transactions,
+  ) {
+    final result = _intermediateSwapTransferCollapser.collapse(transactions);
+    if (result.collapsedCount > 0) {
+      Logger.info('$_tag Collapsed ${result.collapsedCount} intermediate transfers');
+    }
+    return result.transactions;
   }
 
   CoinTransactionData? _convertToCoinTransactionData(TransactionData t) {
