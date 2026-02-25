@@ -2,6 +2,7 @@
 
 import Foundation
 import SQLite3
+import os.log
 
 private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
@@ -29,17 +30,17 @@ class DatabaseManager {
     @discardableResult
     func openDatabase() -> Bool {
         guard let pubkey = keysStorage.getCurrentPubkey() else {
-            NSLog("[NSE] \(logPrefix) missing current pubkey")
+            nseLogger.error("\(self.logPrefix) missing current pubkey")
             return false
         }
         
         guard let databasePath = getDatabasePath(pubkey: pubkey) else {
-            NSLog("[NSE] \(logPrefix) database not found")
+            nseLogger.error("\(self.logPrefix) database not found")
             return false
         }
         
         if sqlite3_open(databasePath, &database) != SQLITE_OK {
-            NSLog("[NSE] \(logPrefix) sqlite3_open failed: %@", String(cString: sqlite3_errmsg(database)))
+            nseLogger.error("\(self.logPrefix) sqlite3_open failed: \(String(cString: sqlite3_errmsg(self.database)))")
             sqlite3_close(database)
             database = nil
             return false
@@ -59,7 +60,7 @@ class DatabaseManager {
     
     func executeQuery(_ query: String) -> [[String: Any]]? {
         guard database != nil else {
-            NSLog("[NSE] \(logPrefix) database not open")
+            nseLogger.error("\(self.logPrefix) database not open")
             return nil
         }
         
@@ -91,14 +92,14 @@ class DatabaseManager {
                     case SQLITE_NULL:
                         row[columnName] = NSNull()
                     default:
-                        NSLog("[NSE] \(logPrefix) unknown column type: \(sqlite3_column_type(statement, i))")
+                        nseLogger.error("\(self.logPrefix) unknown column type: \(sqlite3_column_type(statement, i))")
                     }
                 }
                 
                 results.append(row)
             }
         } else {
-            NSLog("[NSE] \(logPrefix) prepare failed: %@", String(cString: sqlite3_errmsg(database)))
+            nseLogger.error("\(self.logPrefix) prepare failed: \(String(cString: sqlite3_errmsg(self.database)))")
             sqlite3_finalize(statement)
             return nil
         }
@@ -123,7 +124,7 @@ class DatabaseManager {
         let exists = sqlite3_step(statement) == SQLITE_ROW
         
         if !exists {
-            NSLog("[NSE] \(logPrefix) table missing: %@", name)
+            nseLogger.error("\(self.logPrefix) table missing: \(name)")
         }
         
         return exists

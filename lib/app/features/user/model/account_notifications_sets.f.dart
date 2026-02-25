@@ -16,6 +16,7 @@ import 'package:ion/app/features/user/model/user_notifications_type.dart';
 part 'account_notifications_sets.f.freezed.dart';
 
 enum AccountNotificationSetType {
+  tokenizedCommunitiesTransactions(dTagName: 'in_app_notifications_tokenized_communities_trades'),
   posts(dTagName: 'in_app_notifications_posts'),
   stories(dTagName: 'in_app_notifications_stories'),
   articles(dTagName: 'in_app_notifications_articles'),
@@ -27,6 +28,8 @@ enum AccountNotificationSetType {
 
   static AccountNotificationSetType? fromUserNotificationType(UserNotificationsType type) {
     return switch (type) {
+      UserNotificationsType.tokenizedCommunitiesTransactions =>
+        AccountNotificationSetType.tokenizedCommunitiesTransactions,
       UserNotificationsType.posts => AccountNotificationSetType.posts,
       UserNotificationsType.stories => AccountNotificationSetType.stories,
       UserNotificationsType.articles => AccountNotificationSetType.articles,
@@ -37,6 +40,8 @@ enum AccountNotificationSetType {
 
   UserNotificationsType toUserNotificationType() {
     return switch (this) {
+      AccountNotificationSetType.tokenizedCommunitiesTransactions =>
+        UserNotificationsType.tokenizedCommunitiesTransactions,
       AccountNotificationSetType.posts => UserNotificationsType.posts,
       AccountNotificationSetType.stories => UserNotificationsType.stories,
       AccountNotificationSetType.articles => UserNotificationsType.articles,

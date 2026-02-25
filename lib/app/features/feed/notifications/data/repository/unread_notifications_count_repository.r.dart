@@ -8,6 +8,7 @@ import 'package:ion/app/features/feed/notifications/data/database/dao/followers_
 import 'package:ion/app/features/feed/notifications/data/database/dao/likes_dao.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/dao/mentions_dao.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/dao/subscribed_users_content_dao.m.dart';
+import 'package:ion/app/features/feed/notifications/data/database/dao/token_action_dao.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/dao/token_launch_dao.m.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -30,6 +31,7 @@ UnreadNotificationsCountRepository? unreadNotificationsCountRepository(Ref ref) 
     followersDao: ref.watch(followersDaoProvider),
     mentionsDao: ref.watch(mentionsDaoProvider),
     tokenLaunchDao: ref.watch(tokenLaunchDaoProvider),
+    tokenActionDao: ref.watch(tokenActionDaoProvider),
   );
 }
 
@@ -42,13 +44,15 @@ class UnreadNotificationsCountRepository {
     required FollowersDao followersDao,
     required MentionsDao mentionsDao,
     required TokenLaunchDao tokenLaunchDao,
+    required TokenActionDao tokenActionDao,
   })  : _userPreferencesService = userPreferencesService,
         _commentsDao = commentsDao,
         _subscribedUsersContentDao = subscribedUsersContentDao,
         _likesDao = likesDao,
         _followersDao = followersDao,
         _mentionsDao = mentionsDao,
-        _tokenLaunchDao = tokenLaunchDao;
+        _tokenLaunchDao = tokenLaunchDao,
+        _tokenActionDao = tokenActionDao;
 
   final UserPreferencesService _userPreferencesService;
   final CommentsDao _commentsDao;
@@ -57,6 +61,7 @@ class UnreadNotificationsCountRepository {
   final FollowersDao _followersDao;
   final MentionsDao _mentionsDao;
   final TokenLaunchDao _tokenLaunchDao;
+  final TokenActionDao _tokenActionDao;
 
   Stream<int> watch() {
     final lastReadTime = _getOrInitLastReadTime();
@@ -66,8 +71,16 @@ class UnreadNotificationsCountRepository {
     final followersStream = _followersDao.watchUnreadCount(after: lastReadTime);
     final mentionsStream = _mentionsDao.watchUnreadCount(after: lastReadTime);
     final tokenLaunchStream = _tokenLaunchDao.watchUnreadCount(after: lastReadTime);
+    final tokenActionStream = _tokenActionDao.watchUnreadCount(after: lastReadTime);
     return commentsStream.combineLatestAll(
-      [likesStream, contentStream, followersStream, mentionsStream, tokenLaunchStream],
+      [
+        likesStream,
+        contentStream,
+        followersStream,
+        mentionsStream,
+        tokenLaunchStream,
+        tokenActionStream,
+      ],
     ).map((data) => data.sum);
   }
 

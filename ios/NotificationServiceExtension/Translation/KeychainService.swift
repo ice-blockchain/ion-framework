@@ -2,6 +2,7 @@
 
 import Foundation
 import Security
+import os.log
 
 class KeychainService {
     private static let keychainGroupKey = "KEYCHAIN_GROUP"
@@ -23,7 +24,7 @@ class KeychainService {
         do {
             _ = try self.getPrivateKey()
         } catch {
-            NSLog("[NSE] Failed to preload private key: \(error)")
+            nseLogger.error("Failed to preload private key: \(error)")
         }
 
     }
@@ -71,7 +72,7 @@ class KeychainService {
         // If access failed with specific accessibility, try without it
         // This provides fallback for items stored with different accessibility settings
         if status == errSecInteractionNotAllowed || status == errSecItemNotFound {
-            NSLog("[NSE] First keychain access attempt failed with status \(status), trying fallback query")
+            nseLogger.error("First keychain access attempt failed with status \(status), trying fallback query")
             
             // Remove accessibility constraint and try again
             query.removeValue(forKey: kSecAttrAccessible as String)
@@ -79,7 +80,7 @@ class KeychainService {
         }
 
         if status != errSecSuccess {
-            NSLog("[NSE] Keychain access failed with status: \(status)")
+            nseLogger.error("Keychain access failed with status: \(status)")
             throw KeychainError.keychainAccessFailed(status)
         }
 

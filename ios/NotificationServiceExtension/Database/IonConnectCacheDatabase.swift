@@ -17,13 +17,13 @@ class IonConnectCacheDatabase: DatabaseManager {
     /// Override to use a fixed database name (not pubkey-based)
     override func openDatabase() -> Bool {
         guard let databasePath = getDatabasePath() else {
-            NSLog("[NSE] \(logPrefix) database path not found")
+            nseLogger.error("\(self.logPrefix) database path not found")
             return false
         }
         
         if sqlite3_open(databasePath, &database) != SQLITE_OK {
-            let errorMsg = String(cString: sqlite3_errmsg(database))
-            NSLog("[NSE] \(logPrefix) sqlite3_open failed: \(errorMsg)")
+            let errorMsg = String(cString: sqlite3_errmsg(self.database))
+            nseLogger.error("\(self.logPrefix) sqlite3_open failed: \(errorMsg)")
             sqlite3_close(database)
             database = nil
             return false
@@ -37,18 +37,18 @@ class IonConnectCacheDatabase: DatabaseManager {
     /// - Returns: The parsed `IonConnectEntity` of type `T`, or `nil` if not found or invalid.
     func getEntity<T: IonConnectEntity>(for eventReference: String) -> T? {
         guard let eventMessage = getEventMessage(for: eventReference) else {
-            NSLog("[NSE] No event message found for \(eventReference)")
+            nseLogger.error("No event message found for \(eventReference)")
             return nil
         }
         
         do {
             guard let entity = try EventParser.parse(eventMessage) as? T else {
-                NSLog("[NSE] Parsed entity type mismatch for \(T.self)")
+                nseLogger.error("Parsed entity type mismatch for \(T.self)")
                 return nil
             }
             return entity
         } catch {
-            NSLog("[NSE] Failed to parse entity from cache: \(error)")
+            nseLogger.error("Failed to parse entity from cache: \(error)")
             return nil
         }
     }
@@ -58,14 +58,14 @@ class IonConnectCacheDatabase: DatabaseManager {
     /// - Returns: The parsed `IonConnectEntity` or `nil` if not found or invalid.
     func getGenericEntity(for eventReference: String) -> IonConnectEntity? {
         guard let eventMessage = getEventMessage(for: eventReference) else {
-            NSLog("[NSE] No event message found for \(eventReference)")
+            nseLogger.error("No event message found for \(eventReference)")
             return nil
         }
         
         do {
             return try EventParser.parse(eventMessage)
         } catch {
-            NSLog("[NSE] Failed to parse entity from cache: \(error)")
+            nseLogger.error("Failed to parse entity from cache: \(error)")
             return nil
         }
     }
@@ -84,7 +84,7 @@ class IonConnectCacheDatabase: DatabaseManager {
         var statement: OpaquePointer?
         
         guard sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK else {
-            NSLog("[NSE] \(logPrefix) Failed to prepare query for event eference: \(eventReference)")
+            nseLogger.error("\(self.logPrefix) Failed to prepare query for event reference: \(eventReference)")
             return nil
         }
         
@@ -96,7 +96,7 @@ class IonConnectCacheDatabase: DatabaseManager {
         sqlite3_bind_text(statement, 1, (eventReference as NSString).utf8String, -1, nil)
         
         guard sqlite3_step(statement) == SQLITE_ROW else {
-            NSLog("[NSE] \(logPrefix) No cached entity found for event eference: \(eventReference)")
+            nseLogger.error("\(self.logPrefix) No cached entity found for event reference: \(eventReference)")
             return nil
         }
         
@@ -115,7 +115,7 @@ class IonConnectCacheDatabase: DatabaseManager {
               let tagsPtr = tagsPtr,
               let idPtr = idPtr,
               let pubkeyPtr = pubkeyPtr else {
-            NSLog("[NSE] \(logPrefix) Missing required fields in cached entity")
+            nseLogger.error("\(self.logPrefix) Missing required fields in cached entity")
             return nil
         }
         
@@ -129,7 +129,7 @@ class IonConnectCacheDatabase: DatabaseManager {
         // Parse tags JSON
         guard let tagsData = tagsJson.data(using: .utf8),
               let tags = try? JSONDecoder().decode([[String]].self, from: tagsData) else {
-            NSLog("[NSE] \(logPrefix) Failed to parse tags JSON from cache")
+            nseLogger.error("\(self.logPrefix) Failed to parse tags JSON from cache")
             return nil
         }
         
@@ -148,12 +148,12 @@ class IonConnectCacheDatabase: DatabaseManager {
     /// - Returns: Array of muted user master pubkeys from the latest kind 3175 event
     func getMutedUsers() -> [String] {
         guard let db = database else {
-            NSLog("[NSE] \(logPrefix) Database is nil for muted users - did you call openDatabase()?")
+            nseLogger.error("\(self.logPrefix) Database is nil for muted users - did you call openDatabase()?")
             return []
         }
         
         guard let userPubkey = keysStorage.getCurrentPubkey() else {
-            NSLog("[NSE] \(logPrefix) No current pubkey for muted users")
+            nseLogger.error("\(self.logPrefix) No current pubkey for muted users")
             return []
         }
         
@@ -168,7 +168,7 @@ class IonConnectCacheDatabase: DatabaseManager {
         
         guard sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK else {
             let errorMsg = String(cString: sqlite3_errmsg(db))
-            NSLog("[NSE] \(logPrefix) Failed to prepare query for muted users: \(errorMsg)")
+            nseLogger.error("\(self.logPrefix) Failed to prepare query for muted users: \(errorMsg)")
             return []
         }
         
@@ -193,7 +193,7 @@ class IonConnectCacheDatabase: DatabaseManager {
                             }
                         }
                     } catch {
-                        NSLog("[NSE] \(logPrefix) Failed to decode muted users tags JSON: \(error)")
+                        nseLogger.error("\(self.logPrefix) Failed to decode muted users tags JSON: \(error)")
                     }
                 }
             }
@@ -207,14 +207,14 @@ class IonConnectCacheDatabase: DatabaseManager {
         let appGroupIdentifier = keysStorage.storage.appGroupIdentifier
         
         guard let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else {
-            NSLog("[NSE] \(logPrefix) Failed to get container URL for app group: \(appGroupIdentifier)")
+            nseLogger.error("\(self.logPrefix) Failed to get container URL for app group: \(appGroupIdentifier)")
             return nil
         }
         
         let dbPath = containerURL.appendingPathComponent(databaseNamePattern).path
         
         if !fileManager.fileExists(atPath: dbPath) {
-            NSLog("[NSE] \(logPrefix) Database file does not exist at: \(dbPath)")
+            nseLogger.error("\(self.logPrefix) Database file does not exist at: \(dbPath)")
             return nil
         }
         

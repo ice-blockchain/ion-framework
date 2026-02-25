@@ -856,3 +856,11 @@ class PancakeSwapRouterMisconfiguredException extends IONException {
   PancakeSwapRouterMisconfiguredException(String reason)
       : super(10153, 'PancakeSwap router misconfigured: $reason');
 }
+
+class TokenTickerNotFoundException extends IONException {
+  TokenTickerNotFoundException(String externalAddress)
+      : super(
+          10154,
+          'Token ticker not found for external address: $externalAddress',
+        );
+}

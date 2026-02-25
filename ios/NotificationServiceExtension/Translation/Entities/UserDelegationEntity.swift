@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import Foundation
+import os.log
 
 enum DelegationStatus: String, CaseIterable {
     case active
@@ -106,7 +107,7 @@ struct UserDelegate {
             }
             status = delegationStatus
         } catch {
-            NSLog("[NSE] Error parsing delegation status: \(error)")
+            nseLogger.error("Error parsing delegation status: \(error)")
             status = .inactive  // Default to inactive if there's an error
         }
         let time = Date(

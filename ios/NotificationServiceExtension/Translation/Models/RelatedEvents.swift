@@ -3,11 +3,11 @@
 import Foundation
 
 struct RelatedEvent {
-    let eventReference: String  // Can be event ID (for "e" tags) or "kind:pubkey:dTag" (for "a" tags)
+    let eventReference: EventReference
     let marker: RelatedEventMarker?
     let pubkey: String
 
-    init(eventReference: String, marker: RelatedEventMarker?, pubkey: String) {
+    init(eventReference: EventReference, marker: RelatedEventMarker?, pubkey: String) {
         self.eventReference = eventReference
         self.marker = marker
         self.pubkey = pubkey
@@ -16,16 +16,24 @@ struct RelatedEvent {
     static func fromTag(_ tag: [String]) -> RelatedEvent? {
         guard tag.count >= 5 else { return nil }
         
-        // Support both "e" tags (immutable events) and "a" tags (replaceable events)
-        guard tag[0] == "e" || tag[0] == "a" else { return nil }
-
-        let eventReference = tag[1]
         // tag[2] is relay URL (optional, often empty string)
         let markerStr = tag[3]
         let pubkey = tag[4]
 
         let marker = RelatedEventMarker.fromValue(markerStr)
 
-        return RelatedEvent(eventReference: eventReference, marker: marker, pubkey: pubkey)
+        // Support both "e" tags (immutable events) and "a" tags (replaceable events)
+        let eventRef: EventReference
+        if tag[0] == "e" {
+            // Immutable event reference
+            eventRef = ImmutableEventReference(id: tag[1], pubkey: pubkey)
+        } else if tag[0] == "a" {
+            // Replaceable event reference (format: "kind:pubkey:dTag")
+            eventRef = ReplaceableEventReference.fromString(tag[1])
+        } else {
+            return nil
+        }
+
+        return RelatedEvent(eventReference: eventRef, marker: marker, pubkey: pubkey)
     }
 }

@@ -4,6 +4,7 @@ import Foundation
 
 struct ArticleData {
     let replaceableEventId: String
+    let content: String
     
     static func fromEventMessage(_ eventMessage: EventMessage) -> ArticleData {
         var dTag = ""
@@ -15,7 +16,7 @@ struct ArticleData {
             }
         }
         
-        return ArticleData(replaceableEventId: dTag)
+        return ArticleData(replaceableEventId: dTag, content: eventMessage.content)
     }
 }
 

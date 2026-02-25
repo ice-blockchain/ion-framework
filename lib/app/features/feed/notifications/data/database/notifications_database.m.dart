@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/followe
 import 'package:ion/app/features/feed/notifications/data/database/tables/likes_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/mentions_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/subscribed_users_content_table.d.dart';
+import 'package:ion/app/features/feed/notifications/data/database/tables/token_action_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/token_launch_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
@@ -47,6 +48,7 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
     MentionsTable,
     AccountNotificationSyncStateTable,
     TokenLaunchTable,
+    TokenActionTable,
   ],
   queries: {
     'aggregatedFollowersAfter': '''
@@ -129,7 +131,7 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -199,6 +201,9 @@ class NotificationsDatabase extends _$NotificationsDatabase {
         },
         from6To7: (m, schema) async {
           await m.createTable(schema.tokenLaunchTable);
+        },
+        from7To8: (m, schema) async {
+          await m.createTable(schema.tokenActionTable);
         },
       ),
     );

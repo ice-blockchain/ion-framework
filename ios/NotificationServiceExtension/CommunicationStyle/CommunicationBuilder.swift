@@ -4,6 +4,7 @@ import Foundation
 import Intents
 import UIKit
 import UserNotifications
+import os.log
 
 struct CommunicationPushData {
     let title: String
@@ -72,7 +73,7 @@ final class CommunicationBuilder {
         do {
             try await interaction.donate()
         } catch {
-            NSLog("[NSE] [CommunicationBuilder] donate failed: \(error)")
+            nseLogger.error("[CommunicationBuilder] donate failed: \(error)")
         }
 
         if let path = communicationPushData.attachmentFilePath, !path.isEmpty, FileManager.default.fileExists(atPath: path) {
@@ -91,7 +92,7 @@ final class CommunicationBuilder {
                 resultContent = mutable ?? resultContent
             }
         } catch {
-            NSLog("[NSE] [CommunicationBuilder] updating(from:) failed: \(error)")
+            nseLogger.error("[CommunicationBuilder] updating(from:) failed: \(error)")
         }
 
         return resultContent

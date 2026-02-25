@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import Foundation
+import os.log
 
 private let fallbackLocale = Locale(identifier: "en_US")
 
@@ -37,7 +38,7 @@ class Translator<T: TranslationWithVersion> {
 
             return nil
         } catch {
-            NSLog("[NSE] [Translator] Translation failed: \(error)")
+            nseLogger.error("[Translator] Translation failed: \(error)")
             return nil
         }
     }
@@ -102,7 +103,7 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
                 do {
                     return try readCache(at: cacheFile)
                 } catch {
-                    NSLog("[NSE] [Repository] Error reading fallback cache: \(error)")
+                    nseLogger.error("[Repository] Error reading fallback cache: \(error)")
                     // Last resort: try force fetching latest version
                     if let latestTranslations = try? await fetchTranslations(locale: locale, forceLatest: true) {
                         try? saveToCache(data: latestTranslations, at: cacheFile)
@@ -126,7 +127,7 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
                     let translations = try readCache(at: cacheFile)
                     return (translations, true)
                 } catch {
-                    NSLog("[NSE] [Repository] Error parsing cache (model may have changed): \(error)")
+                    nseLogger.error("[Repository] Error parsing cache (model may have changed): \(error)")
                     return (nil, false)
                 }
             }
@@ -196,14 +197,14 @@ class TranslationsRepository<T: TranslationWithVersion & Decodable> {
 
         } catch let urlError as URLError {
             if urlError.code == .timedOut {
-                NSLog("[NSE] [Repository] Request timed out: \(url.absoluteString)")
+                nseLogger.error("[Repository] Request timed out: \(url.absoluteString)")
             } else {
-                NSLog("[NSE] [Repository] Network error: \(urlError.localizedDescription)")
+                nseLogger.error("[Repository] Network error: \(urlError.localizedDescription)")
             }
             throw TranslationError.fetchFailed(urlError)
 
         } catch {
-            NSLog("[NSE] [Repository] Error fetching translations: \(error)")
+            nseLogger.error("[Repository] Error fetching translations: \(error)")
             throw error
         }
     }

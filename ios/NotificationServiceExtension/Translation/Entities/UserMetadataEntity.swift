@@ -34,6 +34,10 @@ struct UserMetadata {
     let name: String
     let displayName: String
     let picture: String?
+    
+    var trimmedDisplayName: String {
+        return displayName.trimmingCharacters(in: .whitespaces)
+    }
 
     static func fromEventMessage(_ eventMessage: EventMessage) -> UserMetadata {
         let contentData = eventMessage.content.data(using: .utf8)

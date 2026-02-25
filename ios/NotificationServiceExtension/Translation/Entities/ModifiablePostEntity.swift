@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 0.1
 
 import Foundation
+import os.log
 
 struct ModifiablePostEntity: IonConnectEntity {
     let id: String
@@ -59,12 +60,17 @@ struct ModifiablePostData {
     let relatedPubkeys: [RelatedPubkey]
     let quotedEvent: QuotedEvent?
     let richText: RichText?
+    let media: [MediaItem]
     let expiration: EntityExpiration?
     
     var content: String {
         return richText?.content ?? textContent
     }
     
+    var hasVideo: Bool {
+        return media.contains { $0.mediaType == .video }
+    }
+
     var parentEvent: RelatedEvent? {
         var rootParent: RelatedEvent? = nil
         var replyParent: RelatedEvent? = nil
@@ -128,7 +134,7 @@ struct ModifiablePostData {
                     quotedEvent = try QuotedEventFactory.fromTag(tag)
                     break
                 } catch {
-                    NSLog("[NSE] Error parsing quoted event: \(error)")
+                    nseLogger.error("Error parsing quoted event: \(error)")
                 }
             }
         }
@@ -141,11 +147,14 @@ struct ModifiablePostData {
                     richText = try RichText.fromTag(tag)
                     break
                 } catch {
-                    NSLog("[NSE] Error parsing rich text: \(error)")
+                    nseLogger.error("Error parsing rich text: \(error)")
                 }
             }
         }
-        
+
+        // Parse media from imeta tags
+        let mediaItems = MediaItem.parseImeta(eventMessage.tags.filter { $0.count >= 2 && $0[0] == "imeta" })
+
         // Parse expiration from expiration tags
         var expiration: EntityExpiration? = nil
         for tag in eventMessage.tags {
@@ -162,6 +171,7 @@ struct ModifiablePostData {
             relatedPubkeys: relatedPubkeys,
             quotedEvent: quotedEvent,
             richText: richText,
+            media: mediaItems,
             expiration: expiration
         )
     }

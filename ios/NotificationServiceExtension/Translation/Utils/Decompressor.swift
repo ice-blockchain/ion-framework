@@ -2,6 +2,7 @@
 
 import Foundation
 import Compression
+import os.log
 
 class Decompressor {
     static func decompress(_ base64String: String) throws -> Data {
@@ -19,7 +20,7 @@ class Decompressor {
             try mutableData.decompress(using: .zlib)
             return mutableData as Data
         } catch let error {
-            NSLog("[NSE] Decompression failed: \(error)")
+            nseLogger.error("Decompression failed: \(error)")
             throw DecompressionError.decompressionFailed
         }
     }

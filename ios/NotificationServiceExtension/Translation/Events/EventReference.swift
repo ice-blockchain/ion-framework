@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import Foundation
+import os.log
 
 protocol EventReference {
     var masterPubkey: String { get }
@@ -96,7 +97,7 @@ struct ReplaceableEventReference: EventReference {
             )
         case .naddr:
             guard let author = identifier.author, let kind = identifier.kind else {
-                NSLog("[NSE] ReplaceableEventReference.fromShareableIdentifier: missing author/kind for naddr")
+                nseLogger.error("ReplaceableEventReference.fromShareableIdentifier: missing author/kind for naddr")
                 return ReplaceableEventReference(masterPubkey: "", kind: 0, dTag: "")
             }
             return ReplaceableEventReference(
@@ -105,7 +106,7 @@ struct ReplaceableEventReference: EventReference {
                 dTag: identifier.special
             )
         default:
-            NSLog("[NSE] ReplaceableEventReference.fromShareableIdentifier: unsupported prefix \(identifier.prefix)")
+            nseLogger.error("ReplaceableEventReference.fromShareableIdentifier: unsupported prefix \(identifier.prefix.rawValue)")
             return ReplaceableEventReference(masterPubkey: "", kind: 0, dTag: "")
         }
     }
@@ -122,7 +123,7 @@ struct ReplaceableEventReference: EventReference {
                     special: masterPubkey
                 )
             } catch {
-                NSLog("[NSE] Falied to encode: \(error)")
+                nseLogger.error("Failed to encode: \(error)")
                 return toString()
             }
 
@@ -159,11 +160,11 @@ struct ImmutableEventReference: EventReference {
     static func fromShareableIdentifier(_ identifier: ShareableIdentifier) -> ImmutableEventReference {
         // Expect nevent: special = eventId (hex), author = pubkey (hex), kind = optional
         guard case .nevent = identifier.prefix else {
-            NSLog("[NSE] ImmutableEventReference.fromShareableIdentifier: unsupported prefix \(identifier.prefix)")
+            nseLogger.error("ImmutableEventReference.fromShareableIdentifier: unsupported prefix \(identifier.prefix.rawValue)")
             return ImmutableEventReference(id: "", pubkey: "")
         }
         guard let author = identifier.author else {
-            NSLog("[NSE] ImmutableEventReference.fromShareableIdentifier: missing author for nevent")
+            nseLogger.error("ImmutableEventReference.fromShareableIdentifier: missing author for nevent")
             return ImmutableEventReference(id: identifier.special, pubkey: "", kind: identifier.kind ?? 0, masterPubkey: "")
         }
         return ImmutableEventReference(

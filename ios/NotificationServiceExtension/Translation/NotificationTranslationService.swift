@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import Foundation
+import os.log
 
 struct NotificationTranslationResult {
     let title: String
@@ -46,52 +47,52 @@ class NotificationTranslationService {
 
     func translate(_ pushPayload: [AnyHashable: Any]) async -> NotificationTranslationResult? {
         guard let currentPubkey = keysStorage.getCurrentPubkey() else {
-            NSLog("[NSE] Current pubkey is nil")
+            nseLogger.error("Current pubkey is nil")
             return nil
         }
 
         guard let data = await parsePayload(from: pushPayload) else {
-            NSLog("[NSE] Failed to parse payload")
+            nseLogger.error("Failed to parse payload")
             return nil
         }
 
         if shouldSkipOwnGiftWrap(data: data, currentPubkey: currentPubkey) {
-            NSLog("[NSE] Skipping own gift wrap notification")
+            nseLogger.info("Skipping own gift wrap notification")
             return nil
         }
 
         // Skip notifications from muted users or muted conversations
         if shouldSkipMutedNotification(data: data, currentPubkey: currentPubkey, keysStorage: keysStorage) {
-            NSLog("[NSE] Skipping notification from muted user or conversation")
+            nseLogger.info("Skipping notification from muted user or conversation")
             return nil
         }
 
         // Skip notifications for self-interactions (e.g., quoting/reposting own content)
         if data.isSelfInteraction(currentPubkey: currentPubkey) {
-            NSLog("[NSE] Skipping self-interaction notification")
+            nseLogger.info("Skipping self-interaction notification")
             return nil
         }
 
         let dataIsValid = data.validate(currentPubkey: currentPubkey)
 
         if !dataIsValid {
-            NSLog("[NSE] Data is invalid")
+            nseLogger.error("Data is invalid")
             return nil
         }
 
         guard let notificationType = data.getNotificationType(currentPubkey: currentPubkey, keysStorage: keysStorage) else {
-            NSLog("[NSE] Notification type is nil")
+            nseLogger.error("Notification type is nil")
             return nil
         }
 
-        NSLog("[NSE] Notification type: \(notificationType)")
+        nseLogger.info("Notification type: \(notificationType.rawValue)")
 
         guard let (title, body) = await getNotificationTranslation(for: notificationType) else {
-            NSLog("[NSE] Notification translation is nil")
+            nseLogger.error("Notification translation is nil")
             return nil
         }
 
-        let placeholders = data.placeholders(type: notificationType)
+        let placeholders = await data.placeholders(type: notificationType, keysStorage: keysStorage)
         
         let result = (
             title: replacePlaceholders(title, placeholders),
@@ -99,12 +100,12 @@ class NotificationTranslationService {
         )
         
         if hasPlaceholders(result.title) || hasPlaceholders(result.body) {
-            NSLog("[NSE] Notification translation has placeholders")
+            nseLogger.error("Notification translation has placeholders")
             return nil
         }
         
         if result.title.isEmpty || result.body.isEmpty {
-            NSLog("[NSE] Notification translation is empty")
+            nseLogger.error("Notification translation is empty")
             return nil
         }
         
@@ -136,9 +137,9 @@ class NotificationTranslationService {
                 let decryptedEvent = try? await self.encryptedMessageService?.decryptMessage(event)
 
                 if let decryptedEvent = decryptedEvent {
-                    NSLog("[NSE] Successfully decrypted event")
+                    nseLogger.info("Successfully decrypted event")
                 } else {
-                    NSLog("[NSE] Failed to decrypt event or decryption returned nil")
+                    nseLogger.error("Failed to decrypt event or decryption returned nil")
                 }
 
                 var metadata: UserMetadata? = nil
@@ -146,7 +147,7 @@ class NotificationTranslationService {
                 if let decryptedEvent = decryptedEvent, let pubkey = try? decryptedEvent.masterPubkey() {
                     metadata = self.getUserMetadataFromDatabase(pubkey)
                 } else {
-                    NSLog("[NSE] Could not extract master pubkey from decrypted event")
+                    nseLogger.error("Could not extract master pubkey from decrypted event")
                 }
 
                 return (event: decryptedEvent, metadata: metadata)
@@ -154,7 +155,7 @@ class NotificationTranslationService {
 
             return payload
         } catch {
-            NSLog("[NSE] Error parsing payload: \(error)")
+            nseLogger.error("Error parsing payload: \(error)")
             return nil
         }
     }
@@ -237,6 +238,36 @@ class NotificationTranslationService {
                 return translations.chatPaymentRequestMessage
             case .chatPaymentReceivedMessage:
                 return translations.chatPaymentReceivedMessage
+            case .yourCreatorTokenIsLive:
+                return translations.yourCreatorTokenIsLive
+            case .yourContentTokenIsLive:
+                return translations.yourContentTokenIsLive
+            case .yourFolloweeCreatorTokenIsLive:
+                return translations.yourFolloweeCreatorTokenIsLive
+            case .yourFolloweeContentTokenIsLive:
+                return translations.yourFolloweeContentTokenIsLive
+            case .someoneBoughtYourCreatorToken:
+                return translations.someoneBoughtYourCreatorToken
+            case .someoneBoughtYourContentToken:
+                return translations.someoneBoughtYourContentToken
+            case .someoneBoughtSomeRelevantCreatorToken:
+                return translations.someoneBoughtSomeRelevantCreatorToken
+            case .someoneBoughtSomeRelevantContentToken:
+                return translations.someoneBoughtSomeRelevantContentToken
+            case .yourCreatorTokenPriceIncreased:
+                return translations.yourCreatorTokenPriceIncreased
+            case .moreBuyersJoined:
+                return translations.moreBuyersJoined
+            case .trendingToken:
+                return translations.trendingToken
+            case .newPostSubscription:
+                return translations.newPostSubscription
+            case .newStorySubscription:
+                return translations.newStorySubscription
+            case .newVideoSubscription:
+                return translations.newVideoSubscription
+            case .newArticleSubscription:
+                return translations.newArticleSubscription
             }
         }
 
@@ -244,7 +275,7 @@ class NotificationTranslationService {
             let title = translation.title,
             let body = translation.body
         else {
-            NSLog("[NSE] Translation is nil")
+            nseLogger.error("Translation is nil")
             return nil
         }
 
@@ -285,7 +316,7 @@ class NotificationTranslationService {
     private func getUserMetadataFromDatabase(_ pubkey: String) -> UserMetadata? {
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for quote notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for quote notification type")
             return nil
         }
         
@@ -293,11 +324,11 @@ class NotificationTranslationService {
         
         let eventReference = ReplaceableEventReference(masterPubkey: pubkey, kind: UserMetadataEntity.kind)
         let eventReferenceKey = eventReference.toString()
-        
+
         guard let userMetadata: UserMetadataEntity = cacheDB.getEntity(for: eventReferenceKey) else {
             return nil
         }
-        
+
         return userMetadata.data
     }
     
@@ -336,7 +367,7 @@ class NotificationTranslationService {
             // instead of muted user pubkeys
             let mutedUsers = cacheDB.getMutedUsers()
             if mutedUsers.contains(senderPubkey) {
-                NSLog("[NSE] Sender is muted (not_interested): \(senderPubkey)")
+                nseLogger.info("Sender is muted (not_interested): \(senderPubkey)")
                 return true
             }
         }
@@ -379,13 +410,13 @@ class NotificationTranslationService {
             if let quotedEvent = modifiablePost.data.quotedEvent {
                 return quotedEvent.eventReference.toString()
             } else if let parentEvent = modifiablePost.data.parentEvent {
-                return parentEvent.eventReference
+                return parentEvent.eventReference.toString()
             }
         } else if let post = entity as? PostEntity {
             if let quotedEvent = post.data.quotedEvent {
                 return quotedEvent.eventReference.toString()
             } else if let parentEvent = post.data.parentEvent {
-                return parentEvent.eventReference
+                return parentEvent.eventReference.toString()
             }
         }
         

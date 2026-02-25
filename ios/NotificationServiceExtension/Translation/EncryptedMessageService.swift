@@ -6,6 +6,7 @@ import CryptoKit
 import Foundation
 import NostrSDK
 import Sodium
+import os.log
 
 class EncryptedMessageService: NIP44v2Encrypting {
     enum DecryptionError: Error {
@@ -81,7 +82,7 @@ class EncryptedMessageService: NIP44v2Encrypting {
         guard let x25519PrivateKey = convertEd25519SkToX25519(privateKeyString),
             let x25519PublicKey = try convertEd25519PkToX25519(senderPubkey)
         else {
-            NSLog("[NSE] Failed to convert keys from Ed25519 to X25519")
+            nseLogger.error("Failed to convert keys from Ed25519 to X25519")
             throw DecryptionError.keyConversionFailed
         }
 
@@ -105,7 +106,7 @@ class EncryptedMessageService: NIP44v2Encrypting {
         )
 
         guard let data = decryptedContent.data(using: .utf8) else {
-            NSLog("[NSE] Failed to convert decrypted content to data")
+            nseLogger.error("Failed to convert decrypted content to data")
             return nil
         }
 

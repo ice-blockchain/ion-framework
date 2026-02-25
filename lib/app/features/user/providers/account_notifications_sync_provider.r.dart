@@ -4,9 +4,6 @@ import 'dart:async';
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/account_notification_sync_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/content_repository.r.dart';
@@ -14,12 +11,10 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
-import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
-import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
+import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provider.r.dart';
@@ -145,47 +140,21 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
       }
 
       await _syncContentTypeFromRelay(
-        users: notBlockedUsers,
+        masterPubkeys: notBlockedUsers,
         contentType: contentType,
       );
     }
   }
 
   Future<List<UserNotificationsType>> _getUserSpecificContentTypes() async {
-    final userSpecificTypes = <UserNotificationsType>[];
-    final currentPubkey = ref.read(currentPubkeySelectorProvider);
-    if (currentPubkey == null) {
-      return userSpecificTypes;
-    }
-
-    for (final type in [
-      UserNotificationsType.posts,
-      UserNotificationsType.stories,
-      UserNotificationsType.articles,
-      UserNotificationsType.videos,
-    ]) {
-      final setType = AccountNotificationSetType.fromUserNotificationType(type);
-      if (setType == null) {
-        continue;
-      }
-
-      final accountNotificationSet = await ref.read(
-        ionConnectEntityProvider(
-          eventReference: ReplaceableEventReference(
-            masterPubkey: currentPubkey,
-            kind: AccountNotificationSetEntity.kind,
-            dTag: setType.dTagName,
-          ),
-        ).future,
-      );
-
-      if (accountNotificationSet is AccountNotificationSetEntity &&
-          accountNotificationSet.data.userPubkeys.isNotEmpty) {
-        userSpecificTypes.add(type);
-      }
-    }
-
-    return userSpecificTypes;
+    final currentUserAccountNotificationSets =
+        await ref.read(currentUserAccountNotificationSetsProvider.future);
+    return currentUserAccountNotificationSets
+        .where(
+          (set) => set.data.userPubkeys.isNotEmpty,
+        )
+        .map((set) => set.data.type.toUserNotificationType())
+        .toList();
   }
 
   Future<Map<UserNotificationsType, List<String>>> _getAllUsersFromNotificationSets(
@@ -223,12 +192,14 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
   }
 
   Future<void> _syncContentTypeFromRelay({
-    required List<String> users,
+    required List<String> masterPubkeys,
     required UserNotificationsType contentType,
   }) async {
     final repository = ref.read(accountNotificationSyncRepositoryProvider);
 
     final contentTypeEnum = switch (contentType) {
+      UserNotificationsType.tokenizedCommunitiesTransactions =>
+        ContentType.tokenizedCommunitiesTransactions,
       UserNotificationsType.posts => ContentType.posts,
       UserNotificationsType.stories => ContentType.stories,
       UserNotificationsType.articles => ContentType.articles,
@@ -253,7 +224,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
 
     final requestFilter = _buildRequestFilter(
       contentType: contentType,
-      users: users,
+      masterPubkeys: masterPubkeys,
     );
 
     if (requestFilter == null) {
@@ -271,7 +242,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
         eventFutures.add(_processNotificationEvent(event, contentType));
       },
       actionSource: ActionSourceOptimalRelays(
-        masterPubkeys: users,
+        masterPubkeys: masterPubkeys,
         strategy: OptimalRelaysStrategy.bestLatency,
       ),
     );
@@ -305,57 +276,13 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
 
   RequestFilter? _buildRequestFilter({
     required UserNotificationsType contentType,
-    required List<String> users,
+    required List<String> masterPubkeys,
   }) {
-    if (users.isEmpty || contentType == UserNotificationsType.none) {
+    if (masterPubkeys.isEmpty || contentType == UserNotificationsType.none) {
       return null;
     }
 
-    return switch (contentType) {
-      UserNotificationsType.videos => RequestFilter(
-          kinds: const [
-            PostEntity.kind,
-            ModifiablePostEntity.kind,
-          ],
-          search: VideosSearchExtension(contain: true).query,
-          authors: users,
-          limit: 100,
-        ),
-      UserNotificationsType.stories => RequestFilter(
-          kinds: const [
-            PostEntity.kind,
-            ModifiablePostEntity.kind,
-          ],
-          search: ExpirationSearchExtension(expiration: true).query,
-          authors: users,
-          limit: 100,
-        ),
-      UserNotificationsType.articles => RequestFilter(
-          kinds: const [
-            ArticleEntity.kind,
-          ],
-          authors: users,
-          limit: 100,
-        ),
-      UserNotificationsType.posts => RequestFilter(
-          kinds: const [
-            PostEntity.kind,
-            ModifiablePostEntity.kind,
-          ],
-          search: SearchExtensions([
-            ExpirationSearchExtension(expiration: false),
-            VideosSearchExtension(contain: false),
-            TagMarkerSearchExtension(
-              tagName: RelatedReplaceableEvent.tagName,
-              marker: RelatedEventMarker.reply.name,
-              negative: true,
-            ),
-          ]).toString(),
-          authors: users,
-          limit: 100,
-        ),
-      UserNotificationsType.none => throw ArgumentError('Cannot build filter for none type'),
-    };
+    return contentType.toRequestFilter(masterPubkeys: masterPubkeys, limit: 100);
   }
 
   Future<void> _processNotificationEvent(

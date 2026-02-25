@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import Foundation
+import os.log
 
 struct TransactionData {
     let coinAmount: String
@@ -121,7 +122,7 @@ class IonConnectPushDataPayload: Decodable {
                     relevantEvents = []
                 }
             } catch {
-                NSLog("[NSE] Error decompressing data: \(error)")
+                nseLogger.error("Error decompressing data: \(error)")
                 throw error
             }
         } else {
@@ -174,7 +175,9 @@ class IonConnectPushDataPayload: Decodable {
         if entity.masterPubkey == currentPubkey {
             if entity is ReactionEntity ||
                entity is GenericRepostEntity ||
-               entity is RepostEntity {
+               entity is RepostEntity ||
+               entity is CommunityTokenDefinitionEntity ||
+               entity is CommunityTokenActionEntity {
                 return true
             }
             
@@ -199,31 +202,6 @@ class IonConnectPushDataPayload: Decodable {
 
         if entity is GenericRepostEntity || entity is RepostEntity {
             return getRepostNotificationType(entity: entity, keysStorage: keysStorage)
-        } else if (entity as? ModifiablePostEntity)?.data.quotedEvent != nil ||
-                  (entity as? PostEntity)?.data.quotedEvent != nil {
-            return getQuoteNotificationType(entity: entity, keysStorage: keysStorage)
-        } else if entity is ModifiablePostEntity || entity is PostEntity {
-            let currentUserMention = ReplaceableEventReference(
-                masterPubkey: currentPubkey,
-                kind: UserMetadataEntity.kind
-            ).encode()
-
-            let content: String? = {
-                switch entity {
-                case let e as ModifiablePostEntity:
-                    return e.data.content
-                case let e as PostEntity:
-                    return e.data.content
-                default:
-                    return nil
-                }
-            }()
-
-            if let content = content, content.contains(currentUserMention) {
-                return .mention
-            }
-                
-            return getReplyNotificationType(entity: entity, keysStorage: keysStorage)
         } else if let reactionEntity = entity as? ReactionEntity {
             return getLikeNotificationType(entity: reactionEntity, keysStorage: keysStorage)
         } else if entity is FollowListEntity {
@@ -268,16 +246,69 @@ class IonConnectPushDataPayload: Decodable {
                         return getVisualMediaNotificationType(message: message)
                     }
                 } catch {
-                    NSLog("[NSE] Error parsing decrypted message: \(error)")
+                    nseLogger.error("Error parsing decrypted message: \(error)")
                     return nil
                 }
             }
+        } else if entity is ModifiablePostEntity || entity is PostEntity || entity is ArticleEntity {
+            if isQuoteOfCurrentUser(currentPubkey: currentPubkey, entity: entity) {
+                return getQuoteOfCurrentUserNotificationType(entity: entity, keysStorage: keysStorage)
+            } else if isCurrentUserMentioned(currentPubkey: currentPubkey, entity: entity) {
+                return .mention
+            } else if isReplyToCurrentUserPost(currentPubkey: currentPubkey, entity: entity) {
+                return getReplyToCurrentUserNotificationType(entity: entity, keysStorage: keysStorage)
+            } else {
+                return getAccountNotificationType(entity: entity)
+            }
+        } else if let entity = entity as? CommunityTokenDefinitionEntity {
+            return getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity)
+        } else if let entity = entity as? CommunityTokenActionEntity {
+            return getTokenIsBoughtNotificationType(currentPubkey: currentPubkey, entity: entity)
         }
 
         return nil
     }
 
-    func placeholders(type: PushNotificationType) -> [String: String] {
+    private func isCurrentUserMentioned(currentPubkey: String, entity: IonConnectEntity) -> Bool {
+        let currentUserMention = ReplaceableEventReference(
+            masterPubkey: currentPubkey,
+            kind: UserMetadataEntity.kind
+        ).encode()
+
+        let content: String? = {
+            switch entity {
+            case let e as ModifiablePostEntity:
+                return e.data.content
+            case let e as PostEntity:
+                return e.data.content
+            case let e as ArticleEntity:
+                return e.data.content
+            default:
+                return nil
+            }
+        }()
+
+        if let content = content, content.contains(currentUserMention) {
+            return true
+        }
+
+        return false
+    }
+
+    private func isQuoteOfCurrentUser(currentPubkey: String, entity: IonConnectEntity) -> Bool {
+        return (entity as? ModifiablePostEntity)?.data.quotedEvent?.eventReference.masterPubkey == currentPubkey ||
+               (entity as? PostEntity)?.data.quotedEvent?.eventReference.masterPubkey == currentPubkey
+    }
+
+    private func isReplyToCurrentUserPost(
+        currentPubkey: String,
+        entity: IonConnectEntity
+    ) -> Bool {
+        return (entity as? ModifiablePostEntity)?.data.parentEvent?.eventReference.masterPubkey == currentPubkey ||
+               (entity as? PostEntity)?.data.parentEvent?.eventReference.masterPubkey == currentPubkey
+    }
+
+    func placeholders(type: PushNotificationType, keysStorage: KeysStorage) async -> [String: String] {
         guard let masterPubkey = mainEntity?.masterPubkey else {
             return [:]
         }
@@ -313,6 +344,38 @@ class IonConnectPushDataPayload: Decodable {
                         data["documentExt"] = FileTypeMapper.getFileType(mimeType: media.originalMimeType)
                     }
                 }
+            }
+        }
+
+        // Handle CommunityTokenActionEntity placeholders
+        if let entity = mainEntity as? CommunityTokenActionEntity {
+            if let amountUsd = entity.data.getUsdAmount() {
+                data["amountUSD"] = PriceFormatter.formatPriceWithSubscript(amountUsd.value, symbol: "")
+            } else {
+                data["amountUSD"] = ""
+            }
+            data["ticker"] = entity.data.tokenTicker
+        }
+
+        // For community token definitions, "username" and "displayName" placeholders
+        // belong to the author of the original event.
+        // For example: "Community launched a token for @{{username}}'s post."
+        if let entity = mainEntity as? CommunityTokenDefinitionEntity {
+            let eventReferenceKey = ReplaceableEventReference(
+                masterPubkey: entity.data.eventReference.masterPubkey,
+                kind: UserMetadataEntity.kind
+            ).toString()
+            
+            let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+            guard cacheDB.openDatabase() else {
+                nseLogger.error("Failed to open ion_connect_cache database for community token definition metadata")
+                return data
+            }
+            defer { cacheDB.closeDatabase() }
+            
+            if let originalUserMetadata = cacheDB.getGenericEntity(for: eventReferenceKey) as? UserMetadataEntity {
+                data["username"] = originalUserMetadata.data.name
+                data["displayName"] = originalUserMetadata.data.displayName
             }
         }
 
@@ -361,7 +424,7 @@ class IonConnectPushDataPayload: Decodable {
                 )
                 avatarFilePath = outputFileURL.path
             } catch {
-                NSLog("[NSE] Conversion failed: \(error)")
+                nseLogger.error("Conversion failed: \(error)")
             }
 
         }
@@ -371,7 +434,6 @@ class IonConnectPushDataPayload: Decodable {
 
     func validate(currentPubkey: String) -> Bool {
         return checkEventsSignatures()
-            && checkMainEventRelevant(currentPubkey: currentPubkey)
             && checkRequiredRelevantEvents()
     }
 
@@ -382,48 +444,6 @@ class IonConnectPushDataPayload: Decodable {
         let relevantEventsValid = relevantEvents.allSatisfy { $0.validate() }
 
         return mainEventValid && relevantEventsValid
-    }
-
-    private func checkMainEventRelevant(currentPubkey: String) -> Bool {
-        guard let entity = mainEntity else {
-            return false
-        }
-
-        if let modifiablePost = entity as? ModifiablePostEntity {
-            let event = modifiablePost.data.quotedEvent
-            
-            let isInRelatedPubkeys = modifiablePost.data.relatedPubkeys.contains { pubkey in
-                return pubkey.value == currentPubkey
-            }
-            
-            let isPostAuthor = event != nil && event!.eventReference.masterPubkey == currentPubkey
-            
-            return isInRelatedPubkeys || isPostAuthor
-        } else if let post = entity as? PostEntity {
-            let event = post.data.quotedEvent
-            
-            let isInRelatedPubkeys = post.data.relatedPubkeys.contains { pubkey in
-                return pubkey.value == currentPubkey
-            }
-            
-            let isPostAuthor = event != nil && event!.eventReference.masterPubkey == currentPubkey
-            
-            return isInRelatedPubkeys || isPostAuthor
-        } else if let genericRepost = entity as? GenericRepostEntity {
-            return genericRepost.data.eventReference.masterPubkey == currentPubkey
-        } else if let repost = entity as? RepostEntity {
-            return repost.data.eventReference.masterPubkey == currentPubkey
-        } else if let reaction = entity as? ReactionEntity {
-            return reaction.data.eventReference.masterPubkey == currentPubkey
-        } else if let followList = entity as? FollowListEntity {
-            return followList.pubkeys.last == currentPubkey
-        } else if let giftWrap = entity as? IonConnectGiftWrapEntity {
-            return giftWrap.data.relatedPubkeys.contains { pubkey in
-                return pubkey.value == currentPubkey
-            }
-        }
-
-        return false
     }
 
     private func checkRequiredRelevantEvents() -> Bool {
@@ -445,7 +465,7 @@ class IonConnectPushDataPayload: Decodable {
                     try UserDelegationEntity.fromEventMessage(delegationEvent)
                 return delegationEntity.data.validate(event)
             } catch {
-                NSLog("[NSE] Error parsing delegation entity: \(error)")
+                nseLogger.error("Error parsing delegation entity: \(error)")
                 return false
             }
         }
@@ -456,13 +476,13 @@ class IonConnectPushDataPayload: Decodable {
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for like notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for like notification type")
             return .like
         }
         defer { cacheDB.closeDatabase() }
         
         guard let relatedEntity = cacheDB.getGenericEntity(for: eventReference) else {
-            NSLog("[NSE] No related entity found in cache for: \(eventReference)")
+            nseLogger.error("No related entity found in cache for: \(eventReference)")
             return .like
         }
         
@@ -502,13 +522,13 @@ class IonConnectPushDataPayload: Decodable {
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for repost notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for repost notification type")
             return .repost
         }
         defer { cacheDB.closeDatabase() }
         
         guard let repostedEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
+            nseLogger.error("No related entity found in cache for: \(eventReferenceKey)")
             return .repost
         }
         
@@ -531,7 +551,7 @@ class IonConnectPushDataPayload: Decodable {
         return .repost
     }
     
-    private func getQuoteNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
+    private func getQuoteOfCurrentUserNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
         // Extract quoted event reference from the entity
         let quotedEventRef: EventReference?
         if let modifiablePost = entity as? ModifiablePostEntity {
@@ -550,13 +570,13 @@ class IonConnectPushDataPayload: Decodable {
         
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for quote notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for quote notification type")
             return .quote
         }
         defer { cacheDB.closeDatabase() }
         
         guard let quotedEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
+            nseLogger.error("No related entity found in cache for: \(eventReferenceKey)")
             return .quote
         }
         
@@ -579,30 +599,32 @@ class IonConnectPushDataPayload: Decodable {
         return .quote
     }
     
-    private func getReplyNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
-        // Extract parent event reference string from the entity
-        let parentEventRefString: String?
+    private func getReplyToCurrentUserNotificationType(entity: IonConnectEntity, keysStorage: KeysStorage) -> PushNotificationType {
+        // Extract parent event reference from the entity
+        let parentEventRef: EventReference?
         if let modifiablePost = entity as? ModifiablePostEntity {
-            parentEventRefString = modifiablePost.data.parentEvent?.eventReference
+            parentEventRef = modifiablePost.data.parentEvent?.eventReference
         } else if let post = entity as? PostEntity {
-            parentEventRefString = post.data.parentEvent?.eventReference
+            parentEventRef = post.data.parentEvent?.eventReference
         } else {
             return .reply
         }
         
-        guard let eventReferenceKey = parentEventRefString else {
+        guard let eventReference = parentEventRef else {
             return .reply
         }
         
+        let eventReferenceKey = eventReference.toString()
+        
         let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
         guard cacheDB.openDatabase() else {
-            NSLog("[NSE] Failed to open ion_connect_cache database for reply notification type")
+            nseLogger.error("Failed to open ion_connect_cache database for reply notification type")
             return .reply
         }
         defer { cacheDB.closeDatabase() }
         
         guard let parentEntity = cacheDB.getGenericEntity(for: eventReferenceKey) else {
-            NSLog("[NSE] No related entity found in cache for: \(eventReferenceKey)")
+            nseLogger.error("No related entity found in cache for: \(eventReferenceKey)")
             return .reply
         }
         
@@ -668,6 +690,61 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         return .chatMultiMediaMessage
+    }
+
+    private func getTokenIsLiveNotificationType(
+        currentPubkey: String,
+        entity: CommunityTokenDefinitionEntity
+    ) -> PushNotificationType? {
+        if entity.data.eventReference.masterPubkey == currentPubkey {
+            return entity.data.kind == UserMetadataEntity.kind
+                ? .yourCreatorTokenIsLive
+                : .yourContentTokenIsLive
+        } else {
+            return entity.data.kind == UserMetadataEntity.kind
+                ? .yourFolloweeCreatorTokenIsLive
+                : .yourFolloweeContentTokenIsLive
+        }
+    }
+
+    private func getTokenIsBoughtNotificationType(
+        currentPubkey: String,
+        entity: CommunityTokenActionEntity
+    ) -> PushNotificationType? {
+        if entity.data.relatedPubkey.value == currentPubkey {
+            return entity.data.kind == UserMetadataEntity.kind
+                ? .someoneBoughtYourCreatorToken
+                : .someoneBoughtYourContentToken
+        } else {
+            return entity.data.kind == UserMetadataEntity.kind
+                ? .someoneBoughtSomeRelevantCreatorToken
+                : .someoneBoughtSomeRelevantContentToken
+        }
+    }
+
+    private func getAccountNotificationType(entity: IonConnectEntity) -> PushNotificationType? {
+        switch entity {
+        case let modifiablePost as ModifiablePostEntity:
+            if modifiablePost.data.expiration != nil {
+                return .newStorySubscription
+            } else if modifiablePost.data.hasVideo {
+                return .newVideoSubscription
+            } else {
+                return .newPostSubscription
+            }
+        case let post as PostEntity:
+            if post.data.expiration != nil {
+                return .newStorySubscription
+            } else if post.data.hasVideo {
+                return .newVideoSubscription
+            } else {
+                return .newPostSubscription
+            }
+        case is ArticleEntity:
+            return .newArticleSubscription
+        default:
+            return nil
+        }
     }
 
     private func getUserMetadata(pubkey: String) -> UserMetadataEntity? {
@@ -742,6 +819,21 @@ enum PushNotificationType: String, Decodable {
     case chatMultiVideoMessage
     case chatPaymentRequestMessage
     case chatPaymentReceivedMessage
+    case yourCreatorTokenIsLive
+    case yourContentTokenIsLive
+    case yourFolloweeCreatorTokenIsLive
+    case yourFolloweeContentTokenIsLive
+    case yourCreatorTokenPriceIncreased
+    case someoneBoughtYourCreatorToken
+    case someoneBoughtYourContentToken
+    case someoneBoughtSomeRelevantCreatorToken
+    case someoneBoughtSomeRelevantContentToken
+    case moreBuyersJoined
+    case trendingToken
+    case newPostSubscription
+    case newStorySubscription
+    case newVideoSubscription
+    case newArticleSubscription
     
     var isChat: Bool {
         switch self {
