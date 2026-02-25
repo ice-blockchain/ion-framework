@@ -74,7 +74,8 @@ class TextEditorCashtagEmbedBuilder extends EmbedBuilder {
             onTap: canClose
                 ? null
                 : () {
-                    FeedAdvancedSearchRoute(query: embedData.displayTicker).push<void>(context);
+                    TokenizedCommunityRoute(externalAddress: embedData.externalAddress)
+                        .push<void>(context);
                   },
           ),
         );

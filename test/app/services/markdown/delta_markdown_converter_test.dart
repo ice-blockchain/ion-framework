@@ -454,6 +454,60 @@ void main() {
         expect(result.tags.first.replacement, '[\$GOOO]($externalAddress)');
       });
 
+      test('converts tokenized X cashtag with status URL PMO', () async {
+        const externalAddress = '1890123456789012345';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}X $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.text, '$cashtagContent\n');
+        expect(result.tags, hasLength(1));
+        expect(result.tags.first.start, 0);
+        expect(result.tags.first.end, cashtagContent.length);
+        expect(
+          result.tags.first.replacement,
+          '[\$X](https://x.com/i/status/$externalAddress)',
+        );
+      });
+
+      test('converts tokenized cashtag with status-id external address to X status URL PMO',
+          () async {
+        const externalAddress = '2025580584081428907';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}GOOO $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.tags, hasLength(1));
+        expect(
+          result.tags.first.replacement,
+          '[\$GOOO](https://x.com/i/status/$externalAddress)',
+        );
+      });
+
       test('converts mention and tokenized cashtag PMO independently', () async {
         const mentionAddress =
             'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
@@ -1807,6 +1861,52 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         expect(reconstructedText, isNot(contains(mentionAddress)));
         expect(reconstructedText, isNot(contains(externalAddress)));
         expect(reconstructedText, isNot(contains(tokenDefinitionAddress)));
+      });
+
+      test('does not double-prefix tokenized X cashtag when URL is already normalized', () async {
+        const externalAddress = '1890123456789012345';
+        const statusUrl = 'https://x.com/i/status/$externalAddress';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}X $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': statusUrl,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.tags, hasLength(1));
+        expect(result.tags.first.replacement, '[\$X]($statusUrl)');
+      });
+
+      test('does not double-prefix X status URL for non-X cashtag ticker', () async {
+        const externalAddress = '2025580584081428907';
+        const statusUrl = 'https://x.com/i/status/$externalAddress';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}GOOO $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': statusUrl,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.tags, hasLength(1));
+        expect(result.tags.first.replacement, '[\$GOOO]($statusUrl)');
       });
 
       test('round-trip with complex formatting (all features, for Posts/ModifiablePosts)',

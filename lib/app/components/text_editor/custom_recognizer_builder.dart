@@ -25,9 +25,20 @@ GestureRecognizer? customRecognizerBuilder(
       ..onTap = isEditing
           ? null
           : () {
-              // Remove $ sign and pass pure ticker
-              final ticker = (attribute.value as String).substring(1);
-              FeedAdvancedSearchRoute(query: ticker.toUpperCase()).push<void>(context);
+              final cashtagValue = (attribute.value as String).trim();
+
+              final isTokenizedCashtag =
+                  cashtagValue.isNotEmpty && cashtagValue != r'$' && !cashtagValue.startsWith(r'$');
+
+              if (isTokenizedCashtag) {
+                TokenizedCommunityRoute(externalAddress: cashtagValue).push<void>(context);
+                return;
+              }
+
+              if (cashtagValue.startsWith(r'$') && cashtagValue.length > 1) {
+                final ticker = cashtagValue.substring(1);
+                FeedAdvancedSearchRoute(query: ticker.toUpperCase()).push<void>(context);
+              }
             };
   }
   if (attribute.key == MentionAttribute.attributeKey) {
