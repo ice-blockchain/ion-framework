@@ -503,7 +503,6 @@ final class AppsFlyerDeepLinkService {
   ///
   /// Returns `null` if the resolution times out or fails.
   Future<OneLinkResolveResult?> resolveOneLinkUrlAsync(String url) async {
-    // Return cached result immediately so create-post quote shows without SDK delay.
     final cachedResult = _getCachedResult(url);
     if (cachedResult != null && cachedResult.deepLinkValue != null) {
       return (
