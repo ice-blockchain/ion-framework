@@ -63,8 +63,7 @@ class ImageCompressor implements Compressor<ImageCompressionSettings> {
   }) async {
     try {
       final isWebP = to == ImageCompressionType.webp &&
-          (file.mimeType == ImageCompressionType.webp.mimeType ||
-              file.path.toLowerCase().endsWith('.webp'));
+          (file.mimeType == ImageCompressionType.webp.mimeType || file.path.isWebp);
       if (isWebP) {
         final shouldScale = settings.scaleResolution != FfmpegScaleArg.p1080Width;
         if (shouldScale) {
