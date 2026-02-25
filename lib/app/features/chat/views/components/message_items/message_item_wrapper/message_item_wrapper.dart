@@ -380,6 +380,12 @@ String? getMoneySentTitle(WidgetRef ref, EventMessage? eventMessage) {
           ? ref.context.i18n.chat_money_sent_preview_title(coinsAmount)
           : ref.context.i18n.chat_money_received_preview_title(coinsAmount);
     }
+
+    // Last-resort fallback after metadata resolution attempts (local cache, wallets coins backend,
+    // token analytics for tokenized community tokens). Avoid showing raw `ion:nevent...`.
+    return ref.watch(isCurrentUserSelectorProvider(eventMessage.masterPubkey))
+        ? ref.context.i18n.chat_money_sent_title
+        : ref.context.i18n.chat_money_received_title;
   }
   return null;
 }
