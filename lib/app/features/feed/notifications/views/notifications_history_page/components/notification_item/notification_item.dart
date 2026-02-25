@@ -11,7 +11,7 @@ import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_content.dart';
-import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons/notification_icons.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_media.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
@@ -122,7 +122,8 @@ class NotificationItem extends HookConsumerWidget {
     final relatedEntity =
         ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
 
-    if (relatedEntity case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
+    if (relatedEntity
+        case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
       return ref
           .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
     } else if (relatedEntity is CommunityTokenActionEntity) {
