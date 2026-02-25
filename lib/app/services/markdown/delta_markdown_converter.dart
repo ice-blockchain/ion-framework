@@ -16,6 +16,10 @@ typedef _CashtagExtraction = ({
   String? coinId,
 });
 
+const _xCashtagTicker = 'X';
+const _xStatusUrlPrefix = 'https://x.com/i/status/';
+final _xStatusIdPattern = RegExp(r'^\d{10,25}$');
+
 /// Result of the conversion containing plain text and PMO tags.
 typedef PmoConversionResult = ({String text, List<PmoTag> tags});
 
@@ -448,7 +452,11 @@ abstract class DeltaMarkdownConverter {
       final externalAddress = cashtagAttrValue.trim();
       final displayCashtag = RegExp(r'\$[^\s]+').firstMatch(originalContent)?.group(0);
       if (displayCashtag != null && displayCashtag.isNotEmpty) {
-        replacement = '[$displayCashtag]($externalAddress)';
+        final pmoLinkTarget = _toCashtagPmoLinkTarget(
+          displayCashtag: displayCashtag,
+          externalAddress: externalAddress,
+        );
+        replacement = '[$displayCashtag]($pmoLinkTarget)';
       }
     }
 
@@ -729,7 +737,8 @@ abstract class DeltaMarkdownConverter {
   /// Extracts cashtag data from PMO tags.
   ///
   /// Identifies PMO replacements matching the pattern `[$TICKER](value)` where
-  /// value is either an externalAddress or a bech32-encoded coin ID (`ncoin1...`).
+  /// value is either an externalAddress, an X status URL for `$X` tokens,
+  /// or a bech32-encoded coin ID (`ncoin1...`).
   static List<_CashtagExtraction> _extractCashtagAddresses(
     String plainText,
     List<_ParsedPmoTag> pmoTags,
@@ -740,13 +749,15 @@ abstract class DeltaMarkdownConverter {
     for (final tag in pmoTags) {
       final match = cashtagPmoPattern.firstMatch(tag.replacement);
       if (match != null) {
-        final value = match.group(2)!;
+        final ticker = match.group(1)!;
+        final rawValue = match.group(2)!;
+        final value = _normalizeCashtagPmoValue(ticker: ticker, value: rawValue);
         final isCoinId = value.startsWith('ncoin1');
         extractions.add(
           (
             start: tag.start,
             end: tag.end,
-            ticker: match.group(1)!,
+            ticker: ticker,
             externalAddress: isCoinId ? null : value,
             coinId: isCoinId ? value : null,
           ),
@@ -922,4 +933,42 @@ abstract class DeltaMarkdownConverter {
       attrs?[CashtagAttribute.attributeKey] is String &&
       (attrs?[CashtagAttribute.attributeKey] as String).trim().isNotEmpty &&
       (attrs?[CashtagAttribute.attributeKey] as String).trim() != r'$';
+
+  static String _toCashtagPmoLinkTarget({
+    required String displayCashtag,
+    required String externalAddress,
+  }) {
+    final shouldUseXStatusUrl = _isXCashtag(displayCashtag) || _isXStatusId(externalAddress);
+    if (!shouldUseXStatusUrl) {
+      return externalAddress;
+    }
+
+    if (_extractXStatusId(externalAddress) != null) {
+      return externalAddress;
+    }
+
+    return '$_xStatusUrlPrefix$externalAddress';
+  }
+
+  static String _normalizeCashtagPmoValue({required String ticker, required String value}) {
+    if (ticker.toUpperCase() == _xCashtagTicker) {
+      return _extractXStatusId(value) ?? value;
+    }
+
+    return _extractXStatusId(value) ?? value;
+  }
+
+  static bool _isXCashtag(String displayCashtag) =>
+      displayCashtag.replaceFirst(r'$', '').toUpperCase() == _xCashtagTicker;
+
+  static bool _isXStatusId(String value) => _xStatusIdPattern.hasMatch(value);
+
+  static String? _extractXStatusId(String value) {
+    if (!value.startsWith(_xStatusUrlPrefix)) {
+      return null;
+    }
+
+    final statusId = value.substring(_xStatusUrlPrefix.length);
+    return statusId.isEmpty ? null : statusId;
+  }
 }
