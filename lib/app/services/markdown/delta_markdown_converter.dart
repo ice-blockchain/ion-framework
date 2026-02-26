@@ -756,7 +756,7 @@ abstract class DeltaMarkdownConverter {
       }
 
       var taggedText = op.data! as String;
-      var taggedAttrs = Map<String, dynamic>.from(op.attributes ?? const {});
+      final taggedAttrs = Map<String, dynamic>.from(op.attributes ?? const {});
       final mentionFromLink = _extractMentionValueFromLink(taggedAttrs['link']);
       if (!taggedAttrs.containsKey('mention') &&
           mentionFromLink != null &&
