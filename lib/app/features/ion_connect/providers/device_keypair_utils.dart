@@ -22,6 +22,7 @@ import 'package:ion/app/features/user/providers/current_user_identity_provider.r
 import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 /// Utility class for shared device keypair operations
@@ -166,32 +167,37 @@ class DeviceKeypairUtils {
   }
 
   static Future<List<String>> _resolveDeviceKeypairDownloadUrls(String fileId, Ref ref) async {
-    final candidates = <String>[];
-    final uniqueUrls = <String>{};
+    final candidates = <String>{};
 
     void addCandidate(String baseStorageUrl) {
       final normalized = baseStorageUrl.endsWith('/')
           ? baseStorageUrl.substring(0, baseStorageUrl.length - 1)
           : baseStorageUrl;
       final downloadUrl = '$normalized/$fileId';
-      if (uniqueUrls.add(downloadUrl)) {
-        candidates.add(downloadUrl);
-      }
+      candidates.add(downloadUrl);
     }
 
     try {
       final primaryStorageUrl = await ref.read(fileStorageUrlProvider.future);
       addCandidate(primaryStorageUrl);
-    } catch (_) {
-      // Ignore primary file storage URL failure and try fallback relay discovery.
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to resolve primary file storage URL for device keypair restore',
+      );
     }
 
     var relayUrls = <String>[];
     try {
       final userRelays = await ref.read(rankedCurrentUserRelaysProvider.future);
       relayUrls = userRelays.map((relay) => relay.url).toList();
-    } catch (_) {
-      // Ignore ranked relays failure and rely on already discovered candidates.
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to load ranked relay URLs for device keypair restore',
+      );
     }
 
     for (final relayUrl in relayUrls) {
@@ -202,12 +208,17 @@ class DeviceKeypairUtils {
         );
 
         addCandidate(storageUrl);
-      } catch (_) {
-        // Ignore failed relay metadata fetches and continue with other candidates.
+      } catch (error, stackTrace) {
+        Logger.error(
+          error,
+          stackTrace: stackTrace,
+          message:
+              'Failed to resolve file storage URL from relay $relayUrl for device keypair restore',
+        );
       }
     }
 
-    return candidates;
+    return candidates.toList();
   }
 
   /// Extracts file ID from URL
