@@ -13,11 +13,13 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
+import 'package:ion/app/features/ion_connect/model/file_storage_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/device_keypair_constants.dart';
 import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
+import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -131,27 +133,74 @@ class DeviceKeypairUtils {
 
   /// Downloads encrypted keypair from relays using proper file storage URL discovery
   static Future<Uint8List> downloadEncryptedKeypair(String fileId, Ref ref) async {
-    final baseStorageUrl = await ref.read(fileStorageUrlProvider.future);
-    final downloadUrl = '$baseStorageUrl/$fileId';
+    final downloadUrls = await _resolveDeviceKeypairDownloadUrls(fileId, ref);
+    final dio = ref.read(dioProvider);
+    final errors = <String>[];
 
+    for (final downloadUrl in downloadUrls) {
+      try {
+        final response = await dio.get<List<int>>(
+          downloadUrl,
+          options: Options(responseType: ResponseType.bytes),
+        );
+
+        if (response.statusCode == 200 && response.data != null) {
+          return Uint8List.fromList(response.data!);
+        }
+
+        errors.add('$downloadUrl: HTTP ${response.statusCode}');
+      } catch (e) {
+        errors.add('$downloadUrl: $e');
+      }
+    }
+
+    throw DeviceKeypairRestoreException(
+      'Failed to download encrypted keypair from ${downloadUrls.length} file server(s): ${errors.join(' | ')}',
+    );
+  }
+
+  static Future<List<String>> _resolveDeviceKeypairDownloadUrls(String fileId, Ref ref) async {
+    final candidates = <String>[];
+    final uniqueUrls = <String>{};
+
+    void addCandidate(String baseStorageUrl) {
+      final normalized = baseStorageUrl.endsWith('/')
+          ? baseStorageUrl.substring(0, baseStorageUrl.length - 1)
+          : baseStorageUrl;
+      final downloadUrl = '$normalized/$fileId';
+      if (uniqueUrls.add(downloadUrl)) {
+        candidates.add(downloadUrl);
+      }
+    }
+
+    final primaryStorageUrl = await ref.read(fileStorageUrlProvider.future);
+    addCandidate(primaryStorageUrl);
+
+    final userRelays = await ref.read(rankedCurrentUserRelaysProvider.future);
     final dio = ref.read(dioProvider);
 
-    try {
-      final response = await dio.get<List<int>>(
-        downloadUrl,
-        options: Options(responseType: ResponseType.bytes),
-      );
+    for (final relay in userRelays) {
+      try {
+        final parsedRelayUrl = Uri.parse(relay.url);
+        final metadataUri = Uri(
+          scheme: 'https',
+          host: parsedRelayUrl.host,
+          port: parsedRelayUrl.hasPort ? parsedRelayUrl.port : null,
+          path: FileStorageMetadata.path,
+        );
 
-      if (response.statusCode == 200 && response.data != null) {
-        return Uint8List.fromList(response.data!);
+        final response = await dio.getUri<dynamic>(metadataUri);
+        final jsonMap = json.decode(response.data as String) as Map<String, dynamic>;
+        final metadata = FileStorageMetadata.fromJson(jsonMap);
+        final storageUrl = metadataUri.replace(path: metadata.apiUrl).toString();
+
+        addCandidate(storageUrl);
+      } catch (_) {
+        // Ignore failed relay metadata fetches and continue with other candidates.
       }
-
-      throw DeviceKeypairRestoreException('Failed to download file: HTTP ${response.statusCode}');
-    } catch (e) {
-      throw DeviceKeypairRestoreException(
-        'Failed to download encrypted keypair from $downloadUrl: $e',
-      );
     }
+
+    return candidates;
   }
 
   /// Extracts file ID from URL
