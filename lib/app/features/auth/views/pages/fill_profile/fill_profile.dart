@@ -47,8 +47,9 @@ class FillProfile extends HookConsumerWidget {
     final debouncedNickname = useDebounced(nickname.value.trim(), const Duration(seconds: 1));
 
     final referralController = useReferrerController(ref, context);
+    final referralValue = useValueListenable(referralController);
     final debouncedReferral = useDebounced(
-      referralController.text.trim(),
+      referralValue.text.trim(),
       const Duration(seconds: 1),
     );
 
