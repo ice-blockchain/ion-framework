@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
 import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
@@ -98,7 +99,7 @@ class CreateArticle extends _$CreateArticle {
 
       final (imageUrl, updatedContent) = await (mainImageFuture, contentFuture).wait;
 
-      final preparedContent = _normalizeContentForStorage(updatedContent);
+      final preparedContent = await _normalizeContentForStorage(updatedContent);
       final markdownContent = preparedContent.markdown;
       final mentions = preparedContent.mentions;
 
@@ -130,6 +131,7 @@ class CreateArticle extends _$CreateArticle {
         articleData,
         files: files,
         mentions: mentions,
+        pmoTags: preparedContent.pmoTags,
       );
 
       _createArticleNotifierStreamController.add(article);
@@ -223,7 +225,7 @@ class CreateArticle extends _$CreateArticle {
         mediaAttachments: updatedMediaAttachments,
       );
 
-      final preparedContent = _normalizeContentForStorage(updatedContent);
+      final preparedContent = await _normalizeContentForStorage(updatedContent);
       final markdownContent = preparedContent.markdown;
       final mentions = preparedContent.mentions;
 
@@ -287,6 +289,7 @@ class CreateArticle extends _$CreateArticle {
         articleData,
         files: files,
         mentions: <RelatedPubkey>{...originalMentions, ...mentions}.toList(),
+        pmoTags: preparedContent.pmoTags,
       );
       ref.read(draftArticleProvider.notifier).clear();
     });
@@ -296,12 +299,13 @@ class CreateArticle extends _$CreateArticle {
     ArticleData articleData, {
     List<FileMetadata> files = const [],
     List<RelatedPubkey> mentions = const [],
+    List<List<String>> pmoTags = const [],
   }) async {
     final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
     final communityTokenDefinitionRepository =
         await ref.read(communityTokenDefinitionRepositoryProvider.future);
 
-    final articleEvent = await ionNotifier.sign(articleData);
+    final articleEvent = await ionNotifier.sign(articleData, tags: pmoTags);
     final fileEvents = await Future.wait(files.map(ionNotifier.sign));
 
     final pubkeysToPublish = mentions.map((mention) => mention.value).toSet();
@@ -530,19 +534,161 @@ class CreateArticle extends _$CreateArticle {
     ];
   }
 
-  ({
-    Delta content,
-    String markdown,
-    List<RelatedPubkey> mentions,
-  }) _normalizeContentForStorage(Delta rawContent) {
+  Future<
+      ({
+        Delta content,
+        String markdown,
+        List<RelatedPubkey> mentions,
+        List<List<String>> pmoTags,
+      })> _normalizeContentForStorage(Delta rawContent) async {
     final contentWithAttributes = DeltaBridge.normalizeToAttributeFormat(rawContent);
-    final markdown = convertDeltaToMarkdown(contentWithAttributes);
+    final pmoPreparedContent = await _prepareContentForPmo(contentWithAttributes);
+    final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
+    final markdown = _applyPmoTagsToContent(
+      content: conversion.contentToSign,
+      pmoTags: conversion.pmoTags,
+    );
     final mentions = _buildMentions(contentWithAttributes);
     return (
       content: contentWithAttributes,
       markdown: markdown,
       mentions: mentions,
+      pmoTags: conversion.pmoTags,
     );
+  }
+
+  String _applyPmoTagsToContent({
+    required String content,
+    required List<List<String>> pmoTags,
+  }) {
+    if (pmoTags.isEmpty) {
+      return content;
+    }
+
+    final parsedTags = pmoTags
+        .where((tag) => tag.length >= 3 && tag[0] == 'pmo')
+        .map((tag) {
+          final indices = tag[1].split(':');
+          if (indices.length != 2) return null;
+
+          final start = int.tryParse(indices[0]);
+          final end = int.tryParse(indices[1]);
+
+          if (start == null || end == null || start < 0 || end < start || end > content.length) {
+            return null;
+          }
+
+          return (start: start, end: end, replacement: tag[2]);
+        })
+        .whereType<({int start, int end, String replacement})>()
+        .toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
+
+    if (parsedTags.isEmpty) {
+      return content;
+    }
+
+    final buffer = StringBuffer();
+    var cursor = 0;
+
+    for (final tag in parsedTags) {
+      if (tag.start < cursor) {
+        continue;
+      }
+
+      buffer.write(content.substring(cursor, tag.start));
+      final originalSegment = content.substring(tag.start, tag.end);
+      buffer.write(
+        _buildMarkdownReplacement(
+          replacement: tag.replacement,
+          originalSegment: originalSegment,
+        ),
+      );
+      cursor = tag.end;
+    }
+
+    if (cursor < content.length) {
+      buffer.write(content.substring(cursor));
+    }
+
+    return buffer.toString();
+  }
+
+  String _buildMarkdownReplacement({
+    required String replacement,
+    required String originalSegment,
+  }) {
+    final cashtagLinkMatch = RegExp(r'^\[(\$[^\]]+)\]\(([^)]+)\)$').firstMatch(replacement);
+
+    if (cashtagLinkMatch == null) {
+      return replacement;
+    }
+
+    final tokenDefinitionAddress =
+        RegExp(r'ion:(?:naddr|addr)[^\s)]+').firstMatch(originalSegment)?.group(0);
+    if (tokenDefinitionAddress == null || tokenDefinitionAddress.isEmpty) {
+      return replacement;
+    }
+
+    final cashtagLabel = cashtagLinkMatch.group(1)!;
+    return '[$cashtagLabel]($tokenDefinitionAddress)';
+  }
+
+  Future<Delta> _prepareContentForPmo(Delta content) async {
+    final out = Delta();
+    final tokenDefinitionAddressByExternalAddress = <String, String>{};
+
+    for (final op in content.operations) {
+      final data = op.data;
+      final attrs = op.attributes;
+
+      if (data is! String || attrs == null || !attrs.containsKey(CashtagAttribute.attributeKey)) {
+        out.push(op);
+        continue;
+      }
+
+      final showMarketCap = attrs[CashtagAttribute.showMarketCapKey] == true;
+      final externalAddressRaw = attrs[CashtagAttribute.attributeKey];
+      final externalAddress = externalAddressRaw is String ? externalAddressRaw.trim() : '';
+
+      if (!showMarketCap || externalAddress.isEmpty || externalAddress == r'$') {
+        out.push(op);
+        continue;
+      }
+
+      var tokenDefinitionAddress = tokenDefinitionAddressByExternalAddress[externalAddress];
+      if (tokenDefinitionAddress == null) {
+        tokenDefinitionAddress = await _resolveTokenDefinitionAddress(externalAddress);
+        tokenDefinitionAddressByExternalAddress[externalAddress] = tokenDefinitionAddress ?? '';
+      }
+
+      if (tokenDefinitionAddress == null || tokenDefinitionAddress.isEmpty) {
+        out.push(op);
+        continue;
+      }
+
+      final normalizedData = data.trimRight();
+      final enrichedText = normalizedData.contains(tokenDefinitionAddress)
+          ? data
+          : '$normalizedData $tokenDefinitionAddress';
+
+      out.insert(enrichedText, attrs);
+    }
+
+    return out;
+  }
+
+  Future<String?> _resolveTokenDefinitionAddress(String externalAddress) async {
+    final cached = await ref.read(
+      cachedTokenDefinitionProvider(externalAddress: externalAddress).future,
+    );
+
+    final definition = cached ??
+        await ref.read(
+          tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress).future,
+        );
+
+    return definition?.toEventReference().encode();
   }
 
   Map<String, MediaAttachment> _cleanMediaAttachments({
