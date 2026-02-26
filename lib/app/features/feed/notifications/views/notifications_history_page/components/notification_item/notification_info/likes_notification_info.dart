@@ -4,8 +4,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_loading.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
@@ -31,7 +29,6 @@ class LikesNotificationInfo extends HookConsumerWidget {
     final pubkeys = notification.pubkeys;
     final recognizers = useTapGestureRecognizers();
     final relatedEntity = _getRelatedEntity(ref);
-    final eventType = _getEventType(relatedEntity);
 
     final userDatas = pubkeys.take(pubkeys.length == 2 ? 2 : 1).map((pubkey) {
       return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
@@ -41,8 +38,11 @@ class LikesNotificationInfo extends HookConsumerWidget {
       return const NotificationInfoLoading();
     }
 
-    final typePhrase =
-        getNotificationTypePhrase(context.i18n, NotificationTypeContext.liked, eventType);
+    final typePhrase = getNotificationTypePhrase(
+      context.i18n,
+      NotificationTypeContext.liked,
+      NotificationEventType.fromIonConnectEntity(relatedEntity),
+    );
 
     final description = switch (pubkeys.length) {
       1 => context.i18n.notifications_liked_one(typePhrase),
@@ -74,16 +74,6 @@ class LikesNotificationInfo extends HookConsumerWidget {
       textSpan: textSpan,
       timestamp: notification.timestamp,
     );
-  }
-
-  NotificationEventType _getEventType(IonConnectEntity? relatedEntity) {
-    return switch (relatedEntity) {
-      ModifiablePostEntity() when relatedEntity.isStory => NotificationEventType.story,
-      ModifiablePostEntity(:final data) when data.parentEvent != null =>
-        NotificationEventType.comment,
-      ArticleEntity() => NotificationEventType.article,
-      _ => NotificationEventType.post,
-    };
   }
 
   IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
