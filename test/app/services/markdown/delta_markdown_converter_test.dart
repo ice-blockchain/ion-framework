@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -1160,6 +1161,21 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               reason: 'Italic formatting should be preserved',
             );
           });
+
+          test('normalizes spaced emphasis wrappers around mention and cashtag links', () {
+            const mentionAddress =
+                'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+            const markdown =
+                '* [@alice]($mentionAddress) * and ** [\\${r'$'}GOOO](0x1234567890abcdef) **\n';
+
+            final delta = markdownToDelta(markdown);
+            final reconstructedText = Document.fromDelta(delta).toPlainText();
+
+            expect(reconstructedText, isNot(contains('* @alice *')));
+            expect(reconstructedText, isNot(contains(r'** \$GOOO **')));
+            expect(reconstructedText, contains('@alice'));
+            expect(reconstructedText, contains(r'$GOOO'));
+          });
         });
 
         test('round-trip with underline formatting (markdown uses HTML <u> tags)', () async {
@@ -1861,6 +1877,164 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         expect(reconstructedText, isNot(contains(mentionAddress)));
         expect(reconstructedText, isNot(contains(externalAddress)));
         expect(reconstructedText, isNot(contains(tokenDefinitionAddress)));
+      });
+
+      test('reconstructs formatted cashtag PMO link with cashtag attributes preserved', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress and ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress and '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '[@alice]($mentionAddress)'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '**[${r'$'}GOOO]($externalAddress)**'],
+        ];
+
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+        expect(
+          _hasTextWithFormatting(
+            resultDelta,
+            textSubstring: r'$GOOO',
+            attributeValues: {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+              'bold': true,
+            },
+          ),
+          isTrue,
+          reason: 'Formatted cashtag PMO replacement should keep cashtag metadata and bold style',
+        );
+      });
+
+      test('does not render literal markdown markers around mention/cashtag in preview path', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress and ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress and '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '* [@alice]($mentionAddress) *'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '** [${r'$'}GOOO]($externalAddress) **'],
+        ];
+
+        final restoredDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final restoredText = Document.fromDelta(restoredDelta).toPlainText();
+        final previewDelta = DeltaBridge.normalizeToEmbedFormat(restoredDelta);
+        final previewText = Document.fromDelta(previewDelta).toPlainText();
+
+        expect(restoredText, contains(r'$GOOO'));
+        expect(previewText, contains('@alice'));
+        expect(previewText, isNot(contains('* @alice *')));
+        expect(previewText, isNot(contains('** ${r'$'}GOOO **')));
+      });
+
+      test('reconstructs formatted mention PMO link without literal markers', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const plainText = mentionAddress;
+
+        final pmoTags = [
+          ['pmo', '0:${plainText.length}', '** [@alice]($mentionAddress) **'],
+        ];
+
+        final restoredDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final restoredText = Document.fromDelta(restoredDelta).toPlainText();
+
+        expect(restoredText, contains('@alice'));
+        expect(restoredText, isNot(contains('** @alice **')));
+        expect(restoredText, isNot(contains('* @alice *')));
+        expect(
+          _hasTextWithFormatting(
+            restoredDelta,
+            textSubstring: '@alice',
+            attributeValues: {
+              'mention': mentionAddress,
+              'bold': true,
+            },
+          ),
+          isTrue,
+          reason: 'Formatted mention PMO replacement should keep mention metadata and bold style',
+        );
+      });
+
+      test('does not render literal markdown markers for escaped-dollar cashtag links', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress and ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress and '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '* [@alice]($mentionAddress) *'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '** [\\${r'$'}GOOO]($externalAddress) **'],
+        ];
+
+        final restoredDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final restoredText = Document.fromDelta(restoredDelta).toPlainText();
+        final previewDelta = DeltaBridge.normalizeToEmbedFormat(restoredDelta);
+        final previewText = Document.fromDelta(previewDelta).toPlainText();
+
+        expect(restoredText, contains(r'$GOOO'));
+        expect(restoredText, isNot(contains('** ${r'$'}GOOO **')));
+        expect(restoredText, isNot(contains('* ${r'$'}GOOO *')));
+        expect(previewText, contains('@alice'));
+        expect(previewText, isNot(contains('* @alice *')));
+        expect(previewText, isNot(contains('** ${r'$'}GOOO **')));
+        expect(previewText, isNot(contains(r'\$GOOO')));
+      });
+
+      test('sanitizes split markdown markers around reconstructed tagged text', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '[@orionfoo9]($mentionAddress)'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '** [${r'$'}ORIONFO09]($externalAddress) **'],
+        ];
+
+        final restoredDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final restoredText = Document.fromDelta(restoredDelta).toPlainText();
+
+        expect(restoredText, isNot(contains('** ${r'$'}ORIONFO09 **')));
+        expect(restoredText, contains(r'$ORIONFO09'));
+        expect(
+          _hasTextWithFormatting(
+            restoredDelta,
+            textSubstring: r'$ORIONFO09',
+            attributeValues: {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+              'bold': true,
+            },
+          ),
+          isTrue,
+        );
       });
 
       test('does not double-prefix tokenized X cashtag when URL is already normalized', () async {
