@@ -101,27 +101,25 @@ String getNotificationTypePhrase(
       l10n.notifications_type_your_post_liked,
     (NotificationTypeContext.liked, NotificationEventType.token) =>
       l10n.notifications_type_your_post_liked,
-    // TODO: Handle this case.
     (NotificationTypeContext.replyToYour, NotificationEventType.trade) =>
-      throw UnimplementedError(),
-    // TODO: Handle this case.
+      l10n.notifications_type_your_trade_reply_to,
     (NotificationTypeContext.replyToYour, NotificationEventType.token) =>
-      throw UnimplementedError(),
-    // TODO: Handle this case.
-    (NotificationTypeContext.replyToThe, NotificationEventType.trade) => throw UnimplementedError(),
-    // TODO: Handle this case.
-    (NotificationTypeContext.replyToThe, NotificationEventType.token) => throw UnimplementedError(),
-    // TODO: Handle this case.
-    (NotificationTypeContext.repost, NotificationEventType.trade) => throw UnimplementedError(),
-    // TODO: Handle this case.
-    (NotificationTypeContext.repost, NotificationEventType.token) => throw UnimplementedError(),
-    // TODO: Handle this case.
-    (NotificationTypeContext.shareYour, NotificationEventType.trade) => throw UnimplementedError(),
-    // TODO: Handle this case.
-    (NotificationTypeContext.shareYour, NotificationEventType.token) => throw UnimplementedError(),
-    // TODO: Handle this case.
-    (NotificationTypeContext.shareThe, NotificationEventType.trade) => throw UnimplementedError(),
-    // TODO: Handle this case.
-    (NotificationTypeContext.shareThe, NotificationEventType.token) => throw UnimplementedError(),
+      l10n.notifications_type_your_token_reply_to,
+    (NotificationTypeContext.replyToThe, NotificationEventType.trade) =>
+      l10n.notifications_type_the_trade_reply_to,
+    (NotificationTypeContext.replyToThe, NotificationEventType.token) =>
+      l10n.notifications_type_the_token_reply_to,
+    (NotificationTypeContext.repost, NotificationEventType.trade) =>
+      l10n.notifications_type_your_trade_repost,
+    (NotificationTypeContext.repost, NotificationEventType.token) =>
+      l10n.notifications_type_your_token_repost,
+    (NotificationTypeContext.shareYour, NotificationEventType.trade) =>
+      l10n.notifications_type_your_trade_share,
+    (NotificationTypeContext.shareYour, NotificationEventType.token) =>
+      l10n.notifications_type_your_token_share,
+    (NotificationTypeContext.shareThe, NotificationEventType.trade) =>
+      l10n.notifications_type_the_trade_share,
+    (NotificationTypeContext.shareThe, NotificationEventType.token) =>
+      l10n.notifications_type_the_token_share,
   };
 }
