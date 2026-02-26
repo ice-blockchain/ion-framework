@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
@@ -36,7 +35,6 @@ class CommentNotificationInfo extends HookConsumerWidget {
       onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
     );
     final relatedEntity = _getRelatedEntity(ref);
-    final eventType = _getEventType(relatedEntity);
 
     if (userData == null) {
       return const NotificationInfoLoading();
@@ -55,7 +53,11 @@ class CommentNotificationInfo extends HookConsumerWidget {
       CommentIonNotificationType.repost => NotificationTypeContext.repost,
     };
 
-    final typePhrase = getNotificationTypePhrase(context.i18n, typeContext, eventType);
+    final typePhrase = getNotificationTypePhrase(
+      context.i18n,
+      typeContext,
+      NotificationEventType.fromIonConnectEntity(relatedEntity),
+    );
 
     final description = switch (notification.type) {
       CommentIonNotificationType.reply => context.i18n.notifications_reply(typePhrase),
@@ -78,16 +80,6 @@ class CommentNotificationInfo extends HookConsumerWidget {
       timestamp: notification.timestamp,
       showTodayLabel: false,
     );
-  }
-
-  NotificationEventType _getEventType(IonConnectEntity? relatedEntity) {
-    return switch (relatedEntity) {
-      ModifiablePostEntity() when relatedEntity.isStory => NotificationEventType.story,
-      ModifiablePostEntity(:final data) when data.parentEvent != null =>
-        NotificationEventType.comment,
-      ArticleEntity() => NotificationEventType.article,
-      _ => NotificationEventType.post,
-    };
   }
 
   IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
