@@ -62,19 +62,19 @@ class FillProfile extends HookConsumerWidget {
       final referral = referralController.text;
       if (formKey.currentState!.validate()) {
         isLoading.value = true;
-        await Future.wait(
-          [
-            ref
-                .read(userNicknameNotifierProvider.notifier)
-                .verifyNicknameAvailability(nickname: nickname.value),
-            if (referral.isNotEmpty)
+        try {
+          await Future.wait(
+            [
               ref
-                  .read(userReferralNotifierProvider.notifier)
-                  .verifyReferralExists(referral: referral),
-          ],
-        );
-        isLoading.value = false;
-        if (context.mounted) {
+                  .read(userNicknameNotifierProvider.notifier)
+                  .verifyNicknameAvailability(nickname: nickname.value),
+              if (referral.isNotEmpty)
+                ref
+                    .read(userReferralNotifierProvider.notifier)
+                    .verifyReferralExists(referral: referral),
+            ],
+          );
+          if (!context.mounted) return;
           if (ref.read(userNicknameNotifierProvider).hasError ||
               (referral.isNotEmpty && ref.read(userReferralNotifierProvider).hasError)) {
             return;
@@ -98,6 +98,10 @@ class FillProfile extends HookConsumerWidget {
           }
           if (context.mounted) {
             await SelectLanguagesRoute().push<void>(context);
+          }
+        } finally {
+          if (context.mounted) {
+            isLoading.value = false;
           }
         }
       }
