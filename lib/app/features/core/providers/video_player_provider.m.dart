@@ -102,6 +102,9 @@ class VideoController extends _$VideoController {
         await Future.wait([
           () async {
             try {
+              if (identical(VideoController._currentlyPlayingController, controller)) {
+                VideoController._currentlyPlayingController = null;
+              }
               await controller.dispose();
             } catch (_) {}
           }(),

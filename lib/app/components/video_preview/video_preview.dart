@@ -110,16 +110,21 @@ class VideoPreview extends HookConsumerWidget {
 
     useOnInit(
       () {
+        if (!context.mounted) return;
         if (controller == null || !controller.value.isInitialized) {
           return;
         }
         final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
         final shouldBeActive = isFullyVisible.value && isRouteFocused.value;
 
-        if (shouldBeActive && !controller.value.isPlaying) {
-          controller.play();
-        } else if (!shouldBeActive && controller.value.isPlaying && isCurrentRoute) {
-          controller.pause();
+        try {
+          if (shouldBeActive && !controller.value.isPlaying) {
+            controller.play();
+          } else if (!shouldBeActive && controller.value.isPlaying && isCurrentRoute) {
+            controller.pause();
+          }
+        } catch (_) {
+          // Controller may have been disposed (e.g. scroll/navigation).
         }
       },
       [isFullyVisible.value, isRouteFocused.value, controller],
@@ -130,10 +135,12 @@ class VideoPreview extends HookConsumerWidget {
         if (controller != null && controller.value.isInitialized) {
           final isPlaying = controller.value.isPlaying;
           controller.setVolume(isMuted ? 0.0 : 1.0).then((_) {
-            // If it was playing before volume change, ensure it's still playing
-            if (isPlaying && !controller.value.isPlaying) {
-              controller.play();
-            }
+            try {
+              // If it was playing before volume change, ensure it's still playing
+              if (isPlaying && !controller.value.isPlaying) {
+                controller.play();
+              }
+            } catch (_) {}
           });
         }
         return null;
