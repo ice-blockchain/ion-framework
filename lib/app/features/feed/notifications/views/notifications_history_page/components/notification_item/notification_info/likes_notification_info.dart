@@ -34,7 +34,7 @@ class LikesNotificationInfo extends HookConsumerWidget {
       return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     }).toList();
 
-    if (userDatas.contains(null)) {
+    if (userDatas.contains(null) || relatedEntity == null) {
       return const NotificationInfoLoading();
     }
 
