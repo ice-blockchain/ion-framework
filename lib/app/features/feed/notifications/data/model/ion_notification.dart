@@ -51,13 +51,11 @@ final class CommentIonNotification extends IonNotification {
   }
 
   @override
-  String getDescription(BuildContext context, [String eventTypeLabel = '', bool isAuthor = false]) {
+  String getDescription(BuildContext context, [String typePhrase = '']) {
     return switch (type) {
-      CommentIonNotificationType.reply => isAuthor
-          ? context.i18n.notifications_reply(eventTypeLabel)
-          : context.i18n.notifications_reply_other_user(eventTypeLabel),
-      CommentIonNotificationType.quote => context.i18n.notifications_share(eventTypeLabel),
-      CommentIonNotificationType.repost => context.i18n.notifications_repost(eventTypeLabel),
+      CommentIonNotificationType.reply => context.i18n.notifications_reply(typePhrase),
+      CommentIonNotificationType.quote => context.i18n.notifications_share(typePhrase),
+      CommentIonNotificationType.repost => context.i18n.notifications_repost(typePhrase),
     };
   }
 }
@@ -101,11 +99,11 @@ final class LikesIonNotification extends IonNotification {
   Color getBackgroundColor(BuildContext context) => context.theme.appColors.attentionRed;
 
   @override
-  String getDescription(BuildContext context, [String eventTypeLabel = '']) {
+  String getDescription(BuildContext context, [String typePhrase = '']) {
     return switch (pubkeys.length) {
-      1 => context.i18n.notifications_liked_one(eventTypeLabel),
-      2 => context.i18n.notifications_liked_two(eventTypeLabel),
-      _ => context.i18n.notifications_liked_many(total - 1, eventTypeLabel),
+      1 => context.i18n.notifications_liked_one(typePhrase),
+      2 => context.i18n.notifications_liked_two(typePhrase),
+      _ => context.i18n.notifications_liked_many(total - 1, typePhrase),
     };
   }
 }
