@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_loading.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/username_text_span.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -30,7 +31,7 @@ class FollowersNotificationInfo extends HookConsumerWidget {
     }).toList();
 
     if (userDatas.contains(null)) {
-      return const SizedBox.shrink();
+      return const NotificationInfoLoading();
     }
 
     final description = switch (pubkeys.length) {
