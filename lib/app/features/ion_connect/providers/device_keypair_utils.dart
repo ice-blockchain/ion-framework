@@ -15,7 +15,6 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/device_keypair_constants.dart';
-import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
 import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
@@ -134,18 +133,24 @@ class DeviceKeypairUtils {
 
   /// Downloads encrypted keypair from relays using proper file storage URL discovery
   static Future<Uint8List> downloadEncryptedKeypair(String fileId, Ref ref) async {
-    final downloadUrls = await _resolveDeviceKeypairDownloadUrls(fileId, ref);
-    if (downloadUrls.isEmpty) {
+    final relayUrls = await _resolveDeviceKeypairRelayUrls(ref);
+    if (relayUrls.isEmpty) {
       throw DeviceKeypairRestoreException(
-        'Failed to restore device keypair: no available file server candidates',
+        'Failed to restore device keypair: no available ranked relays',
       );
     }
 
     final dio = ref.read(dioProvider);
     final errors = <String>[];
 
-    for (final downloadUrl in downloadUrls) {
+    for (final relayUrl in relayUrls) {
       try {
+        final baseStorageUrl = await resolveFileStorageApiUrlFromRelayUrl(
+          ref,
+          relayUrl: relayUrl,
+        );
+        final downloadUrl = _buildDownloadUrl(baseStorageUrl: baseStorageUrl, fileId: fileId);
+
         final response = await dio.get<List<int>>(
           downloadUrl,
           options: Options(responseType: ResponseType.bytes),
@@ -155,70 +160,44 @@ class DeviceKeypairUtils {
           return Uint8List.fromList(response.data!);
         }
 
-        errors.add('$downloadUrl: HTTP ${response.statusCode}');
-      } catch (e) {
-        errors.add('$downloadUrl: $e');
+        errors.add('$relayUrl: HTTP ${response.statusCode}');
+      } catch (error, stackTrace) {
+        Logger.error(
+          error,
+          stackTrace: stackTrace,
+          message: 'Failed to restore device keypair from relay $relayUrl',
+        );
+        errors.add('$relayUrl: $error');
       }
     }
 
     throw DeviceKeypairRestoreException(
-      'Failed to download encrypted keypair from ${downloadUrls.length} file server(s): ${errors.join(' | ')}',
+      'Failed to download encrypted keypair from ${relayUrls.length} relay candidate(s): ${errors.join(' | ')}',
     );
   }
 
-  static Future<List<String>> _resolveDeviceKeypairDownloadUrls(String fileId, Ref ref) async {
-    final candidates = <String>{};
-
-    void addCandidate(String baseStorageUrl) {
-      final normalized = baseStorageUrl.endsWith('/')
-          ? baseStorageUrl.substring(0, baseStorageUrl.length - 1)
-          : baseStorageUrl;
-      final downloadUrl = '$normalized/$fileId';
-      candidates.add(downloadUrl);
-    }
-
-    try {
-      final primaryStorageUrl = await ref.read(fileStorageUrlProvider.future);
-      addCandidate(primaryStorageUrl);
-    } catch (error, stackTrace) {
-      Logger.error(
-        error,
-        stackTrace: stackTrace,
-        message: 'Failed to resolve primary file storage URL for device keypair restore',
-      );
-    }
-
-    var relayUrls = <String>[];
+  static Future<List<String>> _resolveDeviceKeypairRelayUrls(Ref ref) async {
     try {
       final userRelays = await ref.read(rankedCurrentUserRelaysProvider.future);
-      relayUrls = userRelays.map((relay) => relay.url).toList();
+      return userRelays.map((relay) => relay.url).toList();
     } catch (error, stackTrace) {
       Logger.error(
         error,
         stackTrace: stackTrace,
         message: 'Failed to load ranked relay URLs for device keypair restore',
       );
+      return [];
     }
+  }
 
-    for (final relayUrl in relayUrls) {
-      try {
-        final storageUrl = await resolveFileStorageApiUrlFromRelayUrl(
-          ref,
-          relayUrl: relayUrl,
-        );
-
-        addCandidate(storageUrl);
-      } catch (error, stackTrace) {
-        Logger.error(
-          error,
-          stackTrace: stackTrace,
-          message:
-              'Failed to resolve file storage URL from relay $relayUrl for device keypair restore',
-        );
-      }
-    }
-
-    return candidates.toList();
+  static String _buildDownloadUrl({
+    required String baseStorageUrl,
+    required String fileId,
+  }) {
+    final normalized = baseStorageUrl.endsWith('/')
+        ? baseStorageUrl.substring(0, baseStorageUrl.length - 1)
+        : baseStorageUrl;
+    return '$normalized/$fileId';
   }
 
   /// Extracts file ID from URL
