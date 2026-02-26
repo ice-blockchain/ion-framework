@@ -7,6 +7,7 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_loading.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/username_text_span.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
@@ -36,7 +37,7 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
     final relatedEntity = _getRelatedEntity(ref);
 
     if (userData == null) {
-      return const SizedBox.shrink();
+      return const NotificationInfoLoading();
     }
 
     final description = switch (relatedEntity) {

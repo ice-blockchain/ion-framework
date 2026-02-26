@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -9,6 +8,7 @@ import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_loading.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/username_text_span.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
@@ -31,21 +31,24 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pubkey = notification.eventReference.masterPubkey;
     final relatedEntity = _getRelatedEntity(ref);
     final relatedPubkey = _getRelatedEntityPubkey(relatedEntity);
     final isCurrentUserTokenTransaction = _isCurrentUserTokenTransaction(ref);
-    final pubkeys = [
-      notification.eventReference.masterPubkey,
-      relatedPubkey,
-    ].nonNulls.toList();
-    final recognizers = useTapGestureRecognizers();
+    final userData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
+    final recognizer = useTapGestureRecognizer(
+      onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
+    );
+    final relatedUserData = relatedPubkey != null
+        ? ref.watch(userPreviewDataProvider(relatedPubkey)).valueOrNull
+        : null;
+    final relatedRecognizer = useTapGestureRecognizer(
+      onTap: () =>
+          relatedPubkey != null ? ProfileRoute(pubkey: relatedPubkey).push<void>(context) : null,
+    );
 
-    final userDatas = pubkeys.map((pubkey) {
-      return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
-    }).toList();
-
-    if (userDatas.contains(null)) {
-      return const SizedBox.shrink();
+    if (userData == null || relatedUserData == null) {
+      return const NotificationInfoLoading();
     }
 
     final description = switch (relatedEntity) {
@@ -81,22 +84,20 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
     final textSpan = replaceString(
       description,
       RegExp(
-        '${tagRegex('username').pattern}|${tagRegex('green', isSingular: false).pattern}|${tagRegex('red', isSingular: false).pattern}|${tagRegex('amount').pattern}',
+        '${tagRegex('username').pattern}|${tagRegex('relatedUsername').pattern}|${tagRegex('green', isSingular: false).pattern}|${tagRegex('red', isSingular: false).pattern}|${tagRegex('amount').pattern}',
       ),
       (match, index) {
         if (match.namedGroup('username') != null) {
-          final pubkey = pubkeys.elementAtOrNull(index);
-          final userData = userDatas.elementAtOrNull(index);
-          if (pubkey == null || userData == null) {
-            return const TextSpan(text: '');
-          }
-          final recognizer = TapGestureRecognizer()
-            ..onTap = () => ProfileRoute(pubkey: pubkey).push<void>(context);
-          recognizers.add(recognizer);
           return buildUsernameTextSpan(
             context,
             userData: userData.data,
             recognizer: recognizer,
+          );
+        } else if (match.namedGroup('relatedUsername') != null) {
+          return buildUsernameTextSpan(
+            context,
+            userData: relatedUserData.data,
+            recognizer: relatedRecognizer,
           );
         } else if (match.namedGroup('green') != null) {
           return TextSpan(
