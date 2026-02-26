@@ -57,24 +57,11 @@ Future<String> getFileStorageApiUrl(
   final relayUrl = userRelays.first.url;
 
   try {
-    final parsedRelayUrl = Uri.parse(relayUrl);
-    final metadataUri = Uri(
-      scheme: 'https',
-      host: parsedRelayUrl.host,
-      port: parsedRelayUrl.hasPort ? parsedRelayUrl.port : null,
-      path: FileStorageMetadata.path,
+    return resolveFileStorageApiUrlFromRelayUrl(
+      ref,
+      relayUrl: relayUrl,
+      cancelToken: cancelToken,
     );
-
-    final response = await ref.read(dioProvider).getUri<dynamic>(
-          metadataUri,
-          cancelToken: cancelToken,
-        );
-    final jsonMap = json.decode(response.data as String) as Map<String, dynamic>;
-    final metadata = FileStorageMetadata.fromJson(jsonMap);
-    final path = metadata.apiUrl;
-    final uploadUrl = metadataUri.replace(path: path).toString();
-
-    return uploadUrl;
   } catch (error) {
     if (_isRelayDead(error)) {
       ref.read(rankedCurrentUserRelaysProvider.notifier).reportUnreachableRelay(relayUrl);
@@ -85,6 +72,28 @@ Future<String> getFileStorageApiUrl(
     }
     throw GetFileStorageUrlException(error);
   }
+}
+
+Future<String> resolveFileStorageApiUrlFromRelayUrl(
+  Ref ref, {
+  required String relayUrl,
+  CancelToken? cancelToken,
+}) async {
+  final parsedRelayUrl = Uri.parse(relayUrl);
+  final metadataUri = Uri(
+    scheme: 'https',
+    host: parsedRelayUrl.host,
+    port: parsedRelayUrl.hasPort ? parsedRelayUrl.port : null,
+    path: FileStorageMetadata.path,
+  );
+
+  final response = await ref.read(dioProvider).getUri<dynamic>(
+        metadataUri,
+        cancelToken: cancelToken,
+      );
+  final jsonMap = json.decode(response.data as String) as Map<String, dynamic>;
+  final metadata = FileStorageMetadata.fromJson(jsonMap);
+  return metadataUri.replace(path: metadata.apiUrl).toString();
 }
 
 bool _isRelayDead(Object error) {

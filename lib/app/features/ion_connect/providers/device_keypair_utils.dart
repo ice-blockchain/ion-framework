@@ -13,10 +13,10 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/dio_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
-import 'package:ion/app/features/ion_connect/model/file_storage_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/device_keypair_constants.dart';
 import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
+import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
@@ -134,6 +134,12 @@ class DeviceKeypairUtils {
   /// Downloads encrypted keypair from relays using proper file storage URL discovery
   static Future<Uint8List> downloadEncryptedKeypair(String fileId, Ref ref) async {
     final downloadUrls = await _resolveDeviceKeypairDownloadUrls(fileId, ref);
+    if (downloadUrls.isEmpty) {
+      throw DeviceKeypairRestoreException(
+        'Failed to restore device keypair: no available file server candidates',
+      );
+    }
+
     final dio = ref.read(dioProvider);
     final errors = <String>[];
 
@@ -173,26 +179,27 @@ class DeviceKeypairUtils {
       }
     }
 
-    final primaryStorageUrl = await ref.read(fileStorageUrlProvider.future);
-    addCandidate(primaryStorageUrl);
+    try {
+      final primaryStorageUrl = await ref.read(fileStorageUrlProvider.future);
+      addCandidate(primaryStorageUrl);
+    } catch (_) {
+      // Ignore primary file storage URL failure and try fallback relay discovery.
+    }
 
-    final userRelays = await ref.read(rankedCurrentUserRelaysProvider.future);
-    final dio = ref.read(dioProvider);
+    var relayUrls = <String>[];
+    try {
+      final userRelays = await ref.read(rankedCurrentUserRelaysProvider.future);
+      relayUrls = userRelays.map((relay) => relay.url).toList();
+    } catch (_) {
+      // Ignore ranked relays failure and rely on already discovered candidates.
+    }
 
-    for (final relay in userRelays) {
+    for (final relayUrl in relayUrls) {
       try {
-        final parsedRelayUrl = Uri.parse(relay.url);
-        final metadataUri = Uri(
-          scheme: 'https',
-          host: parsedRelayUrl.host,
-          port: parsedRelayUrl.hasPort ? parsedRelayUrl.port : null,
-          path: FileStorageMetadata.path,
+        final storageUrl = await resolveFileStorageApiUrlFromRelayUrl(
+          ref,
+          relayUrl: relayUrl,
         );
-
-        final response = await dio.getUri<dynamic>(metadataUri);
-        final jsonMap = json.decode(response.data as String) as Map<String, dynamic>;
-        final metadata = FileStorageMetadata.fromJson(jsonMap);
-        final storageUrl = metadataUri.replace(path: metadata.apiUrl).toString();
 
         addCandidate(storageUrl);
       } catch (_) {
