@@ -27,6 +27,7 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_community
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/suggested_community_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
@@ -176,6 +177,20 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             );
             ref.invalidate(walletViewsDataNotifierProvider);
             _invalidateUserHoldings(ref);
+            // Refetch market data (including position) for the token we just bought or sold.
+            ref.invalidate(tokenMarketInfoProvider(resolvedExternalAddress));
+            // When the payment token was the creator token, refetch its market data too so
+            // balance updates (e.g. in the next TC swap) reflect the trade. Skip when the
+            // user paid with another token (e.g. BNB, ION).
+            if (params.externalAddressType.isContentToken) {
+              final creatorTokenExternalAddress =
+                  MasterPubkeyResolver.creatorExternalAddressFromExternal(
+                resolvedExternalAddress,
+              );
+              if (state.selectedPaymentToken?.id == creatorTokenExternalAddress) {
+                ref.invalidate(tokenMarketInfoProvider(creatorTokenExternalAddress));
+              }
+            }
             Navigator.of(context).pop();
           }
         },
