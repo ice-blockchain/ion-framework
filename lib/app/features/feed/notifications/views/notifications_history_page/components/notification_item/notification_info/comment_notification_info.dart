@@ -36,7 +36,7 @@ class CommentNotificationInfo extends HookConsumerWidget {
     );
     final relatedEntity = _getRelatedEntity(ref);
 
-    if (userData == null) {
+    if (userData == null || relatedEntity == null) {
       return const NotificationInfoLoading();
     }
 

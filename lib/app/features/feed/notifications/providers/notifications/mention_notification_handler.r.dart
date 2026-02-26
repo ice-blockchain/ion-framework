@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:convert';
-
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/pubkey_tag.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -16,7 +13,6 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_event_handler.dart';
 import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
-import 'package:ion/app/features/ion_connect/model/rich_text.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -50,9 +46,7 @@ class MentionNotificationHandler extends GlobalSubscriptionEventHandler {
     final userMetadataRef =
         ReplaceableEventReference(masterPubkey: currentPubkey, kind: UserMetadataEntity.kind);
     final userMentionString = userMetadataRef.encode();
-    final mentionAttribute = jsonEncode(MentionAttribute(userMentionString).toJson());
-    final hasUserMention =
-        tags[RichText.tagName]?.any((item) => item.toString().contains(mentionAttribute)) ?? false;
+    final hasUserMention = eventMessage.content.contains(userMentionString);
 
     if (!hasUserMention) {
       return false;
