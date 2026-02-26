@@ -15,11 +15,13 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/file_alt.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/device_keypair_constants.dart';
-import 'package:ion/app/features/ion_connect/providers/file_storage_url_provider.r.dart';
+import 'package:ion/app/features/ion_connect/utils/file_storage_utils.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/current_user_identity_provider.r.dart';
+import 'package:ion/app/features/user/providers/relays/ranked_user_relays_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 /// Utility class for shared device keypair operations
@@ -131,27 +133,71 @@ class DeviceKeypairUtils {
 
   /// Downloads encrypted keypair from relays using proper file storage URL discovery
   static Future<Uint8List> downloadEncryptedKeypair(String fileId, Ref ref) async {
-    final baseStorageUrl = await ref.read(fileStorageUrlProvider.future);
-    final downloadUrl = '$baseStorageUrl/$fileId';
-
-    final dio = ref.read(dioProvider);
-
-    try {
-      final response = await dio.get<List<int>>(
-        downloadUrl,
-        options: Options(responseType: ResponseType.bytes),
-      );
-
-      if (response.statusCode == 200 && response.data != null) {
-        return Uint8List.fromList(response.data!);
-      }
-
-      throw DeviceKeypairRestoreException('Failed to download file: HTTP ${response.statusCode}');
-    } catch (e) {
+    final relayUrls = await _resolveDeviceKeypairRelayUrls(ref);
+    if (relayUrls.isEmpty) {
       throw DeviceKeypairRestoreException(
-        'Failed to download encrypted keypair from $downloadUrl: $e',
+        'Failed to restore device keypair: no available ranked relays',
       );
     }
+
+    final dio = ref.read(dioProvider);
+    final errors = <String>[];
+
+    for (final relayUrl in relayUrls) {
+      try {
+        final baseStorageUrl = await resolveFileStorageApiUrlFromRelayUrl(
+          ref,
+          relayUrl: relayUrl,
+        );
+        final downloadUrl = _buildDownloadUrl(baseStorageUrl: baseStorageUrl, fileId: fileId);
+
+        final response = await dio.get<List<int>>(
+          downloadUrl,
+          options: Options(responseType: ResponseType.bytes),
+        );
+
+        if (response.statusCode == 200 && response.data != null) {
+          return Uint8List.fromList(response.data!);
+        }
+
+        errors.add('$relayUrl: HTTP ${response.statusCode}');
+      } catch (error, stackTrace) {
+        Logger.error(
+          error,
+          stackTrace: stackTrace,
+          message: 'Failed to restore device keypair from relay $relayUrl',
+        );
+        errors.add('$relayUrl: $error');
+      }
+    }
+
+    throw DeviceKeypairRestoreException(
+      'Failed to download encrypted keypair from ${relayUrls.length} relay candidate(s): ${errors.join(' | ')}',
+    );
+  }
+
+  static Future<List<String>> _resolveDeviceKeypairRelayUrls(Ref ref) async {
+    try {
+      final userRelays = await ref.read(rankedCurrentUserRelaysProvider.future);
+      return userRelays.map((relay) => relay.url).toList();
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        stackTrace: stackTrace,
+        message: 'Failed to load ranked relay URLs for device keypair restore',
+      );
+      return [];
+    }
+  }
+
+  static String _buildDownloadUrl({
+    required String baseStorageUrl,
+    required String fileId,
+  }) {
+    final normalized = baseStorageUrl.endsWith('/')
+        ? baseStorageUrl.substring(0, baseStorageUrl.length - 1)
+        : baseStorageUrl;
+    return '$normalized/$fileId';
   }
 
   /// Extracts file ID from URL
