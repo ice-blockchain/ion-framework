@@ -189,7 +189,9 @@ class MainActivity : FlutterFragmentActivity() {
                             return@setMethodCallHandler
                         }
                         val imageUri = Uri.fromFile(File(imageUrl))
-                        val config = PhotoEditorConfig.Builder(this).build();
+                        val config = PhotoEditorConfig.Builder(this)
+                            .saveToGallery(false)
+                            .build()
                         startActivityForResult(
                             PhotoCreationActivity.startFromEditor(this, config, imageUri),
                             PHOTO_EDITOR_REQUEST_CODE
