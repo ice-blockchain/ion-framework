@@ -14,7 +14,11 @@ ValueNotifier<String?> useVerifyReferralExistsErrorMessage(WidgetRef ref) {
   final state = ref.watch(userReferralNotifierProvider);
   ref.displayErrors(
     userReferralNotifierProvider,
-    excludedExceptions: {InvalidNicknameException, NicknameDoesntExistException},
+    excludedExceptions: {
+      InvalidNicknameException,
+      NicknameDoesntExistException,
+      NicknameReservedException,
+    },
   );
 
   final errorMessage = useState<String?>(null);
@@ -24,7 +28,8 @@ ValueNotifier<String?> useVerifyReferralExistsErrorMessage(WidgetRef ref) {
         if (state.error is InvalidNicknameException) {
           errorMessage.value = context.i18n.error_nickname_invalid;
         }
-        if (state.error is NicknameDoesntExistException) {
+        if (state.error is NicknameDoesntExistException ||
+            state.error is NicknameReservedException) {
           errorMessage.value = context.i18n.error_nickname_not_exists;
         }
       }
