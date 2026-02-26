@@ -1,0 +1,104 @@
+// SPDX-License-Identifier: ice License 1.0
+
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
+import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/username_text_span.dart';
+import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/user/model/user_metadata.f.dart';
+import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/hooks/use_tap_gesture_recognizer.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/l10n/i10n.dart';
+
+class TokenLaunchNotificationInfo extends HookConsumerWidget {
+  const TokenLaunchNotificationInfo({
+    required this.notification,
+    super.key,
+  });
+
+  final TokenLaunchIonNotification notification;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pubkey = notification.eventReference.masterPubkey;
+    final userData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
+    final recognizer = useTapGestureRecognizer(
+      onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
+    );
+    final relatedEntity = _getRelatedEntity(ref);
+
+    if (userData == null) {
+      return const SizedBox.shrink();
+    }
+
+    final description = switch (relatedEntity) {
+      ModifiablePostEntity() || PostEntity() => context.i18n.notifications_token_launched_post,
+      ArticleEntity() => context.i18n.notifications_token_launched_article,
+      UserMetadataEntity() => context.i18n.notifications_token_launched_creator,
+      _ => ''
+    };
+
+    final displayName = userData.data.trimmedDisplayName.isEmpty
+        ? userData.data.name
+        : userData.data.trimmedDisplayName;
+
+    final textSpan = replaceString(
+      description,
+      RegExp(
+        '${tagRegex('username').pattern}|${tagRegex('purple', isSingular: false).pattern}',
+      ),
+      (match, index) {
+        if (match.namedGroup('username') != null) {
+          return buildUsernameTextSpan(
+            context,
+            displayName: displayName,
+            recognizer: recognizer,
+          );
+        } else if (match.namedGroup('purple') != null) {
+          return TextSpan(
+            text: match.namedGroup('purple'),
+            style: context.theme.appTextThemes.body.copyWith(color: context.theme.appColors.purple),
+          );
+        }
+        return const TextSpan(text: '');
+      },
+    );
+
+    return NotificationInfoText(
+      textSpan: textSpan,
+      timestamp: notification.timestamp,
+    );
+  }
+
+  IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
+    final eventReference = notification.eventReference;
+
+    final entity = ref.watch(
+      ionConnectSyncEntityWithCountersProvider(
+        eventReference: eventReference,
+      ),
+    );
+    if (entity == null) return null;
+
+    if (entity is CommunityTokenDefinitionEntity) {
+      final data = entity.data;
+      if (data is CommunityTokenDefinitionIon) {
+        return ref.watch(
+          ionConnectSyncEntityWithCountersProvider(
+            eventReference: data.eventReference,
+          ),
+        );
+      }
+    }
+
+    return null;
+  }
+}
