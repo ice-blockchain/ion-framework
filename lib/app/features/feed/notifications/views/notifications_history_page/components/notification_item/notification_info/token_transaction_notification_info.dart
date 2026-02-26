@@ -12,7 +12,6 @@ import 'package:ion/app/features/feed/notifications/views/notifications_history_
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/username_text_span.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
-import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -31,56 +30,54 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pubkey = notification.eventReference.masterPubkey;
-    final relatedEntity = _getRelatedEntity(ref);
-    final relatedPubkey = _getRelatedEntityPubkey(relatedEntity);
+    final actionAuthorPubkey = notification.eventReference.masterPubkey;
+    final actionEntity = _getTokenActionEntity(ref);
+    final tokenOwnerPubkey = actionEntity?.data.definitionReference.masterPubkey;
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    final isCurrentUserTokenTransaction = currentPubkey == relatedPubkey;
+    final isCurrentUserTokenAction = currentPubkey == tokenOwnerPubkey;
 
-    final userData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
-    final recognizer = useTapGestureRecognizer(
-      onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
+    final actionAuthorData = ref.watch(userPreviewDataProvider(actionAuthorPubkey)).valueOrNull;
+    final actionAuthorRecognizer = useTapGestureRecognizer(
+      onTap: () => ProfileRoute(pubkey: actionAuthorPubkey).push<void>(context),
     );
-    final relatedUserData = relatedPubkey != null
-        ? ref.watch(userPreviewDataProvider(relatedPubkey)).valueOrNull
+    final tokenOwnerData = tokenOwnerPubkey != null
+        ? ref.watch(userPreviewDataProvider(tokenOwnerPubkey)).valueOrNull
         : null;
-    final relatedRecognizer = useTapGestureRecognizer(
-      onTap: () =>
-          relatedPubkey != null ? ProfileRoute(pubkey: relatedPubkey).push<void>(context) : null,
+    final tokenOwnerRecognizer = useTapGestureRecognizer(
+      onTap: () => tokenOwnerPubkey != null
+          ? ProfileRoute(pubkey: tokenOwnerPubkey).push<void>(context)
+          : null,
     );
 
-    if (userData == null || relatedUserData == null) {
+    if (actionAuthorData == null || tokenOwnerData == null || actionEntity == null) {
       return const NotificationInfoLoading();
     }
 
-    final description = switch (relatedEntity) {
-      CommunityTokenActionEntity(:final data) => switch (data.type) {
-          CommunityTokenActionType.buy => switch (data.kind) {
-              ModifiablePostEntity.kind || PostEntity.kind => isCurrentUserTokenTransaction
-                  ? context.i18n.notifications_token_transaction_buy_post
-                  : context.i18n.notifications_token_transaction_buy_other_user_post,
-              ArticleEntity.kind => isCurrentUserTokenTransaction
-                  ? context.i18n.notifications_token_transaction_buy_article
-                  : context.i18n.notifications_token_transaction_buy_other_user_article,
-              UserMetadataEntity.kind => isCurrentUserTokenTransaction
-                  ? context.i18n.notifications_token_transaction_buy_creator
-                  : context.i18n.notifications_token_transaction_buy_other_user_creator,
-              _ => '',
-            },
-          CommunityTokenActionType.sell => switch (data.kind) {
-              ModifiablePostEntity.kind || PostEntity.kind => isCurrentUserTokenTransaction
-                  ? context.i18n.notifications_token_transaction_sell_post
-                  : context.i18n.notifications_token_transaction_sell_other_user_post,
-              ArticleEntity.kind => isCurrentUserTokenTransaction
-                  ? context.i18n.notifications_token_transaction_sell_article
-                  : context.i18n.notifications_token_transaction_sell_other_user_article,
-              UserMetadataEntity.kind => isCurrentUserTokenTransaction
-                  ? context.i18n.notifications_token_transaction_sell_creator
-                  : context.i18n.notifications_token_transaction_sell_other_user_creator,
-              _ => '',
-            }
+    final description = switch (actionEntity.data.type) {
+      CommunityTokenActionType.buy => switch (actionEntity.data.kind) {
+          ModifiablePostEntity.kind || PostEntity.kind => isCurrentUserTokenAction
+              ? context.i18n.notifications_token_transaction_buy_post
+              : context.i18n.notifications_token_transaction_buy_other_user_post,
+          ArticleEntity.kind => isCurrentUserTokenAction
+              ? context.i18n.notifications_token_transaction_buy_article
+              : context.i18n.notifications_token_transaction_buy_other_user_article,
+          UserMetadataEntity.kind => isCurrentUserTokenAction
+              ? context.i18n.notifications_token_transaction_buy_creator
+              : context.i18n.notifications_token_transaction_buy_other_user_creator,
+          _ => '',
         },
-      _ => ''
+      CommunityTokenActionType.sell => switch (actionEntity.data.kind) {
+          ModifiablePostEntity.kind || PostEntity.kind => isCurrentUserTokenAction
+              ? context.i18n.notifications_token_transaction_sell_post
+              : context.i18n.notifications_token_transaction_sell_other_user_post,
+          ArticleEntity.kind => isCurrentUserTokenAction
+              ? context.i18n.notifications_token_transaction_sell_article
+              : context.i18n.notifications_token_transaction_sell_other_user_article,
+          UserMetadataEntity.kind => isCurrentUserTokenAction
+              ? context.i18n.notifications_token_transaction_sell_creator
+              : context.i18n.notifications_token_transaction_sell_other_user_creator,
+          _ => '',
+        }
     };
 
     final textSpan = replaceString(
@@ -92,14 +89,14 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
         if (match.namedGroup('username') != null) {
           return buildUsernameTextSpan(
             context,
-            userData: userData.data,
-            recognizer: recognizer,
+            userData: actionAuthorData.data,
+            recognizer: actionAuthorRecognizer,
           );
         } else if (match.namedGroup('relatedUsername') != null) {
           return buildUsernameTextSpan(
             context,
-            userData: relatedUserData.data,
-            recognizer: relatedRecognizer,
+            userData: tokenOwnerData.data,
+            recognizer: tokenOwnerRecognizer,
           );
         } else if (match.namedGroup('green') != null) {
           return TextSpan(
@@ -114,7 +111,7 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
                 .copyWith(color: context.theme.appColors.attentionRed),
           );
         } else if (match.namedGroup('amount') != null) {
-          if (relatedEntity case CommunityTokenActionEntity(:final data)) {
+          if (actionEntity case CommunityTokenActionEntity(:final data)) {
             final coins = data.getTokenAmount()?.value ?? 0.0;
             return TextSpan(
               text: coins >= 1 ? formatCount(coins.toInt()) : coins.toString(),
@@ -133,18 +130,15 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
     );
   }
 
-  IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
-    return ref.watch(
+  CommunityTokenActionEntity? _getTokenActionEntity(WidgetRef ref) {
+    final entity = ref.watch(
       ionConnectSyncEntityWithCountersProvider(
         eventReference: notification.eventReference,
       ),
     );
-  }
-
-  String? _getRelatedEntityPubkey(IonConnectEntity? relatedEntity) {
-    return switch (relatedEntity) {
-      CommunityTokenActionEntity(:final data) => data.definitionReference.masterPubkey,
-      _ => null,
-    };
+    if (entity is CommunityTokenActionEntity) {
+      return entity;
+    }
+    return null;
   }
 }

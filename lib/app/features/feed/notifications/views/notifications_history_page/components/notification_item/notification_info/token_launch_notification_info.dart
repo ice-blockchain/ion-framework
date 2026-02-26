@@ -30,25 +30,27 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pubkey = notification.eventReference.masterPubkey;
+    final launchDefinitionAuthorPubkey = notification.eventReference.masterPubkey;
     final relatedEntity = _getRelatedEntity(ref);
-    final relatedPubkey = _getRelatedEntityPubkey(relatedEntity);
+    final tokenOwnerPubkey = relatedEntity?.masterPubkey;
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    final isCurrentUserTokenLaunched = relatedPubkey == currentPubkey;
+    final isCurrentUserTokenLaunched = tokenOwnerPubkey == currentPubkey;
 
-    final userData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
-    final recognizer = useTapGestureRecognizer(
-      onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
+    final launchDefinitionAuthorData =
+        ref.watch(userPreviewDataProvider(launchDefinitionAuthorPubkey)).valueOrNull;
+    final launchDefinitionAuthorRecognizer = useTapGestureRecognizer(
+      onTap: () => ProfileRoute(pubkey: launchDefinitionAuthorPubkey).push<void>(context),
     );
-    final relatedUserData = relatedPubkey != null
-        ? ref.watch(userPreviewDataProvider(relatedPubkey)).valueOrNull
+    final tokenOwnerData = tokenOwnerPubkey != null
+        ? ref.watch(userPreviewDataProvider(tokenOwnerPubkey)).valueOrNull
         : null;
-    final relatedRecognizer = useTapGestureRecognizer(
-      onTap: () =>
-          relatedPubkey != null ? ProfileRoute(pubkey: relatedPubkey).push<void>(context) : null,
+    final tokenOwnerRecognizer = useTapGestureRecognizer(
+      onTap: () => tokenOwnerPubkey != null
+          ? ProfileRoute(pubkey: tokenOwnerPubkey).push<void>(context)
+          : null,
     );
 
-    if (userData == null || relatedUserData == null) {
+    if (launchDefinitionAuthorData == null || tokenOwnerData == null || relatedEntity == null) {
       return const NotificationInfoLoading();
     }
 
@@ -74,14 +76,14 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
         if (match.namedGroup('username') != null) {
           return buildUsernameTextSpan(
             context,
-            userData: userData.data,
-            recognizer: recognizer,
+            userData: launchDefinitionAuthorData.data,
+            recognizer: launchDefinitionAuthorRecognizer,
           );
         } else if (match.namedGroup('relatedUsername') != null) {
           return buildUsernameTextSpan(
             context,
-            userData: relatedUserData.data,
-            recognizer: relatedRecognizer,
+            userData: tokenOwnerData.data,
+            recognizer: tokenOwnerRecognizer,
           );
         } else if (match.namedGroup('purple') != null) {
           return TextSpan(
@@ -119,13 +121,5 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
     }
 
     return null;
-  }
-
-  String? _getRelatedEntityPubkey(IonConnectEntity? relatedEntity) {
-    return switch (relatedEntity) {
-      CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data) =>
-        data.eventReference.masterPubkey,
-      _ => null,
-    };
   }
 }
