@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -30,27 +31,44 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pubkey = notification.eventReference.masterPubkey;
+    final relatedEntity = _getRelatedEntity(ref);
+    final relatedPubkey = _getRelatedEntityPubkey(relatedEntity);
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+    final isCurrentUserTokenLaunched = relatedPubkey == currentPubkey;
+
     final userData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     final recognizer = useTapGestureRecognizer(
       onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
     );
-    final relatedEntity = _getRelatedEntity(ref);
+    final relatedUserData = relatedPubkey != null
+        ? ref.watch(userPreviewDataProvider(relatedPubkey)).valueOrNull
+        : null;
+    final relatedRecognizer = useTapGestureRecognizer(
+      onTap: () =>
+          relatedPubkey != null ? ProfileRoute(pubkey: relatedPubkey).push<void>(context) : null,
+    );
 
-    if (userData == null) {
+    if (userData == null || relatedUserData == null) {
       return const NotificationInfoLoading();
     }
 
     final description = switch (relatedEntity) {
-      ModifiablePostEntity() || PostEntity() => context.i18n.notifications_token_launched_post,
-      ArticleEntity() => context.i18n.notifications_token_launched_article,
-      UserMetadataEntity() => context.i18n.notifications_token_launched_creator,
+      ModifiablePostEntity() || PostEntity() => isCurrentUserTokenLaunched
+          ? context.i18n.notifications_token_launched_post
+          : context.i18n.notifications_token_launched_other_user_post,
+      ArticleEntity() => isCurrentUserTokenLaunched
+          ? context.i18n.notifications_token_launched_article
+          : context.i18n.notifications_token_launched_other_user_article,
+      UserMetadataEntity() => isCurrentUserTokenLaunched
+          ? context.i18n.notifications_token_launched_creator
+          : context.i18n.notifications_token_launched_other_user_creator,
       _ => ''
     };
 
     final textSpan = replaceString(
       description,
       RegExp(
-        '${tagRegex('username').pattern}|${tagRegex('purple', isSingular: false).pattern}',
+        '${tagRegex('username').pattern}|${tagRegex('relatedUsername').pattern}|${tagRegex('purple', isSingular: false).pattern}',
       ),
       (match, index) {
         if (match.namedGroup('username') != null) {
@@ -58,6 +76,12 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
             context,
             userData: userData.data,
             recognizer: recognizer,
+          );
+        } else if (match.namedGroup('relatedUsername') != null) {
+          return buildUsernameTextSpan(
+            context,
+            userData: relatedUserData.data,
+            recognizer: relatedRecognizer,
           );
         } else if (match.namedGroup('purple') != null) {
           return TextSpan(
@@ -95,5 +119,13 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
     }
 
     return null;
+  }
+
+  String? _getRelatedEntityPubkey(IonConnectEntity? relatedEntity) {
+    return switch (relatedEntity) {
+      CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data) =>
+        data.eventReference.masterPubkey,
+      _ => null,
+    };
   }
 }

@@ -34,7 +34,9 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
     final pubkey = notification.eventReference.masterPubkey;
     final relatedEntity = _getRelatedEntity(ref);
     final relatedPubkey = _getRelatedEntityPubkey(relatedEntity);
-    final isCurrentUserTokenTransaction = _isCurrentUserTokenTransaction(ref);
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+    final isCurrentUserTokenTransaction = currentPubkey == relatedPubkey;
+
     final userData = ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
     final recognizer = useTapGestureRecognizer(
       onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
@@ -131,17 +133,6 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
     );
   }
 
-  bool _isCurrentUserTokenTransaction(WidgetRef ref) {
-    final relatedEntity = _getRelatedEntity(ref);
-    if (relatedEntity is! CommunityTokenActionEntity) return false;
-
-    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-
-    if (currentPubkey == null) return false;
-
-    return relatedEntity.data.definitionReference.masterPubkey == currentPubkey;
-  }
-
   IonConnectEntity? _getRelatedEntity(WidgetRef ref) {
     return ref.watch(
       ionConnectSyncEntityWithCountersProvider(
@@ -152,8 +143,8 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
 
   String? _getRelatedEntityPubkey(IonConnectEntity? relatedEntity) {
     return switch (relatedEntity) {
-      CommunityTokenActionEntity() => relatedEntity.data.definitionReference.masterPubkey,
-      _ => relatedEntity?.masterPubkey,
+      CommunityTokenActionEntity(:final data) => data.definitionReference.masterPubkey,
+      _ => null,
     };
   }
 }
