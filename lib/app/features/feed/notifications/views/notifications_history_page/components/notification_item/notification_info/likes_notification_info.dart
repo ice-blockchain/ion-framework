@@ -9,10 +9,10 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_loading.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_type_phrase.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/username_text_span.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_tap_gesture_recognizer.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -30,7 +30,8 @@ class LikesNotificationInfo extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pubkeys = notification.pubkeys;
     final recognizers = useTapGestureRecognizers();
-    final eventTypeLabel = _getEventTypeLabel(ref);
+    final relatedEntity = _getRelatedEntity(ref);
+    final eventType = _getEventType(relatedEntity);
 
     final userDatas = pubkeys.take(pubkeys.length == 2 ? 2 : 1).map((pubkey) {
       return ref.watch(userPreviewDataProvider(pubkey)).valueOrNull;
@@ -40,10 +41,13 @@ class LikesNotificationInfo extends HookConsumerWidget {
       return const NotificationInfoLoading();
     }
 
+    final typePhrase =
+        getNotificationTypePhrase(context.i18n, NotificationTypeContext.liked, eventType);
+
     final description = switch (pubkeys.length) {
-      1 => context.i18n.notifications_liked_one(eventTypeLabel),
-      2 => context.i18n.notifications_liked_two(eventTypeLabel),
-      _ => context.i18n.notifications_liked_many(notification.total - 1, eventTypeLabel),
+      1 => context.i18n.notifications_liked_one(typePhrase),
+      2 => context.i18n.notifications_liked_two(typePhrase),
+      _ => context.i18n.notifications_liked_many(notification.total - 1, typePhrase),
     };
 
     final textSpan = replaceString(
@@ -72,16 +76,13 @@ class LikesNotificationInfo extends HookConsumerWidget {
     );
   }
 
-  String _getEventTypeLabel(WidgetRef ref) {
-    final relatedEntity = _getRelatedEntity(ref);
+  NotificationEventType _getEventType(IonConnectEntity? relatedEntity) {
     return switch (relatedEntity) {
-      ModifiablePostEntity() when relatedEntity.isStory => ref.context.i18n.common_story,
+      ModifiablePostEntity() when relatedEntity.isStory => NotificationEventType.story,
       ModifiablePostEntity(:final data) when data.parentEvent != null =>
-        ref.context.i18n.notifications_comment,
-      ModifiablePostEntity() => ref.context.i18n.notifications_post,
-      ArticleEntity() => ref.context.i18n.common_article,
-      CommunityTokenActionEntity() => ref.context.i18n.notifications_post,
-      _ => '',
+        NotificationEventType.comment,
+      ArticleEntity() => NotificationEventType.article,
+      _ => NotificationEventType.post,
     };
   }
 

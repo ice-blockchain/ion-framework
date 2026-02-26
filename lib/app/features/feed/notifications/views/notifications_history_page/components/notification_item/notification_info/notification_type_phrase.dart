@@ -16,7 +16,7 @@ enum NotificationTypeContext {
   replyToYour,
   replyToThe,
   repost,
-  share,
+  shareYour,
   shareThe,
 }
 
@@ -62,13 +62,13 @@ String getNotificationTypePhrase(
       l10n.notifications_type_your_story_repost,
     (NotificationTypeContext.repost, NotificationEventType.article) =>
       l10n.notifications_type_your_article_repost,
-    (NotificationTypeContext.share, NotificationEventType.post) =>
+    (NotificationTypeContext.shareYour, NotificationEventType.post) =>
       l10n.notifications_type_your_post_share,
-    (NotificationTypeContext.share, NotificationEventType.comment) =>
+    (NotificationTypeContext.shareYour, NotificationEventType.comment) =>
       l10n.notifications_type_your_comment_share,
-    (NotificationTypeContext.share, NotificationEventType.story) =>
+    (NotificationTypeContext.shareYour, NotificationEventType.story) =>
       l10n.notifications_type_your_story_share,
-    (NotificationTypeContext.share, NotificationEventType.article) =>
+    (NotificationTypeContext.shareYour, NotificationEventType.article) =>
       l10n.notifications_type_your_article_share,
     (NotificationTypeContext.shareThe, NotificationEventType.post) =>
       l10n.notifications_type_the_post_share,
