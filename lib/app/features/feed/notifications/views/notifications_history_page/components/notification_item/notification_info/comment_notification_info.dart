@@ -10,6 +10,7 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_loading.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info_text.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_type_phrase.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/username_text_span.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -34,8 +35,8 @@ class CommentNotificationInfo extends HookConsumerWidget {
     final recognizer = useTapGestureRecognizer(
       onTap: () => ProfileRoute(pubkey: pubkey).push<void>(context),
     );
-    final eventTypeLabel = _getEventTypeLabel(ref);
     final relatedEntity = _getRelatedEntity(ref);
+    final eventType = _getEventType(relatedEntity);
 
     if (userData == null) {
       return const NotificationInfoLoading();
@@ -43,14 +44,23 @@ class CommentNotificationInfo extends HookConsumerWidget {
 
     final isAuthor = _isAuthor(ref, relatedEntity);
 
+    final typeContext = switch (notification.type) {
+      CommentIonNotificationType.reply =>
+        isAuthor ? NotificationTypeContext.replyToYour : NotificationTypeContext.replyToThe,
+      CommentIonNotificationType.quote => relatedEntity is CommunityTokenDefinitionEntity
+          ? (_isOwnToken(ref, tokenDefinition: relatedEntity)
+              ? NotificationTypeContext.shareYour
+              : NotificationTypeContext.shareThe)
+          : (isAuthor ? NotificationTypeContext.shareYour : NotificationTypeContext.shareThe),
+      CommentIonNotificationType.repost => NotificationTypeContext.repost,
+    };
+
+    final typePhrase = getNotificationTypePhrase(context.i18n, typeContext, eventType);
+
     final description = switch (notification.type) {
-      CommentIonNotificationType.reply => isAuthor
-          ? context.i18n.notifications_reply(eventTypeLabel)
-          : context.i18n.notifications_reply_other_user(eventTypeLabel),
-      CommentIonNotificationType.quote => isAuthor
-          ? context.i18n.notifications_share(eventTypeLabel)
-          : context.i18n.notifications_share_other_user(eventTypeLabel),
-      CommentIonNotificationType.repost => context.i18n.notifications_repost(eventTypeLabel),
+      CommentIonNotificationType.reply => context.i18n.notifications_reply(typePhrase),
+      CommentIonNotificationType.quote => context.i18n.notifications_share(typePhrase),
+      CommentIonNotificationType.repost => context.i18n.notifications_repost(typePhrase),
     };
 
     final textSpan = replaceString(
@@ -70,16 +80,13 @@ class CommentNotificationInfo extends HookConsumerWidget {
     );
   }
 
-  String _getEventTypeLabel(WidgetRef ref) {
-    final relatedEntity = _getRelatedEntity(ref);
+  NotificationEventType _getEventType(IonConnectEntity? relatedEntity) {
     return switch (relatedEntity) {
-      ModifiablePostEntity() when relatedEntity.isStory => ref.context.i18n.common_story,
+      ModifiablePostEntity() when relatedEntity.isStory => NotificationEventType.story,
       ModifiablePostEntity(:final data) when data.parentEvent != null =>
-        ref.context.i18n.notifications_comment,
-      ModifiablePostEntity() => ref.context.i18n.notifications_post,
-      ArticleEntity() => ref.context.i18n.common_article,
-      GenericRepostEntity() => ref.context.i18n.notifications_post,
-      _ => '',
+        NotificationEventType.comment,
+      ArticleEntity() => NotificationEventType.article,
+      _ => NotificationEventType.post,
     };
   }
 
