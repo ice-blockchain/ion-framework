@@ -40,7 +40,43 @@ class RecoverUserService {
     required String recoveryKey,
   }) async {
     final attestation = await identitySigner.registerWithPasskey(challenge);
+    await _sendRecoveryWithCredential(
+      challenge: challenge,
+      credentialId: credentialId,
+      recoveryKey: recoveryKey,
+      firstFactorCredential: attestation,
+    );
+  }
 
+  /// Completes recovery by registering a new password credential instead of passkey.
+  /// Use when the device does not support passkey or the user chose to set a password.
+  Future<void> completeRecoveryWithPassword({
+    required UserRegistrationChallenge challenge,
+    required String credentialId,
+    required String recoveryKey,
+    required String newPassword,
+  }) async {
+    final credentialRequestData = await identitySigner.registerWithPassword(
+      challenge: challenge.challenge,
+      password: newPassword,
+      username: username,
+      credentialKind: CredentialKind.PasswordProtectedKey,
+    );
+    await _sendRecoveryWithCredential(
+      challenge: challenge,
+      credentialId: credentialId,
+      recoveryKey: recoveryKey,
+      firstFactorCredential: credentialRequestData,
+    );
+  }
+
+  Future<void> _sendRecoveryWithCredential({
+    required UserRegistrationChallenge challenge,
+    required String credentialId,
+    required String recoveryKey,
+    required CredentialRequestData firstFactorCredential,
+  }) async {
+    final credentialJson = firstFactorCredential.toJson();
     final signedRecoveryPackage = await _signNewCredentials(
       encryptedKey: _resolveEncryptedRecoveryKey(
         challenge: challenge,
@@ -49,14 +85,14 @@ class RecoverUserService {
       recoveryKey: recoveryKey,
       credentialId: credentialId,
       newCredentials: {
-        'firstFactorCredential': attestation.toJson(),
+        'firstFactorCredential': credentialJson,
       },
     );
 
     await dataSource.recoverUser(
       recoveryData: {
         'newCredentials': {
-          'firstFactorCredential': attestation.toJson(),
+          'firstFactorCredential': credentialJson,
         },
         'recovery': signedRecoveryPackage.toJson(),
       },
