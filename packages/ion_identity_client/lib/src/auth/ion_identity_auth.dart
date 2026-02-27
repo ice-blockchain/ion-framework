@@ -152,6 +152,25 @@ class IONIdentityAuth {
         recoveryKey: recoveryKey,
       );
 
+  /// Completes recovery by registering a new password credential instead of passkey.
+  /// Use when the device does not support passkey or the user chose to set a password.
+  Future<void> completeRecoveryWithPassword({
+    required UserRegistrationChallenge challenge,
+    required String credentialId,
+    required String recoveryKey,
+    required String newPassword,
+  }) =>
+      recoverUserService.completeRecoveryWithPassword(
+        challenge: challenge,
+        credentialId: credentialId,
+        recoveryKey: recoveryKey,
+        newPassword: newPassword,
+      );
+
+  /// Clears the stored password-user state for this identity so the app uses passkey
+  /// for verify identity (e.g. after recovery completed with passkey on same device).
+  Future<void> clearPasswordUserState() => privateKeyStorage.removePrivateKey(username: username);
+
   Future<UserToken> delegatedLogin() async =>
       delegatedLoginService.delegatedLogin(username: username);
 
