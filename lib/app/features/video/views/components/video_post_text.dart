@@ -111,6 +111,7 @@ class VideoTextPost extends HookConsumerWidget {
                     context,
                     color: context.theme.appColors.secondaryBackground,
                   ),
+                  ignoreInlineBoldItalic: true,
                 ),
               ),
             );
