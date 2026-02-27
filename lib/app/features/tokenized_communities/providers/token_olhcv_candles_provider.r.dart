@@ -33,7 +33,8 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
 
   ref.onDispose(subscription.close);
 
-  final currentCandles = List<OhlcvCandle>.from(initialCandles);
+  final currentCandles = List<OhlcvCandle>.from(initialCandles)
+    ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
   const maxCandles = 50;
 
   // 3. Process realtime updates

@@ -8,8 +8,9 @@ import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 // Also fills gap from last candle to "now" (works for both single and multiple candles)
 List<ChartCandle> normalizeCandles(
   List<ChartCandle> candles,
-  ChartTimeRange selectedRange,
-) {
+  ChartTimeRange selectedRange, {
+  DateTime? now,
+}) {
   if (candles.isEmpty) return candles;
 
   // Sort by date to ensure correct order
@@ -53,10 +54,10 @@ List<ChartCandle> normalizeCandles(
   // Fill gap from last candle to "now"
   if (normalized.isNotEmpty) {
     final lastCandle = normalized.last;
-    final now = DateTime.now();
+    final effectiveNow = now ?? DateTime.now();
 
     var fillDate = lastCandle.date.add(interval);
-    while (!fillDate.isAfter(now)) {
+    while (!fillDate.isAfter(effectiveNow)) {
       normalized.add(
         ChartCandle(
           open: lastCandle.close,
