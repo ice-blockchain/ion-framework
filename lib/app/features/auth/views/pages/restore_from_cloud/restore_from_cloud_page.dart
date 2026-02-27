@@ -77,12 +77,11 @@ class RestoreFromCloudPage extends HookConsumerWidget {
             ),
           ],
           child: TwoFAInputStep(
-            identityKeyName: ref
-                .watch(
-                  recoveryKeyCloudBackupRestoreNotifierProvider.select(
-                    (state) => state.valueOrNull?.identityKeyName,
-                  ),
-                )!,
+            identityKeyName: ref.watch(
+              recoveryKeyCloudBackupRestoreNotifierProvider.select(
+                (state) => state.valueOrNull?.identityKeyName,
+              ),
+            )!,
             onContinuePressed: (twoFaTypes) {
               twoFAOptions.value = twoFaTypes;
               _makeRecoverUserRequest(ref, twoFaTypes);
@@ -96,12 +95,11 @@ class RestoreFromCloudPage extends HookConsumerWidget {
           ),
         ),
       RecoverUserStep.setNewPassword => SetRecoveryPasswordStep(
-          identityKeyName: ref
-              .watch(
-                recoveryKeyCloudBackupRestoreNotifierProvider.select(
-                  (state) => state.valueOrNull?.identityKeyName,
-                ),
-              )!,
+          identityKeyName: ref.watch(
+            recoveryKeyCloudBackupRestoreNotifierProvider.select(
+              (state) => state.valueOrNull?.identityKeyName,
+            ),
+          )!,
           onBackPress: () {
             step.value = twoFAOptionsCount.value > 0
                 ? RecoverUserStep.twoFAInput
