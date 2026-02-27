@@ -2,6 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/icons/coin_icon.dart';
 import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
@@ -14,42 +15,58 @@ import 'package:ion/app/features/tokenized_communities/enums/tokenized_community
 import 'package:ion/app/features/tokenized_communities/utils/master_pubkey_resolver.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
+import 'package:ion/app/features/wallets/model/network_selector_data.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/info_block_button.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/balance.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/coin_transaction_history/coin_transaction_history.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/crypto_wallets_switcher.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_header.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/model/selected_crypto_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/coin_transaction_history_notifier_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
-class CoinDetailsPage extends ConsumerWidget {
+class CoinDetailsPage extends HookConsumerWidget {
   const CoinDetailsPage({required this.symbolGroup, super.key});
 
   final String symbolGroup;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Logger.info('[UI] CoinDetailsPage rebuild');
     final walletView = ref.watch(currentWalletViewDataProvider).requireValue;
     final coinsGroup = walletView.coinGroups.firstWhere((e) => e.symbolGroup == symbolGroup);
-
-    final historyNotifier = ref.watch(
-      coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup).notifier,
+    final hasMore = ref.watch(
+      coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup).select(
+        (state) => state.valueOrNull?.hasMore ?? false,
+      ),
     );
-    final hasMore =
-        ref.watch(
-          coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup).select(
-            (state) => state.valueOrNull?.hasMore ?? false,
-          ),
-        );
 
     final containsTier2Network = coinsGroup.coins.any((coin) => coin.coin.network.tier != 1);
 
     final cryptoWalletData = ref.watch(
       selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
+    ).valueOrNull ?? SelectedCryptoWalletData.empty();
+
+    final providerNetwork = ref.watch(
+      networkSelectorNotifierProvider(symbolGroup: symbolGroup)
+          .select((s) => s.valueOrNull?.selected),
     );
+    final optimisticNetwork = useState<SelectedNetworkItem?>(null);
+
+    useEffect(
+      () {
+        optimisticNetwork.value = providerNetwork;
+        return null;
+      },
+      [providerNetwork],
+    );
+
+    final selectedNetwork = optimisticNetwork.value ?? providerNetwork;
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
@@ -121,24 +138,35 @@ class CoinDetailsPage extends ConsumerWidget {
                       },
                     ),
                   ),
-                Balance(coinsGroup: coinsGroup),
+                Balance(
+                  coinsGroup: coinsGroup,
+                  selectedNetwork: selectedNetwork,
+                ),
                 const SectionSeparator(),
               ],
             ),
           ),
           SliverToBoxAdapter(
-            child: TransactionListHeader(symbolGroup: symbolGroup),
+            child: TransactionListHeader(
+              symbolGroup: symbolGroup,
+              onNetworkChanged: (network) {
+                optimisticNetwork.value = network;
+              },
+            ),
           ),
           CoinTransactionHistory(
             symbolGroup: symbolGroup,
             coinsGroup: coinsGroup,
+            selectedNetwork: selectedNetwork,
           ),
           SliverToBoxAdapter(
             child: ScreenBottomOffset(),
           ),
         ],
         hasMore: hasMore,
-        onLoadMore: historyNotifier.loadMore,
+        onLoadMore: () => ref
+            .read(coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup).notifier)
+            .loadMore(),
         builder: (context, slivers) => PullToRefreshBuilder(
           onRefresh: () async {
             ref

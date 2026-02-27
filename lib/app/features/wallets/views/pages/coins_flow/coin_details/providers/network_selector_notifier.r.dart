@@ -2,6 +2,7 @@
 
 import 'package:ion/app/features/wallets/model/network_selector_data.f.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'network_selector_notifier.r.g.dart';
@@ -10,6 +11,7 @@ part 'network_selector_notifier.r.g.dart';
 class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
   @override
   Future<NetworkSelectorData?> build({required String symbolGroup}) async {
+    Logger.info('[Provider] NetworkSelectorNotifier build called');
     // Use .select() to only watch the network list, not all coin data.
     // This prevents unnecessary rebuilds when coin data changes but network list stays the same.
     final networks = ref.watch(
@@ -42,6 +44,7 @@ class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
   }
 
   set selected(SelectedNetworkItem item) {
+    Logger.info('[Provider] NetworkSelectorNotifier.selected = $item');
     final currentState = state.valueOrNull;
     if (currentState == null) return;
 
@@ -51,6 +54,7 @@ class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
     );
 
     if (canUpdate) {
+      Logger.info('[Provider] NetworkSelectorNotifier state updated');
       state = AsyncData(currentState.copyWith(selected: item));
     }
   }

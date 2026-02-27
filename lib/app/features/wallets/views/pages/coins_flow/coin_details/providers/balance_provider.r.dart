@@ -9,6 +9,7 @@ import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/utils/wallet_asset_utils.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/model/selected_crypto_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
@@ -21,17 +22,52 @@ part 'balance_provider.r.g.dart';
 @riverpod
 class CoinBalanceNotifier extends _$CoinBalanceNotifier {
   final Map<String, CoinBalanceState> _walletBalanceCache = {};
+  final Map<String, CoinBalanceState> _networkBalanceCache = {};
+  List<CoinInWalletData>? _cachedCoins;
   String? _loadingWalletId;
+  bool _isInitialized = false;
 
   @override
-  CoinBalanceState build({required String symbolGroup}) {
-    final coins = ref.watch(syncedCoinsBySymbolGroupProvider(symbolGroup)).valueOrNull;
+  Future<CoinBalanceState> build({required String symbolGroup}) async {
+    final stopwatch = Stopwatch()..start();
+    Logger.info('[Provider] CoinBalanceNotifier build START');
 
+    // Watch network changes - this triggers rebuild when network changes
+    final currentNetwork = ref.watch(
+      networkSelectorNotifierProvider(symbolGroup: symbolGroup).select(
+        (asyncState) => asyncState.valueOrNull?.selected.whenOrNull(network: (network) => network),
+      ),
+    );
+    final networkKey = currentNetwork?.id ?? 'ALL';
+    Logger.info('[Provider] CoinBalanceNotifier network: $networkKey, elapsed: ${stopwatch.elapsedMilliseconds}ms');
+
+    // If we have cached balance for this network, return it immediately
+    if (_isInitialized && _networkBalanceCache.containsKey(networkKey)) {
+      final cachedBalance = _networkBalanceCache[networkKey]!;
+      Logger.info('[Provider] CoinBalanceNotifier INSTANT from cache: ${stopwatch.elapsedMilliseconds}ms, balance: ${cachedBalance.amount}');
+      return cachedBalance;
+    }
+
+    // First time initialization - load coins and pre-calculate all balances
+    if (!_isInitialized) {
+      _cachedCoins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
+      Logger.info('[Provider] CoinBalanceNotifier after syncedCoins: ${stopwatch.elapsedMilliseconds}ms');
+
+      _preCalculateAllNetworkBalances();
+      _isInitialized = true;
+      Logger.info('[Provider] CoinBalanceNotifier pre-calculated ${_networkBalanceCache.length} network balances: ${stopwatch.elapsedMilliseconds}ms');
+    }
+
+    // Listen for coin updates to refresh cache
     ref.listen(
       syncedCoinsBySymbolGroupProvider(symbolGroup),
       (_, next) {
         final updatedCoins = next.valueOrNull;
         if (updatedCoins == null) return;
+
+        _cachedCoins = updatedCoins;
+        _preCalculateAllNetworkBalances();
+        Logger.info('[Provider] CoinBalanceNotifier: coins updated, re-calculated network balances');
 
         for (final coinInWallet in updatedCoins) {
           final walletId = coinInWallet.walletId;
@@ -49,52 +85,32 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
       fireImmediately: true,
     );
 
-    final currentNetwork = ref.watch(
-      networkSelectorNotifierProvider(symbolGroup: symbolGroup).select(
-        (asyncState) => asyncState.valueOrNull?.selected.whenOrNull(network: (network) => network),
-      ),
-    );
-
-    final isAllNetworks = currentNetwork == null;
-
-    // Scenario 1: All networks selected - return connected balance
-    if (isAllNetworks) {
-      return _calculateConnectedBalance(currentNetwork, coins);
+    // Return cached balance for this network
+    if (_networkBalanceCache.containsKey(networkKey)) {
+      final balance = _networkBalanceCache[networkKey]!;
+      Logger.info('[Provider] CoinBalanceNotifier COMPLETE (from cache): ${stopwatch.elapsedMilliseconds}ms, balance: ${balance.amount}');
+      return balance;
     }
 
-    // Scenario 2: Specific network selected - get selected wallet's balance
-    final cryptoWalletData = ref.watch(
-      selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
-    );
+    // Fallback: calculate if somehow not in cache
+    final balance = _calculateConnectedBalance(currentNetwork, _cachedCoins);
+    _networkBalanceCache[networkKey] = balance;
+    Logger.info('[Provider] CoinBalanceNotifier COMPLETE (calculated): ${stopwatch.elapsedMilliseconds}ms, balance: ${balance.amount}');
+    return balance;
+  }
 
-    final selectedWallet = cryptoWalletData.selectedWallet;
+  void _preCalculateAllNetworkBalances() {
+    if (_cachedCoins == null) return;
 
-    if (selectedWallet != null && _walletBalanceCache.containsKey(selectedWallet.id)) {
-      return _walletBalanceCache[selectedWallet.id]!;
+    // Calculate "All networks" balance
+    _networkBalanceCache['ALL'] = _calculateConnectedBalance(null, _cachedCoins);
+
+    // Calculate balance for each network
+    final networks = _cachedCoins!.map((c) => c.coin.network).toSet();
+    for (final network in networks) {
+      _networkBalanceCache[network.id] = _calculateConnectedBalance(network, _cachedCoins);
     }
-
-    // Fallback: calculate connected balance or load disconnected
-    final connectedBalance = _calculateConnectedBalance(currentNetwork, coins);
-
-    final hasDisconnectedWallets = cryptoWalletData.disconnectedWalletsToDisplay.isNotEmpty;
-    if (!hasDisconnectedWallets) return connectedBalance;
-
-    final isDisconnectedWalletSelected =
-        cryptoWalletData.disconnectedWalletsToDisplay.contains(selectedWallet);
-
-    if (isDisconnectedWalletSelected) {
-      if (_loadingWalletId != selectedWallet!.id) {
-        unawaited(
-          _loadDisconnectedWalletBalance(
-            symbolGroup: symbolGroup,
-            wallet: selectedWallet,
-          ),
-        );
-      }
-      return connectedBalance;
-    }
-
-    return connectedBalance;
+    Logger.info('[Provider] CoinBalanceNotifier _preCalculateAllNetworkBalances: ${_networkBalanceCache.keys.toList()}');
   }
 
   CoinBalanceState _calculateConnectedBalance(
@@ -136,7 +152,7 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
 
         if (_loadingWalletId == wallet.id) {
           _walletBalanceCache[wallet.id] = balance;
-          state = balance;
+          state = AsyncData(balance);
         }
       }
     } catch (e, st) {

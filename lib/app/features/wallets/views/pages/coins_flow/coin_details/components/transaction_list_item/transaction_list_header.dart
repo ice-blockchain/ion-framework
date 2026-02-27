@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -8,8 +9,9 @@ import 'package:ion/app/features/wallets/model/network_selector_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/constants.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_header_item.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
-class TransactionListHeader extends ConsumerWidget {
+class TransactionListHeader extends HookConsumerWidget {
   const TransactionListHeader({
     required this.symbolGroup,
     this.onNetworkChanged,
@@ -23,13 +25,20 @@ class TransactionListHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final networkSelectorData =
         ref.watch(networkSelectorNotifierProvider(symbolGroup: symbolGroup)).valueOrNull;
+    final optimisticSelection = useState<SelectedNetworkItem?>(null);
 
     if (networkSelectorData == null) {
       return const SizedBox.shrink();
     }
 
+    final selected = optimisticSelection.value ?? networkSelectorData.selected;
     final items = networkSelectorData.items;
-    final selected = networkSelectorData.selected;
+
+    final selectedName = selected.maybeMap(
+      network: (n) => n.network.displayName,
+      orElse: () => 'All',
+    );
+    Logger.info('[UI] TransactionListHeader rebuild, selected: $selectedName');
 
     return SizedBox(
       height: TransactionListConstants.headerItemHeight +
@@ -47,14 +56,29 @@ class TransactionListHeader extends ConsumerWidget {
         separatorBuilder: (BuildContext context, int index) => SizedBox(width: 6.0.s),
         itemBuilder: (BuildContext context, int index) {
           final item = items[index];
+          final isSelected = item == selected;
           return TransactionListHeaderItem(
             item: item,
-            isSelected: item == selected,
+            isSelected: isSelected,
             onPress: () {
+              if (isSelected) return;
+
+              final itemName = item.maybeMap(
+                network: (n) => n.network.displayName,
+                orElse: () => 'All',
+              );
+              Logger.info('[UI] TransactionListHeader tap on $itemName');
+
+              optimisticSelection.value = item;
               onNetworkChanged?.call(item);
-              ref
-                  .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup).notifier)
-                  .selected = item;
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!context.mounted) return;
+
+                ref
+                    .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup).notifier)
+                    .selected = item;
+              });
             },
           );
         },

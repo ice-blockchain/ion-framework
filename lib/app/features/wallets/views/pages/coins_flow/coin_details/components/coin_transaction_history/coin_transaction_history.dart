@@ -9,32 +9,59 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/wallets/model/coin_transaction_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
+import 'package:ion/app/features/wallets/model/network_selector_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/empty_state/empty_state.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_item.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_section_header.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/coin_transaction_history_notifier_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/date.dart';
 
 class CoinTransactionHistory extends HookConsumerWidget {
   const CoinTransactionHistory({
     required this.symbolGroup,
     required this.coinsGroup,
+    required this.selectedNetwork,
     super.key,
   });
 
   final String symbolGroup;
   final CoinsGroup coinsGroup;
+  final SelectedNetworkItem? selectedNetwork;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final history = ref
-        .watch(
-          coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup),
-        )
-        .valueOrNull;
+    final historyAsync = ref.watch(
+      coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup),
+    );
+    final history = historyAsync.valueOrNull;
 
-    final isLoading = history == null || history.isLoading;
+    final providerNetwork = ref.watch(
+      networkSelectorNotifierProvider(symbolGroup: symbolGroup)
+          .select((s) => s.valueOrNull?.selected),
+    );
+
+    final isNetworkChangePending = selectedNetwork != providerNetwork;
+    final isLoading =
+        historyAsync.isLoading || history == null || history.isLoading || isNetworkChangePending;
+
+    final selectedName = selectedNetwork?.maybeMap(
+      network: (n) => n.network.displayName,
+      orElse: () => 'All',
+    );
+    final providerName = providerNetwork?.maybeMap(
+      network: (n) => n.network.displayName,
+      orElse: () => 'All',
+    );
+    Logger.info(
+      '[UI] CoinTransactionHistory rebuild, isLoading: $isLoading, '
+      'txCount: ${history?.transactions.length ?? 0}, '
+      'asyncLoading: ${historyAsync.isLoading}, '
+      'networkChangePending: $isNetworkChangePending '
+      '(selected: $selectedName, provider: $providerName)',
+    );
 
     final coinTransactionsMap = useMemoized(
       () {
