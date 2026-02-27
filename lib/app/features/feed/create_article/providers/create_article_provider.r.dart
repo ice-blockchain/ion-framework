@@ -543,21 +543,19 @@ class CreateArticle extends _$CreateArticle {
       })> _normalizeContentForStorage(Delta rawContent) async {
     final contentWithAttributes = DeltaBridge.normalizeToAttributeFormat(rawContent);
     final pmoPreparedContent = await _prepareContentForPmo(contentWithAttributes);
-    final conversion = await convertDeltaToPmoTags(
-      pmoPreparedContent.toJson(),
-      includeMentionPmoTags: false,
-      includeCashtagEmphasisPmoTags: false,
-    );
+    final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
     final markdown = _applyPmoTagsToContent(
       content: conversion.contentToSign,
       pmoTags: conversion.pmoTags,
     );
+    final cashtagOnlyPmoTags =
+        conversion.pmoTags.where(_isCashtagPmoTag).map(_normalizeCashtagPmoTag).toList();
     final mentions = _buildMentions(contentWithAttributes);
     return (
       content: contentWithAttributes,
       markdown: markdown,
       mentions: mentions,
-      pmoTags: conversion.pmoTags,
+      pmoTags: cashtagOnlyPmoTags,
     );
   }
 
@@ -622,7 +620,13 @@ class CreateArticle extends _$CreateArticle {
     required String replacement,
     required String originalSegment,
   }) {
-    final cashtagLinkMatch = RegExp(r'^\[(\$[^\]]+)\]\(([^)]+)\)$').firstMatch(replacement);
+    if (_isMentionReplacement(replacement)) {
+      return _unwrapInlineFormatting(replacement);
+    }
+
+    final unwrappedReplacement = _unwrapInlineFormatting(replacement);
+    final cashtagLinkMatch =
+        RegExp(r'^\[(\$[^\]]+)\]\(([^)]+)\)$').firstMatch(unwrappedReplacement);
 
     if (cashtagLinkMatch == null) {
       return replacement;
@@ -635,7 +639,109 @@ class CreateArticle extends _$CreateArticle {
     }
 
     final cashtagLabel = cashtagLinkMatch.group(1)!;
-    return '[$cashtagLabel]($tokenDefinitionAddress)';
+    final normalizedCashtagReplacement = '[$cashtagLabel]($tokenDefinitionAddress)';
+    return _rewrapInlineFormatting(
+      original: replacement,
+      normalizedInner: normalizedCashtagReplacement,
+    );
+  }
+
+  List<String> _normalizeCashtagPmoTag(List<String> tag) {
+    if (tag.length < 3 || tag[0] != 'pmo') {
+      return tag;
+    }
+
+    return [
+      tag[0],
+      tag[1],
+      _unwrapInlineFormatting(tag[2]),
+    ];
+  }
+
+  bool _isMentionReplacement(String replacement) {
+    final mentionPmoPattern = RegExp(
+      r'^\[@[^\]]+\]\((?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+\)$',
+    );
+    return mentionPmoPattern.hasMatch(_unwrapInlineFormatting(replacement));
+  }
+
+  String _unwrapInlineFormatting(String value) {
+    var unwrapped = value.trim();
+
+    final wrappers = <RegExp>[
+      RegExp(r'^<u>(.*)</u>$', dotAll: true),
+      RegExp(r'^~~(.*)~~$', dotAll: true),
+      RegExp(r'^```(.*)```$', dotAll: true),
+      RegExp(r'^`(.*)`$', dotAll: true),
+      RegExp(r'^\*\*\*(.*)\*\*\*$', dotAll: true),
+      RegExp(r'^\*\*(.*)\*\*$', dotAll: true),
+      RegExp(r'^\*(.*)\*$', dotAll: true),
+    ];
+
+    var changed = true;
+    while (changed && unwrapped.isNotEmpty) {
+      changed = false;
+      for (final wrapper in wrappers) {
+        final match = wrapper.firstMatch(unwrapped);
+        if (match != null) {
+          unwrapped = (match.group(1) ?? '').trim();
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    return unwrapped;
+  }
+
+  String _rewrapInlineFormatting({
+    required String original,
+    required String normalizedInner,
+  }) {
+    var candidate = original.trim();
+    final wrappers = <({RegExp pattern, String open, String close})>[
+      (pattern: RegExp(r'^<u>(.*)</u>$', dotAll: true), open: '<u>', close: '</u>'),
+      (pattern: RegExp(r'^~~(.*)~~$', dotAll: true), open: '~~', close: '~~'),
+      (pattern: RegExp(r'^```(.*)```$', dotAll: true), open: '```', close: '```'),
+      (pattern: RegExp(r'^`(.*)`$', dotAll: true), open: '`', close: '`'),
+      (pattern: RegExp(r'^\*\*\*(.*)\*\*\*$', dotAll: true), open: '***', close: '***'),
+      (pattern: RegExp(r'^\*\*(.*)\*\*$', dotAll: true), open: '**', close: '**'),
+      (pattern: RegExp(r'^\*(.*)\*$', dotAll: true), open: '*', close: '*'),
+    ];
+
+    final extracted = <({String open, String close})>[];
+    var changed = true;
+
+    while (changed && candidate.isNotEmpty) {
+      changed = false;
+      for (final wrapper in wrappers) {
+        final match = wrapper.pattern.firstMatch(candidate);
+        if (match == null) {
+          continue;
+        }
+
+        extracted.add((open: wrapper.open, close: wrapper.close));
+        candidate = (match.group(1) ?? '').trim();
+        changed = true;
+        break;
+      }
+    }
+
+    var wrapped = normalizedInner;
+    for (final wrapper in extracted.reversed) {
+      wrapped = '${wrapper.open}$wrapped${wrapper.close}';
+    }
+
+    return wrapped;
+  }
+
+  bool _isCashtagPmoTag(List<String> tag) {
+    if (tag.length < 3 || tag[0] != 'pmo') {
+      return false;
+    }
+
+    final cashtagPmoPattern = RegExp(r'^\[\$[^\]]+\]\([^)]+\)$');
+    return cashtagPmoPattern.hasMatch(_unwrapInlineFormatting(tag[2]));
   }
 
   Future<Delta> _prepareContentForPmo(Delta content) async {

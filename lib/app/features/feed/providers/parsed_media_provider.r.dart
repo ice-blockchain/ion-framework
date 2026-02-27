@@ -155,6 +155,9 @@ Future<Delta> mentionsOverlay(
   if (isMarkdownContent) {
     // Content is markdown - convert to delta (prioritize markdown for articles)
     delta = markdownToDelta(textContent);
+    if (data is ArticleData) {
+      delta = _sanitizeArticleTaggedFormattingMarkers(delta);
+    }
     final mediaDelta = _parseMediaContentDelta(delta: delta, media: media);
     return (content: processDeltaMatches(mediaDelta.content), media: mediaDelta.media);
   }
@@ -178,6 +181,134 @@ Future<Delta> mentionsOverlay(
     content: processDeltaMatches(mediaDeltaFallback.content),
     media: mediaDeltaFallback.media
   );
+}
+
+Delta _sanitizeArticleTaggedFormattingMarkers(Delta delta) {
+  final ops = delta.operations.toList();
+  if (ops.length < 2) {
+    return delta;
+  }
+
+  final mentionLinkPattern = RegExp(r'^(?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+$');
+
+  bool isTagged(Operation op) {
+    if (op.data is! String) {
+      return false;
+    }
+
+    final attrs = op.attributes;
+    if (attrs == null) {
+      return false;
+    }
+
+    final text = op.data! as String;
+    final trimmedText = text.trimLeft();
+    final link = attrs['link'];
+
+    final isMention = attrs['mention'] is String && trimmedText.startsWith('@');
+    final isMentionLink =
+        link is String && mentionLinkPattern.hasMatch(link) && trimmedText.startsWith('@');
+    final isCashtag = trimmedText.startsWith(r'$') &&
+        (attrs['cashtag'] is String || attrs['cashtagCoinId'] is String || link is String);
+
+    return isMention || isMentionLink || isCashtag;
+  }
+
+  int markerLevel(String marker) {
+    if (marker == '***') return 3;
+    if (marker == '**') return 2;
+    return 1;
+  }
+
+  for (var i = 0; i < ops.length; i++) {
+    final op = ops[i];
+    if (op.data is! String || !isTagged(op)) {
+      continue;
+    }
+
+    var taggedText = op.data! as String;
+    final taggedAttrs = Map<String, dynamic>.from(op.attributes ?? const {});
+
+    final inlineUnderline =
+        RegExp(r'^\s*<u>\s*(.*?)\s*</u>\s*$', dotAll: true).firstMatch(taggedText);
+    if (inlineUnderline != null) {
+      final inner = inlineUnderline.group(1)!;
+      if (inner.isNotEmpty) {
+        taggedText = inner;
+        taggedAttrs['underline'] = true;
+        ops[i] = Operation.insert(taggedText, taggedAttrs);
+      }
+    }
+
+    final inlineWrapper =
+        RegExp(r'^\s*(\*\*\*|\*\*|\*)\s*(.*?)\s*\1\s*$', dotAll: true).firstMatch(taggedText);
+    if (inlineWrapper != null) {
+      final marker = inlineWrapper.group(1)!;
+      final inner = inlineWrapper.group(2)!;
+      if (inner.isNotEmpty) {
+        taggedText = inner;
+        final level = markerLevel(marker);
+        if (level >= 2) taggedAttrs['bold'] = true;
+        if (level == 1 || level == 3) taggedAttrs['italic'] = true;
+        ops[i] = Operation.insert(taggedText, taggedAttrs);
+      }
+    }
+
+    if (i == 0 || i == ops.length - 1) {
+      continue;
+    }
+
+    final prevOp = ops[i - 1];
+    final nextOp = ops[i + 1];
+    if (prevOp.data is! String || nextOp.data is! String) {
+      continue;
+    }
+
+    final prevText = prevOp.data! as String;
+    final nextText = nextOp.data! as String;
+    final prevMatch = RegExp(r'(\*\*\*|\*\*|\*)\s*$').firstMatch(prevText);
+    final nextMatch = RegExp(r'^\s*(\*\*\*|\*\*|\*)').firstMatch(nextText);
+    final prevUnderlineMatch = RegExp(r'<u>\s*$').firstMatch(prevText);
+    final nextUnderlineMatch = RegExp(r'^\s*</u>').firstMatch(nextText);
+
+    if (prevMatch != null && nextMatch != null) {
+      final marker = prevMatch.group(1)!;
+      if (marker == nextMatch.group(1)) {
+        final prevWithoutMarker = prevText.substring(0, prevMatch.start);
+        final nextWithoutMarker = nextText.substring(nextMatch.end);
+        final level = markerLevel(marker);
+
+        final mergedAttrs = Map<String, dynamic>.from(ops[i].attributes ?? const {});
+        if (level >= 2) mergedAttrs['bold'] = true;
+        if (level == 1 || level == 3) mergedAttrs['italic'] = true;
+
+        ops[i - 1] = Operation.insert(prevWithoutMarker, prevOp.attributes);
+        ops[i] = Operation.insert((ops[i].data! as String).trim(), mergedAttrs);
+        ops[i + 1] = Operation.insert(nextWithoutMarker, nextOp.attributes);
+      }
+    }
+
+    if (prevUnderlineMatch != null && nextUnderlineMatch != null) {
+      final prevWithoutTag = prevText.substring(0, prevUnderlineMatch.start);
+      final nextWithoutTag = nextText.substring(nextUnderlineMatch.end);
+      final mergedAttrs = Map<String, dynamic>.from(ops[i].attributes ?? const {});
+      mergedAttrs['underline'] = true;
+
+      ops[i - 1] = Operation.insert(prevWithoutTag, prevOp.attributes);
+      ops[i] = Operation.insert((ops[i].data! as String).trim(), mergedAttrs);
+      ops[i + 1] = Operation.insert(nextWithoutTag, nextOp.attributes);
+    }
+  }
+
+  final sanitized = Delta();
+  for (final op in ops) {
+    if (op.data is String && (op.data! as String).isEmpty) {
+      continue;
+    }
+    sanitized.insert(op.data, op.attributes);
+  }
+
+  return sanitized;
 }
 
 /// Parses the provided [delta] content to extract media links and separate them from non-media content.
