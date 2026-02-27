@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/wallets/domain/coins/wallet_assets_token_import_sync_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
@@ -24,6 +25,10 @@ final class WalletDataSyncCoordinator {
     try {
       final syncService = await _ref.read(syncTransactionsServiceProvider.future);
       await syncService.syncAll();
+      final tokenImportSyncService = await _ref.read(
+        walletAssetsTokenImportSyncServiceProvider.future,
+      );
+      await tokenImportSyncService.syncMissingTokens();
 
       _ref
         ..invalidate(walletViewsDataNotifierProvider)
