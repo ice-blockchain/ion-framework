@@ -91,7 +91,7 @@ class BanubaService {
 
   Future<EditVideResult?> editVideo(
     String filePath, {
-    Duration? maxVideoDuration = const Duration(seconds: 60),
+    Duration? maxVideoDuration = const Duration(minutes: 30),
     bool coverSelectionEnabled = true,
   }) async {
     feedVideoPlaybackEnabledNotifier.disablePlayback();
