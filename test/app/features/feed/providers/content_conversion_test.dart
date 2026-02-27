@@ -479,4 +479,164 @@ void main() {
       expect(delta.isBlank, true);
     });
   });
+
+  group('convertDeltaToPmoTags mention filtering', () {
+    test('includes mention PMO tags by default', () async {
+      const mentionAddress = 'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3';
+      const cashtagExternalAddress =
+          '0:fac47fea2160ae97f01f569525ad51995842a74a21c4ed810afaa6fea5938719:';
+      const tokenDefinitionAddress =
+          'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+      const cashtagContent = '${r'$'}ORIONF1 $tokenDefinitionAddress';
+
+      final delta = Delta()
+        ..insert('@alice', {'mention': mentionAddress})
+        ..insert(' ')
+        ..insert(
+          cashtagContent,
+          {
+            'cashtag': cashtagExternalAddress,
+            'showMarketCap': true,
+          },
+        )
+        ..insert('\n');
+
+      final conversion = await convertDeltaToPmoTags(delta.toJson());
+      final replacements = conversion.pmoTags
+          .where((tag) => tag.length >= 3 && tag[0] == PmoTag.tagName)
+          .map((tag) => tag[2])
+          .toList();
+
+      expect(replacements, contains('[@alice]($mentionAddress)'));
+      expect(replacements, contains('[${r'$'}ORIONF1]($cashtagExternalAddress)'));
+    });
+
+    test('excludes mention PMO tags when requested', () async {
+      const mentionAddress = 'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3';
+      const cashtagExternalAddress =
+          '0:fac47fea2160ae97f01f569525ad51995842a74a21c4ed810afaa6fea5938719:';
+      const tokenDefinitionAddress =
+          'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+      const cashtagContent = '${r'$'}ORIONF1 $tokenDefinitionAddress';
+
+      final delta = Delta()
+        ..insert('@alice', {'mention': mentionAddress})
+        ..insert(' ')
+        ..insert(
+          cashtagContent,
+          {
+            'cashtag': cashtagExternalAddress,
+            'showMarketCap': true,
+          },
+        )
+        ..insert('\n');
+
+      final conversion = await convertDeltaToPmoTags(
+        delta.toJson(),
+        includeMentionPmoTags: false,
+      );
+      final replacements = conversion.pmoTags
+          .where((tag) => tag.length >= 3 && tag[0] == PmoTag.tagName)
+          .map((tag) => tag[2])
+          .toList();
+
+      expect(replacements, isNot(contains('[@alice]($mentionAddress)')));
+      expect(replacements, contains('[${r'$'}ORIONF1]($cashtagExternalAddress)'));
+    });
+
+    test('excludes underlined mention PMO tags when requested', () async {
+      const mentionAddress = 'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3';
+      const cashtagExternalAddress =
+          '0:fac47fea2160ae97f01f569525ad51995842a74a21c4ed810afaa6fea5938719:';
+      const tokenDefinitionAddress =
+          'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+      const cashtagContent = '${r'$'}ORIONF1 $tokenDefinitionAddress';
+
+      final delta = Delta()
+        ..insert('@alice', {'mention': mentionAddress, 'underline': true})
+        ..insert(' ')
+        ..insert(
+          cashtagContent,
+          {
+            'underline': true,
+            'cashtag': cashtagExternalAddress,
+            'showMarketCap': true,
+          },
+        )
+        ..insert('\n');
+
+      final conversion = await convertDeltaToPmoTags(
+        delta.toJson(),
+        includeMentionPmoTags: false,
+      );
+      final replacements = conversion.pmoTags
+          .where((tag) => tag.length >= 3 && tag[0] == PmoTag.tagName)
+          .map((tag) => tag[2])
+          .toList();
+
+      expect(replacements.join(' '), isNot(contains('[@alice]($mentionAddress)')));
+      expect(
+        replacements,
+        contains('<u>[${r'$'}ORIONF1]($cashtagExternalAddress)</u>'),
+      );
+    });
+
+    test('keeps cashtag emphasis PMO tags by default', () async {
+      const cashtagExternalAddress =
+          '0:fac47fea2160ae97f01f569525ad51995842a74a21c4ed810afaa6fea5938719:';
+      const tokenDefinitionAddress =
+          'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+      const cashtagContent = '${r'$'}ORIONF1 $tokenDefinitionAddress';
+
+      final delta = Delta()
+        ..insert(
+          cashtagContent,
+          {
+            'italic': true,
+            'cashtag': cashtagExternalAddress,
+            'showMarketCap': true,
+          },
+        )
+        ..insert('\n');
+
+      final conversion = await convertDeltaToPmoTags(delta.toJson());
+      final replacements = conversion.pmoTags
+          .where((tag) => tag.length >= 3 && tag[0] == PmoTag.tagName)
+          .map((tag) => tag[2])
+          .toList();
+
+      expect(replacements, contains('*[${r'$'}ORIONF1]($cashtagExternalAddress)*'));
+    });
+
+    test('strips cashtag emphasis PMO tags when requested', () async {
+      const cashtagExternalAddress =
+          '0:fac47fea2160ae97f01f569525ad51995842a74a21c4ed810afaa6fea5938719:';
+      const tokenDefinitionAddress =
+          'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+      const cashtagContent = '${r'$'}ORIONF1 $tokenDefinitionAddress';
+
+      final delta = Delta()
+        ..insert(
+          cashtagContent,
+          {
+            'bold': true,
+            'cashtag': cashtagExternalAddress,
+            'showMarketCap': true,
+          },
+        )
+        ..insert('\n');
+
+      final conversion = await convertDeltaToPmoTags(
+        delta.toJson(),
+        includeCashtagEmphasisPmoTags: false,
+      );
+      final replacements = conversion.pmoTags
+          .where((tag) => tag.length >= 3 && tag[0] == PmoTag.tagName)
+          .map((tag) => tag[2])
+          .toList();
+
+      expect(replacements, contains('[${r'$'}ORIONF1]($cashtagExternalAddress)'));
+      expect(replacements.join(' '), isNot(contains('**[${r'$'}ORIONF1]')));
+    });
+  });
 }

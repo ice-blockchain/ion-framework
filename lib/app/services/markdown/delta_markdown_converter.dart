@@ -2,10 +2,24 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/features/ion_connect/model/pmo_tag.f.dart';
 import 'package:ion/app/services/markdown/quill.dart';
 
 typedef _ParsedPmoTag = ({int start, int end, String replacement});
+
+typedef _CashtagExtraction = ({
+  int start,
+  int end,
+  String displayText,
+  String ticker,
+  String? externalAddress,
+  String? coinId,
+});
+
+const _xCashtagTicker = 'X';
+const _xStatusUrlPrefix = 'https://x.com/i/status/';
+final _xStatusIdPattern = RegExp(r'^\d{10,25}$');
 
 /// Result of the conversion containing plain text and PMO tags.
 typedef PmoConversionResult = ({String text, List<PmoTag> tags});
@@ -36,10 +50,21 @@ abstract class DeltaMarkdownConverter {
         final attributes = op.attributes;
 
         if (data is String) {
-          // For mentions, use the bech32 encoded value instead of display text
-          final contentToWrite = (attributes != null && attributes.containsKey('mention'))
+          final trimmedDataLeft = data.trimLeft();
+
+          // For mentions, use the bech32 encoded value instead of display text.
+          // For cashtags with coinId, use the coinId.
+          final hasMentionAttr = attributes != null &&
+              attributes.containsKey('mention') &&
+              trimmedDataLeft.startsWith('@');
+          final hasCashtagCoinId =
+              _hasCashtagCoinId(attributes) && trimmedDataLeft.startsWith(r'$');
+
+          final contentToWrite = hasMentionAttr
               ? (attributes['mention'] as String? ?? data)
-              : data;
+              : hasCashtagCoinId
+                  ? (attributes![CashtagCoinIdAttribute.attributeKey] as String)
+                  : data;
 
           final result = _processStringContent(
             content: contentToWrite,
@@ -77,7 +102,65 @@ abstract class DeltaMarkdownConverter {
       pmoTags.add(PmoTag(start: currentIndex, end: currentIndex, replacement: '\n```'));
     }
 
-    return (text: buffer.toString(), tags: pmoTags);
+    return (text: buffer.toString(), tags: _mergeContiguousInlineEmphasisPmoTags(pmoTags));
+  }
+
+  static List<PmoTag> _mergeContiguousInlineEmphasisPmoTags(List<PmoTag> tags) {
+    if (tags.length < 2) {
+      return tags;
+    }
+
+    const emphasisWrapperPattern = r'^(\*\*\*|\*\*|\*)([\s\S]*)\1$';
+    final emphasisRegex = RegExp(emphasisWrapperPattern);
+
+    ({String marker, String inner})? parseWrapper(String replacement) {
+      final match = emphasisRegex.firstMatch(replacement);
+      if (match == null) {
+        return null;
+      }
+
+      final marker = match.group(1);
+      final inner = match.group(2);
+      if (marker == null || inner == null) {
+        return null;
+      }
+
+      return (marker: marker, inner: inner);
+    }
+
+    final merged = <PmoTag>[];
+
+    for (final tag in tags) {
+      if (merged.isEmpty) {
+        merged.add(tag);
+        continue;
+      }
+
+      final previous = merged.last;
+
+      if (previous.end == tag.start && previous.start < previous.end && tag.start < tag.end) {
+        final previousWrapper = parseWrapper(previous.replacement);
+        final currentWrapper = parseWrapper(tag.replacement);
+
+        if (previousWrapper != null &&
+            currentWrapper != null &&
+            previousWrapper.marker == currentWrapper.marker) {
+          final marker = previousWrapper.marker;
+          final mergedReplacement = '$marker${previousWrapper.inner}${currentWrapper.inner}$marker';
+
+          merged[merged.length - 1] = PmoTag(
+            start: previous.start,
+            end: tag.end,
+            replacement: mergedReplacement,
+          );
+          continue;
+        }
+      }
+
+      merged.add(tag);
+    }
+
+    return merged;
   }
 
   /// Merges consecutive string operations that have the same formatting attributes.
@@ -166,7 +249,8 @@ abstract class DeltaMarkdownConverter {
 
   /// Determines if two operations can be merged based on their styling attributes.
   /// Mentions require exact matching (both present or both absent with same value).
-  /// Hashtags and cashtags don't prevent merging.
+  /// Cashtags with showMarketCap require exact matching (they have identity via externalAddress).
+  /// Hashtags don't prevent merging.
   static bool _canMergeStylingAttributes(
     Map<String, dynamic>? attrs1,
     Map<String, dynamic>? attrs2,
@@ -184,7 +268,18 @@ abstract class DeltaMarkdownConverter {
       return false;
     }
 
-    // Neither has mention, they can be merged (hashtags/cashtags don't matter)
+    // Cashtags with showMarketCap or coinId have identity — don't merge across boundaries
+    bool conflictsOnKey(String key, bool Function(Map<String, dynamic>?) hasIt) {
+      final has1 = hasIt(attrs1);
+      final has2 = hasIt(attrs2);
+      if (!has1 && !has2) return false;
+      if (has1 != has2) return true;
+      return attrs1?[key] != attrs2?[key];
+    }
+
+    if (conflictsOnKey(CashtagAttribute.attributeKey, _hasCashtagWithMarketCap)) return false;
+    if (conflictsOnKey(CashtagCoinIdAttribute.attributeKey, _hasCashtagCoinId)) return false;
+
     return true;
   }
 
@@ -384,32 +479,55 @@ abstract class DeltaMarkdownConverter {
     required int currentIndex,
     required List<PmoTag> pmoTags,
   }) {
+    final trimmedOriginalLeft = originalContent.trimLeft();
+
     // Allow processing links even if content is whitespace-only (needed for media attachments)
     final hasLink = attributes.containsKey('link');
-    final hasMention = attributes.containsKey('mention');
-    if (content.trim().isEmpty && !hasLink && !hasMention) {
-      return; // Skip empty or whitespace-only content without links or mentions
+    final hasMention = attributes.containsKey('mention') && trimmedOriginalLeft.startsWith('@');
+    final cashtagAttrValue = attributes[CashtagAttribute.attributeKey];
+    final hasValidCashtagExternalAddress = cashtagAttrValue is String &&
+        cashtagAttrValue.trim().isNotEmpty &&
+        cashtagAttrValue.trim() != r'$';
+    final hasCashtag = attributes[CashtagAttribute.showMarketCapKey] == true &&
+        hasValidCashtagExternalAddress &&
+        trimmedOriginalLeft.startsWith(r'$');
+    final hasCashtagCoinId = _hasCashtagCoinId(attributes) && trimmedOriginalLeft.startsWith(r'$');
+
+    if (content.trim().isEmpty && !hasLink && !hasMention && !hasCashtag && !hasCashtagCoinId) {
+      return;
     }
 
     var replacement = content;
     final hasBold = attributes.containsKey('bold');
     final hasItalic = attributes.containsKey('italic');
-    final skipInlineStyles = hasLink || hasMention;
+    final skipInlineStyles = hasLink || hasMention || hasCashtag || hasCashtagCoinId;
 
-    // Handle mentions first (format: [@username](encoded_ref))
-    // Use originalContent for the display text (e.g., @username)
     if (hasMention) {
-      final encodedRef = content; // content is already the encoded reference
+      final encodedRef = content;
       replacement = '[$originalContent]($encodedRef)';
     }
 
-    // Apply formatting in order: code, bold, italic, strike, underline, link
+    if (hasCashtag && !hasMention) {
+      final externalAddress = cashtagAttrValue.trim();
+      final displayCashtag = RegExp(r'\$[^\s]+').firstMatch(originalContent)?.group(0);
+      if (displayCashtag != null && displayCashtag.isNotEmpty) {
+        final pmoLinkTarget = _toCashtagPmoLinkTarget(
+          displayCashtag: displayCashtag,
+          externalAddress: externalAddress,
+        );
+        replacement = '[$displayCashtag]($pmoLinkTarget)';
+      }
+    }
+
+    if (hasCashtagCoinId && !hasCashtag && !hasMention) {
+      replacement = '[$originalContent]($content)';
+    }
+
     if (!skipInlineStyles) {
       if (attributes.containsKey('code')) {
         replacement = '`$replacement`';
       }
 
-      // Handle bold and italic together (must be before individual checks)
       if (hasBold && hasItalic) {
         replacement = '***$replacement***';
       } else if (hasBold) {
@@ -425,6 +543,7 @@ abstract class DeltaMarkdownConverter {
         replacement = '<u>$replacement</u>';
       }
     }
+
     if (hasLink) {
       final link = attributes['link'] ?? '';
       replacement = '[$originalContent]($link)';
@@ -435,7 +554,6 @@ abstract class DeltaMarkdownConverter {
         replacement = '`$replacement`';
       }
 
-      // Handle bold and italic together (must be before individual checks)
       if (hasBold && hasItalic) {
         replacement = '***$replacement***';
       } else if (hasBold) {
@@ -451,12 +569,14 @@ abstract class DeltaMarkdownConverter {
       }
     }
 
-    if (replacement != content) {
+    final normalizedReplacement = _normalizeMarkdownReplacement(replacement);
+
+    if (normalizedReplacement != content) {
       pmoTags.add(
         PmoTag(
           start: currentIndex,
           end: currentIndex + content.length,
-          replacement: replacement,
+          replacement: normalizedReplacement,
         ),
       );
     }
@@ -644,7 +764,137 @@ abstract class DeltaMarkdownConverter {
     final delta = markdownToDelta(markdownWithNewline);
 
     // Now add mention attributes to the Delta for the extracted mentions
-    return _addMentionAttributes(delta, mentionExtractions);
+    final deltaWithMentions = _addMentionAttributes(delta, mentionExtractions);
+    final hydratedMentions = _hydrateMentionAttributesFromLinks(deltaWithMentions);
+
+    // Extract cashtag addresses from PMO tags and add cashtag attributes
+    final cashtagExtractions = _extractCashtagAddresses(plainText, parsedTags);
+    final withCashtags = _addCashtagAttributes(hydratedMentions, cashtagExtractions);
+    return _sanitizeLiteralMarkdownMarkersAroundTags(withCashtags);
+  }
+
+  static Delta _sanitizeLiteralMarkdownMarkersAroundTags(Delta delta) {
+    final ops = delta.operations.toList();
+    if (ops.length < 2) {
+      return delta;
+    }
+
+    bool isMentionLikeLinkOp(Operation op) {
+      if (op.data is! String) {
+        return false;
+      }
+
+      final attrs = op.attributes;
+      if (attrs == null) {
+        return false;
+      }
+
+      final text = op.data! as String;
+      final mentionValue = _extractMentionValueFromLink(attrs['link']);
+      return mentionValue != null && text.trimLeft().startsWith('@');
+    }
+
+    bool isTagged(Operation op) {
+      final attrs = op.attributes;
+      if (attrs == null) return false;
+      return attrs.containsKey('mention') ||
+          isMentionLikeLinkOp(op) ||
+          attrs.containsKey(CashtagAttribute.attributeKey) ||
+          attrs.containsKey(CashtagCoinIdAttribute.attributeKey);
+    }
+
+    int markerLevel(String marker) {
+      if (marker == '***') return 3;
+      if (marker == '**') return 2;
+      return 1;
+    }
+
+    for (var i = 0; i < ops.length; i++) {
+      final op = ops[i];
+      if (op.data is! String || !isTagged(op)) {
+        continue;
+      }
+
+      var taggedText = op.data! as String;
+      final taggedAttrs = Map<String, dynamic>.from(op.attributes ?? const {});
+      final mentionFromLink = _extractMentionValueFromLink(taggedAttrs['link']);
+      if (!taggedAttrs.containsKey('mention') &&
+          mentionFromLink != null &&
+          taggedText.trimLeft().startsWith('@')) {
+        taggedAttrs['mention'] = mentionFromLink;
+      }
+
+      // Case 1: marker wrappers are part of the tagged operation itself.
+      final inlineWrapper =
+          RegExp(r'^\s*(\*\*\*|\*\*|\*)\s*(.*?)\s*\1\s*$', dotAll: true).firstMatch(taggedText);
+      if (inlineWrapper != null) {
+        final marker = inlineWrapper.group(1)!;
+        final inner = inlineWrapper.group(2)!;
+        if (inner.isNotEmpty) {
+          taggedText = inner;
+          final level = markerLevel(marker);
+          if (level >= 2) taggedAttrs['bold'] = true;
+          if (level == 1 || level == 3) taggedAttrs['italic'] = true;
+          ops[i] = Operation.insert(taggedText, taggedAttrs);
+        }
+      }
+
+      // Case 2: markers are split into neighbor text ops around tagged op.
+      if (i == 0 || i == ops.length - 1) {
+        continue;
+      }
+
+      final prevOp = ops[i - 1];
+      final nextOp = ops[i + 1];
+      if (prevOp.data is! String || nextOp.data is! String) {
+        continue;
+      }
+
+      final prevText = prevOp.data! as String;
+      final nextText = nextOp.data! as String;
+      final prevMatch = RegExp(r'(\*\*\*|\*\*|\*)\s*$').firstMatch(prevText);
+      final nextMatch = RegExp(r'^\s*(\*\*\*|\*\*|\*)').firstMatch(nextText);
+
+      if (prevMatch == null || nextMatch == null) {
+        continue;
+      }
+
+      final marker = prevMatch.group(1)!;
+      if (marker != nextMatch.group(1)) {
+        continue;
+      }
+
+      final prevWithoutMarker = prevText.substring(0, prevMatch.start);
+      final nextWithoutMarker = nextText.substring(nextMatch.end);
+      final level = markerLevel(marker);
+
+      final mergedAttrs = Map<String, dynamic>.from(ops[i].attributes ?? const {});
+      if (level >= 2) mergedAttrs['bold'] = true;
+      if (level == 1 || level == 3) mergedAttrs['italic'] = true;
+
+      ops[i - 1] = Operation.insert(
+        prevWithoutMarker,
+        prevOp.attributes,
+      );
+      ops[i] = Operation.insert(
+        (ops[i].data! as String).trim(),
+        mergedAttrs,
+      );
+      ops[i + 1] = Operation.insert(
+        nextWithoutMarker,
+        nextOp.attributes,
+      );
+    }
+
+    final sanitized = Delta();
+    for (final op in ops) {
+      if (op.data is String && (op.data! as String).isEmpty) {
+        continue;
+      }
+      sanitized.insert(op.data, op.attributes);
+    }
+
+    return sanitized;
   }
 
   /// Extracts bech32 encoded mentions from plain text.
@@ -671,16 +921,178 @@ abstract class DeltaMarkdownConverter {
     return extractions;
   }
 
-  /// Adds mention attributes to Delta operations based on extracted mentions.
+  /// Extracts cashtag data from PMO tags.
   ///
-  /// This processes the Delta to find bech32 values and adds mention attributes.
-  /// The bech32 values remain in the text and will be replaced with @username
-  /// by a higher-level function that has access to user metadata.
+  /// Identifies PMO replacements matching the pattern `[$TICKER](value)` where
+  /// value is either an externalAddress, an X status URL for `$X` tokens,
+  /// or a bech32-encoded coin ID (`ncoin1...`).
+  static List<_CashtagExtraction> _extractCashtagAddresses(
+    String plainText,
+    List<_ParsedPmoTag> pmoTags,
+  ) {
+    final extractions = <_CashtagExtraction>[];
+    final cashtagPmoPattern = RegExp(r'^\[\$([^\]]+)\]\(([^)]+)\)$');
+
+    for (final tag in pmoTags) {
+      final normalizedReplacement = _normalizeMarkdownReplacement(tag.replacement);
+      final candidateReplacement = _stripInlineFormattingWrappers(normalizedReplacement);
+      final match = cashtagPmoPattern.firstMatch(candidateReplacement);
+      if (match != null) {
+        final ticker = match.group(1)!;
+        final rawValue = match.group(2)!;
+        final value = _normalizeCashtagPmoValue(ticker: ticker, value: rawValue);
+        final isCoinId = value.startsWith('ncoin1');
+        extractions.add(
+          (
+            start: tag.start,
+            end: tag.end,
+            displayText: r'$' + ticker,
+            ticker: ticker,
+            externalAddress: isCoinId ? null : value,
+            coinId: isCoinId ? value : null,
+          ),
+        );
+      }
+    }
+
+    return extractions;
+  }
+
+  static String _stripInlineFormattingWrappers(String replacement) {
+    var unwrapped = replacement.trim();
+
+    final wrappers = <RegExp>[
+      RegExp(r'^<u>(.*)</u>$', dotAll: true),
+      RegExp(r'^~~(.*)~~$', dotAll: true),
+      RegExp(r'^```(.*)```$', dotAll: true),
+      RegExp(r'^`(.*)`$', dotAll: true),
+      RegExp(r'^\*\*\*(.*)\*\*\*$', dotAll: true),
+      RegExp(r'^\*\*(.*)\*\*$', dotAll: true),
+      RegExp(r'^\*(.*)\*$', dotAll: true),
+    ];
+
+    var changed = true;
+    while (changed && unwrapped.isNotEmpty) {
+      changed = false;
+      for (final wrapper in wrappers) {
+        final match = wrapper.firstMatch(unwrapped);
+        if (match != null) {
+          unwrapped = (match.group(1) ?? '').trim();
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    return unwrapped;
+  }
+
+  /// Adds mention attributes to Delta operations based on extracted mentions.
   static Delta _addMentionAttributes(
     Delta delta,
     List<({int start, int end, String bech32Value})> mentions,
   ) {
-    if (mentions.isEmpty) {
+    return _addAttributesAtPositions(
+      delta,
+      mentions.map((m) => (start: m.start, end: m.end, expectedText: m.bech32Value)).toList(),
+      (expectedText, existingAttrs) => {...?existingAttrs, 'mention': expectedText},
+    );
+  }
+
+  /// Adds mention attributes to linked @mention text when PMO reconstruction
+  /// produced link metadata but positional mention matching did not apply.
+  static Delta _hydrateMentionAttributesFromLinks(Delta delta) {
+    final hydrated = Delta();
+
+    for (final op in delta.operations) {
+      if (op.data is! String) {
+        hydrated.insert(op.data, op.attributes);
+        continue;
+      }
+
+      final text = op.data! as String;
+      final attrs = op.attributes;
+      final mentionValue = _extractMentionValueFromLink(attrs?['link']);
+
+      if (mentionValue != null && text.trimLeft().startsWith('@')) {
+        hydrated.insert(text, {...?attrs, 'mention': mentionValue});
+        continue;
+      }
+
+      hydrated.insert(text, attrs);
+    }
+
+    return hydrated;
+  }
+
+  /// Adds cashtag attributes to Delta operations based on extracted cashtag data.
+  ///
+  /// For tokenized coins (externalAddress): sets `{cashtag: externalAddress, showMarketCap: true}`.
+  /// For non-tokenized coins (coinId): sets `{cashtagCoinId: coinId}`.
+  static Delta _addCashtagAttributes(Delta delta, List<_CashtagExtraction> cashtags) {
+    if (cashtags.isEmpty) {
+      return delta;
+    }
+
+    final externalAddresses =
+        cashtags.where((ct) => ct.externalAddress != null).map((ct) => ct.externalAddress!).toSet();
+    final coinIds = cashtags.where((ct) => ct.coinId != null).map((ct) => ct.coinId!).toSet();
+
+    final newDelta = Delta();
+
+    for (final op in delta.operations) {
+      if (op.data is! String) {
+        newDelta.insert(op.data, op.attributes);
+        continue;
+      }
+
+      final text = op.data! as String;
+      final attrs = op.attributes;
+      final link = attrs?['link'];
+
+      if (link is String && text.trimLeft().startsWith(r'$')) {
+        if (externalAddresses.contains(link)) {
+          newDelta.insert(
+            text,
+            {
+              ...?attrs,
+              CashtagAttribute.attributeKey: link,
+              CashtagAttribute.showMarketCapKey: true,
+            },
+          );
+          continue;
+        }
+
+        if (coinIds.contains(link)) {
+          newDelta.insert(
+            text,
+            {
+              ...?attrs,
+              CashtagCoinIdAttribute.attributeKey: link,
+            },
+          );
+          continue;
+        }
+      }
+
+      newDelta.insert(text, attrs);
+    }
+
+    return newDelta;
+  }
+
+  /// Splits Delta operations at the given positions and applies attributes via [buildAttrs].
+  ///
+  /// Each entry in [positions] specifies a region in the Delta's text where the
+  /// [expectedText] should be found. If the text matches, [buildAttrs] is called
+  /// to produce the attributes for that segment; otherwise the text is kept as-is.
+  static Delta _addAttributesAtPositions(
+    Delta delta,
+    List<({int start, int end, String expectedText})> positions,
+    Map<String, dynamic> Function(String expectedText, Map<String, dynamic>? existingAttrs)
+        buildAttrs,
+  ) {
+    if (positions.isEmpty) {
       return delta;
     }
 
@@ -697,43 +1109,27 @@ abstract class DeltaMarkdownConverter {
       final opStart = textPosition;
       final opEnd = textPosition + text.length;
 
-      // Collect all mentions that are entirely within this operation
-      final opMentions = mentions
-          .where((mention) => mention.start >= opStart && mention.end <= opEnd)
-          .toList()
+      final opPositions = positions.where((p) => p.start >= opStart && p.end <= opEnd).toList()
         ..sort((a, b) => a.start.compareTo(b.start));
-      if (opMentions.isEmpty) {
-        // No mentions in this operation: keep it as-is
+
+      if (opPositions.isEmpty) {
         newDelta.insert(text, op.attributes);
       } else {
         var cursor = 0;
-        for (final mention in opMentions) {
-          final mentionStartInOp = mention.start - opStart;
-          final mentionEndInOp = mention.end - opStart;
-          // Insert text before the mention, if any
-          if (mentionStartInOp > cursor) {
-            newDelta.insert(
-              text.substring(cursor, mentionStartInOp),
-              op.attributes,
-            );
+        for (final pos in opPositions) {
+          final startInOp = pos.start - opStart;
+          final endInOp = pos.end - opStart;
+          if (startInOp > cursor) {
+            newDelta.insert(text.substring(cursor, startInOp), op.attributes);
           }
-          // Extract the mention text from this operation
-          final mentionText = text.substring(mentionStartInOp, mentionEndInOp);
-          // Verify the extracted text matches the bech32 value
-          if (mentionText == mention.bech32Value) {
-            // Mention with attribute
-            final attrs = {
-              ...?op.attributes,
-              'mention': mention.bech32Value,
-            };
-            newDelta.insert(mentionText, attrs);
+          final segment = text.substring(startInOp, endInOp);
+          if (segment == pos.expectedText) {
+            newDelta.insert(segment, buildAttrs(pos.expectedText, op.attributes));
           } else {
-            // If the text does not match, fall back to plain text
-            newDelta.insert(mentionText, op.attributes);
+            newDelta.insert(segment, op.attributes);
           }
-          cursor = mentionEndInOp;
+          cursor = endInOp;
         }
-        // Insert any remaining text after the last mention
         if (cursor < text.length) {
           newDelta.insert(text.substring(cursor), op.attributes);
         }
@@ -752,6 +1148,29 @@ abstract class DeltaMarkdownConverter {
   /// before opening marker for leading).
   /// Process in order: bold+italic first, then bold, then italic to avoid partial matches.
   static String _normalizeMarkdownReplacement(String replacement) {
+    // First, normalize emphasis wrappers around markdown links specifically.
+    // This avoids cases like "** [\$GOOO](...) **" being parsed as literal stars.
+    var normalized = replacement
+        .replaceAllMapped(
+          RegExp(r'\*\*\*\s+(\[[^\]]+\]\([^)]+\))\s+\*\*\*'),
+          (m) => '***${m.group(1)}***',
+        )
+        .replaceAllMapped(
+          RegExp(r'\*\*\s+(\[[^\]]+\]\([^)]+\))\s+\*\*'),
+          (m) => '**${m.group(1)}**',
+        )
+        .replaceAllMapped(
+          RegExp(r'(?<!\*)\*\s+(\[[^\]]+\]\([^)]+\))\s+\*(?!\*)'),
+          (m) => '*${m.group(1)}*',
+        );
+
+    // Legacy PMO may escape '$' inside link labels (e.g. [\$GOOO](...)).
+    // Unescape it so markdown parsing produces "$GOOO" text reliably.
+    normalized = normalized.replaceAllMapped(
+      RegExp(r'\[\\\$([^\]]+)\]\(([^)]+)\)'),
+      (m) => '[\$${m.group(1)}](${m.group(2)})',
+    );
+
     // Define patterns in order of specificity (most specific first)
     // Each entry: (pattern, replacement function)
     // Strategy: Move spaces outside markers to preserve them while fixing markdown syntax
@@ -788,12 +1207,78 @@ abstract class DeltaMarkdownConverter {
       ),
     ];
 
-    // Apply all patterns in sequence using a local variable
-    var normalized = replacement;
+    // Apply all patterns in sequence
     for (final (pattern, replacer) in patterns) {
       normalized = normalized.replaceAllMapped(pattern, replacer);
     }
 
     return normalized;
+  }
+
+  static bool _hasCashtagCoinId(Map<String, dynamic>? attrs) {
+    final v = attrs?[CashtagCoinIdAttribute.attributeKey];
+    return v is String && v.isNotEmpty;
+  }
+
+  static bool _hasCashtagWithMarketCap(Map<String, dynamic>? attrs) =>
+      attrs?[CashtagAttribute.showMarketCapKey] == true &&
+      attrs?[CashtagAttribute.attributeKey] is String &&
+      (attrs?[CashtagAttribute.attributeKey] as String).trim().isNotEmpty &&
+      (attrs?[CashtagAttribute.attributeKey] as String).trim() != r'$';
+
+  static String _toCashtagPmoLinkTarget({
+    required String displayCashtag,
+    required String externalAddress,
+  }) {
+    final shouldUseXStatusUrl = _isXCashtag(displayCashtag) || _isXStatusId(externalAddress);
+    if (!shouldUseXStatusUrl) {
+      return externalAddress;
+    }
+
+    if (_extractXStatusId(externalAddress) != null) {
+      return externalAddress;
+    }
+
+    return '$_xStatusUrlPrefix$externalAddress';
+  }
+
+  static String _normalizeCashtagPmoValue({required String ticker, required String value}) {
+    if (ticker.toUpperCase() == _xCashtagTicker) {
+      return _extractXStatusId(value) ?? value;
+    }
+
+    return _extractXStatusId(value) ?? value;
+  }
+
+  static bool _isXCashtag(String displayCashtag) =>
+      displayCashtag.replaceFirst(r'$', '').toUpperCase() == _xCashtagTicker;
+
+  static bool _isXStatusId(String value) => _xStatusIdPattern.hasMatch(value);
+
+  static String? _extractMentionValueFromLink(Object? link) {
+    if (link is! String) {
+      return null;
+    }
+
+    final normalized = link.trim();
+    if (normalized.isEmpty) {
+      return null;
+    }
+
+    final mentionPattern = RegExp(r'^(?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+$');
+    if (!mentionPattern.hasMatch(normalized)) {
+      return null;
+    }
+
+    return normalized;
+  }
+
+  static String? _extractXStatusId(String value) {
+    if (!value.startsWith(_xStatusUrlPrefix)) {
+      return null;
+    }
+
+    final statusId = value.substring(_xStatusUrlPrefix.length);
+    return statusId.isEmpty ? null : statusId;
   }
 }

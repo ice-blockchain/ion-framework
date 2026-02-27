@@ -232,13 +232,67 @@ List<PmoTag> adjustPmoTagPositions(
       .toList();
 }
 
+bool _isMentionPmoTag(PmoTag tag) {
+  String unwrapInlineFormatting(String value) {
+    var unwrapped = value.trim();
+
+    final wrappers = <RegExp>[
+      RegExp(r'^<u>(.*)</u>$', dotAll: true),
+      RegExp(r'^~~(.*)~~$', dotAll: true),
+      RegExp(r'^```(.*)```$', dotAll: true),
+      RegExp(r'^`(.*)`$', dotAll: true),
+      RegExp(r'^\*\*\*(.*)\*\*\*$', dotAll: true),
+      RegExp(r'^\*\*(.*)\*\*$', dotAll: true),
+      RegExp(r'^\*(.*)\*$', dotAll: true),
+    ];
+
+    var changed = true;
+    while (changed && unwrapped.isNotEmpty) {
+      changed = false;
+      for (final wrapper in wrappers) {
+        final match = wrapper.firstMatch(unwrapped);
+        if (match != null) {
+          unwrapped = (match.group(1) ?? '').trim();
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    return unwrapped;
+  }
+
+  final mentionPmoPattern = RegExp(
+    r'^\[@[^\]]+\]\((?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+\)$',
+  );
+  return mentionPmoPattern.hasMatch(unwrapInlineFormatting(tag.replacement));
+}
+
+String _stripCashtagEmphasisMarkers(String replacement) {
+  var normalized = replacement;
+
+  final patterns = <RegExp>[
+    RegExp(r'\*\*\*\s*(\[\$[^\]]+\]\([^)]+\))\s*\*\*\*'),
+    RegExp(r'\*\*\s*(\[\$[^\]]+\]\([^)]+\))\s*\*\*'),
+    RegExp(r'(?<!\*)\*\s*(\[\$[^\]]+\]\([^)]+\))\s*\*(?!\*)'),
+  ];
+
+  for (final pattern in patterns) {
+    normalized = normalized.replaceAllMapped(pattern, (match) => match.group(1) ?? '');
+  }
+
+  return normalized;
+}
+
 /// Converts Delta JSON to plain text and PMO tags.
 ///
 /// Returns a record containing the content to sign and the PMO tags.
 /// Throws [ContentConversionException] if conversion fails.
 Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTags(
-  List<dynamic> deltaJson,
-) async {
+  List<dynamic> deltaJson, {
+  bool includeMentionPmoTags = true,
+  bool includeCashtagEmphasisPmoTags = true,
+}) async {
   try {
     final delta = Delta.fromJson(deltaJson);
     final trimmedDelta = trimLineWhitespaceInDelta(delta);
@@ -247,7 +301,20 @@ Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTa
 
     final trimResult = trimEmptyLines(result.text);
     final adjustedTags = adjustPmoTagPositions(result.tags, trimResult.adjustPosition);
-    final pmoTags = adjustedTags.map((t) => t.toTag()).toList();
+    final filteredTags = includeMentionPmoTags
+        ? adjustedTags
+        : adjustedTags.where((tag) => !_isMentionPmoTag(tag)).toList();
+    final normalizedTags = includeCashtagEmphasisPmoTags
+        ? filteredTags
+        : filteredTags
+            .map(
+              (tag) => tag.copyWith(
+                replacement: _stripCashtagEmphasisMarkers(tag.replacement),
+              ),
+            )
+            .toList();
+
+    final pmoTags = normalizedTags.map((t) => t.toTag()).toList();
     return (contentToSign: trimResult.trimmedText, pmoTags: pmoTags);
   } catch (e) {
     throw ContentConversionException(e, conversionType: 'Delta to PMO tags');
@@ -259,9 +326,15 @@ Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTa
 /// Returns a record containing the content to sign and the PMO tags.
 /// Throws [ContentConversionException] if conversion fails.
 Future<({String contentToSign, List<List<String>> pmoTags})> convertDeltaToPmoTagsFromDelta(
-  Delta delta,
-) async {
-  return convertDeltaToPmoTags(delta.toJson());
+  Delta delta, {
+  bool includeMentionPmoTags = true,
+  bool includeCashtagEmphasisPmoTags = true,
+}) async {
+  return convertDeltaToPmoTags(
+    delta.toJson(),
+    includeMentionPmoTags: includeMentionPmoTags,
+    includeCashtagEmphasisPmoTags: includeCashtagEmphasisPmoTags,
+  );
 }
 
 /// Converts Delta to markdown content.
