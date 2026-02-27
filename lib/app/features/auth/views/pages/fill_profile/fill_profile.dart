@@ -17,6 +17,7 @@ import 'package:ion/app/features/auth/views/components/user_data_inputs/nickname
 import 'package:ion/app/features/auth/views/components/user_data_inputs/referral_input.dart';
 import 'package:ion/app/features/auth/views/pages/fill_profile/components/fill_prifile_submit_button.dart';
 import 'package:ion/app/features/components/avatar_picker/avatar_picker.dart';
+import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
 import 'package:ion/app/features/user/hooks/use_nickname_availability_error_message.dart';
 import 'package:ion/app/features/user/hooks/use_verify_referral_exists_error_message.dart';
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
@@ -61,19 +62,19 @@ class FillProfile extends HookConsumerWidget {
       final referral = referralController.text;
       if (formKey.currentState!.validate()) {
         isLoading.value = true;
-        await Future.wait(
-          [
-            ref
-                .read(userNicknameNotifierProvider.notifier)
-                .verifyNicknameAvailability(nickname: nickname.value),
-            if (referral.isNotEmpty)
+        try {
+          await Future.wait(
+            [
               ref
-                  .read(userReferralNotifierProvider.notifier)
-                  .verifyReferralExists(referral: referral),
-          ],
-        );
-        isLoading.value = false;
-        if (context.mounted) {
+                  .read(userNicknameNotifierProvider.notifier)
+                  .verifyNicknameAvailability(nickname: nickname.value),
+              if (referral.isNotEmpty)
+                ref
+                    .read(userReferralNotifierProvider.notifier)
+                    .verifyReferralExists(referral: referral),
+            ],
+          );
+          if (!context.mounted) return;
           if (ref.read(userNicknameNotifierProvider).hasError ||
               (referral.isNotEmpty && ref.read(userReferralNotifierProvider).hasError)) {
             return;
@@ -83,6 +84,11 @@ class FillProfile extends HookConsumerWidget {
               .read(imageProcessorNotifierProvider(ImageProcessingType.avatar))
               .whenOrNull(processed: (file) => file);
           if (pickedAvatar != null) {
+            final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(
+              ref,
+              [pickedAvatar],
+            );
+            if (!context.mounted || isBlocked) return;
             ref.read(onboardingDataProvider.notifier).avatar = pickedAvatar;
           }
           ref.read(onboardingDataProvider.notifier).name = nickname.value;
@@ -92,6 +98,10 @@ class FillProfile extends HookConsumerWidget {
           }
           if (context.mounted) {
             await SelectLanguagesRoute().push<void>(context);
+          }
+        } finally {
+          if (context.mounted) {
+            isLoading.value = false;
           }
         }
       }
