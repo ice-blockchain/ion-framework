@@ -21,6 +21,7 @@ import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_relays.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/deep_link_mappers.dart';
 import 'package:ion/app/services/deep_link/deep_link_navigate_event.dart';
 import 'package:ion/app/services/deep_link/internal_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';

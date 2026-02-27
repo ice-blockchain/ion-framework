@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
@@ -9,14 +10,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/ion_connect_media_url_provider.r.dart';
-import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
-import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/deep_link/internal_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -24,28 +21,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'appsflyer_deep_link_service.r.g.dart';
 
 const _contentTypeKey = 'content_type';
-
-/// Maps an IonConnectEntity to its corresponding SharedContentType
-/// based on entity properties like isStory and hasVideo
-///
-/// Priority order:
-/// 1. Stories (regardless of media type) -> story
-/// 2. Regular posts with video -> postWithVideo
-/// 3. Regular posts -> post
-/// 4. Articles -> article
-/// 5. User profiles -> profile
-/// 6. Community tokens -> communityToken
-SharedContentType mapEntityToSharedContentType(IonConnectEntity entity) {
-  return switch (entity) {
-    ModifiablePostEntity() when entity.isStory => SharedContentType.story,
-    ModifiablePostEntity() when entity.data.hasVideo => SharedContentType.postWithVideo,
-    ModifiablePostEntity() => SharedContentType.post,
-    ArticleEntity() => SharedContentType.article,
-    UserMetadataEntity() => SharedContentType.profile,
-    CommunityTokenDefinitionEntity() => SharedContentType.communityToken,
-    _ => throw UnsupportedError('Unsupported IonConnectEntity: $entity'),
-  };
-}
 
 @Riverpod(keepAlive: true)
 AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
@@ -74,6 +49,7 @@ AppsFlyerDeepLinkService appsflyerDeepLinkService(Ref ref) {
     brandDomain: brandDomain,
     baseHost: baseHost,
     resolveShareImageUrl: (url) => ref.read(resolvedShareImageUrlForOgImageProvider(url).future),
+    localStorage: ref.read(localStorageProvider),
   );
 }
 
@@ -89,16 +65,24 @@ typedef OneLinkResolveResult = ({
   SharedContentType? contentType,
 });
 
+/// Resolves a share image URL to a final URL (e.g. CDN or signed).
+typedef ResolveShareImageUrl = Future<String?> Function(String imageUrl);
+
+/// Callback invoked when a deep link is opened (path and optional content type).
+typedef OnDeeplinkCallback = void Function(String path, SharedContentType? contentType);
+
 final class AppsFlyerDeepLinkService {
   AppsFlyerDeepLinkService(
     this._appsflyerSdk, {
     required String templateId,
     required String brandDomain,
     required String baseHost,
-    required Future<String?> Function(String imageUrl) resolveShareImageUrl,
+    required LocalStorage localStorage,
+    required ResolveShareImageUrl resolveShareImageUrl,
   })  : _templateId = templateId,
         _brandDomain = brandDomain,
         _baseHost = baseHost,
+        _localStorage = localStorage,
         _resolveShareImageUrl = resolveShareImageUrl;
 
   final AppsflyerSdk _appsflyerSdk;
@@ -106,7 +90,12 @@ final class AppsFlyerDeepLinkService {
   final String _templateId;
   final String _brandDomain;
   final String _baseHost;
-  final Future<String?> Function(String imageUrl) _resolveShareImageUrl;
+  final LocalStorage _localStorage;
+  final ResolveShareImageUrl _resolveShareImageUrl;
+
+  static const _cacheKeyPrefix = 'af_link_';
+  static const _cacheGenPrefix = 'af_gen_';
+  OnDeeplinkCallback? _onDeeplink;
 
   static final oneLinkUrlRegex = RegExp(
     r'@?(https://(ion\.onelink\.me|app\.online\.io|testnet\.app\.online\.io)/[A-Za-z0-9\-_/\?&%=#]*)',
@@ -124,10 +113,68 @@ final class AppsFlyerDeepLinkService {
   /// when [resolveOneLinkUrlAsync] is in flight.
   Completer<OneLinkResolveResult?>? _pendingResolveCompleter;
 
+  /// URL passed to [resolveOneLinkUrlAsync]; used to cache under the request URL
+  /// when it differs from [clickEvent]['link'] (e.g. brand domain vs base host).
+  String? _pendingResolveRequestUrl;
+
+  void _cacheResult(String url, String deepLinkValue, SharedContentType? contentType) {
+    try {
+      final key = url.trim();
+      final jsonString = jsonEncode({
+        'deepLinkValue': deepLinkValue,
+        if (contentType != null) 'contentType': contentType.value,
+      });
+      unawaited(_localStorage.setString('$_cacheKeyPrefix$key', jsonString));
+    } catch (e) {
+      Logger.error('Failed to cache AppsFlyer deep link result for $url: $e');
+    }
+  }
+
+  void _cacheGeneratedLink(String path, String url) {
+    try {
+      unawaited(_localStorage.setString('$_cacheGenPrefix$path', url));
+    } catch (e) {
+      Logger.error('Failed to cache AppsFlyer generated link for $path: $e');
+    }
+  }
+
+  String? _getCachedGeneratedLink(String path) {
+    try {
+      return _localStorage.getString('$_cacheGenPrefix$path');
+    } catch (e) {
+      Logger.error('Failed to read cached AppsFlyer generated link for $path: $e');
+    }
+    return null;
+  }
+
+  OneLinkResolveResult? _getCachedResult(String url) {
+    try {
+      final key = url.trim();
+      final jsonString = _localStorage.getString('$_cacheKeyPrefix$key');
+      if (jsonString != null) {
+        final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+        final deepLinkValue = decoded['deepLinkValue'] as String?;
+        final contentTypeValue = decoded['contentType'] as String?;
+
+        if (deepLinkValue != null) {
+          return (
+            deepLinkValue: deepLinkValue,
+            contentType:
+                contentTypeValue != null ? SharedContentType.fromValue(contentTypeValue) : null,
+          );
+        }
+      }
+    } catch (e) {
+      Logger.error('Failed to read cached AppsFlyer deep link result for $url: $e');
+    }
+    return null;
+  }
+
   Future<void> init({
-    required void Function(String path, SharedContentType? contentType) onDeeplink,
+    required OnDeeplinkCallback onDeeplink,
     required InternalDeepLinkService internalDeepLinkService,
   }) async {
+    _onDeeplink = onDeeplink;
     await _appsflyerSdk.setAppInviteOneLinkID(_templateId, (dynamic data) {
       Logger.log('AppsFlyer setAppInviteOneLinkIDCallback callback: $data');
     });
@@ -149,6 +196,16 @@ final class AppsFlyerDeepLinkService {
           if (deepLinkValue != null && deepLinkValue.isNotEmpty) {
             _pendingResolveCompleter = null;
             final resolvedContentType = _extractContentTypeFromLink(link);
+
+            final clickEventUrl = link.deepLink?.clickEvent['link'] as String?;
+            if (clickEventUrl != null) {
+              _cacheResult(clickEventUrl, deepLinkValue, resolvedContentType);
+            }
+            if (_pendingResolveRequestUrl != null && _pendingResolveRequestUrl != clickEventUrl) {
+              _cacheResult(_pendingResolveRequestUrl!, deepLinkValue, resolvedContentType);
+            }
+            _pendingResolveRequestUrl = null;
+
             pendingCompleter.complete(
               (
                 deepLinkValue: deepLinkValue,
@@ -168,6 +225,15 @@ final class AppsFlyerDeepLinkService {
         if (path != null) {
           if (link.status == Status.FOUND) {
             if (path.isEmpty) return;
+
+            final clickEventUrl = link.deepLink?.clickEvent['link'] as String?;
+            if (clickEventUrl != null) {
+              _cacheResult(clickEventUrl, path, contentType);
+            }
+            if (_pendingResolveRequestUrl != null && _pendingResolveRequestUrl != clickEventUrl) {
+              _cacheResult(_pendingResolveRequestUrl!, path, contentType);
+            }
+            _pendingResolveRequestUrl = null;
 
             return onDeeplink(path, contentType);
           }
@@ -236,6 +302,11 @@ final class AppsFlyerDeepLinkService {
     String? ogImageUrl,
     String? ogDescription,
   }) async {
+    final cachedUrl = _getCachedGeneratedLink(path);
+    if (cachedUrl != null) {
+      return cachedUrl;
+    }
+
     if (!_isInitialized) {
       Logger.log('AppsFlyer initialization failed');
       return fallbackUrl;
@@ -253,7 +324,8 @@ final class AppsFlyerDeepLinkService {
           );
 
           if (isOneLinkUrl(result)) {
-            Logger.log('Deep link generated successfully: $result');
+            _cacheGeneratedLink(path, result);
+            _cacheResult(result, path, contentType);
             return result;
           } else {
             Logger.warning('Invalid URL returned: $result');
@@ -407,8 +479,21 @@ final class AppsFlyerDeepLinkService {
     return Map<String, String?>.from(payload as Map<String, dynamic>);
   }
 
-  void resolveDeeplink(String url) =>
-      _appsflyerSdk.resolveOneLinkUrl(url.replaceAll(_brandDomain, _baseHost));
+  void resolveDeeplink(String url) {
+    final cachedResult = _getCachedResult(url);
+    if (cachedResult != null && cachedResult.deepLinkValue != null) {
+      _pendingResolveRequestUrl = null;
+      if (_pendingResolveCompleter != null && !_pendingResolveCompleter!.isCompleted) {
+        _pendingResolveCompleter!.complete(cachedResult);
+        _pendingResolveCompleter = null;
+      } else {
+        _onDeeplink?.call(cachedResult.deepLinkValue!, cachedResult.contentType);
+      }
+      return;
+    }
+
+    _appsflyerSdk.resolveOneLinkUrl(url.replaceAll(_brandDomain, _baseHost));
+  }
 
   /// Resolves a OneLink URL asynchronously and returns the result.
   ///
@@ -418,6 +503,14 @@ final class AppsFlyerDeepLinkService {
   ///
   /// Returns `null` if the resolution times out or fails.
   Future<OneLinkResolveResult?> resolveOneLinkUrlAsync(String url) async {
+    final cachedResult = _getCachedResult(url);
+    if (cachedResult != null && cachedResult.deepLinkValue != null) {
+      return (
+        deepLinkValue: cachedResult.deepLinkValue,
+        contentType: cachedResult.contentType,
+      );
+    }
+
     // Cancel any previous pending resolve
     if (_pendingResolveCompleter != null && !_pendingResolveCompleter!.isCompleted) {
       _pendingResolveCompleter!.complete(null);
@@ -425,6 +518,7 @@ final class AppsFlyerDeepLinkService {
 
     final completer = Completer<OneLinkResolveResult?>();
     _pendingResolveCompleter = completer;
+    _pendingResolveRequestUrl = url;
 
     resolveDeeplink(url);
 
@@ -436,12 +530,14 @@ final class AppsFlyerDeepLinkService {
             'OneLink URL resolution timed out after ${_linkGenerationTimeout.inSeconds}s',
           );
           _pendingResolveCompleter = null;
+          _pendingResolveRequestUrl = null;
           return null;
         },
       );
     } catch (error) {
       Logger.error('OneLink URL resolution failed: $error');
       _pendingResolveCompleter = null;
+      _pendingResolveRequestUrl = null;
       return null;
     }
   }

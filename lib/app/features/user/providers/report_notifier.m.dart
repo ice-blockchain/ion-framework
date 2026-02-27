@@ -6,6 +6,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/deep_link_mappers.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion/app/services/mail/mail.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
