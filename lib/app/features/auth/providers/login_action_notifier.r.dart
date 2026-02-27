@@ -31,23 +31,21 @@ void _logLoginError(
 
 @riverpod
 class LoginActionNotifier extends _$LoginActionNotifier {
-  bool _isAutoPasskeyLoginInProgress = false;
   Completer<void>? _autoPasskeyCancelCompleter;
 
   @override
   FutureOr<void> build() {}
 
   void cancelAutoPasskeyLogin() {
-    if (!_isAutoPasskeyLoginInProgress) {
+    final cancelCompleter = _autoPasskeyCancelCompleter;
+    if (cancelCompleter == null) {
       return;
     }
 
-    final cancelCompleter = _autoPasskeyCancelCompleter;
-    if (cancelCompleter != null && !cancelCompleter.isCompleted) {
+    if (!cancelCompleter.isCompleted) {
       cancelCompleter.complete();
     }
     _autoPasskeyCancelCompleter = null;
-    _isAutoPasskeyLoginInProgress = false;
     state = const AsyncValue.data(null);
 
     unawaited(_cancelCurrentPasskeyAuthentication());
@@ -88,17 +86,16 @@ class LoginActionNotifier extends _$LoginActionNotifier {
       }
       cancelCompleter = Completer<void>();
       _autoPasskeyCancelCompleter = cancelCompleter;
-      _isAutoPasskeyLoginInProgress = true;
     }
 
     state = await AsyncValue.guard(() async {
-      final ionIdentity = await ref.read(ionIdentityProvider.future);
-      final twoFATypes = [
-        for (final entry in (twoFaTypes ?? {}).entries)
-          TwoFaTypeAdapter(entry.key, entry.value).twoFAType,
-      ];
-
       try {
+        final ionIdentity = await ref.read(ionIdentityProvider.future);
+        final twoFATypes = [
+          for (final entry in (twoFaTypes ?? {}).entries)
+            TwoFaTypeAdapter(entry.key, entry.value).twoFAType,
+        ];
+
         final authStateBeforeLogin = await ref.read(authProvider.future);
         final previouslyAuthenticatedUsers = authStateBeforeLogin.authenticatedIdentityKeyNames;
 
@@ -137,11 +134,8 @@ class LoginActionNotifier extends _$LoginActionNotifier {
         );
         rethrow;
       } finally {
-        if (isAutoPasskey) {
-          if (identical(_autoPasskeyCancelCompleter, cancelCompleter)) {
-            _autoPasskeyCancelCompleter = null;
-          }
-          _isAutoPasskeyLoginInProgress = false;
+        if (cancelCompleter != null && identical(_autoPasskeyCancelCompleter, cancelCompleter)) {
+          _autoPasskeyCancelCompleter = null;
         }
       }
     });
