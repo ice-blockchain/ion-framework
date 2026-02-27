@@ -168,6 +168,8 @@ dependencies:
   pinenacl: ^0.6.0
   qr_code_scanner_plus: ^2.0.10+1
   qr_flutter: ^4.1.0
+  receive_sharing:
+    path: packages/receive_sharing
   riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   rxdart: ^0.28.0
