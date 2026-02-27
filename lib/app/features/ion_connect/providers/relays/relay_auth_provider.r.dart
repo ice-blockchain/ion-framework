@@ -110,13 +110,17 @@ class RelayAuthService {
   String? challenge;
 
   Future<void> initRelayAuth() async {
-    final signedAuthEvent = await createAuthEvent(
-      challenge: 'init',
-      relayUrl: Uri.parse(relay.url).toString(),
-    );
-
     try {
+      final signedAuthEvent = await createAuthEvent(
+        challenge: 'init',
+        relayUrl: Uri.parse(relay.url).toString(),
+      );
+
       await relay.sendEvents([signedAuthEvent]);
+    } on MainWalletNotFoundException catch (_) {
+      /// No active user to authenticate with
+      /// Skip initial relay auth
+      return;
     } catch (error) {
       if (isRelayAuthError(error)) {
         await authenticateRelay();
