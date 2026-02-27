@@ -480,13 +480,9 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   Future<void> _updateDerivedState() async {
-    // Cancel previous call if still running
-    if (_updateDerivedStateCompleter != null && !_updateDerivedStateCompleter!.isCompleted) {
-      _updateDerivedStateCompleter!.completeError(
-        StateError('Cancelled by newer _updateDerivedState call'),
-      );
-    }
-
+    // Replace any previous run's completer so it will see _updateDerivedStateCompleter != completer
+    // and exit early. We do not complete the previous completer with an error so that no unhandled
+    // async error is surfaced
     final completer = Completer<void>();
     _updateDerivedStateCompleter = completer;
 
