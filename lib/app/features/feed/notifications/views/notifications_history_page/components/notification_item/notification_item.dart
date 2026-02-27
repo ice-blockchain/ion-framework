@@ -171,8 +171,6 @@ class NotificationItem extends HookConsumerWidget {
         userStoriesViewingNotifierProvider(entity.masterPubkey),
       );
 
-      if (storyViewerState.isLoading) return;
-
       if (storyViewerState.isEmpty) {
         await ref
             .read(
