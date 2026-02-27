@@ -303,7 +303,7 @@ class AudioVolumeObserver: NSObject {
                 case AppDelegate.methodStartVideoEditorTrimmer:
                     let arguments = methodCall.arguments as? [String: Any]
                                     let trimmerVideoFilePath = arguments?["videoFilePath"] as? String
-                    let maxVideoDurationMs = arguments?["maxVideoDurationMs"] as? Int ?? 60000
+                    let maxVideoDurationMs = arguments?["maxVideoDurationMs"] as? Int ?? 1800000
                     let coverSelectionEnabled = arguments?["coverSelectionEnabled"] as? Bool ?? true
                     let maxVideoDurationSec = maxVideoDurationMs / 1000
                                     if let videoFilePath = trimmerVideoFilePath {
