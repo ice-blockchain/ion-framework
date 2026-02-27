@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/image_proccessor_notifier.m.dart';
 import 'package:ion/app/features/user/providers/update_user_metadata_notifier.r.dart';
@@ -47,6 +48,15 @@ class EditSubmitButton extends ConsumerWidget {
           final bannerFile = ref
               .read(imageProcessorNotifierProvider(ImageProcessingType.banner))
               .whenOrNull(processed: (file) => file);
+          final mediaToCheck = [
+            if (avatarFile != null) avatarFile,
+            if (bannerFile != null) bannerFile,
+          ];
+          if (mediaToCheck.isNotEmpty) {
+            final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, mediaToCheck);
+            if (!context.mounted || isBlocked) return;
+          }
+
           await ref
               .read(updateUserMetadataNotifierProvider.notifier)
               .publish(draftRef.value, avatar: avatarFile, banner: bannerFile);
