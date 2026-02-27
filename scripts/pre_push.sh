@@ -2,6 +2,21 @@
 
 printf "\e[33;1m%s\e[0m\n" 'Pre-Push'
 
+# Check Xcode Version
+XCODE_VERSION_FILE=".xcode-version"
+if [ -f "$XCODE_VERSION_FILE" ]; then
+  REQUIRED_VERSION=$(cat "$XCODE_VERSION_FILE" | tr -d '[:space:]')
+  CURRENT_VERSION=$(xcodebuild -version 2>/dev/null | head -1 | sed 's/Xcode //')
+  if [ "$CURRENT_VERSION" != "$REQUIRED_VERSION" ]; then
+    printf "\e[31;1m%s\e[0m\n" "=== Xcode version mismatch ==="
+    printf "\e[31;1m%s\e[0m\n" "Required: $REQUIRED_VERSION (from $XCODE_VERSION_FILE)"
+    printf "\e[31;1m%s\e[0m\n" "Current:  $CURRENT_VERSION"
+    printf "\e[31;1m%s\e[0m\n" "Please switch to Xcode $REQUIRED_VERSION to avoid project.pbxproj conflicts."
+    exit 1
+  fi
+  printf "\e[33;1m%s\e[0m\n" "Xcode version OK ($CURRENT_VERSION)"
+fi
+
 # Format Code
 printf "\e[33;1m%s\e[0m\n" '=== Format Code ==='
 melos run 4mat
