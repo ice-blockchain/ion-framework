@@ -1,9 +1,9 @@
-import Foundation
 import AVFoundation
-import BanubaVideoEditorSDK
 import BanubaAudioBrowserSDK
 import BanubaVideoEditorCore
+import BanubaVideoEditorSDK
 import Flutter
+import Foundation
 
 protocol VideoEditor {
     func initVideoEditor(token: String?, flutterResult: @escaping FlutterResult)
@@ -16,9 +16,11 @@ protocol VideoEditor {
 }
 
 class VideoEditorModule: VideoEditor {
-    
     private var videoEditorSDK: BanubaVideoEditor?
     private var flutterResult: FlutterResult?
+
+    // Maximum video duration in seconds (30 minutes)
+    private static let maxVideoDurationSeconds: Int = 1800
     
     // Use “true” if you want users could restore the last video editing session.
     private let restoreLastVideoEditingSession: Bool = false
@@ -37,15 +39,17 @@ class VideoEditorModule: VideoEditor {
         config.featureConfiguration.supportsTrimRecordedVideo = true
         config.featureConfiguration.draftsConfig = .disabled
         config.editorConfiguration.isVideoAspectFillEnabled = false
+        config.videoDurationConfiguration.maximumVideoDuration = TimeInterval(Self.maxVideoDurationSeconds)
+        config.videoDurationConfiguration.videoDurations = [TimeInterval(Self.maxVideoDurationSeconds)]
 
         // Make customization here
         
         videoEditorSDK = BanubaVideoEditor(
             token: token ?? "",
             // set argument .useEditorV2 to true to enable Editor V2
-            arguments: [.useEditorV2 : true],
+            arguments: [.useEditorV2: true],
             configuration: config,
-            externalViewControllerFactory: self.getAppDelegate().provideCustomViewFactory()
+            externalViewControllerFactory: getAppDelegate().provideCustomViewFactory()
         )
         
         if videoEditorSDK == nil {
@@ -92,7 +96,7 @@ class VideoEditorModule: VideoEditor {
     func openVideoEditorTrimmer(
         fromViewController controller: FlutterViewController,
         videoURL: URL,
-        maxVideoDuration: Int = 60,
+        maxVideoDuration: Int = maxVideoDurationSeconds,
         coverSelectionEnabled: Bool,
         flutterResult: @escaping FlutterResult
     ) {
@@ -116,7 +120,7 @@ class VideoEditorModule: VideoEditor {
         let height = abs(size.height)
         let aspectRatio = width / height
 
-        var config = videoEditorSDK?.currentConfiguration
+        var config = videoEditorSDK?.currentConfiguration  
         config?.videoEditorViewConfiguration.primaryAspectRatio = AspectRatio(videoAspectRatio: aspectRatio)
         config?.videoDurationConfiguration.maximumVideoDuration = TimeInterval(maxVideoDuration)
         config?.videoDurationConfiguration.videoDurations = [TimeInterval(maxVideoDuration)]
@@ -159,7 +163,6 @@ class VideoEditorModule: VideoEditor {
         }
     }
 
-
     func checkLicenseAndStartVideoEditor(with config: VideoEditorLaunchConfig, flutterResult: @escaping FlutterResult) {
         if videoEditorSDK == nil {
             flutterResult(FlutterError(code: AppDelegate.errEditorNotInitialized, message: "", details: nil))
@@ -168,8 +171,8 @@ class VideoEditorModule: VideoEditor {
         
         videoEditorSDK?.delegate = self
 
-        if self.restoreLastVideoEditingSession == false {
-            self.videoEditorSDK?.clearSessionData()
+        if restoreLastVideoEditingSession == false {
+            videoEditorSDK?.clearSessionData()
         }
 
         // Checking the license might take around 1 sec in the worst case.
@@ -200,8 +203,8 @@ class VideoEditorModule: VideoEditor {
     }
 }
 
-
 // MARK: - Export flow
+
 extension VideoEditorModule {
     func exportVideo() {
         let progressView = createProgressViewController()
@@ -246,7 +249,7 @@ extension VideoEditorModule {
         videoEditorSDK?.export(
             using: exportConfiguration,
             exportProgress: { [weak progressView] progress in progressView?.updateProgressView(with: Float(progress)) }
-        ) { [weak self] (error, coverImage) in
+        ) { [weak self] error, coverImage in
             // Export Callback
             DispatchQueue.main.async {
                 progressView.dismiss(animated: true) {
@@ -309,13 +312,14 @@ extension VideoEditorModule {
     }
 
     func createProgressViewController() -> ProgressViewController {
-      let progressViewController = ProgressViewController.makeViewController()
-      progressViewController.message = "Exporting"
-      return progressViewController
+        let progressViewController = ProgressViewController.makeViewController()
+        progressViewController.message = "Exporting"
+        return progressViewController
     }
 }
 
 // MARK: - BanubaVideoEditorSDKDelegate
+
 extension VideoEditorModule: BanubaVideoEditorDelegate {
     func videoEditorDidCancel(_ videoEditor: BanubaVideoEditor) {
         videoEditor.dismissVideoEditor(animated: true) {
