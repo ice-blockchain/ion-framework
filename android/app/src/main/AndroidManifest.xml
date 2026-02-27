@@ -201,6 +201,12 @@
                 <data
                     android:scheme="ionapptestnet" />
             </intent-filter>
+            <!-- Receive shared text from other apps (receive_sharing_intent) -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
         </activity>
         <activity android:name="com.android.camera.CropImage" />
         <activity

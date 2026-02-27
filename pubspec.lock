@@ -2459,6 +2459,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  receive_sharing:
+    dependency: "direct main"
+    description:
+      path: "packages/receive_sharing"
+      relative: true
+    source: path
+    version: "1.0.0"
+  receive_sharing_intent:
+    dependency: transitive
+    description:
+      path: "."
+      ref: master
+      resolved-ref: "2cea396843cd3ab1b5ec4334be4233864637874e"
+      url: "https://github.com/KasemJaffer/receive_sharing_intent.git"
+    source: git
+    version: "1.8.1"
   riverpod:
     dependency: "direct main"
     description:

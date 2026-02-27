@@ -10,6 +10,7 @@ import 'package:ion/app/features/debug/views/debug_rotate_gesture.dart';
 import 'package:ion/app/features/feed/global_notifications/helpers/feed_global_notifications_helper.dart';
 import 'package:ion/app/features/protect_account/secure_account/views/components/two_fa_signature_wrapper.dart';
 import 'package:ion/app/router/safe_hero_controller.dart';
+import 'package:ion/app/services/sharing_intent/shared_text_event.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_listener.dart';
 
 class AppRouterBuilder extends HookConsumerWidget {
@@ -28,6 +29,7 @@ class AppRouterBuilder extends HookConsumerWidget {
           setUpListeners: setupFeedGlobalNotificationsListeners,
           children: [
             const UiEventQueueListener(),
+            const ReceiveSharingIntentListener(),
             Expanded(
               child: DebugRotateGesture(
                 child: MessageNotificationWrapper(
