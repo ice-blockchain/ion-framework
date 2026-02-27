@@ -354,6 +354,8 @@ PODS:
     - MTBBarcodeScanner
   - quill_native_bridge_ios (0.0.1):
     - Flutter
+  - receive_sharing_intent (1.8.1):
+    - Flutter
   - SDWebImage (5.21.6):
     - SDWebImage/Core (= 5.21.6)
   - SDWebImage/Core (5.21.6)
@@ -485,6 +487,7 @@ DEPENDENCIES:
   - photo_manager (from `.symlinks/plugins/photo_manager/ios`)
   - qr_code_scanner_plus (from `.symlinks/plugins/qr_code_scanner_plus/ios`)
   - quill_native_bridge_ios (from `.symlinks/plugins/quill_native_bridge_ios/ios`)
+  - receive_sharing_intent (from `.symlinks/plugins/receive_sharing_intent/ios`)
   - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
   - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
@@ -635,6 +638,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/qr_code_scanner_plus/ios"
   quill_native_bridge_ios:
     :path: ".symlinks/plugins/quill_native_bridge_ios/ios"
+  receive_sharing_intent:
+    :path: ".symlinks/plugins/receive_sharing_intent/ios"
   sensors_plus:
     :path: ".symlinks/plugins/sensors_plus/ios"
   sentry_flutter:
@@ -745,6 +750,7 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   qr_code_scanner_plus: 7e087021bc69873140e0754750eb87d867bed755
   quill_native_bridge_ios: f47af4b14e7757968486641656c5d23250cee521
+  receive_sharing_intent: 222384f00ffe7e952bbfabaa9e3967cb87e5fe00
   SDWebImage: 1bb6a1b84b6fe87b972a102bdc77dd589df33477
   SecureBiometricSwift: f8a373c07fb46c9ca1b2b53be51a485d2828a3d8
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
@@ -767,6 +773,6 @@ SPEC CHECKSUMS:
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: 64ef296b4d5fb91d16ad0b71076f35698151163d
+PODFILE CHECKSUM: 68d7fbcd2b2f0c86c086158f62d8341ed84fff78
 
 COCOAPODS: 1.16.2

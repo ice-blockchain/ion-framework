@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:riverpod/riverpod.dart';
@@ -11,10 +10,6 @@ part 'shared_text_stream_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 Stream<String> sharedTextStream(Ref ref) {
-  if (!Platform.isAndroid) {
-    return const Stream.empty();
-  }
-
   final controller = StreamController<String>.broadcast();
 
   void emitTextFromMedia(List<SharedMediaFile> files) {
@@ -32,8 +27,7 @@ Stream<String> sharedTextStream(Ref ref) {
     }
   });
 
-  final subscription =
-      ReceiveSharingIntent.instance.getMediaStream().listen(emitTextFromMedia);
+  final subscription = ReceiveSharingIntent.instance.getMediaStream().listen(emitTextFromMedia);
 
   ref.onDispose(() {
     subscription.cancel();
