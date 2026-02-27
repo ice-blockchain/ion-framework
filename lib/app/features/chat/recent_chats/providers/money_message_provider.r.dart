@@ -1,29 +1,29 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/extensions/object.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/money_message/money_message_coin_resolver.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/money_message/money_message_display_resolver.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/money_message/money_message_event_extractors.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/money_message/money_message_models.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/wallets/data/repository/networks_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/request_assets_repository.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
+import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_data.f.dart';
-import 'package:ion/app/features/wallets/providers/coins_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion/app/utils/crypto.dart';
+import 'package:ion/app/features/wallets/providers/networks_provider.r.dart';
+import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
+import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'money_message_provider.r.g.dart';
-
-typedef MoneyDisplayData = ({String amount, String coin});
 
 @riverpod
 Stream<FundsRequestEntity?> fundsRequestForMessage(
@@ -46,7 +46,7 @@ Future<FundsRequestEntity?> fundsRequestEntityForEventMessage(
   EventMessage eventMessage,
 ) async {
   // Try to extract 1755 (FundsRequestEntity) from "payment-requested" tag
-  final requestEvent = _eventFromTag(
+  final requestEvent = eventMessageFromTag(
     eventMessage,
     ReplaceablePrivateDirectMessageData.paymentRequestedTagName,
   );
@@ -67,18 +67,8 @@ Future<MoneyDisplayData?> fundsRequestDisplayData(
     return null;
   }
 
-  final assetId = fundsRequest.data.content.assetId?.emptyOrValue;
-  final coin = await ref.watch(coinByIdProvider(assetId.emptyOrValue).future);
-  final amount = fundsRequest.data.content.amount?.let(double.parse);
-
-  if (coin == null || amount == null) {
-    return null;
-  }
-
-  return (
-    amount: formatCryptoFull(amount),
-    coin: coin.abbreviation,
-  );
+  final displayResolver = await ref.watch(moneyMessageDisplayResolverProvider.future);
+  return displayResolver.resolveFundsRequestDisplayData(fundsRequest);
 }
 
 @riverpod
@@ -94,7 +84,7 @@ Stream<TransactionData?> transactionDataForMessage(
     return;
   }
 
-  final txHash = _txHashFromPaymentSentTag(eventMessage);
+  final txHash = txHashFromPaymentSentTag(eventMessage);
 
   final transactionsRepository = await ref.watch(transactionsRepositoryProvider.future);
 
@@ -108,7 +98,7 @@ Stream<TransactionData?> transactionDataForMessage(
     txHashes: [txHash],
     limit: 1,
   ).map((transactions) {
-    final selected = _pickBestTransaction(
+    final selected = pickBestTransaction(
       eventId: eventReference.eventId,
       txHash: txHash,
       transactions: transactions,
@@ -120,7 +110,7 @@ Stream<TransactionData?> transactionDataForMessage(
     externalHashes: [txHash],
     limit: 1,
   ).map((transactions) {
-    final selected = _pickBestTransaction(
+    final selected = pickBestTransaction(
       eventId: eventReference.eventId,
       txHash: txHash,
       transactions: transactions,
@@ -141,28 +131,10 @@ Future<MoneyDisplayData?> transactionDisplayData(
   Ref ref,
   EventMessage eventMessage,
 ) async {
-  // Try to extract 1756 (WalletAssetEntity) from "payment-sent" tag
-  final walletAssetEvent = _eventFromTag(
-    eventMessage,
-    ReplaceablePrivateDirectMessageData.paymentSentTagName,
-  );
-  if (walletAssetEvent != null) {
-    final walletAssetEntity = WalletAssetEntity.fromEventMessage(walletAssetEvent);
-
-    final assetId = walletAssetEntity.data.content.assetId?.emptyOrValue;
-    final rawAmount = walletAssetEntity.data.content.amount?.emptyOrValue;
-
-    if (assetId != null && assetId.isNotEmpty && rawAmount != null && rawAmount.isNotEmpty) {
-      final coin = await ref.watch(coinByIdProvider(assetId).future);
-      if (coin != null) {
-        final normalizedAmount = fromBlockchainUnits(rawAmount, decimals: coin.decimals);
-        return (
-          amount: formatCryptoFull(normalizedAmount),
-          coin: coin.abbreviation,
-        );
-      }
-    }
-  }
+  final displayResolver = await ref.watch(moneyMessageDisplayResolverProvider.future);
+  final fromEmbedded =
+      await displayResolver.resolveMoneyDisplayDataFromPaymentSentTag(eventMessage);
+  if (fromEmbedded != null) return fromEmbedded;
 
   final transactionData = await ref.watch(transactionDataForMessageProvider(eventMessage).future);
 
@@ -175,72 +147,63 @@ Future<MoneyDisplayData?> transactionDisplayData(
 
   final amount = asset?.amount;
 
-  if (coin == null || amount == null) {
+  return displayResolver.buildMoneyDisplayData(
+    coin: coin,
+    amount: amount,
+  );
+}
+
+@riverpod
+Future<MoneyMessageDisplayResolver> moneyMessageDisplayResolver(Ref ref) async {
+  final coinResolver = MoneyMessageCoinResolver(
+    coinsService: await ref.watch(coinsServiceProvider.future),
+    networksRepository: ref.watch(networksRepositoryProvider),
+    ionIdentityClient: await ref.watch(ionIdentityClientProvider.future),
+    tokenAnalyticsClient: await ref.watch(ionTokenAnalyticsClientProvider.future),
+  );
+  return MoneyMessageDisplayResolver(coinResolver: coinResolver);
+}
+
+@riverpod
+Future<MoneyMessageFallbackUiData?> sentMoneyFallbackUiData(
+  Ref ref,
+  EventMessage eventMessage,
+) async {
+  final displayResolver = await ref.watch(moneyMessageDisplayResolverProvider.future);
+  return displayResolver.resolveSentMoneyFallbackUiData(eventMessage);
+}
+
+@riverpod
+Future<SentMoneyMessageUiData?> sentMoneyMessageUiData(
+  Ref ref,
+  EventMessage eventMessage,
+) async {
+  final transactionData = await ref.watch(transactionDataForMessageProvider(eventMessage).future);
+  final txAsset = transactionData?.cryptoAsset.mapOrNull(coin: (asset) => asset);
+
+  if (transactionData != null && txAsset != null) {
+    return (
+      transactionData: transactionData,
+      network: transactionData.network,
+      coin: txAsset.coin,
+      amount: txAsset.amount,
+      equivalentUsd: txAsset.amountUSD,
+    );
+  }
+
+  final sentMoneyUiFallbackData =
+      await ref.watch(sentMoneyFallbackUiDataProvider(eventMessage).future);
+  if (sentMoneyUiFallbackData == null) {
     return null;
   }
+
+  final network = await ref.watch(networkByIdProvider(sentMoneyUiFallbackData.networkId).future);
 
   return (
-    amount: formatCryptoFull(amount),
-    coin: coin.abbreviation,
+    transactionData: transactionData,
+    network: network,
+    coin: sentMoneyUiFallbackData.coin,
+    amount: sentMoneyUiFallbackData.amount,
+    equivalentUsd: sentMoneyUiFallbackData.equivalentUsd,
   );
-}
-
-EventMessage? _eventFromTag(EventMessage source, String tagName) {
-  try {
-    final tag = source.tags.firstWhereOrNull(
-      (t) => t.isNotEmpty && t.first == tagName,
-    );
-    if (tag != null && tag.length >= 2) {
-      final decoded = jsonDecode(tag[1]) as Map<String, dynamic>;
-      return EventMessage.fromPayloadJson(decoded);
-    }
-  } catch (e, stackTrace) {
-    Logger.error(
-      e,
-      stackTrace: stackTrace,
-      message: 'Failed to extract EventMessage from tag: $tagName',
-    );
-  }
-  return null;
-}
-
-/// Attempts to read the transaction hash from the "payment-sent" tag.
-/// Returns null if the tag is missing or malformed.
-String? _txHashFromPaymentSentTag(EventMessage eventMessage) {
-  final walletAssetEvent = _eventFromTag(
-    eventMessage,
-    ReplaceablePrivateDirectMessageData.paymentSentTagName,
-  );
-
-  if (walletAssetEvent == null) {
-    return null;
-  }
-
-  try {
-    final walletAssetEntity = WalletAssetEntity.fromEventMessage(walletAssetEvent);
-    return walletAssetEntity.data.content.txHash;
-  } catch (error, stackTrace) {
-    Logger.error(
-      error,
-      stackTrace: stackTrace,
-      message: 'Failed to parse wallet asset event for money message ${eventMessage.id}',
-    );
-    return null;
-  }
-}
-
-/// Chooses the most relevant transaction when several candidates are returned.
-TransactionData? _pickBestTransaction({
-  required String eventId,
-  required String txHash,
-  required List<TransactionData> transactions,
-}) {
-  if (transactions.isEmpty) {
-    return null;
-  }
-
-  return transactions.firstWhereOrNull((t) => t.eventId == eventId) ??
-      transactions.firstWhereOrNull((t) => t.externalHash == txHash) ??
-      transactions.firstWhereOrNull((t) => t.txHash == txHash) ??
-      transactions.firstOrNull;
 }

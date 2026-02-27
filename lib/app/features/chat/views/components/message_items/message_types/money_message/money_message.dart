@@ -137,32 +137,25 @@ class _SentMoneyMessage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMe = ref.watch(isCurrentUserSelectorProvider(eventReference.masterPubkey));
+    final uiData = ref.watch(sentMoneyMessageUiDataProvider(eventMessage)).value;
 
-    final transactionData = ref.watch(transactionDataForMessageProvider(eventMessage)).value;
-
-    if (transactionData == null) {
+    if (uiData == null) {
       return const SizedBox.shrink();
     }
-
-    final network = transactionData.network;
-    final asset = transactionData.cryptoAsset.mapOrNull(coin: (asset) => asset);
-
-    final coin = asset?.coin;
-
-    final amount = asset?.amount ?? 0.0;
-    final equivalentUsd = asset?.amountUSD ?? 0.0;
 
     return _MoneyMessageContent(
       isMe: isMe,
       margin: margin,
       type: MoneyMessageType.sent,
-      amount: amount,
-      equivalentUsd: equivalentUsd,
-      network: network,
-      coin: coin,
+      amount: uiData.amount,
+      equivalentUsd: uiData.equivalentUsd,
+      network: uiData.network,
+      coin: uiData.coin,
       eventMessage: eventMessage,
       eventId: eventReference.eventId,
-      button: ViewTransactionButton(transactionData: transactionData),
+      button: uiData.transactionData != null
+          ? ViewTransactionButton(transactionData: uiData.transactionData!)
+          : const SizedBox.shrink(),
       onTapReply: onTapReply,
     );
   }
