@@ -549,6 +549,39 @@ void main() {
         expect(cashtagTag.end, cashtagStart + cashtagContent.length);
       });
 
+      test('keeps emphasis wrappers around tokenized cashtag when styled', () async {
+        const externalAddress =
+            '0:fac47fea2160ae97f01f569525ad51995842a74a21c4ed810afaa6fea5938719:';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const beforeCashtag = 'cashtag ';
+        const cashtagContent = '${r'$'}ORIONF1 $tokenDefinitionAddress';
+        const afterCashtag = ' in italic text block';
+
+        final delta = Delta()
+          ..insert(beforeCashtag, {'italic': true})
+          ..insert(
+            cashtagContent,
+            {
+              'italic': true,
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert(afterCashtag, {'italic': true})
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.text, '$beforeCashtag$cashtagContent$afterCashtag\n');
+
+        final cashtagTag = result.tags.firstWhere(
+          (tag) => tag.replacement.contains('[${r'$'}ORIONF1]($externalAddress)'),
+        );
+
+        expect(cashtagTag.replacement, '*[${r'$'}ORIONF1]($externalAddress)*');
+      });
+
       test('converts images', () async {
         final delta = Delta()
           ..insert('Image: ')

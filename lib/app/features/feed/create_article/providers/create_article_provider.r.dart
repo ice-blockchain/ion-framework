@@ -543,7 +543,11 @@ class CreateArticle extends _$CreateArticle {
       })> _normalizeContentForStorage(Delta rawContent) async {
     final contentWithAttributes = DeltaBridge.normalizeToAttributeFormat(rawContent);
     final pmoPreparedContent = await _prepareContentForPmo(contentWithAttributes);
-    final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
+    final conversion = await convertDeltaToPmoTags(
+      pmoPreparedContent.toJson(),
+      includeMentionPmoTags: false,
+      includeCashtagEmphasisPmoTags: false,
+    );
     final markdown = _applyPmoTagsToContent(
       content: conversion.contentToSign,
       pmoTags: conversion.pmoTags,

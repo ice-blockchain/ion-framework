@@ -102,7 +102,65 @@ abstract class DeltaMarkdownConverter {
       pmoTags.add(PmoTag(start: currentIndex, end: currentIndex, replacement: '\n```'));
     }
 
-    return (text: buffer.toString(), tags: pmoTags);
+    return (text: buffer.toString(), tags: _mergeContiguousInlineEmphasisPmoTags(pmoTags));
+  }
+
+  static List<PmoTag> _mergeContiguousInlineEmphasisPmoTags(List<PmoTag> tags) {
+    if (tags.length < 2) {
+      return tags;
+    }
+
+    const emphasisWrapperPattern = r'^(\*\*\*|\*\*|\*)([\s\S]*)\1$';
+    final emphasisRegex = RegExp(emphasisWrapperPattern);
+
+    ({String marker, String inner})? parseWrapper(String replacement) {
+      final match = emphasisRegex.firstMatch(replacement);
+      if (match == null) {
+        return null;
+      }
+
+      final marker = match.group(1);
+      final inner = match.group(2);
+      if (marker == null || inner == null) {
+        return null;
+      }
+
+      return (marker: marker, inner: inner);
+    }
+
+    final merged = <PmoTag>[];
+
+    for (final tag in tags) {
+      if (merged.isEmpty) {
+        merged.add(tag);
+        continue;
+      }
+
+      final previous = merged.last;
+
+      if (previous.end == tag.start && previous.start < previous.end && tag.start < tag.end) {
+        final previousWrapper = parseWrapper(previous.replacement);
+        final currentWrapper = parseWrapper(tag.replacement);
+
+        if (previousWrapper != null &&
+            currentWrapper != null &&
+            previousWrapper.marker == currentWrapper.marker) {
+          final marker = previousWrapper.marker;
+          final mergedReplacement = '$marker${previousWrapper.inner}${currentWrapper.inner}$marker';
+
+          merged[merged.length - 1] = PmoTag(
+            start: previous.start,
+            end: tag.end,
+            replacement: mergedReplacement,
+          );
+          continue;
+        }
+      }
+
+      merged.add(tag);
+    }
+
+    return merged;
   }
 
   /// Merges consecutive string operations that have the same formatting attributes.
@@ -511,12 +569,14 @@ abstract class DeltaMarkdownConverter {
       }
     }
 
-    if (replacement != content) {
+    final normalizedReplacement = _normalizeMarkdownReplacement(replacement);
+
+    if (normalizedReplacement != content) {
       pmoTags.add(
         PmoTag(
           start: currentIndex,
           end: currentIndex + content.length,
-          replacement: replacement,
+          replacement: normalizedReplacement,
         ),
       );
     }
