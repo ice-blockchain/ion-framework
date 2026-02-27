@@ -297,7 +297,7 @@ class IonConnectNotifier extends _$IonConnectNotifier {
                 ? subscriptionBuilder(updatedRequestMessage, relay.key)
                 : ion.requestEvents(updatedRequestMessage, relay.key);
 
-            await for (final event in events) {
+            await for (final event in events.timeout(_defaultTimeout)) {
               // Note: The ion.requestEvents method automatically handles unsubscription for certain messages.
               // If the subscription needs to be retried or closed in response to a different message than those handled by ion.requestEvents,
               // then additional unsubscription logic should be implemented here.
