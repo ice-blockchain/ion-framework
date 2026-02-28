@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+// ignore_for_file: always_put_required_named_parameters_first
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/config/data/models/app_config_with_version.dart';
 
@@ -22,6 +24,7 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     @DurationMillisecondsConverter() required Duration topMaxAge,
     @DurationMillisecondsConverter() required Duration trendingMaxAge,
     @DurationMillisecondsConverter() required Duration exploreMaxAge,
+    @DurationMillisecondsConverter() @Default(Duration(days: 5)) Duration tokenizedCommunitiesMaxAge,
     @DurationMillisecondsConverter() required Duration repostThrottleDelay,
     required bool excludeUnclassifiedFromExplore,
     required double forYouMaxRetriesMultiplier,
@@ -29,12 +32,8 @@ class FeedConfig with _$FeedConfig implements AppConfigWithVersion {
     required double nsfwBlockThreshold,
     required double langDetectScoreThreshold,
     required String cdnBaseUrl,
-    @Default(true) bool allowNewRegistrations,
+    @Default('') String feeSponsorId,
     @Default(false) bool enableEarlyAccessRegistrations,
-    @Default(true) bool forceSecurityEnabled,
-    @DurationMillisecondsConverter()
-    @Default(Duration(days: 5))
-    Duration tokenizedCommunitiesMaxAge,
   }) = _FeedConfig;
 
   const FeedConfig._();

@@ -12,10 +12,6 @@ enum RegistrationRestrictionType { fullyAllowed, earlyAccessOnly, restricted }
 Future<RegistrationRestrictionType> registrationRestriction(Ref ref) async {
   final feedConfig = await ref.watch(feedConfigProvider.future);
 
-  if (feedConfig.allowNewRegistrations == false) {
-    return RegistrationRestrictionType.restricted;
-  }
-
   if (feedConfig.enableEarlyAccessRegistrations == true) {
     return RegistrationRestrictionType.earlyAccessOnly;
   }
