@@ -359,8 +359,8 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     final userEventsMetadataBuilder = await ref.read(userEventsMetadataBuilderProvider.future);
     metadataBuilders.add(userEventsMetadataBuilder);
 
-    // We don't create a token definition for replies and stories
-    if (parentEntity == null && postData.expiration == null) {
+    // We don't create a token definition for stories (replies are supported)
+    if (postData.expiration == null) {
       final currentPubkey = ref.read(currentPubkeySelectorProvider);
       // Prevent token definition creation for accounts protected from token operations
       if (currentPubkey != null &&

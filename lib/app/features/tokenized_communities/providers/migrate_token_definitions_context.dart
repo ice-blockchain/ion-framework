@@ -21,7 +21,8 @@ class MigrationContext {
   void processEvent(EventMessage event) {
     if (event.kind == ModifiablePostEntity.kind) {
       final entity = ModifiablePostEntity.fromEventMessage(event);
-      if ((entity.data.relatedEvents?.isEmpty ?? true) && !entity.isStory) {
+      // Include both root posts and replies (comments), but not stories.
+      if (!entity.isStory) {
         modifiablePosts.add(entity);
       }
     } else if (event.kind == PostEntity.kind) {

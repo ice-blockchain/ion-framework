@@ -71,12 +71,10 @@ class _TokenAvailability extends StatelessWidget {
     required this.available,
     required this.child,
     required this.isProtectedUser,
-    required this.isReply,
   });
 
   final bool available;
   final bool isProtectedUser;
-  final bool isReply;
   final Widget child;
 
   @override
@@ -90,11 +88,7 @@ class _TokenAvailability extends StatelessWidget {
               : () {
                   showSimpleBottomSheet<void>(
                     context: context,
-                    child: TokenCreationNotAvailableModal(
-                      type: isReply
-                          ? TokenCreationNotAvailableModalType.comments
-                          : TokenCreationNotAvailableModalType.noDefinition,
-                    ),
+                    child: const TokenCreationNotAvailableModal(),
                   );
                 },
       child: IgnorePointer(
@@ -221,15 +215,9 @@ class _ContentEntityButton extends ConsumerWidget {
 
     final externalAddressType = entity.externalAddressType;
 
-    var isReply = false;
-    if (entity is ModifiablePostEntity) {
-      isReply = (entity as ModifiablePostEntity).data.isReply;
-    }
-
     return _TokenAvailability(
-      available: isTokenCreationAvailable && !isProtected && !isReply,
+      available: isTokenCreationAvailable && !isProtected,
       isProtectedUser: isProtected,
-      isReply: isReply,
       child: _TokenButton(
         padding: padding,
         child: hasToken

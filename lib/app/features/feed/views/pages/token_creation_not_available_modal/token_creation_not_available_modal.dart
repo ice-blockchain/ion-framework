@@ -10,23 +10,10 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-enum TokenCreationNotAvailableModalType {
-  comments,
-  noDefinition;
-
-  String description(BuildContext context) => switch (this) {
-        comments => context.i18n.tokenized_community_not_available_comments_description,
-        noDefinition => context.i18n.tokenized_community_not_available_no_definition_description,
-      };
-}
-
 class TokenCreationNotAvailableModal extends StatelessWidget {
   const TokenCreationNotAvailableModal({
-    required this.type,
     super.key,
   });
-
-  final TokenCreationNotAvailableModalType type;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +29,7 @@ class TokenCreationNotAvailableModal extends StatelessWidget {
           child: InfoCard(
             iconAsset: Assets.svg.walletIconFeedCantcreatetoken,
             title: context.i18n.tokenized_community_not_available_title,
-            description: type.description(context),
+            description: context.i18n.tokenized_community_not_available_no_definition_description,
           ),
         ),
         ScreenSideOffset.small(
