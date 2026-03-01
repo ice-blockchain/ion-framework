@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/entities_list/list_cached_objects.dart';
 import 'package:ion/app/features/feed/views/components/community_token_live/components/feed_content_token.dart';
@@ -107,6 +108,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                   height: topContainerHeight,
                   coins: amount.value,
                   amount: amountUsd.value,
+                  externalAddress: externalAddress,
                 ),
               ),
               SizedBox(height: padding),
@@ -141,6 +143,8 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                 ),
           ],
         ),
+
+        // todo create a component
         PositionedDirectional(
           top: topContainerHeight - (badgeHeight - padding) / 2,
           height: badgeHeight,
@@ -166,6 +170,55 @@ class CommunityTokenActionBody extends HookConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class PriceLabel extends StatelessWidget {
+  const PriceLabel({
+    required this.type,
+    required this.tokenMarketInfo,
+    super.key,
+  });
+
+  final ProfileChartType type;
+  final CommunityToken? tokenMarketInfo;
+
+  @override
+  Widget build(BuildContext context) {
+    if (tokenMarketInfo == null) {
+      return Skeleton(
+        child: Container(
+          width: 75.0.s,
+          height: 21.0.s,
+          margin: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
+          decoration: ShapeDecoration(
+            color: type.getColor(context),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9.0.s)),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 22.0.s),
+      margin: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
+      decoration: ShapeDecoration(
+        color: type.getColor(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(9.0.s),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        tokenMarketInfo?.marketData.priceUSD != null
+            ? market_data_formatters.formatPriceWithSubscript(tokenMarketInfo!.marketData.priceUSD)
+            : '',
+        style: context.theme.appTextThemes.caption2.copyWith(
+          color: context.theme.appColors.primaryBackground,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }
