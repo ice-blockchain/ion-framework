@@ -64,7 +64,7 @@ class FeedContentToken extends StatelessWidget {
 
     return TokenCardBuilder(
       externalAddress: externalAddress,
-      skeleton: _Skeleton(type: type, showBuyButton: showBuyButton),
+      skeleton: _Skeleton(type: type, showBuyButton: showBuyButton, hasNotch: hasNotch),
       builder: (token, colors) {
         return SizedBox(
           width: double.infinity,
@@ -361,238 +361,246 @@ class _Skeleton extends StatelessWidget {
   const _Skeleton({
     required this.type,
     this.showBuyButton = true,
+    this.hasNotch = false,
   });
 
   final CommunityContentTokenType type;
   final bool showBuyButton;
-
+  final bool hasNotch;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsetsDirectional.only(top: 24.0.s),
-      margin: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s),
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: context.theme.appColors.tertiaryBackground,
-        borderRadius: BorderRadius.circular(12.0.s),
+    return ClipPath(
+      clipper: ShapeBorderClipper(
+        shape: BottomNotchRectBorder(
+          notchPosition: hasNotch ? NotchPosition.top : NotchPosition.none,
+        ),
       ),
-      child: Column(
-        children: [
-          if (type == CommunityContentTokenType.postImage)
-            Skeleton(
-              baseColor: context.theme.appColors.attentionBlock,
-              child: Column(
-                children: [
-                  Container(
-                    height: 96.s,
-                    width: 96.s,
-                    decoration: BoxDecoration(
-                      color: context.theme.appColors.attentionBlock,
-                      borderRadius: BorderRadius.circular(24.0.s),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else if (type == CommunityContentTokenType.postVideo ||
-              type == CommunityContentTokenType.article)
-            Skeleton(
-              baseColor: context.theme.appColors.attentionBlock,
-              child: Column(
-                children: [
-                  Container(
-                    height: 96.s,
-                    width: 163.s,
-                    decoration: BoxDecoration(
-                      color: context.theme.appColors.attentionBlock,
-                      borderRadius: BorderRadius.circular(24.0.s),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          if (type != CommunityContentTokenType.postText) SizedBox(height: 16.s),
-          Stack(
-            alignment: Alignment.bottomCenter,
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 288.s,
-                decoration: BoxDecoration(
-                  color: context.theme.appColors.onPrimaryAccent,
-                  borderRadius: BorderRadius.circular(16.0.s),
-                ),
-                padding: EdgeInsetsDirectional.fromSTEB(16.s, 20.s, 16.s, 27.5.s),
-                child: Skeleton(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            height: 30.s,
-                            width: 30.s,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.attentionBlock,
-                              borderRadius: BorderRadius.circular(12.0.s),
-                            ),
-                          ),
-                          SizedBox(width: 8.s),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                height: 19.s,
-                                width: 80.s,
-                                decoration: BoxDecoration(
-                                  color: context.theme.appColors.attentionBlock,
-                                  borderRadius: BorderRadius.circular(16.0.s),
-                                ),
-                              ),
-                              SizedBox(height: 4.s),
-                              Container(
-                                height: 12.s,
-                                width: 57.s,
-                                decoration: BoxDecoration(
-                                  color: context.theme.appColors.attentionBlock,
-                                  borderRadius: BorderRadius.circular(16.0.s),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Container(
-                            height: 18.s,
-                            width: 53.s,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.attentionBlock,
-                              borderRadius: BorderRadius.circular(6.0.s),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (type == CommunityContentTokenType.postText)
-                        Padding(
-                          padding: EdgeInsetsDirectional.only(top: 12.s),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 230.s,
-                                height: 12.s,
-                                decoration: BoxDecoration(
-                                  color: context.theme.appColors.attentionBlock,
-                                  borderRadius: BorderRadius.circular(12.0.s),
-                                ),
-                              ),
-                              SizedBox(height: 6.s),
-                              Container(
-                                width: 173.s,
-                                height: 12.s,
-                                decoration: BoxDecoration(
-                                  color: context.theme.appColors.attentionBlock,
-                                  borderRadius: BorderRadius.circular(12.0.s),
-                                ),
-                              ),
-                              SizedBox(height: 6.s),
-                              Container(
-                                width: 173.s,
-                                height: 12.s,
-                                decoration: BoxDecoration(
-                                  color: context.theme.appColors.attentionBlock,
-                                  borderRadius: BorderRadius.circular(12.0.s),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else if (type == CommunityContentTokenType.postVideo ||
-                          type == CommunityContentTokenType.article)
-                        Padding(
-                          padding: EdgeInsetsDirectional.only(top: 12.s),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 230.s,
-                                height: 21.s,
-                                decoration: BoxDecoration(
-                                  color: context.theme.appColors.attentionBlock,
-                                  borderRadius: BorderRadius.circular(12.0.s),
-                                ),
-                              ),
-                              SizedBox(height: 6.s),
-                              Container(
-                                width: 173.s,
-                                height: 21.s,
-                                decoration: BoxDecoration(
-                                  color: context.theme.appColors.attentionBlock,
-                                  borderRadius: BorderRadius.circular(12.0.s),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      SizedBox(height: 12.s),
-                      Container(
-                        width: double.infinity,
-                        height: 1.s,
+      child: Container(
+        padding: EdgeInsetsDirectional.only(top: 24.0.s),
+        margin: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: context.theme.appColors.tertiaryBackground,
+          borderRadius: BorderRadius.circular(12.0.s),
+        ),
+        child: Column(
+          children: [
+            if (type == CommunityContentTokenType.postImage)
+              Skeleton(
+                baseColor: context.theme.appColors.attentionBlock,
+                child: Column(
+                  children: [
+                    Container(
+                      height: 96.s,
+                      width: 96.s,
+                      decoration: BoxDecoration(
                         color: context.theme.appColors.attentionBlock,
+                        borderRadius: BorderRadius.circular(24.0.s),
                       ),
-                      SizedBox(height: 12.s),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 15.s,
-                            width: 64.s,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.attentionBlock,
-                              borderRadius: BorderRadius.circular(12.0.s),
-                            ),
-                          ),
-                          SizedBox(width: 13.s),
-                          Container(
-                            height: 15.s,
-                            width: 64.s,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.attentionBlock,
-                              borderRadius: BorderRadius.circular(12.0.s),
-                            ),
-                          ),
-                          SizedBox(width: 13.s),
-                          Container(
-                            height: 15.s,
-                            width: 64.s,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.attentionBlock,
-                              borderRadius: BorderRadius.circular(12.0.s),
-                            ),
-                          ),
-                        ],
+                    ),
+                  ],
+                ),
+              )
+            else if (type == CommunityContentTokenType.postVideo ||
+                type == CommunityContentTokenType.article)
+              Skeleton(
+                baseColor: context.theme.appColors.attentionBlock,
+                child: Column(
+                  children: [
+                    Container(
+                      height: 96.s,
+                      width: 163.s,
+                      decoration: BoxDecoration(
+                        color: context.theme.appColors.attentionBlock,
+                        borderRadius: BorderRadius.circular(24.0.s),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              PositionedDirectional(
-                bottom: -11.5.s,
-                child: Skeleton(
-                  baseColor: context.theme.appColors.attentionBlock,
-                  child: Container(
-                    width: 72.s,
-                    height: 23.s,
-                    decoration: BoxDecoration(
-                      color: context.theme.appColors.attentionBlock,
-                      borderRadius: BorderRadius.circular(16.0.s),
+            if (type != CommunityContentTokenType.postText) SizedBox(height: 16.s),
+            Stack(
+              alignment: Alignment.bottomCenter,
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 288.s,
+                  decoration: BoxDecoration(
+                    color: context.theme.appColors.onPrimaryAccent,
+                    borderRadius: BorderRadius.circular(16.0.s),
+                  ),
+                  padding: EdgeInsetsDirectional.fromSTEB(16.s, 20.s, 16.s, 27.5.s),
+                  child: Skeleton(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              height: 30.s,
+                              width: 30.s,
+                              decoration: BoxDecoration(
+                                color: context.theme.appColors.attentionBlock,
+                                borderRadius: BorderRadius.circular(12.0.s),
+                              ),
+                            ),
+                            SizedBox(width: 8.s),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  height: 19.s,
+                                  width: 80.s,
+                                  decoration: BoxDecoration(
+                                    color: context.theme.appColors.attentionBlock,
+                                    borderRadius: BorderRadius.circular(16.0.s),
+                                  ),
+                                ),
+                                SizedBox(height: 4.s),
+                                Container(
+                                  height: 12.s,
+                                  width: 57.s,
+                                  decoration: BoxDecoration(
+                                    color: context.theme.appColors.attentionBlock,
+                                    borderRadius: BorderRadius.circular(16.0.s),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            Container(
+                              height: 18.s,
+                              width: 53.s,
+                              decoration: BoxDecoration(
+                                color: context.theme.appColors.attentionBlock,
+                                borderRadius: BorderRadius.circular(6.0.s),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (type == CommunityContentTokenType.postText)
+                          Padding(
+                            padding: EdgeInsetsDirectional.only(top: 12.s),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 230.s,
+                                  height: 12.s,
+                                  decoration: BoxDecoration(
+                                    color: context.theme.appColors.attentionBlock,
+                                    borderRadius: BorderRadius.circular(12.0.s),
+                                  ),
+                                ),
+                                SizedBox(height: 6.s),
+                                Container(
+                                  width: 173.s,
+                                  height: 12.s,
+                                  decoration: BoxDecoration(
+                                    color: context.theme.appColors.attentionBlock,
+                                    borderRadius: BorderRadius.circular(12.0.s),
+                                  ),
+                                ),
+                                SizedBox(height: 6.s),
+                                Container(
+                                  width: 173.s,
+                                  height: 12.s,
+                                  decoration: BoxDecoration(
+                                    color: context.theme.appColors.attentionBlock,
+                                    borderRadius: BorderRadius.circular(12.0.s),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (type == CommunityContentTokenType.postVideo ||
+                            type == CommunityContentTokenType.article)
+                          Padding(
+                            padding: EdgeInsetsDirectional.only(top: 12.s),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 230.s,
+                                  height: 21.s,
+                                  decoration: BoxDecoration(
+                                    color: context.theme.appColors.attentionBlock,
+                                    borderRadius: BorderRadius.circular(12.0.s),
+                                  ),
+                                ),
+                                SizedBox(height: 6.s),
+                                Container(
+                                  width: 173.s,
+                                  height: 21.s,
+                                  decoration: BoxDecoration(
+                                    color: context.theme.appColors.attentionBlock,
+                                    borderRadius: BorderRadius.circular(12.0.s),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        SizedBox(height: 12.s),
+                        Container(
+                          width: double.infinity,
+                          height: 1.s,
+                          color: context.theme.appColors.attentionBlock,
+                        ),
+                        SizedBox(height: 12.s),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              height: 15.s,
+                              width: 64.s,
+                              decoration: BoxDecoration(
+                                color: context.theme.appColors.attentionBlock,
+                                borderRadius: BorderRadius.circular(12.0.s),
+                              ),
+                            ),
+                            SizedBox(width: 13.s),
+                            Container(
+                              height: 15.s,
+                              width: 64.s,
+                              decoration: BoxDecoration(
+                                color: context.theme.appColors.attentionBlock,
+                                borderRadius: BorderRadius.circular(12.0.s),
+                              ),
+                            ),
+                            SizedBox(width: 13.s),
+                            Container(
+                              height: 15.s,
+                              width: 64.s,
+                              decoration: BoxDecoration(
+                                color: context.theme.appColors.attentionBlock,
+                                borderRadius: BorderRadius.circular(12.0.s),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: showBuyButton ? 34.0.s : 12.0.s),
-        ],
+                PositionedDirectional(
+                  bottom: -11.5.s,
+                  child: Skeleton(
+                    baseColor: context.theme.appColors.attentionBlock,
+                    child: Container(
+                      width: 72.s,
+                      height: 23.s,
+                      decoration: BoxDecoration(
+                        color: context.theme.appColors.attentionBlock,
+                        borderRadius: BorderRadius.circular(16.0.s),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: showBuyButton ? 34.0.s : 12.0.s),
+          ],
+        ),
       ),
     );
   }
