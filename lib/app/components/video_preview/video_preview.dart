@@ -114,13 +114,12 @@ class VideoPreview extends HookConsumerWidget {
         if (controller == null || !controller.value.isInitialized) {
           return;
         }
-        final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
         final shouldBeActive = isFullyVisible.value && isRouteFocused.value;
 
         try {
           if (shouldBeActive && !controller.value.isPlaying) {
             controller.play();
-          } else if (!shouldBeActive && controller.value.isPlaying && isCurrentRoute) {
+          } else if (!shouldBeActive && controller.value.isPlaying) {
             controller.pause();
           }
         } catch (_) {
