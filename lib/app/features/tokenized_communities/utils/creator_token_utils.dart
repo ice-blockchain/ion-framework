@@ -35,7 +35,7 @@ class CreatorTokenUtils {
     final coinData = CoinData(
       id: externalAddress,
       contractAddress: contractAddress,
-      decimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
+      decimals: TokenizedCommunitiesConstants.communityTokenDecimals,
       iconUrl: token.imageUrl ?? '',
       name: token.title,
       network: network,

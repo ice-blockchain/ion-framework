@@ -407,7 +407,7 @@ class TokenTransactionService {
       '[TokenTransactionService] Creating minimal coin data from external address${isFirstBuy ? ' for first buy' : ''}',
     );
 
-    const tokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
+    const tokenDecimals = TokenizedCommunitiesConstants.communityTokenDecimals;
     final minimalCoin = CoinData(
       id: externalAddress,
       contractAddress: existingTokenAddress ?? '',

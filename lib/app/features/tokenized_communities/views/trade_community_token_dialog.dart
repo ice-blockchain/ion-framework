@@ -48,6 +48,7 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
@@ -87,8 +88,6 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     if (resolvedExternalAddressType == null) {
       return const SheetContent(body: SizedBox.shrink());
     }
-
-    final buttonError = useState<String?>(null);
 
     final params = (
       externalAddress: resolvedExternalAddress,
@@ -190,6 +189,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         : null;
 
     final communityGroup = state.communityTokenCoinsGroup;
+    final validationError = _getTradeValidationError(context, state);
 
     return SheetContent(
       body: KeyboardDismissOnTap(
@@ -203,10 +203,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             ),
             if (communityGroup != null)
               _TokenCards(
-                isError: buttonError.value != null,
-                onValidationError: (error) {
-                  buttonError.value = error;
-                },
+                isError: validationError != null,
                 state: state,
                 controller: controller,
                 communityAvatarWidget: communityAvatarWidget,
@@ -219,7 +216,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                 ),
               ),
             SizedBox(height: 29.0.s),
-            if (buttonError.value != null)
+            if (validationError != null)
               Padding(
                 padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s),
                 child: Row(
@@ -231,7 +228,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                     SizedBox(width: 5.0.s),
                     Expanded(
                       child: Text(
-                        buttonError.value!,
+                        validationError,
                         style: context.theme.appTextThemes.body2,
                       ),
                     ),
@@ -245,7 +242,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
               ),
             SizedBox(height: 16.0.s),
             ContinueButton(
-              isEnabled: _isContinueButtonEnabled(state) && buttonError.value == null,
+              isEnabled: _isContinueButtonEnabled(state) && validationError == null,
               onPressed: () => _handleButtonPress(
                 context,
                 ref,
@@ -270,18 +267,14 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   }
 
   bool _isBuyContinueButtonEnabled(TradeCommunityTokenState state) {
-    final selectedPaymentTokenAmount = state.paymentCoinsGroup?.coins
-            .firstWhereOrNull(
-              (CoinInWalletData c) => c.coin.network.id == state.selectedPaymentToken?.network.id,
-            )
-            ?.amount ??
-        0;
+    final selectedPaymentTokenAmount = _selectedPaymentTokenAmount(state);
 
     return state.amount > 0 &&
         state.targetWallet != null &&
         !state.isQuoting &&
         state.quotePricing != null &&
         state.selectedPaymentToken != null &&
+        selectedPaymentTokenAmount != null &&
         selectedPaymentTokenAmount >= state.amount;
   }
 
@@ -293,6 +286,53 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         state.quotePricing != null &&
         state.selectedPaymentToken != null &&
         state.communityTokenCoinsGroup != null;
+  }
+
+  String? _getTradeValidationError(BuildContext context, TradeCommunityTokenState state) {
+    if (state.amount <= 0) return null;
+
+    if (state.mode == CommunityTokenTradeMode.buy) {
+      final maxAmount = _selectedPaymentTokenAmount(state);
+      if (maxAmount == null) return null;
+
+      return _insufficientFundsError(
+        context: context,
+        amount: state.amount,
+        maxAmount: maxAmount,
+        decimals: state.selectedPaymentToken?.decimals ?? 0,
+        abbreviation:
+            state.selectedPaymentToken?.abbreviation ?? state.paymentCoinsGroup?.abbreviation ?? '',
+      );
+    }
+
+    return _insufficientFundsError(
+      context: context,
+      amount: state.amount,
+      maxAmount: state.communityTokenBalance,
+      decimals: TokenizedCommunitiesConstants.communityTokenDecimals,
+      abbreviation: state.communityTokenCoinsGroup?.abbreviation ?? '',
+    );
+  }
+
+  double? _selectedPaymentTokenAmount(TradeCommunityTokenState state) {
+    return state.paymentCoinsGroup?.coins
+        .firstWhereOrNull(
+          (CoinInWalletData c) => c.coin.network.id == state.selectedPaymentToken?.network.id,
+        )
+        ?.amount;
+  }
+
+  String? _insufficientFundsError({
+    required BuildContext context,
+    required double amount,
+    required double maxAmount,
+    required int decimals,
+    required String abbreviation,
+  }) {
+    final amountRaw = toBlockchainUnits(amount, decimals);
+    final maxAmountRaw = toBlockchainUnits(maxAmount, decimals);
+    if (amountRaw <= maxAmountRaw) return null;
+    return '${context.i18n.wallet_coin_amount_insufficient} $abbreviation'.trimRight();
   }
 
   Future<void> _showTokenSelectionSheet(
@@ -531,7 +571,6 @@ class _TokenCards extends HookConsumerWidget {
     required this.controller,
     required this.communityAvatarWidget,
     required this.onTokenTap,
-    required this.onValidationError,
     required this.isError,
   });
 
@@ -539,7 +578,6 @@ class _TokenCards extends HookConsumerWidget {
   final TradeCommunityTokenController controller;
   final Widget? communityAvatarWidget;
   final VoidCallback onTokenTap;
-  final ValueChanged<String?>? onValidationError;
   final bool isError;
 
   @override
@@ -547,7 +585,7 @@ class _TokenCards extends HookConsumerWidget {
     final bscNetwork = ref.watch(bscNetworkDataProvider).valueOrNull;
     final network = state.targetNetwork ?? bscNetwork;
     final mode = state.mode;
-    const creatorTokenDecimals = TokenizedCommunitiesConstants.creatorTokenDecimals;
+    const creatorTokenDecimals = TokenizedCommunitiesConstants.communityTokenDecimals;
     final amountController = useTextEditingController();
     final quoteController = useTextEditingController();
 
@@ -575,7 +613,7 @@ class _TokenCards extends HookConsumerWidget {
                     onTap: onTokenTap,
                     onPercentageChanged: controller.setAmountByPercentage,
                     skipAmountFormatting: true,
-                    onValidationError: onValidationError,
+                    skipValidation: true,
                     isError: isError,
                     formattedAmount: state.paymentTokenAmountUSDFormatted,
                   ),
@@ -613,8 +651,8 @@ class _TokenCards extends HookConsumerWidget {
                     showSelectButton: false,
                     onPercentageChanged: controller.setAmountByPercentage,
                     skipAmountFormatting: true,
+                    skipValidation: true,
                     showArrow: false,
-                    onValidationError: onValidationError,
                     onTap: () {},
                     isError: isError,
                     formattedAmount: state.communityTokenAmountUSDFormatted,

@@ -328,10 +328,10 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       // to avoid floating-point precision errors when converting from double
       final amountIn = useFullAmount && walletBalanceBigInt > BigInt.zero
           ? walletBalanceBigInt
-          : toBlockchainUnits(amount, TokenizedCommunitiesConstants.creatorTokenDecimals);
+          : toBlockchainUnits(amount, TokenizedCommunitiesConstants.communityTokenDecimals);
 
       Logger.info(
-        '[CommunityTokenTradeNotifier] Amount converted | amount=$amount | amountIn=$amountIn | useFullAmount=$useFullAmount | walletBalanceRaw=$walletBalanceRaw | usingRawBalance=${useFullAmount && walletBalanceBigInt > BigInt.zero} | decimals=${TokenizedCommunitiesConstants.creatorTokenDecimals}',
+        '[CommunityTokenTradeNotifier] Amount converted | amount=$amount | amountIn=$amountIn | useFullAmount=$useFullAmount | walletBalanceRaw=$walletBalanceRaw | usingRawBalance=${useFullAmount && walletBalanceBigInt > BigInt.zero} | decimals=${TokenizedCommunitiesConstants.communityTokenDecimals}',
       );
 
       Logger.info('[CommunityTokenTradeNotifier] Step 5: Getting trade service');
@@ -370,7 +370,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         paymentTokenTicker: token.abbreviation,
         paymentTokenDecimals: token.decimals,
         communityTokenAddress: communityTokenAddress,
-        tokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
+        tokenDecimals: TokenizedCommunitiesConstants.communityTokenDecimals,
         expectedPricing: expectedPricing,
         userActionSigner: signer,
         shouldSendEvents: formState.shouldSendEvents,

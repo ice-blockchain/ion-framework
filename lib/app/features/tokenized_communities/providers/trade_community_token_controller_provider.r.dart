@@ -715,7 +715,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
       // Pricing API expects amount in smallest units (wei).
       final amountDecimals = mode == CommunityTokenTradeMode.sell
-          ? TokenizedCommunitiesConstants.creatorTokenDecimals
+          ? TokenizedCommunitiesConstants.communityTokenDecimals
           : token.decimals;
 
       return TradeCommunityTokenQuoteRequest(
