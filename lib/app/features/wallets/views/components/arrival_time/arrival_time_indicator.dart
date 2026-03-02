@@ -19,43 +19,48 @@ class ArrivalTimeIndicator extends StatelessWidget {
     final textTheme = context.theme.appTextThemes;
     final locale = context.i18n;
     final text = option.type?.getDisplayName(context);
-    return Row(
-      children: [
-        if (text != null)
-          Text(
-            text,
-            style: textTheme.body2.copyWith(
-              color: colors.secondaryText,
+    return Container(
+      constraints: BoxConstraints(
+        minHeight: 28.0.s,
+      ),
+      child: Row(
+        children: [
+          if (text != null)
+            Text(
+              text,
+              style: textTheme.body2.copyWith(
+                color: colors.secondaryText,
+              ),
             ),
-          ),
-        if (option.arrivalTime?.inMinutes != null) ...[
-          SizedBox(width: 6.0.s),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 8.0.s,
-              vertical: 4.0.s,
-            ),
-            decoration: BoxDecoration(
-              color: colors.onSecondaryBackground,
-              borderRadius: BorderRadius.circular(15.0.s),
-            ),
-            child: Row(
-              children: [
-                Assets.svg.iconBlockTime.icon(
-                  size: 12.0.s,
-                ),
-                SizedBox(width: 5.0.s),
-                Text(
-                  '${option.arrivalTime?.inMinutes} ${locale.wallet_arrival_time_minutes}',
-                  style: textTheme.body2.copyWith(
-                    color: colors.primaryAccent,
+          if (option.arrivalTime?.inMinutes != null) ...[
+            SizedBox(width: 6.0.s),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 8.0.s,
+                vertical: 4.0.s,
+              ),
+              decoration: BoxDecoration(
+                color: colors.onSecondaryBackground,
+                borderRadius: BorderRadius.circular(15.0.s),
+              ),
+              child: Row(
+                children: [
+                  Assets.svg.iconBlockTime.icon(
+                    size: 12.0.s,
                   ),
-                ),
-              ],
+                  SizedBox(width: 5.0.s),
+                  Text(
+                    '${option.arrivalTime?.inMinutes} ${locale.wallet_arrival_time_minutes}',
+                    style: textTheme.body2.copyWith(
+                      color: colors.primaryAccent,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
