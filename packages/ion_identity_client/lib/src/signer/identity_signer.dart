@@ -96,6 +96,10 @@ class IdentitySigner {
     return passkeySigner.rejectToCreateLocalPasskeyCreds(username);
   }
 
+  Future<void> cancelCurrentPasskeyAuthentication() {
+    return passkeySigner.cancelCurrentAuthenticatorOperation();
+  }
+
   Future<void> enrollToUseBiometrics({
     required String username,
     required String password,

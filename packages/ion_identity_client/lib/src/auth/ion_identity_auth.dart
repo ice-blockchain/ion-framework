@@ -97,6 +97,10 @@ class IONIdentityAuth {
         cancel: cancel,
       );
 
+  Future<void> cancelCurrentPasskeyAuthentication() {
+    return identitySigner.cancelCurrentPasskeyAuthentication();
+  }
+
   Future<void> logOut() => logoutService.logOut();
 
   Future<void> deleteUser({required String base64Kind5Event}) =>

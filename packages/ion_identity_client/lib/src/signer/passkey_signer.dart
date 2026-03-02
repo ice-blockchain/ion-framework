@@ -51,7 +51,7 @@ class PasskeysSigner {
 
   final IonIdentityLogger? logger;
 
-  Future<void> _cancelCurrentAuthenticatorOperation() async {
+  Future<void> cancelCurrentAuthenticatorOperation() async {
     try {
       await PasskeyAuthenticator().cancelCurrentAuthenticatorOperation();
     } catch (_) {
@@ -74,7 +74,7 @@ class PasskeysSigner {
       return await future.timeout(
         timeout,
         onTimeout: () {
-          unawaited(_cancelCurrentAuthenticatorOperation());
+          unawaited(cancelCurrentAuthenticatorOperation());
           throw TimeoutException(
             'Passkey signer timed out after ${timeout.inSeconds} seconds',
           );
