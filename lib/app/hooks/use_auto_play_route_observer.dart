@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:video_player/video_player.dart';
 
+void _afterFrame(VoidCallback action) {
+  WidgetsBinding.instance.addPostFrameCallback((_) => action());
+}
+
 void useAutoPlayRouteObserver(
   VideoPlayerController? controller, {
   RouteObserver<ModalRoute<void>>? routeObserver,
@@ -14,25 +18,21 @@ void useAutoPlayRouteObserver(
   useEffect(
     () {
       final observer = _RouteObserverCallback(
-        didPushNextCallback: () => controller?.pause(),
-        didPopNextCallback: () => controller?.play(),
+        didPushNextCallback: () => _afterFrame(() => controller?.pause()),
+        didPopNextCallback: () => _afterFrame(() => controller?.play()),
       );
 
       if (routeObserver != null && route is ModalRoute<void>) {
         routeObserver.subscribe(observer, route);
       }
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller?.play();
-      });
+      _afterFrame(() => controller?.play());
 
       return () {
         if (routeObserver != null) {
           routeObserver.unsubscribe(observer);
         }
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          controller?.pause();
-        });
+        _afterFrame(() => controller?.pause());
       };
     },
     [controller, routeObserver, route],

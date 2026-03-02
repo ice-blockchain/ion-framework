@@ -219,9 +219,10 @@ class VideoController extends _$VideoController {
 
   /// Save the position when the video is paused or finishes.
   void _savePlayerPosition(VideoPlayerController controller, String sourcePath) {
-    ref
-        .watch(videoPlayerPositionDataProvider.notifier)
-        .savePosition(sourcePath, controller.value.position.inMilliseconds);
+    final position = controller.value.position.inMilliseconds;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(videoPlayerPositionDataProvider.notifier).savePosition(sourcePath, position);
+    });
   }
 
   Future<void> _seekToSavedPosition(VideoPlayerController controller, String sourcePath) async {
