@@ -72,26 +72,22 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
       RegExp(
         '${tagRegex('username').pattern}|${tagRegex('relatedUsername').pattern}|${tagRegex('purple', isSingular: false).pattern}',
       ),
-      (match, index) {
-        if (match.namedGroup('username') != null) {
-          return buildUsernameTextSpan(
+      (match, index) => switch (true) {
+        _ when match.namedGroup('username') != null => buildUsernameTextSpan(
             context,
             userData: launchDefinitionAuthorData.data,
             recognizer: launchDefinitionAuthorRecognizer,
-          );
-        } else if (match.namedGroup('relatedUsername') != null) {
-          return buildUsernameTextSpan(
+          ),
+        _ when match.namedGroup('relatedUsername') != null => buildUsernameTextSpan(
             context,
             userData: tokenOwnerData.data,
             recognizer: tokenOwnerRecognizer,
-          );
-        } else if (match.namedGroup('purple') != null) {
-          return TextSpan(
+          ),
+        _ when match.namedGroup('purple') != null => TextSpan(
             text: match.namedGroup('purple'),
             style: context.theme.appTextThemes.body.copyWith(color: context.theme.appColors.purple),
-          );
-        }
-        return const TextSpan(text: '');
+          ),
+        _ => const TextSpan(text: ''),
       },
     );
 

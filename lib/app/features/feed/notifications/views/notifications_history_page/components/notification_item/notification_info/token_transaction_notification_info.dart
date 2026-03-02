@@ -81,48 +81,58 @@ class TokenTransactionNotificationInfo extends HookConsumerWidget {
     };
 
     final textSpan = replaceString(
-      description,
-      RegExp(
-        '${tagRegex('username').pattern}|${tagRegex('relatedUsername').pattern}|${tagRegex('green', isSingular: false).pattern}|${tagRegex('red', isSingular: false).pattern}|${tagRegex('amount').pattern}',
-      ),
-      (match, index) {
-        if (match.namedGroup('username') != null) {
-          return buildUsernameTextSpan(
-            context,
-            userData: actionAuthorData.data,
-            recognizer: actionAuthorRecognizer,
-          );
-        } else if (match.namedGroup('relatedUsername') != null) {
-          return buildUsernameTextSpan(
-            context,
-            userData: tokenOwnerData.data,
-            recognizer: tokenOwnerRecognizer,
-          );
-        } else if (match.namedGroup('green') != null) {
-          return TextSpan(
-            text: match.namedGroup('green'),
-            style:
-                context.theme.appTextThemes.body.copyWith(color: context.theme.appColors.success),
-          );
-        } else if (match.namedGroup('red') != null) {
-          return TextSpan(
-            text: match.namedGroup('red'),
-            style: context.theme.appTextThemes.body
-                .copyWith(color: context.theme.appColors.attentionRed),
-          );
-        } else if (match.namedGroup('amount') != null) {
-          if (actionEntity case CommunityTokenActionEntity(:final data)) {
-            final coins = data.getTokenAmount()?.value ?? 0.0;
-            return TextSpan(
-              text: coins >= 1 ? formatCount(coins.toInt()) : coins.toString(),
-              style: context.theme.appTextThemes.body
-                  .copyWith(color: context.theme.appColors.primaryText),
+        description,
+        RegExp(
+          '${tagRegex('username').pattern}|${tagRegex('relatedUsername').pattern}|${tagRegex('green', isSingular: false).pattern}|${tagRegex('red', isSingular: false).pattern}|${tagRegex('amount').pattern}',
+        ), (match, index) {
+      switch (true) {
+        case _ when match.namedGroup('username') != null:
+          {
+            return buildUsernameTextSpan(
+              context,
+              userData: actionAuthorData.data,
+              recognizer: actionAuthorRecognizer,
             );
           }
-        }
-        return const TextSpan(text: '');
-      },
-    );
+        case _ when match.namedGroup('relatedUsername') != null:
+          {
+            return buildUsernameTextSpan(
+              context,
+              userData: tokenOwnerData.data,
+              recognizer: tokenOwnerRecognizer,
+            );
+          }
+        case _ when match.namedGroup('green') != null:
+          {
+            return TextSpan(
+              text: match.namedGroup('green'),
+              style:
+                  context.theme.appTextThemes.body.copyWith(color: context.theme.appColors.success),
+            );
+          }
+        case _ when match.namedGroup('red') != null:
+          {
+            return TextSpan(
+              text: match.namedGroup('red'),
+              style: context.theme.appTextThemes.body
+                  .copyWith(color: context.theme.appColors.attentionRed),
+            );
+          }
+        case _ when match.namedGroup('amount') != null:
+          {
+            if (actionEntity case CommunityTokenActionEntity(:final data)) {
+              final coins = data.getTokenAmount()?.value ?? 0.0;
+              return TextSpan(
+                text: coins >= 1 ? formatCount(coins.toInt()) : coins.toString(),
+                style: context.theme.appTextThemes.body
+                    .copyWith(color: context.theme.appColors.primaryText),
+              );
+            }
+          }
+        default:
+          return const TextSpan(text: '');
+      }
+    });
 
     return NotificationInfoText(
       textSpan: textSpan,
