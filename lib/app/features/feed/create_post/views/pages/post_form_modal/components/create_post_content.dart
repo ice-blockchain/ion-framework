@@ -25,11 +25,8 @@ import 'package:ion/app/features/feed/create_post/views/pages/post_form_modal/ho
 import 'package:ion/app/features/feed/data/models/feed_type.dart';
 import 'package:ion/app/features/feed/polls/providers/poll_draft_provider.r.dart';
 import 'package:ion/app/features/feed/polls/view/components/poll.dart';
-import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/views/components/url_preview_content/url_preview_content.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/typedefs/typedefs.dart';
 
@@ -310,15 +307,16 @@ class _QuotedEntitySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entity =
-        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
-    final isTc = entity is CommunityTokenDefinitionEntity || entity is CommunityTokenActionEntity;
+    // final entity =
+    //     ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+    // TODO: add check after release TC
+    // final isTc = entity is CommunityTokenDefinitionEntity || entity is CommunityTokenActionEntity;
 
     final closeButton = isFromOneLink
         ? QuoteCloseButton(
-            isTc: isTc,
             onTap: () =>
                 ref.read(oneLinkResolvedQuoteNotifierProvider.notifier).resolvedQuote = null,
+            isTc: false,
           )
         : null;
 
