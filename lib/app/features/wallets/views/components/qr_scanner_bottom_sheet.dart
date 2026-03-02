@@ -76,7 +76,7 @@ class QRScannerBottomSheet extends HookConsumerWidget {
                 Container(
                   width: double.infinity,
                   height: double.infinity,
-                  color: context.theme.appColors.asphalt,
+                  color: context.theme.appColors.forest,
                 ),
               Align(
                 alignment: Alignment.bottomCenter,
