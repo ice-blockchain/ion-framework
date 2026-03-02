@@ -24,9 +24,11 @@ class NetworkSelectorNotifier extends _$NetworkSelectorNotifier {
       ...wrappedNetworks,
     ];
 
+    // Get previous selection from state (safe with valueOrNull in async providers)
     final previousState = state.valueOrNull;
     final previousSelection = previousState?.selected;
 
+    // Preserve previous selection if it's still valid, otherwise use first item
     final selectedItem = previousSelection != null && items.contains(previousSelection)
         ? previousSelection
         : items.first;

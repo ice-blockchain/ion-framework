@@ -57,12 +57,8 @@ class CoinDetailsPage extends HookConsumerWidget {
       networkSelectorNotifierProvider(symbolGroup: symbolGroup)
           .select((s) => s.valueOrNull?.selected),
     );
-    final selectedNetworkNotifier = useState<SelectedNetworkItem?>(null);
 
-    // Sync optimistic selection with provider state for UI consistency.
-    // This is needed for the optimistic UI pattern: when user taps a network,
-    // we update selectedNetworkNotifier immediately for instant feedback,
-    // then the provider updates asynchronously. This effect keeps them in sync.
+    final selectedNetworkNotifier = useState<SelectedNetworkItem?>(null);
     useEffect(
       () {
         selectedNetworkNotifier.value = providerNetwork;
@@ -178,6 +174,7 @@ class CoinDetailsPage extends HookConsumerWidget {
               ..invalidate(walletViewsDataNotifierProvider)
               ..invalidate(coinTransactionHistoryNotifierProvider(symbolGroup: symbolGroup));
 
+            // Sync transactions for this specific coin across all network
             final syncService = await ref.read(syncTransactionsServiceProvider.future);
             await syncService.syncCoinTransactions(symbolGroup);
           },

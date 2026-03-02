@@ -21,10 +21,7 @@ part 'balance_provider.r.g.dart';
 
 @riverpod
 class CoinBalanceNotifier extends _$CoinBalanceNotifier {
-  Map<String, CoinBalanceState> _networkBalanceCache = {};
-  List<CoinInWalletData>? _cachedCoins;
   final Set<String> _loadedDisconnectedWalletIds = {};
-  bool _isInitialized = false;
 
   @override
   Future<CoinBalanceAllNetworksState> build({required String symbolGroup}) async {
@@ -35,18 +32,16 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     );
     final networkKey = currentNetwork?.id ?? CoinBalanceAllNetworksState.allNetworksKey;
 
-    if (_isInitialized && _networkBalanceCache.containsKey(networkKey)) {
+    final existingState = state.valueOrNull;
+    if (existingState != null && existingState.balancesByNetwork.containsKey(networkKey)) {
       return CoinBalanceAllNetworksState(
-        balancesByNetwork: Map.unmodifiable(_networkBalanceCache),
+        balancesByNetwork: existingState.balancesByNetwork,
         selectedNetworkKey: networkKey,
       );
     }
 
-    if (!_isInitialized) {
-      _cachedCoins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
-      _preCalculateAllNetworkBalances();
-      _isInitialized = true;
-    }
+    final coins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
+    final balances = _calculateAllNetworkBalances(coins);
 
     ref
       ..listen(
@@ -55,22 +50,9 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
           final updatedCoins = next.valueOrNull;
           if (updatedCoins == null) return;
 
-          _cachedCoins = updatedCoins;
-          _preCalculateAllNetworkBalances();
-
-          final currentNetworkKey = ref
-                  .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup))
-                  .valueOrNull
-                  ?.selected
-                  .whenOrNull(network: (network) => network.id) ??
-              CoinBalanceAllNetworksState.allNetworksKey;
-
-          state = AsyncData(
-            CoinBalanceAllNetworksState(
-              balancesByNetwork: Map.unmodifiable(_networkBalanceCache),
-              selectedNetworkKey: currentNetworkKey,
-            ),
-          );
+          _loadedDisconnectedWalletIds.clear();
+          final newBalances = _calculateAllNetworkBalances(updatedCoins);
+          _emitState(newBalances, symbolGroup);
         },
         fireImmediately: true,
       )
@@ -88,43 +70,52 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
       );
 
     return CoinBalanceAllNetworksState(
-      balancesByNetwork: Map.unmodifiable(_networkBalanceCache),
+      balancesByNetwork: Map.unmodifiable(balances),
       selectedNetworkKey: networkKey,
     );
   }
 
-  void _preCalculateAllNetworkBalances() {
-    if (_cachedCoins == null) return;
+  Map<String, CoinBalanceState> _calculateAllNetworkBalances(List<CoinInWalletData> coins) {
+    final balances = <String, CoinBalanceState>{};
 
-    _networkBalanceCache = {};
-    _loadedDisconnectedWalletIds.clear();
+    balances[CoinBalanceAllNetworksState.allNetworksKey] = _calculateBalance(null, coins);
 
-    _networkBalanceCache[CoinBalanceAllNetworksState.allNetworksKey] =
-        _calculateConnectedBalance(null, _cachedCoins);
-
-    final networks = _cachedCoins!.map((c) => c.coin.network).toSet();
+    final networks = coins.map((c) => c.coin.network).toSet();
     for (final network in networks) {
-      _networkBalanceCache[network.id] = _calculateConnectedBalance(network, _cachedCoins);
+      balances[network.id] = _calculateBalance(network, coins);
     }
+
+    return balances;
   }
 
-  CoinBalanceState _calculateConnectedBalance(
-    NetworkData? currentNetwork,
-    List<CoinInWalletData>? coins,
-  ) {
-    final coinsList = coins ?? <CoinInWalletData>[];
-
+  CoinBalanceState _calculateBalance(NetworkData? network, List<CoinInWalletData> coins) {
     var totalAmount = 0.0;
     var totalBalanceUSD = 0.0;
 
-    for (final coin in coinsList) {
-      if (currentNetwork == null || coin.coin.network.id == currentNetwork.id) {
+    for (final coin in coins) {
+      if (network == null || coin.coin.network.id == network.id) {
         totalAmount += coin.amount;
         totalBalanceUSD += coin.balanceUSD;
       }
     }
 
     return CoinBalanceState(amount: totalAmount, balanceUSD: totalBalanceUSD);
+  }
+
+  void _emitState(Map<String, CoinBalanceState> balances, String symbolGroup) {
+    final networkKey = ref
+            .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup))
+            .valueOrNull
+            ?.selected
+            .whenOrNull(network: (network) => network.id) ??
+        CoinBalanceAllNetworksState.allNetworksKey;
+
+    state = AsyncData(
+      CoinBalanceAllNetworksState(
+        balancesByNetwork: Map.unmodifiable(balances),
+        selectedNetworkKey: networkKey,
+      ),
+    );
   }
 
   Future<void> _loadDisconnectedWalletBalance({
@@ -137,43 +128,31 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     try {
       final client = await ref.read(ionIdentityClientProvider.future);
       final coins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
-      final coin = coins.firstWhereOrNull((coin) => coin.coin.network.id == wallet.network)?.coin;
+      final coin = coins.firstWhereOrNull((c) => c.coin.network.id == wallet.network)?.coin;
 
-      if (coin != null) {
-        final balance = await _loadWalletBalance(
-          client: client,
-          wallet: wallet,
-          coin: coin,
-        );
+      if (coin == null) return;
 
-        final existingNetworkBalance =
-            _networkBalanceCache[wallet.network] ?? const CoinBalanceState();
-        _networkBalanceCache[wallet.network] = CoinBalanceState(
-          amount: existingNetworkBalance.amount + balance.amount,
-          balanceUSD: existingNetworkBalance.balanceUSD + balance.balanceUSD,
-        );
+      final balance = await _loadWalletBalance(client: client, wallet: wallet, coin: coin);
 
-        final allBalance = _networkBalanceCache[CoinBalanceAllNetworksState.allNetworksKey] ??
-            const CoinBalanceState();
-        _networkBalanceCache[CoinBalanceAllNetworksState.allNetworksKey] = CoinBalanceState(
-          amount: allBalance.amount + balance.amount,
-          balanceUSD: allBalance.balanceUSD + balance.balanceUSD,
-        );
+      final currentBalances = state.valueOrNull?.balancesByNetwork;
+      if (currentBalances == null) return;
 
-        final currentNetworkKey = ref
-                .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup))
-                .valueOrNull
-                ?.selected
-                .whenOrNull(network: (network) => network.id) ??
-            CoinBalanceAllNetworksState.allNetworksKey;
+      final newBalances = Map<String, CoinBalanceState>.from(currentBalances);
 
-        state = AsyncData(
-          CoinBalanceAllNetworksState(
-            balancesByNetwork: Map.unmodifiable(_networkBalanceCache),
-            selectedNetworkKey: currentNetworkKey,
-          ),
-        );
-      }
+      final existingNetworkBalance = newBalances[wallet.network] ?? const CoinBalanceState();
+      newBalances[wallet.network] = CoinBalanceState(
+        amount: existingNetworkBalance.amount + balance.amount,
+        balanceUSD: existingNetworkBalance.balanceUSD + balance.balanceUSD,
+      );
+
+      final allBalance =
+          newBalances[CoinBalanceAllNetworksState.allNetworksKey] ?? const CoinBalanceState();
+      newBalances[CoinBalanceAllNetworksState.allNetworksKey] = CoinBalanceState(
+        amount: allBalance.amount + balance.amount,
+        balanceUSD: allBalance.balanceUSD + balance.balanceUSD,
+      );
+
+      _emitState(newBalances, symbolGroup);
     } catch (e, st) {
       Logger.error('Failed to load disconnected wallet balance: $e', stackTrace: st);
     }

@@ -12,10 +12,6 @@ part 'selected_crypto_wallet_notifier.r.g.dart';
 
 @riverpod
 class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
-  // These cache variables are intentionally non-final. Riverpod doesn't recreate
-  // the notifier instance when dependencies change - it only calls build() again.
-  // The cache persists across provider rebuilds, enabling instant wallet switching
-  // without re-fetching data from providers.
   List<Wallet>? _cachedConnectedWallets;
   List<Wallet>? _cachedAllWallets;
   String? _cachedWalletViewId;
