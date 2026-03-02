@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_items_loading_state/list_items_loading_state.dart';
+import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -25,63 +26,48 @@ class AddBookmarkModal extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookmarksCollections = ref.watch(feedBookmarkCollectionsNotifierProvider);
+
     return SheetContent(
+      bottomPadding: 0,
       body: ScreenSideOffset.small(
-        child: CustomScrollView(
-          shrinkWrap: true,
-          slivers: bookmarksCollections.when(
-            data: (data) {
-              final collectionsDTags = data
-                  .map((eventReference) => eventReference.dTag)
-                  .whereType<String>()
-                  .where((dTag) => dTag != BookmarksSetType.homeFeedCollectionsAll.dTagName)
-                  .toList();
-              return [
-                SliverToBoxAdapter(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(height: 24.0.s),
-                      BookmarksCollectionTile(
-                        eventReference: eventReference,
-                        collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
-                      ),
-                      SizedBox(height: 16.0.s),
-                      const HorizontalSeparator(),
-                      if (collectionsDTags.isNotEmpty) SizedBox(height: 16.0.s),
-                    ],
-                  ),
+        child: bookmarksCollections.when(
+          data: (data) {
+            final collectionsDTags = data
+                .map((eventReference) => eventReference.dTag)
+                .whereType<String>()
+                .where((dTag) => dTag != BookmarksSetType.homeFeedCollectionsAll.dTagName)
+                .toList();
+
+            return ListView(
+              children: [
+                SizedBox(height: 24.0.s),
+                BookmarksCollectionTile(
+                  eventReference: eventReference,
+                  collectionDTag: BookmarksSetType.homeFeedCollectionsAll.dTagName,
                 ),
-                SliverList.separated(
-                  itemCount: collectionsDTags.length,
-                  separatorBuilder: (BuildContext context, int index) => SizedBox(height: 16.0.s),
-                  itemBuilder: (BuildContext context, int index) {
-                    return BookmarksCollectionTile(
-                      key: ValueKey(collectionsDTags[index]),
+                SizedBox(height: 16.0.s),
+                const HorizontalSeparator(),
+                if (collectionsDTags.isNotEmpty) SizedBox(height: 16.0.s),
+                ...collectionsDTags.map(
+                  (dTag) => Padding(
+                    padding: EdgeInsetsDirectional.only(bottom: 16.0.s),
+                    child: BookmarksCollectionTile(
+                      key: ValueKey(dTag),
                       eventReference: eventReference,
-                      collectionDTag: collectionsDTags[index],
-                    );
-                  },
-                ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const NewBookmarksCollectionButton(),
-                      SizedBox(height: 16.0.s),
-                    ],
+                      collectionDTag: dTag,
+                    ),
                   ),
                 ),
-              ];
-            },
-            error: (error, stackTrace) => [const SliverFillRemaining(child: SizedBox())],
-            loading: () => [
-              ListItemsLoadingState(
-                itemHeight: 60.0.s,
-                itemsCount: 3,
-                listItemsLoadingStateType: ListItemsLoadingStateType.scrollView,
-              ),
-            ],
+                const NewBookmarksCollectionButton(),
+                ScreenBottomOffset(),
+              ],
+            );
+          },
+          error: (error, stackTrace) => const Center(child: SizedBox()),
+          loading: () => ListItemsLoadingState(
+            itemHeight: 60.0.s,
+            itemsCount: 3,
+            listItemsLoadingStateType: ListItemsLoadingStateType.listView,
           ),
         ),
       ),
