@@ -221,7 +221,11 @@ class VideoController extends _$VideoController {
   void _savePlayerPosition(VideoPlayerController controller, String sourcePath) {
     final position = controller.value.position.inMilliseconds;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(videoPlayerPositionDataProvider.notifier).savePosition(sourcePath, position);
+      try {
+        ref.read(videoPlayerPositionDataProvider.notifier).savePosition(sourcePath, position);
+      } catch (_) {
+        // Container may already be disposed when this post-frame callback runs. Ignore.
+      }
     });
   }
 
