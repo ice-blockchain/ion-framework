@@ -221,6 +221,7 @@ class CachedTokenMarketInfoNotifier extends _$CachedTokenMarketInfoNotifier {
   }
 }
 
+//TODO remove when issue with zero balance and missing positions are resolved
 void _logTokenPosition({
   required String source,
   required String externalAddress,
