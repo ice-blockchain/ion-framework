@@ -48,6 +48,13 @@ bool isGifMimeType(String? mime) {
   return false;
 }
 
+/// Returns true if [mime] indicates a WebP media type.
+/// Use with [String.isWebp] for full detection (mime + path).
+bool isWebpMimeType(String? mime) {
+  if (mime == null || mime.isEmpty) return false;
+  return mime.toLowerCase().contains('webp');
+}
+
 /// MIME types used internally within the app for local processing.
 ///
 /// These MIME types are used for runtime operations, local file handling,

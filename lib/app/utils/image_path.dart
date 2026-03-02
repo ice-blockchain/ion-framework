@@ -14,6 +14,8 @@ extension ImagePathExtension on String {
 
   bool get isGif => toLowerCase().endsWith('.gif');
 
+  bool get isWebp => toLowerCase().endsWith('.webp');
+
   bool get isNetworkSvg => isNetworkUrl(toLowerCase()) && isSvg;
 }
 
@@ -43,7 +45,7 @@ Future<bool> _isAnimatedAsset(AssetEntity assetEntity) async {
   final file = await assetEntity.originFile;
   final path = file?.path;
 
-  if (path != null && path.toLowerCase().endsWith('.webp')) {
+  if (path != null && path.isWebp) {
     return true;
   }
 
