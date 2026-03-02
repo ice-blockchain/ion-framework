@@ -11,8 +11,8 @@ import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/notifications/data/model/ion_notification.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_content.dart';
-import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons.dart';
-import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons/notification_icons.dart';
+import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_info/notification_info.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_media.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/story_viewing_provider.r.dart';
@@ -45,31 +45,7 @@ class NotificationItem extends HookConsumerWidget {
       _ => null,
     };
 
-    IonConnectEntity? entity;
-
-    if (eventReference != null) {
-      final relatedEntity =
-          ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
-
-      if (relatedEntity
-          case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
-        entity = ref
-            .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
-      } else if (relatedEntity is CommunityTokenActionEntity) {
-        final definition = ref.watch(
-          ionConnectSyncEntityWithCountersProvider(
-            eventReference: relatedEntity.data.definitionReference,
-          ),
-        );
-        if (definition
-            case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
-          entity = ref
-              .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
-        }
-      } else {
-        entity = relatedEntity;
-      }
-    }
+    final entity = _resolveEntity(eventReference, ref);
 
     final isHidden = eventReference != null &&
         (entity == null ||
@@ -128,10 +104,7 @@ class NotificationItem extends HookConsumerWidget {
                   ],
                 ),
               ),
-              if (entity != null)
-                NotificationMedia(
-                  entity: entity,
-                ),
+              if (entity != null) NotificationMedia(entity: entity),
             ],
           ),
           SizedBox(height: 16.0.s),
@@ -139,6 +112,33 @@ class NotificationItem extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  IonConnectEntity? _resolveEntity(EventReference? eventReference, WidgetRef ref) {
+    if (eventReference == null) {
+      return null;
+    }
+
+    final relatedEntity =
+        ref.watch(ionConnectSyncEntityWithCountersProvider(eventReference: eventReference));
+
+    if (relatedEntity
+        case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
+      return ref
+          .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
+    } else if (relatedEntity is CommunityTokenActionEntity) {
+      final definition = ref.watch(
+        ionConnectSyncEntityWithCountersProvider(
+          eventReference: relatedEntity.data.definitionReference,
+        ),
+      );
+      if (definition case CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data)) {
+        return ref
+            .watch(ionConnectSyncEntityWithCountersProvider(eventReference: data.eventReference));
+      }
+    }
+
+    return relatedEntity;
   }
 
   bool _isDeleted(WidgetRef ref, IonConnectEntity entity) {

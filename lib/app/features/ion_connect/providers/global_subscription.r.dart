@@ -72,6 +72,7 @@ class GlobalSubscription {
     ReactionEntity.kind,
     ModifiablePostEntity.kind,
     GenericRepostEntity.modifiablePostRepostKind,
+    GenericRepostEntity.articleRepostKind,
     ArticleEntity.kind,
     UserDelegationEntity.kind,
     CommunityTokenDefinitionEntity.kind,

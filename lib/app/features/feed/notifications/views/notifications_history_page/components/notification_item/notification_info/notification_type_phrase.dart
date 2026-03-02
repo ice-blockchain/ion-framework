@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/generated/app_localizations.dart';
 
 /// Event type for notification description (matches entity resolution in notification_info).
@@ -8,6 +13,20 @@ enum NotificationEventType {
   comment,
   story,
   article,
+  trade,
+  token;
+
+  factory NotificationEventType.fromIonConnectEntity(IonConnectEntity? entity) {
+    return switch (entity) {
+      ModifiablePostEntity() when entity.isStory => NotificationEventType.story,
+      ModifiablePostEntity(:final data) when data.parentEvent != null =>
+        NotificationEventType.comment,
+      ArticleEntity() => NotificationEventType.article,
+      CommunityTokenActionEntity() => NotificationEventType.trade,
+      CommunityTokenDefinitionEntity() => NotificationEventType.token,
+      _ => NotificationEventType.post,
+    };
+  }
 }
 
 /// Context in which the type phrase is used (determines case/possessive in some locales).
@@ -16,7 +35,7 @@ enum NotificationTypeContext {
   replyToYour,
   replyToThe,
   repost,
-  share,
+  shareYour,
   shareThe,
 }
 
@@ -62,13 +81,13 @@ String getNotificationTypePhrase(
       l10n.notifications_type_your_story_repost,
     (NotificationTypeContext.repost, NotificationEventType.article) =>
       l10n.notifications_type_your_article_repost,
-    (NotificationTypeContext.share, NotificationEventType.post) =>
+    (NotificationTypeContext.shareYour, NotificationEventType.post) =>
       l10n.notifications_type_your_post_share,
-    (NotificationTypeContext.share, NotificationEventType.comment) =>
+    (NotificationTypeContext.shareYour, NotificationEventType.comment) =>
       l10n.notifications_type_your_comment_share,
-    (NotificationTypeContext.share, NotificationEventType.story) =>
+    (NotificationTypeContext.shareYour, NotificationEventType.story) =>
       l10n.notifications_type_your_story_share,
-    (NotificationTypeContext.share, NotificationEventType.article) =>
+    (NotificationTypeContext.shareYour, NotificationEventType.article) =>
       l10n.notifications_type_your_article_share,
     (NotificationTypeContext.shareThe, NotificationEventType.post) =>
       l10n.notifications_type_the_post_share,
@@ -78,5 +97,29 @@ String getNotificationTypePhrase(
       l10n.notifications_type_the_story_share,
     (NotificationTypeContext.shareThe, NotificationEventType.article) =>
       l10n.notifications_type_the_article_share,
+    (NotificationTypeContext.liked, NotificationEventType.trade) =>
+      l10n.notifications_type_your_post_liked,
+    (NotificationTypeContext.liked, NotificationEventType.token) =>
+      l10n.notifications_type_your_post_liked,
+    (NotificationTypeContext.replyToYour, NotificationEventType.trade) =>
+      l10n.notifications_type_your_trade_reply_to,
+    (NotificationTypeContext.replyToYour, NotificationEventType.token) =>
+      l10n.notifications_type_your_token_reply_to,
+    (NotificationTypeContext.replyToThe, NotificationEventType.trade) =>
+      l10n.notifications_type_the_trade_reply_to,
+    (NotificationTypeContext.replyToThe, NotificationEventType.token) =>
+      l10n.notifications_type_the_token_reply_to,
+    (NotificationTypeContext.repost, NotificationEventType.trade) =>
+      l10n.notifications_type_your_trade_repost,
+    (NotificationTypeContext.repost, NotificationEventType.token) =>
+      l10n.notifications_type_your_token_repost,
+    (NotificationTypeContext.shareYour, NotificationEventType.trade) =>
+      l10n.notifications_type_your_trade_share,
+    (NotificationTypeContext.shareYour, NotificationEventType.token) =>
+      l10n.notifications_type_your_token_share,
+    (NotificationTypeContext.shareThe, NotificationEventType.trade) =>
+      l10n.notifications_type_the_trade_share,
+    (NotificationTypeContext.shareThe, NotificationEventType.token) =>
+      l10n.notifications_type_the_token_share,
   };
 }
