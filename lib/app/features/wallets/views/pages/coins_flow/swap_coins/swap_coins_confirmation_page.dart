@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
@@ -12,8 +11,6 @@ import 'package:ion/app/components/message_notification/providers/message_notifi
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
-import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/swap_disabled_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_coins_message_info.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
@@ -26,15 +23,6 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useEffect(
-      () {
-        final notifier = ref.read(swapDisabledNotifierProvider.notifier)..startCheckSwapDisabled();
-
-        return notifier.stopCheckSwapDisabled;
-      },
-      const [],
-    );
-
     final sellCoins = ref.watch(swapCoinsControllerProvider).sellCoin;
     final sellNetwork = ref.watch(swapCoinsControllerProvider).sellNetwork;
     final buyCoins = ref.watch(swapCoinsControllerProvider).buyCoin;
@@ -132,8 +120,7 @@ class _SwapButton extends ConsumerWidget {
     final textStyles = context.theme.appTextThemes;
     final messageNotificationNotifier = ref.read(messageNotificationNotifierProvider.notifier);
     final isSwapLoading = ref.watch(swapCoinsControllerProvider).isSwapLoading;
-    final isSwapDisabled = ref.watch(swapDisabledNotifierProvider).value ?? true;
-    final isDisabled = isSwapLoading || isSwapDisabled;
+    final isDisabled = isSwapLoading;
     final swapCoinsData = ref.watch(swapCoinsControllerProvider);
 
     return Container(
@@ -214,17 +201,6 @@ class _SwapButton extends ConsumerWidget {
     }
   }
 
-  void _showRestrictedRegionSheet(BuildContext context) {
-    showSimpleBottomSheet<void>(
-      context: context,
-      isDismissible: false,
-      child: RestrictedRegionUnavailableSheet(
-        onClose: () {
-          unawaited(_pop(context));
-        },
-      ),
-    );
-  }
 
   Future<void> _pop(BuildContext context) async {
     context.maybePop();
