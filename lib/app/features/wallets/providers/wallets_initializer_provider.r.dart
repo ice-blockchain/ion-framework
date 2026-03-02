@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coin_initializer.r.dart';
+import 'package:ion/app/features/wallets/domain/coins/wallet_assets_token_import_sync_service.r.dart';
 import 'package:ion/app/features/wallets/domain/networks/networks_initializer.r.dart';
 import 'package:ion/app/features/wallets/domain/swap/swap_transaction_linker.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/periodic_transactions_sync_service.r.dart';
@@ -35,6 +36,8 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
       final coinInitializer = ref.watch(coinInitializerProvider);
       final networksInitializer = ref.watch(networksInitializerProvider);
       final syncServiceFuture = ref.watch(syncTransactionsServiceProvider.future);
+      final tokenImportSyncServiceFuture =
+          ref.watch(walletAssetsTokenImportSyncServiceProvider.future);
       final periodicSyncServiceFuture = ref.watch(periodicTransactionsSyncServiceProvider.future);
       final undefinedTransactionsBinderFuture =
           ref.watch(undefinedTransactionsBinderProvider.future);
@@ -44,6 +47,7 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
         _,
         _,
         syncService,
+        tokenImportSyncService,
         periodicSyncService,
         undefinedTransactionsBinder,
         swapTransactionLinker
@@ -51,13 +55,14 @@ class WalletsInitializerNotifier extends _$WalletsInitializerNotifier {
         coinInitializer.initialize(),
         networksInitializer.initialize(),
         syncServiceFuture,
+        tokenImportSyncServiceFuture,
         periodicSyncServiceFuture,
         undefinedTransactionsBinderFuture,
         swapTransactionLinkerFuture,
       ).wait;
 
       unawaited(
-        syncService.syncAll(),
+        syncService.syncAll().then((_) => tokenImportSyncService.syncMissingTokens()),
       );
 
       // Start periodic syncing for broadcasted transactions
