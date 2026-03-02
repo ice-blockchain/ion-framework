@@ -50,7 +50,6 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
 
   @override
   Future<CoinTransactionHistoryState> build({required String symbolGroup}) async {
-    Logger.info('[Provider] CoinTransactionHistoryNotifier build called');
     await _cancelWatchers();
 
     ref.onDispose(() async {
@@ -59,11 +58,8 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
 
     try {
       await _initializeData(symbolGroup);
-      Logger.info('[Provider] CoinTransactionHistoryNotifier _initializeData done');
       final initialState = await _loadInitialTransactions();
-      Logger.info('[Provider] CoinTransactionHistoryNotifier _loadInitialTransactions done');
       await _startRealtimeWatching();
-      Logger.info('[Provider] CoinTransactionHistoryNotifier build complete');
 
       return initialState;
     } catch (error, stackTrace) {
@@ -93,7 +89,6 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
         (asyncState) => asyncState.valueOrNull?.selected.whenOrNull(network: (network) => network),
       ),
     );
-    Logger.info('[Provider] CoinTransactionHistoryNotifier network: ${_network?.id ?? "ALL"}');
 
     _selectedWalletAddress = ref.watch(
       selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup)
