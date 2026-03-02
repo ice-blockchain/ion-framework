@@ -334,6 +334,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.1.1"
+  listen_sharing_intent:
+    dependency: "direct main"
+    description:
+      name: listen_sharing_intent
+      sha256: df12e6c78666018985c39df494fc12412ece6510c38c79fe1230f2abef0965fa
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.9.2"
   logging:
     dependency: transitive
     description:
@@ -430,15 +438,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
-  receive_sharing_intent:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: master
-      resolved-ref: "2cea396843cd3ab1b5ec4334be4233864637874e"
-      url: "https://github.com/KasemJaffer/receive_sharing_intent.git"
-    source: git
-    version: "1.8.1"
   riverpod:
     dependency: "direct main"
     description:
@@ -718,4 +717,4 @@ packages:
     version: "3.1.3"
 sdks:
   dart: ">=3.9.0 <4.0.0"
-  flutter: ">=1.10.0"
+  flutter: ">=3.24.0"

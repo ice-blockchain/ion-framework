@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -11,21 +12,28 @@ class UiEventQueueListener extends HookConsumerWidget {
     super.key,
   });
 
+  void _processQueue(WidgetRef ref) {
+    ref.read(uiEventQueueNotifierProvider.notifier).processQueue(
+      (event) async {
+        final navigatorContext = rootNavigatorKey.currentContext;
+        if (navigatorContext != null && navigatorContext.mounted) {
+          await event.performAction(navigatorContext);
+        }
+      },
+    ).then((_) {
+      final state = ref.read(uiEventQueueNotifierProvider);
+      if (state.isNotEmpty) {
+        SchedulerBinding.instance.addPostFrameCallback((_) => _processQueue(ref));
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final uiEvents = ref.watch(uiEventQueueNotifierProvider);
 
     useOnInit(
-      () {
-        ref.read(uiEventQueueNotifierProvider.notifier).processQueue(
-          (event) async {
-            final context = rootNavigatorKey.currentContext;
-            if (context != null && context.mounted) {
-              await event.performAction(context);
-            }
-          },
-        );
-      },
+      () => _processQueue(ref),
       uiEvents.toList(),
     );
 
