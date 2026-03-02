@@ -118,7 +118,7 @@ class TradeCommunityTokenService {
       walletAddress: walletAddress,
       paymentTokenAddress: baseTokenAddress,
       paymentTokenDecimals: tokenDecimals,
-      communityTokenDecimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
+      communityTokenDecimals: TokenizedCommunitiesConstants.communityTokenDecimals,
       fatAddressData: fatAddressData,
     );
     Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');

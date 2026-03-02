@@ -112,7 +112,7 @@ class MoneyMessageCoinResolver {
       return CoinData(
         id: externalAddress,
         contractAddress: normalizedContractAddress,
-        decimals: TokenizedCommunitiesConstants.creatorTokenDecimals,
+        decimals: TokenizedCommunitiesConstants.communityTokenDecimals,
         iconUrl: tokenInfo.imageUrl ?? '',
         name: title,
         network: network,

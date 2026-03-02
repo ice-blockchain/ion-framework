@@ -3,7 +3,7 @@
 class TokenizedCommunitiesConstants {
   TokenizedCommunitiesConstants._();
 
-  static const int creatorTokenDecimals = 18;
+  static const int communityTokenDecimals = 18;
   static const String bscNetworkId = 'Bsc';
   static const String bscTestnetNetworkId = 'BscTestnet';
 
@@ -17,5 +17,5 @@ class TokenizedCommunitiesConstants {
   static const int quoteDebounceMilliseconds = 500;
   static const int percentageDivisor = 100;
 
-  static final BigInt weiPerToken = BigInt.from(10).pow(creatorTokenDecimals);
+  static final BigInt weiPerToken = BigInt.from(10).pow(communityTokenDecimals);
 }
