@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/constants/string.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
@@ -10,65 +9,35 @@ import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/extensions/theme_data.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/wallets/model/balance_display_order.dart';
-import 'package:ion/app/features/wallets/model/coin_balance_state.f.dart';
-import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/wallet_user_preferences_provider.r.dart';
-import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/balance_provider.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-class CoinUsdAmount extends HookConsumerWidget {
+class CoinUsdAmount extends ConsumerWidget {
   const CoinUsdAmount({
-    required this.coinsGroup,
-    this.cachedAmount,
-    this.cachedBalanceUSD,
-    this.onBalanceUpdated,
+    required this.amount,
+    required this.balanceUSD,
+    required this.abbreviation,
     super.key,
   });
 
-  final CoinsGroup coinsGroup;
-  final double? cachedAmount;
-  final double? cachedBalanceUSD;
-  final void Function(double amount, double balanceUSD)? onBalanceUpdated;
+  final double amount;
+  final double balanceUSD;
+  final String abbreviation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final displayOrder = ref.watch(balanceDisplayOrderProvider);
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
 
-    final balanceAsync = ref.watch(coinBalanceNotifierProvider(symbolGroup: coinsGroup.symbolGroup));
-    final providerBalance = balanceAsync.valueOrNull;
-
-    // Use cached balance for instant display, fall back to provider value
-    final displayAmount = cachedAmount ?? providerBalance?.amount ?? 0.0;
-    final displayBalanceUSD = cachedBalanceUSD ?? providerBalance?.balanceUSD ?? 0.0;
-
-    // Update cache when provider returns actual value
-    useEffect(
-      () {
-        if (providerBalance != null && !balanceAsync.isLoading) {
-          onBalanceUpdated?.call(providerBalance.amount, providerBalance.balanceUSD);
-        }
-        return null;
-      },
-      [providerBalance, balanceAsync.isLoading],
-    );
-
-    final balance = CoinBalanceState(
-      amount: displayAmount,
-      balanceUSD: displayBalanceUSD,
-    );
-    Logger.info('[UI] CoinUsdAmount rebuild, amount: ${balance.amount}, usd: ${balance.balanceUSD}, cachedAmount: $cachedAmount, cachedUSD: $cachedBalanceUSD, isLoading: ${balanceAsync.isLoading}');
-
     final coinText = isBalanceVisible
-        ? '${formatCryptoFull(balance.amount)} ${coinsGroup.abbreviation}'
+        ? '${formatCryptoFull(amount)} $abbreviation'
         : StringConstants.obfuscated;
     final usdText = isBalanceVisible
         ? context.i18n.wallet_approximate_in_usd(
-            formatUSD(balance.balanceUSD),
+            formatUSD(balanceUSD),
           )
         : StringConstants.obfuscated;
 

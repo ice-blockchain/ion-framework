@@ -28,7 +28,6 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/pro
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
-import 'package:ion/app/services/logger/logger.dart';
 
 class CoinDetailsPage extends HookConsumerWidget {
   const CoinDetailsPage({required this.symbolGroup, super.key});
@@ -37,7 +36,6 @@ class CoinDetailsPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Logger.info('[UI] CoinDetailsPage rebuild');
     final walletView = ref.watch(currentWalletViewDataProvider).requireValue;
     final coinsGroup = walletView.coinGroups.firstWhere((e) => e.symbolGroup == symbolGroup);
     final hasMore = ref.watch(
@@ -48,25 +46,32 @@ class CoinDetailsPage extends HookConsumerWidget {
 
     final containsTier2Network = coinsGroup.coins.any((coin) => coin.coin.network.tier != 1);
 
-    final cryptoWalletData = ref.watch(
-      selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
-    ).valueOrNull ?? SelectedCryptoWalletData.empty();
+    final cryptoWalletData = ref
+            .watch(
+              selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
+            )
+            .valueOrNull ??
+        SelectedCryptoWalletData.empty();
 
     final providerNetwork = ref.watch(
       networkSelectorNotifierProvider(symbolGroup: symbolGroup)
           .select((s) => s.valueOrNull?.selected),
     );
-    final optimisticNetwork = useState<SelectedNetworkItem?>(null);
+    final selectedNetworkNotifier = useState<SelectedNetworkItem?>(null);
 
+    // Sync optimistic selection with provider state for UI consistency.
+    // This is needed for the optimistic UI pattern: when user taps a network,
+    // we update selectedNetworkNotifier immediately for instant feedback,
+    // then the provider updates asynchronously. This effect keeps them in sync.
     useEffect(
       () {
-        optimisticNetwork.value = providerNetwork;
+        selectedNetworkNotifier.value = providerNetwork;
         return null;
       },
       [providerNetwork],
     );
 
-    final selectedNetwork = optimisticNetwork.value ?? providerNetwork;
+    final selectedNetwork = selectedNetworkNotifier.value ?? providerNetwork;
 
     return Scaffold(
       appBar: NavigationAppBar.screen(
@@ -150,7 +155,7 @@ class CoinDetailsPage extends HookConsumerWidget {
             child: TransactionListHeader(
               symbolGroup: symbolGroup,
               onNetworkChanged: (network) {
-                optimisticNetwork.value = network;
+                selectedNetworkNotifier.value = network;
               },
             ),
           ),

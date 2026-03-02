@@ -9,7 +9,6 @@ import 'package:ion/app/features/wallets/model/network_selector_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/constants.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_header_item.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
-import 'package:ion/app/services/logger/logger.dart';
 
 class TransactionListHeader extends HookConsumerWidget {
   const TransactionListHeader({
@@ -34,12 +33,6 @@ class TransactionListHeader extends HookConsumerWidget {
     final selected = optimisticSelection.value ?? networkSelectorData.selected;
     final items = networkSelectorData.items;
 
-    final selectedName = selected.maybeMap(
-      network: (n) => n.network.displayName,
-      orElse: () => 'All',
-    );
-    Logger.info('[UI] TransactionListHeader rebuild, selected: $selectedName');
-
     return SizedBox(
       height: TransactionListConstants.headerItemHeight +
           TransactionListConstants.headerPaddingBottom +
@@ -62,12 +55,6 @@ class TransactionListHeader extends HookConsumerWidget {
             isSelected: isSelected,
             onPress: () {
               if (isSelected) return;
-
-              final itemName = item.maybeMap(
-                network: (n) => n.network.displayName,
-                orElse: () => 'All',
-              );
-              Logger.info('[UI] TransactionListHeader tap on $itemName');
 
               optimisticSelection.value = item;
               onNetworkChanged?.call(item);
