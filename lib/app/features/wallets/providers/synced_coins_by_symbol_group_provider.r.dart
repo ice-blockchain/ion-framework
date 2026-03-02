@@ -166,9 +166,7 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
 
   Future<List<CoinInWalletData>> _getOrCreateRequest(String symbolGroup) async {
     final activeRequest = _activeRequests[symbolGroup];
-    if (activeRequest != null) {
-      return activeRequest;
-    }
+    if (activeRequest != null) return activeRequest;
     return _executeUpdateRequest(symbolGroup);
   }
 
