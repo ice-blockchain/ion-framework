@@ -16,7 +16,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_preview_data.dart';
-import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
+import 'package:ion/app/services/deep_link/deep_link_mappers.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
