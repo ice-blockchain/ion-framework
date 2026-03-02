@@ -18,6 +18,8 @@ protocol VideoEditor {
 class VideoEditorModule: VideoEditor {
     private var videoEditorSDK: BanubaVideoEditor?
     private var flutterResult: FlutterResult?
+    
+    private var editorToken: String?
 
     // Maximum video duration in seconds (30 minutes)
     private static let maxVideoDurationSeconds: Int = 1800
@@ -39,8 +41,7 @@ class VideoEditorModule: VideoEditor {
         config.featureConfiguration.supportsTrimRecordedVideo = true
         config.featureConfiguration.draftsConfig = .disabled
         config.editorConfiguration.isVideoAspectFillEnabled = false
-        config.videoDurationConfiguration.maximumVideoDuration = TimeInterval(Self.maxVideoDurationSeconds)
-        config.videoDurationConfiguration.videoDurations = [TimeInterval(Self.maxVideoDurationSeconds)]
+        editorToken = token
 
         // Make customization here
         
@@ -120,15 +121,25 @@ class VideoEditorModule: VideoEditor {
         let height = abs(size.height)
         let aspectRatio = width / height
 
-        var config = videoEditorSDK?.currentConfiguration  
-        config?.videoEditorViewConfiguration.primaryAspectRatio = AspectRatio(videoAspectRatio: aspectRatio)
-        config?.videoDurationConfiguration.maximumVideoDuration = TimeInterval(maxVideoDuration)
-        config?.videoDurationConfiguration.videoDurations = [TimeInterval(maxVideoDuration)]
-        config?.featureConfiguration.isVideoCoverSelectionEnabled = coverSelectionEnabled
-        if let newConfig = config {
-            videoEditorSDK?.updateVideoEditorConfig(newConfig)
+        let config = videoEditorSDK?.currentConfiguration
+        if var newConfig = config, config?.videoDurationConfiguration.maximumVideoDuration != TimeInterval(maxVideoDuration) {
+            videoEditorSDK = nil
+            
+            newConfig.videoEditorViewConfiguration.primaryAspectRatio = AspectRatio(videoAspectRatio: aspectRatio)
+            newConfig.videoDurationConfiguration.maximumVideoDuration = TimeInterval(maxVideoDuration)
+            newConfig.videoDurationConfiguration.videoDurations = [TimeInterval(maxVideoDuration)]
+            newConfig.featureConfiguration.isVideoCoverSelectionEnabled = coverSelectionEnabled
+            
+            videoEditorSDK = BanubaVideoEditor(
+                token: editorToken ?? "",
+                arguments: [.useEditorV2: true],
+                configuration: newConfig,
+                externalViewControllerFactory: getAppDelegate().provideCustomViewFactory()
+            )
+            
+            videoEditorSDK?.delegate = self
         }
-
+        
         let trimmerLaunchConfig = VideoEditorLaunchConfig(
             entryPoint: .trimmer,
             hostController: controller,
