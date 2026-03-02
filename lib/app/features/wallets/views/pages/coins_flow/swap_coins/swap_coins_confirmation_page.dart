@@ -12,8 +12,6 @@ import 'package:ion/app/components/message_notification/providers/message_notifi
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
-import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
-import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/providers/swap_disabled_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_coins_message_info.dart';
@@ -214,19 +212,6 @@ class _SwapButton extends ConsumerWidget {
       await _pop(context);
     }
   }
-
-  void _showRestrictedRegionSheet(BuildContext context) {
-    showSimpleBottomSheet<void>(
-      context: context,
-      isDismissible: false,
-      child: RestrictedRegionUnavailableSheet(
-        onClose: () {
-          unawaited(_pop(context));
-        },
-      ),
-    );
-  }
-
   Future<void> _pop(BuildContext context) async {
     context.maybePop();
     await Future<void>.delayed(const Duration(milliseconds: 100));
