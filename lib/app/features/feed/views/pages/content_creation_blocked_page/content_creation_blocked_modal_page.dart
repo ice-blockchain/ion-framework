@@ -25,8 +25,12 @@ class FeedContentCreationBlockedModalPage extends HookConsumerWidget {
         hasNftCollectionState.whenOrNull(
           data: (hasNfts) {
             if (hasNfts && context.mounted) {
-              context.pop();
-              StoryRecordRoute().push<void>(context);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) {
+                  context.pop();
+                  StoryRecordRoute().push<void>(context);
+                }
+              });
             }
           },
         );
