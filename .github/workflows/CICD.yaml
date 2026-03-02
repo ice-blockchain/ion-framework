@@ -236,6 +236,20 @@ jobs:
             ~/.pub-cache
             ./*
           key: ${{ github.sha }}_${{ github.run_number }}
+      - name: Check Xcode version
+        run: |
+          echo "=== Xcode version on runner ==="
+          xcodebuild -version
+          if [ -f main-repo/.xcode-version ]; then
+            REQUIRED=$(cat main-repo/.xcode-version | tr -d '[:space:]')
+            CURRENT=$(xcodebuild -version | head -1 | sed 's/Xcode //')
+            echo "Required: $REQUIRED | Current: $CURRENT"
+            if [ "$CURRENT" != "$REQUIRED" ]; then
+              echo "::warning::Xcode version mismatch! Required: $REQUIRED, Current: $CURRENT"
+            else
+              echo "✅ Xcode version OK ($CURRENT)"
+            fi
+          fi
       - name: Mask APP environment and keys in logs
         id: mask-secrets
         run: |
