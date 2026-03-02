@@ -32,9 +32,8 @@ class CoinUsdAmount extends ConsumerWidget {
     final displayOrder = ref.watch(balanceDisplayOrderProvider);
     final isBalanceVisible = ref.watch(isBalanceVisibleSelectorProvider);
 
-    final coinText = isBalanceVisible
-        ? '${formatCryptoFull(amount)} $abbreviation'
-        : StringConstants.obfuscated;
+    final coinText =
+        isBalanceVisible ? '${formatCryptoFull(amount)} $abbreviation' : StringConstants.obfuscated;
     final usdText = isBalanceVisible
         ? context.i18n.wallet_approximate_in_usd(
             formatUSD(balanceUSD),
