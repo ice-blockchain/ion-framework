@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/views/components/recovery_keys_input_container/recovery_keys_input_container.dart';
 import 'package:ion/app/features/protect_account/backup/data/models/recovery_key_property.dart';
 import 'package:ion/app/features/protect_account/backup/providers/create_recovery_key_action_notifier.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/post_recovery_backup_required_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/recovery_credentials_enabled_notifier.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/recovery_keys_completed_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -22,6 +23,7 @@ class ValidateRecoveryKeyPage extends ConsumerWidget {
       onContinuePressed: (_, __, ___) {
         ref.read(recoveryCredentialsEnabledProvider.notifier).setEnabled();
         ref.read(recoveryKeysCompletedProvider.notifier).markCompleted();
+        ref.read(postRecoveryBackupRequiredProvider.notifier).clear();
         RecoveryKeysSuccessRoute().push<void>(context);
       },
     );
