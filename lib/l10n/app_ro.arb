@@ -303,6 +303,7 @@
   "create_post_add_topic": "Adaugă subiect",
   "create_post_add_topic_tooltip_description": "Adăugarea unui subiect ajută la îmbunătățirea vizibilității și angajamentului, făcând platforma mai utilă și atractivă pentru utilizatori",
   "create_post_add_topic_tooltip_title": "Subiect",
+  "create_post_external_content": "Creează postare",
   "create_post_modal_placeholder": "Ce se întâmplă?",
   "create_post_modal_title": "Postare nouă",
   "create_video_input_placeholder": "Adaugă o descriere (opțional)",

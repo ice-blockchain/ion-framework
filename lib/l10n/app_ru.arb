@@ -303,6 +303,7 @@
   "create_post_add_topic": "Добавить тему",
   "create_post_add_topic_tooltip_description": "Добавление темы помогает улучшить видимость и вовлечённость, делая платформу более полезной и привлекательной для пользователей",
   "create_post_add_topic_tooltip_title": "Тема",
+  "create_post_external_content": "Создать пост",
   "create_post_modal_placeholder": "Что происходит?",
   "create_post_modal_title": "Новый пост",
   "create_video_input_placeholder": "Добавить описание (необязательно)",
