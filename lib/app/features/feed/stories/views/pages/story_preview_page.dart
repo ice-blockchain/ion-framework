@@ -198,8 +198,7 @@ class _StoryShareButton extends HookConsumerWidget {
 
               isPublishing.value = true;
               try {
-                final mediaChecker =
-                    await ref.read(mediaNsfwCheckerProvider.future);
+                final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
                 // No-op if already checked in background; safety fallback otherwise
                 await mediaChecker.checkMediaForNsfw(
                   [MediaFile(path: path, mimeType: mimeType)],
