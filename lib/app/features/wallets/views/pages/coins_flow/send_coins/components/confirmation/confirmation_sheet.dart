@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
@@ -23,7 +22,6 @@ import 'package:ion/app/features/wallets/model/network_fee_option.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_coins_notifier_provider.r.dart';
-import 'package:ion/app/features/wallets/providers/send_disabled_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/arrival_time/list_item_arrival_time.dart';
 import 'package:ion/app/features/wallets/views/components/network_fee/list_item_network_fee.dart';
@@ -51,14 +49,6 @@ class ConfirmationSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useEffect(
-      () {
-        final notifier = ref.read(sendDisabledNotifierProvider.notifier)..startCheckSendDisabled();
-
-        return notifier.stopCheckSendDisabled;
-      },
-      const [],
-    );
     final locale = context.i18n;
 
     final formData = ref.watch(sendAssetFormControllerProvider);
@@ -95,8 +85,7 @@ class ConfirmationSheet extends HookConsumerWidget {
       });
 
     final isLoading = ref.watch(sendCoinsNotifierProvider).isLoading;
-    final isSendDisabled = ref.watch(sendDisabledNotifierProvider).value ?? true;
-    final isDisabled = isLoading || isSendDisabled;
+    final isDisabled = isLoading;
 
     return SheetContent(
       body: SingleChildScrollView(
