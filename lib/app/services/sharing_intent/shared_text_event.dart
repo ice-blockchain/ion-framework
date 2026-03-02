@@ -14,8 +14,6 @@ class ShowSharedTextEvent extends UiEvent {
 
   @override
   Future<void> performAction(BuildContext context) async {
-    /// TODO(neoptolemus): remove this
-    print('QWERTY: $sharedText');
     await showSimpleBottomSheet<void>(
       context: context,
       child: SharedTextDummySheet(text: sharedText),

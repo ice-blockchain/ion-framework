@@ -321,6 +321,8 @@ PODS:
     - Flutter
   - ion_screenshot_detector (0.0.1):
     - Flutter
+  - listen_sharing_intent (1.9.2):
+    - Flutter
   - local_auth_crypto (1.0.0):
     - Flutter
     - SecureBiometricSwift (~> 0.0.2)
@@ -353,8 +355,6 @@ PODS:
     - Flutter
     - MTBBarcodeScanner
   - quill_native_bridge_ios (0.0.1):
-    - Flutter
-  - receive_sharing_intent (1.8.1):
     - Flutter
   - SDWebImage (5.21.6):
     - SDWebImage/Core (= 5.21.6)
@@ -477,6 +477,7 @@ DEPENDENCIES:
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - ion_content_labeler (from `.symlinks/plugins/ion_content_labeler/ios`)
   - ion_screenshot_detector (from `.symlinks/plugins/ion_screenshot_detector/ios`)
+  - listen_sharing_intent (from `.symlinks/plugins/listen_sharing_intent/ios`)
   - local_auth_crypto (from `.symlinks/plugins/local_auth_crypto/ios`)
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
   - open_filex (from `.symlinks/plugins/open_filex/ios`)
@@ -487,7 +488,6 @@ DEPENDENCIES:
   - photo_manager (from `.symlinks/plugins/photo_manager/ios`)
   - qr_code_scanner_plus (from `.symlinks/plugins/qr_code_scanner_plus/ios`)
   - quill_native_bridge_ios (from `.symlinks/plugins/quill_native_bridge_ios/ios`)
-  - receive_sharing_intent (from `.symlinks/plugins/receive_sharing_intent/ios`)
   - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
   - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
@@ -618,6 +618,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/ion_content_labeler/ios"
   ion_screenshot_detector:
     :path: ".symlinks/plugins/ion_screenshot_detector/ios"
+  listen_sharing_intent:
+    :path: ".symlinks/plugins/listen_sharing_intent/ios"
   local_auth_crypto:
     :path: ".symlinks/plugins/local_auth_crypto/ios"
   local_auth_darwin:
@@ -638,8 +640,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/qr_code_scanner_plus/ios"
   quill_native_bridge_ios:
     :path: ".symlinks/plugins/quill_native_bridge_ios/ios"
-  receive_sharing_intent:
-    :path: ".symlinks/plugins/receive_sharing_intent/ios"
   sensors_plus:
     :path: ".symlinks/plugins/sensors_plus/ios"
   sentry_flutter:
@@ -737,6 +737,7 @@ SPEC CHECKSUMS:
   in_app_review: 7dd1ea365263f834b8464673f9df72c80c17c937
   ion_content_labeler: f7b0a605150742a6e41c82730110b008c582d788
   ion_screenshot_detector: 12965038c2274b1876c39ee328507e8bb9c7b794
+  listen_sharing_intent: fe0b9a59913cc124dd6cbd55cd9f881de5f75759
   local_auth_crypto: 0f489ce05f51504fc091a53ce357e98313696085
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
@@ -750,7 +751,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   qr_code_scanner_plus: 7e087021bc69873140e0754750eb87d867bed755
   quill_native_bridge_ios: f47af4b14e7757968486641656c5d23250cee521
-  receive_sharing_intent: 222384f00ffe7e952bbfabaa9e3967cb87e5fe00
   SDWebImage: 1bb6a1b84b6fe87b972a102bdc77dd589df33477
   SecureBiometricSwift: f8a373c07fb46c9ca1b2b53be51a485d2828a3d8
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
