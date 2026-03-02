@@ -58,8 +58,10 @@ class StoryViewerPage extends HookConsumerWidget {
     final storyViewerState = ref.watch(
       userStoriesViewingNotifierProvider(pubkey, showOnlySelectedUser: showOnlySelectedUser),
     );
+    final effectiveCurrentUserPubkey =
+        storyViewerState.currentUserPubkey.isEmpty ? pubkey : storyViewerState.currentUserPubkey;
     final singleUserStoriesViewerState = ref.watch(
-      singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey),
+      singleUserStoryViewingControllerProvider(effectiveCurrentUserPubkey),
     );
     final viewedStories = ref.watch(viewedStoriesProvider) ?? {};
     final userStoriesCount = storyViewerState.userStoriesCount;
@@ -142,15 +144,14 @@ class StoryViewerPage extends HookConsumerWidget {
             ? storyViewerState.userStories
                 ?.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
-        final currentUserPubkey = storyViewerState.currentUserPubkey;
 
-        final alreadyVisited = visitedUsers.value.contains(currentUserPubkey);
+        final alreadyVisited = visitedUsers.value.contains(effectiveCurrentUserPubkey);
 
         // Decide fallback when all stories are viewed:
         // - revisiting within this viewer session => use last remembered index
         // - opening directly => start from 0
         final fallbackWhenAllViewed = alreadyVisited
-            ? ref.read(storyIndexKeeperProvider.notifier).getStoryIndex(currentUserPubkey)
+            ? ref.read(storyIndexKeeperProvider.notifier).getStoryIndex(effectiveCurrentUserPubkey)
             : 0;
 
         // Compute the target index once
@@ -159,13 +160,13 @@ class StoryViewerPage extends HookConsumerWidget {
 
         if (moveToIndex != -1 && moveToIndex < userStoriesCount) {
           ref
-              .watch(singleUserStoryViewingControllerProvider(currentUserPubkey).notifier)
+              .watch(singleUserStoryViewingControllerProvider(effectiveCurrentUserPubkey).notifier)
               .moveToStoryIndex(moveToIndex);
         }
 
         // Mark user as visited for this session
         if (!alreadyVisited) {
-          visitedUsers.value.add(currentUserPubkey);
+          visitedUsers.value.add(effectiveCurrentUserPubkey);
         }
       },
       // Do not include [viewedStories] to dependencies intentionally.
