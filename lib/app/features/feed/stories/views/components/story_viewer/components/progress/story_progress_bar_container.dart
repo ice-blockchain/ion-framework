@@ -28,6 +28,7 @@ class StoryProgressBarContainer extends ConsumerWidget {
         showOnlySelectedUser: showOnlySelectedUser,
       ).select((state) => state.currentUserPubkey),
     );
+    final effectivePubkey = currentUserPubkey.isEmpty ? pubkey : currentUserPubkey;
     final userStoriesNotifier = ref.watch(
       userStoriesViewingNotifierProvider(
         pubkey,
@@ -35,13 +36,13 @@ class StoryProgressBarContainer extends ConsumerWidget {
       ).notifier,
     );
     final singleUserStoriesViewingState =
-        ref.watch(singleUserStoryViewingControllerProvider(currentUserPubkey));
+        ref.watch(singleUserStoryViewingControllerProvider(effectivePubkey));
     final singleUserStoriesNotifier = ref.watch(
-      singleUserStoryViewingControllerProvider(currentUserPubkey).notifier,
+      singleUserStoryViewingControllerProvider(effectivePubkey).notifier,
     );
     final currentStoryIndex = singleUserStoriesViewingState.currentStoryIndex;
-    final stories = ref.watch(userStoriesProvider(currentUserPubkey))?.toList() ?? [];
-    final storiesCount = ref.watch(storiesCountProvider(currentUserPubkey)).valueOrNull;
+    final stories = ref.watch(userStoriesProvider(effectivePubkey))?.toList() ?? [];
+    final storiesCount = ref.watch(storiesCountProvider(effectivePubkey)).valueOrNull;
 
     if (stories.isEmpty || storiesCount == null) {
       return const SizedBox();
@@ -82,7 +83,7 @@ class StoryProgressBarContainer extends ConsumerWidget {
                           },
                         ),
                       ),
-              sessionPubkey: currentUserPubkey,
+              sessionPubkey: effectivePubkey,
               margin: index > 0 ? EdgeInsetsDirectional.only(start: 4.0.s) : null,
             ),
           );
