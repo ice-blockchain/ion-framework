@@ -147,4 +147,40 @@ class CompleteUserRecoveryActionNotifier extends _$CompleteUserRecoveryActionNot
       return const CompleteUserRecoveryActionState.success();
     });
   }
+
+  Future<void> completeRecoveryWithPassword({
+    required String username,
+    required String credentialId,
+    required String recoveryKey,
+    required UserRegistrationChallenge challenge,
+    required String newPassword,
+  }) async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      _logRecoveryStep('complete_recovery_with_password.start', username: username);
+      final ionIdentity = await ref.read(ionIdentityProvider.future);
+
+      try {
+        await ionIdentity(username: username).auth.completeRecoveryWithPassword(
+              challenge: challenge,
+              credentialId: credentialId,
+              recoveryKey: recoveryKey,
+              newPassword: newPassword,
+            );
+      } catch (error, stackTrace) {
+        _logRecoveryError(
+          error,
+          stackTrace,
+          step: 'complete_recovery_with_password.failed',
+          username: username,
+        );
+        rethrow;
+      }
+
+      _logRecoveryStep('complete_recovery_with_password.success', username: username);
+
+      return const CompleteUserRecoveryActionState.success();
+    });
+  }
 }

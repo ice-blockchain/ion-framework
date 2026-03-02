@@ -4,4 +4,5 @@ enum RecoverUserStep {
   recoveryCreds,
   twoFAOptions,
   twoFAInput,
+  setNewPassword,
 }
