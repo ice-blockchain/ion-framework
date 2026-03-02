@@ -303,6 +303,7 @@
   "create_post_add_topic": "Thema hinzufügen",
   "create_post_add_topic_tooltip_description": "Das Hinzufügen eines Themas verbessert Sichtbarkeit und Interaktion und macht die Plattform für Nutzer hilfreicher und attraktiver.",
   "create_post_add_topic_tooltip_title": "Thema",
+  "create_post_external_content": "Beitrag erstellen",
   "create_post_modal_placeholder": "Was gibt’s Neues?",
   "create_post_modal_title": "Neuer Beitrag",
   "create_video_input_placeholder": "Beschreibung hinzufügen (optional)",

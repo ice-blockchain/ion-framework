@@ -303,6 +303,7 @@
   "create_post_add_topic": "Dodaj temat",
   "create_post_add_topic_tooltip_description": "Dodanie tematu pomaga poprawić widoczność i zaangażowanie, czyniąc platformę bardziej użyteczną i atrakcyjną dla użytkowników",
   "create_post_add_topic_tooltip_title": "Temat",
+  "create_post_external_content": "Utwórz post",
   "create_post_modal_placeholder": "Co się dzieje?",
   "create_post_modal_title": "Nowy post",
   "create_video_input_placeholder": "Dodaj opis (opcjonalnie)",

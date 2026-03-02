@@ -29,6 +29,7 @@ class ChatRoutes {
         TypedGoRoute<AddParticipantsToGroupModalRoute>(path: 'add-participants-to-group'),
         TypedGoRoute<CreateGroupModalRoute>(path: 'create-group'),
         TypedGoRoute<ShareViaMessageModalRoute>(path: '$shareRoutePrefix/:eventReference'),
+        TypedGoRoute<ShareExternalContentModalRoute>(path: 'share-external-content/:sharedText'),
         TypedGoRoute<PaymentSelectionChatRoute>(path: 'select-payment-type'),
         TypedGoRoute<SelectCoinChatRoute>(path: 'coin-selector-chat'),
         TypedGoRoute<SelectNetworkChatRoute>(path: 'network-selector-chat'),
@@ -202,6 +203,16 @@ class ShareViaMessageModalRoute extends BaseRouteData with _$ShareViaMessageModa
         );
 
   final String eventReference;
+}
+
+class ShareExternalContentModalRoute extends BaseRouteData with _$ShareExternalContentModalRoute {
+  ShareExternalContentModalRoute({required this.sharedText})
+      : super(
+          child: ShareExternalContentModal(content: SharedText(sharedText)),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String sharedText;
 }
 
 class PaymentSelectionChatRoute extends BaseRouteData with _$PaymentSelectionChatRoute {

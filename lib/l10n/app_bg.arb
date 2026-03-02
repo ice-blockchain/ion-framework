@@ -303,6 +303,7 @@
   "create_post_add_topic": "Добави тема",
   "create_post_add_topic_tooltip_description": "Добавянето на тема помага да се подобри видимостта и ангажираността, правейки платформата по-полезна и привлекателна за потребителите",
   "create_post_add_topic_tooltip_title": "Тема",
+  "create_post_external_content": "Създай публикация",
   "create_post_modal_placeholder": "Какво се случва?",
   "create_post_modal_title": "Нова публикация",
   "create_video_input_placeholder": "Добави описание (незадължително)",
