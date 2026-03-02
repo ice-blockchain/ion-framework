@@ -107,11 +107,13 @@ class TradeQuoteBuilder {
       amountIn: state.currentAmount,
       slippagePercent: slippagePercent,
       fatAddressHex: fatAddressHex,
+      amountIon: step.fromRole == TradeTokenRole.ion ? state.currentAmount : state.amountIon,
     );
     return state.withStep(
       step: quoteStep.step,
       nextAmount: quoteStep.step.amountOut,
       lastBondingCurvePricing: quoteStep.pricing,
+      amountIon: quoteStep.amountIon,
     );
   }
 
@@ -122,6 +124,7 @@ class TradeQuoteBuilder {
     required BigInt amountIn,
     required double slippagePercent,
     required String? fatAddressHex,
+    required BigInt? amountIon,
   }) async {
     final mode = step.mode!;
     final stepPricingIdentifier = await _resolvePricingIdentifier(
@@ -134,6 +137,7 @@ class TradeQuoteBuilder {
       pricingIdentifier: stepPricingIdentifier,
       mode: mode,
       amount: amountIn.toString(),
+      amountIon: amountIon?.toString(),
     );
     final amountOut = BigInt.parse(pricing.amount);
     final minReturn = _support.calculateMinReturn(
@@ -148,6 +152,7 @@ class TradeQuoteBuilder {
         minReturn: minReturn,
       ),
       pricing: pricing,
+      amountIon: amountIon,
     );
   }
 
@@ -254,6 +259,7 @@ class _QuoteBuildState {
     required this.currentAmount,
     required this.steps,
     required this.lastBondingCurvePricing,
+    required this.amountIon,
   });
 
   factory _QuoteBuildState.initial(BigInt amountIn) {
@@ -262,6 +268,7 @@ class _QuoteBuildState {
       currentAmount: amountIn,
       steps: const [],
       lastBondingCurvePricing: null,
+      amountIon: null,
     );
   }
 
@@ -269,17 +276,20 @@ class _QuoteBuildState {
   final BigInt currentAmount;
   final List<TradeQuoteStep> steps;
   final PricingResponse? lastBondingCurvePricing;
+  final BigInt? amountIon;
 
   _QuoteBuildState withStep({
     required TradeQuoteStep step,
     required BigInt nextAmount,
     PricingResponse? lastBondingCurvePricing,
+    BigInt? amountIon,
   }) {
     return _QuoteBuildState(
       initialAmount: initialAmount,
       currentAmount: nextAmount,
       steps: [...steps, step],
       lastBondingCurvePricing: lastBondingCurvePricing ?? this.lastBondingCurvePricing,
+      amountIon: amountIon ?? this.amountIon,
     );
   }
 }
@@ -288,8 +298,10 @@ class _BondingCurveQuoteStep {
   const _BondingCurveQuoteStep({
     required this.step,
     required this.pricing,
+    required this.amountIon,
   });
 
   final TradeQuoteStep step;
   final PricingResponse pricing;
+  final BigInt? amountIon;
 }

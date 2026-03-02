@@ -228,8 +228,13 @@ class IonCommunityTokensService {
     return _tokenInfoRepository.getHolderPosition(tokenExternalAddress, holderExternalAddress);
   }
 
-  Future<PricingResponse?> getPricing(String externalAddress, String type, String amount) {
-    return _tokenInfoRepository.getPricing(externalAddress, type, amount);
+  Future<PricingResponse?> getPricing(
+    String externalAddress,
+    String type,
+    String amount, {
+    String? amountIon,
+  }) {
+    return _tokenInfoRepository.getPricing(externalAddress, type, amount, amountIon: amountIon);
   }
 
   Future<UserHoldingsData> getUserHoldings({

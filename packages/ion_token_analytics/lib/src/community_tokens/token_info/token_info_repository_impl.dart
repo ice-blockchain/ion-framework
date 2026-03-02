@@ -97,17 +97,27 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   }
 
   @override
-  Future<PricingResponse?> getPricing(String externalAddress, String type, String amount) async {
+  Future<PricingResponse?> getPricing(
+    String externalAddress,
+    String type,
+    String amount, {
+    String? amountIon,
+  }) async {
     try {
+      final queryParameters = <String, String>{
+        'type': type,
+        'amount': amount,
+        if (amountIon != null) 'amountION': amountIon,
+      };
       final pricingRawData = await client.get<Map<String, dynamic>>(
         '/v1/community-tokens/$externalAddress/pricing',
-        queryParameters: {'type': type, 'amount': amount},
+        queryParameters: queryParameters,
       );
 
       return PricingResponse.fromJson(pricingRawData);
     } catch (error, stackTrace) {
       client.logger?.error(
-        'Failed to get pricing for externalAddress: $externalAddress, type: $type, amount: $amount',
+        'Failed to get pricing for externalAddress: $externalAddress, type: $type, amount: $amount, amountION: $amountIon',
         error: error,
         stackTrace: stackTrace,
       );

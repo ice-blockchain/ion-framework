@@ -14,7 +14,12 @@ abstract class TokenInfoRepository {
 
   Future<Position?> getHolderPosition(String tokenExternalAddress, String holderExternalAddress);
 
-  Future<PricingResponse?> getPricing(String externalAddress, String type, String amount);
+  Future<PricingResponse?> getPricing(
+    String externalAddress,
+    String type,
+    String amount, {
+    String? amountIon,
+  });
 
   Future<SuggestCreationDetailsResponse?> suggestCreationDetails(
     SuggestCreationDetailsRequest request,

@@ -89,15 +89,25 @@ class TradeCommunityTokenApi {
   ///
   /// Uses endpoint GET /v1/community-tokens/{externalAddress}/pricing?type={type}&amount={amount}
   /// Returns PricingResponse if found, otherwise null
-  Future<PricingResponse?> fetchPricing(String externalAddress, String type, String amount) async {
+  Future<PricingResponse?> fetchPricing(
+    String externalAddress,
+    String type,
+    String amount, {
+    String? amountIon,
+  }) async {
     try {
-      return await _analyticsClient.communityTokens.getPricing(externalAddress, type, amount);
+      return await _analyticsClient.communityTokens.getPricing(
+        externalAddress,
+        type,
+        amount,
+        amountIon: amountIon,
+      );
     } catch (error, stackTrace) {
       Logger.error(
         error,
         stackTrace: stackTrace,
         message:
-            'Failed to fetch pricing for externalAddress: $externalAddress, type: $type, amount: $amount',
+            'Failed to fetch pricing for externalAddress: $externalAddress, type: $type, amount: $amount, amountION: $amountIon',
       );
       rethrow;
     }

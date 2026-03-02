@@ -51,8 +51,14 @@ class TradeCommunityTokenRepository {
     required String pricingIdentifier,
     required CommunityTokenTradeMode mode,
     required String amount,
+    String? amountIon,
   }) async {
-    final pricing = await api.fetchPricing(pricingIdentifier, mode.apiType, amount);
+    final pricing = await api.fetchPricing(
+      pricingIdentifier,
+      mode.apiType,
+      amount,
+      amountIon: amountIon,
+    );
     if (pricing == null) {
       throw TokenPricingNotFoundException(pricingIdentifier);
     }
