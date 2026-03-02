@@ -26,7 +26,7 @@
 /lib/app/features/wallets/data/database/ @ice-damocles
 
 # Deeplinks / AppsFlyer
-/lib/app/services/deep_link/ @ice-neoptolemus @ice-endymion
+/lib/app/services/deep_link/ @ice-neoptolemus
 /lib/app/components/url_preview/ @ice-neoptolemus
 
 # Feed / Content Creation
@@ -68,11 +68,11 @@
 /lib/app/features/protect_account/ @ice-tychon
 
 # Pushes
-/lib/app/features/push_notifications/ @ice-endymion
-/ios/NotificationServiceExtension/ @ice-endymion
+/lib/app/features/push_notifications/ @ice-orion
+/ios/NotificationServiceExtension/ @ice-orion
 
 # Search
-/lib/app/features/search/ @ice-endymion
+/lib/app/features/search/ @ice-orion
 
 # Settings
 /lib/app/features/settings/ @ice-orion @ice-brontes
