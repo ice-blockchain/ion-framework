@@ -143,8 +143,6 @@ class CommunityTokenActionBody extends HookConsumerWidget {
                 ),
           ],
         ),
-
-        // todo create a component
         PositionedDirectional(
           top: topContainerHeight - (badgeHeight - padding) / 2,
           height: badgeHeight,
@@ -174,11 +172,10 @@ class CommunityTokenActionBody extends HookConsumerWidget {
   }
 }
 
-class PriceLabel extends StatelessWidget {
-  const PriceLabel({
+class _PriceLabel extends StatelessWidget {
+  const _PriceLabel({
     required this.type,
     required this.tokenMarketInfo,
-    super.key,
   });
 
   final ProfileChartType type;
