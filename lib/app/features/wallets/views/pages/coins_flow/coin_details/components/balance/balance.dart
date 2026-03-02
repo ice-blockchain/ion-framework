@@ -30,14 +30,17 @@ class Balance extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final balanceAllNetworks = ref.watch(
-      coinBalanceNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
-    ).valueOrNull;
+    final balanceAllNetworks = ref
+        .watch(
+          coinBalanceNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+        )
+        .valueOrNull;
 
     final networkKey = selectedNetwork?.maybeMap(
-      network: (n) => n.network.id,
-      orElse: () => CoinBalanceAllNetworksState.allNetworksKey,
-    ) ?? CoinBalanceAllNetworksState.allNetworksKey;
+          network: (n) => n.network.id,
+          orElse: () => CoinBalanceAllNetworksState.allNetworksKey,
+        ) ??
+        CoinBalanceAllNetworksState.allNetworksKey;
 
     final balance = balanceAllNetworks?.getBalance(networkKey);
 
@@ -49,9 +52,12 @@ class Balance extends ConsumerWidget {
       ),
     );
 
-    final cryptoWalletData = ref.watch(
-      selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
-    ).valueOrNull ?? SelectedCryptoWalletData.empty();
+    final cryptoWalletData = ref
+            .watch(
+              selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+            )
+            .valueOrNull ??
+        SelectedCryptoWalletData.empty();
     final shouldShowWallets = cryptoWalletData.wallets.length > 1;
 
     return ScreenSideOffset.small(
@@ -71,15 +77,18 @@ class Balance extends ConsumerWidget {
             padding: EdgeInsetsDirectional.only(bottom: 20.0.s, top: 11.0.s),
             child: BalanceActions(
               onSwap: () {
+                // Check if this is a tokenized community token
                 final coin = coinsGroup.coins.firstOrNull?.coin;
                 final externalAddress = coin?.tokenizedCommunityExternalAddress;
 
                 if (externalAddress != null) {
+                  // Open TC swap dialog
                   TradeCommunityTokenRoute(
                     externalAddress: externalAddress,
                     initialMode: CommunityTokenTradeMode.sell,
                   ).push<void>(context);
                 } else {
+                  // Open general swap dialog
                   ref.read(swapCoinsControllerProvider.notifier).initSellCoin(
                         coin: coinsGroup,
                         network: currentNetwork,
