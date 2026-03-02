@@ -89,7 +89,11 @@ Future<Delta> mentionsOverlay(
       .toList();
   if (allCashtagExternalAddresses.isNotEmpty) {
     unawaited(
-      ref.read(bulkTokenMarketInfoPrefetchProvider(allCashtagExternalAddresses).future),
+      ref.read(
+        bulkTokenMarketInfoPrefetchProvider(
+          BulkTokenMarketInfoPrefetchParams(allCashtagExternalAddresses),
+        ).future,
+      ),
     );
   }
 

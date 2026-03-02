@@ -5,7 +5,6 @@ import 'dart:convert';
 
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/text_editor_single_image_block/text_editor_single_image_block.dart';
 import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
@@ -21,6 +20,7 @@ import 'package:ion/app/features/feed/data/models/who_can_reply_settings_option.
 import 'package:ion/app/features/feed/providers/content_conversion.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/media_upload_provider.r.dart';
+import 'package:ion/app/features/feed/providers/pmo_cashtag_enrichment_service_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
@@ -542,7 +542,9 @@ class CreateArticle extends _$CreateArticle {
         List<List<String>> pmoTags,
       })> _normalizeContentForStorage(Delta rawContent) async {
     final contentWithAttributes = DeltaBridge.normalizeToAttributeFormat(rawContent);
-    final pmoPreparedContent = await _prepareContentForPmo(contentWithAttributes);
+    final pmoPreparedContent = await ref
+        .read(pmoCashtagEnrichmentServiceProvider)
+        .prepareContentForPmo(contentWithAttributes);
     final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
     final markdown = _applyPmoTagsToContent(
       content: conversion.contentToSign,
@@ -621,7 +623,7 @@ class CreateArticle extends _$CreateArticle {
     required String originalSegment,
   }) {
     if (_isMentionReplacement(replacement)) {
-      return _unwrapInlineFormatting(replacement);
+      return replacement;
     }
 
     final unwrappedReplacement = _unwrapInlineFormatting(replacement);
@@ -742,63 +744,6 @@ class CreateArticle extends _$CreateArticle {
 
     final cashtagPmoPattern = RegExp(r'^\[\$[^\]]+\]\([^)]+\)$');
     return cashtagPmoPattern.hasMatch(_unwrapInlineFormatting(tag[2]));
-  }
-
-  Future<Delta> _prepareContentForPmo(Delta content) async {
-    final out = Delta();
-    final tokenDefinitionAddressByExternalAddress = <String, String>{};
-
-    for (final op in content.operations) {
-      final data = op.data;
-      final attrs = op.attributes;
-
-      if (data is! String || attrs == null || !attrs.containsKey(CashtagAttribute.attributeKey)) {
-        out.push(op);
-        continue;
-      }
-
-      final showMarketCap = attrs[CashtagAttribute.showMarketCapKey] == true;
-      final externalAddressRaw = attrs[CashtagAttribute.attributeKey];
-      final externalAddress = externalAddressRaw is String ? externalAddressRaw.trim() : '';
-
-      if (!showMarketCap || externalAddress.isEmpty || externalAddress == r'$') {
-        out.push(op);
-        continue;
-      }
-
-      var tokenDefinitionAddress = tokenDefinitionAddressByExternalAddress[externalAddress];
-      if (tokenDefinitionAddress == null) {
-        tokenDefinitionAddress = await _resolveTokenDefinitionAddress(externalAddress);
-        tokenDefinitionAddressByExternalAddress[externalAddress] = tokenDefinitionAddress ?? '';
-      }
-
-      if (tokenDefinitionAddress == null || tokenDefinitionAddress.isEmpty) {
-        out.push(op);
-        continue;
-      }
-
-      final normalizedData = data.trimRight();
-      final enrichedText = normalizedData.contains(tokenDefinitionAddress)
-          ? data
-          : '$normalizedData $tokenDefinitionAddress';
-
-      out.insert(enrichedText, attrs);
-    }
-
-    return out;
-  }
-
-  Future<String?> _resolveTokenDefinitionAddress(String externalAddress) async {
-    final cached = await ref.read(
-      cachedTokenDefinitionProvider(externalAddress: externalAddress).future,
-    );
-
-    final definition = cached ??
-        await ref.read(
-          tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress).future,
-        );
-
-    return definition?.toEventReference().encode();
   }
 
   Map<String, MediaAttachment> _cleanMediaAttachments({

@@ -1051,24 +1051,26 @@ abstract class DeltaMarkdownConverter {
       final link = attrs?['link'];
 
       if (link is String && text.trimLeft().startsWith(r'$')) {
-        if (externalAddresses.contains(link)) {
+        final normalizedLink = _extractXStatusId(link) ?? link;
+
+        if (externalAddresses.contains(normalizedLink)) {
           newDelta.insert(
             text,
             {
               ...?attrs,
-              CashtagAttribute.attributeKey: link,
+              CashtagAttribute.attributeKey: normalizedLink,
               CashtagAttribute.showMarketCapKey: true,
             },
           );
           continue;
         }
 
-        if (coinIds.contains(link)) {
+        if (coinIds.contains(normalizedLink)) {
           newDelta.insert(
             text,
             {
               ...?attrs,
-              CashtagCoinIdAttribute.attributeKey: link,
+              CashtagCoinIdAttribute.attributeKey: normalizedLink,
             },
           );
           continue;

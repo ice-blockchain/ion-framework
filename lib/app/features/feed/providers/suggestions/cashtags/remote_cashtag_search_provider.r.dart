@@ -10,14 +10,17 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'remote_cashtag_search_provider.r.g.dart';
 
 @riverpod
+Future<Map<String, NetworkData>> networksMap(Ref ref) async {
+  final networksRepository = ref.read(networksRepositoryProvider);
+  return networksRepository.getAllAsMap();
+}
+
+@riverpod
 Future<List<CoinData>> remoteCashtagSearch(Ref ref, String keyword) async {
   if (keyword.isEmpty) return [];
-
   final ionIdentityClient = await ref.watch(ionIdentityClientProvider.future);
   final results = await ionIdentityClient.coins.searchCoins(keyword: keyword);
-
-  final networksRepository = ref.read(networksRepositoryProvider);
-  final networks = await networksRepository.getAllAsMap();
+  final networks = await ref.watch(networksMapProvider.future);
 
   return results.map((coin) {
     final network = networks[coin.network];

@@ -232,40 +232,37 @@ List<PmoTag> adjustPmoTagPositions(
       .toList();
 }
 
-bool _isMentionPmoTag(PmoTag tag) {
-  String unwrapInlineFormatting(String value) {
-    var unwrapped = value.trim();
-
-    final wrappers = <RegExp>[
-      RegExp(r'^<u>(.*)</u>$', dotAll: true),
-      RegExp(r'^~~(.*)~~$', dotAll: true),
-      RegExp(r'^```(.*)```$', dotAll: true),
-      RegExp(r'^`(.*)`$', dotAll: true),
-      RegExp(r'^\*\*\*(.*)\*\*\*$', dotAll: true),
-      RegExp(r'^\*\*(.*)\*\*$', dotAll: true),
-      RegExp(r'^\*(.*)\*$', dotAll: true),
-    ];
-
-    var changed = true;
-    while (changed && unwrapped.isNotEmpty) {
-      changed = false;
-      for (final wrapper in wrappers) {
-        final match = wrapper.firstMatch(unwrapped);
-        if (match != null) {
-          unwrapped = (match.group(1) ?? '').trim();
-          changed = true;
-          break;
-        }
+String _unwrapInlineFormatting(String value) {
+  var unwrapped = value.trim();
+  final wrappers = <RegExp>[
+    RegExp(r'^<u>(.*)</u>$', dotAll: true),
+    RegExp(r'^~~(.*)~~$', dotAll: true),
+    RegExp(r'^```(.*)```$', dotAll: true),
+    RegExp(r'^`(.*)`$', dotAll: true),
+    RegExp(r'^\*\*\*(.*)\*\*\*$', dotAll: true),
+    RegExp(r'^\*\*(.*)\*\*$', dotAll: true),
+    RegExp(r'^\*(.*)\*$', dotAll: true),
+  ];
+  var changed = true;
+  while (changed && unwrapped.isNotEmpty) {
+    changed = false;
+    for (final wrapper in wrappers) {
+      final match = wrapper.firstMatch(unwrapped);
+      if (match != null) {
+        unwrapped = (match.group(1) ?? '').trim();
+        changed = true;
+        break;
       }
     }
-
-    return unwrapped;
   }
+  return unwrapped;
+}
 
+bool _isMentionPmoTag(PmoTag tag) {
   final mentionPmoPattern = RegExp(
     r'^\[@[^\]]+\]\((?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+\)$',
   );
-  return mentionPmoPattern.hasMatch(unwrapInlineFormatting(tag.replacement));
+  return mentionPmoPattern.hasMatch(_unwrapInlineFormatting(tag.replacement));
 }
 
 String _stripCashtagEmphasisMarkers(String replacement) {

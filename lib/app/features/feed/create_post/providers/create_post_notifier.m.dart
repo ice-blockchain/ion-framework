@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/text_editor/attributes.dart';
 import 'package:ion/app/components/text_editor/utils/build_empty_delta.dart';
 import 'package:ion/app/components/text_editor/utils/extract_tags.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
@@ -26,6 +25,7 @@ import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_h
 import 'package:ion/app/features/feed/providers/counters/replies_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/media_upload_provider.r.dart';
+import 'package:ion/app/features/feed/providers/pmo_cashtag_enrichment_service_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_parent.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
@@ -109,7 +109,8 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       }.toList();
 
-      final pmoPreparedContent = await _prepareContentForPmo(postContent);
+      final pmoPreparedContent =
+          await ref.read(pmoCashtagEnrichmentServiceProvider).prepareContentForPmo(postContent);
       final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
 
       final contentMediaLinks = media.values.isNotEmpty
@@ -218,7 +219,8 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       ];
 
-      final pmoPreparedContent = await _prepareContentForPmo(postContent);
+      final pmoPreparedContent =
+          await ref.read(pmoCashtagEnrichmentServiceProvider).prepareContentForPmo(postContent);
       final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
 
       final contentMediaLinks = modifiedMedia.values.isNotEmpty
@@ -757,62 +759,5 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       kind: ModifiablePostEntity.kind,
       type: CommunityTokenDefinitionIonType.original,
     );
-  }
-
-  Future<Delta> _prepareContentForPmo(Delta content) async {
-    final out = Delta();
-    final tokenDefinitionAddressByExternalAddress = <String, String>{};
-
-    for (final op in content.operations) {
-      final data = op.data;
-      final attrs = op.attributes;
-
-      if (data is! String || attrs == null || !attrs.containsKey(CashtagAttribute.attributeKey)) {
-        out.push(op);
-        continue;
-      }
-
-      final showMarketCap = attrs[CashtagAttribute.showMarketCapKey] == true;
-      final externalAddressRaw = attrs[CashtagAttribute.attributeKey];
-      final externalAddress = externalAddressRaw is String ? externalAddressRaw.trim() : '';
-
-      if (!showMarketCap || externalAddress.isEmpty || externalAddress == r'$') {
-        out.push(op);
-        continue;
-      }
-
-      var tokenDefinitionAddress = tokenDefinitionAddressByExternalAddress[externalAddress];
-      if (tokenDefinitionAddress == null) {
-        tokenDefinitionAddress = await _resolveTokenDefinitionAddress(externalAddress);
-        tokenDefinitionAddressByExternalAddress[externalAddress] = tokenDefinitionAddress ?? '';
-      }
-
-      if (tokenDefinitionAddress == null || tokenDefinitionAddress.isEmpty) {
-        out.push(op);
-        continue;
-      }
-
-      final normalizedData = data.trimRight();
-      final enrichedText = normalizedData.contains(tokenDefinitionAddress)
-          ? data
-          : '$normalizedData $tokenDefinitionAddress';
-
-      out.insert(enrichedText, attrs);
-    }
-
-    return out;
-  }
-
-  Future<String?> _resolveTokenDefinitionAddress(String externalAddress) async {
-    final cached = await ref.read(
-      cachedTokenDefinitionProvider(externalAddress: externalAddress).future,
-    );
-
-    final definition = cached ??
-        await ref.read(
-          tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress).future,
-        );
-
-    return definition?.toEventReference().encode();
   }
 }
