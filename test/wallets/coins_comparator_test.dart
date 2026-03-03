@@ -69,6 +69,7 @@ CoinsGroup _createCoinsGroup({
     symbolGroup: symbolGroup,
     abbreviation: symbolGroup.toUpperCase(),
     coins: [],
+    iconUrl: '',
     totalBalanceUSD: totalBalanceUSD,
   );
 }
