@@ -21,9 +21,15 @@ import 'package:ion/app/features/feed/hooks/use_preselect_topics.dart';
 import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
+import 'package:ion/app/features/nsfw/hooks/use_article_nsfw_validation.dart';
+import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
+import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
+import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -75,6 +81,13 @@ class ArticlePreviewModal extends HookConsumerWidget {
     final isProcessing = useState(false);
 
     usePreselectTopics(ref, eventReference: modifiedEvent);
+
+    useArticleNsfwValidation(
+      ref: ref,
+      coverImage: image,
+      contentImageIds: imageIds,
+    );
+    ref.watch(mediaNsfwCheckerProvider);
 
     return SheetContent(
       body: ShowCaseWidget(
@@ -128,18 +141,32 @@ class ArticlePreviewModal extends HookConsumerWidget {
                       try {
                         isProcessing.value = true;
 
-                        // NSFW validation before publishing (cover image and embedded images if available)
-                        final imagesToCheck = <String>[
-                          if (image?.path != null) image!.path,
-                          ...mediaAttachments.values
-                              .where((m) => m.mimeType.startsWith('image/'))
-                              .map((m) => m.url),
-                        ];
-                        final isBlocked = await NsfwSubmitGuard.checkAndBlockImagePaths(
-                          ref,
-                          imagesToCheck,
-                        );
-                        if (isBlocked) return;
+                        final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
+                        // No-op if already checked in background; safety fallback otherwise
+                        final contentMedia = imageIds.isNotEmpty
+                            ? await ref.read(mediaServiceProvider).convertAssetIdsToMediaFiles(
+                                  ref,
+                                  mediaFiles: imageIds.map((id) => MediaFile(path: id)).toList(),
+                                )
+                            : <MediaFile>[];
+                        await mediaChecker.checkMediaForNsfw([
+                          if (image != null) image,
+                          ...contentMedia,
+                        ]);
+                        final nsfwCheckResult = await mediaChecker.hasNsfwMedia();
+
+                        if (!context.mounted) return;
+
+                        if (nsfwCheckResult is NsfwFailure) {
+                          showErrorModal(context, NSFWProcessingException());
+                          return;
+                        }
+                        if (nsfwCheckResult is NsfwSuccess && nsfwCheckResult.hasNsfw) {
+                          if (context.mounted) {
+                            await showNsfwBlockedSheet(context);
+                          }
+                          return;
+                        }
 
                         final labeler = await ref.read(ionContentLabelerProvider.future);
                         final detectedLanguage = await labeler.detectLanguageLabels(
