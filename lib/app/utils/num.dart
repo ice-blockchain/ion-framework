@@ -116,16 +116,17 @@ String formatBigIntCompact(BigInt value) {
   return '$sign$current.$trimmedFrac$suffix';
 }
 
+const minDisplayUSD = 0.01;
+
 String formatToCurrency(double value, [String? symbol]) {
-  return NumberFormat.currency(locale: 'en_US', symbol: symbol ?? r'$', decimalDigits: 2)
-      .format(value);
+  final s = symbol ?? r'$';
+  if (value.abs() > 0 && value.abs() < minDisplayUSD) {
+    return '< $s$minDisplayUSD';
+  }
+  return NumberFormat.currency(locale: 'en_US', symbol: s, decimalDigits: 2).format(value);
 }
 
-String formatUSD(double usdAmount) => NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '',
-      decimalDigits: 2,
-    ).format(usdAmount);
+String formatUSD(double usdAmount) => formatToCurrency(usdAmount, '');
 
 String formatCount(int number) {
   if (number >= 10000) {

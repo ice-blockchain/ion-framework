@@ -12,6 +12,7 @@ import 'package:ion/app/features/wallets/model/balance_display_order.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/wallet_user_preferences_provider.r.dart';
 import 'package:ion/app/utils/crypto.dart';
+import 'package:ion/app/features/wallets/utils/format_approx_usd.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -35,9 +36,7 @@ class CoinUsdAmount extends ConsumerWidget {
     final coinText =
         isBalanceVisible ? '${formatCryptoFull(amount)} $abbreviation' : StringConstants.obfuscated;
     final usdText = isBalanceVisible
-        ? context.i18n.wallet_approximate_in_usd(
-            formatUSD(balanceUSD),
-          )
+        ? formatApproxUSD(balance.balanceUSD, context.i18n.wallet_approximate_in_usd)
         : StringConstants.obfuscated;
 
     return Column(
