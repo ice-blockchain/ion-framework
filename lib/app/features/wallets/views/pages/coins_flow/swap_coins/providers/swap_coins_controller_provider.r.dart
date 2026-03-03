@@ -65,6 +65,8 @@ class SwapCoinsController extends _$SwapCoinsController {
         quoteAmount: null,
         quoteError: null,
         isSwapLoading: false,
+        sellUsdPrice: null,
+        buyUsdPrice: null,
       );
 
   void setSlippage(double slippagePercent) {
@@ -380,6 +382,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       state = state.copyWith(
         isQuoteLoading: false,
         swapQuoteInfo: null,
+        sellUsdPrice: null,
+        buyUsdPrice: null,
       );
       return;
     }
@@ -407,6 +411,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     state = state.copyWith(
       isQuoteLoading: true,
       swapQuoteInfo: null,
+      sellUsdPrice: null,
+      buyUsdPrice: null,
     );
 
     final swapController = await ref.read(ionSwapClientProvider.future);
@@ -527,6 +533,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       isQuoteLoading: false,
       swapQuoteInfo: quoteInfo,
       quoteError: null,
+      sellUsdPrice: quoteInfo.sellUsdPrice,
+      buyUsdPrice: quoteInfo.buyUsdPrice,
     );
   }
 
@@ -535,6 +543,8 @@ class SwapCoinsController extends _$SwapCoinsController {
       isQuoteLoading: false,
       swapQuoteInfo: null,
       quoteError: error,
+      sellUsdPrice: null,
+      buyUsdPrice: null,
     );
   }
 

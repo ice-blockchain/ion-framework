@@ -161,11 +161,19 @@ class SwapService {
           throw const IonSwapException('Failed to get swap quote: No quote found');
         }
 
+        final sellUsdPriceString = quote.fromToken.tokenUnitPrice;
+        final buyUsdPriceString = quote.toToken.tokenUnitPrice;
+        final sellUsdPrice =
+            sellUsdPriceString != null ? double.tryParse(sellUsdPriceString) : null;
+        final buyUsdPrice = buyUsdPriceString != null ? double.tryParse(buyUsdPriceString) : null;
+
         return SwapQuoteInfo(
           type: SwapQuoteInfoType.cexOrDex,
           priceForSellTokenInBuyToken: quote.priceForSellTokenInBuyToken,
           source: SwapQuoteInfoSource.okx,
           okxQuote: quote,
+          sellUsdPrice: sellUsdPrice,
+          buyUsdPrice: buyUsdPrice,
         );
       }
 

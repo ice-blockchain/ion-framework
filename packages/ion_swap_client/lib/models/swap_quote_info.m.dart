@@ -23,6 +23,8 @@ class SwapQuoteInfo with _$SwapQuoteInfo {
     SwapQuoteData? okxQuote,
     RelayQuote? relayQuote,
     String? relayDepositAmount,
+    double? sellUsdPrice,
+    double? buyUsdPrice,
   }) = _SwapQuoteInfo;
 
   factory SwapQuoteInfo.fromJson(Map<String, dynamic> json) => _$SwapQuoteInfoFromJson(json);
