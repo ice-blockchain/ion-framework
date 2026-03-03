@@ -8,7 +8,6 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/database.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/notifications/data/database/notifications_database.m.steps.dart';
-import 'package:ion/app/features/feed/notifications/data/database/tables/account_notification_sync_state_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/comments_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/followers_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/likes_table.d.dart';
@@ -46,7 +45,6 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
     LikesTable,
     FollowersTable,
     MentionsTable,
-    AccountNotificationSyncStateTable,
     TokenLaunchTable,
     TokenActionTable,
   ],
@@ -131,7 +129,7 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -204,6 +202,10 @@ class NotificationsDatabase extends _$NotificationsDatabase {
         },
         from7To8: (m, schema) async {
           await m.createTable(schema.tokenActionTable);
+        },
+        from8To9: (m, schema) async {
+          await m.database
+              .customStatement('DROP TABLE IF EXISTS account_notification_sync_state_table');
         },
       ),
     );

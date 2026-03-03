@@ -35,6 +35,7 @@ import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:ion/app/features/wallets/model/entities/funds_request_entity.f.dart';
 import 'package:ion/app/features/wallets/model/entities/wallet_asset_entity.f.dart';
 import 'package:ion/app/services/device_id/device_id.r.dart';
@@ -222,7 +223,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       return null;
     }
 
-    return _getNotificationSetFollowedUsers(
+    return _getNotificationSetInterestedUsers(
       accountNotificationSet: tokenizedCommunitiesTransactionsSet,
     );
   }
@@ -320,13 +321,14 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     for (final accountNotificationSet in accountNotificationSets) {
       if (accountsRelatedCategories.contains(accountNotificationSet.data.type) &&
           accountNotificationsEnabled) {
-        final notificationSetUsers =
-            await _getNotificationSetFollowedUsers(accountNotificationSet: accountNotificationSet);
-        if (notificationSetUsers.isNotEmpty) {
+        final interestedUsers = await _getNotificationSetInterestedUsers(
+          accountNotificationSet: accountNotificationSet,
+        );
+        if (interestedUsers.isNotEmpty) {
           filters.add(
             accountNotificationSet.data.type
                 .toUserNotificationType()
-                .toRequestFilter(masterPubkeys: notificationSetUsers),
+                .toRequestFilter(masterPubkeys: interestedUsers),
           );
         }
       }
@@ -409,15 +411,22 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
   /// Gets the list of users that the current user wants to receive notifications from
   /// for the provided [accountNotificationSet].
   ///
-  /// Not followed users are filtered out from the resulting list.
-  Future<List<String>> _getNotificationSetFollowedUsers({
+  /// Not followed and blocked users are filtered out from the resulting list.
+  Future<List<String>> _getNotificationSetInterestedUsers({
     required AccountNotificationSetEntity accountNotificationSet,
   }) async {
     final currentUserFollowList = await ref.watch(currentUserFollowListProvider.future);
     if (currentUserFollowList == null) throw FollowListNotFoundException();
 
+    final followedUsersPubkeys = currentUserFollowList.masterPubkeys;
+    final blockedUsersPubkeys = ref.watch(blockedUsersPubkeysSelectorProvider);
+
     return accountNotificationSet.data.userPubkeys
-        .where((userPubkey) => currentUserFollowList.masterPubkeys.contains(userPubkey))
+        .where(
+          (userPubkey) =>
+              followedUsersPubkeys.contains(userPubkey) &&
+              !blockedUsersPubkeys.contains(userPubkey),
+        )
         .toList();
   }
 }
