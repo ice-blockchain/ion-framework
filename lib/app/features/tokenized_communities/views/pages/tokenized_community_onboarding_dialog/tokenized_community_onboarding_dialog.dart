@@ -118,7 +118,7 @@ class _TokenizedCommunityOnboarding extends HookWidget {
                 },
               ),
             ),
-            ScreenBottomOffset(),
+            const ScreenBottomOffset(margin: 0),
           ],
         ),
       ],
