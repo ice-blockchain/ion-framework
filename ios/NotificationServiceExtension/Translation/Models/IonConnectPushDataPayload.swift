@@ -208,7 +208,7 @@ class IonConnectPushDataPayload: Decodable {
             return .follower
         } else if let entity = entity as? IonConnectGiftWrapEntity {
             if entity.data.kinds.contains(String(ReactionEntity.kind)) {
-                return .chatReaction
+                return isChatReactionToSharedStory() ? .chatStoryReaction : .chatReaction
             } else if entity.data.kinds.contains(String(FundsRequestEntity.kind)) {
                 return .paymentRequest
             } else if entity.data.kinds.contains(String(WalletAssetEntity.kind)) {
@@ -267,6 +267,20 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         return nil
+    }
+
+    private func isChatReactionToSharedStory() -> Bool {
+        guard let decryptedEvent = decryptedEvent,
+              decryptedEvent.kind == ReactionEntity.kind else {
+            return false
+        }
+
+        return decryptedEvent.tags.contains { tag in
+            guard let first = tag.first else {
+                return false
+            }
+            return first == "q" || first == "Q"
+        }
     }
 
     private func isCurrentUserMentioned(currentPubkey: String, entity: IonConnectEntity) -> Bool {
@@ -804,6 +818,7 @@ enum PushNotificationType: String, Decodable {
     case chatPhotoMessage
     case chatProfileMessage
     case chatReaction
+    case chatStoryReaction
     case chatSharePostMessage
     case chatShareArticleMessage
     case chatShareStoryMessage
@@ -842,6 +857,7 @@ enum PushNotificationType: String, Decodable {
              .chatPhotoMessage,
              .chatProfileMessage,
              .chatReaction,
+             .chatStoryReaction,
              .chatSharePostMessage,
              .chatShareArticleMessage,
              .chatShareStoryMessage,

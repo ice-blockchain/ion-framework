@@ -170,6 +170,13 @@ class NotificationTranslationService {
 
     private func getNotificationTranslation(for notificationType: PushNotificationType) async -> (title: String, body: String)?
     {
+        if notificationType == .chatStoryReaction {
+            return (
+                title: "New story reaction",
+                body: "Reacted to your story: {{reactionContent}}"
+            )
+        }
+
         let translation = await translator.translate { translations in
             switch notificationType {
             case .reply:
@@ -216,6 +223,8 @@ class NotificationTranslationService {
                 return translations.chatProfileMessage
             case .chatReaction:
                 return translations.chatReaction
+            case .chatStoryReaction:
+                return translations.chatStoryReaction
             case .chatSharePostMessage:
                 return translations.chatSharePostMessage
             case .chatShareArticleMessage:

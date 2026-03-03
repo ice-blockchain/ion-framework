@@ -273,7 +273,6 @@ class IonConnectPushDataPayload {
         .any((list) => list.contains(ReplaceablePrivateDirectMessageEntity.kind.toString()))) {
       if (decryptedEvent == null) return null;
       if (decryptedUserMetadata == null) return PushNotificationType.chatFirstContactMessage;
-
       final message = ReplaceablePrivateDirectMessageEntity.fromEventMessage(decryptedEvent!);
       return _getChatMessageNotificationType(message);
     }
@@ -281,7 +280,7 @@ class IonConnectPushDataPayload {
     return null;
   }
 
-  Future<PushNotificationType> _getChatMessageNotificationType(
+  Future<PushNotificationType?> _getChatMessageNotificationType(
     ReplaceablePrivateDirectMessageEntity message,
   ) async {
     return switch (message.data.messageType) {
@@ -314,7 +313,7 @@ class IonConnectPushDataPayload {
     };
   }
 
-  Future<PushNotificationType> _getSharedPostNotificationType(
+  Future<PushNotificationType?> _getSharedPostNotificationType(
     ReplaceablePrivateDirectMessageEntity message,
   ) async {
     // If message has content, it's a reply to a shared story
@@ -322,6 +321,7 @@ class IonConnectPushDataPayload {
       return PushNotificationType.chatSharedStoryReplyMessage;
     }
     final quotedEventKind = message.data.quotedEventKind;
+
     if (quotedEventKind != null) {
       switch (int.parse(quotedEventKind)) {
         case ModifiablePostEntity.kind || PostEntity.kind:
@@ -335,7 +335,7 @@ class IonConnectPushDataPayload {
       }
     }
 
-    return PushNotificationType.chatSharePostMessage;
+    return null;
   }
 
   PushNotificationType _getVisualMediaNotificationType(
