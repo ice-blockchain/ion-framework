@@ -43,22 +43,35 @@ class ShareExternalContentOptions extends ConsumerWidget {
     CreatePostRoute(content: delta).push<void>(context);
   }
 
+  /// Converts shared text into Quill Delta JSON, auto-linking any URLs
+  /// so they render as tappable links in the editor.
   String _buildDelta(String text) {
     const urlMatcher = UrlMatcher();
-    final isUrl = RegExp('^${urlMatcher.pattern}\$').hasMatch(text) && urlMatcher.validate(text);
+    final urlRegex = RegExp(urlMatcher.pattern);
+    final ops = <Map<String, dynamic>>[];
 
-    if (isUrl) {
-      return jsonEncode([
-        {
-          'insert': text,
-          'attributes': {'link': text},
-        },
-        {'insert': '\n'},
-      ]);
+    var lastEnd = 0;
+    for (final match in urlRegex.allMatches(text)) {
+      // Regex is intentionally loose; skip false positives (e.g. invalid TLDs)
+      if (!urlMatcher.validate(match.group(0)!)) continue;
+
+      if (match.start > lastEnd) {
+        ops.add({'insert': text.substring(lastEnd, match.start)});
+      }
+
+      final url = match.group(0)!;
+      ops.add({
+        'insert': url,
+        'attributes': {'link': url},
+      });
+      lastEnd = match.end;
     }
-    return jsonEncode([
-      {'insert': '$text\n'},
-    ]);
+
+    // Quill requires every document to end with '\n'
+    final remaining = lastEnd < text.length ? text.substring(lastEnd) : '';
+    ops.add({'insert': '$remaining\n'});
+
+    return jsonEncode(ops);
   }
 }
 
