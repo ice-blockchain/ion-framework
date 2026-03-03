@@ -11,7 +11,7 @@ import 'package:ion/app/hooks/use_selected_state.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
-import 'package:receive_sharing/receive_sharing.dart';
+import 'package:ion/app/services/sharing_intent/shared_content.dart';
 
 class ShareExternalContentModal extends HookWidget {
   const ShareExternalContentModal({
