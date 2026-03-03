@@ -86,6 +86,7 @@ class FadeTransitionSheetPage extends PagedSheetPage<void> {
   }) : super(
           key: state.pageKey,
           physics: const ClampingSheetPhysics(),
+          scrollConfiguration: const SheetScrollConfiguration(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final fadeInTween = TweenSequence<double>([
               TweenSequenceItem(tween: ConstantTween(0), weight: 1),
@@ -160,6 +161,7 @@ class MainModalSheetPage extends ModalSheetPage<void> {
           child: Sheet(
             controller: DefaultSheetController.of(context),
             physics: const ClampingSheetPhysics(),
+            scrollConfiguration: const SheetScrollConfiguration(),
             child: MainModalContent(
               state: state,
               child: child,
