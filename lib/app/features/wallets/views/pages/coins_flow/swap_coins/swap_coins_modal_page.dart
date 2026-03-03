@@ -42,6 +42,8 @@ class SwapCoinsModalPage extends HookConsumerWidget {
     final quoteAmount = ref.watch(swapCoinsControllerProvider).swapQuoteInfo;
     final amount = ref.watch(swapCoinsControllerProvider).amount;
     final isQuoteLoading = ref.watch(swapCoinsControllerProvider).isQuoteLoading;
+    final sellUsdPrice = ref.watch(swapCoinsControllerProvider).sellUsdPrice;
+    final buyUsdPrice = ref.watch(swapCoinsControllerProvider).buyUsdPrice;
     final isContinueButtonEnabled = sellCoins != null &&
         buyCoins != null &&
         sellNetwork != null &&
@@ -135,6 +137,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                             coinType: CoinSwapType.sell,
                           ).push<void>(context);
                         },
+                        usdPrice: sellUsdPrice,
                       ),
                       SizedBox(
                         height: 10.0.s,
@@ -152,6 +155,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                             coinType: CoinSwapType.buy,
                           ).push<void>(context);
                         },
+                        usdPrice: buyUsdPrice,
                       ),
                     ],
                   ),

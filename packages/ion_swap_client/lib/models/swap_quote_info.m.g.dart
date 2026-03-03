@@ -29,6 +29,8 @@ _$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
           ? null
           : RelayQuote.fromJson(json['relayQuote'] as Map<String, dynamic>),
       relayDepositAmount: json['relayDepositAmount'] as String?,
+      sellUsdPrice: (json['sellUsdPrice'] as num?)?.toDouble(),
+      buyUsdPrice: (json['buyUsdPrice'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
@@ -44,6 +46,8 @@ Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
       'okxQuote': instance.okxQuote,
       'relayQuote': instance.relayQuote,
       'relayDepositAmount': instance.relayDepositAmount,
+      'sellUsdPrice': instance.sellUsdPrice,
+      'buyUsdPrice': instance.buyUsdPrice,
     };
 
 const _$SwapQuoteInfoTypeEnumMap = {

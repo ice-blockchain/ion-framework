@@ -21,6 +21,8 @@ class SwapCoinData with _$SwapCoinData {
     BigInt? quoteAmount,
     Exception? quoteError,
     @Default(SwapCoinData.defaultSlippage) double slippage,
+    double? sellUsdPrice,
+    double? buyUsdPrice,
   }) = _SwapCoinData;
   const SwapCoinData._();
 

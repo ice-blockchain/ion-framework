@@ -9,6 +9,7 @@ part 'okx_token_info.m.g.dart';
 class OkxTokenInfo with _$OkxTokenInfo {
   factory OkxTokenInfo({
     required String decimal,
+    required String? tokenUnitPrice,
   }) = _OkxTokenInfo;
 
   factory OkxTokenInfo.fromJson(Map<String, dynamic> json) => _$OkxTokenInfoFromJson(json);
