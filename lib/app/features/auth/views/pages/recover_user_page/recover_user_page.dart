@@ -14,6 +14,7 @@ import 'package:ion/app/features/auth/views/pages/two_fa/twofa_input_step.dart';
 import 'package:ion/app/features/auth/views/pages/two_fa/twofa_options_step.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/protect_account/backup/providers/recover_user_action_notifier.m.dart';
+import 'package:ion/app/features/protect_account/backup/providers/recovery_backup_state_cleanup.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/selected_two_fa_types_provider.m.dart';
 import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -222,6 +223,7 @@ class RecoverUserPage extends HookConsumerWidget {
               final ionIdentity = await ref.read(ionIdentityProvider.future);
               await ionIdentity(username: creds.name).auth.clearPasswordUserState();
             }
+            await cleanupBackupStateAfterRecovery(ref, identityKeyName: creds.name);
             if (ref.context.mounted) {
               await RecoverUserSuccessRoute().push<void>(ref.context);
             }
