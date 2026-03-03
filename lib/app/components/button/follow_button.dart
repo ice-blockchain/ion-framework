@@ -59,14 +59,14 @@ class FollowButton extends HookWidget {
       }
     }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      padding: effectiveDecoration.contentPadding,
-      decoration: effectiveDecoration,
-      alignment: Alignment.center,
-      curve: Curves.easeInOut,
-      child: TextButton(
-        onPressed: isDisabled.value ? null : handlePressed,
+    return GestureDetector(
+      onTap: isDisabled.value ? null : handlePressed,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: effectiveDecoration.contentPadding,
+        decoration: effectiveDecoration,
+        alignment: Alignment.center,
+        curve: Curves.easeInOut,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

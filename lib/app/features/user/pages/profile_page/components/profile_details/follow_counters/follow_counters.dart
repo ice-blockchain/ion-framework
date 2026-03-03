@@ -48,16 +48,8 @@ class FollowCounters extends ConsumerWidget {
   }
 
   Widget _divider(BuildContext context) {
-    if (!enableDecoration) {
-      return SizedBox(
-        width: 16.s,
-      );
-    }
     if (profileMode == ProfileMode.dark) {
-      return Padding(
-        padding: EdgeInsetsDirectional.symmetric(horizontal: 12.0.s),
-        child: const GradientVerticalDivider(),
-      );
+      return const GradientVerticalDivider();
     }
     return VerticalDivider(
       width: 1.0.s,
@@ -66,14 +58,6 @@ class FollowCounters extends ConsumerWidget {
       endIndent: 8.0.s,
       color: context.theme.appColors.onTertiaryFill,
     );
-  }
-
-  EdgeInsets get _padding {
-    if (profileMode == ProfileMode.dark) {
-      return EdgeInsets.symmetric(horizontal: 16.0.s);
-    }
-
-    return EdgeInsets.zero;
   }
 
   MainAxisSize get _mainAxisSize {
@@ -99,7 +83,6 @@ class FollowCounters extends ConsumerWidget {
 
     return Container(
       height: height.s,
-      padding: padding ?? _padding,
       decoration: _decoration(context),
       child: Row(
         mainAxisSize: _mainAxisSize,
@@ -146,8 +129,11 @@ class _FollowCounterCellWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = isLoading
-        ? _FollowCounterLoadingCell(
-            color: context.theme.appColors.onTertiaryFill.withValues(alpha: 0.5),
+        ? Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.0.s),
+            child: _FollowCounterLoadingCell(
+              color: context.theme.appColors.onTertiaryFill.withValues(alpha: 0.5),
+            ),
           )
         : child;
 

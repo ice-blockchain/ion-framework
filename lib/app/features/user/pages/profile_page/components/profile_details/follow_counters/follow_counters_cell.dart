@@ -73,6 +73,7 @@ class FollowCountersCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         if (usersNumber > 0) {
           FollowListRoute(
@@ -81,34 +82,37 @@ class FollowCountersCell extends StatelessWidget {
           ).push<String>(context);
         }
       },
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                followType.iconAsset.icon(
-                  color: _iconColor(context),
-                  size: _iconSize,
-                ),
-                SizedBox(width: _spacing),
-                Text(
-                  formatCount(usersNumber),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: _numberTextStyle(context),
-                ),
-              ],
-            ),
-            SizedBox(width: _spacing),
-            Text(
-              followType.getTitle(context),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: _labelTextStyle(context),
-            ),
-          ],
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12.0.s),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  followType.iconAsset.icon(
+                    color: _iconColor(context),
+                    size: _iconSize,
+                  ),
+                  SizedBox(width: _spacing),
+                  Text(
+                    formatCount(usersNumber),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _numberTextStyle(context),
+                  ),
+                ],
+              ),
+              SizedBox(width: _spacing),
+              Text(
+                followType.getTitle(context),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: _labelTextStyle(context),
+              ),
+            ],
+          ),
         ),
       ),
     );
