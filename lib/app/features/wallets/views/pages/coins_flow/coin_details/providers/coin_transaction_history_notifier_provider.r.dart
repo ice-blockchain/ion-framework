@@ -92,7 +92,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
 
     _selectedWalletAddress = ref.watch(
       selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup)
-          .select((state) => state.selectedWallet?.address),
+          .select((asyncState) => asyncState.valueOrNull?.selectedWallet?.address),
     );
 
     // Include selected wallet address if not already in the list (for disconnected wallets)

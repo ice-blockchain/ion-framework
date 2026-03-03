@@ -5,9 +5,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
+import 'package:ion/app/features/wallets/model/coin_balance_all_networks_state.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
-import 'package:ion/app/features/wallets/model/network_data.f.dart';
+import 'package:ion/app/features/wallets/model/network_selector_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/balance/coin_usd_amount.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/model/selected_crypto_wallet_data.f.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/balance_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/selected_crypto_wallet_notifier.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
@@ -18,18 +21,43 @@ import 'package:ion/app/router/app_routes.gr.dart';
 class Balance extends ConsumerWidget {
   const Balance({
     required this.coinsGroup,
-    this.currentNetwork,
+    this.selectedNetwork,
     super.key,
   });
 
   final CoinsGroup coinsGroup;
-  final NetworkData? currentNetwork;
+  final SelectedNetworkItem? selectedNetwork;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cryptoWalletData = ref.watch(
-      selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+    final balanceAllNetworks = ref
+        .watch(
+          coinBalanceNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+        )
+        .valueOrNull;
+
+    final networkKey = selectedNetwork?.maybeMap(
+          network: (n) => n.network.id,
+          orElse: () => CoinBalanceAllNetworksState.allNetworksKey,
+        ) ??
+        CoinBalanceAllNetworksState.allNetworksKey;
+
+    final balance = balanceAllNetworks?.getBalance(networkKey);
+
+    final currentNetwork = ref.watch(
+      networkSelectorNotifierProvider(symbolGroup: coinsGroup.symbolGroup).select(
+        (asyncState) => asyncState.valueOrNull?.selected.mapOrNull(
+          network: (item) => item.network,
+        ),
+      ),
     );
+
+    final cryptoWalletData = ref
+            .watch(
+              selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
+            )
+            .valueOrNull ??
+        SelectedCryptoWalletData.empty();
     final shouldShowWallets = cryptoWalletData.wallets.length > 1;
 
     return ScreenSideOffset.small(
@@ -40,7 +68,9 @@ class Balance extends ConsumerWidget {
               top: shouldShowWallets ? 16.s : 12.s,
             ),
             child: CoinUsdAmount(
-              coinsGroup: coinsGroup,
+              amount: balance?.amount ?? 0.0,
+              balanceUSD: balance?.balanceUSD ?? 0.0,
+              abbreviation: coinsGroup.abbreviation,
             ),
           ),
           Padding(
@@ -79,7 +109,8 @@ class Balance extends ConsumerWidget {
                     .read(
                       selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
                     )
-                    .selectedWallet;
+                    .valueOrNull
+                    ?.selectedWallet;
 
                 final formNotifier = ref.read(receiveCoinsFormControllerProvider.notifier)
                   ..setCoin(coinsGroup);
@@ -107,7 +138,8 @@ class Balance extends ConsumerWidget {
                     .read(
                       selectedCryptoWalletNotifierProvider(symbolGroup: coinsGroup.symbolGroup),
                     )
-                    .selectedWallet;
+                    .valueOrNull
+                    ?.selectedWallet;
 
                 WalletMainModalRoute(
                   symbolGroup: coinsGroup.symbolGroup,

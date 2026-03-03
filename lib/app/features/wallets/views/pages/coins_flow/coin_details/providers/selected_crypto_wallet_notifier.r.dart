@@ -13,52 +13,43 @@ part 'selected_crypto_wallet_notifier.r.g.dart';
 @riverpod
 class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
   @override
-  SelectedCryptoWalletData build({required String symbolGroup}) {
+  Future<SelectedCryptoWalletData> build({required String symbolGroup}) async {
     final network = ref.watch(
       networkSelectorNotifierProvider(symbolGroup: symbolGroup).select(
         (asyncState) => asyncState.valueOrNull?.selected.whenOrNull(network: (network) => network),
       ),
     );
 
+    final walletView = await ref.watch(currentWalletViewDataProvider.future);
+    final connectedWallets = await ref.watch(
+      walletViewCryptoWalletsProvider(walletViewId: walletView.id).future,
+    );
+    final allWallets = await ref.watch(walletsNotifierProvider.future);
+
     if (network == null) {
       return SelectedCryptoWalletData.empty();
     }
 
-    final walletView = ref.watch(currentWalletViewDataProvider).valueOrNull;
+    final networkConnected = connectedWallets
+        .where((wallet) => wallet.address != null && wallet.network == network.id)
+        .toSet();
 
-    if (walletView == null) {
+    if (networkConnected.isEmpty) {
       return SelectedCryptoWalletData.empty();
     }
 
-    final connectedWallets = ref
-            .watch(walletViewCryptoWalletsProvider(walletViewId: walletView.id))
-            .valueOrNull
-            ?.where((wallet) => wallet.address != null && wallet.network == network.id)
-            .toSet() ??
-        {};
+    final relatedWallets = allWallets
+        .where(
+          (wallet) =>
+              wallet.name == walletView.id &&
+              wallet.network == network.id &&
+              wallet.address != null,
+        )
+        .toSet();
 
-    if (connectedWallets.isEmpty) {
-      return SelectedCryptoWalletData.empty();
-    }
-
-    final relatedWallets = ref.watch(
-      walletsNotifierProvider.select(
-        (asyncValue) =>
-            asyncValue.valueOrNull
-                ?.where(
-                  (wallet) =>
-                      wallet.name == walletView.id &&
-                      wallet.network == network.id &&
-                      wallet.address != null,
-                )
-                .toSet() ??
-            {},
-      ),
-    );
-
-    final disconnectedWallets = relatedWallets.difference(connectedWallets);
+    final disconnectedWallets = relatedWallets.difference(networkConnected);
     final wallets = [
-      ...connectedWallets,
+      ...networkConnected,
       ...disconnectedWallets,
     ];
 
@@ -74,8 +65,9 @@ class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
   }
 
   set selectedWallet(Wallet wallet) {
-    if (state.wallets.contains(wallet)) {
-      state = state.copyWith(selectedWallet: wallet);
+    final currentState = state.valueOrNull;
+    if (currentState != null && currentState.wallets.contains(wallet)) {
+      state = AsyncData(currentState.copyWith(selectedWallet: wallet));
     }
   }
 }

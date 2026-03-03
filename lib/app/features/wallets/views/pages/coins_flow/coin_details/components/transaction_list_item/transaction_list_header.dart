@@ -1,26 +1,38 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/wallets/model/network_selector_data.f.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/constants.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_header_item.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/providers/network_selector_notifier.r.dart';
 
-class TransactionListHeader extends StatelessWidget {
+class TransactionListHeader extends HookConsumerWidget {
   const TransactionListHeader({
-    required this.items,
-    required this.selected,
-    required this.onNetworkTypeSelect,
+    required this.symbolGroup,
+    this.onNetworkChanged,
     super.key,
   });
 
-  final SelectedNetworkItem selected;
-  final List<SelectedNetworkItem> items;
-  final void Function(SelectedNetworkItem) onNetworkTypeSelect;
+  final String symbolGroup;
+  final void Function(SelectedNetworkItem)? onNetworkChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final networkSelectorData =
+        ref.watch(networkSelectorNotifierProvider(symbolGroup: symbolGroup)).valueOrNull;
+    final optimisticSelection = useState<SelectedNetworkItem?>(null);
+
+    if (networkSelectorData == null) {
+      return const SizedBox.shrink();
+    }
+
+    final selected = optimisticSelection.value ?? networkSelectorData.selected;
+    final items = networkSelectorData.items;
+
     return SizedBox(
       height: TransactionListConstants.headerItemHeight +
           TransactionListConstants.headerPaddingBottom +
@@ -37,10 +49,24 @@ class TransactionListHeader extends StatelessWidget {
         separatorBuilder: (BuildContext context, int index) => SizedBox(width: 6.0.s),
         itemBuilder: (BuildContext context, int index) {
           final item = items[index];
+          final isSelected = item == selected;
           return TransactionListHeaderItem(
             item: item,
-            isSelected: item == selected,
-            onPress: () => onNetworkTypeSelect(item),
+            isSelected: isSelected,
+            onPress: () {
+              if (isSelected) return;
+
+              optimisticSelection.value = item;
+              onNetworkChanged?.call(item);
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!context.mounted) return;
+
+                ref
+                    .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup).notifier)
+                    .selected = item;
+              });
+            },
           );
         },
       ),

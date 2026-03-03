@@ -41,12 +41,20 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
 
     final previousCache = state.valueOrNull;
 
-    _lastRequestTimes.clear();
     _activeRequests.clear();
 
     final walletViewData = await ref.watch(currentWalletViewDataProvider.future);
+    final cache = _buildCache(walletViewData.coinGroups, previousCache);
 
-    return _buildCache(walletViewData.coinGroups, previousCache);
+    // Initialize last request times for symbol groups that don't have one yet.
+    // This ensures debounce works correctly on first load by treating cached
+    // data as "just fetched", preventing unnecessary immediate re-requests.
+    final now = DateTime.now();
+    for (final symbolGroup in cache.keys) {
+      _lastRequestTimes[symbolGroup] ??= now;
+    }
+
+    return cache;
   }
 
   Future<List<CoinInWalletData>> getCoins(String symbolGroup) async {
@@ -121,8 +129,9 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     final coins = await service.getSyncedCoinsBySymbolGroup(symbolGroup);
     final walletCoins =
         await ref.read(currentWalletViewDataProvider.future).then((walletView) => walletView.coins);
+    final result = _processCoins(coins, walletCoins);
 
-    return _processCoins(coins, walletCoins);
+    return result;
   }
 
   List<CoinInWalletData> _processCoins(
