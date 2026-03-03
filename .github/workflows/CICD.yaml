@@ -45,7 +45,7 @@ env:
 jobs:
   flutter:
     name: Flutter -- verify, build, test
-    runs-on: macos-15
+    runs-on: macos-26
     outputs:
       app_version: ${{ steps.set_version.outputs.version }}
     steps:
@@ -219,7 +219,7 @@ jobs:
   ios-cicd:
     name: iOS -- build, deploy (${{ matrix.deployment_target }})
     needs: [ flutter ]
-    runs-on: macos-15
+    runs-on: macos-26
     strategy:
       matrix:
         deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.deployment)) || (github.event_name == 'pull_request' && fromJSON('["firebase"]')) || fromJSON('["firebase", "store"]') }}
@@ -328,7 +328,7 @@ jobs:
   android-cicd:
     name: Android -- build, deploy (${{ matrix.deployment_target }})
     needs: [ flutter ]
-    runs-on: macos-15
+    runs-on: macos-26
     strategy:
       matrix:
         deployment_target: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.deployment)) || (github.event_name == 'pull_request' && fromJSON('["firebase"]')) || fromJSON('["firebase", "store"]') }}
@@ -456,7 +456,7 @@ jobs:
     permissions:
       actions: write
     needs: [ flutter, ios-cicd, android-cicd ]
-    runs-on: macos-15
+    runs-on: macos-26
     if: always() && needs.flutter.result == 'success'
     steps:
       - name: Delete cache
