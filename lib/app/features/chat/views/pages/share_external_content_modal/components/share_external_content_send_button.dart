@@ -9,8 +9,8 @@ import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
 import 'package:ion/app/features/core/views/pages/error_modal.dart';
+import 'package:ion/app/services/sharing_intent/shared_content.dart';
 import 'package:ion/generated/assets.gen.dart';
-import 'package:receive_sharing/receive_sharing.dart';
 
 class ShareExternalContentSendButton extends HookConsumerWidget {
   const ShareExternalContentSendButton({

@@ -1808,7 +1808,7 @@ packages:
     source: hosted
     version: "3.0.2"
   listen_sharing_intent:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: listen_sharing_intent
       sha256: df12e6c78666018985c39df494fc12412ece6510c38c79fe1230f2abef0965fa
@@ -2467,13 +2467,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
-  receive_sharing:
-    dependency: "direct main"
-    description:
-      path: "packages/receive_sharing"
-      relative: true
-    source: path
-    version: "1.0.0"
   riverpod:
     dependency: "direct main"
     description:

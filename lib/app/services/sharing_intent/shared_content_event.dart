@@ -5,8 +5,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/deep_link/app_links_service.r.dart';
+import 'package:ion/app/services/sharing_intent/shared_content.dart';
+import 'package:ion/app/services/sharing_intent/shared_text_stream_provider.r.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
-import 'package:receive_sharing/receive_sharing.dart';
 
 class ShowSharedContentEvent extends UiEvent {
   ShowSharedContentEvent(this.content)
@@ -23,7 +24,7 @@ class ShowSharedContentEvent extends UiEvent {
   }
 }
 
-/// Listens to shared text from [receive_sharing] and emits [ShowSharedContentEvent]
+/// Listens to shared text from [sharedTextStreamProvider] and emits [ShowSharedContentEvent]
 /// into the UI event queue. Waits for [appReadyProvider] before processing to
 /// ensure the navigator and full app state are initialized.
 class ReceiveSharingIntentListener extends HookConsumerWidget {
