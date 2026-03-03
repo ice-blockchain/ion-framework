@@ -53,7 +53,7 @@ class ContentCreationBlockedModal extends ConsumerWidget {
             ],
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

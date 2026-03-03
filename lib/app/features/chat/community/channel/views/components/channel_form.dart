@@ -146,7 +146,7 @@ class ChannelForm extends HookConsumerWidget {
                 onSubmit(titleController.text, descController.text, channelType.value!);
               },
             ),
-            ScreenBottomOffset(),
+            const ScreenBottomOffset(),
           ],
         ),
       ),

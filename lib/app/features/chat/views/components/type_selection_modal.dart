@@ -56,7 +56,7 @@ class TypeSelectionModal<T extends SelectableType> extends HookConsumerWidget {
               ],
             ),
           ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

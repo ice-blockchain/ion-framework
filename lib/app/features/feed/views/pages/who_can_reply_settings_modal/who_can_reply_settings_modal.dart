@@ -28,7 +28,7 @@ class WhoCanReplySettingsModal extends StatelessWidget {
         const HorizontalSeparator(),
         const WhoCanReplySettingsList(),
         const HorizontalSeparator(),
-        ScreenBottomOffset(
+        const ScreenBottomOffset(
           margin: 0,
         ),
       ],

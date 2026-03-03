@@ -58,7 +58,7 @@ class PermissionRequestSheet extends ConsumerWidget {
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

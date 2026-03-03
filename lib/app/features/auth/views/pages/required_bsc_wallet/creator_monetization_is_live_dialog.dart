@@ -107,7 +107,7 @@ class _ContentState extends ConsumerWidget {
                 label: Text(context.i18n.bsc_required_dialog_action_button),
                 onPressed: () => _onActionPressed(context, ref),
               ),
-              ScreenBottomOffset(),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

@@ -133,7 +133,7 @@ class ArticleDetailsPage extends HookConsumerWidget {
             topicKey: topics.first,
             topicName: topicsNames.first,
           ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ];
     }
 

@@ -45,7 +45,7 @@ class SearchHistoryClearConfirm extends StatelessWidget {
               ),
             ],
           ),
-          ScreenBottomOffset(),
+          const ScreenBottomOffset(),
         ],
       ),
     );

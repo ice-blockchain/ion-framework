@@ -8,7 +8,6 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/inputs/text_input/components/text_input_clear_button.dart';
 import 'package:ion/app/components/inputs/text_input/components/text_input_icons.dart';
 import 'package:ion/app/components/inputs/text_input/text_input.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';

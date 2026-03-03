@@ -58,7 +58,7 @@ class ScheduleModal extends HookWidget {
             ),
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

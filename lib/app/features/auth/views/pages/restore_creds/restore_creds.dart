@@ -6,6 +6,7 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
+import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/components/identity_key_name_input/identity_key_name_input.dart';

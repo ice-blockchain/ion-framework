@@ -51,7 +51,7 @@ class NsfwBlockedSheet extends StatelessWidget {
                 label: Text(locales.button_close),
                 onPressed: () => Navigator.pop(context),
               ),
-              ScreenBottomOffset(),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

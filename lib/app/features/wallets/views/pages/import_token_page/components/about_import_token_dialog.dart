@@ -54,7 +54,7 @@ class AboutImportTokenDialog extends ConsumerWidget {
                 textAlign: TextAlign.center,
                 style: textStyles.body2.copyWith(color: colors.secondaryText),
               ),
-              ScreenBottomOffset(),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

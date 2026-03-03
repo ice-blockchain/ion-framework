@@ -97,7 +97,7 @@ class SettingsRedirectSheet extends StatelessWidget {
               onPressed: () => Navigator.of(context).pop(true),
             ),
           ),
-          ScreenBottomOffset(),
+          const ScreenBottomOffset(),
         ],
       ),
     );

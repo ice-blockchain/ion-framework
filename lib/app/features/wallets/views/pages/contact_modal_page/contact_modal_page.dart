@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/send_asset_form_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/contact_modal_page/components/contact_item.dart';

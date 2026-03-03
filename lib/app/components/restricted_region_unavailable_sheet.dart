@@ -47,7 +47,7 @@ class RestrictedRegionUnavailableSheet extends StatelessWidget {
             ],
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

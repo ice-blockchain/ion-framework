@@ -64,7 +64,7 @@ class AppReviewModal extends HookConsumerWidget {
                   onRatingChanged: handleRating,
                 ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

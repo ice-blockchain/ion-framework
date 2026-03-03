@@ -7,7 +7,6 @@ import 'package:ion/app/components/icons/network_icon_widget.dart';
 import 'package:ion/app/components/icons/wallet_item_icon_type.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
@@ -136,7 +135,7 @@ class SendNftConfirmPage extends ConsumerWidget {
               ),
             ),
           ),
-          ScreenBottomOffset(),
+          const ScreenBottomOffset(),
         ],
       ),
     );

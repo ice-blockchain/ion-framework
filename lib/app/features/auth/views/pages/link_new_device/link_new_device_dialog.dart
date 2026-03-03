@@ -91,7 +91,7 @@ class LinkNewDeviceDialog extends HookConsumerWidget {
             label: Text(context.i18n.auth_link_new_device_link_button),
             onPressed: () => _linkNewDevice(ref),
           ),
-          ScreenBottomOffset(),
+          const ScreenBottomOffset(),
         ],
       ),
     );
