@@ -351,7 +351,7 @@ final class _FramedEvent extends HookConsumerWidget {
         ),
       CommunityTokenActionEntity() => CommunityTokenActionBody(
           entity: entity,
-          sidePadding: 0,
+          sidePadding: isParent ? null : 0,
         ),
       _ => const SizedBox.shrink()
     };
