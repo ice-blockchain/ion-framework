@@ -120,7 +120,7 @@ class TextMessage extends HookConsumerWidget {
       contentPadding: EdgeInsets.symmetric(horizontal: 12.0.s, vertical: 12.0.s),
       child: IntrinsicWidth(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: isMe ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
           children: [
             if (repliedMessageItem != null)
               ReplyMessage(messageItem, repliedMessageItem, onTapReply),
@@ -216,6 +216,30 @@ class _TextMessageContent extends HookWidget {
         ],
       );
     } else {
+      if (hasRepliedMessage) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _TextRichContent(
+              text: content,
+              textStyle: textStyle,
+              hasUrlInText: hasUrlInText,
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Offstage(
+                offstage: metadataWidth.s <= 0,
+                child: MessageMetadata(
+                  eventMessage: eventMessage,
+                  startPadding: 0.0.s,
+                  key: metadataRef,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
       final multiLineTextPainter = TextPainter(
         text: TextSpan(text: content, style: textStyle),
         textDirection: TextDirection.ltr,
