@@ -32,7 +32,7 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     );
     final networkKey = currentNetwork?.id ?? CoinBalanceAllNetworksState.allNetworksKey;
 
-    final coins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
+    final coins = await ref.watch(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
     final balances = _calculateAllNetworkBalances(coins);
 
     ref

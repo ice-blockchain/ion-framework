@@ -12,10 +12,6 @@ part 'selected_crypto_wallet_notifier.r.g.dart';
 
 @riverpod
 class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
-  List<Wallet>? _cachedConnectedWallets;
-  List<Wallet>? _cachedAllWallets;
-  String? _cachedWalletViewId;
-
   @override
   Future<SelectedCryptoWalletData> build({required String symbolGroup}) async {
     final network = ref.watch(
@@ -24,41 +20,36 @@ class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
       ),
     );
 
-    if (_cachedConnectedWallets == null || _cachedAllWallets == null) {
-      final walletView = await ref.read(currentWalletViewDataProvider.future);
-      _cachedWalletViewId = walletView.id;
-
-      _cachedConnectedWallets = await ref.read(
-        walletViewCryptoWalletsProvider(walletViewId: walletView.id).future,
-      );
-
-      _cachedAllWallets = await ref.read(walletsNotifierProvider.future);
-    }
+    final walletView = await ref.watch(currentWalletViewDataProvider.future);
+    final connectedWallets = await ref.watch(
+      walletViewCryptoWalletsProvider(walletViewId: walletView.id).future,
+    );
+    final allWallets = await ref.watch(walletsNotifierProvider.future);
 
     if (network == null) {
       return SelectedCryptoWalletData.empty();
     }
 
-    final connectedWallets = _cachedConnectedWallets!
+    final networkConnected = connectedWallets
         .where((wallet) => wallet.address != null && wallet.network == network.id)
         .toSet();
 
-    if (connectedWallets.isEmpty) {
+    if (networkConnected.isEmpty) {
       return SelectedCryptoWalletData.empty();
     }
 
-    final relatedWallets = _cachedAllWallets!
+    final relatedWallets = allWallets
         .where(
           (wallet) =>
-              wallet.name == _cachedWalletViewId &&
+              wallet.name == walletView.id &&
               wallet.network == network.id &&
               wallet.address != null,
         )
         .toSet();
 
-    final disconnectedWallets = relatedWallets.difference(connectedWallets);
+    final disconnectedWallets = relatedWallets.difference(networkConnected);
     final wallets = [
-      ...connectedWallets,
+      ...networkConnected,
       ...disconnectedWallets,
     ];
 
