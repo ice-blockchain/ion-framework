@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -68,7 +69,7 @@ class VideoPreview extends HookConsumerWidget {
                 sourcePath: videoUrl,
                 authorPubkey: authorPubkey,
                 looping: true,
-                uniqueId: '$uniqueControllerId-$mediaIndex',
+                uniqueId: uniqueControllerId,
                 onlyOneShouldPlay: onlyOneShouldPlay,
               ),
             ),
@@ -77,7 +78,17 @@ class VideoPreview extends HookConsumerWidget {
     final controller = videoControllerProviderState.valueOrNull;
 
     final isFullyVisible = useState(false);
+    final hasReceivedVisibilityUpdate = useState(false);
+    final hasEverMetVisibilityThreshold = useState(false);
     final isRouteFocused = useState(true);
+    final pauseSuppressedUntilMs = useRef(0);
+    final routeFocusTimerRef = useRef<Timer?>(null);
+    useEffect(
+      () => () {
+        routeFocusTimerRef.value?.cancel();
+      },
+      const [],
+    );
     useRoutePresence(
       onBecameInactive: () {
         if (context.mounted) {
@@ -87,12 +98,24 @@ class VideoPreview extends HookConsumerWidget {
                 .read(videoPlayerPositionDataProvider.notifier)
                 .savePosition(videoUrl, controller.value.position.inMilliseconds);
           }
+          routeFocusTimerRef.value?.cancel();
+          pauseSuppressedUntilMs.value = 0;
           isRouteFocused.value = false;
         }
       },
       onBecameActive: () {
         if (context.mounted) {
           isRouteFocused.value = true;
+          // During pop/push animation visibility can briefly dip; avoid pause/play flicker.
+          final pauseSuppression = ModalRoute.of(context)?.transitionDuration ?? Duration.zero;
+          final untilMs = DateTime.now().millisecondsSinceEpoch + pauseSuppression.inMilliseconds;
+          pauseSuppressedUntilMs.value = untilMs;
+          routeFocusTimerRef.value?.cancel();
+          routeFocusTimerRef.value = Timer(pauseSuppression, () {
+            if (context.mounted && pauseSuppressedUntilMs.value == untilMs) {
+              pauseSuppressedUntilMs.value = 0;
+            }
+          });
         }
       },
     );
@@ -102,10 +125,21 @@ class VideoPreview extends HookConsumerWidget {
     final handleVisibilityChanged = useCallback(
       (VisibilityInfo info) {
         if (context.mounted) {
-          isFullyVisible.value = info.visibleFraction >= visibilityThreshold;
+          hasReceivedVisibilityUpdate.value = true;
+          final visibleEnough = info.visibleFraction >= visibilityThreshold;
+          isFullyVisible.value = visibleEnough;
+          if (visibleEnough) {
+            hasEverMetVisibilityThreshold.value = true;
+          }
         }
       },
-      [isFullyVisible, context, visibilityThreshold],
+      [
+        isFullyVisible,
+        hasReceivedVisibilityUpdate,
+        hasEverMetVisibilityThreshold,
+        context,
+        visibilityThreshold,
+      ],
     );
 
     useOnInit(
@@ -114,19 +148,37 @@ class VideoPreview extends HookConsumerWidget {
         if (controller == null || !controller.value.isInitialized) {
           return;
         }
+        if (!hasReceivedVisibilityUpdate.value && controller.value.isPlaying) {
+          return;
+        }
+        final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
         final shouldBeActive = isFullyVisible.value && isRouteFocused.value;
 
         try {
           if (shouldBeActive && !controller.value.isPlaying) {
             controller.play();
-          } else if (!shouldBeActive && controller.value.isPlaying) {
+          } else if (!shouldBeActive && controller.value.isPlaying && isCurrentRoute) {
+            final isPauseSuppressed =
+                DateTime.now().millisecondsSinceEpoch < pauseSuppressedUntilMs.value;
+            if (isPauseSuppressed) {
+              return;
+            }
+            if (!hasEverMetVisibilityThreshold.value) {
+              return;
+            }
             controller.pause();
           }
         } catch (_) {
           // Controller may have been disposed (e.g. scroll/navigation).
         }
       },
-      [isFullyVisible.value, isRouteFocused.value, controller],
+      [
+        isFullyVisible.value,
+        isRouteFocused.value,
+        hasReceivedVisibilityUpdate.value,
+        hasEverMetVisibilityThreshold.value,
+        controller,
+      ],
     );
 
     useEffect(

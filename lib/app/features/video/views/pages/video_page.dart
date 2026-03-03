@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -26,6 +27,7 @@ class VideoPage extends HookConsumerWidget {
     this.authorPubkey,
     this.looping = true,
     this.framedEventReference,
+    this.postEventReference,
     this.videoInfo,
     this.bottomOverlay,
     this.thumbnailUrl,
@@ -39,6 +41,7 @@ class VideoPage extends HookConsumerWidget {
   final String videoUrl;
   final String? authorPubkey;
   final EventReference? framedEventReference;
+  final EventReference? postEventReference;
   final bool looping;
   final Widget? videoInfo;
   final Widget? bottomOverlay;
@@ -54,6 +57,8 @@ class VideoPage extends HookConsumerWidget {
       return const VideoNotFound();
     }
 
+    final preserveSharedPlayback = postEventReference != null;
+
     final playerController = this.playerController ??
         ref
             .watch(
@@ -62,19 +67,35 @@ class VideoPage extends HookConsumerWidget {
                   sourcePath: videoUrl,
                   authorPubkey: authorPubkey,
                   looping: looping,
-                  uniqueId: framedEventReference?.encode() ?? '',
+                  uniqueId: framedEventReference?.encode() ?? postEventReference?.encode() ?? '',
+                  onlyOneShouldPlay: true,
                 ),
               ),
             )
             .valueOrNull;
 
-    useAutoPlay(this.playerController == null ? playerController : null);
-    useToggleVideoOnRouteChange(playerController);
+    if (preserveSharedPlayback) {
+      useEffect(
+        () {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            playerController?.play();
+          });
+          return null;
+        },
+        [playerController],
+      );
+    } else {
+      useAutoPlay(this.playerController == null ? playerController : null);
+    }
+    if (!preserveSharedPlayback) {
+      useToggleVideoOnRouteChange(playerController);
+    }
     useToggleVideoOnLifecycleChange(ref, playerController);
 
     return _VisibilityPlayPause(
       playerController: playerController,
       visibilityKey: ValueKey(videoUrl),
+      pauseWhenInvisible: !preserveSharedPlayback,
       child: Column(
         children: [
           Expanded(
@@ -224,11 +245,13 @@ class _VisibilityPlayPause extends StatelessWidget {
     required this.playerController,
     required this.child,
     required this.visibilityKey,
+    this.pauseWhenInvisible = true,
   });
 
   final Key visibilityKey;
   final VideoPlayerController? playerController;
   final Widget child;
+  final bool pauseWhenInvisible;
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +265,7 @@ class _VisibilityPlayPause extends StatelessWidget {
   void _onVisibilityChanges(VisibilityInfo info) {
     final controller = playerController;
     if (controller != null) {
-      if (info.visibleFraction <= 0.5) {
+      if (pauseWhenInvisible && info.visibleFraction <= 0.5) {
         if (controller.value.isInitialized && controller.value.isPlaying) {
           controller.pause();
         }

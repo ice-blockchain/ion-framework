@@ -248,6 +248,7 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
                 blurhash: media.blurhash,
                 aspectRatio: media.aspectRatio,
                 framedEventReference: index == initialPage ? framedEventReference : null,
+                postEventReference: perPageEventReference,
               );
             },
           ),
