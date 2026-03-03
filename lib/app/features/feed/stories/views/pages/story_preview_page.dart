@@ -198,23 +198,7 @@ class _StoryShareButton extends HookConsumerWidget {
 
               isPublishing.value = true;
               try {
-                final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
-                // No-op if already checked in background; safety fallback otherwise
-                await mediaChecker.checkMediaForNsfw(
-                  [MediaFile(path: path, mimeType: mimeType)],
-                );
-                final nsfwCheckResult = await mediaChecker.hasNsfwMedia();
-
-                if (!context.mounted) return;
-
-                if (nsfwCheckResult is NsfwFailure) {
-                  showErrorModal(context, NSFWProcessingException());
-                  return;
-                }
-                if (nsfwCheckResult is NsfwSuccess && nsfwCheckResult.hasNsfw) {
-                  if (context.mounted) {
-                    await showNsfwBlockedSheet(context);
-                  }
+                if (!await _performStoryNsfwCheck(context, ref, path: path, mimeType: mimeType)) {
                   return;
                 }
 
@@ -273,6 +257,34 @@ class _StoryShareButton extends HookConsumerWidget {
           ),
         );
   }
+}
+
+// Runs NSFW check for the story media. Returns true if user can proceed,
+// false if blocked (NSFW) or on error (shows modal/sheet accordingly).
+Future<bool> _performStoryNsfwCheck(
+  BuildContext context,
+  WidgetRef ref, {
+  required String path,
+  required String? mimeType,
+}) async {
+  final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
+  // No-op if already checked in background; safety fallback otherwise
+  await mediaChecker.checkMediaForNsfw([MediaFile(path: path, mimeType: mimeType)]);
+  final nsfwCheckResult = await mediaChecker.hasNsfwMedia();
+
+  if (!context.mounted) return false;
+
+  if (nsfwCheckResult is NsfwFailure) {
+    showErrorModal(context, NSFWProcessingException());
+    return false;
+  }
+  if (nsfwCheckResult is NsfwSuccess && nsfwCheckResult.hasNsfw) {
+    if (context.mounted) {
+      await showNsfwBlockedSheet(context);
+    }
+    return false;
+  }
+  return true;
 }
 
 // Builds the MediaFile list for the story (image or video). Returns null for
