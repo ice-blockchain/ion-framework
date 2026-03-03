@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message/money_message_models.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
@@ -257,7 +258,13 @@ class IonConnectPushDataPayload {
     IonConnectGiftWrapEntity entity,
   ) async {
     if (entity.data.kinds.any((list) => list.contains(ReactionEntity.kind.toString()))) {
-      return PushNotificationType.chatReaction;
+      final reaction = _parseGiftWrappedChatReaction();
+
+      final isStoryReaction = reaction?.data.quotedEvent != null;
+
+      return isStoryReaction
+          ? PushNotificationType.chatStoryReaction
+          : PushNotificationType.chatReaction;
     } else if (entity.data.kinds.any((list) => list.contains(FundsRequestEntity.kind.toString()))) {
       return PushNotificationType.paymentRequest;
     } else if (entity.data.kinds.any((list) => list.contains(WalletAssetEntity.kind.toString()))) {
@@ -506,6 +513,28 @@ class IonConnectPushDataPayload {
     return data;
   }
 
+  
+  PrivateMessageReactionEntity? _parseGiftWrappedChatReaction() {
+    final entity = mainEntity;
+    final event = decryptedEvent;
+
+    if (entity is! IonConnectGiftWrapEntity || event == null) {
+      return null;
+    }
+
+    final hasReactionKind =
+        entity.data.kinds.any((list) => list.contains(ReactionEntity.kind.toString()));
+
+    if (!hasReactionKind) return null;
+
+    try {
+      final reaction = PrivateMessageReactionEntity.fromEventMessage(event);
+      return reaction;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<(String? avatar, String? attachment)> getMediaPlaceholders({
     required Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
   }) async {
@@ -671,6 +700,7 @@ enum PushNotificationType {
   chatPhotoMessage,
   chatProfileMessage,
   chatReaction,
+  chatStoryReaction,
   chatSharePostMessage,
   chatShareArticleMessage,
   chatShareStoryMessage,
@@ -708,6 +738,7 @@ enum PushNotificationType {
         chatPhotoMessage,
         chatProfileMessage,
         chatReaction,
+        chatStoryReaction,
         chatSharePostMessage,
         chatShareArticleMessage,
         chatShareStoryMessage,

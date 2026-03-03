@@ -11,6 +11,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/model/quoted_event.f.dart';
 
 part 'private_message_reaction_data.f.freezed.dart';
 
@@ -64,6 +65,7 @@ class PrivateMessageReactionEntityData
     required String content,
     required ReplaceableEventReference reference,
     required String masterPubkey,
+    QuotedEvent? quotedEvent,
   }) = _PrivateMessageReactionEntityData;
 
   const PrivateMessageReactionEntityData._();
@@ -77,10 +79,14 @@ class PrivateMessageReactionEntityData
       throw IncorrectEventTagsException(eventId: eventMessage.id);
     }
 
+    final quotedTag = tags[QuotedImmutableEvent.tagName]?.firstOrNull ??
+        tags[QuotedReplaceableEvent.tagName]?.firstOrNull;
+
     return PrivateMessageReactionEntityData(
       content: eventMessage.content,
       reference: ReplaceableEventReference.fromTag(identifierTag),
       masterPubkey: eventMessage.masterPubkey,
+      quotedEvent: quotedTag != null ? QuotedEvent.fromTag(quotedTag) : null,
     );
   }
 
@@ -96,6 +102,7 @@ class PrivateMessageReactionEntityData
       content: content,
       tags: [
         ...tags,
+        if (quotedEvent != null) quotedEvent!.toTag(),
         MasterPubkeyTag(value: masterPubkey).toTag(),
         reference.toTag(),
       ],

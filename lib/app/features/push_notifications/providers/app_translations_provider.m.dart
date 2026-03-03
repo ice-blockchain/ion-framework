@@ -116,6 +116,7 @@ class PushNotificationTranslations
     NotificationTranslation? chatPhotoMessage,
     NotificationTranslation? chatProfileMessage,
     NotificationTranslation? chatReaction,
+    NotificationTranslation? chatStoryReaction,
     NotificationTranslation? chatSharePostMessage,
     NotificationTranslation? chatShareArticleMessage,
     NotificationTranslation? chatShareStoryMessage,

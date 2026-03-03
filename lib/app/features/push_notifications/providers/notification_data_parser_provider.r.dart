@@ -109,9 +109,13 @@ class NotificationDataParser {
 
     final (avatar, media) = await data.getMediaPlaceholders(getRelatedEntity: getRelatedEntity);
 
-    final groupKey = notificationType.isChat
-        ? await _getConversationId(data.decryptedEvent)
-        : _getNotificationGroupKey(data.mainEntity);
+    final groupKey = switch (notificationType) {
+      PushNotificationType.chatReaction ||
+      PushNotificationType.chatStoryReaction =>
+        await _getConversationId(data.decryptedEvent),
+      _ when notificationType.isChat => await _getConversationId(data.decryptedEvent),
+      _ => _getNotificationGroupKey(data.mainEntity),
+    };
 
     return NotificationParsedData(
       title: result.title,
@@ -266,6 +270,10 @@ class NotificationDataParser {
         PushNotificationType.chatReaction => (
             await translator.translate((t) => t.chatReaction?.title),
             await translator.translate((t) => t.chatReaction?.body)
+          ),
+        PushNotificationType.chatStoryReaction => (
+            'New story reaction',
+            'Reacted to your story: {{reactionContent}}',
           ),
         PushNotificationType.chatSharePostMessage => (
             await translator.translate((t) => t.chatSharePostMessage?.title),
