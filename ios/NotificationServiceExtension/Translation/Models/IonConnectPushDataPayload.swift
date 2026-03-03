@@ -637,7 +637,7 @@ class IonConnectPushDataPayload: Decodable {
         return .reply
     }
     
-    private func getSharedPostNotificationType(message: ReplaceablePrivateDirectMessageEntity) -> PushNotificationType {
+    private func getSharedPostNotificationType(message: ReplaceablePrivateDirectMessageEntity) -> PushNotificationType? {
         // If message has content, it's a reply to a shared story
         if !message.data.content.isEmpty {
             return .chatSharedStoryReplyMessage
@@ -658,7 +658,7 @@ class IonConnectPushDataPayload: Decodable {
             }
         }
         
-        return .chatSharePostMessage
+        return nil
     }
     
     private func getVisualMediaNotificationType(message: ReplaceablePrivateDirectMessageEntity) -> PushNotificationType {

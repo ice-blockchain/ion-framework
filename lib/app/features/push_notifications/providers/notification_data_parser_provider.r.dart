@@ -272,8 +272,8 @@ class NotificationDataParser {
             await translator.translate((t) => t.chatReaction?.body)
           ),
         PushNotificationType.chatStoryReaction => (
-            'New story reaction',
-            'Reacted to your story: {{reactionContent}}',
+            await translator.translate((t) => t.chatStoryReaction?.title),
+            await translator.translate((t) => t.chatStoryReaction?.body),
           ),
         PushNotificationType.chatSharePostMessage => (
             await translator.translate((t) => t.chatSharePostMessage?.title),
