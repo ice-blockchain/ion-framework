@@ -27,7 +27,7 @@ class BatchedSyncService {
   final int _baseBatchThreshold;
 
   bool _isCancelled = false;
-  final List<Timer> _activeTimers = [];
+  final List<_CancellableDelay> _activeTimers = [];
 
   void cancel() {
     _isCancelled = true;
@@ -40,8 +40,8 @@ class BatchedSyncService {
   }
 
   void _clearTimers() {
-    for (final timer in _activeTimers) {
-      timer.cancel();
+    for (final cancellableDelay in _activeTimers) {
+      cancellableDelay.cancel();
     }
     _activeTimers.clear();
   }
@@ -132,23 +132,20 @@ class BatchedSyncService {
     required int batchCount,
     required Duration syncInterval,
   }) async {
+    if (_isCancelled) return;
+
     final delayDuration = Duration(
       milliseconds: (batchIndex * syncInterval.inMilliseconds) ~/ batchCount,
     );
 
     if (delayDuration > Duration.zero) {
-      final completer = Completer<void>();
-      final timer = Timer(delayDuration, () {
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
-      });
-      _activeTimers.add(timer);
+      final cancellableDelay = _CancellableDelay(delayDuration);
+      _activeTimers.add(cancellableDelay);
 
       try {
-        await completer.future;
+        await cancellableDelay.future;
       } finally {
-        _activeTimers.remove(timer);
+        _activeTimers.remove(cancellableDelay);
       }
     }
   }
@@ -181,6 +178,28 @@ class BatchedSyncService {
     }
 
     return batchCount;
+  }
+}
+
+class _CancellableDelay {
+  _CancellableDelay(Duration duration) : _completer = Completer<void>() {
+    _timer = Timer(duration, () {
+      if (!_completer.isCompleted) {
+        _completer.complete();
+      }
+    });
+  }
+
+  final Completer<void> _completer;
+  late final Timer _timer;
+
+  Future<void> get future => _completer.future;
+
+  void cancel() {
+    _timer.cancel();
+    if (!_completer.isCompleted) {
+      _completer.complete();
+    }
   }
 }
 
