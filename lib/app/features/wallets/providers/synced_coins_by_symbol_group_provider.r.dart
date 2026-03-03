@@ -189,6 +189,8 @@ Future<List<CoinInWalletData>> syncedCoinsBySymbolGroup(
   Ref ref,
   String symbolGroup,
 ) {
+  ref.watch(syncedCoinsBySymbolGroupNotifierProvider);
+
   final notifier = ref.watch(syncedCoinsBySymbolGroupNotifierProvider.notifier);
   return notifier.getCoins(symbolGroup);
 }
