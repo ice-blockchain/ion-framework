@@ -23,7 +23,7 @@ Future<String?> chartTitle(
     return null;
   }
 
-  final ticker = tokenInfo.marketData.ticker ?? '';
+  final ticker = tokenInfo.marketData.ticker;
 
   if (tokenInfo.source.isTwitter) {
     return withPrefix(
