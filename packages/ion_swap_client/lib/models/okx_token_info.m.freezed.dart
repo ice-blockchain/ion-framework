@@ -21,6 +21,7 @@ OkxTokenInfo _$OkxTokenInfoFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$OkxTokenInfo {
   String get decimal => throw _privateConstructorUsedError;
+  String? get tokenUnitPrice => throw _privateConstructorUsedError;
 
   /// Serializes this OkxTokenInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -38,7 +39,7 @@ abstract class $OkxTokenInfoCopyWith<$Res> {
           OkxTokenInfo value, $Res Function(OkxTokenInfo) then) =
       _$OkxTokenInfoCopyWithImpl<$Res, OkxTokenInfo>;
   @useResult
-  $Res call({String decimal});
+  $Res call({String decimal, String? tokenUnitPrice});
 }
 
 /// @nodoc
@@ -57,12 +58,17 @@ class _$OkxTokenInfoCopyWithImpl<$Res, $Val extends OkxTokenInfo>
   @override
   $Res call({
     Object? decimal = null,
+    Object? tokenUnitPrice = freezed,
   }) {
     return _then(_value.copyWith(
       decimal: null == decimal
           ? _value.decimal
           : decimal // ignore: cast_nullable_to_non_nullable
               as String,
+      tokenUnitPrice: freezed == tokenUnitPrice
+          ? _value.tokenUnitPrice
+          : tokenUnitPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -75,7 +81,7 @@ abstract class _$$OkxTokenInfoImplCopyWith<$Res>
       __$$OkxTokenInfoImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String decimal});
+  $Res call({String decimal, String? tokenUnitPrice});
 }
 
 /// @nodoc
@@ -92,12 +98,17 @@ class __$$OkxTokenInfoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? decimal = null,
+    Object? tokenUnitPrice = freezed,
   }) {
     return _then(_$OkxTokenInfoImpl(
       decimal: null == decimal
           ? _value.decimal
           : decimal // ignore: cast_nullable_to_non_nullable
               as String,
+      tokenUnitPrice: freezed == tokenUnitPrice
+          ? _value.tokenUnitPrice
+          : tokenUnitPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -105,17 +116,19 @@ class __$$OkxTokenInfoImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$OkxTokenInfoImpl implements _OkxTokenInfo {
-  _$OkxTokenInfoImpl({required this.decimal});
+  _$OkxTokenInfoImpl({required this.decimal, required this.tokenUnitPrice});
 
   factory _$OkxTokenInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$OkxTokenInfoImplFromJson(json);
 
   @override
   final String decimal;
+  @override
+  final String? tokenUnitPrice;
 
   @override
   String toString() {
-    return 'OkxTokenInfo(decimal: $decimal)';
+    return 'OkxTokenInfo(decimal: $decimal, tokenUnitPrice: $tokenUnitPrice)';
   }
 
   @override
@@ -123,12 +136,14 @@ class _$OkxTokenInfoImpl implements _OkxTokenInfo {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$OkxTokenInfoImpl &&
-            (identical(other.decimal, decimal) || other.decimal == decimal));
+            (identical(other.decimal, decimal) || other.decimal == decimal) &&
+            (identical(other.tokenUnitPrice, tokenUnitPrice) ||
+                other.tokenUnitPrice == tokenUnitPrice));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, decimal);
+  int get hashCode => Object.hash(runtimeType, decimal, tokenUnitPrice);
 
   /// Create a copy of OkxTokenInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -147,13 +162,17 @@ class _$OkxTokenInfoImpl implements _OkxTokenInfo {
 }
 
 abstract class _OkxTokenInfo implements OkxTokenInfo {
-  factory _OkxTokenInfo({required final String decimal}) = _$OkxTokenInfoImpl;
+  factory _OkxTokenInfo(
+      {required final String decimal,
+      required final String? tokenUnitPrice}) = _$OkxTokenInfoImpl;
 
   factory _OkxTokenInfo.fromJson(Map<String, dynamic> json) =
       _$OkxTokenInfoImpl.fromJson;
 
   @override
   String get decimal;
+  @override
+  String? get tokenUnitPrice;
 
   /// Create a copy of OkxTokenInfo
   /// with the given fields replaced by the non-null parameter values.

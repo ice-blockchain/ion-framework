@@ -31,6 +31,8 @@ mixin _$SwapQuoteInfo {
   SwapQuoteData? get okxQuote => throw _privateConstructorUsedError;
   RelayQuote? get relayQuote => throw _privateConstructorUsedError;
   String? get relayDepositAmount => throw _privateConstructorUsedError;
+  double? get sellUsdPrice => throw _privateConstructorUsedError;
+  double? get buyUsdPrice => throw _privateConstructorUsedError;
 
   /// Serializes this SwapQuoteInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -59,7 +61,9 @@ abstract class $SwapQuoteInfoCopyWith<$Res> {
       LetsExchangeInfo? letsExchangeQuote,
       SwapQuoteData? okxQuote,
       RelayQuote? relayQuote,
-      String? relayDepositAmount});
+      String? relayDepositAmount,
+      double? sellUsdPrice,
+      double? buyUsdPrice});
 
   $ExolixRateCopyWith<$Res>? get exolixQuote;
   $LetsExchangeInfoCopyWith<$Res>? get letsExchangeQuote;
@@ -93,6 +97,8 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
     Object? okxQuote = freezed,
     Object? relayQuote = freezed,
     Object? relayDepositAmount = freezed,
+    Object? sellUsdPrice = freezed,
+    Object? buyUsdPrice = freezed,
   }) {
     return _then(_value.copyWith(
       type: null == type
@@ -139,6 +145,14 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
           ? _value.relayDepositAmount
           : relayDepositAmount // ignore: cast_nullable_to_non_nullable
               as String?,
+      sellUsdPrice: freezed == sellUsdPrice
+          ? _value.sellUsdPrice
+          : sellUsdPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
+      buyUsdPrice: freezed == buyUsdPrice
+          ? _value.buyUsdPrice
+          : buyUsdPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
     ) as $Val);
   }
 
@@ -218,7 +232,9 @@ abstract class _$$SwapQuoteInfoImplCopyWith<$Res>
       LetsExchangeInfo? letsExchangeQuote,
       SwapQuoteData? okxQuote,
       RelayQuote? relayQuote,
-      String? relayDepositAmount});
+      String? relayDepositAmount,
+      double? sellUsdPrice,
+      double? buyUsdPrice});
 
   @override
   $ExolixRateCopyWith<$Res>? get exolixQuote;
@@ -254,6 +270,8 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
     Object? okxQuote = freezed,
     Object? relayQuote = freezed,
     Object? relayDepositAmount = freezed,
+    Object? sellUsdPrice = freezed,
+    Object? buyUsdPrice = freezed,
   }) {
     return _then(_$SwapQuoteInfoImpl(
       type: null == type
@@ -300,6 +318,14 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
           ? _value.relayDepositAmount
           : relayDepositAmount // ignore: cast_nullable_to_non_nullable
               as String?,
+      sellUsdPrice: freezed == sellUsdPrice
+          ? _value.sellUsdPrice
+          : sellUsdPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
+      buyUsdPrice: freezed == buyUsdPrice
+          ? _value.buyUsdPrice
+          : buyUsdPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
     ));
   }
 }
@@ -318,7 +344,9 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
       this.letsExchangeQuote,
       this.okxQuote,
       this.relayQuote,
-      this.relayDepositAmount});
+      this.relayDepositAmount,
+      this.sellUsdPrice,
+      this.buyUsdPrice});
 
   factory _$SwapQuoteInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapQuoteInfoImplFromJson(json);
@@ -345,10 +373,14 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
   final RelayQuote? relayQuote;
   @override
   final String? relayDepositAmount;
+  @override
+  final double? sellUsdPrice;
+  @override
+  final double? buyUsdPrice;
 
   @override
   String toString() {
-    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, exolixQuote: $exolixQuote, letsExchangeQuote: $letsExchangeQuote, okxQuote: $okxQuote, relayQuote: $relayQuote, relayDepositAmount: $relayDepositAmount)';
+    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, exolixQuote: $exolixQuote, letsExchangeQuote: $letsExchangeQuote, okxQuote: $okxQuote, relayQuote: $relayQuote, relayDepositAmount: $relayDepositAmount, sellUsdPrice: $sellUsdPrice, buyUsdPrice: $buyUsdPrice)';
   }
 
   @override
@@ -377,7 +409,11 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
             (identical(other.relayQuote, relayQuote) ||
                 other.relayQuote == relayQuote) &&
             (identical(other.relayDepositAmount, relayDepositAmount) ||
-                other.relayDepositAmount == relayDepositAmount));
+                other.relayDepositAmount == relayDepositAmount) &&
+            (identical(other.sellUsdPrice, sellUsdPrice) ||
+                other.sellUsdPrice == sellUsdPrice) &&
+            (identical(other.buyUsdPrice, buyUsdPrice) ||
+                other.buyUsdPrice == buyUsdPrice));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -394,7 +430,9 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
       letsExchangeQuote,
       okxQuote,
       relayQuote,
-      relayDepositAmount);
+      relayDepositAmount,
+      sellUsdPrice,
+      buyUsdPrice);
 
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -424,7 +462,9 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
       final LetsExchangeInfo? letsExchangeQuote,
       final SwapQuoteData? okxQuote,
       final RelayQuote? relayQuote,
-      final String? relayDepositAmount}) = _$SwapQuoteInfoImpl;
+      final String? relayDepositAmount,
+      final double? sellUsdPrice,
+      final double? buyUsdPrice}) = _$SwapQuoteInfoImpl;
 
   factory _SwapQuoteInfo.fromJson(Map<String, dynamic> json) =
       _$SwapQuoteInfoImpl.fromJson;
@@ -451,6 +491,10 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
   RelayQuote? get relayQuote;
   @override
   String? get relayDepositAmount;
+  @override
+  double? get sellUsdPrice;
+  @override
+  double? get buyUsdPrice;
 
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.
