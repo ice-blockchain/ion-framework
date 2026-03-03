@@ -43,8 +43,7 @@ class CoinTransactionHistory extends HookConsumerWidget {
     );
 
     final isNetworkChangePending = selectedNetwork != providerNetwork;
-    final isLoading =
-        historyAsync.isLoading || history == null || history.isLoading || isNetworkChangePending;
+    final isLoading = history == null || isNetworkChangePending;
 
     final coinTransactionsMap = useMemoized(
       () {
