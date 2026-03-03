@@ -13,12 +13,15 @@ class UiEventQueueListener extends HookConsumerWidget {
   });
 
   void _processQueue(WidgetRef ref) {
+    final navigatorContext = rootNavigatorKey.currentContext;
+    if (navigatorContext == null || !navigatorContext.mounted) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => _processQueue(ref));
+      return;
+    }
+
     ref.read(uiEventQueueNotifierProvider.notifier).processQueue(
       (event) async {
-        final navigatorContext = rootNavigatorKey.currentContext;
-        if (navigatorContext != null && navigatorContext.mounted) {
-          await event.performAction(navigatorContext);
-        }
+        await event.performAction(navigatorContext);
       },
     ).then((_) {
       final state = ref.read(uiEventQueueNotifierProvider);

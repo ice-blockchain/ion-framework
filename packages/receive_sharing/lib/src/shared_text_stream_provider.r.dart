@@ -20,12 +20,16 @@ Stream<String> sharedTextStream(Ref ref) {
     }
   }
 
-  ReceiveSharingIntent.instance.getInitialMedia().then((List<SharedMediaFile> value) {
+  // Delay to allow the plugin's native side to fully attach to the activity
+  // and read the launch intent before we query it.
+  Future<void>.delayed(const Duration(seconds: 1)).then((_) {
+    return ReceiveSharingIntent.instance.getInitialMedia();
+  }).then((List<SharedMediaFile> value) {
     if (value.isNotEmpty) {
       emitTextFromMedia(value);
       ReceiveSharingIntent.instance.reset();
     }
-  });
+  }).catchError((Object _) {});
 
   final subscription = ReceiveSharingIntent.instance.getMediaStream().listen(emitTextFromMedia);
 
