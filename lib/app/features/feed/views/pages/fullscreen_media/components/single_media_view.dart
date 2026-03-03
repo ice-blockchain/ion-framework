@@ -54,6 +54,7 @@ class SingleMediaView extends HookWidget {
         blurhash: media.blurhash,
         aspectRatio: media.aspectRatio,
         framedEventReference: framedEventReference,
+        postEventReference: eventReference,
       );
     }
 
