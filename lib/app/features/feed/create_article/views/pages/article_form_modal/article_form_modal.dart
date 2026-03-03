@@ -141,11 +141,6 @@ class ArticleFormModal extends HookConsumerWidget {
                           .push<void>(context);
                     } else {
                       await ArticlePreviewRoute().push<void>(context);
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (context.mounted) {
-                          context.maybePop();
-                        }
-                      });
                     }
                   },
                 ),
