@@ -140,7 +140,10 @@ class AccountNotificationsSyncService {
         _syncFollowedUsersNotifications(lastSyncTime: lastSyncTime),
         _syncAccountsNotifications(lastSyncTime: lastSyncTime),
       ]);
-      await _setLastSyncTime(syncTime: DateTime.now());
+
+      if (!_isCancelled) {
+        await _setLastSyncTime(syncTime: DateTime.now());
+      }
     } finally {
       _isSyncing = false;
     }
@@ -193,8 +196,8 @@ class AccountNotificationsSyncService {
     final currentUserFollowList = await _getCurrentUserFollowList();
     if (currentUserFollowList == null) throw FollowListNotFoundException();
 
-    final followedUsersPubkeys = currentUserFollowList.masterPubkeys;
-    final blockedUsersPubkeys = _getBlockedUsersPubkeys();
+    final followedUsersPubkeys = currentUserFollowList.masterPubkeys.toSet();
+    final blockedUsersPubkeys = _getBlockedUsersPubkeys().toSet();
 
     return {
       for (final notificationSet in currentUserAccountNotificationSets)
@@ -298,7 +301,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
       getBlockedUsersPubkeys: () => ref.read(blockedUsersPubkeysSelectorProvider).toList(),
     );
 
-    await service.initializeSync();
+    unawaited(service.initializeSync());
     ref.onDispose(service.cancelAllSync);
   }
 }

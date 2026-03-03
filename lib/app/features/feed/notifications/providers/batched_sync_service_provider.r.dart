@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
@@ -30,14 +31,18 @@ class BatchedSyncService {
 
   void cancel() {
     _isCancelled = true;
-    for (final timer in _activeTimers) {
-      timer.cancel();
-    }
-    _activeTimers.clear();
+    _clearTimers();
   }
 
   void reset() {
     _isCancelled = false;
+    _clearTimers();
+  }
+
+  void _clearTimers() {
+    for (final timer in _activeTimers) {
+      timer.cancel();
+    }
     _activeTimers.clear();
   }
 
@@ -154,7 +159,7 @@ class BatchedSyncService {
     final batchSize = (masterPubkeys.length / batchCount).ceil();
     return [
       for (var i = 0; i < masterPubkeys.length; i += batchSize)
-        masterPubkeys.sublist(i, (i + batchSize).clamp(0, masterPubkeys.length)),
+        masterPubkeys.sublist(i, min(i + batchSize, masterPubkeys.length)),
     ];
   }
 
