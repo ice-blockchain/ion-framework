@@ -391,7 +391,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         .toList();
 
     if (walletBoundGroups.isNotEmpty) {
-      final ticker = token.marketData.ticker?.trim().toLowerCase() ?? '';
+      final ticker = token.marketData.ticker.trim().toLowerCase();
 
       if (ticker.isNotEmpty) {
         final byTicker = walletBoundGroups.firstWhereOrNull(

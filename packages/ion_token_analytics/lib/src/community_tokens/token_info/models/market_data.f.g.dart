@@ -12,7 +12,7 @@ _$MarketDataImpl _$$MarketDataImplFromJson(Map<String, dynamic> json) =>
       volume: (json['volume'] as num).toDouble(),
       holders: (json['holders'] as num).toInt(),
       priceUSD: (json['priceUSD'] as num).toDouble(),
-      ticker: json['ticker'] as String?,
+      ticker: json['ticker'] as String,
       position: json['position'] == null
           ? null
           : Position.fromJson(json['position'] as Map<String, dynamic>),
@@ -24,7 +24,7 @@ Map<String, dynamic> _$$MarketDataImplToJson(_$MarketDataImpl instance) =>
       'volume': instance.volume,
       'holders': instance.holders,
       'priceUSD': instance.priceUSD,
-      if (instance.ticker case final value?) 'ticker': value,
+      'ticker': instance.ticker,
       if (instance.position?.toJson() case final value?) 'position': value,
     };
 
