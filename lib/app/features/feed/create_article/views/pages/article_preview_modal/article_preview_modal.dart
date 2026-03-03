@@ -10,9 +10,7 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/create_article/providers/create_article_provider.r.dart';
 import 'package:ion/app/features/feed/create_article/providers/draft_article_provider.m.dart';
 import 'package:ion/app/features/feed/create_article/views/pages/article_form_modal/hooks/use_init_article_who_can_reply.dart';
@@ -24,10 +22,9 @@ import 'package:ion/app/features/feed/providers/selected_interests_notifier.r.da
 import 'package:ion/app/features/feed/providers/selected_who_can_reply_option_provider.r.dart';
 import 'package:ion/app/features/feed/providers/topic_tooltip_visibility_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/nsfw/helpers/perform_nsfw_check_and_handle_result.dart';
 import 'package:ion/app/features/nsfw/hooks/use_article_nsfw_validation.dart';
-import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
 import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
-import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/services/ion_content_labeler/ion_content_labeler_provider.r.dart';
@@ -141,30 +138,20 @@ class ArticlePreviewModal extends HookConsumerWidget {
                       try {
                         isProcessing.value = true;
 
-                        final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
-                        // No-op if already checked in background; safety fallback otherwise
                         final contentMedia = imageIds.isNotEmpty
                             ? await ref.read(mediaServiceProvider).convertAssetIdsToMediaFiles(
                                   ref,
                                   mediaFiles: imageIds.map((id) => MediaFile(path: id)).toList(),
                                 )
                             : <MediaFile>[];
-                        await mediaChecker.checkMediaForNsfw([
+                        final allMedia = [
                           if (image != null) image,
                           ...contentMedia,
-                        ]);
-                        final nsfwCheckResult = await mediaChecker.hasNsfwMedia();
-
-                        if (!context.mounted) return;
-
-                        if (nsfwCheckResult is NsfwFailure) {
-                          showErrorModal(context, NSFWProcessingException());
-                          return;
-                        }
-                        if (nsfwCheckResult is NsfwSuccess && nsfwCheckResult.hasNsfw) {
-                          if (context.mounted) {
-                            await showNsfwBlockedSheet(context);
-                          }
+                        ];
+                        if (!await performNsfwCheckAndHandleResult(
+                          ref,
+                          mediaFiles: allMedia,
+                        )) {
                           return;
                         }
 
