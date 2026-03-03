@@ -7,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
-import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/pages/turn_on_notifications/descriptions.dart';
 import 'package:ion/app/features/auth/views/pages/turn_on_notifications/notifications.dart';
@@ -46,9 +45,7 @@ class TurnOnNotifications extends ConsumerWidget {
               SizedBox(height: 24.0.s),
             ],
           ),
-          Padding(
-            padding:
-                EdgeInsetsDirectional.only(bottom: 8.0.s + MediaQuery.paddingOf(context).bottom),
+          ScreenBottomOffset(
             child: ScreenSideOffset.small(
               child: Button(
                 label: Text(context.i18n.button_continue),

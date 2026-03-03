@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/modal_action_button/modal_action_button.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separated_column.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -94,7 +93,7 @@ class RepostOptionsModal extends HookConsumerWidget {
               ),
             ),
             SizedBox(height: 20.0.s),
-            ScreenBottomOffset(),
+            const ScreenBottomOffset(),
           ],
         ),
       ),

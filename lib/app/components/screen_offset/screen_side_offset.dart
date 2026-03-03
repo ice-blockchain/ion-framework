@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/num.dart';
 
+export 'package:ion/app/extensions/num.dart';
+
 enum ScreenOffsetSide { left, right }
 
 class ScreenSideOffset extends StatelessWidget {

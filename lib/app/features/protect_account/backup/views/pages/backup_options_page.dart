@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/backup/views/components/backup_option.dart';
@@ -68,7 +67,7 @@ class BackupOptionsPage extends ConsumerWidget {
                   isOptionEnabled: isBackupEnabled,
                   onTap: () => BackupRecoveryKeysRoute().push<void>(context),
                 ),
-                ScreenBottomOffset(margin: 32.0.s),
+                const ScreenBottomOffset(),
               ],
             ),
           ),

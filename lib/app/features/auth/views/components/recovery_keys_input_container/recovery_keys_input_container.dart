@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
@@ -81,7 +80,6 @@ class RecoveryKeysInputContainer extends HookConsumerWidget {
             ),
           ),
           ScreenBottomOffset(
-            margin: 36.0.s,
             child: ScreenSideOffset.large(
               child: Button(
                 label: Text(context.i18n.button_continue),

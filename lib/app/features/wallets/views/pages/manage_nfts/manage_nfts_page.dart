@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/search_input/search_input.dart';
 import 'package:ion/app/components/nothing_is_found/nothing_is_found.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/views/pages/manage_nfts/components/all_chains_item.dart';
@@ -64,7 +63,7 @@ class ManageNftsPage extends HookConsumerWidget {
 
                     return SliverPadding(
                       padding: EdgeInsetsDirectional.only(
-                        bottom: ScreenBottomOffset.defaultMargin,
+                        bottom: MediaQuery.viewPaddingOf(context).bottom,
                       ),
                       sliver: SliverList.separated(
                         itemCount: filteredNetworks.length + 1,

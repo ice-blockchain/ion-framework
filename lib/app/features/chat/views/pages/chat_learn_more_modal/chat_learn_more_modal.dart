@@ -48,6 +48,7 @@ class ChatLearnMoreModal extends ConsumerWidget {
               ),
             ),
           ),
+          const ScreenBottomOffset(),
         ],
       ),
     );

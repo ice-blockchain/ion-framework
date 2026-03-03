@@ -68,7 +68,7 @@ class DeleteMessageModal extends ConsumerWidget {
                 ),
               ],
             ),
-            SizedBox(height: 16.0.s),
+            const ScreenBottomOffset(),
           ],
         ),
       ),

@@ -75,22 +75,20 @@ class CoinsListView extends StatelessWidget {
                 return const _EmptyState();
               }
 
-              return ListView.separated(
+              return ListView.builder(
                 itemCount: groups.length,
-                separatorBuilder: (BuildContext context, int index) {
-                  return SizedBox(
-                    height: 12.0.s,
-                  );
-                },
                 itemBuilder: (BuildContext context, int index) {
                   final coinsGroup = groups[index];
                   return ScreenSideOffset.small(
                     child: itemWrapperBuilder(
                       context,
                       coinsGroup,
-                      CoinsGroupItem(
-                        coinsGroup: coinsGroup,
-                        onTap: () => onItemTap(coinsGroup),
+                      Padding(
+                        padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
+                        child: CoinsGroupItem(
+                          coinsGroup: coinsGroup,
+                          onTap: () => onItemTap(coinsGroup),
+                        ),
                       ),
                     ),
                   );

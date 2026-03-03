@@ -4,7 +4,6 @@ import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -89,7 +88,7 @@ class AuthenticatorSetupOptionsPage extends ConsumerWidget {
                     onPressed: () => AuthenticatorSetupInstructionsRoute().push<void>(context),
                   ),
                 ),
-                ScreenBottomOffset(margin: 36.0.s),
+                const ScreenBottomOffset(),
               ],
             ),
           ),

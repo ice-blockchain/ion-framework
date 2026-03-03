@@ -72,6 +72,7 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
               Text(
                 context.i18n.wallet_swap_confirmation_missing_coin_or_network_data,
               ),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

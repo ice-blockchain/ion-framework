@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/asset_gen_image.dart';
 import 'package:ion/app/extensions/build_context.dart';
-import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/pages/recover_user_twofa_page/components/twofa_option_selector.dart';
@@ -87,10 +85,7 @@ class TwoFAOptionsStep extends HookConsumerWidget {
               ),
             ],
           ),
-          ScreenBottomOffset(
-            margin: 28.0.s,
-            child: const AuthFooter(),
-          ),
+          const ScreenBottomOffset(child: AuthFooter()),
         ],
       ),
     );

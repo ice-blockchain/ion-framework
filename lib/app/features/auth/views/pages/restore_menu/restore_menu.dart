@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
@@ -62,10 +61,7 @@ class RestoreMenuPage extends ConsumerWidget {
               ],
             ),
           ),
-          ScreenBottomOffset(
-            margin: 28.0.s,
-            child: const AuthFooter(),
-          ),
+          const ScreenBottomOffset(child: AuthFooter()),
         ],
       ),
     );
