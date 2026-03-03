@@ -29,6 +29,7 @@ class CounterItemsFooter extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final extraTapAreaPadding = EdgeInsetsDirectional.symmetric(horizontal: 16.0.s);
     final iconPadding = EdgeInsetsDirectional.symmetric(vertical: 6.0.s);
     final sidePadding = this.sidePadding ?? ScreenSideOffset.defaultSmallMargin;
     final itemPadding =
@@ -40,7 +41,7 @@ class CounterItemsFooter extends HookConsumerWidget {
         Center(
           child: RepliesCounterButton(
             eventReference: eventReference,
-            padding: itemPadding + EdgeInsetsDirectional.symmetric(horizontal: sidePadding),
+            padding: itemPadding + EdgeInsetsDirectional.only(start: sidePadding, end: 16.0.s),
             color: color,
             onTap: onReplyTap,
           ),
@@ -48,27 +49,27 @@ class CounterItemsFooter extends HookConsumerWidget {
         Center(
           child: RepostsCounterButton(
             eventReference: eventReference,
-            padding: itemPadding,
+            padding: itemPadding + extraTapAreaPadding,
             color: color,
           ),
         ),
         Center(
           child: LikesCounterButton(
             eventReference: eventReference,
-            padding: itemPadding,
+            padding: itemPadding + extraTapAreaPadding,
             color: color,
           ),
         ),
         Center(
           child: PostTokenButton(
             eventReference: eventReference,
-            padding: itemPadding,
+            padding: itemPadding + extraTapAreaPadding,
             color: color,
           ),
         ),
         ShareButton(
           eventReference: eventReference,
-          padding: itemPadding + EdgeInsetsDirectional.only(end: sidePadding, start: 8.0.s),
+          padding: itemPadding + EdgeInsetsDirectional.only(start: 16.0.s, end: sidePadding),
           color: color,
         ),
       ],
