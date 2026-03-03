@@ -25,6 +25,7 @@ import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_h
 import 'package:ion/app/features/feed/providers/counters/replies_count_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/media_upload_provider.r.dart';
+import 'package:ion/app/features/feed/providers/pmo_cashtag_enrichment_service_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_parent.dart';
 import 'package:ion/app/features/ion_connect/model/entity_data_with_settings.dart';
@@ -108,7 +109,9 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       }.toList();
 
-      final conversion = await convertDeltaToPmoTags(postContent.toJson());
+      final pmoPreparedContent =
+          await ref.read(pmoCashtagEnrichmentServiceProvider).prepareContentForPmo(postContent);
+      final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
 
       final contentMediaLinks = media.values.isNotEmpty
           ? media.values.map((mediaItem) => ' ${mediaItem.url}').join()
@@ -216,7 +219,9 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         ...extractTags(postContent).map((tag) => RelatedHashtag(value: tag)),
       ];
 
-      final conversion = await convertDeltaToPmoTags(postContent.toJson());
+      final pmoPreparedContent =
+          await ref.read(pmoCashtagEnrichmentServiceProvider).prepareContentForPmo(postContent);
+      final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
 
       final contentMediaLinks = modifiedMedia.values.isNotEmpty
           ? modifiedMedia.values.map((mediaItem) => ' ${mediaItem.url}').join()

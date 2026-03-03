@@ -20,6 +20,7 @@ import 'package:ion/app/features/feed/data/models/who_can_reply_settings_option.
 import 'package:ion/app/features/feed/providers/content_conversion.dart';
 import 'package:ion/app/features/feed/providers/feed_user_interests_provider.r.dart';
 import 'package:ion/app/features/feed/providers/media_upload_provider.r.dart';
+import 'package:ion/app/features/feed/providers/pmo_cashtag_enrichment_service_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
@@ -98,7 +99,7 @@ class CreateArticle extends _$CreateArticle {
 
       final (imageUrl, updatedContent) = await (mainImageFuture, contentFuture).wait;
 
-      final preparedContent = _normalizeContentForStorage(updatedContent);
+      final preparedContent = await _normalizeContentForStorage(updatedContent);
       final markdownContent = preparedContent.markdown;
       final mentions = preparedContent.mentions;
 
@@ -130,6 +131,7 @@ class CreateArticle extends _$CreateArticle {
         articleData,
         files: files,
         mentions: mentions,
+        pmoTags: preparedContent.pmoTags,
       );
 
       _createArticleNotifierStreamController.add(article);
@@ -223,7 +225,7 @@ class CreateArticle extends _$CreateArticle {
         mediaAttachments: updatedMediaAttachments,
       );
 
-      final preparedContent = _normalizeContentForStorage(updatedContent);
+      final preparedContent = await _normalizeContentForStorage(updatedContent);
       final markdownContent = preparedContent.markdown;
       final mentions = preparedContent.mentions;
 
@@ -287,6 +289,7 @@ class CreateArticle extends _$CreateArticle {
         articleData,
         files: files,
         mentions: <RelatedPubkey>{...originalMentions, ...mentions}.toList(),
+        pmoTags: preparedContent.pmoTags,
       );
       ref.read(draftArticleProvider.notifier).clear();
     });
@@ -296,12 +299,13 @@ class CreateArticle extends _$CreateArticle {
     ArticleData articleData, {
     List<FileMetadata> files = const [],
     List<RelatedPubkey> mentions = const [],
+    List<List<String>> pmoTags = const [],
   }) async {
     final ionNotifier = ref.read(ionConnectNotifierProvider.notifier);
     final communityTokenDefinitionRepository =
         await ref.read(communityTokenDefinitionRepositoryProvider.future);
 
-    final articleEvent = await ionNotifier.sign(articleData);
+    final articleEvent = await ionNotifier.sign(articleData, tags: pmoTags);
     final fileEvents = await Future.wait(files.map(ionNotifier.sign));
 
     final pubkeysToPublish = mentions.map((mention) => mention.value).toSet();
@@ -530,19 +534,216 @@ class CreateArticle extends _$CreateArticle {
     ];
   }
 
-  ({
-    Delta content,
-    String markdown,
-    List<RelatedPubkey> mentions,
-  }) _normalizeContentForStorage(Delta rawContent) {
+  Future<
+      ({
+        Delta content,
+        String markdown,
+        List<RelatedPubkey> mentions,
+        List<List<String>> pmoTags,
+      })> _normalizeContentForStorage(Delta rawContent) async {
     final contentWithAttributes = DeltaBridge.normalizeToAttributeFormat(rawContent);
-    final markdown = convertDeltaToMarkdown(contentWithAttributes);
+    final pmoPreparedContent = await ref
+        .read(pmoCashtagEnrichmentServiceProvider)
+        .prepareContentForPmo(contentWithAttributes);
+    final conversion = await convertDeltaToPmoTags(pmoPreparedContent.toJson());
+    final markdown = _applyPmoTagsToContent(
+      content: conversion.contentToSign,
+      pmoTags: conversion.pmoTags,
+    );
+    final cashtagOnlyPmoTags =
+        conversion.pmoTags.where(_isCashtagPmoTag).map(_normalizeCashtagPmoTag).toList();
     final mentions = _buildMentions(contentWithAttributes);
     return (
       content: contentWithAttributes,
       markdown: markdown,
       mentions: mentions,
+      pmoTags: cashtagOnlyPmoTags,
     );
+  }
+
+  String _applyPmoTagsToContent({
+    required String content,
+    required List<List<String>> pmoTags,
+  }) {
+    if (pmoTags.isEmpty) {
+      return content;
+    }
+
+    final parsedTags = pmoTags
+        .where((tag) => tag.length >= 3 && tag[0] == 'pmo')
+        .map((tag) {
+          final indices = tag[1].split(':');
+          if (indices.length != 2) return null;
+
+          final start = int.tryParse(indices[0]);
+          final end = int.tryParse(indices[1]);
+
+          if (start == null || end == null || start < 0 || end < start || end > content.length) {
+            return null;
+          }
+
+          return (start: start, end: end, replacement: tag[2]);
+        })
+        .whereType<({int start, int end, String replacement})>()
+        .toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
+
+    if (parsedTags.isEmpty) {
+      return content;
+    }
+
+    final buffer = StringBuffer();
+    var cursor = 0;
+
+    for (final tag in parsedTags) {
+      if (tag.start < cursor) {
+        continue;
+      }
+
+      buffer.write(content.substring(cursor, tag.start));
+      final originalSegment = content.substring(tag.start, tag.end);
+      buffer.write(
+        _buildMarkdownReplacement(
+          replacement: tag.replacement,
+          originalSegment: originalSegment,
+        ),
+      );
+      cursor = tag.end;
+    }
+
+    if (cursor < content.length) {
+      buffer.write(content.substring(cursor));
+    }
+
+    return buffer.toString();
+  }
+
+  String _buildMarkdownReplacement({
+    required String replacement,
+    required String originalSegment,
+  }) {
+    if (_isMentionReplacement(replacement)) {
+      return replacement;
+    }
+
+    final unwrappedReplacement = _unwrapInlineFormatting(replacement);
+    final cashtagLinkMatch =
+        RegExp(r'^\[(\$[^\]]+)\]\(([^)]+)\)$').firstMatch(unwrappedReplacement);
+
+    if (cashtagLinkMatch == null) {
+      return replacement;
+    }
+
+    final tokenDefinitionAddress =
+        RegExp(r'ion:(?:naddr|addr)[^\s)]+').firstMatch(originalSegment)?.group(0);
+    if (tokenDefinitionAddress == null || tokenDefinitionAddress.isEmpty) {
+      return replacement;
+    }
+
+    final cashtagLabel = cashtagLinkMatch.group(1)!;
+    final normalizedCashtagReplacement = '[$cashtagLabel]($tokenDefinitionAddress)';
+    return _rewrapInlineFormatting(
+      original: replacement,
+      normalizedInner: normalizedCashtagReplacement,
+    );
+  }
+
+  List<String> _normalizeCashtagPmoTag(List<String> tag) {
+    if (tag.length < 3 || tag[0] != 'pmo') {
+      return tag;
+    }
+
+    return [
+      tag[0],
+      tag[1],
+      _unwrapInlineFormatting(tag[2]),
+    ];
+  }
+
+  bool _isMentionReplacement(String replacement) {
+    final mentionPmoPattern = RegExp(
+      r'^\[@[^\]]+\]\((?:ion:|nostr:)?n(?:profile|pub)[a-z0-9]+\)$',
+    );
+    return mentionPmoPattern.hasMatch(_unwrapInlineFormatting(replacement));
+  }
+
+  String _unwrapInlineFormatting(String value) {
+    var unwrapped = value.trim();
+
+    final wrappers = <RegExp>[
+      RegExp(r'^<u>(.*)</u>$', dotAll: true),
+      RegExp(r'^~~(.*)~~$', dotAll: true),
+      RegExp(r'^```(.*)```$', dotAll: true),
+      RegExp(r'^`(.*)`$', dotAll: true),
+      RegExp(r'^\*\*\*(.*)\*\*\*$', dotAll: true),
+      RegExp(r'^\*\*(.*)\*\*$', dotAll: true),
+      RegExp(r'^\*(.*)\*$', dotAll: true),
+    ];
+
+    var changed = true;
+    while (changed && unwrapped.isNotEmpty) {
+      changed = false;
+      for (final wrapper in wrappers) {
+        final match = wrapper.firstMatch(unwrapped);
+        if (match != null) {
+          unwrapped = (match.group(1) ?? '').trim();
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    return unwrapped;
+  }
+
+  String _rewrapInlineFormatting({
+    required String original,
+    required String normalizedInner,
+  }) {
+    var candidate = original.trim();
+    final wrappers = <({RegExp pattern, String open, String close})>[
+      (pattern: RegExp(r'^<u>(.*)</u>$', dotAll: true), open: '<u>', close: '</u>'),
+      (pattern: RegExp(r'^~~(.*)~~$', dotAll: true), open: '~~', close: '~~'),
+      (pattern: RegExp(r'^```(.*)```$', dotAll: true), open: '```', close: '```'),
+      (pattern: RegExp(r'^`(.*)`$', dotAll: true), open: '`', close: '`'),
+      (pattern: RegExp(r'^\*\*\*(.*)\*\*\*$', dotAll: true), open: '***', close: '***'),
+      (pattern: RegExp(r'^\*\*(.*)\*\*$', dotAll: true), open: '**', close: '**'),
+      (pattern: RegExp(r'^\*(.*)\*$', dotAll: true), open: '*', close: '*'),
+    ];
+
+    final extracted = <({String open, String close})>[];
+    var changed = true;
+
+    while (changed && candidate.isNotEmpty) {
+      changed = false;
+      for (final wrapper in wrappers) {
+        final match = wrapper.pattern.firstMatch(candidate);
+        if (match == null) {
+          continue;
+        }
+
+        extracted.add((open: wrapper.open, close: wrapper.close));
+        candidate = (match.group(1) ?? '').trim();
+        changed = true;
+        break;
+      }
+    }
+
+    var wrapped = normalizedInner;
+    for (final wrapper in extracted.reversed) {
+      wrapped = '${wrapper.open}$wrapped${wrapper.close}';
+    }
+
+    return wrapped;
+  }
+
+  bool _isCashtagPmoTag(List<String> tag) {
+    if (tag.length < 3 || tag[0] != 'pmo') {
+      return false;
+    }
+
+    final cashtagPmoPattern = RegExp(r'^\[\$[^\]]+\]\([^)]+\)$');
+    return cashtagPmoPattern.hasMatch(_unwrapInlineFormatting(tag[2]));
   }
 
   Map<String, MediaAttachment> _cleanMediaAttachments({

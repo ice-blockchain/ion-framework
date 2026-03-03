@@ -38,6 +38,26 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   }
 
   @override
+  Future<List<CommunityToken>> getTokenInfoBulk(List<String> externalAddresses) async {
+    if (externalAddresses.isEmpty) return [];
+    try {
+      final tokensRawData = await client.get<List<dynamic>>(
+        '/v1/community-tokens/',
+        queryParameters: {'externalAddresses': externalAddresses},
+      );
+
+      return tokensRawData.map((e) => CommunityToken.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (error, stackTrace) {
+      client.logger?.error(
+        'Failed to get bulk token info for ${externalAddresses.length} addresses',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  @override
   Future<Position?> getHolderPosition(
     String tokenExternalAddress,
     String holderExternalAddress,

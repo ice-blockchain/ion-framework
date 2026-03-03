@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
@@ -427,6 +428,158 @@ void main() {
 
         expect(result.text, 'Click here\n');
         expect(result.tags.first.replacement, '[here](https://example.com)');
+      });
+
+      test('converts tokenized community cashtag with external address PMO', () async {
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}GOOO $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.text, '$cashtagContent\n');
+        expect(result.tags, hasLength(1));
+        expect(result.tags.first.start, 0);
+        expect(result.tags.first.end, cashtagContent.length);
+        expect(result.tags.first.replacement, '[\$GOOO]($externalAddress)');
+      });
+
+      test('converts tokenized X cashtag with status URL PMO', () async {
+        const externalAddress = '1890123456789012345';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}X $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.text, '$cashtagContent\n');
+        expect(result.tags, hasLength(1));
+        expect(result.tags.first.start, 0);
+        expect(result.tags.first.end, cashtagContent.length);
+        expect(
+          result.tags.first.replacement,
+          '[\$X](https://x.com/i/status/$externalAddress)',
+        );
+      });
+
+      test('converts tokenized cashtag with status-id external address to X status URL PMO',
+          () async {
+        const externalAddress = '2025580584081428907';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}GOOO $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.tags, hasLength(1));
+        expect(
+          result.tags.first.replacement,
+          '[\$GOOO](https://x.com/i/status/$externalAddress)',
+        );
+      });
+
+      test('converts mention and tokenized cashtag PMO independently', () async {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}GOOO $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert('@alice', {'mention': mentionAddress})
+          ..insert(' and ')
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.text, '$mentionAddress and $cashtagContent\n');
+        expect(result.tags, hasLength(2));
+
+        final mentionTag = result.tags.firstWhere(
+          (tag) => tag.replacement == '[@alice]($mentionAddress)',
+        );
+        final cashtagTag = result.tags.firstWhere(
+          (tag) => tag.replacement == '[${r'$'}GOOO]($externalAddress)',
+        );
+
+        expect(mentionTag.start, 0);
+        expect(mentionTag.end, mentionAddress.length);
+
+        const cashtagStart = '$mentionAddress and '.length;
+        expect(cashtagTag.start, cashtagStart);
+        expect(cashtagTag.end, cashtagStart + cashtagContent.length);
+      });
+
+      test('keeps emphasis wrappers around tokenized cashtag when styled', () async {
+        const externalAddress =
+            '0:fac47fea2160ae97f01f569525ad51995842a74a21c4ed810afaa6fea5938719:';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const beforeCashtag = 'cashtag ';
+        const cashtagContent = '${r'$'}ORIONF1 $tokenDefinitionAddress';
+        const afterCashtag = ' in italic text block';
+
+        final delta = Delta()
+          ..insert(beforeCashtag, {'italic': true})
+          ..insert(
+            cashtagContent,
+            {
+              'italic': true,
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert(afterCashtag, {'italic': true})
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.text, '$beforeCashtag$cashtagContent$afterCashtag\n');
+
+        final cashtagTag = result.tags.firstWhere(
+          (tag) => tag.replacement.contains('[${r'$'}ORIONF1]($externalAddress)'),
+        );
+
+        expect(cashtagTag.replacement, '*[${r'$'}ORIONF1]($externalAddress)*');
       });
 
       test('converts images', () async {
@@ -1040,6 +1193,21 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               isTrue,
               reason: 'Italic formatting should be preserved',
             );
+          });
+
+          test('normalizes spaced emphasis wrappers around mention and cashtag links', () {
+            const mentionAddress =
+                'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+            const markdown =
+                '* [@alice]($mentionAddress) * and ** [\\${r'$'}GOOO](0x1234567890abcdef) **\n';
+
+            final delta = markdownToDelta(markdown);
+            final reconstructedText = Document.fromDelta(delta).toPlainText();
+
+            expect(reconstructedText, isNot(contains('* @alice *')));
+            expect(reconstructedText, isNot(contains(r'** \$GOOO **')));
+            expect(reconstructedText, contains('@alice'));
+            expect(reconstructedText, contains(r'$GOOO'));
           });
         });
 
@@ -1686,6 +1854,268 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         );
       });
 
+      test('round-trip with tokenized community cashtag preserves PMO and display content',
+          () async {
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}GOOO $tokenDefinitionAddress';
+
+        final expectedDelta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await _performRoundTripConversion(expectedDelta);
+
+        expect(result.pmoResult.text, '$cashtagContent\n');
+        expect(result.pmoResult.tags, hasLength(1));
+        expect(result.pmoResult.tags.first.replacement, '[\$GOOO]($externalAddress)');
+
+        final roundTripText = Document.fromDelta(result.resultDelta).toPlainText();
+        expect(roundTripText, contains(r'$GOOO'));
+        expect(
+          roundTripText,
+          isNot(contains(tokenDefinitionAddress)),
+          reason: 'Display conversion should render the cashtag text from PMO replacement',
+        );
+      });
+
+      test('reconstructs mention and tokenized cashtag display content from PMO tags', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress and ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress and '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '[@alice]($mentionAddress)'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '[${r'$'}GOOO]($externalAddress)'],
+        ];
+
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final reconstructedText = Document.fromDelta(resultDelta).toPlainText();
+
+        expect(reconstructedText, contains('@alice and ${r'$'}GOOO'));
+        expect(reconstructedText, isNot(contains(mentionAddress)));
+        expect(reconstructedText, isNot(contains(externalAddress)));
+        expect(reconstructedText, isNot(contains(tokenDefinitionAddress)));
+      });
+
+      test('reconstructs formatted cashtag PMO link with cashtag attributes preserved', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress and ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress and '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '[@alice]($mentionAddress)'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '**[${r'$'}GOOO]($externalAddress)**'],
+        ];
+
+        final resultDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+
+        expect(
+          _hasTextWithFormatting(
+            resultDelta,
+            textSubstring: r'$GOOO',
+            attributeValues: {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+              'bold': true,
+            },
+          ),
+          isTrue,
+          reason: 'Formatted cashtag PMO replacement should keep cashtag metadata and bold style',
+        );
+      });
+
+      test('does not render literal markdown markers around mention/cashtag in preview path', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress and ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress and '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '* [@alice]($mentionAddress) *'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '** [${r'$'}GOOO]($externalAddress) **'],
+        ];
+
+        final restoredDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final restoredText = Document.fromDelta(restoredDelta).toPlainText();
+        final previewDelta = DeltaBridge.normalizeToEmbedFormat(restoredDelta);
+        final previewText = Document.fromDelta(previewDelta).toPlainText();
+
+        expect(restoredText, contains(r'$GOOO'));
+        expect(previewText, contains('@alice'));
+        expect(previewText, isNot(contains('* @alice *')));
+        expect(previewText, isNot(contains('** ${r'$'}GOOO **')));
+      });
+
+      test('reconstructs formatted mention PMO link without literal markers', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const plainText = mentionAddress;
+
+        final pmoTags = [
+          ['pmo', '0:${plainText.length}', '** [@alice]($mentionAddress) **'],
+        ];
+
+        final restoredDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final restoredText = Document.fromDelta(restoredDelta).toPlainText();
+
+        expect(restoredText, contains('@alice'));
+        expect(restoredText, isNot(contains('** @alice **')));
+        expect(restoredText, isNot(contains('* @alice *')));
+        expect(
+          _hasTextWithFormatting(
+            restoredDelta,
+            textSubstring: '@alice',
+            attributeValues: {
+              'mention': mentionAddress,
+              'bold': true,
+            },
+          ),
+          isTrue,
+          reason: 'Formatted mention PMO replacement should keep mention metadata and bold style',
+        );
+      });
+
+      test('does not render literal markdown markers for escaped-dollar cashtag links', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress and ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress and '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '* [@alice]($mentionAddress) *'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '** [\\${r'$'}GOOO]($externalAddress) **'],
+        ];
+
+        final restoredDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final restoredText = Document.fromDelta(restoredDelta).toPlainText();
+        final previewDelta = DeltaBridge.normalizeToEmbedFormat(restoredDelta);
+        final previewText = Document.fromDelta(previewDelta).toPlainText();
+
+        expect(restoredText, contains(r'$GOOO'));
+        expect(restoredText, isNot(contains('** ${r'$'}GOOO **')));
+        expect(restoredText, isNot(contains('* ${r'$'}GOOO *')));
+        expect(previewText, contains('@alice'));
+        expect(previewText, isNot(contains('* @alice *')));
+        expect(previewText, isNot(contains('** ${r'$'}GOOO **')));
+        expect(previewText, isNot(contains(r'\$GOOO')));
+      });
+
+      test('sanitizes split markdown markers around reconstructed tagged text', () {
+        const mentionAddress =
+            'ion:nprofile1qqsz4h70usvw4cn2v6z95a5w65du69c8u6f42xsyh9x6tqu4crjfu3spz4mhxue69uhhyetvv9ujumn0wd68ytnzv9hxgq3q4j';
+        const externalAddress = '0x1234567890abcdef';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const plainText = '$mentionAddress ${r'$'}GOOO $tokenDefinitionAddress';
+
+        const mentionEnd = mentionAddress.length;
+        const cashtagStart = '$mentionAddress '.length;
+        const cashtagEnd = plainText.length;
+
+        final pmoTags = [
+          ['pmo', '0:$mentionEnd', '[@orionfoo9]($mentionAddress)'],
+          ['pmo', '$cashtagStart:$cashtagEnd', '** [${r'$'}ORIONFO09]($externalAddress) **'],
+        ];
+
+        final restoredDelta = DeltaMarkdownConverter.mapMarkdownToDelta(plainText, pmoTags);
+        final restoredText = Document.fromDelta(restoredDelta).toPlainText();
+
+        expect(restoredText, isNot(contains('** ${r'$'}ORIONFO09 **')));
+        expect(restoredText, contains(r'$ORIONFO09'));
+        expect(
+          _hasTextWithFormatting(
+            restoredDelta,
+            textSubstring: r'$ORIONFO09',
+            attributeValues: {
+              'cashtag': externalAddress,
+              'showMarketCap': true,
+              'bold': true,
+            },
+          ),
+          isTrue,
+        );
+      });
+
+      test('does not double-prefix tokenized X cashtag when URL is already normalized', () async {
+        const externalAddress = '1890123456789012345';
+        const statusUrl = 'https://x.com/i/status/$externalAddress';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}X $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': statusUrl,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.tags, hasLength(1));
+        expect(result.tags.first.replacement, '[\$X]($statusUrl)');
+      });
+
+      test('does not double-prefix X status URL for non-X cashtag ticker', () async {
+        const externalAddress = '2025580584081428907';
+        const statusUrl = 'https://x.com/i/status/$externalAddress';
+        const tokenDefinitionAddress =
+            'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+        const cashtagContent = '${r'$'}GOOO $tokenDefinitionAddress';
+
+        final delta = Delta()
+          ..insert(
+            cashtagContent,
+            {
+              'cashtag': statusUrl,
+              'showMarketCap': true,
+            },
+          )
+          ..insert('\n');
+
+        final result = await DeltaMarkdownConverter.mapDeltaToPmo(delta.toJson());
+
+        expect(result.tags, hasLength(1));
+        expect(result.tags.first.replacement, '[\$GOOO]($statusUrl)');
+      });
+
       test('round-trip with complex formatting (all features, for Posts/ModifiablePosts)',
           () async {
         final expectedDelta = Delta()
@@ -1888,6 +2318,37 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             isTrue,
             reason: 'Delta should have header formatting',
           );
+        });
+
+        test('should reconstruct tokenized community cashtag from PMO tags when no richText',
+            () async {
+          const externalAddress = '0x1234567890abcdef';
+          const tokenDefinitionAddress =
+              'ion:addr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+          const plainText = '${r'$'}GOOO $tokenDefinitionAddress';
+          final pmoTags = [
+            ['pmo', '0:${plainText.length}', '[\$GOOO]($externalAddress)'],
+          ];
+
+          final eventMessage = EventMessage(
+            id: 'test_id',
+            pubkey: signer.publicKey,
+            createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            kind: 1,
+            content: plainText,
+            tags: pmoTags,
+            sig: 'test_sig',
+          );
+
+          final postData = PostData.fromEventMessage(eventMessage);
+          expect(postData.richText, isNotNull);
+
+          final delta = Delta.fromJson(jsonDecode(postData.richText!.content) as List);
+          final reconstructedText = Document.fromDelta(delta).toPlainText();
+
+          expect(reconstructedText, contains(r'$GOOO'));
+          expect(reconstructedText, isNot(contains(tokenDefinitionAddress)));
+          expect(reconstructedText, isNot(contains(externalAddress)));
         });
 
         test('should handle multiple PMO tags when no richText', () async {
