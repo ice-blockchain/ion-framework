@@ -138,6 +138,7 @@ dependencies:
     path: packages/ion_token_analytics
   isolate_manager: ^6.1.0
   json_annotation: ^4.9.0
+  listen_sharing_intent: ^1.9.2
   lottie: ^3.1.0
   markdown: ^7.3.0
   markdown_quill:
@@ -171,7 +172,6 @@ dependencies:
   riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   rxdart: ^0.28.0
-  listen_sharing_intent: ^1.9.2
   screenshot: ^3.0.0
   sensors_plus: ^6.1.1
   sentry_flutter: ^9.13.0
