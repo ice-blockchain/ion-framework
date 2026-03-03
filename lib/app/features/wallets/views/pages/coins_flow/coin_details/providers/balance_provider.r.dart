@@ -32,15 +32,14 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     );
     final networkKey = currentNetwork?.id ?? CoinBalanceAllNetworksState.allNetworksKey;
 
-    final coinsCache = await ref.read(syncedCoinsBySymbolGroupNotifierProvider.future);
-    final coins = coinsCache[symbolGroup] ?? [];
+    final coins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
     final balances = _calculateAllNetworkBalances(coins);
 
     ref
       ..listen(
-        syncedCoinsBySymbolGroupNotifierProvider,
+        syncedCoinsBySymbolGroupProvider(symbolGroup),
         (_, next) {
-          final updatedCoins = next.valueOrNull?[symbolGroup];
+          final updatedCoins = next.valueOrNull;
           if (updatedCoins == null) return;
 
           _loadedDisconnectedWalletIds.clear();
@@ -120,8 +119,7 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
 
     try {
       final client = await ref.read(ionIdentityClientProvider.future);
-      final coinsCache = await ref.read(syncedCoinsBySymbolGroupNotifierProvider.future);
-      final coins = coinsCache[symbolGroup] ?? [];
+      final coins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
       final coin = coins.firstWhereOrNull((c) => c.coin.network.id == wallet.network)?.coin;
 
       if (coin == null) return;
