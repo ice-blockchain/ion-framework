@@ -139,8 +139,6 @@ class SharedStoryMessage extends HookConsumerWidget {
                   ),
                 );
 
-                if (storyViewerState.isLoading) return;
-
                 if (storyViewerState.isEmpty) {
                   await ref
                       .read(
