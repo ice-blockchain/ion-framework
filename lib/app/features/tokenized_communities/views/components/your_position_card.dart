@@ -12,7 +12,6 @@ import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-
 class YourPositionCard extends HookConsumerWidget {
   const YourPositionCard({
     required this.token,

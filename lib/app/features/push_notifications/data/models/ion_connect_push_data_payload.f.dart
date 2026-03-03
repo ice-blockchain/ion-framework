@@ -498,8 +498,7 @@ class IonConnectPushDataPayload {
 
     if (entity is CommunityTokenActionEntity) {
       final amountUsd = entity.data.getUsdAmount();
-      data['amountUSD'] =
-          amountUsd != null ? formatUSD(amountUsd.value) : '';
+      data['amountUSD'] = amountUsd != null ? formatUSD(amountUsd.value) : '';
       data['ticker'] = entity.data.tokenTicker;
     }
 
