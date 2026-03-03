@@ -44,6 +44,7 @@ class TokenCard extends HookConsumerWidget {
     this.customIconWidget,
     this.formattedAmount,
     this.skipFocusValidationWhenFormatting = false,
+    this.usdPrice,
     super.key,
   });
 
@@ -66,6 +67,7 @@ class TokenCard extends HookConsumerWidget {
   final Widget? customIconWidget;
   final String? formattedAmount;
   final bool skipFocusValidationWhenFormatting;
+  final double? usdPrice;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,7 +84,7 @@ class TokenCard extends HookConsumerWidget {
 
         final text = controller?.text.trim() ?? '';
         final amount = parseAmount(text) ?? 0;
-        final priceUSD = coinForNetwork?.coin.priceUSD ?? 0.0;
+        final priceUSD = usdPrice ?? coinForNetwork?.coin.priceUSD ?? 0.0;
         final usdValue = amount * priceUSD;
 
         return formatToCurrency(usdValue);
