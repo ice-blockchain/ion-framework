@@ -9,9 +9,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/media_type.dart';
+import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/event_count_result_data.f.dart';
@@ -29,7 +31,10 @@ import 'package:ion/app/features/feed/stories/views/components/story_preview/med
 import 'package:ion/app/features/feed/stories/views/components/story_preview/media/story_video_preview.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
-import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
+import 'package:ion/app/features/nsfw/hooks/use_nsfw_validation.dart';
+import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
+import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
+import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -172,6 +177,14 @@ class _StoryShareButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isPublishing = useState(false);
     final whoCanReply = ref.watch(selectedWhoCanReplyOptionProvider);
+
+    useNsfwValidation(
+      ref: ref,
+      mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
+      skipMediaConversion: true,
+    );
+    ref.watch(mediaNsfwCheckerProvider);
+
     return StoryShareButton(
       isLoading: isPublishing.value,
       onPressed: isPublishing.value
@@ -185,6 +198,10 @@ class _StoryShareButton extends HookConsumerWidget {
 
               isPublishing.value = true;
               try {
+                if (!await _performStoryNsfwCheck(context, ref, path: path, mimeType: mimeType)) {
+                  return;
+                }
+
                 final mediaFiles = await _buildStoryMediaFiles(
                   ref,
                   path: path,
@@ -193,11 +210,6 @@ class _StoryShareButton extends HookConsumerWidget {
                   eventReference: eventReference,
                 );
                 if (!context.mounted || mediaFiles == null) return;
-
-                // NSFW validation before publishing (stories: image or video)
-                final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, mediaFiles);
-                if (!context.mounted) return;
-                if (isBlocked) return;
 
                 final createPostNotifier = ref.read(
                   createPostNotifierProvider(CreatePostOption.story).notifier,
@@ -245,6 +257,34 @@ class _StoryShareButton extends HookConsumerWidget {
           ),
         );
   }
+}
+
+// Runs NSFW check for the story media. Returns true if user can proceed,
+// false if blocked (NSFW) or on error (shows modal/sheet accordingly).
+Future<bool> _performStoryNsfwCheck(
+  BuildContext context,
+  WidgetRef ref, {
+  required String path,
+  required String? mimeType,
+}) async {
+  final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
+  // No-op if already checked in background; safety fallback otherwise
+  await mediaChecker.checkMediaForNsfw([MediaFile(path: path, mimeType: mimeType)]);
+  final nsfwCheckResult = await mediaChecker.hasNsfwMedia();
+
+  if (!context.mounted) return false;
+
+  if (nsfwCheckResult is NsfwFailure) {
+    showErrorModal(context, NSFWProcessingException());
+    return false;
+  }
+  if (nsfwCheckResult is NsfwSuccess && nsfwCheckResult.hasNsfw) {
+    if (context.mounted) {
+      await showNsfwBlockedSheet(context);
+    }
+    return false;
+  }
+  return true;
 }
 
 // Builds the MediaFile list for the story (image or video). Returns null for

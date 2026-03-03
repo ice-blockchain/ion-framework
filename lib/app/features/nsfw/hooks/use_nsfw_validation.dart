@@ -10,6 +10,7 @@ void useNsfwValidation({
   required List<MediaFile> mediaFiles,
   required WidgetRef ref,
   MediaFile? videoFile,
+  bool skipMediaConversion = false,
 }) {
   final mediaSignature = mediaFiles.map((f) => f.path).join(',');
 
@@ -20,14 +21,17 @@ void useNsfwValidation({
         final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
 
         if (mediaFiles.isNotEmpty) {
-          final convertedMediaFiles = await ref
-              .read(mediaServiceProvider)
-              .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+          final filesToCheck = skipMediaConversion
+              ? mediaFiles
+              : await ref
+                  .read(mediaServiceProvider)
+                  .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
 
-          await mediaChecker.checkMediaForNsfw(convertedMediaFiles);
+          await mediaChecker.checkMediaForNsfw(filesToCheck);
         } else {
-          if (!mediaChecker.isEmpty) {
-            // The case when we removed last media, but we still have that result kept in the state
+          // The case when we removed last media, but we still have that result kept in the state.
+          // Only reset when the other handler has no media too, so we don't clear its entries.
+          if (!mediaChecker.isEmpty && videoFile == null) {
             mediaChecker.reset();
           }
         }
@@ -37,7 +41,7 @@ void useNsfwValidation({
     [mediaSignature],
   );
 
-// Handle video files
+  // Handle video files
   useEffect(
     () {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -46,8 +50,9 @@ void useNsfwValidation({
         if (videoFile != null) {
           await mediaChecker.checkMediaForNsfw([videoFile]);
         } else {
-          if (!mediaChecker.isEmpty) {
-            // The case when we removed last video, but we still have that result kept in the state
+          // The case when we removed last video, but we still have that result kept in the state.
+          // Only reset when the other handler has no media too, so we don't clear its entries.
+          if (!mediaChecker.isEmpty && mediaFiles.isEmpty) {
             mediaChecker.reset();
           }
         }
