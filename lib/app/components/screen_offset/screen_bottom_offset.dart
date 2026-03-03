@@ -4,24 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/num.dart';
 
 class ScreenBottomOffset extends StatelessWidget {
-  ScreenBottomOffset({
+  const ScreenBottomOffset({
     super.key,
     this.child,
-    double? margin,
-  }) : margin = margin ?? defaultMargin;
-
-  static double get defaultMargin => 12.0.s;
+    this.margin,
+  });
 
   final Widget? child;
-  final double margin;
+  final double? margin;
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsetsDirectional.only(bottom: margin),
-        child: child,
-      ),
+    // viewPaddingOf is the physical safe area (notch/indicator)
+    final viewInsets = MediaQuery.viewInsetsOf(context).bottom;
+    final viewPadding = MediaQuery.viewPaddingOf(context).bottom + viewInsets;
+    print(
+        'viewInsets:$viewInsets, viewPadding:$viewPadding, paddingOf:${MediaQuery.paddingOf(context).bottom}');
+
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+
+    final bottomPadding = margin ?? (bottomInset > 0 ? bottomInset + 12.0.s : 12.0.s);
+
+    return Padding(
+      padding: EdgeInsetsDirectional.only(bottom: bottomPadding),
+      child: child,
     );
   }
 }

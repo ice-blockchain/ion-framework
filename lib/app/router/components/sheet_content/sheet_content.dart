@@ -5,6 +5,8 @@ import 'package:ion/app/router/components/sheet_content/sheet_drag_handle.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_shape.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
+export 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
+
 class SheetContent extends StatelessWidget {
   const SheetContent({
     required this.body,
@@ -34,7 +36,7 @@ class SheetContent extends StatelessWidget {
       bottomBar: bottomBar ?? const SizedBox.shrink(),
       body: SheetShape(
         backgroundColor: backgroundColor,
-        bottomPadding: bottomPadding ?? MediaQuery.paddingOf(context).bottom,
+        bottomPadding: bottomPadding ?? 0,
         child: body,
       ),
     );
