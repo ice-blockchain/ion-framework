@@ -29,7 +29,7 @@ Stream<String> sharedTextStream(Ref ref) {
       emitTextFromMedia(value);
       ReceiveSharingIntent.instance.reset();
     }
-  }).catchError((Object _) {});
+  });
 
   final subscription = ReceiveSharingIntent.instance.getMediaStream().listen(emitTextFromMedia);
 
