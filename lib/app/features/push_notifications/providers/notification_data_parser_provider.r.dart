@@ -272,8 +272,8 @@ class NotificationDataParser {
             await translator.translate((t) => t.chatReaction?.body)
           ),
         PushNotificationType.chatStoryReaction => (
-            await translator.translate((t) => t.chatStoryReaction?.title),
-            await translator.translate((t) => t.chatStoryReaction?.body),
+            await translator.translate((t) => t.reactToStory?.title),
+            await translator.translate((t) => t.reactToStory?.body),
           ),
         PushNotificationType.chatSharePostMessage => (
             await translator.translate((t) => t.chatSharePostMessage?.title),
@@ -288,8 +288,8 @@ class NotificationDataParser {
             await translator.translate((t) => t.chatShareStoryMessage?.body)
           ),
         PushNotificationType.chatSharedStoryReplyMessage => (
-            await translator.translate((t) => t.chatSharedStoryReplyMessage?.title),
-            await translator.translate((t) => t.chatSharedStoryReplyMessage?.body)
+            await translator.translate((t) => t.replyToStory?.title),
+            await translator.translate((t) => t.replyToStory?.body)
           ),
         PushNotificationType.chatTextMessage => (
             await translator.translate((t) => t.chatTextMessage?.title),

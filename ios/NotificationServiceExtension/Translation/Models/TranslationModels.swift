@@ -35,11 +35,11 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
     let chatPhotoMessage: NotificationTranslation?
     let chatProfileMessage: NotificationTranslation?
     let chatReaction: NotificationTranslation?
-    let chatStoryReaction: NotificationTranslation?
+    let reactToStory: NotificationTranslation?
     let chatSharePostMessage: NotificationTranslation?
     let chatShareArticleMessage: NotificationTranslation?
     let chatShareStoryMessage: NotificationTranslation?
-    let chatSharedStoryReplyMessage: NotificationTranslation?
+    let replyToStory: NotificationTranslation?
     let chatTextMessage: NotificationTranslation?
     let chatVideoMessage: NotificationTranslation?
     let chatVoiceMessage: NotificationTranslation?
@@ -77,8 +77,8 @@ struct PushNotificationTranslations: TranslationWithVersion, Decodable {
         case follower
         case paymentRequest, paymentReceived
         case chatDocumentMessage, chatEmojiMessage, chatPhotoMessage
-        case chatTextMessage, chatProfileMessage, chatReaction, chatStoryReaction
-        case chatSharePostMessage, chatShareArticleMessage, chatShareStoryMessage, chatSharedStoryReplyMessage
+        case chatTextMessage, chatProfileMessage, chatReaction, reactToStory
+        case chatSharePostMessage, chatShareArticleMessage, chatShareStoryMessage, replyToStory
         case chatVideoMessage, chatVoiceMessage, chatFirstContactMessage
         case chatGifMessage, chatMultiGifMessage, chatMultiMediaMessage
         case chatMultiPhotoMessage, chatMultiVideoMessage
