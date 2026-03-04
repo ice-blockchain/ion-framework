@@ -679,6 +679,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
   Map<FeedFollowingSourceType, int> _getSourceDistribution({required int limit}) {
     if (feedType == FeedType.story ||
         feedType == FeedType.video ||
+        feedType == FeedType.article ||
         feedModifier is FeedModifierTrending) {
       return {
         FeedFollowingSourceType.content: limit,
