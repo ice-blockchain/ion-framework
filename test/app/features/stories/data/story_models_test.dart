@@ -25,6 +25,7 @@ void main() {
   group('UserStoriesViewerState navigation getters', () {
     test('hasNextUser / hasPreviousUser behave at boundaries', () {
       var multiState = UserStoriesViewerState(
+        initialPubkey: 'alice',
         userStories: [userA, userB],
         currentUserIndex: 0,
       );
@@ -40,6 +41,7 @@ void main() {
   group('UserStoriesViewerState current getters', () {
     test('currentStory & currentUserPubkey return correct values', () {
       final multiState = UserStoriesViewerState(
+        initialPubkey: 'alice',
         userStories: [userA, userB],
         currentUserIndex: 1,
       );
@@ -50,6 +52,7 @@ void main() {
 
     test('currentStory returns null when index is out of range', () {
       final multiState = UserStoriesViewerState(
+        initialPubkey: 'alice',
         userStories: [userA],
         currentUserIndex: 5,
       );
@@ -59,6 +62,7 @@ void main() {
 
     test('nextUserPubkey returns correct pubkey or empty string', () {
       var multiState = UserStoriesViewerState(
+        initialPubkey: 'alice',
         userStories: [userA, userB],
         currentUserIndex: 0,
       );
@@ -70,6 +74,7 @@ void main() {
 
     test('pubkeyAtIndex returns pubkey or empty string', () {
       final multiState = UserStoriesViewerState(
+        initialPubkey: 'alice',
         userStories: [userA, userB],
         currentUserIndex: 0,
       );

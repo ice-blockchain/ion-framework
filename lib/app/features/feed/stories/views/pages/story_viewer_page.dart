@@ -160,8 +160,10 @@ class StoryViewerPage extends HookConsumerWidget {
 
         if (moveToIndex != -1 && moveToIndex < userStoriesCount) {
           ref
-              .watch(singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey)
-                  .notifier)
+              .watch(
+                singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey)
+                    .notifier,
+              )
               .moveToStoryIndex(moveToIndex);
         }
 
