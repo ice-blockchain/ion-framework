@@ -111,6 +111,61 @@ void main() {
     expect(result, '123.45');
   });
 
+  parameterizedGroup('formatToCurrency with default symbol', [
+    (value: 0.0, expected: r'$0.00'),
+    (value: 1.0, expected: r'$1.00'),
+    (value: 1.5, expected: r'$1.50'),
+    (value: 0.01, expected: r'$0.01'),
+    (value: 1234.56, expected: r'$1,234.56'),
+    (value: -1.0, expected: r'-$1.00'),
+    (value: -0.01, expected: r'-$0.01'),
+    (value: 0.009, expected: r'< $0.01'),
+    (value: 0.001, expected: r'< $0.01'),
+    (value: 0.0001, expected: r'< $0.01'),
+    (value: 0.0099, expected: r'< $0.01'),
+    (value: -0.009, expected: r'< $0.01'),
+    (value: -0.001, expected: r'< $0.01'),
+    (value: -0.0001, expected: r'< $0.01'),
+  ], (t) {
+    test(
+      'formatToCurrency(${t.value})',
+      () {
+        final result = formatToCurrency(t.value);
+        expect(result, t.expected);
+      },
+    );
+  });
+
+  parameterizedGroup('formatToCurrency with custom symbol', [
+    (value: 0.005, symbol: '€', expected: '< €0.01'),
+    (value: 1.5, symbol: '€', expected: '€1.50'),
+    (value: 0.0, symbol: '€', expected: '€0.00'),
+  ], (t) {
+    test(
+      'formatToCurrency(${t.value}, ${t.symbol})',
+      () {
+        final result = formatToCurrency(t.value, t.symbol);
+        expect(result, t.expected);
+      },
+    );
+  });
+
+  parameterizedGroup('formatUSD', [
+    (value: 0.0, expected: '0.00'),
+    (value: 1.5, expected: '1.50'),
+    (value: 0.005, expected: '< 0.01'),
+    (value: 0.01, expected: '0.01'),
+    (value: -0.005, expected: '< 0.01'),
+  ], (t) {
+    test(
+      'formatUSD(${t.value})',
+      () {
+        final result = formatUSD(t.value);
+        expect(result, t.expected);
+      },
+    );
+  });
+
   parameterizedGroup('getNumericSign', [
     (value: 1.0, expected: '+'),
     (value: 0.5, expected: '+'),

@@ -12,8 +12,6 @@ import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-const _minDisplayUSD = 0.01;
-
 class YourPositionCard extends HookConsumerWidget {
   const YourPositionCard({
     required this.token,
@@ -119,12 +117,8 @@ class _ProfitDetails extends StatelessWidget {
         ? context.theme.appColors.success
         : context.theme.appColors.raspberry;
 
-    final displayPnl = position.pnl.abs() < _minDisplayUSD && position.pnl != 0
-        ? _minDisplayUSD
-        : position.pnl.abs();
-
     final pnlSign = getNumericSign(position.pnl);
-    final pnlAmount = formatUSD(displayPnl);
+    final pnlAmount = formatUSD(position.pnl.abs());
     final percentageSign = getNumericSign(position.pnlPercentage);
     final percentageValue = position.pnlPercentage.abs().toStringAsFixed(2);
 
@@ -161,11 +155,7 @@ class _AmountDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayAmountUSD = (position.amountUSD != null &&
-            position.amountUSD != 0 &&
-            position.amountUSD! < _minDisplayUSD)
-        ? _minDisplayUSD
-        : position.amountUSD;
+    final displayAmountUSD = position.amountUSD;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,

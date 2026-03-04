@@ -2,8 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart'
-    as market_data_formatter;
+import 'package:ion/app/utils/num.dart';
 
 class ProfileTokenPrice extends StatelessWidget {
   const ProfileTokenPrice({
@@ -24,7 +23,7 @@ class ProfileTokenPrice extends StatelessWidget {
         ),
       ),
       child: Text(
-        market_data_formatter.formatPriceWithSubscript(amount),
+        formatToCurrency(amount),
         textAlign: TextAlign.center,
         style: context.theme.appTextThemes.caption3.copyWith(
           color: context.theme.appColors.primaryText,

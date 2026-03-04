@@ -6,8 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart'
-    as market_data_formatter;
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
@@ -172,8 +170,7 @@ class _CarouselCard extends HookConsumerWidget {
                                   borderRadius: BorderRadius.circular(7.0.s),
                                 ),
                                 child: Text(
-                                  market_data_formatter
-                                      .formatPriceWithSubscript(token.marketData.priceUSD),
+                                  formatToCurrency(token.marketData.priceUSD),
                                   style: context.theme.appTextThemes.caption2.copyWith(
                                     color: context.theme.appColors.primaryText,
                                     fontWeight: FontWeight.w700,

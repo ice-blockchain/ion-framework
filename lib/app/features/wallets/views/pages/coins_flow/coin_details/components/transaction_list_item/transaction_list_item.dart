@@ -13,10 +13,10 @@ import 'package:ion/app/features/wallets/model/swap_status.dart';
 import 'package:ion/app/features/wallets/model/transaction_status.f.dart';
 import 'package:ion/app/features/wallets/model/transaction_type.dart';
 import 'package:ion/app/features/wallets/providers/wallet_user_preferences/user_preferences_selectors.r.dart';
+import 'package:ion/app/features/wallets/utils/format_approx_usd.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/coin_details/components/transaction_list_item/transaction_list_item_leading_icon.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/app/utils/date.dart';
-import 'package:ion/app/utils/num.dart';
 
 class TransactionListItem extends ConsumerWidget {
   const TransactionListItem({
@@ -48,7 +48,7 @@ class TransactionListItem extends ConsumerWidget {
         ? formatCryptoCompact(transactionData.coinAmount)
         : StringConstants.obfuscated;
     final usdText = isBalanceVisible
-        ? context.i18n.wallet_approximate_in_usd(formatUSD(transactionData.usdAmount))
+        ? formatApproxUSD(transactionData.usdAmount, context.i18n.wallet_approximate_in_usd)
         : StringConstants.obfuscated;
 
     return ListItem(

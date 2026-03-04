@@ -14,13 +14,12 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/providers/token_holder_position_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart'
-    as market_data_formatters;
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_balance.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_chart.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_hodl.dart';
 import 'package:ion/app/hooks/use_watch_when_visible.dart';
+import 'package:ion/app/utils/num.dart';
 
 class CommunityTokenActionBody extends HookConsumerWidget {
   const CommunityTokenActionBody({
@@ -157,8 +156,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
             alignment: Alignment.center,
             child: Text(
               tokenMarketInfo?.marketData.priceUSD != null
-                  ? market_data_formatters
-                      .formatPriceWithSubscript(tokenMarketInfo!.marketData.priceUSD)
+                  ? formatToCurrency(tokenMarketInfo!.marketData.priceUSD)
                   : '',
               style: context.theme.appTextThemes.caption2.copyWith(
                 color: context.theme.appColors.primaryBackground,

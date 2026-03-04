@@ -2,7 +2,6 @@
 
 import 'package:intl/intl.dart';
 import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
-import 'package:ion/app/utils/formatters.dart' as base_formatters;
 import 'package:ion/app/utils/num.dart';
 
 String formatPercent(double p) {
@@ -43,36 +42,6 @@ String formatPrice(double price, {String symbol = r'$'}) {
   final trailing = digits.isEmpty ? '0' : (digits.length >= 3 ? digits.substring(0, 3) : digits);
 
   return '\$0.0₄$trailing';
-}
-
-/// Formats a price with subscript notation for very small values.
-/// Examples:
-/// 0.1 -> $0.1
-/// 0.12 -> $0.12
-/// 0.123 -> $0.123
-/// 0.001 -> $0.001
-/// 0.0001 -> $0.0₃1
-/// 0.00001 -> $0.0₄1
-String formatPriceWithSubscript(double price, {String symbol = r'$'}) {
-  final absPrice = price.abs();
-
-  if (absPrice >= 0.01) {
-    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 2).format(price);
-  }
-
-  if (absPrice >= 0.001) {
-    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 3).format(price);
-  }
-
-  if (absPrice == 0) return '${symbol}0.00';
-
-  // For very small values, use subscript notation
-  final subscriptResult = base_formatters.formatSubscriptNotation(price, symbol: symbol);
-  if (subscriptResult.isEmpty) {
-    // Fallback if subscript formatting fails
-    return NumberFormat.currency(locale: 'en_US', symbol: symbol, decimalDigits: 4).format(price);
-  }
-  return subscriptResult;
 }
 
 // Formats a DateTime for chart date labels (e.g., "15/03").

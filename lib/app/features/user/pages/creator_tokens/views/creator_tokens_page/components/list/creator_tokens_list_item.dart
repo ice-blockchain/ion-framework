@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/cards/components/token_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_price_label.dart';
@@ -97,7 +96,7 @@ class CreatorTokensListItem extends HookConsumerWidget {
             ),
             SizedBox(width: 8.0.s),
             TokenPriceLabel(
-              text: formatPriceWithSubscript(token.marketData.priceUSD),
+              text: formatToCurrency(token.marketData.priceUSD),
               textStyle: context.theme.appTextThemes.caption4.copyWith(
                 color: context.theme.appColors.primaryBackground,
                 fontWeight: FontWeight.bold,

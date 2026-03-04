@@ -22,7 +22,6 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -33,6 +32,7 @@ import 'package:ion/app/services/file_cache/ion_cache_manager.dart';
 import 'package:ion/app/services/file_cache/ion_file_cache_manager.r.dart';
 import 'package:ion/app/services/media_service/media_encryption_service.m.dart';
 import 'package:ion/app/utils/file_type_mapper.dart';
+import 'package:ion/app/utils/num.dart';
 
 part 'ion_connect_push_data_payload.f.freezed.dart';
 part 'ion_connect_push_data_payload.f.g.dart';
@@ -498,8 +498,7 @@ class IonConnectPushDataPayload {
 
     if (entity is CommunityTokenActionEntity) {
       final amountUsd = entity.data.getUsdAmount();
-      data['amountUSD'] =
-          amountUsd != null ? formatPriceWithSubscript(amountUsd.value, symbol: '') : '';
+      data['amountUSD'] = amountUsd != null ? formatUSD(amountUsd.value) : '';
       data['ticker'] = entity.data.tokenTicker;
     }
 
