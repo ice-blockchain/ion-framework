@@ -118,7 +118,7 @@ class SecureAccountModal extends HookConsumerWidget {
                   SecureAccountOptionsRoute(showCloseButton: false).push<void>(context);
                 },
               ),
-              ScreenBottomOffset(margin: 36.0.s),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

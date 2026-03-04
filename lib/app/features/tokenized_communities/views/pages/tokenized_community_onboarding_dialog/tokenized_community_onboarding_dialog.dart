@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/router/components/sheet_content/sheet_bottom_offset.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -118,7 +118,7 @@ class _TokenizedCommunityOnboarding extends HookWidget {
                 },
               ),
             ),
-            const ScreenBottomOffset(margin: 0),
+            const SheetBottomOffset(),
           ],
         ),
       ],

@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:ion/app/extensions/num.dart';
 
-class ScreenBottomOffset extends StatelessWidget {
-  const ScreenBottomOffset({
+class SheetBottomOffset extends StatelessWidget {
+  const SheetBottomOffset({
     super.key,
     this.child,
     this.margin,
@@ -17,10 +15,8 @@ class ScreenBottomOffset extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-    final calculatedPadding = Platform.isAndroid ? bottomInset + 12.0.s : bottomInset;
-
-    final bottomPadding = margin ?? (calculatedPadding > 0 ? calculatedPadding : 12.0.s);
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final bottomPadding = margin ?? (bottomInset > 0 ? bottomInset : 12.0.s);
 
     return Padding(
       padding: EdgeInsetsDirectional.only(bottom: bottomPadding),

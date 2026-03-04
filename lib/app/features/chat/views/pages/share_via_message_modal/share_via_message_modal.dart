@@ -51,6 +51,7 @@ class ShareViaMessageModal extends HookWidget {
                     eventReference: eventReference,
                   ),
           ),
+          const ScreenBottomOffset(),
         ],
       ),
     );

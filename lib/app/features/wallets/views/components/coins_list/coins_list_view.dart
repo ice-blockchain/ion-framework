@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/search_input/search_input.dart';
 import 'package:ion/app/components/list_items_loading_state/list_items_loading_state.dart';
+import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
@@ -75,20 +76,26 @@ class CoinsListView extends StatelessWidget {
                 return const _EmptyState();
               }
 
-              return ListView.builder(
-                itemCount: groups.length,
+              return ListView.separated(
+                itemCount: groups.length + 1,
+                separatorBuilder: (BuildContext context, int index) {
+                  return SizedBox(
+                    height: 12.0.s,
+                  );
+                },
                 itemBuilder: (BuildContext context, int index) {
+                  if (index == groups.length) {
+                    return const ScreenBottomOffset();
+                  }
+
                   final coinsGroup = groups[index];
                   return ScreenSideOffset.small(
                     child: itemWrapperBuilder(
                       context,
                       coinsGroup,
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
-                        child: CoinsGroupItem(
-                          coinsGroup: coinsGroup,
-                          onTap: () => onItemTap(coinsGroup),
-                        ),
+                      CoinsGroupItem(
+                        coinsGroup: coinsGroup,
+                        onTap: () => onItemTap(coinsGroup),
                       ),
                     ),
                   );

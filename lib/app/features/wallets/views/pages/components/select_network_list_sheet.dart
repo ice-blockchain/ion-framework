@@ -42,8 +42,12 @@ class SelectNetworkListSheet extends StatelessWidget {
             child: ScreenSideOffset.small(
               child: networks.maybeWhen(
                 data: (networks) => ListView.separated(
-                  itemCount: networks.length,
+                  itemCount: networks.length + 1,
                   itemBuilder: (context, index) {
+                    if (index == networks.length) {
+                      return const ScreenBottomOffset();
+                    }
+
                     final network = networks[index];
                     return ListItem(
                       leading: NetworkIconWidget(

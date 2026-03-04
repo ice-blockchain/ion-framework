@@ -63,7 +63,7 @@ class EmailSetupPage extends ConsumerWidget {
                         Expanded(
                           child: EmailSetupConfirmPage(email: email!),
                         ),
-                      ScreenBottomOffset(margin: 36.0.s),
+                      const ScreenBottomOffset(),
                     ],
                   ),
                 ),

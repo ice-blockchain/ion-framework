@@ -74,7 +74,7 @@ class SettingsModal extends HookConsumerWidget {
                 ],
               ),
             ),
-            ScreenBottomOffset(margin: 12.0.s),
+            const ScreenBottomOffset(),
           ],
         ),
       ),

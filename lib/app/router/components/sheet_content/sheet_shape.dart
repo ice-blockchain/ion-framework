@@ -33,7 +33,7 @@ class SheetShape extends StatelessWidget {
           ),
           child: Padding(
             padding: EdgeInsetsDirectional.only(
-              bottom: isKeyboardVisible ? 0 : bottomPadding ?? MediaQuery.paddingOf(context).bottom,
+              bottom: isKeyboardVisible ? 0 : bottomPadding ?? 12.0.s,
             ),
             child: child,
           ),

@@ -117,7 +117,7 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
                       isLoading: isLoading,
                     ),
                   ],
-                  ScreenBottomOffset(margin: 36.0.s),
+                  const ScreenBottomOffset(),
                 ],
               ),
             ),

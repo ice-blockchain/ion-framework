@@ -39,7 +39,7 @@ class EmailSetupSuccessPage extends HookConsumerWidget {
             onPressed: goToSecureAccountOptions,
           ),
         ),
-        ScreenBottomOffset(margin: 12.0.s),
+        const ScreenBottomOffset(),
       ],
     );
   }
