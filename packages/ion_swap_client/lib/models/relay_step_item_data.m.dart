@@ -9,6 +9,8 @@ part 'relay_step_item_data.m.g.dart';
 class RelayStepItemData with _$RelayStepItemData {
   factory RelayStepItemData({
     required String to,
+    required String data,
+    required String value,
   }) = _RelayStepItemData;
 
   factory RelayStepItemData.fromJson(Map<String, dynamic> json) =>
