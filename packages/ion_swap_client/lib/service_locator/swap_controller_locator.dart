@@ -87,6 +87,7 @@ class SwapControllerLocator {
         ionIdentityTransactionApi: ionIdentityTransactionApi,
         relayEvmFeeAddress: config.relayEvmFeeAddress,
         relayAppFee: config.defaultSwapPercentFee,
+        evmTxBuilder: evmTxBuilder,
       ),
     );
 
