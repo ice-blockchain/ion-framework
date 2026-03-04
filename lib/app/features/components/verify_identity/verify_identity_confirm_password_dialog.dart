@@ -5,9 +5,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
+import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/verify_identity/components/password_input.dart';
-import 'package:ion/app/router/components/sheet_content/sheet_bottom_offset.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
@@ -83,7 +83,7 @@ class VerifyIdentityConfirmPasswordDialog<T> extends HookConsumerWidget {
                 label: Text(context.i18n.button_confirm),
                 mainAxisSize: MainAxisSize.max,
               ),
-              const SheetBottomOffset(),
+              const ScreenBottomOffset(includeSystemPadding: false),
             ],
           ),
         ),

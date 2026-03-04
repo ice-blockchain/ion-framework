@@ -108,7 +108,7 @@ class SimpleModalSheet extends StatelessWidget {
               onPressed: onPressed ?? () => Navigator.of(context).pop(),
               offsetType: offsetType,
             ),
-        ScreenBottomOffset(margin: bottomOffset ?? 36.0.s),
+        ScreenBottomOffset(margin: bottomOffset),
       ],
     );
 

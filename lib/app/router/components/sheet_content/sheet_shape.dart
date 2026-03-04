@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 
 class SheetShape extends StatelessWidget {
@@ -33,7 +34,7 @@ class SheetShape extends StatelessWidget {
           ),
           child: Padding(
             padding: EdgeInsetsDirectional.only(
-              bottom: isKeyboardVisible ? 0 : bottomPadding ?? 12.0.s,
+              bottom: isKeyboardVisible ? 0 : bottomPadding ?? kDefaultBottomPadding,
             ),
             child: child,
           ),
