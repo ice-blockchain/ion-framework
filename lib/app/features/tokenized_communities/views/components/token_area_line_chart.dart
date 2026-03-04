@@ -64,6 +64,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
       isLoading: isLoading,
       chartKey: transformation.chartKey,
       transformationController: transformation.transformationController,
+      isPositioned: transformation.isPositioned,
       reservedSize: reservedSize,
       calcData: calcData,
       candles: candles,

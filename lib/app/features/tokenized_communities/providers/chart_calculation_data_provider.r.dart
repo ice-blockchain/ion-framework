@@ -7,10 +7,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
+import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chart_calculation_data_provider.r.g.dart';
 
+@immutable
 class ChartCalculationData {
   const ChartCalculationData({
     required this.minY,
@@ -31,6 +33,21 @@ class ChartCalculationData {
   final Map<int, String> indexToLabel;
   final double xAxisStep;
   final double maxX;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChartCalculationData &&
+          minY == other.minY &&
+          maxY == other.maxY &&
+          chartMinY == other.chartMinY &&
+          chartMaxY == other.chartMaxY &&
+          xAxisStep == other.xAxisStep &&
+          maxX == other.maxX &&
+          spots.length == other.spots.length;
+
+  @override
+  int get hashCode => Object.hash(minY, maxY, chartMinY, chartMaxY, xAxisStep, maxX, spots.length);
 }
 
 @riverpod
