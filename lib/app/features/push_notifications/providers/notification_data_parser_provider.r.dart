@@ -107,7 +107,7 @@ class NotificationDataParser {
       return null;
     }
 
-    final (avatar, media) = await data.getMediaPlaceholders();
+    final (avatar, media) = await data.getMediaPlaceholders(getRelatedEntity: getRelatedEntity);
 
     final groupKey = notificationType.isChat
         ? await _getConversationId(data.decryptedEvent)

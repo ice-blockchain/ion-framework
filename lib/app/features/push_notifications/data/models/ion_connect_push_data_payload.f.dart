@@ -432,15 +432,16 @@ class IonConnectPushDataPayload {
     required Future<MoneyDisplayData?> Function(EventMessage) getTransactionData,
     required Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
   }) async {
-    final mainEntityUserMetadata = _getUserMetadata(pubkey: mainEntity.masterPubkey);
+    final relatedEntityUserMetadata =
+        await _getRelatedUserMetadata(getRelatedEntity: getRelatedEntity);
 
     final data = <String, String>{};
     final entity = mainEntity;
 
-    if (mainEntityUserMetadata != null) {
+    if (relatedEntityUserMetadata != null) {
       data.addAll({
-        'username': mainEntityUserMetadata.data.name,
-        'displayName': mainEntityUserMetadata.data.displayName,
+        'username': relatedEntityUserMetadata.data.name,
+        'displayName': relatedEntityUserMetadata.data.displayName,
       });
     } else if (decryptedUserMetadata != null) {
       data.addAll({
@@ -502,33 +503,14 @@ class IonConnectPushDataPayload {
       data['ticker'] = entity.data.tokenTicker;
     }
 
-    // For community token definitions, "username" and "displayName" placeholders belong
-    // to the author of the original event.
-    // For example: "Community launched a token for @{{username}}’s post.""
-    if (entity
-        case CommunityTokenDefinitionEntity(
-          data: final CommunityTokenDefinitionIon definitionData
-        )) {
-      final originalUserMetadata = await getRelatedEntity(
-        ReplaceableEventReference(
-          masterPubkey: definitionData.eventReference.masterPubkey,
-          kind: UserMetadataEntity.kind,
-        ),
-      ) as UserMetadataEntity?;
-      if (originalUserMetadata != null) {
-        data.addAll({
-          'username': originalUserMetadata.data.name,
-          'displayName': originalUserMetadata.data.displayName,
-        });
-      }
-    }
-
     return data;
   }
 
-  Future<(String? avatar, String? attachment)> getMediaPlaceholders() async {
-    final mainEntityUserMetadata = _getUserMetadata(pubkey: mainEntity.masterPubkey);
-    final avatarUrl = mainEntityUserMetadata?.data.picture ?? decryptedUserMetadata?.data.picture;
+  Future<(String? avatar, String? attachment)> getMediaPlaceholders({
+    required Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
+  }) async {
+    final relatedUserMetadata = await _getRelatedUserMetadata(getRelatedEntity: getRelatedEntity);
+    final avatarUrl = relatedUserMetadata?.data.picture ?? decryptedUserMetadata?.data.picture;
 
     String? attachmentUrl;
 
@@ -610,7 +592,24 @@ class IonConnectPushDataPayload {
     }
   }
 
-  UserMetadataEntity? _getUserMetadata({required String pubkey}) {
+  Future<UserMetadataEntity?> _getRelatedUserMetadata({
+    required Future<IonConnectEntity?> Function(EventReference) getRelatedEntity,
+  }) async {
+    return switch (mainEntity) {
+      // In case of token launch pushes, we show avatar, username and display name of the token owner
+      CommunityTokenDefinitionEntity(:final CommunityTokenDefinitionIon data) =>
+        await getRelatedEntity(
+          ReplaceableEventReference(
+            masterPubkey: data.eventReference.masterPubkey,
+            kind: UserMetadataEntity.kind,
+          ),
+        ) as UserMetadataEntity?,
+      // Otherwise, we show avatar of the main event author
+      _ => _getAttachedUserMetadata(pubkey: mainEntity.masterPubkey)
+    };
+  }
+
+  UserMetadataEntity? _getAttachedUserMetadata({required String pubkey}) {
     final delegationEvent = relevantEvents.firstWhereOrNull((event) {
       return event.kind == UserDelegationEntity.kind && event.pubkey == pubkey;
     });
