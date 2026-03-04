@@ -21,6 +21,8 @@ RelayStepItemData _$RelayStepItemDataFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$RelayStepItemData {
   String get to => throw _privateConstructorUsedError;
+  String get data => throw _privateConstructorUsedError;
+  String get value => throw _privateConstructorUsedError;
 
   /// Serializes this RelayStepItemData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -38,7 +40,7 @@ abstract class $RelayStepItemDataCopyWith<$Res> {
           RelayStepItemData value, $Res Function(RelayStepItemData) then) =
       _$RelayStepItemDataCopyWithImpl<$Res, RelayStepItemData>;
   @useResult
-  $Res call({String to});
+  $Res call({String to, String data, String value});
 }
 
 /// @nodoc
@@ -57,11 +59,21 @@ class _$RelayStepItemDataCopyWithImpl<$Res, $Val extends RelayStepItemData>
   @override
   $Res call({
     Object? to = null,
+    Object? data = null,
+    Object? value = null,
   }) {
     return _then(_value.copyWith(
       to: null == to
           ? _value.to
           : to // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as String,
+      value: null == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
               as String,
     ) as $Val);
   }
@@ -75,7 +87,7 @@ abstract class _$$RelayStepItemDataImplCopyWith<$Res>
       __$$RelayStepItemDataImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String to});
+  $Res call({String to, String data, String value});
 }
 
 /// @nodoc
@@ -92,11 +104,21 @@ class __$$RelayStepItemDataImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? to = null,
+    Object? data = null,
+    Object? value = null,
   }) {
     return _then(_$RelayStepItemDataImpl(
       to: null == to
           ? _value.to
           : to // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as String,
+      value: null == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
@@ -105,17 +127,22 @@ class __$$RelayStepItemDataImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$RelayStepItemDataImpl implements _RelayStepItemData {
-  _$RelayStepItemDataImpl({required this.to});
+  _$RelayStepItemDataImpl(
+      {required this.to, required this.data, required this.value});
 
   factory _$RelayStepItemDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$RelayStepItemDataImplFromJson(json);
 
   @override
   final String to;
+  @override
+  final String data;
+  @override
+  final String value;
 
   @override
   String toString() {
-    return 'RelayStepItemData(to: $to)';
+    return 'RelayStepItemData(to: $to, data: $data, value: $value)';
   }
 
   @override
@@ -123,12 +150,14 @@ class _$RelayStepItemDataImpl implements _RelayStepItemData {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RelayStepItemDataImpl &&
-            (identical(other.to, to) || other.to == to));
+            (identical(other.to, to) || other.to == to) &&
+            (identical(other.data, data) || other.data == data) &&
+            (identical(other.value, value) || other.value == value));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, to);
+  int get hashCode => Object.hash(runtimeType, to, data, value);
 
   /// Create a copy of RelayStepItemData
   /// with the given fields replaced by the non-null parameter values.
@@ -148,14 +177,20 @@ class _$RelayStepItemDataImpl implements _RelayStepItemData {
 }
 
 abstract class _RelayStepItemData implements RelayStepItemData {
-  factory _RelayStepItemData({required final String to}) =
-      _$RelayStepItemDataImpl;
+  factory _RelayStepItemData(
+      {required final String to,
+      required final String data,
+      required final String value}) = _$RelayStepItemDataImpl;
 
   factory _RelayStepItemData.fromJson(Map<String, dynamic> json) =
       _$RelayStepItemDataImpl.fromJson;
 
   @override
   String get to;
+  @override
+  String get data;
+  @override
+  String get value;
 
   /// Create a copy of RelayStepItemData
   /// with the given fields replaced by the non-null parameter values.
