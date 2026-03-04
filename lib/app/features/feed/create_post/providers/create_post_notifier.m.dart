@@ -54,7 +54,6 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
-import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/features/user/providers/verified_user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -87,7 +86,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
     PollData? poll,
     Set<String> topics = const {},
     String? language,
-    int? ugcCounter,
     bool onlyOnMyFeed = false,
   }) async {
     state = const AsyncValue.loading();
@@ -120,12 +118,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       final textContent = conversion.contentToSign + contentMediaLinks;
 
       final expiration = _buildExpiration();
-      final ugcSerialLabel = await _buildUgcSerialLabel(
-        parentEntity: parentEntity,
-        expiration: expiration,
-        quotedEvent: quotedEvent,
-        ugcCounter: ugcCounter,
-      );
 
       final postData = ModifiablePostData(
         textContent: textContent,
@@ -149,7 +141,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         language: _buildLanguageLabel(language),
         mentionMarketCapLabel: _buildMentionMarketCapLabel(postContent),
         cashtagMarketCapLabel: _buildCashtagMarketCapLabel(postContent),
-        ugcSerial: ugcSerialLabel,
       );
 
       final post = await _publishPost(
@@ -296,7 +287,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
         language: null,
         mentionMarketCapLabel: null,
         cashtagMarketCapLabel: null,
-        ugcSerial: null,
       );
 
       final contentDelta = parseAndConvertDelta(
@@ -452,34 +442,6 @@ class CreatePostNotifier extends _$CreatePostNotifier {
       );
     }
     return null;
-  }
-
-  Future<EntityLabel?> _buildUgcSerialLabel({
-    required IonConnectEntity? parentEntity,
-    required EntityExpiration? expiration,
-    required EventReference? quotedEvent,
-    int? ugcCounter,
-  }) async {
-    if (quotedEvent?.kind == CommunityTokenDefinitionEntity.kind ||
-        quotedEvent?.kind == CommunityTokenActionEntity.kind) {
-      return null;
-    }
-    if (parentEntity != null || expiration != null) {
-      return null;
-    }
-
-    try {
-      final counter = ugcCounter ?? await ref.refresh(ugcCounterProvider().future);
-      if (counter == null) {
-        throw UgcCounterFetchException();
-      }
-      return EntityLabel(
-        values: [LabelValue(value: (counter + 1).toString())],
-        namespace: EntityLabelNamespace.ugcSerial,
-      );
-    } on EventCountException {
-      rethrow;
-    }
   }
 
   Future<({List<FileMetadata> files, Map<String, MediaAttachment> media})> _uploadMediaFiles({

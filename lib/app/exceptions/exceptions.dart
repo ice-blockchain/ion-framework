@@ -752,14 +752,6 @@ class TokenPricingNotFoundException extends IONException {
         );
 }
 
-class UgcCounterFetchException extends IONException {
-  UgcCounterFetchException([String? message])
-      : super(
-          10139,
-          message ?? 'Failed to fetch UGC counter',
-        );
-}
-
 class BscNetworkNotFoundException extends IONException {
   BscNetworkNotFoundException() : super(10140, 'BSC network is missing');
 }

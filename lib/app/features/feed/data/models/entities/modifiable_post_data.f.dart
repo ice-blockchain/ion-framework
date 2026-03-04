@@ -114,7 +114,6 @@ class ModifiablePostData
     EntityLabel? language,
     EntityLabel? mentionMarketCapLabel,
     EntityLabel? cashtagMarketCapLabel,
-    EntityLabel? ugcSerial,
   }) = _ModifiablePostData;
   factory ModifiablePostData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
@@ -154,7 +153,6 @@ class ModifiablePostData
         tags,
         namespace: EntityLabelNamespace.cashtagMarketCap,
       ),
-      ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
 
@@ -194,7 +192,6 @@ class ModifiablePostData
       if (poll != null) poll!.toTag(),
       if (sourcePostReference != null) sourcePostReference!.toTag(),
       if (language != null) ...language!.toTags(),
-      if (ugcSerial != null) ...ugcSerial!.toTags(),
     ];
 
     return EventMessage.fromData(

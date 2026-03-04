@@ -9,7 +9,6 @@ part 'entity_label.f.freezed.dart';
 enum EntityLabelNamespace {
   language('ISO-639-1'),
   color('color'),
-  ugcSerial('ugc.serial'),
   mentionMarketCap('community.token.marketcap.show'),
   cashtagMarketCap('community.token.marketcap.show.cashtag');
 
