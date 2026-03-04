@@ -67,8 +67,8 @@ class ManageCoinsNotifier extends _$ManageCoinsNotifier {
 
     final groups = {
       ..._coinsFromWallet,
-      ...loadedGroupsToSymbolGroup,
       ...tcGroupsToSymbolGroup,
+      ...loadedGroupsToSymbolGroup,
     };
 
     return groups;

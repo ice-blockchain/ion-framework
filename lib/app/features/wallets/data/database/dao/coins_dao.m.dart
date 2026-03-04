@@ -170,6 +170,7 @@ class CoinsDao extends DatabaseAccessor<WalletsDatabase> with _$CoinsDaoMixin {
     int? offset,
     Iterable<String>? excludeCoinIds,
     Iterable<String>? symbolGroups,
+    Iterable<String>? excludeSymbolGroups,
     bool? isTokenizedCommunity,
   }) async {
     final query = select(coinsTable).join([
@@ -182,6 +183,10 @@ class CoinsDao extends DatabaseAccessor<WalletsDatabase> with _$CoinsDaoMixin {
 
     if (symbolGroups?.isNotEmpty ?? false) {
       query.where(coinsTable.symbolGroup.isIn(symbolGroups!));
+    }
+
+    if (excludeSymbolGroups?.isNotEmpty ?? false) {
+      query.where(coinsTable.symbolGroup.isNotIn(excludeSymbolGroups!));
     }
 
     if (isTokenizedCommunity ?? false) {
