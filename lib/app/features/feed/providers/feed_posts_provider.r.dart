@@ -51,7 +51,14 @@ class FeedPosts extends _$FeedPosts with DelegatedPagedNotifier {
         ),
     };
 
-    return data;
+    if (filter.category != FeedCategory.videos) {
+      return data;
+    }
+
+    return (
+      items: data.items?.where(_filterEntities),
+      hasMore: data.hasMore,
+    );
   }
 
   @override
