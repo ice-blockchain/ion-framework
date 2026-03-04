@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion_identity_client/ion_identity.dart';
-import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
+import 'package:ion_swap_client/exceptions/ion_identity_transaction_exception.dart';
 import 'package:ion_swap_client/models/ion_signature.m.dart';
 import 'package:ion_swap_client/utils/crypto_amount_converter.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
@@ -11,6 +11,8 @@ class IonIdentityTransactionApi {
   IonIdentityTransactionApi({
     required IONIdentityClient ionIdentityClient,
   }) : _ionIdentityClient = ionIdentityClient;
+
+  static const String _statusFailed = 'Failed';
 
   final IONIdentityClient _ionIdentityClient;
 
@@ -47,6 +49,13 @@ class IonIdentityTransactionApi {
       userActionSigner,
     );
 
+    if (response['status'] == _statusFailed && response['txHash'] == null) {
+      final reason = response['reason'];
+      throw IonIdentityTransactionException(
+        'Ion Identity response: transaction ${response['id']} failed with reason $reason',
+      );
+    }
+
     return _extractTransactionIdentifier(response);
   }
 
@@ -59,7 +68,7 @@ class IonIdentityTransactionApi {
     final wallets = await client.wallets.getWallets();
     final wallet = wallets.firstWhere(
       (candidate) => candidate.id == walletId,
-      orElse: () => throw const IonSwapException('Wallet not found'),
+      orElse: () => throw const IonIdentityTransactionException('Wallet not found'),
     );
     return wallet;
   }
@@ -67,7 +76,7 @@ class IonIdentityTransactionApi {
   String _extractTransactionIdentifier(Map<String, dynamic> response) {
     final txHash = response['txHash'] as String?;
     return txHash ??
-        (throw IonSwapException(
+        (throw IonIdentityTransactionException(
           'Ion Identity response did not include a transaction identifier, response: $response',
         ));
   }
@@ -167,7 +176,7 @@ class _TransferFactory {
         to: receiverAddress,
         metadata: asset.metadata,
       ),
-      unknown: (_) => throw IonSwapException(
+      unknown: (_) => throw IonIdentityTransactionException(
         'Cannot build transfer for unknown asset kind: ${sendableAsset.kind}',
       ),
     );

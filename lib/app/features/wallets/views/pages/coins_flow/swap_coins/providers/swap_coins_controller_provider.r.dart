@@ -24,6 +24,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/excep
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -324,7 +325,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         decimal: sellCoin.coin.decimals,
       ),
       isBridge: buyCoinGroup == sellCoinGroup,
-      amount: amount.toString(),
+      amount: amount.toStringAsFixed(sellCoin.coin.decimals),
       userBuyAddress: buyAddress,
       userSellAddress: sellAddress,
     );
