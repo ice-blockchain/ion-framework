@@ -50,9 +50,25 @@ class ManageCoinsNotifier extends _$ManageCoinsNotifier {
         ),
     });
 
+    final tcGroups = await coinsService.getCoinGroups(
+      isTokenizedCommunity: true,
+      excludeCoinIds: toExclude,
+    );
+    final tcGroupsToSymbolGroup = <String, ManageCoinsGroup>{};
+    for (final group in tcGroups) {
+      if (!_coinsFromWallet.containsKey(group.symbolGroup) &&
+          !loadedGroupsToSymbolGroup.containsKey(group.symbolGroup)) {
+        tcGroupsToSymbolGroup[group.symbolGroup] = ManageCoinsGroup(
+          coinsGroup: group,
+          isSelected: state.value?[group.symbolGroup]?.isSelected ?? false,
+        );
+      }
+    }
+
     final groups = {
       ..._coinsFromWallet,
       ...loadedGroupsToSymbolGroup,
+      ...tcGroupsToSymbolGroup,
     };
 
     return groups;

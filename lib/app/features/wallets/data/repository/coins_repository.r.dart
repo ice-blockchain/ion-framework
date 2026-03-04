@@ -137,11 +137,13 @@ class CoinsRepository {
     int? offset,
     Iterable<String>? excludeCoinIds,
     Iterable<String>? symbolGroups,
+    bool? isTokenizedCommunity,
   }) =>
       _coinsDao.getCoinGroups(
         limit: limit,
         offset: offset,
         excludeCoinIds: excludeCoinIds,
         symbolGroups: symbolGroups,
+        isTokenizedCommunity: isTokenizedCommunity,
       );
 }

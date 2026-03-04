@@ -51,12 +51,14 @@ class CoinsService {
     int? offset,
     Iterable<String>? symbolGroups,
     Iterable<String>? excludeCoinIds,
+    bool? isTokenizedCommunity,
   }) =>
       _coinsRepository.getCoinGroups(
         limit: limit,
         offset: offset,
         symbolGroups: symbolGroups,
         excludeCoinIds: excludeCoinIds,
+        isTokenizedCommunity: isTokenizedCommunity,
       );
 
   Future<Iterable<CoinData>> getCoinsByFilters({
