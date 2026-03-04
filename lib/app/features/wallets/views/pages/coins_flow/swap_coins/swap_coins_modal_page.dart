@@ -137,9 +137,6 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                             coinType: CoinSwapType.sell,
                           ).push<void>(context);
                         },
-                        onValidationError: (error) {
-                          buttonError.value = error;
-                        },
                         usdPrice: sellUsdPrice,
                       ),
                       SizedBox(
