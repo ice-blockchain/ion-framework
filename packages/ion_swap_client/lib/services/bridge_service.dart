@@ -10,6 +10,8 @@ import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
 import 'package:ion_swap_client/utils/crypto_amount_converter.dart';
+import 'package:ion_swap_client/utils/evm_tx_builder.dart';
+import 'package:ion_swap_client/utils/hex_helper.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 
 class BridgeService {
@@ -18,14 +20,17 @@ class BridgeService {
     required IonIdentityTransactionApi ionIdentityTransactionApi,
     required String relayEvmFeeAddress,
     required String relayAppFee,
+    required EvmTxBuilder evmTxBuilder,
   })  : _relayApiRepository = relayApiRepository,
         _ionIdentityTransactionApi = ionIdentityTransactionApi,
         _relayEvmFeeAddress = relayEvmFeeAddress,
-        _relayAppFee = relayAppFee;
+        _relayAppFee = relayAppFee,
+        _evmTxBuilder = evmTxBuilder;
   final RelayApiRepository _relayApiRepository;
   final IonIdentityTransactionApi _ionIdentityTransactionApi;
   final String _relayEvmFeeAddress;
   final String _relayAppFee;
+  final EvmTxBuilder _evmTxBuilder;
 
   Future<String?> tryToBridge({
     required SwapCoinParameters swapCoinData,
@@ -39,6 +44,25 @@ class BridgeService {
         throw const IonSwapException('Relay: Quote is required');
       }
 
+      final approveStep = relayQuote.steps.firstWhereOrNull((step) => step.id == 'approve');
+      if (approveStep != null) {
+        final approveItem = approveStep.items.firstOrNull;
+        if (approveItem == null) {
+          throw const IonSwapException('Relay: Approve item is required');
+        }
+
+        final txObject = await _evmTxBuilder.encodeApproveTransaction(
+          token: approveItem.data.to,
+          data: approveItem.data.data,
+        );
+
+        await _ionIdentityTransactionApi.signAndBroadcast(
+          walletId: ionSwapRequest.wallet.id,
+          transaction: txObject,
+          userActionSigner: ionSwapRequest.userActionSigner,
+        );
+      }
+
       final depositStep =
           relayQuote.steps.firstWhereOrNull((step) => step.id == 'deposit')?.items.first;
       if (depositStep == null) {
@@ -50,14 +74,14 @@ class BridgeService {
         throw const IonSwapException('Lets Exchange: Sendable asset is required');
       }
 
-      final hash = await _ionIdentityTransactionApi.makeTransfer(
+      final hash = await _ionIdentityTransactionApi.signAndBroadcast(
         walletId: ionSwapRequest.wallet.id,
         userActionSigner: ionSwapRequest.userActionSigner,
-        to: depositStep.data.to,
-        amount: double.parse(
-          relayDepositAmount,
+        transaction: _evmTxBuilder.wrapTransactionBytes(
+          bytes: HexHelper.hexToBytes(depositStep.data.data),
+          to: depositStep.data.to,
+          value: BigInt.parse(depositStep.data.value),
         ),
-        sendableAsset: sendableAsset,
       );
 
       return hash;
@@ -87,7 +111,7 @@ class BridgeService {
 
     final swapAmount = toBlockchainUnits(
       swapCoinData.amount,
-      buyChain.currency.decimals,
+      swapCoinData.sellCoin.decimal,
     );
     try {
       final quote = await _relayApiRepository.getQuote(
@@ -99,7 +123,7 @@ class BridgeService {
         originChainId: sellChain.id,
         destinationChainId: buyChain.id,
         appFeeRecipient: _relayEvmFeeAddress,
-        appFee: _relayAppFee * 100, // Convert to BPS
+        appFee: BigInt.from(double.parse(_relayAppFee) * 100).toString(), // Convert to BPS
       );
 
       return quote;

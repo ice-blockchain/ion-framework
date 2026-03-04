@@ -66,12 +66,10 @@ class IonIdentityTransactionApi {
 
   String _extractTransactionIdentifier(Map<String, dynamic> response) {
     final txHash = response['txHash'] as String?;
-    final id = response['id'] as String?;
-    final transferId = response['transferId'] as String?;
     return txHash ??
-        id ??
-        transferId ??
-        (throw StateError('Ion Identity response did not include a transaction identifier'));
+        (throw IonSwapException(
+          'Ion Identity response did not include a transaction identifier, response: $response',
+        ));
   }
 
   String _encodeQuantity(BigInt value) {

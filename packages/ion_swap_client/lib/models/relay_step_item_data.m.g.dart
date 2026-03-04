@@ -10,10 +10,14 @@ _$RelayStepItemDataImpl _$$RelayStepItemDataImplFromJson(
         Map<String, dynamic> json) =>
     _$RelayStepItemDataImpl(
       to: json['to'] as String,
+      data: json['data'] as String,
+      value: json['value'] as String,
     );
 
 Map<String, dynamic> _$$RelayStepItemDataImplToJson(
         _$RelayStepItemDataImpl instance) =>
     <String, dynamic>{
       'to': instance.to,
+      'data': instance.data,
+      'value': instance.value,
     };
