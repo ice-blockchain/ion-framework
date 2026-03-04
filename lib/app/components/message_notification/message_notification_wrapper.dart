@@ -78,7 +78,7 @@ class MessageNotificationWrapper extends HookConsumerWidget {
             child: FadeTransition(
               opacity: animation,
               child: Container(
-                height: 42.0.s,
+                constraints: BoxConstraints(minHeight: 42.0.s),
                 padding: EdgeInsets.all(8.0.s),
                 decoration: BoxDecoration(
                   color: color,
@@ -92,32 +92,41 @@ class MessageNotificationWrapper extends HookConsumerWidget {
                   ],
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        if (notification.value?.icon != null) ...[
-                          Container(
-                            width: 26.0.s,
-                            height: 26.0.s,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.onPrimaryAccent,
-                              borderRadius: BorderRadius.circular(8.0.s),
+                    Expanded(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (notification.value?.icon != null) ...[
+                            Container(
+                              width: 26.0.s,
+                              height: 26.0.s,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: context.theme.appColors.onPrimaryAccent,
+                                borderRadius: BorderRadius.circular(8.0.s),
+                              ),
+                              child: notification.value?.icon,
                             ),
-                            child: notification.value?.icon,
+                            SizedBox(width: 10.0.s),
+                          ],
+                          Expanded(
+                            child: Text(
+                              notification.value?.message ?? '',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: context.theme.appTextThemes.body.copyWith(
+                                color: context.theme.appColors.onPrimaryAccent,
+                              ),
+                            ),
                           ),
-                          SizedBox(width: 10.0.s),
                         ],
-                        Text(
-                          notification.value?.message ?? '',
-                          style: context.theme.appTextThemes.body.copyWith(
-                            color: context.theme.appColors.onPrimaryAccent,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    if (suffixWidget != null) suffixWidget,
+                    if (suffixWidget != null) ...[
+                      SizedBox(width: 8.0.s),
+                      suffixWidget,
+                    ],
                   ],
                 ),
               ),
