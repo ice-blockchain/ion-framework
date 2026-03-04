@@ -82,7 +82,6 @@ class PostData
     List<EventSetting>? settings,
     EntityLabel? mentionMarketCapLabel,
     EntityLabel? cashtagMarketCapLabel,
-    EntityLabel? ugcSerial,
   }) = _PostData;
 
   factory PostData.fromEventMessage(EventMessage eventMessage) {
@@ -112,7 +111,6 @@ class PostData
         tags,
         namespace: EntityLabelNamespace.cashtagMarketCap,
       ),
-      ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
 
@@ -140,7 +138,6 @@ class PostData
         if (relatedEvents != null) ...relatedEvents!.map((event) => event.toTag()),
         if (media.isNotEmpty) ...media.values.map((mediaAttachment) => mediaAttachment.toTag()),
         if (settings != null) ...settings!.map((setting) => setting.toTag()),
-        if (ugcSerial != null) ...ugcSerial!.toTags(),
         // Posts (kind 1) use 100% text only with PMO tags, no rich_text tag
       ],
     );

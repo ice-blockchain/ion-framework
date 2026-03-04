@@ -40,7 +40,6 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_upload_notifi
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_operation_protected_accounts_provider.r.dart';
-import 'package:ion/app/features/user/providers/ugc_counter_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
 import 'package:ion/app/services/markdown/quill.dart';
@@ -79,7 +78,6 @@ class CreateArticle extends _$CreateArticle {
     List<String>? mediaIds,
     String? imageColor,
     String? language,
-    int? ugcCounter,
   }) async {
     state = const AsyncValue.loading();
 
@@ -94,8 +92,6 @@ class CreateArticle extends _$CreateArticle {
         files: files,
         mediaAttachments: mediaAttachments,
       );
-
-      final ugcSerialLabel = await _buildUgcSerialLabel(ugcCounter: ugcCounter);
 
       final (imageUrl, updatedContent) = await (mainImageFuture, contentFuture).wait;
 
@@ -124,7 +120,6 @@ class CreateArticle extends _$CreateArticle {
         language: _buildLanguageLabel(language),
         mentionMarketCapLabel: _buildMentionMarketCapLabel(preparedContent.content),
         cashtagMarketCapLabel: _buildCashtagMarketCapLabel(preparedContent.content),
-        ugcSerial: ugcSerialLabel,
       );
 
       final article = await _sendArticleEntities(
@@ -168,7 +163,6 @@ class CreateArticle extends _$CreateArticle {
         language: null,
         mentionMarketCapLabel: null,
         cashtagMarketCapLabel: null,
-        ugcSerial: null,
       );
 
       final media = entity.data.media.values;
@@ -811,21 +805,6 @@ class CreateArticle extends _$CreateArticle {
       await ref
           .read(feedUserInterestsNotifierProvider.notifier)
           .updateInterests(FeedInterestInteraction.createArticle, interactionCategories);
-    }
-  }
-
-  Future<EntityLabel> _buildUgcSerialLabel({int? ugcCounter}) async {
-    try {
-      final counter = ugcCounter ?? await ref.refresh(ugcCounterProvider().future);
-      if (counter == null) {
-        throw UgcCounterFetchException();
-      }
-      return EntityLabel(
-        values: [LabelValue(value: (counter + 1).toString())],
-        namespace: EntityLabelNamespace.ugcSerial,
-      );
-    } on EventCountException {
-      rethrow;
     }
   }
 

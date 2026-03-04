@@ -97,7 +97,6 @@ class ArticleData
     EntityLabel? language,
     EntityLabel? mentionMarketCapLabel,
     EntityLabel? cashtagMarketCapLabel,
-    EntityLabel? ugcSerial,
   }) = _ArticleData;
 
   const ArticleData._();
@@ -137,7 +136,6 @@ class ArticleData
         tags,
         namespace: EntityLabelNamespace.cashtagMarketCap,
       ),
-      ugcSerial: EntityLabel.fromTags(tags, namespace: EntityLabelNamespace.ugcSerial),
     );
   }
 
@@ -156,7 +154,6 @@ class ArticleData
     EntityLabel? language,
     EntityLabel? mentionMarketCapLabel,
     EntityLabel? cashtagMarketCapLabel,
-    EntityLabel? ugcSerial,
     String textContent = '',
   }) {
     return ArticleData(
@@ -181,7 +178,6 @@ class ArticleData
       language: language,
       mentionMarketCapLabel: mentionMarketCapLabel,
       cashtagMarketCapLabel: cashtagMarketCapLabel,
-      ugcSerial: ugcSerial,
     );
   }
 
@@ -216,7 +212,6 @@ class ArticleData
         // Articles don't use rich_text tag - content is 100% markdown
         if (editingEndedAt != null) editingEndedAt!.toTag(),
         if (language != null) ...language!.toTags(),
-        if (ugcSerial != null) ...ugcSerial!.toTags(),
       ],
     );
   }
