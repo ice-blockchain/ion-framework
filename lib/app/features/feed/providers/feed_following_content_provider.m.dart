@@ -30,6 +30,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_pubkey.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
+import 'package:ion/app/features/ion_connect/model/soft_deletable_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/default_events_metadata_handler.r.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -450,7 +451,13 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
       throw UnknownEventReferenceKind(eventReference);
     }
 
-    return ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference).future);
+    final shouldBypassCache = eventReference is ReplaceableEventReference;
+    return ref.read(
+      ionConnectEntityWithCountersProvider(
+        eventReference: eventReference,
+        cache: !shouldBypassCache,
+      ).future,
+    );
   }
 
   /// Handles the requested entity:
@@ -561,6 +568,7 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
 
   Future<bool> _validateRequestedReferenceEntity({required IonConnectEntity? entity}) async {
     if (entity == null) return false;
+    if (entity is SoftDeletableEntity && entity.isDeleted) return false;
     final duplicatedRepost = await _isDuplicatedRepost(entity);
     return !duplicatedRepost;
   }
