@@ -13,6 +13,7 @@ import 'package:ion/app/features/wallets/providers/current_nfts_provider.r.dart'
 import 'package:ion/app/features/wallets/providers/send_nft_form_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/wallet_api_error_sentry_logger.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -22,6 +23,7 @@ part 'send_nft_notifier_provider.r.g.dart';
 class SendNftNotifier extends _$SendNftNotifier {
   @override
   Future<TransactionDetails?> build() async {
+    listenSelf(_onStateChanged);
     return null;
   }
 
@@ -100,5 +102,25 @@ class SendNftNotifier extends _$SendNftNotifier {
 
       return details;
     });
+  }
+
+  Future<void> _onStateChanged(
+    AsyncValue<TransactionDetails?>? previous,
+    AsyncValue<TransactionDetails?> next,
+  ) async {
+    final error = await logWalletApiErrorStateTransitionToSentry(
+      previous,
+      next,
+      tag: 'send_nft_failure',
+      operation: 'makeTransfer',
+      endpoint: '/wallets/{walletId}/transfers',
+      excludedErrorTypes: {
+        PasskeyCancelledException,
+      },
+      tags: {'asset_type': 'nft'},
+    );
+    if (error != null) {
+      Logger.error(error, stackTrace: next.stackTrace);
+    }
   }
 }

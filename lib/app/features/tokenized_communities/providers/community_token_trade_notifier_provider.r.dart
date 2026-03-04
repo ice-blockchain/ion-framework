@@ -23,6 +23,7 @@ import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/connected_crypto_wallets_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/services/sentry/wallet_api_error_sentry_logger.dart';
 import 'package:ion/app/services/storage/user_preferences_service.r.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -46,7 +47,10 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
   static const _syncWalletDataDelay = Duration(seconds: 3);
 
   @override
-  FutureOr<String?> build(CommunityTokenTradeNotifierParams params) => null;
+  FutureOr<String?> build(CommunityTokenTradeNotifierParams params) {
+    listenSelf(_onStateChanged);
+    return null;
+  }
 
   Future<void> buy(UserActionSignerNew signer) async {
     Logger.info(
@@ -416,6 +420,36 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       );
       return txHash;
     });
+  }
+
+  Future<void> _onStateChanged(
+    AsyncValue<String?>? previous,
+    AsyncValue<String?> next,
+  ) async {
+    final tradeState = ref.read(tradeCommunityTokenControllerProvider(params));
+
+    final error = await logWalletApiErrorStateTransitionToSentry(
+      previous,
+      next,
+      tag: 'community_token_trade_failure',
+      operation: 'signAndBroadcast',
+      endpoint: '/wallets/{walletId}/transactions',
+      excludedErrorTypes: {
+        PasskeyCancelledException,
+        StateError,
+      },
+      tags: {
+        'trade_mode': tradeState.mode.name,
+      },
+      debugContext: {
+        'externalAddress': params.externalAddress,
+        'eventReference': params.eventReference.toString(),
+        'walletId': tradeState.targetWallet?.id,
+      },
+    );
+    if (error != null) {
+      Logger.error(error, stackTrace: next.stackTrace);
+    }
   }
 
   String _requireBroadcastedTxHash(Map<String, dynamic> transaction) {

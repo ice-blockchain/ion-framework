@@ -30,7 +30,7 @@ import 'package:ion/app/features/wallets/model/transfer_result.f.dart';
 import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
-import 'package:ion/app/services/sentry/sentry_service.dart';
+import 'package:ion/app/services/sentry/wallet_api_error_sentry_logger.dart';
 import 'package:ion/app/utils/retry.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -45,6 +45,7 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
 
   @override
   FutureOr<TransactionDetails?> build() {
+    listenSelf(_onStateChanged);
     return null;
   }
 
@@ -137,22 +138,24 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
 
       return details;
     });
+  }
 
-    if (state.hasError) {
-      final error = state.error!;
-
-      // Capture to Sentry the next exceptions
-      // - Unexpected ones (not IONException)
-      // - Unexpected blockchain errors with reason (FailedToSendCryptoAssetsException)
-      if ((error is! IONException && error is! PasskeyCancelledException) ||
-          error is FailedToSendCryptoAssetsException) {
-        await SentryService.logException(
-          error,
-          stackTrace: state.stackTrace,
-          tag: 'send_coins_failure',
-        );
-      }
-      Logger.error(error, stackTrace: state.stackTrace);
+  Future<void> _onStateChanged(
+    AsyncValue<TransactionDetails?>? previous,
+    AsyncValue<TransactionDetails?> next,
+  ) async {
+    final error = await logWalletApiErrorStateTransitionToSentry(
+      previous,
+      next,
+      tag: 'send_coins_failure',
+      operation: 'makeTransfer',
+      endpoint: '/wallets/{walletId}/transfers',
+      excludedErrorTypes: {
+        PasskeyCancelledException,
+      },
+    );
+    if (error != null) {
+      Logger.error(error, stackTrace: next.stackTrace);
     }
   }
 
