@@ -20,6 +20,7 @@ class SingleUserStoriesViewerState with _$SingleUserStoriesViewerState {
 @freezed
 class UserStoriesViewerState with _$UserStoriesViewerState {
   const factory UserStoriesViewerState({
+    required String initialPubkey,
     required int currentUserIndex,
     List<ModifiablePostEntity>? userStories,
   }) = _UserStoriesViewerState;
@@ -41,7 +42,7 @@ class UserStoriesViewerState with _$UserStoriesViewerState {
   }
 
   String get currentUserPubkey {
-    return pubkeyAtIndex(currentUserIndex) ?? '';
+    return pubkeyAtIndex(currentUserIndex) ?? initialPubkey;
   }
 
   String? get nextUserPubkey {

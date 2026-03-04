@@ -26,6 +26,7 @@ class UserStoriesViewingNotifier extends _$UserStoriesViewingNotifier {
 
     if (stories.isNotEmpty) {
       return UserStoriesViewerState(
+        initialPubkey: initialPubkey,
         userStories: stories,
         currentUserIndex: 0,
       );
@@ -34,6 +35,7 @@ class UserStoriesViewingNotifier extends _$UserStoriesViewingNotifier {
     final userStories = ref.watch(userStoriesProvider(initialPubkey))?.toList();
 
     return UserStoriesViewerState(
+      initialPubkey: initialPubkey,
       userStories: userStories,
       currentUserIndex: 0,
     );
