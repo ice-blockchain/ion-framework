@@ -14,6 +14,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/utils/token_explorer_url_utils.dart';
 import 'package:ion/app/features/user/pages/components/header_action/header_action.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/browser/browser.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -45,13 +46,12 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
     );
 
     final externalAddress = tokenDefinitionEntity?.data.externalAddress.trim() ?? '';
-    final tokenAddress = ref
-            .watch(tokenMarketInfoProvider(externalAddress))
-            .valueOrNull
-            ?.addresses
-            .blockchain
-            ?.trim() ??
-        '';
+    final tokenInfo = externalAddress.isNotEmpty
+        ? useWatchWhenVisible(
+            watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
+          )
+        : null;
+    final tokenAddress = tokenInfo?.addresses.blockchain?.trim() ?? '';
 
     return OverlayMenu(
       menuBuilder: (closeMenu) {

@@ -7,6 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/market_cap_badge.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 
 class CashtagsSuggestions extends StatelessWidget {
   const CashtagsSuggestions({
@@ -55,7 +56,7 @@ class CashtagsSuggestions extends StatelessWidget {
   }
 }
 
-class _CashtagSuggestionTile extends ConsumerWidget {
+class _CashtagSuggestionTile extends HookConsumerWidget {
   const _CashtagSuggestionTile({
     required this.suggestion,
     required this.showName,
@@ -70,9 +71,11 @@ class _CashtagSuggestionTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final externalAddress = suggestion.tokenizedCommunityExternalAddress;
     final marketCap = externalAddress != null && externalAddress.isNotEmpty
-        ? ref.watch(
-            tokenMarketInfoProvider(externalAddress).select(
-              (state) => state.valueOrNull?.marketData.marketCap,
+        ? useWatchWhenVisible(
+            watcher: () => ref.watch(
+              tokenMarketInfoProvider(externalAddress).select(
+                (state) => state.valueOrNull?.marketData.marketCap,
+              ),
             ),
           )
         : null;

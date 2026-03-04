@@ -33,6 +33,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_type_prov
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -276,9 +277,14 @@ ChatMessageInfoItem? getRepliedMessageListItem({
             .valueOrNull
         : null;
 
-    if (postEntity is CommunityTokenDefinitionEntity) {
-      final token = ref.watch(tokenMarketInfoProvider(postEntity.data.externalAddress)).valueOrNull;
+    final token = useWatchWhenVisible(
+      watcher: () {
+        if (postEntity is! CommunityTokenDefinitionEntity) return null;
+        return ref.watch(tokenMarketInfoProvider(postEntity.data.externalAddress)).valueOrNull;
+      },
+    );
 
+    if (postEntity is CommunityTokenDefinitionEntity) {
       final tokenType = ref.watch(tokenTypeForTokenDefinitionProvider(postEntity)).valueOrNull;
 
       final messageItem = CommunityTokenItem(

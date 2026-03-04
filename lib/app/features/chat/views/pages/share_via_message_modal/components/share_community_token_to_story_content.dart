@@ -11,6 +11,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_market_in
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 
 class ShareCommunityTokenToStoryContent extends HookConsumerWidget {
   const ShareCommunityTokenToStoryContent({
@@ -31,7 +32,9 @@ class ShareCommunityTokenToStoryContent extends HookConsumerWidget {
 
     final externalAddress = tokenDefinition.data.externalAddress;
 
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenInfo = useWatchWhenVisible(
+      watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
+    );
 
     final tokenType = ref.watch(tokenTypeForTokenDefinitionProvider(tokenDefinition)).valueOrNull;
     if (tokenInfo == null || tokenType == null) {

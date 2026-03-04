@@ -16,6 +16,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'token_market_info_provider.r.g.dart';
 
+/// Streams community token market info for a given [externalAddress].
+///
+/// When consuming this provider from UI,
+/// consider using [useWatchWhenVisible] so the subscription is stopped
+/// when the widget is not visible or the app is in the background.
 @riverpod
 class TokenMarketInfo extends _$TokenMarketInfo {
   StreamSubscription<CommunityTokenBase>? _streamSubscription;

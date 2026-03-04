@@ -19,6 +19,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_trading_s
 import 'package:ion/app/features/tokenized_communities/utils/chart_metric_value_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/token_area_line_chart.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 export 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
@@ -39,8 +40,10 @@ class Chart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final createdAtOfToken = ref.watch(
-      tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.createdAt),
+    final createdAtOfToken = useWatchWhenVisible(
+      watcher: () => ref.watch(
+        tokenMarketInfoProvider(externalAddress).select((t) => t.valueOrNull?.createdAt),
+      ),
     );
 
     if (createdAtOfToken == null) {
