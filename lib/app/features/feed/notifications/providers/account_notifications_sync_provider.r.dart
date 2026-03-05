@@ -17,7 +17,6 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
-import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
@@ -256,7 +255,6 @@ class AccountNotificationsSyncService {
       kinds: const [CommunityTokenDefinitionEntity.kind],
       tags: {
         '#p': masterPubkeys,
-        '#k': [UserMetadataEntity.kind.toString()],
         '#t': const [communityTokenActionTopic],
       },
     );

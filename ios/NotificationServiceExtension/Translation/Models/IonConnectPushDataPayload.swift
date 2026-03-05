@@ -309,16 +309,15 @@ class IonConnectPushDataPayload: Decodable {
     }
 
     func placeholders(type: PushNotificationType, keysStorage: KeysStorage) async -> [String: String] {
-        guard let masterPubkey = mainEntity?.masterPubkey else {
+        guard mainEntity != nil else {
             return [:]
         }
 
         var data = decryptedPlaceholders ?? [:]
 
-        let mainEntityUserMetadata = getUserMetadata(pubkey: masterPubkey)
-        if let mainEntityUserMetadata = mainEntityUserMetadata {
-            data["username"] = mainEntityUserMetadata.data.name
-            data["displayName"] = mainEntityUserMetadata.data.displayName
+        if let relatedUserMetadata = getRelatedUserMetadata(keysStorage: keysStorage) {
+            data["username"] = relatedUserMetadata.data.name
+            data["displayName"] = relatedUserMetadata.data.displayName
         }
 
         if let decryptedEvent = decryptedEvent {
@@ -357,42 +356,19 @@ class IonConnectPushDataPayload: Decodable {
             data["ticker"] = entity.data.tokenTicker
         }
 
-        // For community token definitions, "username" and "displayName" placeholders
-        // belong to the author of the original event.
-        // For example: "Community launched a token for @{{username}}'s post."
-        if let entity = mainEntity as? CommunityTokenDefinitionEntity {
-            let eventReferenceKey = ReplaceableEventReference(
-                masterPubkey: entity.data.eventReference.masterPubkey,
-                kind: UserMetadataEntity.kind
-            ).toString()
-            
-            let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
-            guard cacheDB.openDatabase() else {
-                nseLogger.error("Failed to open ion_connect_cache database for community token definition metadata")
-                return data
-            }
-            defer { cacheDB.closeDatabase() }
-            
-            if let originalUserMetadata = cacheDB.getGenericEntity(for: eventReferenceKey) as? UserMetadataEntity {
-                data["username"] = originalUserMetadata.data.name
-                data["displayName"] = originalUserMetadata.data.displayName
-            }
-        }
-
         return data
     }
 
-    func getMediaPlaceholders() async -> (avatar: String?, attachment: String?) {
-        guard let masterPubkey = mainEntity?.masterPubkey else {
+    func getMediaPlaceholders(keysStorage: KeysStorage) async -> (avatar: String?, attachment: String?) {
+        guard mainEntity != nil else {
             return (avatar: nil, attachment: nil)
         }
 
         var avatarUrl: String?
         var attachmentUrl: String?
 
-        let mainEntityUserMetadata = getUserMetadata(pubkey: masterPubkey)
-        if let mainEntityUserMetadata = mainEntityUserMetadata {
-            avatarUrl = mainEntityUserMetadata.data.picture
+        if let relatedUserMetadata = getRelatedUserMetadata(keysStorage: keysStorage) {
+            avatarUrl = relatedUserMetadata.data.picture
         } else {
             if let decryptedPlaceholders = decryptedPlaceholders {
                 avatarUrl = decryptedPlaceholders["picture"]
@@ -747,7 +723,31 @@ class IonConnectPushDataPayload: Decodable {
         }
     }
 
-    private func getUserMetadata(pubkey: String) -> UserMetadataEntity? {
+    private func getRelatedUserMetadata(keysStorage: KeysStorage) -> UserMetadataEntity? {
+        if let entity = mainEntity as? CommunityTokenDefinitionEntity {
+            let eventReferenceKey = ReplaceableEventReference(
+                masterPubkey: entity.data.eventReference.masterPubkey,
+                kind: UserMetadataEntity.kind
+            ).toString()
+
+            let cacheDB = IonConnectCacheDatabase(keysStorage: keysStorage)
+            guard cacheDB.openDatabase() else {
+                nseLogger.error("Failed to open ion_connect_cache database for community token definition metadata")
+                return nil
+            }
+            defer { cacheDB.closeDatabase() }
+
+            return cacheDB.getGenericEntity(for: eventReferenceKey) as? UserMetadataEntity
+        }
+
+        guard let masterPubkey = mainEntity?.masterPubkey else {
+            return nil
+        }
+
+        return getAttachedUserMetadata(pubkey: masterPubkey)
+    }
+
+    private func getAttachedUserMetadata(pubkey: String) -> UserMetadataEntity? {
         let delegationEvent = relevantEvents.first { event in
             return event.kind == UserDelegationEntity.kind
                 && event.pubkey == pubkey
