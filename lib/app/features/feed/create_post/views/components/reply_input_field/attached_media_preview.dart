@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -100,11 +102,31 @@ class _PreviewItem extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    Widget? imageWidget;
+
     if (path != null) {
       assetEntity = ref.watch(assetEntityProvider(path!)).valueOrNull;
-      if (assetEntity == null) {
+      if (assetEntity != null) {
+        imageWidget = Image(
+          image: AssetEntityImageProvider(assetEntity, isOriginal: false),
+          fit: BoxFit.cover,
+        );
+      } else if (path!.startsWith('/')) {
+        // Externally shared images already have real file paths
+        imageWidget = Image.file(File(path!), fit: BoxFit.cover);
+      } else {
         return const SizedBox.shrink();
       }
+    } else if (url != null) {
+      imageWidget = FeedIONConnectNetworkImage(
+        imageUrl: url!,
+        authorPubkey: currentPubkey,
+        fit: BoxFit.cover,
+      );
+    }
+
+    if (imageWidget == null) {
+      return const SizedBox.shrink();
     }
 
     return SizedBox.square(
@@ -119,19 +141,7 @@ class _PreviewItem extends ConsumerWidget {
               borderRadius: BorderRadius.circular(10.0.s),
               child: SizedBox.square(
                 dimension: 44.0.s,
-                child: assetEntity != null
-                    ? Image(
-                        image: AssetEntityImageProvider(
-                          assetEntity,
-                          isOriginal: false,
-                        ),
-                        fit: BoxFit.cover,
-                      )
-                    : FeedIONConnectNetworkImage(
-                        imageUrl: url!,
-                        authorPubkey: currentPubkey,
-                        fit: BoxFit.cover,
-                      ),
+                child: imageWidget,
               ),
             ),
           ),

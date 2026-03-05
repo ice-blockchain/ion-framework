@@ -9,6 +9,7 @@ import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
 import 'package:ion/app/features/core/views/pages/error_modal.dart';
+import 'package:ion/app/services/media_service/media_service.m.dart';
 import 'package:ion/app/services/sharing_intent/shared_content.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -47,8 +48,12 @@ class ShareExternalContentSendButton extends HookConsumerWidget {
           onPressed: () async {
             loading.value = true;
             try {
-              final messageContent = switch (content) {
-                SharedText(:final text) => text,
+              final (messageContent, mediaFiles) = switch (content) {
+                SharedText(:final text) => (text, <MediaFile>[]),
+                SharedImage(:final paths) => (
+                    '',
+                    await Future.wait(paths.map(mediaFileFromPath)),
+                  ),
               };
               final chatService = await ref.read(sendChatMessageServiceProvider.future);
               await Future.wait(
@@ -56,6 +61,7 @@ class ShareExternalContentSendButton extends HookConsumerWidget {
                   (masterPubkey) => chatService.send(
                     receiverPubkey: masterPubkey,
                     content: messageContent,
+                    mediaFiles: mediaFiles,
                   ),
                 ),
               );
