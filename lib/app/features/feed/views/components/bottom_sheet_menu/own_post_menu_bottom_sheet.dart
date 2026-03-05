@@ -6,6 +6,7 @@ import 'package:ion/app/components/bottom_sheet_menu/bottom_sheet_menu_content.d
 import 'package:ion/app/components/icons/outlined_icon.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/components/bookmarks/bookmark_button.dart';
 import 'package:ion/app/features/feed/data/models/delete/delete_confirmation_type.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -45,7 +46,6 @@ class OwnPostMenuBottomSheet extends ConsumerWidget {
 
     final menuItemsGroups = <List<Widget>>[];
     final editMenuItems = <Widget>[];
-    final deleteMenuItems = <Widget>[];
 
     final hasFirstBuy = ref
             .watch(
@@ -58,6 +58,12 @@ class OwnPostMenuBottomSheet extends ConsumerWidget {
     // If post already has first buy and is not editable anymore, no menu should be shown.
     if (hasFirstBuy && !isEditable) {
       return const SizedBox.shrink();
+    }
+
+    if (entity is ModifiablePostEntity || entity is ArticleEntity) {
+      menuItemsGroups.add(
+        [BookmarkButton(eventReference: eventReference)],
+      );
     }
 
     // Edit menu item for posts and articles
@@ -131,13 +137,9 @@ class OwnPostMenuBottomSheet extends ConsumerWidget {
       );
     }
 
-    if (editMenuItems.isNotEmpty) {
-      menuItemsGroups.add(editMenuItems);
-    }
-
     // Add Delete menu item only if there was no first buy.
     if (!hasFirstBuy) {
-      deleteMenuItems.add(
+      editMenuItems.add(
         ListItem(
           onTap: () async {
             Navigator.of(context).pop();
@@ -168,8 +170,10 @@ class OwnPostMenuBottomSheet extends ConsumerWidget {
           backgroundColor: Colors.transparent,
         ),
       );
+    }
 
-      menuItemsGroups.add(deleteMenuItems);
+    if (editMenuItems.isNotEmpty) {
+      menuItemsGroups.add(editMenuItems);
     }
 
     return BottomSheetMenuContent(
