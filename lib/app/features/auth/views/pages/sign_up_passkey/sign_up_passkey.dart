@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
@@ -44,7 +43,7 @@ class SignUpPasskeyPage extends StatelessWidget {
                   ),
                   SizedBox(height: 37.0.s),
                   const SignUpPasskeyForm(),
-                  ScreenBottomOffset(),
+                  const ScreenBottomOffset(),
                 ],
               ),
             ),

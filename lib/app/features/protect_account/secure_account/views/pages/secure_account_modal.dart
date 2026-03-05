@@ -7,7 +7,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
@@ -119,7 +118,7 @@ class SecureAccountModal extends HookConsumerWidget {
                   SecureAccountOptionsRoute(showCloseButton: false).push<void>(context);
                 },
               ),
-              ScreenBottomOffset(margin: 36.0.s),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

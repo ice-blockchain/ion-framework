@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/show_close_button_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -42,7 +41,7 @@ class SecureAccountErrorAlert extends ConsumerWidget {
                   label: Text(locale.button_back),
                   onPressed: () => context.maybePop(),
                 ),
-                ScreenBottomOffset(margin: 36.0.s),
+                const ScreenBottomOffset(),
               ],
             ),
           ),

@@ -92,7 +92,7 @@ class EntityDeleteConfirmationModal extends HookConsumerWidget {
               ),
             ],
           ),
-          ScreenBottomOffset(),
+          const ScreenBottomOffset(),
         ],
       ),
     );

@@ -64,7 +64,7 @@ class DeleteAdminModal extends ConsumerWidget {
             ],
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

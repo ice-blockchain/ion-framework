@@ -48,7 +48,7 @@ class TokenAlreadyExistsDialog extends ConsumerWidget {
                 label: Text(locales.button_close),
                 onPressed: () => Navigator.pop(context),
               ),
-              ScreenBottomOffset(),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

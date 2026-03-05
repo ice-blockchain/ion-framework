@@ -55,7 +55,7 @@ class TokenNotFoundDialog extends ConsumerWidget {
                 label: Text(locales.button_try_again),
                 onPressed: () => Navigator.pop(context),
               ),
-              ScreenBottomOffset(),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

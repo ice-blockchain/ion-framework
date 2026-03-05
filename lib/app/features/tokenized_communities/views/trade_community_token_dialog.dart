@@ -199,65 +199,67 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     return SheetContent(
       body: KeyboardDismissOnTap(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _AppBar(
-              state: state,
-              controller: controller,
-            ),
-            if (communityGroup != null)
-              _TokenCards(
-                isError: validationError != null,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _AppBar(
                 state: state,
                 controller: controller,
-                communityAvatarWidget: communityAvatarWidget,
-                onTokenTap: () => _showTokenSelectionSheet(
+              ),
+              if (communityGroup != null)
+                _TokenCards(
+                  isError: validationError != null,
+                  state: state,
+                  controller: controller,
+                  communityAvatarWidget: communityAvatarWidget,
+                  onTokenTap: () => _showTokenSelectionSheet(
+                    context,
+                    ref,
+                    controller,
+                    mode: state.mode,
+                    externalAddress: resolvedExternalAddress,
+                  ),
+                ),
+              SizedBox(height: 29.0.s),
+              if (validationError != null)
+                Padding(
+                  padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s),
+                  child: Row(
+                    children: [
+                      Assets.svg.iconBlockInformation.icon(
+                        color: context.theme.appColors.tertiaryText,
+                        size: 16.0.s,
+                      ),
+                      SizedBox(width: 5.0.s),
+                      Expanded(
+                        child: Text(
+                          validationError,
+                          style: context.theme.appTextThemes.body2,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                _SharePostCheckbox(
+                  value: state.shouldSendEvents,
+                  onChanged: (value) => controller.setShouldSendEvents(send: value),
+                ),
+              SizedBox(height: 16.0.s),
+              ContinueButton(
+                isEnabled: _isContinueButtonEnabled(state) && validationError == null,
+                onPressed: () => _handleButtonPress(
                   context,
                   ref,
-                  controller,
-                  mode: state.mode,
-                  externalAddress: resolvedExternalAddress,
+                  params,
+                  state.mode,
                 ),
               ),
-            SizedBox(height: 29.0.s),
-            if (validationError != null)
-              Padding(
-                padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0.s),
-                child: Row(
-                  children: [
-                    Assets.svg.iconBlockInformation.icon(
-                      color: context.theme.appColors.tertiaryText,
-                      size: 16.0.s,
-                    ),
-                    SizedBox(width: 5.0.s),
-                    Expanded(
-                      child: Text(
-                        validationError,
-                        style: context.theme.appTextThemes.body2,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              _SharePostCheckbox(
-                value: state.shouldSendEvents,
-                onChanged: (value) => controller.setShouldSendEvents(send: value),
-              ),
-            SizedBox(height: 16.0.s),
-            ContinueButton(
-              isEnabled: _isContinueButtonEnabled(state) && validationError == null,
-              onPressed: () => _handleButtonPress(
-                context,
-                ref,
-                params,
-                state.mode,
-              ),
-            ),
-            SizedBox(height: 16.0.s),
-          ],
+              const ScreenBottomOffset(),
+            ],
+          ),
         ),
       ),
     );

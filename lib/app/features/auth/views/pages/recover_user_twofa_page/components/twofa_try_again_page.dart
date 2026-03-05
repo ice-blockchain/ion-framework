@@ -46,7 +46,7 @@ class TwoFaTryAgainPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

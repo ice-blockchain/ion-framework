@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/card/info_card.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -118,7 +117,7 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
                       isLoading: isLoading,
                     ),
                   ],
-                  ScreenBottomOffset(margin: 36.0.s),
+                  const ScreenBottomOffset(),
                 ],
               ),
             ),

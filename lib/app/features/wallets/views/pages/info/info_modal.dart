@@ -42,7 +42,7 @@ class InfoModal extends HookWidget {
             descriptionTextAlign: TextAlign.start,
           ),
         ),
-        ScreenBottomOffset(margin: 12.0.s),
+        const ScreenBottomOffset(),
       ],
     );
   }

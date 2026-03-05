@@ -71,7 +71,7 @@ class CancelCreationModal extends ConsumerWidget {
               ),
             ],
           ),
-          ScreenBottomOffset(),
+          const ScreenBottomOffset(),
         ],
       ),
     );

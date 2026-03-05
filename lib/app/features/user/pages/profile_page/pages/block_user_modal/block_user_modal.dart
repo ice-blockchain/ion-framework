@@ -66,7 +66,7 @@ class BlockUserModal extends ConsumerWidget {
             ],
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

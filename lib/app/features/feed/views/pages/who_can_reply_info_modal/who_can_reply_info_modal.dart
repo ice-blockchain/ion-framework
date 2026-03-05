@@ -45,7 +45,7 @@ class WhoCanReplyInfoModal extends HookConsumerWidget {
             ),
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

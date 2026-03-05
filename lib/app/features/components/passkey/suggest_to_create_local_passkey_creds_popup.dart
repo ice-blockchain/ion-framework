@@ -95,7 +95,7 @@ class SuggestToCreateLocalPasskeyCredsPopup extends HookConsumerWidget {
             ],
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

@@ -8,7 +8,6 @@ import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/inputs/text_input/components/text_input_border.dart';
 import 'package:ion/app/components/inputs/text_input/text_input.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
@@ -141,9 +140,7 @@ class SetRecoveryPasswordStep extends HookConsumerWidget {
                 ),
               ),
             ),
-            ScreenBottomOffset(
-              child: const AuthFooter(),
-            ),
+            const ScreenBottomOffset(child: AuthFooter()),
           ],
         ),
       ),

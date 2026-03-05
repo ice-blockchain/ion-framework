@@ -5,7 +5,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/checkbox/labeled_checkbox.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -78,7 +77,7 @@ class DelegateAccessModal extends HookWidget {
                 minimumSize: Size(double.infinity, 56.0.s),
               ),
             ),
-            ScreenBottomOffset(),
+            const ScreenBottomOffset(),
           ],
         ),
       ),

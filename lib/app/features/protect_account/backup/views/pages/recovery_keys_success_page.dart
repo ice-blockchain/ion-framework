@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/hooks/use_go_to_secure_account_options.dart';
@@ -46,7 +45,7 @@ class RecoveryKeysSuccessPage extends HookConsumerWidget {
               mainAxisSize: MainAxisSize.max,
             ),
           ),
-          ScreenBottomOffset(margin: 28.0.s),
+          const ScreenBottomOffset(),
         ],
       ),
     );

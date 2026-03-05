@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
 import 'package:ion/app/components/card/warning_card.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/build_context.dart';
 import 'package:ion/app/extensions/num.dart';
@@ -39,7 +38,6 @@ class RecoverUserSuccessPage extends StatelessWidget {
           ),
           SizedBox(height: 20.0.s),
           ScreenBottomOffset(
-            margin: 36.0.s,
             child: ScreenSideOffset.small(
               child: Button(
                 onPressed: onLogin,

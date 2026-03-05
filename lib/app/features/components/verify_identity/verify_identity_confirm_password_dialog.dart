@@ -83,7 +83,7 @@ class VerifyIdentityConfirmPasswordDialog<T> extends HookConsumerWidget {
                 label: Text(context.i18n.button_confirm),
                 mainAxisSize: MainAxisSize.max,
               ),
-              ScreenBottomOffset(margin: 16.0.s),
+              const ScreenBottomOffset(includeSystemPadding: false),
             ],
           ),
         ),

@@ -50,7 +50,7 @@ class IdentityInfo extends StatelessWidget {
                   color: context.theme.appColors.secondaryText,
                 ),
               ),
-              ScreenBottomOffset(),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

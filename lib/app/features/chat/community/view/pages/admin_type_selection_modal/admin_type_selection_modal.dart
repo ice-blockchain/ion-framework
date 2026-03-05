@@ -71,7 +71,7 @@ class AdminTypeSelectionModal extends HookConsumerWidget {
         DeleteAdminButton(
           pubkey: adminPubkey,
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

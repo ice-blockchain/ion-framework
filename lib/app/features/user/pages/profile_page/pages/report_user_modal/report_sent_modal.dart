@@ -38,7 +38,7 @@ class ReportSentModal extends ConsumerWidget {
             mainAxisSize: MainAxisSize.max,
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

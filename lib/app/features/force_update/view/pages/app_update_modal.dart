@@ -152,7 +152,7 @@ class AppUpdateModal extends HookConsumerWidget {
                       mainAxisSize: MainAxisSize.max,
                     ),
             ),
-            ScreenBottomOffset(),
+            const ScreenBottomOffset(),
           ],
         ),
         if (onPressedClose != null)

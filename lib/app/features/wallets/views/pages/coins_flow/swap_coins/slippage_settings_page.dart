@@ -27,58 +27,54 @@ class SlippageSettingsPage extends HookWidget {
     final slippageValue = useState(slippage);
 
     return SheetContent(
-      body: Padding(
-        padding: EdgeInsetsDirectional.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom + 12.0.s,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            NavigationAppBar.modal(
-              title: Text(context.i18n.wallet_swap_slippage_settings_title),
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          NavigationAppBar.modal(
+            title: Text(context.i18n.wallet_swap_slippage_settings_title),
+          ),
+          SizedBox(height: 8.0.s),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0.s),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.i18n.wallet_swap_slippage_settings_label,
+                  style: textStyles.body,
+                ),
+                SizedBox(height: 8.0.s),
+                Text(
+                  context.i18n.wallet_swap_slippage_settings_description,
+                  style: textStyles.body2.copyWith(color: colors.onTertiaryBackground),
+                ),
+                SizedBox(height: 16.0.s),
+                _SlippageControls(
+                  initialValue: slippage,
+                  defaultSlippage: defaultSlippage,
+                  onValueChanged: (value) {
+                    slippageValue.value = value;
+                  },
+                ),
+                SizedBox(height: 24.0.s),
+                Button(
+                  onPressed: () {
+                    Navigator.of(context).pop(slippageValue.value);
+                  },
+                  label: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(context.i18n.button_save),
+                      SizedBox(width: 6.0.s),
+                      Assets.svg.iconProfileSave.icon(size: 24.s),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 8.0.s),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0.s),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.i18n.wallet_swap_slippage_settings_label,
-                    style: textStyles.body,
-                  ),
-                  SizedBox(height: 8.0.s),
-                  Text(
-                    context.i18n.wallet_swap_slippage_settings_description,
-                    style: textStyles.body2.copyWith(color: colors.onTertiaryBackground),
-                  ),
-                  SizedBox(height: 16.0.s),
-                  _SlippageControls(
-                    initialValue: slippage,
-                    defaultSlippage: defaultSlippage,
-                    onValueChanged: (value) {
-                      slippageValue.value = value;
-                    },
-                  ),
-                  SizedBox(height: 24.0.s),
-                  Button(
-                    onPressed: () {
-                      Navigator.of(context).pop(slippageValue.value);
-                    },
-                    label: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(context.i18n.button_save),
-                        SizedBox(width: 6.0.s),
-                        Assets.svg.iconProfileSave.icon(size: 24.s),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+          const ScreenBottomOffset(),
+        ],
       ),
     );
   }

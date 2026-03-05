@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/modal_action_button/modal_action_button.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separated_column.dart';
 import 'package:ion/app/constants/links.dart';
@@ -75,7 +74,7 @@ class SettingsModal extends HookConsumerWidget {
                 ],
               ),
             ),
-            ScreenBottomOffset(margin: 12.0.s),
+            const ScreenBottomOffset(),
           ],
         ),
       ),

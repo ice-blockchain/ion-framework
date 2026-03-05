@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
+import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/text_editor/components/suggestions_container.dart';
 import 'package:ion/app/components/text_editor/text_editor.dart';
@@ -99,9 +100,7 @@ class CreatePostBottomPanel extends StatelessWidget {
           attachedVideoNotifier: attachedVideoNotifier,
           createOption: createOption,
         ),
-        SizedBox(
-          height: 8.0.s,
-        ),
+        const ScreenBottomOffset(),
       ],
     );
   }

@@ -94,7 +94,7 @@ class SwapDetailsContent extends ConsumerWidget {
             ),
           ),
         ),
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: ScreenBottomOffset(),
         ),
       ],

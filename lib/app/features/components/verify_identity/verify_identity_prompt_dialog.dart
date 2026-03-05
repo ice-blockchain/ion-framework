@@ -64,8 +64,8 @@ class VerifyIdentityPromptDialog extends ConsumerWidget {
               type: isThemeLight ? IndicatorType.dark : IndicatorType.light,
             ),
             const Spacer(),
-            ScreenBottomOffset(
-              child: const SecuredBy(),
+            const ScreenBottomOffset(
+              child: SecuredBy(),
             ),
           ],
         ),

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -68,7 +67,7 @@ class DelegateUserSelectedModal extends ConsumerWidget {
                 ],
               ),
             ),
-            ScreenBottomOffset(),
+            const ScreenBottomOffset(),
           ],
         ),
       ),

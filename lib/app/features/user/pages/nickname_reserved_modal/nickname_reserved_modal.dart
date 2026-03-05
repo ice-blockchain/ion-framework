@@ -36,7 +36,7 @@ class NicknameReservedModal extends StatelessWidget {
               iconAsset: Assets.svg.actionLoginNamereserved,
             ),
           ),
-          ScreenBottomOffset(),
+          const ScreenBottomOffset(),
         ],
       ),
     );

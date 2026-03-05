@@ -160,7 +160,7 @@ class CoinDetailsPage extends HookConsumerWidget {
             coinsGroup: coinsGroup,
             selectedNetwork: selectedNetwork,
           ),
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: ScreenBottomOffset(),
           ),
         ],

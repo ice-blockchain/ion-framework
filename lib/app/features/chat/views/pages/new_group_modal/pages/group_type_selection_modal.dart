@@ -51,7 +51,7 @@ class GroupTypeSelectionModal extends HookConsumerWidget {
               ],
             ),
           ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

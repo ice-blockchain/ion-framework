@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/views/pages/import_token_page/components/import_token_form.dart';
@@ -66,7 +65,7 @@ class ImportTokenPage extends HookConsumerWidget {
                           ? const IONLoadingIndicator()
                           : null,
                     ),
-                    ScreenBottomOffset(),
+                    const ScreenBottomOffset(),
                   ],
                 ),
               ),

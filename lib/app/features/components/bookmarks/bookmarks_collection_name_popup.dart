@@ -120,7 +120,7 @@ class BookmarksCollectionNamePopup extends HookConsumerWidget {
                     mainAxisSize: MainAxisSize.max,
                   ),
                 ),
-                ScreenBottomOffset(),
+                const ScreenBottomOffset(),
               ],
             ),
           ),

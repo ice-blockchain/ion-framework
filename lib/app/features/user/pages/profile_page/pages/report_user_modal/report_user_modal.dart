@@ -70,7 +70,7 @@ class ReportUserModal extends HookConsumerWidget {
             ),
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

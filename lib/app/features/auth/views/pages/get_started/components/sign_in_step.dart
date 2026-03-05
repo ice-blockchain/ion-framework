@@ -8,7 +8,6 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/data/models/twofa_type.dart';
@@ -165,7 +164,7 @@ class SignInStep extends HookConsumerWidget {
                     borderColor: Colors.transparent,
                   ),
                   SizedBox(height: 16.0.s),
-                  ScreenBottomOffset(child: const AuthFooter()),
+                  const ScreenBottomOffset(child: AuthFooter()),
                 ],
               ),
             ),

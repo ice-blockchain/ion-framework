@@ -32,7 +32,7 @@ class RecoverInvalidCredentialsErrorAlert extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

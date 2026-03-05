@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/inputs/text_input/components/text_input_icons.dart';
 import 'package:ion/app/components/inputs/text_input/text_input.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_header.dart';
@@ -102,7 +101,7 @@ class AuthenticatorSetupCodeConfirmPage extends HookConsumerWidget {
                     ),
                   ),
                 ),
-                ScreenBottomOffset(margin: 36.0.s),
+                const ScreenBottomOffset(),
               ],
             ),
           ),

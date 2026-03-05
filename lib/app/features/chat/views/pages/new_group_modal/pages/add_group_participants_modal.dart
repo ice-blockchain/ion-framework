@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -41,7 +40,6 @@ class AddGroupParticipantsModal extends HookConsumerWidget {
           children: [
             const HorizontalSeparator(),
             ScreenBottomOffset(
-              margin: 32.0.s,
               child: Padding(
                 padding: EdgeInsetsDirectional.only(top: 16.0.s),
                 child: ScreenSideOffset.large(

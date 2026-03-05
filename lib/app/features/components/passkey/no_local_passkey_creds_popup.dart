@@ -57,7 +57,7 @@ class NoLocalPasskeyCredsPopup extends StatelessWidget {
             ],
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

@@ -203,7 +203,7 @@ class _ContentState extends HookConsumerWidget {
                       }
                     : null,
               ),
-              ScreenBottomOffset(),
+              const ScreenBottomOffset(),
             ],
           ),
         ),

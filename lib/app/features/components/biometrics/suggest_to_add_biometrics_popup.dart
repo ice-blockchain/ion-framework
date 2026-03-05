@@ -102,7 +102,7 @@ class SuggestToAddBiometricsPopup extends HookConsumerWidget {
             ],
           ),
         ),
-        ScreenBottomOffset(),
+        const ScreenBottomOffset(),
       ],
     );
   }

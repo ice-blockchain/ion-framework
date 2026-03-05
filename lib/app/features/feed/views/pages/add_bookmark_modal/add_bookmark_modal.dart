@@ -4,10 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_items_loading_state/list_items_loading_state.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
-import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/components/bookmarks/bookmarks_collection_tile.dart';
 import 'package:ion/app/features/components/bookmarks/new_bookmarks_collection_button.dart';
 import 'package:ion/app/features/feed/data/models/bookmarks/bookmarks_set.f.dart';
@@ -59,7 +58,7 @@ class AddBookmarkModal extends ConsumerWidget {
                   ),
                 ),
                 const NewBookmarksCollectionButton(),
-                ScreenBottomOffset(),
+                const ScreenBottomOffset(),
               ],
             );
           },

@@ -8,7 +8,6 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -200,7 +199,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
                     mainAxisSize: MainAxisSize.max,
                   ),
                 ),
-                ScreenBottomOffset(margin: 36.0.s),
+                const ScreenBottomOffset(),
               ],
             ),
           ],

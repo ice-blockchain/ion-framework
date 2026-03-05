@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_header.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_header_icon.dart';
@@ -64,7 +63,7 @@ class EmailSetupPage extends ConsumerWidget {
                         Expanded(
                           child: EmailSetupConfirmPage(email: email!),
                         ),
-                      ScreenBottomOffset(margin: 36.0.s),
+                      const ScreenBottomOffset(),
                     ],
                   ),
                 ),
