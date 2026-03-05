@@ -20,6 +20,7 @@ import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_type_provider.r.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 
 class CommunityTokenMessage extends HookConsumerWidget {
@@ -51,9 +52,11 @@ class CommunityTokenMessage extends HookConsumerWidget {
 
     final hasReactions = useHasReaction(entity.toEventReference(), ref);
 
-    final token = definitionEntity != null
-        ? ref.watch(tokenMarketInfoProvider(definitionEntity!.data.externalAddress)).valueOrNull
-        : null;
+    final token = useWatchWhenVisible(
+      watcher: () => definitionEntity != null
+          ? ref.watch(tokenMarketInfoProvider(definitionEntity!.data.externalAddress)).valueOrNull
+          : null,
+    );
 
     final messageItem = CommunityTokenItem(
       eventMessage: eventMessage,

@@ -17,6 +17,7 @@ import 'package:ion/app/features/tokenized_communities/providers/token_operation
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
 import 'package:ion/app/features/user/extensions/user_metadata.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/formatters.dart' as market_data_formatter;
@@ -294,7 +295,7 @@ class _RocketIcon extends StatelessWidget {
   }
 }
 
-class _MarketCap extends ConsumerWidget {
+class _MarketCap extends HookConsumerWidget {
   const _MarketCap({required this.externalAddress, this.color});
 
   final String externalAddress;
@@ -302,7 +303,9 @@ class _MarketCap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenInfo = useWatchWhenVisible(
+      watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
+    );
 
     if (tokenInfo == null) {
       return SizedBox(width: 24.0.s);

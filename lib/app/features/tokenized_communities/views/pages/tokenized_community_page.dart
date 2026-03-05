@@ -40,6 +40,7 @@ import 'package:ion/app/features/tokenized_communities/views/pages/holders/compo
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/providers/token_top_holders_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/latest_trades/components/latest_trades_card.dart';
 import 'package:ion/app/features/user/model/tab_type_interface.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
@@ -84,7 +85,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenInfo = useWatchWhenVisible(
+      watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
+    );
     final tokenDefinition = ref
         .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
         .valueOrNull;
@@ -534,7 +537,9 @@ class _TokenChart extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokenInfo = ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    final tokenInfo = useWatchWhenVisible(
+      watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
+    );
 
     // If token info is not yet available, render nothing (unchanged behaviour).
     if (tokenInfo == null) {

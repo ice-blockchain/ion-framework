@@ -21,6 +21,7 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_back
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/user_name_tile/user_name_tile.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
@@ -81,9 +82,11 @@ class _ContentState extends HookConsumerWidget {
 
     final eventReferenceString = userMetadata?.toEventReference().toString();
 
-    final token = eventReferenceString != null
-        ? ref.watch(tokenMarketInfoProvider(eventReferenceString)).valueOrNull
-        : null;
+    final token = useWatchWhenVisible(
+      watcher: () => eventReferenceString != null
+          ? ref.watch(tokenMarketInfoProvider(eventReferenceString)).valueOrNull
+          : null,
+    );
 
     return Stack(
       alignment: Alignment.center,
