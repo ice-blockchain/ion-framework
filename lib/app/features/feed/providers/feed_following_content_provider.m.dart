@@ -9,7 +9,6 @@ import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/counter.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
-import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_config.f.dart';
 import 'package:ion/app/features/feed/data/models/feed_modifier.dart';
@@ -27,7 +26,6 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/events_metadata.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/related_hashtag.f.dart';
-import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -412,16 +410,13 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
       throw const CurrentUserNotFoundException();
     }
 
-    final kind =
-        eventReference is ReplaceableEventReference ? eventReference.kind : PostEntity.kind;
-
-    final search = SearchExtensions([
-      ...SearchExtensions.withCounters(currentPubkey: currentPubkey, forKind: kind).extensions,
-      ...SearchExtensions.withAuthors(forKind: kind).extensions,
-    ]).toString();
-
-    return ref
-        .read(ionConnectEntityProvider(eventReference: eventReference, search: search).future);
+    return ref.read(
+      ionConnectEntityWithCountersProvider(
+        eventReference: eventReference,
+        // Bypass cache for seen items to avoid stale Following data.
+        cache: false,
+      ).future,
+    );
   }
 
   /// Handles the requested entity:
