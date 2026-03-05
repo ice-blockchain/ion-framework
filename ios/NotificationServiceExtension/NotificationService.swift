@@ -28,49 +28,55 @@ class NotificationService: UNNotificationServiceExtension {
                 let storage = try SharedStorage()
                 let keysStorage = KeysStorage(storage: storage)
                 let appBadgeCounter = AppBadgeCounterService(storage: storage)
-                
-                guard let result = await NotificationTranslationService(
+
+                let translationOutcome = await NotificationTranslationService(
                     appLocaleStorage: AppLocaleStorage(storage: storage),
                     keysStorage: keysStorage
                 ).translate(
                     request.content.userInfo
-                ) else {
-                    // Hide notification if translation fails
-                    nseLogger.error("Translation failed, hiding notification")
+                )
+
+                switch translationOutcome {
+                case .skip:
+                    nseLogger.info("Notification skipped by translation rules")
                     contentHandler(UNNotificationContent())
                     return
-                }
+                case .fallbackToOriginal:
+                    nseLogger.info("Translation failed, using original notification content")
+                    contentHandler(mutableNotificationContent)
+                    return
+                case .translated(let result):
+                    // Handle badge count based on notification type
+                    if let notificationType = result.notificationType, !notificationType.isChat {
+                        incrementBadge(appBadgeCounter: appBadgeCounter,
+                                     mutableContent: mutableNotificationContent,
+                                     category: .inapp)
+                    } else if let conversationId = result.groupKey {
+                        // Chat notification - check if we should increment
+                        handleChatNotificationBadge(
+                            conversationId: conversationId,
+                            keysStorage: keysStorage,
+                            appBadgeCounter: appBadgeCounter,
+                            mutableContent: mutableNotificationContent
+                        )
+                    }
 
-                // Handle badge count based on notification type
-                if let notificationType = result.notificationType, !notificationType.isChat {
-                    incrementBadge(appBadgeCounter: appBadgeCounter, 
-                                 mutableContent: mutableNotificationContent, 
-                                 category: .inapp)
-                } else if let conversationId = result.groupKey {
-                    // Chat notification - check if we should increment
-                    handleChatNotificationBadge(
-                        conversationId: conversationId,
-                        keysStorage: keysStorage,
-                        appBadgeCounter: appBadgeCounter,
-                        mutableContent: mutableNotificationContent
+                    mutableNotificationContent.title = result.title
+                    mutableNotificationContent.body = result.body
+
+                    // Pass through deep link parameter if present
+                    if let deepLink = request.content.userInfo[NotificationService.deepLinkKey] as? String {
+                        mutableNotificationContent.userInfo[NotificationService.deepLinkKey] = deepLink
+                    }
+
+                    communicationPushData = CommunicationPushData(
+                        title: result.title,
+                        body: result.body,
+                        avatarFilePath: result.avatarFilePath,
+                        attachmentFilePath: result.attachmentFilePaths,
+                        groupKey: result.groupKey
                     )
                 }
-
-                mutableNotificationContent.title = result.title
-                mutableNotificationContent.body = result.body
-                
-                // Pass through deep link parameter if present
-                if let deepLink = request.content.userInfo[NotificationService.deepLinkKey] as? String {
-                    mutableNotificationContent.userInfo[NotificationService.deepLinkKey] = deepLink
-                }
-
-                communicationPushData = CommunicationPushData(
-                    title: result.title,
-                    body: result.body,
-                    avatarFilePath: result.avatarFilePath,
-                    attachmentFilePath: result.attachmentFilePaths,
-                    groupKey: result.groupKey
-                )
             } catch {
                 // Hide notification if any error occurs during processing
                 nseLogger.error("Failed to process notification: \(error)")

@@ -12,6 +12,12 @@ struct NotificationTranslationResult {
     let groupKey: String?
 }
 
+enum NotificationTranslationOutcome {
+    case translated(NotificationTranslationResult)
+    case fallbackToOriginal
+    case skip
+}
+
 class NotificationTranslationService {
     private let appLocaleStorage: AppLocaleStorage
     private let keysStorage: KeysStorage
@@ -45,51 +51,51 @@ class NotificationTranslationService {
         }
     }
 
-    func translate(_ pushPayload: [AnyHashable: Any]) async -> NotificationTranslationResult? {
+    func translate(_ pushPayload: [AnyHashable: Any]) async -> NotificationTranslationOutcome {
         guard let currentPubkey = keysStorage.getCurrentPubkey() else {
             nseLogger.error("Current pubkey is nil")
-            return nil
+            return .skip
         }
 
         guard let data = await parsePayload(from: pushPayload) else {
             nseLogger.error("Failed to parse payload")
-            return nil
+            return .fallbackToOriginal
         }
 
         if shouldSkipOwnGiftWrap(data: data, currentPubkey: currentPubkey) {
             nseLogger.info("Skipping own gift wrap notification")
-            return nil
+            return .skip
         }
 
         // Skip notifications from muted users or muted conversations
         if shouldSkipMutedNotification(data: data, currentPubkey: currentPubkey, keysStorage: keysStorage) {
             nseLogger.info("Skipping notification from muted user or conversation")
-            return nil
+            return .skip
         }
 
         // Skip notifications for self-interactions (e.g., quoting/reposting own content)
         if data.isSelfInteraction(currentPubkey: currentPubkey) {
             nseLogger.info("Skipping self-interaction notification")
-            return nil
+            return .skip
         }
 
         let dataIsValid = data.validate(currentPubkey: currentPubkey)
 
         if !dataIsValid {
             nseLogger.error("Data is invalid")
-            return nil
+            return .fallbackToOriginal
         }
 
         guard let notificationType = data.getNotificationType(currentPubkey: currentPubkey, keysStorage: keysStorage) else {
             nseLogger.error("Notification type is nil")
-            return nil
+            return .fallbackToOriginal
         }
 
         nseLogger.info("Notification type: \(notificationType.rawValue)")
 
         guard let (title, body) = await getNotificationTranslation(for: notificationType) else {
             nseLogger.error("Notification translation is nil")
-            return nil
+            return .fallbackToOriginal
         }
 
         let placeholders = await data.placeholders(type: notificationType, keysStorage: keysStorage)
@@ -101,12 +107,12 @@ class NotificationTranslationService {
         
         if hasPlaceholders(result.title) || hasPlaceholders(result.body) {
             nseLogger.error("Notification translation has placeholders")
-            return nil
+            return .fallbackToOriginal
         }
         
         if result.title.isEmpty || result.body.isEmpty {
             nseLogger.error("Notification translation is empty")
-            return nil
+            return .fallbackToOriginal
         }
         
         let media = await data.getMediaPlaceholders(keysStorage: keysStorage)
@@ -118,13 +124,15 @@ class NotificationTranslationService {
             groupKey = getNotificationGroupKey(from: data.mainEntity)
         }
         
-        return NotificationTranslationResult(
-            title: result.title,
-            body: result.body,
-            avatarFilePath: media.avatar,
-            attachmentFilePaths: media.attachment,
-            notificationType: notificationType,
-            groupKey: groupKey
+        return .translated(
+            NotificationTranslationResult(
+                title: result.title,
+                body: result.body,
+                avatarFilePath: media.avatar,
+                attachmentFilePaths: media.attachment,
+                notificationType: notificationType,
+                groupKey: groupKey
+            )
         )
     }
 
