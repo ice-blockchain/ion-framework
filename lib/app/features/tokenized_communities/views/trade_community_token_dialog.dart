@@ -15,6 +15,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_holdings_tab_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_tokenized_community_data_source_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -97,6 +98,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     );
     final state = ref.watch(tradeCommunityTokenControllerProvider(params));
     final controller = ref.read(tradeCommunityTokenControllerProvider(params).notifier);
+    final showExtendedSwapErrorMessage =
+        ref.watch(envProvider.notifier).get<bool>(EnvVariable.SHOW_DEBUG_INFO);
 
     useOnInit(
       () => ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
@@ -155,6 +158,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             paymentTokenName,
             communityTokenName,
             error,
+            showExtendedSwapErrorMessage,
           );
         },
       )
@@ -465,6 +469,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     String? paymentTokenName,
     String? communityTokenName,
     Object error,
+    bool showExtendedSwapErrorMessage,
   ) {
     final colors = context.theme.appColors;
 
@@ -477,10 +482,9 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     _showMessage(
       messageNotificationNotifier,
-      message: _buildTradeErrorMessage(
-        context,
-        error,
-      ),
+      message: showExtendedSwapErrorMessage
+          ? _buildTradeErrorMessage(context, error)
+          : context.i18n.wallet_swap_failed,
       icon: Assets.svg.iconBlockKeywarning.icon(
         color: colors.attentionRed,
         size: 24.0.s,
