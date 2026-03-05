@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_items_loading_state/list_items_loading_state.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
-import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/num.dart';
 import 'package:ion/app/features/components/bookmarks/bookmarks_collection_tile.dart';
@@ -23,6 +22,10 @@ class AddBookmarkModal extends ConsumerWidget {
 
   final EventReference eventReference;
 
+  // shrinkWrap affects performance for long lists (renders all items at once),
+  // so we disable it when list is large enough to always exceed screen height
+  static const shrinkWrapThreshold = 20;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookmarksCollections = ref.watch(feedBookmarkCollectionsNotifierProvider);
@@ -39,7 +42,7 @@ class AddBookmarkModal extends ConsumerWidget {
                 .toList();
 
             return ListView(
-              shrinkWrap: collectionsDTags.length < LoadMoreBuilder.shrinkWrapThreshold,
+              shrinkWrap: collectionsDTags.length < shrinkWrapThreshold,
               children: [
                 SizedBox(height: 24.0.s),
                 BookmarksCollectionTile(

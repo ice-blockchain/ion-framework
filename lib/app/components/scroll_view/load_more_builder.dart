@@ -38,10 +38,6 @@ class LoadMoreBuilder extends HookWidget {
 
   final bool disallowMaxScrollExtentZero;
 
-  // shrinkWrap affects performance for long lists (renders all items at once),
-  // so we disable it when list is large enough to always exceed screen height
-  static const shrinkWrapThreshold = 20;
-
   @override
   Widget build(BuildContext context) {
     final loading = useState(false);

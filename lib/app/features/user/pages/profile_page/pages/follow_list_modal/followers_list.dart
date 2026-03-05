@@ -67,7 +67,6 @@ class FollowersList extends HookConsumerWidget {
       child: LoadMoreBuilder(
         slivers: slivers,
         hasMore: hasMore,
-        shrinkWrap: (masterPubkeys?.length ?? 1) < LoadMoreBuilder.shrinkWrapThreshold,
         onLoadMore: () => ref
             .read(
               followersProvider(
