@@ -303,10 +303,10 @@ class WalletViewsService {
           paginationToken: paginationToken,
         )
             .timeout(
-          const Duration(seconds: 15),
+          const Duration(seconds: 30),
           onTimeout: () {
             throw TimeoutException(
-              'Getting wallet view page timed out after 15 seconds',
+              'Getting wallet view page timed out after 30 seconds',
             );
           },
         );
