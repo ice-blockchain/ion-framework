@@ -73,8 +73,12 @@ Future<void>? migrateTokenDefinitionsService(Ref ref) async {
     final migrationCtx = MigrationContext();
     final filter = _buildRequestFilter(currentUserMasterPubkey);
 
+    // Use profile creation time so we fetch all content by this author. registeredAt is set once
+    // at onboarding (kind-0 content) and preserved on profile updates;
+    final migrationSince = userMetadata.data.registeredAt;
+
     final (_, isDone) = await ref.watch(eventBackfillServiceProvider).startBackfill(
-          latestEventTimestamp: userMetadata.createdAt,
+          latestEventTimestamp: migrationSince,
           limit: 20,
           filter: filter,
           onEvent: migrationCtx.processEvent,
