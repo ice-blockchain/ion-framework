@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/list_items_loading_state/list_items_loading_state.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
+import 'package:ion/app/components/scroll_view/load_more_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/components/blocked_user_list_item.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/components/blocked_users_app_bar.dart';
@@ -21,6 +22,7 @@ class BlockedUsersModal extends HookConsumerWidget {
     return SheetContent(
       topPadding: 0,
       body: CustomScrollView(
+        shrinkWrap: (blockListState.value?.length ?? 0) < LoadMoreBuilder.shrinkWrapThreshold,
         slivers: [
           const BlockedUsersAppBar(),
           const BlockedUsersSearchBar(),

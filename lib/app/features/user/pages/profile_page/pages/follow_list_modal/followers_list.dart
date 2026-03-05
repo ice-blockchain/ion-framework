@@ -46,7 +46,7 @@ class FollowersList extends HookConsumerWidget {
       FollowAppBar(title: FollowType.followers.getTitleWithCounter(context, followersCount ?? 0)),
       FollowSearchBar(onTextChanged: (query) => searchQuery.value = query),
       if (masterPubkeys == null || !isReady)
-        const FollowListLoading()
+        FollowListLoading(itemsCount: followersCount)
       else if (masterPubkeys.isEmpty)
         const NothingIsFound()
       else
@@ -67,6 +67,7 @@ class FollowersList extends HookConsumerWidget {
       child: LoadMoreBuilder(
         slivers: slivers,
         hasMore: hasMore,
+        shrinkWrap: (masterPubkeys?.length ?? 1) < LoadMoreBuilder.shrinkWrapThreshold,
         onLoadMore: () => ref
             .read(
               followersProvider(

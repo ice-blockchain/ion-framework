@@ -47,6 +47,7 @@ class FollowingList extends HookConsumerWidget {
         hasMore: searchQuery.value.isNotEmpty
             ? searchPagedData?.hasMore ?? false
             : followingData?.hasMore ?? false,
+        shrinkWrap: (searchMasterPubkeys?.length ?? 0) < LoadMoreBuilder.shrinkWrapThreshold,
         onLoadMore: () async {
           if (searchQuery.value.isNotEmpty) {
             await ref

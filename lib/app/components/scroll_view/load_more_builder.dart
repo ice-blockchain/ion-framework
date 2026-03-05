@@ -16,9 +16,11 @@ class LoadMoreBuilder extends HookWidget {
     this.loadMoreOffset,
     this.showIndicator = true,
     this.disallowMaxScrollExtentZero = true,
+    bool shrinkWrap = false,
     super.key,
   }) : builder = builder ??
-            ((BuildContext context, List<Widget> slivers) => CustomScrollView(slivers: slivers));
+            ((BuildContext context, List<Widget> slivers) =>
+                CustomScrollView(slivers: slivers, shrinkWrap: shrinkWrap));
 
   final Widget Function(BuildContext context, List<Widget> slivers) builder;
 
@@ -35,6 +37,10 @@ class LoadMoreBuilder extends HookWidget {
   final bool showIndicator;
 
   final bool disallowMaxScrollExtentZero;
+
+  // shrinkWrap affects performance for long lists (renders all items at once),
+  // so we disable it when list is large enough to always exceed screen height
+  static const shrinkWrapThreshold = 20;
 
   @override
   Widget build(BuildContext context) {
