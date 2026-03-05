@@ -10,6 +10,8 @@ part 'search_coins_notifier_provider.r.g.dart';
 
 @riverpod
 class SearchCoinsNotifier extends _$SearchCoinsNotifier {
+  String _lastQuery = '';
+
   @override
   Future<List<CoinsGroup>> build() async {
     final walletView = ref.read(currentWalletViewDataProvider);
@@ -20,6 +22,8 @@ class SearchCoinsNotifier extends _$SearchCoinsNotifier {
   }
 
   Future<void> search({required String query}) async {
+    _lastQuery = query;
+
     if (query.isEmpty) {
       final walletView = ref.read(currentWalletViewDataProvider);
       state = walletView.map(
@@ -33,6 +37,8 @@ class SearchCoinsNotifier extends _$SearchCoinsNotifier {
     }
 
     await ref.debounce();
+
+    if (_lastQuery != query) return;
 
     final searchService = ref.read(searchCoinsServiceProvider);
     final searchResult = await searchService.search(query).then((coinGroups) {
