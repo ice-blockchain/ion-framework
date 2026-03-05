@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/progress_bar/centered_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -57,7 +56,7 @@ class VideoPage extends HookConsumerWidget {
       return const VideoNotFound();
     }
 
-    final preserveSharedPlayback = postEventReference != null;
+    final isSharedController = postEventReference != null;
 
     final playerController = this.playerController ??
         ref
@@ -74,20 +73,8 @@ class VideoPage extends HookConsumerWidget {
             )
             .valueOrNull;
 
-    if (preserveSharedPlayback) {
-      useEffect(
-        () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            playerController?.play();
-          });
-          return null;
-        },
-        [playerController],
-      );
-    } else {
+    if (!isSharedController) {
       useAutoPlay(this.playerController == null ? playerController : null);
-    }
-    if (!preserveSharedPlayback) {
       useToggleVideoOnRouteChange(playerController);
     }
     useToggleVideoOnLifecycleChange(ref, playerController);
@@ -95,7 +82,7 @@ class VideoPage extends HookConsumerWidget {
     return _VisibilityPlayPause(
       playerController: playerController,
       visibilityKey: ValueKey(videoUrl),
-      pauseWhenInvisible: !preserveSharedPlayback,
+      pauseWhenInvisible: !isSharedController,
       child: Column(
         children: [
           Expanded(
@@ -265,11 +252,11 @@ class _VisibilityPlayPause extends StatelessWidget {
   void _onVisibilityChanges(VisibilityInfo info) {
     final controller = playerController;
     if (controller != null) {
-      if (pauseWhenInvisible && info.visibleFraction <= 0.5) {
-        if (controller.value.isInitialized && controller.value.isPlaying) {
+      if (info.visibleFraction <= 0.5) {
+        if (pauseWhenInvisible && controller.value.isInitialized && controller.value.isPlaying) {
           controller.pause();
         }
-      } else if (controller.value.isInitialized && controller.value.isPlaying == false) {
+      } else if (controller.value.isInitialized && !controller.value.isPlaying) {
         controller.play();
       }
     }
