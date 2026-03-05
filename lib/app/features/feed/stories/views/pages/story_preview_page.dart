@@ -198,7 +198,11 @@ class _StoryShareButton extends HookConsumerWidget {
 
               isPublishing.value = true;
               try {
-                if (!await _performStoryNsfwCheck(context, ref, path: path, mimeType: mimeType)) {
+                // We don't need to check NSFW for token shares
+                final isTokenShare =
+                    isPostScreenshot && (eventReference?.isCommunityTokenReference ?? false);
+                if (!isTokenShare &&
+                    !await _performStoryNsfwCheck(context, ref, path: path, mimeType: mimeType)) {
                   return;
                 }
 
