@@ -9,3 +9,9 @@ class SharedText extends SharedContent {
 
   final String text;
 }
+
+class SharedImage extends SharedContent {
+  const SharedImage(this.paths);
+
+  final List<String> paths;
+}

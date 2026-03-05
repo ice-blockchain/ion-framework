@@ -19,11 +19,12 @@ class UiEventQueueListener extends HookConsumerWidget {
       return;
     }
 
-    ref.read(uiEventQueueNotifierProvider.notifier).processQueue(
-      (event) async {
-        await event.performAction(navigatorContext);
-      },
-    ).then((_) {
+    ref
+        .read(uiEventQueueNotifierProvider.notifier)
+        .processQueue(
+          (event) => event.performAction(navigatorContext),
+        )
+        .then((_) {
       final state = ref.read(uiEventQueueNotifierProvider);
       if (state.isNotEmpty) {
         SchedulerBinding.instance.addPostFrameCallback((_) => _processQueue(ref));
