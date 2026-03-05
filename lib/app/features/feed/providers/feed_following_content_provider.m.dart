@@ -450,7 +450,13 @@ class FeedFollowingContent extends _$FeedFollowingContent implements PagedNotifi
       throw UnknownEventReferenceKind(eventReference);
     }
 
-    return ref.read(ionConnectEntityWithCountersProvider(eventReference: eventReference).future);
+    return ref.read(
+      ionConnectEntityWithCountersProvider(
+        eventReference: eventReference,
+        // Bypass cache for seen items to avoid stale Following data.
+        cache: false,
+      ).future,
+    );
   }
 
   /// Handles the requested entity:
