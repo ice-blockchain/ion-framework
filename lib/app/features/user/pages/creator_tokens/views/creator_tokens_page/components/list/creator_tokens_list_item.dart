@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/market_data_formatter.dart';
@@ -80,9 +81,14 @@ class CreatorTokensListItem extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    token.title,
-                    overflow: TextOverflow.ellipsis,
+                  InlineBadgeText(
+                    titleSpan: TextSpan(text: token.title),
+                    badges: token.creator.verified.falseOrValue
+                        ? [
+                            Assets.svg.iconBadgeVerify.icon(size: 16.0.s),
+                          ]
+                        : const <Widget>[],
+                    gap: 4.0.s,
                     style: context.theme.appTextThemes.subtitle3,
                     strutStyle: const StrutStyle(forceStrutHeight: true),
                   ),
