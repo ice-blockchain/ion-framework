@@ -10,6 +10,7 @@ part 'global_search_tokens_provider.r.g.dart';
 @riverpod
 class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
   static const int _limit = 10;
+  int _searchRequestId = 0;
 
   @override
   GlobalSearchTokensState build() => const GlobalSearchTokensState();
@@ -18,13 +19,16 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
     required String query,
     int? includeTopPlatformHolders,
   }) async {
-    if (query.isEmpty) {
+    final normalizedQuery = query.trim();
+    final requestId = ++_searchRequestId;
+
+    if (normalizedQuery.isEmpty) {
       state = const GlobalSearchTokensState();
       return;
     }
 
     state = state.copyWith(
-      searchQuery: query,
+      searchQuery: normalizedQuery,
       searchItems: const <CommunityToken>[],
       searchOffset: 0,
       searchHasMore: true,
@@ -36,10 +40,12 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
       final page = await client.communityTokens.getGlobalSearchTokens(
         externalAddresses: const [],
-        keyword: query,
+        keyword: normalizedQuery,
         includeTopPlatformHolders: includeTopPlatformHolders,
         limit: _limit,
       );
+
+      if (requestId != _searchRequestId) return;
 
       state = state.copyWith(
         searchItems: page.items,
@@ -49,6 +55,8 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
         searchIsInitialLoading: false,
       );
     } catch (_) {
+      if (requestId != _searchRequestId) return;
+
       state = state.copyWith(
         searchIsLoading: false,
         searchIsInitialLoading: false,
@@ -60,9 +68,12 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
   Future<void> loadMore({
     int? includeTopPlatformHolders,
   }) async {
-    if (!state.searchHasMore || state.searchIsLoading || (state.searchQuery?.isEmpty ?? true)) {
+    final currentQuery = state.searchQuery;
+    if (!state.searchHasMore || state.searchIsLoading || (currentQuery?.isEmpty ?? true)) {
       return;
     }
+
+    final requestId = _searchRequestId;
 
     state = state.copyWith(searchIsLoading: true);
 
@@ -70,11 +81,13 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
       final page = await client.communityTokens.getGlobalSearchTokens(
         externalAddresses: const [],
-        keyword: state.searchQuery,
+        keyword: currentQuery,
         includeTopPlatformHolders: includeTopPlatformHolders,
         limit: _limit,
         offset: state.searchOffset,
       );
+
+      if (requestId != _searchRequestId || state.searchQuery != currentQuery) return;
 
       state = state.copyWith(
         searchItems: [...state.searchItems, ...page.items],
@@ -83,6 +96,8 @@ class GlobalSearchTokensNotifier extends _$GlobalSearchTokensNotifier {
         searchIsLoading: false,
       );
     } catch (_) {
+      if (requestId != _searchRequestId || state.searchQuery != currentQuery) return;
+
       state = state.copyWith(searchIsLoading: false);
       rethrow;
     }
