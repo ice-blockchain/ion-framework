@@ -5,6 +5,7 @@ import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
 import 'package:ion_swap_client/models/chain_data.m.dart';
+import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
 import 'package:ion_swap_client/models/okx_fee_address.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
@@ -47,6 +48,7 @@ class DexService {
     required SwapQuoteInfo swapQuoteInfo,
     required Wallet wallet,
     required UserActionSignerNew userActionSigner,
+    required IonSwapRequest ionSwapRequest,
   }) async {
     if (swapQuoteInfo.source == SwapQuoteInfoSource.okx) {
       final okxQuote = swapQuoteInfo.okxQuote;
@@ -57,30 +59,55 @@ class DexService {
       final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoin.contractAddress);
       final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoin.contractAddress);
       final amount = toBlockchainUnits(swapCoinData.amount, int.parse(okxQuote.fromToken.decimal));
+      final bigIntAmount = BigInt.parse(amount);
+      final isNativeToken = sellTokenAddress == _nativeTokenAddress;
 
-      if (isNeedToApproveToken(okxQuote.chainIndex)) {
+      if (isNeedToApproveToken(okxQuote.chainIndex) && !isNativeToken) {
+        final address = ionSwapRequest.wallet.address;
+        if (address == null) {
+          throw const IonSwapException('Wallet address is required for ion swap');
+        }
         final approveTransactionResponse = await _swapOkxRepository.approveTransaction(
           chainIndex: okxQuote.chainIndex,
           tokenContractAddress: sellTokenAddress,
           amount: amount,
         );
         final approveTransactionData = _processOkxResponse(approveTransactionResponse);
-        final data = approveTransactionData.firstOrNull?.data;
+        final approveTx = approveTransactionData.firstOrNull;
 
-        if (data == null) {
+        if (approveTx == null) {
           throw const IonSwapException('OKX: No approve transaction data returned');
         }
 
-        final txObject = await _evmTxBuilder.encodeApproveTransaction(
+        final allowance = await _evmTxBuilder.allowance(
           token: sellTokenAddress,
-          data: data,
+          owner: address,
+          spender: approveTx.dexContractAddress,
         );
 
-        await _ionIdentityTransactionApi.signAndBroadcast(
-          walletId: wallet.id,
-          transaction: txObject,
-          userActionSigner: userActionSigner,
-        );
+        if (allowance < bigIntAmount) {
+          final txHash = await _ionIdentityTransactionApi.signAndBroadcast(
+            walletId: wallet.id,
+            userActionSigner: userActionSigner,
+            transaction: _evmTxBuilder.wrapTransactionBytes(
+              bytes: HexHelper.hexToBytes(approveTx.data),
+              to: sellTokenAddress,
+              value: BigInt.zero,
+            ),
+          );
+
+          await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
+
+          final allowance2 = await _evmTxBuilder.allowance(
+            token: sellTokenAddress,
+            owner: address,
+            spender: approveTx.dexContractAddress,
+          );
+
+          if (allowance2 < bigIntAmount) {
+            throw IonSwapException('Failed to approve token allowance, tx hash: $txHash');
+          }
+        }
       }
 
       final userSellAddress = swapCoinData.userSellAddress;
