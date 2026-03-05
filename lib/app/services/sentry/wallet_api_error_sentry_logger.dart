@@ -11,6 +11,7 @@ Future<void> logWalletApiErrorToSentry(
   required String tag,
   required String operation,
   required String endpoint,
+  String? userAgent,
   StackTrace? stackTrace,
   Map<String, String>? tags,
   Map<String, dynamic>? debugContext,
@@ -28,6 +29,7 @@ Future<void> logWalletApiErrorToSentry(
       'endpoint': endpoint,
       'exceptionType': error.runtimeType.toString(),
       'cause': cause,
+      if (userAgent != null) 'userAgent': userAgent,
       ..._extractNetworkContext(error),
       if (debugContext != null) ...debugContext,
     };
@@ -50,6 +52,7 @@ Future<Object?> logWalletApiErrorStateTransitionToSentry<T>(
   required String tag,
   required String operation,
   required String endpoint,
+  String? userAgent,
   Set<Type> excludedErrorTypes = const {},
   bool Function(Object error)? shouldLog,
   Map<String, String>? tags,
@@ -73,6 +76,7 @@ Future<Object?> logWalletApiErrorStateTransitionToSentry<T>(
     tag: tag,
     operation: operation,
     endpoint: endpoint,
+    userAgent: userAgent,
     tags: tags,
     debugContext: debugContext,
   );

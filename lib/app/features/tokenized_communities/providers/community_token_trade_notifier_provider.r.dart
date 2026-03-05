@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/bsc_network_provider.r.dart';
@@ -426,6 +427,10 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     AsyncValue<String?>? previous,
     AsyncValue<String?> next,
   ) async {
+    String? userAgent;
+    try {
+      userAgent = (await ref.read(currentUserAgentProvider.future)).toString();
+    } catch (_) {}
     final tradeState = ref.read(tradeCommunityTokenControllerProvider(params));
 
     final error = await logWalletApiErrorStateTransitionToSentry(
@@ -434,6 +439,7 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       tag: 'community_token_trade_failure',
       operation: 'signAndBroadcast',
       endpoint: '/wallets/{walletId}/transactions',
+      userAgent: userAgent,
       excludedErrorTypes: {
         PasskeyCancelledException,
         StateError,

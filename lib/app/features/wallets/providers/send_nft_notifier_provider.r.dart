@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/wallets/data/repository/transactions_repository.m.dart';
 import 'package:ion/app/features/wallets/domain/coins/coins_service.r.dart';
 import 'package:ion/app/features/wallets/domain/nfts/send_nft_use_case.r.dart';
@@ -108,12 +109,18 @@ class SendNftNotifier extends _$SendNftNotifier {
     AsyncValue<TransactionDetails?>? previous,
     AsyncValue<TransactionDetails?> next,
   ) async {
+    String? userAgent;
+    try {
+      userAgent = (await ref.read(currentUserAgentProvider.future)).toString();
+    } catch (_) {}
+
     final error = await logWalletApiErrorStateTransitionToSentry(
       previous,
       next,
       tag: 'send_nft_failure',
       operation: 'makeTransfer',
       endpoint: '/wallets/{walletId}/transfers',
+      userAgent: userAgent,
       excludedErrorTypes: {
         PasskeyCancelledException,
       },
