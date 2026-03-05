@@ -42,6 +42,7 @@ class SelectNetworkListSheet extends StatelessWidget {
             child: ScreenSideOffset.small(
               child: networks.maybeWhen(
                 data: (networks) => ListView.separated(
+                  restorationId: 'wallet_select_network_list_sheet_scroll',
                   itemCount: networks.length,
                   itemBuilder: (context, index) {
                     final network = networks[index];

@@ -20,6 +20,7 @@ class NicknameReservedModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      restorationId: 'user_nickname_reserved_modal_scroll',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -88,6 +88,7 @@ class CreateGroupModal extends HookConsumerWidget {
                         SizedBox(width: 16.0.s),
                         Expanded(
                           child: GeneralUserDataInput(
+                            restorationId: 'create_group_name_input',
                             controller: nameController,
                             prefixIconAssetName: Assets.svg.iconFieldName,
                             labelText: context.i18n.group_create_name_label,
@@ -144,6 +145,7 @@ class CreateGroupModal extends HookConsumerWidget {
                     SizedBox(height: 20.0.s),
                     Expanded(
                       child: ListView.separated(
+                        restorationId: 'create_group_participants_scroll',
                         itemCount: participantsMasterPubkeys.length,
                         separatorBuilder: (_, __) => SizedBox(height: 12.0.s),
                         itemBuilder: (_, int i) {

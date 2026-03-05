@@ -58,6 +58,7 @@ class ChatMediaPageView extends HookConsumerWidget {
 
     return Align(
       child: PageView.builder(
+        restorationId: 'chat_media_page_scroll',
         controller: pageController,
         physics: isZoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
         itemCount: medias.length,

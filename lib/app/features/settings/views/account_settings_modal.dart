@@ -60,6 +60,7 @@ class AccountSettingsModal extends HookConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'settings_account_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -29,6 +29,7 @@ class CreateNewWalletModal extends HookConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'wallet_create_new_wallet_modal_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -40,6 +41,7 @@ class CreateNewWalletModal extends HookConsumerWidget {
               child: Padding(
                 padding: EdgeInsetsDirectional.only(top: 21.0.s, bottom: 24.0.s),
                 child: TextInput(
+                  restorationId: 'create_wallet_name_input',
                   controller: controller,
                   onChanged: (String newValue) => walletName.value = newValue,
                   labelText: context.i18n.wallet_name,

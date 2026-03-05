@@ -21,9 +21,14 @@ import 'package:ion/app/utils/formatters.dart';
 import 'package:ion/app/utils/validators.dart';
 
 class PhoneInputStep extends HookConsumerWidget {
-  const PhoneInputStep({required this.onNext, super.key});
+  const PhoneInputStep({
+    required this.onNext,
+    this.restorationId = 'phone_setup_input',
+    super.key,
+  });
 
   final void Function(String phone) onNext;
+  final String restorationId;
 
   static const int minPhoneLength = 5;
   static const int maxPhoneLength = 15;
@@ -66,6 +71,7 @@ class PhoneInputStep extends HookConsumerWidget {
                 Padding(
                   padding: EdgeInsetsDirectional.only(bottom: 20.0.s),
                   child: TextInput(
+                    restorationId: restorationId,
                     alwaysShowPrefixIcon: true,
                     prefix: Text('${country.iddCode} '),
                     prefixIcon: CountryCodeInput(

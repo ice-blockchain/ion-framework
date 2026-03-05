@@ -28,6 +28,7 @@ class CreatorTokensSearchBar extends StatelessWidget {
           padding: EdgeInsetsDirectional.only(top: 12.s, bottom: 8.s),
           child: ScreenSideOffset.small(
             child: SearchInput(
+              restorationId: 'creator_tokens_tabs_search_input',
               controller: controller,
               loading: loading,
               onTextChanged: onTextChanged,

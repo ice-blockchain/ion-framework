@@ -34,6 +34,7 @@ class ChatMainModalPage extends ConsumerWidget {
             showBackButton: false,
           ),
           ListView.separated(
+            restorationId: 'chat_main_modal_scroll',
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             separatorBuilder: (_, __) => const HorizontalSeparator(),

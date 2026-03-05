@@ -377,6 +377,7 @@ class _NetworksList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
+      restorationId: 'wallet_network_list_scroll',
       shrinkWrap: true,
       itemCount: itemCount,
       separatorBuilder: (_, __) => SizedBox(height: 12.0.s),

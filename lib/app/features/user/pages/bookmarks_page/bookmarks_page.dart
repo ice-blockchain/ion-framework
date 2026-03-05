@@ -39,6 +39,7 @@ class BookmarksPage extends HookConsumerWidget {
         onSearchQueryUpdated: (value) => rawQuery.value = value.trim(),
       ),
       body: CustomScrollView(
+        restorationId: 'user_bookmarks_page_scroll',
         slivers: [
           SliverToBoxAdapter(
             child: BookmarksFilters(

@@ -18,6 +18,7 @@ class BlockedUsersSearchBar extends StatelessWidget {
             SizedBox(height: 16.0.s),
             ScreenSideOffset.small(
               child: SearchInput(
+                restorationId: 'blocked_users_search_input',
                 onTextChanged: (String value) {},
               ),
             ),

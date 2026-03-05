@@ -57,6 +57,7 @@ class EmailSetupInputPage extends HookConsumerWidget {
                 Padding(
                   padding: EdgeInsetsDirectional.only(bottom: 20.0.s),
                   child: TextInput(
+                    restorationId: 'email_setup_input',
                     prefixIcon: TextInputIcons(
                       hasRightDivider: true,
                       icons: [TwoFaType.email.iconAsset.icon()],

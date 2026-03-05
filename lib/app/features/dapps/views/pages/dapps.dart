@@ -31,6 +31,7 @@ class DAppsPage extends HookConsumerWidget {
         child: const SafeArea(child: DAppsHeader()),
       ),
       body: CustomScrollView(
+        restorationId: 'dapps_page_scroll',
         controller: scrollController,
         slivers: [
           SliverToBoxAdapter(

@@ -181,12 +181,14 @@ class FillProfile extends HookConsumerWidget {
                         ),
                         SizedBox(height: 28.0.s),
                         NameInput(
+                          restorationId: 'fill_profile_name_input',
                           isLive: true,
                           initialValue: initialName,
                           onChanged: (newValue) => name.value = newValue,
                         ),
                         SizedBox(height: 16.0.s),
                         NicknameInput(
+                          restorationId: 'fill_profile_nickname_input',
                           isLive: true,
                           initialValue: initialNickname,
                           textInputAction: TextInputAction.done,
@@ -198,6 +200,7 @@ class FillProfile extends HookConsumerWidget {
                         ),
                         SizedBox(height: 16.0.s),
                         ReferralInput(
+                          restorationId: 'fill_profile_referral_input',
                           isLive: true,
                           controller: referralController,
                           textInputAction: TextInputAction.done,

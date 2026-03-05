@@ -15,6 +15,7 @@ class PasswordInput extends HookWidget {
   const PasswordInput({
     required this.controller,
     required this.passwordInputMode,
+    this.restorationId,
     this.onFocused,
     this.onValueChanged,
     this.isConfirmation = false,
@@ -28,12 +29,14 @@ class PasswordInput extends HookWidget {
   final ValueChanged<String>? onValueChanged;
   final bool isConfirmation;
   final String? errorText;
+  final String? restorationId;
 
   @override
   Widget build(BuildContext context) {
     final isPasswordVisible = useState(false);
 
     return TextInput(
+      restorationId: restorationId,
       prefixIcon: TextInputIcons(
         hasRightDivider: true,
         icons: [Assets.svg.iconPass.icon()],

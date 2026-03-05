@@ -40,6 +40,7 @@ class ArticleCategoriesMenu extends HookConsumerWidget {
     return Column(
       children: [
         SingleChildScrollView(
+          restorationId: 'article_categories_menu_scroll',
           scrollDirection: Axis.horizontal,
           child: Padding(
             padding: EdgeInsetsDirectional.only(bottom: 12.0.s),

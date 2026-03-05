@@ -73,6 +73,7 @@ class PollMessage extends HookWidget {
           ),
           SizedBox(height: 10.0.s),
           ListView.separated(
+            restorationId: 'poll_message_options_scroll',
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {

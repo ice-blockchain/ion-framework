@@ -33,6 +33,7 @@ class PushNotificationsSettings extends ConsumerWidget {
 
     return SheetContent(
       body: CustomScrollView(
+        restorationId: 'settings_push_notifications_scroll',
         slivers: [
           SliverPersistentHeader(
             pinned: true,

@@ -20,6 +20,7 @@ class RecentChatsArchiveTimelinePage extends ConsumerWidget {
     }
 
     return CustomScrollView(
+      restorationId: 'recent_chats_archive_scroll',
       slivers: [
         SliverAppBar(
           automaticallyImplyLeading: false,
@@ -29,7 +30,9 @@ class RecentChatsArchiveTimelinePage extends ConsumerWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () => ChatQuickSearchRoute().push<void>(context),
               child: const IgnorePointer(
-                child: SearchInput(),
+                child: SearchInput(
+                  restorationId: 'recent_chats_archive_search_input',
+                ),
               ),
             ),
           ),

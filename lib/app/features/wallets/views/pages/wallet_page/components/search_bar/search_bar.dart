@@ -32,6 +32,7 @@ class WalletSearchBar extends ConsumerWidget {
     return Padding(
       padding: padding,
       child: SearchInput(
+        restorationId: 'wallet_search_input',
         onTextChanged: (String newValue) {
           ref.read(searchQueryProvider.notifier).query = newValue;
         },

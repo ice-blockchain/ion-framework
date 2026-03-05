@@ -27,6 +27,7 @@ class TokenCard extends HookConsumerWidget {
   const TokenCard({
     required this.type,
     required this.onTap,
+    this.restorationId,
     this.onValidationError,
     this.coinsGroup,
     this.network,
@@ -68,6 +69,7 @@ class TokenCard extends HookConsumerWidget {
   final String? formattedAmount;
   final bool skipFocusValidationWhenFormatting;
   final double? usdPrice;
+  final String? restorationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -165,6 +167,7 @@ class TokenCard extends HookConsumerWidget {
             height: 16.0.s,
           ),
           _TokenCardContent(
+            restorationId: restorationId,
             onTap: onTap,
             coinsGroup: coinsGroup,
             network: network,
@@ -316,8 +319,10 @@ class _TokenCardContent extends StatelessWidget {
     required this.isCoinNameLoading,
     this.customIconWidget,
     this.isReadOnly,
+    this.restorationId,
   });
 
+  final String? restorationId;
   final VoidCallback onTap;
   final CoinsGroup? coinsGroup;
   final NetworkData? network;
@@ -482,6 +487,7 @@ class _TokenCardContent extends StatelessWidget {
             child: SizedBox(
               width: 150.0.s,
               child: TextFormField(
+                restorationId: restorationId,
                 controller: controller,
                 focusNode: focusNode,
                 readOnly: isReadOnly ?? coinsGroup == null,

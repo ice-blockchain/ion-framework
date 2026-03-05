@@ -138,6 +138,7 @@ class _TransactionDetailsContent extends StatelessWidget {
             transaction.status != TransactionStatus.failed);
 
     return CustomScrollView(
+      restorationId: 'wallet_transaction_details_scroll',
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [

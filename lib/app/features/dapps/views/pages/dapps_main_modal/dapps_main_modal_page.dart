@@ -13,6 +13,7 @@ class DappsMainModalPage extends StatelessWidget {
     return SheetContent(
       body: ScreenSideOffset.small(
         child: SingleChildScrollView(
+          restorationId: 'dapps_main_modal_scroll',
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

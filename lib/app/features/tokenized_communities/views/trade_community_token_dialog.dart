@@ -606,6 +606,7 @@ class _TokenCards extends HookConsumerWidget {
               ? [
                   // Buy mode: payment token on top, community token on bottom
                   TokenCard(
+                    restorationId: 'trade_payment_token_amount_input',
                     type: CoinSwapType.sell,
                     controller: amountController,
                     coinsGroup: state.paymentCoinsGroup,
@@ -619,6 +620,7 @@ class _TokenCards extends HookConsumerWidget {
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(
+                    restorationId: 'trade_community_token_amount_input',
                     type: CoinSwapType.buy,
                     coinsGroup: state.communityTokenCoinsGroup,
                     controller: quoteController,
@@ -643,6 +645,7 @@ class _TokenCards extends HookConsumerWidget {
                 ]
               : [
                   TokenCard(
+                    restorationId: 'trade_community_sell_amount_input',
                     type: CoinSwapType.sell,
                     controller: amountController,
                     coinsGroup: state.communityTokenCoinsGroup,
@@ -667,6 +670,7 @@ class _TokenCards extends HookConsumerWidget {
                   ),
                   SizedBox(height: 10.0.s),
                   TokenCard(
+                    restorationId: 'trade_payment_quote_input',
                     type: CoinSwapType.buy,
                     controller: quoteController,
                     coinsGroup: state.paymentCoinsGroup,

@@ -38,6 +38,7 @@ class TransactionListHeader extends HookConsumerWidget {
           TransactionListConstants.headerPaddingBottom +
           TransactionListConstants.headerPaddingTop,
       child: ListView.separated(
+        restorationId: 'wallet_transaction_list_header_scroll',
         padding: EdgeInsetsDirectional.only(
           start: ScreenSideOffset.defaultSmallMargin,
           end: ScreenSideOffset.defaultSmallMargin,

@@ -12,17 +12,20 @@ class DisabledTextInput extends ConsumerWidget {
   const DisabledTextInput({
     required this.controller,
     required this.labelText,
+    this.restorationId,
     super.key,
   });
 
   final TextEditingController controller;
   final String labelText;
+  final String? restorationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(tokenDataNotifierProvider.select((state) => state.isLoading));
 
     return TextInput(
+      restorationId: restorationId,
       labelText: labelText,
       controller: controller,
       suffixIcon: isLoading

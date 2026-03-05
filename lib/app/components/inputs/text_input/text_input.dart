@@ -12,6 +12,7 @@ import 'package:ion/app/hooks/use_on_init.dart';
 class TextInput extends HookWidget {
   TextInput({
     super.key,
+    this.restorationId,
     this.controller,
     this.validator,
     this.textInputAction,
@@ -89,6 +90,7 @@ class TextInput extends HookWidget {
 
   final TapRegionCallback? onTapOutside;
   final AutovalidateMode? autoValidateMode;
+  final String? restorationId;
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +124,7 @@ class TextInput extends HookWidget {
     }
 
     return TextFormField(
+      restorationId: restorationId,
       scrollPadding: scrollPadding.resolve(Directionality.of(context)),
       controller: controller,
       focusNode: focusNode,

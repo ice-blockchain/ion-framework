@@ -40,6 +40,7 @@ class AdminsManagementModal extends HookConsumerWidget {
     return SizedBox(
       height: height,
       child: CustomScrollView(
+        restorationId: 'admins_management_scroll',
         slivers: [
           SliverAppBar(
             primary: false,

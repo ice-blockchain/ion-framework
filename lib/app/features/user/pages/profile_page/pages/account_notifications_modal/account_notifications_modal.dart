@@ -36,6 +36,7 @@ class AccountNotificationsModal extends ConsumerWidget {
           title: Text(context.i18n.profile_notifications_popup_title),
         ),
         ListView.builder(
+          restorationId: 'user_account_notifications_scroll',
           itemBuilder: (BuildContext context, int index) {
             final option = UserNotificationsType.values[index];
             final isSelected = selectedOptions.contains(option);

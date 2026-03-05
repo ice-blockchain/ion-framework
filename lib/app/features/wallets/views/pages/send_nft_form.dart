@@ -51,6 +51,7 @@ class SendNftForm extends HookConsumerWidget {
       backgroundColor: colors.secondaryBackground,
       body: KeyboardDismissOnTap(
         child: SingleChildScrollView(
+          restorationId: 'wallet_send_nft_form_scroll',
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

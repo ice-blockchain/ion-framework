@@ -208,9 +208,29 @@ class AppRoutes {
   static const mainModalPath = 'main-modal';
 }
 
+class FeedBranchData extends StatefulShellBranchData {
+  const FeedBranchData();
+  static const String $restorationScopeId = 'feedBranch';
+}
+
+class ChatBranchData extends StatefulShellBranchData {
+  const ChatBranchData();
+  static const String $restorationScopeId = 'chatBranch';
+}
+
+class WalletBranchData extends StatefulShellBranchData {
+  const WalletBranchData();
+  static const String $restorationScopeId = 'walletBranch';
+}
+
+class ProfileBranchData extends StatefulShellBranchData {
+  const ProfileBranchData();
+  static const String $restorationScopeId = 'profileBranch';
+}
+
 @TypedStatefulShellRoute<AppShellRouteData>(
   branches: [
-    TypedStatefulShellBranch(
+    TypedStatefulShellBranch<FeedBranchData>(
       routes: [
         TypedGoRoute<FeedRoute>(
           path: '/feed',
@@ -221,7 +241,7 @@ class AppRoutes {
         ),
       ],
     ),
-    TypedStatefulShellBranch(
+    TypedStatefulShellBranch<ChatBranchData>(
       routes: [
         TypedGoRoute<ChatRoute>(
           path: '/chat',
@@ -232,7 +252,7 @@ class AppRoutes {
         ),
       ],
     ),
-    TypedStatefulShellBranch(
+    TypedStatefulShellBranch<WalletBranchData>(
       routes: [
         TypedGoRoute<WalletRoute>(
           path: '/wallet',
@@ -243,7 +263,7 @@ class AppRoutes {
         ),
       ],
     ),
-    TypedStatefulShellBranch(
+    TypedStatefulShellBranch<ProfileBranchData>(
       routes: [
         TypedGoRoute<SelfProfileRoute>(
           path: '/profile',
@@ -260,17 +280,21 @@ class AppShellRouteData extends StatefulShellRouteData {
   const AppShellRouteData();
 
   static final $navigatorKey = bottomBarNavigatorKey;
+  static const String $restorationScopeId = 'appShell';
 
   @override
-  Widget builder(
+  Page<void> pageBuilder(
     BuildContext context,
     GoRouterState state,
     StatefulNavigationShell navigationShell,
   ) {
-    return MainTabNavigation(
-      key: state.pageKey,
-      shell: navigationShell,
-      state: state,
+    return MaterialPage(
+      restorationId: 'appShellPage',
+      child: MainTabNavigation(
+        key: state.pageKey,
+        shell: navigationShell,
+        state: state,
+      ),
     );
   }
 }
@@ -279,6 +303,7 @@ class ModalShellRouteData extends ShellRouteData {
   const ModalShellRouteData();
 
   static final $parentNavigatorKey = rootNavigatorKey;
+  static const String $restorationScopeId = 'modalShell';
 
   @override
   Page<void> pageBuilder(
@@ -291,6 +316,7 @@ class ModalShellRouteData extends ShellRouteData {
 
     return ModalSheetPage(
       key: state.pageKey,
+      restorationId: state.pageKey.value,
       child: ModalWrapper(child: navigator),
       barrierColor: context.theme.appColors.backgroundSheet,
       barrierDismissible: isBarrierDismissible,

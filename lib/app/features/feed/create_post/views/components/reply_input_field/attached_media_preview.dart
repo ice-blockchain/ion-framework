@@ -35,6 +35,7 @@ class AttachedMediaPreview extends StatelessWidget {
     return SizedBox(
       height: 50.0.s,
       child: ListView.separated(
+        restorationId: 'attached_media_preview_scroll',
         padding: EdgeInsetsDirectional.only(end: 12.0.s),
         scrollDirection: Axis.horizontal,
         itemCount: totalItems,

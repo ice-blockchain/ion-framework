@@ -47,6 +47,7 @@ class SelectedTopics extends HookConsumerWidget {
         SizedBox(
           height: 34.s,
           child: ListView.separated(
+            restorationId: 'selected_topics_scroll',
             scrollDirection: Axis.horizontal,
             itemCount: selected.length,
             padding: EdgeInsetsDirectional.symmetric(

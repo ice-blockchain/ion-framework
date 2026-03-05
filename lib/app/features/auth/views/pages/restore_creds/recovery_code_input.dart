@@ -15,6 +15,7 @@ class RecoveryCodeInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextInput(
+      restorationId: 'recovery_code_input',
       prefixIcon: TextInputIcons(
         hasRightDivider: true,
         icons: [Assets.svg.iconCode4.icon()],

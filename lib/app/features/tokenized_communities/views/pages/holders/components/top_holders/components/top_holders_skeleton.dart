@@ -16,6 +16,7 @@ class TopHoldersSkeleton extends StatelessWidget {
 
     return Skeleton(
       child: ListView.separated(
+        restorationId: 'tokenized_community_top_holders_skeleton_scroll',
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         physics: const NeverScrollableScrollPhysics(),

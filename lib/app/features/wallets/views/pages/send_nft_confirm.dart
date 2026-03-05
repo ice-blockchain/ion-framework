@@ -60,6 +60,7 @@ class SendNftConfirmPage extends ConsumerWidget {
           ),
           ScreenSideOffset.small(
             child: SingleChildScrollView(
+              restorationId: 'wallet_send_nft_confirm_scroll',
               padding: EdgeInsetsDirectional.only(top: 10.0.s),
               child: Column(
                 children: [

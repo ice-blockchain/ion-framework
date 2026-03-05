@@ -27,6 +27,7 @@ class ManageWalletsModal extends ConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'wallet_manage_wallets_modal_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

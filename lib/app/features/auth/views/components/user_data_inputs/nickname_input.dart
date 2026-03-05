@@ -24,6 +24,7 @@ String? validateNickname(String? value, BuildContext context) {
 
 class NicknameInput extends StatelessWidget {
   const NicknameInput({
+    this.restorationId,
     super.key,
     this.textInputAction,
     this.onChanged,
@@ -42,9 +43,12 @@ class NicknameInput extends StatelessWidget {
 
   final bool isLive;
 
+  final String? restorationId;
+
   @override
   Widget build(BuildContext context) {
     return GeneralUserDataInput(
+      restorationId: restorationId,
       onChanged: onChanged,
       prefixIconAssetName: Assets.svg.iconFieldNickname,
       inputFormatters: [

@@ -14,6 +14,7 @@ class WebsiteInput extends StatelessWidget {
     this.controller,
     this.onChanged,
     this.initialValue,
+    this.restorationId,
   });
 
   final TextEditingController? controller;
@@ -22,9 +23,12 @@ class WebsiteInput extends StatelessWidget {
 
   final String? initialValue;
 
+  final String? restorationId;
+
   @override
   Widget build(BuildContext context) {
     return GeneralUserDataInput(
+      restorationId: restorationId,
       controller: controller,
       onChanged: onChanged,
       prefix: Text(

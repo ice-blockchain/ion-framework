@@ -17,6 +17,7 @@ class DAppsSearchResults extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: ListView.builder(
+        restorationId: 'search_dapps_results_scroll',
         padding: EdgeInsets.symmetric(
           vertical: 10.0.s,
         ),

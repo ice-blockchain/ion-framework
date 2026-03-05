@@ -24,6 +24,7 @@ class EmailEditNewEmailInputStep extends HookConsumerWidget {
       headerDescription: locale.two_fa_edit_email_new_email_description,
       contentPadding: 0,
       child: TwoFaEditNewValueInputStep(
+        restorationId: 'email_edit_new_email_input',
         onNext: onNext,
         inputFieldIcon: TwoFaType.email.iconAsset.icon(),
         inputFieldLabel: context.i18n.common_email_address,

@@ -19,6 +19,7 @@ class AdvancedSearchChannels extends HookConsumerWidget {
     useAutomaticKeepAlive();
 
     return SingleChildScrollView(
+      restorationId: 'search_channels_scroll',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

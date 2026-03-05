@@ -13,6 +13,7 @@ class SubscribedChannels extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      restorationId: 'search_subscribed_channels_scroll',
       itemCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),

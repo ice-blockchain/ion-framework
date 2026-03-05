@@ -45,6 +45,7 @@ class DAppsList extends HookConsumerWidget {
                   children: [
                     if (isSearchVisible)
                       SearchInput(
+                        restorationId: 'dapps_list_search_input',
                         onTextChanged: (String value) => searchText.value = value,
                       ),
                     Expanded(
@@ -58,6 +59,7 @@ class DAppsList extends HookConsumerWidget {
                                   title: context.i18n.search_nothing_found,
                                 )
                               : ListView.builder(
+                                  restorationId: 'dapps_list_scroll',
                                   padding: EdgeInsets.symmetric(
                                     vertical: 10.0.s,
                                   ),

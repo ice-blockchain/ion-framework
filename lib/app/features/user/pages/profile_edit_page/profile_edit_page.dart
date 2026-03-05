@@ -90,6 +90,7 @@ class ProfileEditPage extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: SingleChildScrollView(
+                    restorationId: 'user_profile_edit_scroll',
                     child: ScreenTopOffset(
                       child: ScreenSideOffset.large(
                         child: Form(
@@ -99,6 +100,7 @@ class ProfileEditPage extends HookConsumerWidget {
                               ProfileAvatar(pubkey: pubkey, showAvatarPicker: true),
                               SizedBox(height: paddingValue),
                               NameInput(
+                                restorationId: 'profile_name_input',
                                 initialValue: userMetadata.data.trimmedDisplayName,
                                 isLive: true,
                                 onChanged: (text) =>
@@ -106,6 +108,7 @@ class ProfileEditPage extends HookConsumerWidget {
                               ),
                               SizedBox(height: paddingValue),
                               NicknameInput(
+                                restorationId: 'profile_nickname_input',
                                 initialValue: userMetadata.data.name,
                                 isLive: true,
                                 errorText: updateUserMetadataError.value ??
@@ -149,6 +152,7 @@ class ProfileEditPage extends HookConsumerWidget {
                               ),
                               SizedBox(height: paddingValue),
                               LocationInput(
+                                restorationId: 'profile_location_input',
                                 initialValue: userMetadata.data.location,
                                 onChanged: (text) => update(
                                   draftRef.value.copyWith(location: text.isEmpty ? null : text),
@@ -156,6 +160,7 @@ class ProfileEditPage extends HookConsumerWidget {
                               ),
                               SizedBox(height: paddingValue),
                               WebsiteInput(
+                                restorationId: 'profile_website_input',
                                 initialValue: removeHttpsPrefix(userMetadata.data.website),
                                 onChanged: (text) => update(
                                   draftRef.value

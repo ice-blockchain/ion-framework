@@ -13,6 +13,7 @@ class ExploreGroups extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      restorationId: 'search_explore_groups_scroll',
       itemCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),

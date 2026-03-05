@@ -78,6 +78,7 @@ class CreatePostContent extends ConsumerWidget {
         }
       },
       child: SingleChildScrollView(
+        restorationId: 'create_post_content_scroll',
         controller: scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,6 +345,7 @@ class _HeaderControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      restorationId: 'create_post_header_controls_scroll',
       scrollDirection: Axis.horizontal,
       child: ScreenSideOffset.small(
         child: Padding(

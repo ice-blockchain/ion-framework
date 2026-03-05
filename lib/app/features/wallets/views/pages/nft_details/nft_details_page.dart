@@ -25,6 +25,7 @@ class NftDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'wallet_nft_details_page_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -35,6 +36,7 @@ class NftDetailsPage extends ConsumerWidget {
             ),
             ScreenSideOffset.small(
               child: SingleChildScrollView(
+                restorationId: 'wallet_nft_details_inner_scroll',
                 padding: EdgeInsetsDirectional.only(top: 10.0.s),
                 child: NftDetails(
                   nftIdentifier: NftIdentifier(contract: contract, tokenId: tokenId),

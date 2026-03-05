@@ -133,6 +133,7 @@ class WalletPage extends HookConsumerWidget {
             await ref.read(walletDataSyncCoordinatorProvider).syncWalletData();
           },
           builder: (context, slivers) => CustomScrollView(
+            restorationId: 'wallet_page_scroll',
             physics: const AlwaysScrollableScrollPhysics(),
             controller: scrollController,
             slivers: slivers,

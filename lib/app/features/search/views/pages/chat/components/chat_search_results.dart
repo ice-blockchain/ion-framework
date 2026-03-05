@@ -25,6 +25,7 @@ class ChatSearchResults extends ConsumerWidget {
     }
 
     return ListView.builder(
+      restorationId: 'search_chat_results_scroll',
       itemCount: searchResults.length,
       padding: EdgeInsets.symmetric(vertical: 8.0.s),
       itemBuilder: (context, index) {

@@ -99,6 +99,7 @@ class ToolbarLinkButton extends HookWidget {
               children: [
                 SizedBox(height: 10.s),
                 CupertinoTextField(
+                  restorationId: 'toolbar_link_input',
                   controller: linkController,
                   focusNode: linkFocusNode,
                   placeholder: dialogContext.i18n.toolbar_link_placeholder,

@@ -59,6 +59,7 @@ class CategoriesCollection extends StatelessWidget {
       child: SizedBox(
         height: itemHeight,
         child: ListView.separated(
+          restorationId: 'dapps_categories_scroll',
           scrollDirection: Axis.horizontal,
           separatorBuilder: (BuildContext context, int index) => SizedBox(width: 15.0.s),
           padding: EdgeInsets.symmetric(

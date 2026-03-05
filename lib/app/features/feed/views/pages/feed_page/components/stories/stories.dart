@@ -75,6 +75,7 @@ class Stories extends HookConsumerWidget {
               return SizedBox(
                 height: StoryItemContent.height,
                 child: CustomScrollView(
+                  restorationId: 'feed_stories_scroll',
                   scrollDirection: Axis.horizontal,
                   slivers: slivers,
                 ),

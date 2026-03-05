@@ -49,6 +49,7 @@ class SignUpEarlyAccessPage extends HookConsumerWidget {
                   children: [
                     SizedBox(height: 60.0.s),
                     EmailInput(
+                      restorationId: 'sign_up_email_input',
                       errorText: verifyEmailEarlyAccessErrorMessage.value,
                       initialValue: email,
                       onChanged: (newValue) {

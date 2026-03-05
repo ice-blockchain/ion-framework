@@ -46,11 +46,13 @@ class ManageNftsPage extends HookConsumerWidget {
           ),
           Expanded(
             child: CustomScrollView(
+              restorationId: 'wallet_manage_nfts_page_scroll',
               slivers: [
                 CollapsingAppBar(
                   height: SearchInput.height,
                   child: ScreenSideOffset.small(
                     child: SearchInput(
+                      restorationId: 'manage_nfts_search_input',
                       onTextChanged: viewModel.searchQueryCommand.execute,
                     ),
                   ),

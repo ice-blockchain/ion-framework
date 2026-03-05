@@ -27,6 +27,7 @@ class CountrySearchHeader extends StatelessWidget {
             SizedBox(height: 16.0.s),
             ScreenSideOffset.small(
               child: SearchInput(
+                restorationId: 'country_search_input',
                 loading: isLoading,
                 onTextChanged: onTextChanged,
                 onCancelSearch: onCancelSearch,

@@ -33,6 +33,7 @@ class SwitchAccountModal extends HookConsumerWidget {
     return SheetContent(
       body: ScreenSideOffset.small(
         child: SingleChildScrollView(
+          restorationId: 'user_switch_account_scroll',
           child: Column(
             mainAxisSize: MainAxisSize.min,
             spacing: 16.0.s,

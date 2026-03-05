@@ -201,6 +201,7 @@ class _SlippageControls extends HookConsumerWidget {
                       children: [
                         IntrinsicWidth(
                           child: TextFormField(
+                            restorationId: 'slippage_settings_input',
                             controller: textController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             textAlign: TextAlign.end,

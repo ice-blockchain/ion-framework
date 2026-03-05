@@ -27,19 +27,64 @@ import 'package:ion/app/router/utils/back_gesture_exclusion.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
-class CreatorTokensPage extends HookConsumerWidget {
+class CreatorTokensPage extends StatefulHookConsumerWidget {
   const CreatorTokensPage({
     super.key,
   });
 
-  static final _tabBarHeight = 54.0.s;
+  @override
+  ConsumerState<CreatorTokensPage> createState() => _CreatorTokensPageState();
+}
 
+class _CreatorTokensPageState extends ConsumerState<CreatorTokensPage>
+    with SingleTickerProviderStateMixin, RestorationMixin {
+  static final _tabBarHeight = 54.0.s;
   static final _expandedHeaderHeight = 369.s;
 
+  late final ScrollController _scrollController;
+  late final TabController _tabController;
+  final RestorableInt _tabIndex = RestorableInt(0);
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scrollController = useScrollController();
-    final tabController = useTabController(initialLength: CreatorTokensTabType.values.length);
+  String? get restorationId => 'creator_tokens_tab';
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _tabController = TabController(
+      length: CreatorTokensTabType.values.length,
+      vsync: this,
+    );
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _tabIndex.value = _tabController.index;
+    }
+  }
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_tabIndex, 'tab_index');
+    _tabController.index = _tabIndex.value;
+  }
+
+  @override
+  void dispose() {
+    _tabController
+      ..removeListener(_onTabChanged)
+      ..dispose();
+    _scrollController.dispose();
+    _tabIndex.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tabController = _tabController;
+    final scrollController = _scrollController;
     final globalSearchNotifier = ref.watch(globalSearchTokensNotifierProvider.notifier);
 
     final searchController = useTextEditingController();
@@ -58,7 +103,6 @@ class CreatorTokensPage extends HookConsumerWidget {
       [searchController],
     );
 
-    // Scroll to top when tab changes
     useEffect(
       () {
         void tabListener() {
@@ -139,7 +183,6 @@ class CreatorTokensPage extends HookConsumerWidget {
       const [],
     );
 
-    // Collapse header when search field is focused
     useOnInit(
       () {
         if (searchFocused.value) {
@@ -147,7 +190,6 @@ class CreatorTokensPage extends HookConsumerWidget {
             final currentOffset = scrollController.offset;
             final targetOffset = maxScroll;
 
-            // Only scroll if not already collapsed (or close to collapsed)
             if (currentOffset < targetOffset - 5) {
               scrollController.animateTo(
                 targetOffset,
@@ -190,7 +232,6 @@ class CreatorTokensPage extends HookConsumerWidget {
       [],
     );
 
-    // Get featured tokens
     final featuredTokensAsync = ref.watch(featuredTokensProvider);
     final featuredTokens = featuredTokensAsync.valueOrNull ?? <CommunityToken>[];
 
@@ -206,17 +247,14 @@ class CreatorTokensPage extends HookConsumerWidget {
       [debouncedQuery, isGlobalSearchVisible.value],
     );
 
-    // Create stable identifier for the list (to avoid unnecessary useEffect triggers)
     final tokensIdentifier = featuredTokens.map((t) => t.addresses.ionConnect).join(',');
 
     final initialToken = featuredTokens.isNotEmpty ? featuredTokens.first : null;
     final selectedToken = useState<CommunityToken?>(initialToken);
 
-    // Update selectedToken when featuredTokens list actually changes
     useOnInit(
       () {
         if (featuredTokens.isNotEmpty) {
-          // If no token is selected, or selected token is no longer in the list, select first
           if (selectedToken.value == null ||
               !featuredTokens.any(
                 (t) => t.addresses.ionConnect == selectedToken.value!.addresses.ionConnect,
@@ -224,14 +262,12 @@ class CreatorTokensPage extends HookConsumerWidget {
             selectedToken.value = featuredTokens.first;
           }
         } else {
-          // If list becomes empty, clear selection to avoid showing stale data
           selectedToken.value = null;
         }
       },
       [tokensIdentifier],
     );
 
-    // Get avatar URL from selected token's creator
     final avatarUrl = selectedToken.value?.creator.avatar ?? '';
     final avatarColors = useImageColors(avatarUrl);
 
@@ -258,6 +294,7 @@ class CreatorTokensPage extends HookConsumerWidget {
               alignment: Alignment.topCenter,
               children: [
                 NestedScrollView(
+                  restorationId: 'user_creator_tokens_scroll',
                   controller: scrollController,
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [

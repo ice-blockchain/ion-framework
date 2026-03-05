@@ -103,6 +103,7 @@ class ReplyList extends HookConsumerWidget {
           slivers: slivers,
           onRefresh: () => _onRefresh(ref),
           builder: (BuildContext context, List<Widget> slivers) => CustomScrollView(
+            restorationId: 'reply_list_scroll',
             physics: const AlwaysScrollableScrollPhysics(),
             controller: scrollController,
             slivers: slivers,

@@ -52,6 +52,7 @@ class DAppDetailsModal extends HookConsumerWidget {
           Flexible(
             child: ScreenSideOffset.small(
               child: SingleChildScrollView(
+                restorationId: 'dapp_details_modal_scroll',
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

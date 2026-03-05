@@ -49,6 +49,7 @@ class AdvancedSearchNavigation extends HookConsumerWidget {
           SizedBox(width: 12.0.s),
           Expanded(
             child: SearchInput(
+              restorationId: 'advanced_search_search_input',
               controller: searchController,
               onTap: onTapSearch,
             ),

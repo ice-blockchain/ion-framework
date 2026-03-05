@@ -54,6 +54,7 @@ class InviteFriendsPage extends HookConsumerWidget {
           alignment: Alignment.topCenter,
           children: [
             CustomScrollView(
+              restorationId: 'invite_friends_page_scroll',
               physics: const AlwaysScrollableScrollPhysics(),
               controller: scrollController,
               slivers: [

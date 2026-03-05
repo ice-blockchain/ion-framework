@@ -85,6 +85,7 @@ class ChannelForm extends HookConsumerWidget {
               spacing: 16.0.s,
               children: <Widget>[
                 GeneralUserDataInput(
+                  restorationId: 'channel_create_title_input',
                   controller: titleController,
                   prefixIconAssetName: Assets.svg.iconChannelTitle,
                   labelText: context.i18n.common_title,
@@ -94,6 +95,7 @@ class ChannelForm extends HookConsumerWidget {
                   },
                 ),
                 GeneralUserDataInput(
+                  restorationId: 'channel_create_desc_input',
                   controller: descController,
                   prefixIconAssetName: Assets.svg.iconChannelDescription,
                   labelText: context.i18n.common_desc,

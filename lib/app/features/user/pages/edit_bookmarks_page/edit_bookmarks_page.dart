@@ -23,6 +23,7 @@ class EditBookmarksPage extends HookConsumerWidget {
       appBar: const EditBookmarksHeader(),
       body: ScreenSideOffset.small(
         child: CustomScrollView(
+          restorationId: 'user_edit_bookmarks_scroll',
           slivers: bookmarksCollections.when(
             data: (data) {
               final collectionsDTags = data

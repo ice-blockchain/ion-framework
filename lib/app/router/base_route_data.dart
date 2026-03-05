@@ -52,9 +52,11 @@ abstract class BaseRouteData extends GoRouteData {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
+    final restorationId = state.pageKey.value;
     return switch (type) {
       IceRouteType.single => custom_route.CupertinoPage<void>(
           key: key ?? state.pageKey,
+          restorationId: restorationId,
           child: PopScope(
             canPop: canPop ?? Platform.isIOS,
             key: key,
@@ -68,6 +70,7 @@ abstract class BaseRouteData extends GoRouteData {
         ),
       IceRouteType.singleWithoutTransition => CustomTransitionPage<void>(
           key: state.pageKey,
+          restorationId: restorationId,
           transitionDuration: Duration.zero,
           reverseTransitionDuration: Duration.zero,
           transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
@@ -99,6 +102,7 @@ class FadeTransitionSheetPage extends PagedSheetPage<void> {
     required GoRouterState state,
   }) : super(
           key: state.pageKey,
+          restorationId: state.pageKey.value,
           physics: const ClampingSheetPhysics(),
           scrollConfiguration: const SheetScrollConfiguration(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -126,6 +130,7 @@ class FadeTransitionPage extends CustomTransitionPage<void> {
     required GoRouterState state,
   }) : super(
           key: state.pageKey,
+          restorationId: state.pageKey.value,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
@@ -141,6 +146,7 @@ class SlideFromLeftTransitionPage extends CustomTransitionPage<void> {
     required GoRouterState state,
   }) : super(
           key: state.pageKey,
+          restorationId: state.pageKey.value,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(-1, 0);
             const end = Offset.zero;
@@ -164,6 +170,7 @@ class MainModalSheetPage extends ModalSheetPage<void> {
           swipeDismissible: true,
           barrierColor: context.theme.appColors.backgroundSheet,
           key: state.pageKey,
+          restorationId: state.pageKey.value,
           swipeDismissSensitivity: const SwipeDismissSensitivity(
             minDragDistance: 100,
             minFlingVelocityRatio: 1.5,
@@ -193,6 +200,7 @@ class ScrollableModalSheetPageRoute extends ModalSheetPage<void> {
           swipeDismissible: true,
           barrierColor: context.theme.appColors.backgroundSheet,
           key: state.pageKey,
+          restorationId: state.pageKey.value,
           child: Sheet(
             controller: DefaultSheetController.of(context),
             physics: const BouncingSheetPhysics(),
@@ -211,6 +219,7 @@ class SwipeDismissiblePageRoute extends CustomTransitionPage<void> {
     required bool isFullscreenMedia,
   }) : super(
           key: state.pageKey,
+          restorationId: state.pageKey.value,
           fullscreenDialog: true,
           opaque: false,
           barrierColor: Colors.transparent,
@@ -236,6 +245,7 @@ class OverlayPage extends CustomTransitionPage<void> {
     required GoRouterState state,
   }) : super(
           key: state.pageKey,
+          restorationId: state.pageKey.value,
           opaque: false,
           barrierColor: Colors.transparent,
           transitionDuration: const Duration(milliseconds: 300),

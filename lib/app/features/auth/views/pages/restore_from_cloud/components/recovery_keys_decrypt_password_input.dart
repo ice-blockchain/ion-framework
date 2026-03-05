@@ -21,6 +21,7 @@ class RecoveryKeysDecryptPasswordInput extends HookWidget {
     final isPasswordVisible = useState(false);
 
     return TextInput(
+      restorationId: 'recovery_keys_decrypt_password_input',
       prefixIcon: TextInputIcons(
         hasRightDivider: true,
         icons: [Assets.svg.iconPass.icon()],

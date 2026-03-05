@@ -100,6 +100,7 @@ class ConfirmationSheet extends HookConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'wallet_confirmation_sheet_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

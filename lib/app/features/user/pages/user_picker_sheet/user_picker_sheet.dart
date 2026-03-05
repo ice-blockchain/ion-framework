@@ -69,6 +69,7 @@ class UserPickerSheet extends HookConsumerWidget {
                 horizontal: ScreenSideOffset.defaultSmallMargin,
               ),
               child: SearchInput(
+                restorationId: 'user_picker_search_input',
                 textInputAction: TextInputAction.search,
                 onTextChanged: (text) {
                   ref.read(searchUsersQueryProvider.notifier).text = text;

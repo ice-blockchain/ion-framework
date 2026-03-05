@@ -40,6 +40,7 @@ class FriendsList extends ConsumerWidget {
               SizedBox(
                 height: FriendsListItem.height,
                 child: ListView.builder(
+                  restorationId: 'wallet_friends_list_scroll',
                   padding: EdgeInsetsDirectional.only(
                     start: 4.0.s,
                     end: ScreenSideOffset.defaultSmallMargin,

@@ -34,6 +34,7 @@ class IdentityKeyNameInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextInput(
+      restorationId: 'identity_key_name_input',
       isLive: true,
       keyboardType: TextInputType.text,
       prefixIcon: TextInputIcons(

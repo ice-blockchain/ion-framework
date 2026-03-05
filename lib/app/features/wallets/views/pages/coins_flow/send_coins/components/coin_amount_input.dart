@@ -40,6 +40,7 @@ class CoinAmountInput extends HookWidget {
     return Column(
       children: [
         TextInput(
+          restorationId: 'send_coins_amount_input',
           enabled: enabled,
           controller: controller,
           autoValidateMode: AutovalidateMode.always,

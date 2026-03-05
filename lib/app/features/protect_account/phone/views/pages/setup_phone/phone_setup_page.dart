@@ -28,6 +28,7 @@ class PhoneSetupPage extends ConsumerWidget {
               child: const PhoneSetupSuccessPage(),
             )
           : CustomScrollView(
+              restorationId: 'protect_phone_setup_scroll',
               slivers: [
                 SliverAppBar(
                   primary: false,

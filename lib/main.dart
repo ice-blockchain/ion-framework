@@ -12,6 +12,7 @@ import 'package:ion/app/features/core/views/components/content_scaler.dart';
 import 'package:ion/app/router/components/app_router_builder.dart';
 import 'package:ion/app/router/components/modal_wrapper/sheet_scope.dart';
 import 'package:ion/app/router/providers/go_router_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/logger/logger_initializer.dart';
 import 'package:ion/app/services/riverpod/container.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
@@ -25,6 +26,10 @@ void main() async {
   AppLinks();
   SentryWidgetsFlutterBinding.ensureInitialized();
   await SecureStorage().clearOnReinstall();
+
+  WidgetsBinding.instance.restorationManager.addListener(() {
+    Logger.log('[StateRestoration] RestorationManager: data updated by engine');
+  });
 
   LoggerInitializer.initialize(riverpodContainer);
 
@@ -53,6 +58,7 @@ class IONApp extends ConsumerWidget {
       child: AppLifecycleObserver(
         child: SheetScope(
           child: MaterialApp.router(
+            restorationScopeId: 'ion-app',
             localizationsDelegates: const [
               ...I18n.localizationsDelegates,
               FlutterQuillLocalizations.delegate,
@@ -63,10 +69,49 @@ class IONApp extends ConsumerWidget {
             darkTheme: template.whenOrNull(data: (data) => buildDarkTheme(data.theme)),
             themeMode: appThemeMode,
             routerConfig: goRouter,
-            builder: (context, child) => AppRouterBuilder(child: child),
+            builder: (context, child) => RestorationDebugObserver(
+              child: AppRouterBuilder(child: child),
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+class RestorationDebugObserver extends StatefulWidget {
+  const RestorationDebugObserver({required this.child, super.key});
+  final Widget child;
+
+  @override
+  State<RestorationDebugObserver> createState() => _RestorationDebugObserverState();
+}
+
+class _RestorationDebugObserverState extends State<RestorationDebugObserver> with RestorationMixin {
+  @override
+  String? get restorationId => 'debug_observer';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    final status = switch ((initialRestore, oldBucket != null)) {
+      (true, false) => 'Fresh launch (no restoration data)',
+      (true, true) => 'Restoring from saved state!',
+      _ => 'Bucket replaced during runtime',
+    };
+    Logger.log(
+      '[StateRestoration] restoreState | initialRestore: $initialRestore | '
+      'hasOldBucket: ${oldBucket != null} | '
+      'currentBucket: ${bucket?.restorationId} | '
+      'STATUS: $status',
+    );
+  }
+
+  @override
+  void didUpdateRestorationId() {
+    super.didUpdateRestorationId();
+    Logger.log('[StateRestoration] Restoration ID updated to: $restorationId');
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

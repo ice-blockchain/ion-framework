@@ -38,6 +38,7 @@ class CreateChannelModal extends ConsumerWidget {
           ),
           Flexible(
             child: SingleChildScrollView(
+              restorationId: 'create_channel_scroll',
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[

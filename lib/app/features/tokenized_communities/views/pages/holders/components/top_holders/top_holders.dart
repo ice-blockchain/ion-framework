@@ -156,6 +156,7 @@ class _TopHolderList extends ConsumerWidget {
         );
 
         return ListView.separated(
+          restorationId: 'tokenized_community_top_holders_scroll',
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,

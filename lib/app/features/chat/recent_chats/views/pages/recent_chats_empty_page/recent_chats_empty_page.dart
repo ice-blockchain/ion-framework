@@ -26,7 +26,9 @@ class RecentChatsEmptyPage extends HookConsumerWidget {
           behavior: HitTestBehavior.opaque,
           onTap: () => ChatQuickSearchRoute().push<void>(context),
           child: const IgnorePointer(
-            child: SearchInput(),
+            child: SearchInput(
+              restorationId: 'recent_chats_empty_search_input',
+            ),
           ),
         ),
         Expanded(
@@ -84,6 +86,7 @@ class RecentChatsEmptyPage extends HookConsumerWidget {
             ],
             onRefresh: () async => ref.invalidate(conversationsProvider),
             builder: (context, slivers) => CustomScrollView(
+              restorationId: 'recent_chats_empty_scroll',
               slivers: slivers,
             ),
           ),

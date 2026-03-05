@@ -53,6 +53,7 @@ class EditChannelPage extends HookConsumerWidget {
           alignment: Alignment.topCenter,
           children: [
             SingleChildScrollView(
+              restorationId: 'edit_channel_scroll',
               child: Column(
                 children: <Widget>[
                   ScreenSideOffset.large(

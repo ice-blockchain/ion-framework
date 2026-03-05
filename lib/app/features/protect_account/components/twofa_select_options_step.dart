@@ -30,6 +30,7 @@ class TwoFASelectOptionStep extends ConsumerWidget {
       child: Form(
         key: formKey,
         child: CustomScrollView(
+          restorationId: 'protect_twofa_select_options_scroll',
           slivers: [
             SliverList.builder(
               itemCount: optionsState.optionsAmount,

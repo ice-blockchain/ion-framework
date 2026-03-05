@@ -33,6 +33,7 @@ class PollLengthTimeModal extends HookConsumerWidget {
     final hourScrollController = FixedExtentScrollController(initialItem: tempSelectedHour.value);
 
     return SingleChildScrollView(
+      restorationId: 'poll_length_time_modal_scroll',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -17,6 +17,7 @@ class TwoFaEditNewValueInputStep extends HookWidget {
     required this.inputFieldLabel,
     required this.inputKeyboardType,
     required this.validator,
+    this.restorationId,
     super.key,
   });
 
@@ -25,6 +26,7 @@ class TwoFaEditNewValueInputStep extends HookWidget {
   final String inputFieldLabel;
   final TextInputType inputKeyboardType;
   final String? Function(String?)? validator;
+  final String? restorationId;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +47,7 @@ class TwoFaEditNewValueInputStep extends HookWidget {
                 Padding(
                   padding: EdgeInsetsDirectional.only(bottom: 20.0.s),
                   child: TextInput(
+                    restorationId: restorationId,
                     prefixIcon: TextInputIcons(
                       hasRightDivider: true,
                       icons: [inputFieldIcon],

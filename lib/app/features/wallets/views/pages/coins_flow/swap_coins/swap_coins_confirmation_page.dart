@@ -52,6 +52,7 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
         swapQuoteInfo == null) {
       return SheetContent(
         body: SingleChildScrollView(
+          restorationId: 'wallet_swap_coins_confirmation_error_scroll',
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -82,6 +83,7 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'wallet_swap_coins_confirmation_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

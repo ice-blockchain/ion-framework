@@ -13,6 +13,7 @@ class JoinedGroups extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      restorationId: 'search_joined_groups_scroll',
       itemCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),

@@ -24,6 +24,7 @@ class BookmarksFilters extends HookConsumerWidget {
     return SizedBox(
       height: 64.0.s,
       child: ListView.separated(
+        restorationId: 'user_bookmarks_filters_scroll',
         scrollDirection: Axis.horizontal,
         physics: const ClampingScrollPhysics(),
         padding: EdgeInsets.symmetric(horizontal: 16.0.s, vertical: 12.0.s),

@@ -104,6 +104,7 @@ class ImportTokenForm extends HookConsumerWidget {
         ),
         SizedBox(height: 16.0.s),
         TextInput(
+          restorationId: 'import_token_address_input',
           labelText: context.i18n.wallet_import_token_address_label,
           controller: tokenAddressController,
           onTapOutside: (_) => FocusScope.of(context).unfocus(),
@@ -122,18 +123,21 @@ class ImportTokenForm extends HookConsumerWidget {
         SizedBox(height: 16.0.s),
         if (isAdditionalInputFieldsEnabled.value)
           TextInput(
+            restorationId: 'import_token_symbol_input',
             labelText: context.i18n.wallet_import_token_symbol_label,
             controller: tokenSymbolController,
             onTapOutside: (_) => FocusScope.of(context).unfocus(),
           )
         else
           DisabledTextInput(
+            restorationId: 'import_token_symbol_disabled_input',
             labelText: context.i18n.wallet_import_token_symbol_label,
             controller: tokenSymbolController,
           ),
         SizedBox(height: 16.0.s),
         if (isAdditionalInputFieldsEnabled.value)
           TextInput(
+            restorationId: 'import_token_decimals_input',
             keyboardType: TextInputType.number,
             labelText: context.i18n.wallet_import_token_decimals_label,
             controller: tokenDecimalsController,
@@ -141,6 +145,7 @@ class ImportTokenForm extends HookConsumerWidget {
           )
         else
           DisabledTextInput(
+            restorationId: 'import_token_decimals_disabled_input',
             labelText: context.i18n.wallet_import_token_decimals_label,
             controller: tokenDecimalsController,
           ),

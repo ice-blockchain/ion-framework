@@ -125,6 +125,7 @@ class SendCoinsForm extends HookConsumerWidget {
             ),
             Flexible(
               child: SingleChildScrollView(
+                restorationId: 'wallet_send_coins_form_scroll',
                 child: ScreenSideOffset.small(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

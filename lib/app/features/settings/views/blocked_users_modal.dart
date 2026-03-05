@@ -21,6 +21,7 @@ class BlockedUsersModal extends HookConsumerWidget {
     return SheetContent(
       topPadding: 0,
       body: CustomScrollView(
+        restorationId: 'settings_blocked_users_scroll',
         slivers: [
           const BlockedUsersAppBar(),
           const BlockedUsersSearchBar(),

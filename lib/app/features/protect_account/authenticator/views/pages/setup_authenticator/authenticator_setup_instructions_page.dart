@@ -37,6 +37,7 @@ class AuthenticatorSetupInstructionsPage extends HookConsumerWidget {
 
     return SheetContent(
       body: CustomScrollView(
+        restorationId: 'protect_authenticator_instructions_scroll',
         slivers: [
           SliverAppBar(
             primary: false,

@@ -13,6 +13,7 @@ class NameInput extends StatelessWidget {
     this.onChanged,
     this.initialValue,
     this.isLive = false,
+    this.restorationId,
     super.key,
   });
 
@@ -22,9 +23,12 @@ class NameInput extends StatelessWidget {
 
   final bool isLive;
 
+  final String? restorationId;
+
   @override
   Widget build(BuildContext context) {
     return GeneralUserDataInput(
+      restorationId: restorationId,
       onChanged: onChanged,
       prefixIconAssetName: Assets.svg.iconFieldName,
       labelText: context.i18n.fill_profile_input_name,

@@ -39,6 +39,7 @@ class AddBookmarkModal extends ConsumerWidget {
                 .toList();
 
             return ListView(
+              restorationId: 'add_bookmark_modal_scroll',
               children: [
                 SizedBox(height: 24.0.s),
                 BookmarksCollectionTile(

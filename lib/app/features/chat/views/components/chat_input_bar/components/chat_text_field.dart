@@ -50,6 +50,7 @@ class ChatTextField extends HookConsumerWidget {
     );
 
     return IonTextField(
+      restorationId: 'chat_message_input',
       focusNode: textFieldFocusNode,
       controller: textFieldController,
       maxLines: 5,

@@ -42,6 +42,7 @@ class BookmarksHeader extends StatelessWidget implements PreferredSizeWidget {
         ),
         ScreenSideOffset.small(
           child: SearchInput(
+            restorationId: 'bookmarks_search_input',
             onTextChanged: onSearchQueryUpdated,
             loading: loading,
           ),

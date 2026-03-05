@@ -66,6 +66,7 @@ class LatestTradesCard extends HookConsumerWidget {
                   return const LatestTradesEmpty();
                 }
                 return ListView.separated(
+                  restorationId: 'tokenized_community_latest_trades_card_scroll',
                   shrinkWrap: true,
                   itemCount: trades.length,
                   physics: const NeverScrollableScrollPhysics(),

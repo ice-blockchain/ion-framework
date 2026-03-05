@@ -28,6 +28,7 @@ class DelegateAccessModal extends HookWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'settings_delegate_access_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

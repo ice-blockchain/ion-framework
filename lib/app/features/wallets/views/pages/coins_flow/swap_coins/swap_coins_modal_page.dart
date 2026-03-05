@@ -83,6 +83,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'wallet_swap_coins_modal_scroll',
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
@@ -117,6 +118,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                   Column(
                     children: [
                       TokenCard(
+                        restorationId: 'swap_sell_amount_input',
                         isError: buttonError.value != null,
                         controller: amountController,
                         type: CoinSwapType.sell,
@@ -137,6 +139,7 @@ class SwapCoinsModalPage extends HookConsumerWidget {
                         height: 10.0.s,
                       ),
                       TokenCard(
+                        restorationId: 'swap_buy_amount_input',
                         skipValidation: true,
                         skipFocusValidationWhenFormatting: true,
                         isReadOnly: true,

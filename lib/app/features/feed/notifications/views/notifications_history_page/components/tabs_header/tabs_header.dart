@@ -8,12 +8,16 @@ import 'package:ion/app/features/feed/notifications/views/notifications_history_
 
 class NotificationsHistoryTabsHeader extends ConsumerWidget {
   const NotificationsHistoryTabsHeader({
+    this.controller,
     super.key,
   });
+
+  final TabController? controller;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TabBar(
+      controller: controller,
       padding: EdgeInsets.symmetric(
         horizontal: 6.0.s,
       ),

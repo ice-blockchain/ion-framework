@@ -7,15 +7,17 @@ import 'package:ion/app/features/search/model/advanced_search_category.dart';
 import 'package:ion/app/features/search/views/components/advanced_search_tab/advanced_search_tab.dart';
 
 class AdvancedSearchTabBar extends StatelessWidget {
-  const AdvancedSearchTabBar({required this.categories, super.key});
+  const AdvancedSearchTabBar({required this.categories, this.controller, super.key});
 
   final List<AdvancedSearchCategory> categories;
+  final TabController? controller;
 
   static double get _tabItemHorizontalGap => 16.0.s;
 
   @override
   Widget build(BuildContext context) {
     return TabBar(
+      controller: controller,
       padding: EdgeInsets.symmetric(
         horizontal: ScreenSideOffset.defaultSmallMargin - _tabItemHorizontalGap / 2,
       ),

@@ -30,6 +30,7 @@ class CryptoWalletSwitcher extends HookWidget {
       height: itemSize,
       alignment: Alignment.topCenter,
       child: ListView.separated(
+        restorationId: 'wallet_crypto_wallets_switcher_scroll',
         scrollDirection: Axis.horizontal,
         itemCount: wallets.length,
         shrinkWrap: true,

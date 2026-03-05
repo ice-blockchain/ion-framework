@@ -30,6 +30,7 @@ class PrivacySettingsModal extends ConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'settings_privacy_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

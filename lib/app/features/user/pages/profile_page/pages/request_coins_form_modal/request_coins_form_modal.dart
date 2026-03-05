@@ -89,6 +89,7 @@ class RequestCoinsFormModal extends HookConsumerWidget {
     return SheetContent(
       body: KeyboardDismissOnTap(
         child: SingleChildScrollView(
+          restorationId: 'user_request_coins_form_scroll',
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

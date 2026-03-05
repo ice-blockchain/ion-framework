@@ -87,6 +87,7 @@ class FeedVisibleArticleCategoriesModal extends HookConsumerWidget {
           ),
           ScreenSideOffset.small(
             child: SearchInput(
+              restorationId: 'feed_article_categories_search_input',
               onTextChanged: (String value) {
                 searchValue.value = value;
               },
@@ -95,6 +96,7 @@ class FeedVisibleArticleCategoriesModal extends HookConsumerWidget {
           SizedBox(height: 8.0.s),
           Expanded(
             child: ListView.builder(
+              restorationId: 'feed_visible_article_categories_scroll',
               itemCount: filteredCategories.length,
               itemBuilder: (BuildContext context, int index) {
                 final subcategory = filteredCategories[index];

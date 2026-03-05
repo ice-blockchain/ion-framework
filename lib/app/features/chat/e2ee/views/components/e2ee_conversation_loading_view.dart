@@ -57,6 +57,7 @@ class E2eeConversationLoadingView extends HookConsumerWidget {
           width: double.infinity,
           padding: EdgeInsetsDirectional.only(start: 16.0.s, end: 16.0.s, top: topPadding),
           child: SingleChildScrollView(
+            restorationId: 'e2ee_conversation_loading_scroll',
             padding: EdgeInsets.zero,
             physics: const NeverScrollableScrollPhysics(),
             child: Skeleton(

@@ -47,6 +47,7 @@ class ImportTokenPage extends HookConsumerWidget {
                   children: [
                     const Expanded(
                       child: SingleChildScrollView(
+                        restorationId: 'wallet_import_token_page_scroll',
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [

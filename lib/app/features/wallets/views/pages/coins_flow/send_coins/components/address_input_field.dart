@@ -54,6 +54,7 @@ class AddressInputField extends HookWidget {
     );
 
     return TextInput(
+      restorationId: 'send_coins_address_input',
       maxLines: maxLines,
       controller: controller,
       labelText: context.i18n.wallet_enter_address,

@@ -28,6 +28,7 @@ class EmailSetupPage extends ConsumerWidget {
               child: const EmailSetupSuccessPage(),
             )
           : CustomScrollView(
+              restorationId: 'protect_email_setup_scroll',
               slivers: [
                 SliverAppBar(
                   primary: false,

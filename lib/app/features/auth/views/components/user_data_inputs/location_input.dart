@@ -13,6 +13,7 @@ class LocationInput extends StatelessWidget {
     this.controller,
     this.onChanged,
     this.initialValue,
+    this.restorationId,
   });
 
   final TextEditingController? controller;
@@ -21,9 +22,12 @@ class LocationInput extends StatelessWidget {
 
   final String? initialValue;
 
+  final String? restorationId;
+
   @override
   Widget build(BuildContext context) {
     return GeneralUserDataInput(
+      restorationId: restorationId,
       controller: controller,
       onChanged: onChanged,
       prefixIconAssetName: Assets.svg.iconProfileLocation,

@@ -53,6 +53,7 @@ class SecureAccountOptionsPage extends HookConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'protect_secure_account_options_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

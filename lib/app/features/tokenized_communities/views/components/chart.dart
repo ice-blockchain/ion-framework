@@ -395,6 +395,7 @@ class _TimeframeAndMetricRow extends StatelessWidget {
     return Stack(
       children: [
         SingleChildScrollView(
+          restorationId: 'tokenized_community_chart_scroll',
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
           padding: EdgeInsetsDirectional.only(end: 82.0.s),

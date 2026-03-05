@@ -16,6 +16,7 @@ class LatestTradesSkeleton extends StatelessWidget {
 
     return Skeleton(
       child: ListView.separated(
+        restorationId: 'tokenized_community_latest_trades_skeleton_scroll',
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         physics: const NeverScrollableScrollPhysics(),

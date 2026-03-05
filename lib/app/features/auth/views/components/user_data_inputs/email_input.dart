@@ -13,6 +13,7 @@ class EmailInput extends StatelessWidget {
     this.onChanged,
     this.initialValue,
     this.errorText,
+    this.restorationId,
     super.key,
   });
 
@@ -21,9 +22,12 @@ class EmailInput extends StatelessWidget {
   final String? initialValue;
   final String? errorText;
 
+  final String? restorationId;
+
   @override
   Widget build(BuildContext context) {
     return GeneralUserDataInput(
+      restorationId: restorationId,
       onChanged: onChanged,
       prefixIconAssetName: Assets.svg.iconFieldEmail,
       labelText: context.i18n.common_email_address,

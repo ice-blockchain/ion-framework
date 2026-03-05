@@ -183,6 +183,7 @@ class ArticleDetailsPage extends HookConsumerWidget {
                 ArticleDetailsProgressIndicator(progress: progress),
                 Flexible(
                   child: CustomScrollView(
+                    restorationId: 'article_details_page_scroll',
                     controller: scrollController,
                     slivers: [
                       SliverList(

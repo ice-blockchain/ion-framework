@@ -21,6 +21,7 @@ class WalletsModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'wallet_wallets_modal_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -75,6 +75,7 @@ class TrendingVideos extends HookConsumerWidget {
           builder: (context, slivers) => SizedBox(
             height: listOverlay.itemSize.height,
             child: CustomScrollView(
+              restorationId: 'feed_trending_videos_scroll',
               scrollDirection: Axis.horizontal,
               slivers: slivers,
             ),

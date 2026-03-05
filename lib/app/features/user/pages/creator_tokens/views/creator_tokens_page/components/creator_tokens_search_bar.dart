@@ -35,6 +35,7 @@ class CreatorTokensSearchBar extends StatelessWidget {
                   ),
                   child: ScreenSideOffset.small(
                     child: SearchInput(
+                      restorationId: 'creator_tokens_search_input',
                       controller: searchController,
                       focusNode: searchFocusNode,
                       onCancelSearch: onCancelSearch,

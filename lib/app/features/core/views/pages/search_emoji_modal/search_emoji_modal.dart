@@ -58,6 +58,7 @@ class SearchEmojiModal extends HookConsumerWidget {
             ),
             _EmojiCategoryButtons(categoryKeys: categoryKeys, activeCategory: activeCategory),
             SearchInput(
+              restorationId: 'search_emoji_search_input',
               onTextChanged: (value) {
                 ref.read(emojiSearchQueryProvider.notifier).query = value;
               },

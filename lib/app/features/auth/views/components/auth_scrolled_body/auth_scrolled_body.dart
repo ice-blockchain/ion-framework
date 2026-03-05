@@ -71,6 +71,7 @@ class AuthScrollContainer extends HookWidget {
       child: SizedBox(
         height: double.infinity,
         child: CustomScrollView(
+          restorationId: 'auth_page_scroll',
           physics: const ClampingScrollPhysics(),
           slivers: [
             SliverAppBar(

@@ -79,6 +79,7 @@ class SelectTopicsModal extends HookConsumerWidget {
           ),
           ScreenSideOffset.small(
             child: SearchInput(
+              restorationId: 'select_topics_search_input',
               onTextChanged: (String value) {
                 searchValue.value = value;
               },
@@ -93,6 +94,7 @@ class SelectTopicsModal extends HookConsumerWidget {
           SizedBox(height: 8.0.s),
           Expanded(
             child: ListView.builder(
+              restorationId: 'select_topics_modal_scroll',
               padding: EdgeInsetsDirectional.only(
                 bottom: MediaQuery.paddingOf(context).bottom,
               ),

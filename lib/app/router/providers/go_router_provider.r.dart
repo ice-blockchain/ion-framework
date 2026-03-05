@@ -45,6 +45,7 @@ GoRouter goRouter(Ref ref) {
   }
 
   router = GoRouter(
+    restorationScopeId: 'router',
     refreshListenable: AppRouterNotifier(ref),
     redirect: (context, state) async {
       final initState = ref.read(initAppProvider);

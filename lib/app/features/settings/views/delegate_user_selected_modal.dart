@@ -27,6 +27,7 @@ class DelegateUserSelectedModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'settings_delegate_user_selected_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

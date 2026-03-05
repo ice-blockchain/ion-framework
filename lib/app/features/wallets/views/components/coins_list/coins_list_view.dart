@@ -62,6 +62,7 @@ class CoinsListView extends StatelessWidget {
         if (onQueryChanged != null) ...[
           ScreenSideOffset.small(
             child: SearchInput(
+              restorationId: 'coins_list_search_input',
               onTextChanged: onQueryChanged,
               hintText: context.i18n.wallet_coins_search_hint,
             ),

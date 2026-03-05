@@ -33,6 +33,7 @@ class ContactWalletErrorModal extends StatelessWidget {
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
       child: SingleChildScrollView(
+        restorationId: 'wallet_contact_wallet_error_modal_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -120,6 +121,7 @@ Future<void> showContactDeletedUserError(BuildContext context) {
     child: ConstrainedBox(
       constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
       child: SingleChildScrollView(
+        restorationId: 'wallet_contact_deleted_user_error_modal_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -10,6 +10,7 @@ const int _referralMaxLength = 20;
 
 class ReferralInput extends StatelessWidget {
   const ReferralInput({
+    this.restorationId,
     super.key,
     this.textInputAction,
     this.onChanged,
@@ -34,9 +35,12 @@ class ReferralInput extends StatelessWidget {
 
   final ValueChanged<bool>? onFocused;
 
+  final String? restorationId;
+
   @override
   Widget build(BuildContext context) {
     return GeneralUserDataInput(
+      restorationId: restorationId,
       onChanged: onChanged,
       onFocused: onFocused,
       prefixIconAssetName: Assets.svg.iconFieldInviter,

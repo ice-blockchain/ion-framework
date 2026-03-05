@@ -37,6 +37,7 @@ class SearchHistory extends StatelessWidget {
               child: SizedBox(
                 height: 105.0.s,
                 child: ListView.separated(
+                  restorationId: 'search_history_horizontal_scroll',
                   itemCount: itemCount,
                   itemBuilder: itemBuilder,
                   scrollDirection: Axis.horizontal,
@@ -48,6 +49,7 @@ class SearchHistory extends StatelessWidget {
           if (queries.isNotEmpty)
             Flexible(
               child: ListView.builder(
+                restorationId: 'search_history_vertical_scroll',
                 padding: EdgeInsets.symmetric(vertical: 8.0.s),
                 itemCount: queries.length,
                 itemBuilder: (context, index) {

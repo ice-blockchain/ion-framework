@@ -38,6 +38,7 @@ class AuthenticatorSetupCodeConfirmPage extends HookConsumerWidget {
 
     return SheetContent(
       body: CustomScrollView(
+        restorationId: 'protect_authenticator_code_confirm_scroll',
         slivers: [
           SliverAppBar(
             primary: false,
@@ -70,6 +71,7 @@ class AuthenticatorSetupCodeConfirmPage extends HookConsumerWidget {
                     child: Center(
                       child: ScreenSideOffset.large(
                         child: TextInput(
+                          restorationId: 'authenticator_code_confirm_input',
                           controller: controller,
                           labelText: context.i18n.two_fa_auth,
                           prefixIcon: TextInputIcons(

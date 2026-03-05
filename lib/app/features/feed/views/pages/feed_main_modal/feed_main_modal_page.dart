@@ -65,6 +65,7 @@ class _CreateContentModal extends StatelessWidget {
           showBackButton: false,
         ),
         ListView.separated(
+          restorationId: 'feed_main_modal_scroll',
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           separatorBuilder: (_, __) => const HorizontalSeparator(),

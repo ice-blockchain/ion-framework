@@ -83,6 +83,7 @@ class SetRecoveryPasswordStep extends HookConsumerWidget {
                   children: [
                     SizedBox(height: 24.0.s),
                     TextInput(
+                      restorationId: 'recovery_identity_input',
                       enabled: false,
                       controller: identityController,
                       labelText: context.i18n.common_identity_key_name,
@@ -98,6 +99,7 @@ class SetRecoveryPasswordStep extends HookConsumerWidget {
                     ),
                     SizedBox(height: 16.0.s),
                     PasswordInput(
+                      restorationId: 'recovery_password_input',
                       controller: passwordController,
                       passwordInputMode: PasswordInputMode.create,
                       errorText: passwordsError.value,
@@ -106,6 +108,7 @@ class SetRecoveryPasswordStep extends HookConsumerWidget {
                     ),
                     SizedBox(height: 16.0.s),
                     PasswordInput(
+                      restorationId: 'recovery_password_confirm_input',
                       isConfirmation: true,
                       controller: passwordConfirmationController,
                       passwordInputMode: PasswordInputMode.create,

@@ -148,6 +148,7 @@ class ArticleFormModal extends HookConsumerWidget {
             ),
             Expanded(
               child: SingleChildScrollView(
+                restorationId: 'article_form_modal_scroll',
                 controller: scrollController,
                 child: Column(
                   children: [
@@ -163,6 +164,7 @@ class ArticleFormModal extends HookConsumerWidget {
                         top: ScreenSideOffset.defaultSmallMargin,
                       ),
                       child: IonTextField(
+                        restorationId: 'article_title_input',
                         controller: articleState.titleController,
                         focusNode: articleState.titleFocusNode,
                         autofocus: true,

@@ -17,7 +17,11 @@ class FeedNavigation extends StatelessWidget {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => FeedSimpleSearchRoute().push<void>(context),
-            child: const IgnorePointer(child: SearchInput()),
+            child: const IgnorePointer(
+              child: SearchInput(
+                restorationId: 'feed_search_input',
+              ),
+            ),
           ),
         ),
       ],

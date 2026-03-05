@@ -25,6 +25,7 @@ class CreateRecoveryKeyPage extends StatelessWidget {
     return const SheetContent(
       topPadding: 0,
       body: SingleChildScrollView(
+        restorationId: 'protect_create_recovery_key_scroll',
         child: Column(
           children: [
             _NavBar(),

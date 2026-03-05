@@ -105,6 +105,7 @@ class LanguageSelectorPage extends HookConsumerWidget {
             height: SearchInput.height,
             child: ScreenSideOffset.small(
               child: SearchInput(
+                restorationId: 'language_selector_search_input',
                 onTextChanged: (String value) => searchQuery.value = value,
               ),
             ),

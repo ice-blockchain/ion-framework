@@ -18,6 +18,7 @@ class ProfileSkeleton extends StatelessWidget {
     return Scaffold(
       body: ScreenTopOffset(
         child: SingleChildScrollView(
+          restorationId: 'user_profile_skeleton_scroll',
           child: Column(
             children: [
               if (showBackButton) _Header(showBackButton: showBackButton),

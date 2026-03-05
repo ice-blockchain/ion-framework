@@ -90,6 +90,7 @@ class ShareOptions extends HookConsumerWidget {
     };
 
     return SingleChildScrollView(
+      restorationId: 'share_options_scroll',
       scrollDirection: Axis.horizontal,
       child: Padding(
         padding: EdgeInsetsDirectional.only(top: 20.0.s, end: 16.0.s, start: 16.0.s),

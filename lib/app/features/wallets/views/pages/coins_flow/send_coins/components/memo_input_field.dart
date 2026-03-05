@@ -23,6 +23,7 @@ class MemoInputField extends HookWidget {
     useOnInit(() => controller.text = memo ?? '', [memo]);
 
     return TextInput(
+      restorationId: 'send_coins_memo_input',
       controller: controller,
       labelText: context.i18n.wallet_memo,
       onChanged: onMemoChanged,

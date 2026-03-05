@@ -47,6 +47,7 @@ class SwapDetailsContent extends ConsumerWidget {
     ];
 
     return CustomScrollView(
+      restorationId: 'wallet_swap_details_content_scroll',
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [

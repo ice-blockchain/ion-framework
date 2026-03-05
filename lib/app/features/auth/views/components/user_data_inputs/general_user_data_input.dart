@@ -12,6 +12,7 @@ class GeneralUserDataInput extends HookWidget {
   const GeneralUserDataInput({
     required this.prefixIconAssetName,
     required this.labelText,
+    this.restorationId,
     this.controller,
     this.onChanged,
     this.onFocused,
@@ -45,12 +46,14 @@ class GeneralUserDataInput extends HookWidget {
   final List<TextInputFormatter>? inputFormatters;
   final String? errorText;
   final ValueChanged<bool>? onFocused;
+  final String? restorationId;
 
   @override
   Widget build(BuildContext context) {
     final isValid = useState(false);
 
     return TextInput(
+      restorationId: restorationId,
       prefixIcon: TextInputIcons(
         hasRightDivider: true,
         icons: [prefixIconAssetName.icon(color: context.theme.appColors.secondaryText)],

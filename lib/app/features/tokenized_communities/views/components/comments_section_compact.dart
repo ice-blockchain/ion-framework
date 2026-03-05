@@ -157,6 +157,7 @@ class CommentsSectionCompact extends HookConsumerWidget {
               )
             else if (entities != null && entities.isNotEmpty)
               ListView.builder(
+                restorationId: 'tokenized_community_comments_section_compact_scroll',
                 padding: EdgeInsets.symmetric(vertical: 13.0.s),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),

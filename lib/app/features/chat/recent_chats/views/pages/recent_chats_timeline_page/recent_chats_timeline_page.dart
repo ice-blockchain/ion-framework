@@ -116,7 +116,9 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () => ChatQuickSearchRoute().push<void>(context),
               child: const IgnorePointer(
-                child: SearchInput(),
+                child: SearchInput(
+                  restorationId: 'recent_chats_search_input',
+                ),
               ),
             ),
           ),
@@ -161,6 +163,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
           await _forceSyncUserMetadata(ref);
         },
         builder: (context, slivers) => CustomScrollView(
+          restorationId: 'recent_chats_timeline_scroll',
           physics: const AlwaysScrollableScrollPhysics(),
           controller: scrollController,
           slivers: slivers,

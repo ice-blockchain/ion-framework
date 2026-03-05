@@ -24,6 +24,7 @@ class RecentChatSkeleton extends StatelessWidget {
           SizedBox(height: 16.0.s),
           Expanded(
             child: ListView.separated(
+              restorationId: 'recent_chat_skeleton_scroll',
               shrinkWrap: true,
               itemBuilder: (context, index) {
                 return Container(

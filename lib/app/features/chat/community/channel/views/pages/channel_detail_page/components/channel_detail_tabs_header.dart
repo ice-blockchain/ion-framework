@@ -7,12 +7,16 @@ import 'package:ion/app/features/chat/community/channel/models/channel_detail_ta
 
 class ChannelDetailTabsHeader extends ConsumerWidget {
   const ChannelDetailTabsHeader({
+    this.controller,
     super.key,
   });
+
+  final TabController? controller;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TabBar(
+      controller: controller,
       padding: EdgeInsets.symmetric(
         horizontal: 6.0.s,
       ),

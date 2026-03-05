@@ -49,11 +49,13 @@ class WalletMainModalPage extends HookConsumerWidget {
     return SheetContent(
       topPadding: 0.0.s,
       body: SingleChildScrollView(
+        restorationId: 'wallet_main_modal_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const _Header(),
             ListView.separated(
+              restorationId: 'wallet_main_modal_list_scroll',
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               separatorBuilder: (_, __) => const HorizontalSeparator(),

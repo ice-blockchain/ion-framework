@@ -70,6 +70,7 @@ class StoryInputField extends HookConsumerWidget {
                 child: Stack(
                   children: [
                     IonTextField(
+                      restorationId: 'story_reply_input',
                       minLines: 1,
                       maxLines: 4,
                       scrollPhysics: const BouncingScrollPhysics(),

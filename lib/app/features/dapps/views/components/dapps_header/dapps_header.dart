@@ -37,7 +37,9 @@ class DAppsHeader extends ConsumerWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: () => DAppsSimpleSearchRoute().push<void>(context),
                 child: const IgnorePointer(
-                  child: SearchInput(),
+                  child: SearchInput(
+                    restorationId: 'dapps_header_search_input',
+                  ),
                 ),
               ),
             ),

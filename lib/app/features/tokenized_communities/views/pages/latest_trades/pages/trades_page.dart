@@ -140,6 +140,7 @@ class TradesPage extends HookConsumerWidget {
                     ref.invalidate(tradesProvider);
                   },
                   builder: (context, slivers) => CustomScrollView(
+                    restorationId: 'tokenized_community_trades_page_scroll',
                     physics: const AlwaysScrollableScrollPhysics(),
                     controller: scrollController,
                     slivers: slivers,

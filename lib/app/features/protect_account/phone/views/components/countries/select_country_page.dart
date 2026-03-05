@@ -29,6 +29,7 @@ class SelectCountryPage extends HookConsumerWidget {
           ),
           Expanded(
             child: CustomScrollView(
+              restorationId: 'protect_select_country_scroll',
               slivers: [
                 CountrySearchHeader(
                   isLoading: filteredCountriesAsync.isLoading,

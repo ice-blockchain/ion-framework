@@ -20,6 +20,7 @@ class FeaturedCollection extends ConsumerWidget {
     return SizedBox(
       height: 160.0.s,
       child: ListView.separated(
+        restorationId: 'dapps_featured_collection_scroll',
         scrollDirection: Axis.horizontal,
         separatorBuilder: (BuildContext context, int index) => SizedBox(width: 12.0.s),
         padding: EdgeInsets.symmetric(

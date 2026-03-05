@@ -89,6 +89,7 @@ class ArticlePreviewModal extends HookConsumerWidget {
             const HorizontalSeparator(),
             Expanded(
               child: SingleChildScrollView(
+                restorationId: 'article_preview_modal_scroll',
                 child: Column(
                   children: [
                     SizedBox(height: 12.0.s),

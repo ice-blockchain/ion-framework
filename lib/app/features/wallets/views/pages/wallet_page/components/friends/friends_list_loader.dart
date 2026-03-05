@@ -26,6 +26,7 @@ class FriendsListLoader extends StatelessWidget {
         SizedBox(
           height: FriendsListItem.height,
           child: ListView.separated(
+            restorationId: 'wallet_friends_list_loader_scroll',
             padding: EdgeInsets.symmetric(
               horizontal: ScreenSideOffset.defaultSmallMargin,
             ),

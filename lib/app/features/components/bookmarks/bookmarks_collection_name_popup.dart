@@ -75,6 +75,7 @@ class BookmarksCollectionNamePopup extends HookConsumerWidget {
                 SizedBox(height: 20.0.s),
                 ScreenSideOffset.large(
                   child: TextInput(
+                    restorationId: 'bookmarks_collection_name_input',
                     controller: controller,
                     isLive: true,
                     labelText: context.i18n.bookmarks_collection_name,

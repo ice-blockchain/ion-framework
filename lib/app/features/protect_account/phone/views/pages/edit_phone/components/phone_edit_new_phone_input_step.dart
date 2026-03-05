@@ -26,6 +26,7 @@ class PhoneEditNewPhoneInputStep extends HookConsumerWidget {
       headerDescription: locale.two_fa_edit_phone_new_phone_description,
       contentPadding: 0,
       child: PhoneInputStep(
+        restorationId: 'phone_edit_input',
         onNext: (String phone) {
           if (linkedPhone != null && linkedPhone == phone) {
             _showPhoneAlreadyLinkedModal(ref);

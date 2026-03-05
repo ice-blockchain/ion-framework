@@ -51,6 +51,7 @@ class RecoveryKeyInput extends HookWidget {
     );
 
     return TextInput(
+      restorationId: 'recovery_key_input',
       controller: controller,
       labelText: labelText,
       prefixIcon: TextInputIcons(

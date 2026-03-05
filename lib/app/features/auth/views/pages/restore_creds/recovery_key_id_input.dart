@@ -15,6 +15,7 @@ class RecoveryKeyIdInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextInput(
+      restorationId: 'recovery_key_id_input',
       prefixIcon: TextInputIcons(
         hasRightDivider: true,
         icons: [Assets.svg.iconChannelPrivate.icon()],

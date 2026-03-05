@@ -41,6 +41,7 @@ class TwoFAInputStep extends HookConsumerWidget {
       child: Form(
         key: formKey.value,
         child: CustomScrollView(
+          restorationId: 'protect_twofa_input_scroll',
           slivers: [
             SliverList.builder(
               itemCount: twoFaTypes.length,

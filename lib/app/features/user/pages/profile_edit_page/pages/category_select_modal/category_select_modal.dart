@@ -37,6 +37,7 @@ class CategorySelectModal extends HookConsumerWidget {
 
     return SheetContent(
       body: CustomScrollView(
+        restorationId: 'user_category_select_scroll',
         slivers: [
           SliverAppBar(
             primary: false,
@@ -61,6 +62,7 @@ class CategorySelectModal extends HookConsumerWidget {
                   SizedBox(height: 16.0.s),
                   ScreenSideOffset.small(
                     child: SearchInput(
+                      restorationId: 'category_select_search_input',
                       onTextChanged: (String value) {
                         searchValue.value = value;
                       },

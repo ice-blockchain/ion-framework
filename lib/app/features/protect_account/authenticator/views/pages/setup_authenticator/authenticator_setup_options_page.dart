@@ -29,6 +29,7 @@ class AuthenticatorSetupOptionsPage extends ConsumerWidget {
 
     return SheetContent(
       body: CustomScrollView(
+        restorationId: 'protect_authenticator_options_scroll',
         slivers: [
           SliverAppBar(
             primary: false,
@@ -59,6 +60,7 @@ class AuthenticatorSetupOptionsPage extends ConsumerWidget {
                       SizedBox(height: 32.0.s),
                       Expanded(
                         child: ListView.builder(
+                          restorationId: 'protect_authenticator_options_list_scroll',
                           itemCount: authenticatorTypes.length,
                           itemBuilder: (context, index) {
                             final type = authenticatorTypes[index];

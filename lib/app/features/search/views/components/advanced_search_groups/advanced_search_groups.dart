@@ -19,6 +19,7 @@ class AdvancedSearchGroups extends HookConsumerWidget {
     useAutomaticKeepAlive();
 
     return SingleChildScrollView(
+      restorationId: 'search_groups_scroll',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

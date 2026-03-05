@@ -45,6 +45,7 @@ class RecentTopics extends HookConsumerWidget {
         SizedBox(
           height: 34.s,
           child: ListView.separated(
+            restorationId: 'recent_topics_scroll',
             scrollDirection: Axis.horizontal,
             itemCount: recent.length,
             padding: EdgeInsetsDirectional.symmetric(

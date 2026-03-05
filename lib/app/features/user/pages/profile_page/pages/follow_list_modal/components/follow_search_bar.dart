@@ -20,6 +20,7 @@ class FollowSearchBar extends StatelessWidget {
             SizedBox(height: 16.0.s),
             ScreenSideOffset.small(
               child: SearchInput(
+                restorationId: 'follow_list_search_input',
                 onTextChanged: onTextChanged,
               ),
             ),

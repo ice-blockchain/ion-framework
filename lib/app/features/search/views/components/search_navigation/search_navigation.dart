@@ -55,6 +55,7 @@ class SearchNavigation extends HookConsumerWidget {
           ],
           Expanded(
             child: SearchInput(
+              restorationId: 'search_navigation_search_input',
               loading: loading,
               showCancelButton: showCancelButton,
               controller: searchController,

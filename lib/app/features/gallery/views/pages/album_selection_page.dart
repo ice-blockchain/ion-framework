@@ -42,6 +42,7 @@ class AlbumSelectionPage extends ConsumerWidget {
         ?.selectedAlbum;
 
     final content = CustomScrollView(
+      restorationId: 'gallery_album_selection_scroll',
       slivers: [
         SliverAppBar(
           primary: false,

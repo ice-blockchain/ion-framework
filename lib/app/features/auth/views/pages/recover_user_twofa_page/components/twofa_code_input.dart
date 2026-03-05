@@ -37,6 +37,7 @@ class TwoFaCodeInput extends HookWidget {
   @override
   Widget build(BuildContext context) {
     return TextInput(
+      restorationId: 'twofa_code_input',
       prefixIcon: TextInputIcons(
         hasRightDivider: true,
         icons: [prefixIcon ?? twoFaType.iconAsset.icon()],

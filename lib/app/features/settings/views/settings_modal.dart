@@ -48,6 +48,7 @@ class SettingsModal extends HookConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'settings_modal_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

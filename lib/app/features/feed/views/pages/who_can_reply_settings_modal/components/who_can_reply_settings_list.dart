@@ -18,6 +18,7 @@ class WhoCanReplySettingsList extends ConsumerWidget {
     final state = ref.watch(whoCanReplySettingsOptionsProvider);
     return state.when(
       data: (options) => ListView.separated(
+        restorationId: 'who_can_reply_settings_list_scroll',
         shrinkWrap: true,
         padding: EdgeInsets.symmetric(
           horizontal: ScreenSideOffset.defaultSmallMargin,

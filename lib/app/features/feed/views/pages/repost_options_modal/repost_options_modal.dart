@@ -38,6 +38,7 @@ class RepostOptionsModal extends HookConsumerWidget {
 
     return SheetContent(
       body: SingleChildScrollView(
+        restorationId: 'repost_options_modal_scroll',
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

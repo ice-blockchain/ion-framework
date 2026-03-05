@@ -50,6 +50,7 @@ class ManageCoinsPage extends HookConsumerWidget {
           ),
           Expanded(
             child: CustomScrollView(
+              restorationId: 'wallet_manage_coins_page_scroll',
               slivers: [
                 SliverAppBar(
                   pinned: true,
@@ -61,6 +62,7 @@ class ManageCoinsPage extends HookConsumerWidget {
                     child: SafeArea(
                       bottom: false,
                       child: SearchInput(
+                        restorationId: 'manage_coins_search_input',
                         onTextChanged: (String value) => searchText.value = value,
                         loading: searchResult.isLoading,
                       ),

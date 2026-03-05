@@ -124,6 +124,7 @@ class HoldersPage extends HookConsumerWidget {
                     ref.invalidate(topHoldersProvider);
                   },
                   builder: (context, slivers) => CustomScrollView(
+                    restorationId: 'tokenized_community_holders_page_scroll',
                     physics: const AlwaysScrollableScrollPhysics(),
                     controller: scrollController,
                     slivers: slivers,
