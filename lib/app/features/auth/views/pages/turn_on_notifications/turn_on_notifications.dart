@@ -56,7 +56,10 @@ class TurnOnNotifications extends ConsumerWidget {
                       .read(permissionsProvider.notifier)
                       .requestPermission(Permission.notifications);
                   if (context.mounted) {
-                    FeedRoute().go(context);
+                    // pop() returns to feed (already beneath this route) and
+                    // resolves the push() future in performAction, unblocking
+                    // the UI event queue for subsequent events.
+                    context.pop();
                   }
                 },
               ),
