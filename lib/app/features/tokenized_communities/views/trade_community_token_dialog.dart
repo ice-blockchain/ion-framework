@@ -11,9 +11,11 @@ import 'package:ion/app/components/message_notification/models/message_notificat
 import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/components/restricted_region_unavailable_sheet.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
+import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_holdings_tab_provider.r.dart';
 import 'package:ion/app/features/feed/providers/user_tokenized_community_data_source_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -96,6 +98,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     );
     final state = ref.watch(tradeCommunityTokenControllerProvider(params));
     final controller = ref.read(tradeCommunityTokenControllerProvider(params).notifier);
+    final showExtendedSwapErrorMessage =
+        ref.watch(envProvider.notifier).get<bool>(EnvVariable.SHOW_DEBUG_INFO);
 
     useOnInit(
       () => ref.read(walletDataSyncCoordinatorProvider).syncWalletData(),
@@ -153,6 +157,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             state.mode,
             paymentTokenName,
             communityTokenName,
+            error,
+            showExtendedSwapErrorMessage,
           );
         },
       )
@@ -462,6 +468,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     CommunityTokenTradeMode mode,
     String? paymentTokenName,
     String? communityTokenName,
+    Object error,
+    bool showExtendedSwapErrorMessage,
   ) {
     final colors = context.theme.appColors;
 
@@ -474,7 +482,9 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     _showMessage(
       messageNotificationNotifier,
-      message: context.i18n.wallet_swap_failed,
+      message: showExtendedSwapErrorMessage
+          ? _buildTradeErrorMessage(context, error)
+          : context.i18n.wallet_swap_failed,
       icon: Assets.svg.iconBlockKeywarning.icon(
         color: colors.attentionRed,
         size: 24.0.s,
@@ -483,6 +493,34 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
       buyCoinAbbreviation: buyCoinAbbreviation,
       state: MessageNotificationState.error,
     );
+  }
+
+  String _buildTradeErrorMessage(
+    BuildContext context,
+    Object error,
+  ) {
+    final base = context.i18n.wallet_swap_failed;
+    final reason = _extractTradeErrorReason(error);
+    if (reason.isEmpty) return base;
+    return '$base\nReason: $reason';
+  }
+
+  String _extractTradeErrorReason(Object error) {
+    final raw = error is IONException ? error.message : error.toString();
+
+    final normalized = raw
+        .replaceFirst('Community token trade transaction error: ', '')
+        .replaceFirst(RegExp(r'^(?:[A-Za-z0-9_]+)?Exception:\s*', caseSensitive: false), '')
+        .replaceFirst(RegExp(r'^IONException\(code:\s*\d+,\s*message:\s*'), '')
+        .replaceFirst(RegExp(r'^(?:error|reason):\s*', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\)$'), '')
+        .trim();
+
+    if (normalized.isEmpty) return '';
+    const maxLen = 220;
+    return normalized.length <= maxLen
+        ? normalized
+        : '${normalized.substring(0, maxLen).trimRight()}...';
   }
 
   void _showMessage(
