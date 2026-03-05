@@ -87,29 +87,33 @@ class RestorationDebugObserver extends StatefulWidget {
   State<RestorationDebugObserver> createState() => _RestorationDebugObserverState();
 }
 
-class _RestorationDebugObserverState extends State<RestorationDebugObserver> with RestorationMixin {
+class _RestorationDebugObserverState extends State<RestorationDebugObserver>
+    with RestorationMixin {
+  final _marker = RestorableString('');
+
   @override
   String? get restorationId => 'debug_observer';
 
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    final status = switch ((initialRestore, oldBucket != null)) {
-      (true, false) => 'Fresh launch (no restoration data)',
-      (true, true) => 'Restoring from saved state!',
-      _ => 'Bucket replaced during runtime',
-    };
-    Logger.log(
-      '[StateRestoration] restoreState | initialRestore: $initialRestore | '
-      'hasOldBucket: ${oldBucket != null} | '
-      'currentBucket: ${bucket?.restorationId} | '
-      'STATUS: $status',
-    );
+    registerForRestoration(_marker, 'debug_marker');
+
+    final wasRestored = _marker.value.isNotEmpty;
+    if (wasRestored) {
+      Logger.log(
+        '[StateRestoration] RESTORED from saved state | '
+        'previousSession: ${_marker.value}',
+      );
+    } else {
+      Logger.log('[StateRestoration] Fresh launch (no restoration data)');
+    }
+    _marker.value = DateTime.now().toIso8601String();
   }
 
   @override
-  void didUpdateRestorationId() {
-    super.didUpdateRestorationId();
-    Logger.log('[StateRestoration] Restoration ID updated to: $restorationId');
+  void dispose() {
+    _marker.dispose();
+    super.dispose();
   }
 
   @override

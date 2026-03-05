@@ -33,6 +33,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'go_router_provider.r.g.dart';
 
+bool _isRestoring = false;
+
 @Riverpod(keepAlive: true)
 GoRouter goRouter(Ref ref) {
   GoRouter.optionURLReflectsImperativeAPIs = true;
@@ -76,14 +78,26 @@ GoRouter goRouter(Ref ref) {
       }
 
       if (isInitInProgress || !isSplashAnimationCompleted) {
-        // Redirect if app is not initialized yet, but avoid re-entering Splash when already there
+        if (!isOnSplash && !_isRestoring) {
+          _isRestoring = true;
+          ref.read(splashProvider.notifier).animationCompleted = true;
+          Logger.log(
+            '[StateRestoration] Restoring - bypassing splash for: ${state.matchedLocation}',
+          );
+        }
+        if (_isRestoring) {
+          return null;
+        }
         return SplashRoute().location;
+      }
+
+      if (_isRestoring) {
+        _isRestoring = false;
+        Logger.log('[StateRestoration] Init complete - restoration done');
       }
 
       final initialNotification = ref.read(initialNotificationProvider.notifier).consume();
       if (initialNotification != null) {
-        // Navigate to feed first to establish proper back stack
-        // Then schedule notification handling after feed is loaded
         unawaited(
           Future.microtask(() async {
             await ref
