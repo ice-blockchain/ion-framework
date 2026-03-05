@@ -13,6 +13,7 @@ import 'package:ion_swap_client/utils/crypto_amount_converter.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
 import 'package:ion_swap_client/utils/hex_helper.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
+import 'package:ion_swap_client/utils/swap_constants.dart';
 
 class BridgeService {
   BridgeService({
@@ -61,6 +62,8 @@ class BridgeService {
           transaction: txObject,
           userActionSigner: ionSwapRequest.userActionSigner,
         );
+
+        await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
       }
 
       final depositStep =
