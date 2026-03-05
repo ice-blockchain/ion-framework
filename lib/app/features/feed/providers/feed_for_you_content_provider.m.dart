@@ -286,11 +286,16 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
             : switch (feedType) {
                 // Regular feeds has 20% of tokenized community,
                 // the rest is equally distributed to all modifiers
-                FeedType.post || FeedType.video || FeedType.article => {
+                FeedType.post => {
                     exploreModifier: 27,
                     FeedModifier.top(): 27,
                     FeedModifier.trending(): 27,
                     FeedModifier.tokenizedCommunity(): 20,
+                  },
+                FeedType.video || FeedType.article => {
+                    exploreModifier: 1,
+                    FeedModifier.top(): 1,
+                    FeedModifier.trending(): 1,
                   },
                 // Stories feed has only explore and trending modifiers.
                 FeedType.story => {
