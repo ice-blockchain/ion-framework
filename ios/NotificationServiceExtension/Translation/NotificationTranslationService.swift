@@ -109,7 +109,7 @@ class NotificationTranslationService {
             return nil
         }
         
-        let media = await data.getMediaPlaceholders()
+        let media = await data.getMediaPlaceholders(keysStorage: keysStorage)
         
         let groupKey: String?
         if notificationType.isChat {
