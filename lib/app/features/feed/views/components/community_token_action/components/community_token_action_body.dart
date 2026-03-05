@@ -21,6 +21,7 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_char
 import 'package:ion/app/features/user/pages/profile_page/components/profile_hodl.dart';
 import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/utils/num.dart';
+import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CommunityTokenActionBody extends HookConsumerWidget {
   const CommunityTokenActionBody({
@@ -146,26 +147,7 @@ class CommunityTokenActionBody extends HookConsumerWidget {
         PositionedDirectional(
           top: topContainerHeight - (badgeHeight - padding) / 2,
           height: badgeHeight,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 22.0.s),
-            margin: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
-            decoration: ShapeDecoration(
-              color: type.getColor(context),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(9.0.s),
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              tokenMarketInfo?.marketData.priceUSD != null
-                  ? formatToCurrency(tokenMarketInfo!.marketData.priceUSD)
-                  : '',
-              style: context.theme.appTextThemes.caption2.copyWith(
-                color: context.theme.appColors.primaryBackground,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+          child: _PriceLabel(type: type, tokenMarketInfo: tokenMarketInfo),
         ),
       ],
     );
@@ -209,7 +191,7 @@ class _PriceLabel extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         tokenMarketInfo?.marketData.priceUSD != null
-            ? market_data_formatters.formatPriceWithSubscript(tokenMarketInfo!.marketData.priceUSD)
+            ? formatToCurrency(tokenMarketInfo!.marketData.priceUSD)
             : '',
         style: context.theme.appTextThemes.caption2.copyWith(
           color: context.theme.appColors.primaryBackground,
