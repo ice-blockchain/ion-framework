@@ -120,13 +120,10 @@ class _ChatAdvancedSearchPageState extends ConsumerState<ChatAdvancedSearchPage>
                 children: categories.map((category) {
                   return switch (category) {
                     AdvancedSearchCategory.all => ChatAdvancedSearchAll(query: widget.query),
-                    AdvancedSearchCategory.people =>
-                      ChatAdvancedSearchPeople(query: widget.query),
-                    AdvancedSearchCategory.chat =>
-                      ChatAdvancedSearchChats(query: widget.query),
+                    AdvancedSearchCategory.people => ChatAdvancedSearchPeople(query: widget.query),
+                    AdvancedSearchCategory.chat => ChatAdvancedSearchChats(query: widget.query),
                     AdvancedSearchCategory.groups => AdvancedSearchGroups(query: widget.query),
-                    AdvancedSearchCategory.channels =>
-                      AdvancedSearchChannels(query: widget.query),
+                    AdvancedSearchCategory.channels => AdvancedSearchChannels(query: widget.query),
                     _ => const SizedBox.shrink(),
                   };
                 }).toList(),

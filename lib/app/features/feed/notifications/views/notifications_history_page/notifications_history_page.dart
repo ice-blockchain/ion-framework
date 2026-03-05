@@ -51,9 +51,7 @@ class _NotificationsHistoryPageState extends ConsumerState<NotificationsHistoryP
     );
     final notifications = notificationsState.notifications;
     if (notifications.isNotEmpty) {
-      await ref
-          .read(unreadNotificationsCountProvider.notifier)
-          .cancelNotifications(notifications);
+      await ref.read(unreadNotificationsCountProvider.notifier).cancelNotifications(notifications);
     }
   }
 
