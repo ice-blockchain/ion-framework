@@ -8,16 +8,26 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 extension TopHolderListSorting on List<TopHolder> {
   List<TopHolder> sortedByPriority({required String bondingCurveAddress}) {
-    return toList()
+    final indexedHolders = asMap().entries.toList()
       ..sort((a, b) {
+        final left = a.value;
+        final right = b.value;
+
         int priority(TopHolder h) {
           if (h.isBoundingCurve(bondingCurveAddress)) return 0;
           if (h.isBurning) return 1;
           return 2;
         }
 
-        return priority(a).compareTo(priority(b));
+        final byPriority = priority(left).compareTo(priority(right));
+        if (byPriority != 0) return byPriority;
+
+        final byRank = left.position.rank.compareTo(right.position.rank);
+        if (byRank != 0) return byRank;
+
+        return a.key.compareTo(b.key);
       });
+    return indexedHolders.map((entry) => entry.value).toList(growable: false);
   }
 }
 
