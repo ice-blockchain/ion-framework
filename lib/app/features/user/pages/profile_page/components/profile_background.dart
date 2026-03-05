@@ -11,12 +11,14 @@ class ProfileBackground extends HookWidget {
   const ProfileBackground({
     this.colors,
     this.disableDarkGradient = false,
+    this.darkOverlayAlpha,
     this.child,
     super.key,
   });
 
   final AvatarColors? colors;
   final bool disableDarkGradient;
+  final double? darkOverlayAlpha;
   final Widget? child;
 
   @override
@@ -33,6 +35,7 @@ class ProfileBackground extends HookWidget {
         child: ProfileGradientBackground(
           colors: targetColors,
           disableDarkGradient: disableDarkGradient,
+          darkOverlayAlpha: darkOverlayAlpha,
           child: child,
         ),
       );
@@ -41,6 +44,7 @@ class ProfileBackground extends HookWidget {
         child: ProfileGradientBackground(
           colors: targetColors,
           disableDarkGradient: disableDarkGradient,
+          darkOverlayAlpha: darkOverlayAlpha,
           child: child,
         ),
       );
@@ -52,6 +56,7 @@ class ProfileGradientBackground extends StatelessWidget {
   const ProfileGradientBackground({
     required this.colors,
     required this.disableDarkGradient,
+    this.darkOverlayAlpha,
     this.enabled = true,
     this.child,
     this.translateY,
@@ -61,6 +66,7 @@ class ProfileGradientBackground extends StatelessWidget {
 
   final AvatarColors colors;
   final bool disableDarkGradient;
+  final double? darkOverlayAlpha;
   final double? translateY;
   final Widget? child;
   final bool enabled;
@@ -93,25 +99,31 @@ class ProfileGradientBackground extends StatelessWidget {
                 ),
               ),
             ),
-            // Dark overlay gradient
             if (!disableDarkGradient)
               Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: borderRadius,
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        context.theme.appColors.forest.withValues(alpha: 0.4),
-                        context.theme.appColors.forest,
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.4, 1.0],
-                      transform: gradientTransform,
-                    ),
-                  ),
-                ),
+                child: darkOverlayAlpha != null
+                    ? DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: borderRadius,
+                          color: context.theme.appColors.forest.withValues(alpha: darkOverlayAlpha),
+                        ),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          borderRadius: borderRadius,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              context.theme.appColors.forest.withValues(alpha: 0.4),
+                              context.theme.appColors.forest,
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0.0, 0.4, 1.0],
+                            transform: gradientTransform,
+                          ),
+                        ),
+                      ),
               ),
             // Child content
             if (this.child != null) this.child!,
