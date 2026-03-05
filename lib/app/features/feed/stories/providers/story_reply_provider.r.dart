@@ -9,6 +9,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/conversation_identifier.f.dart';
 import 'package:ion/app/features/chat/community/models/entities/tags/master_pubkey_tag.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message/send_e2ee_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_reaction_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -157,6 +158,21 @@ class StoryReply extends _$StoryReply {
           );
 
       if (replyEmoji != null) {
+        // Add reaction to the database immediately for optimistic UI
+        final kind14Event =
+            ReplaceablePrivateDirectMessageEntity.fromEventMessage(sentKind14EventMessage);
+
+        final messageReactionEventMessage = await PrivateMessageReactionEntityData(
+          content: replyEmoji,
+          masterPubkey: currentUserMasterPubkey,
+          reference: kind14Event.toEventReference(),
+        ).toEventMessage(NoPrivateSigner(eventSigner.publicKey));
+
+        await ref.read(conversationMessageReactionDaoProvider).add(
+              reactionEvent: messageReactionEventMessage,
+              eventMessageDao: ref.read(eventMessageDaoProvider),
+            );
+
         await (await ref.read(sendE2eeReactionServiceProvider.future)).sendReaction(
           content: replyEmoji,
           kind14Rumor: sentKind14EventMessage,
