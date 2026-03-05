@@ -41,7 +41,7 @@ class FeedLandscapeActionToken extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return TokenCardBuilder(
       externalAddress: externalAddress,
-      skeleton: const _Skeleton(),
+      skeleton: _Skeleton(hasNotch: hasNotch),
       builder: (token, colors) {
         return SizedBox(
           width: double.infinity,
@@ -228,111 +228,73 @@ class TokenHeaderLandscape extends StatelessWidget {
 }
 
 class _Skeleton extends StatelessWidget {
-  const _Skeleton();
+  const _Skeleton({
+    required this.hasNotch,
+  });
+
+  final bool hasNotch;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsetsDirectional.symmetric(horizontal: 16.s),
-      padding: EdgeInsetsDirectional.symmetric(vertical: 11.s, horizontal: 14.s),
-      decoration: BoxDecoration(
-        color: context.theme.appColors.tertiaryBackground,
-        borderRadius: BorderRadius.circular(16.0.s),
+    return ClipPath(
+      clipper: ShapeBorderClipper(
+        shape: BottomNotchRectBorder(
+          notchPosition: hasNotch ? NotchPosition.top : NotchPosition.none,
+        ),
       ),
-      child: Column(
-        children: [
-          Skeleton(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      height: 54.s,
-                      width: 54.s,
-                      decoration: BoxDecoration(
-                        color: context.theme.appColors.attentionBlock,
-                        borderRadius: BorderRadius.circular(12.0.s),
-                      ),
-                    ),
-                    SizedBox(width: 8.s),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 115.s,
-                          height: 19.s,
-                          decoration: BoxDecoration(
-                            color: context.theme.appColors.attentionBlock,
-                            borderRadius: BorderRadius.circular(16.0.s),
-                          ),
-                        ),
-                        SizedBox(height: 8.s),
-                        Container(
-                          width: 66.s,
-                          height: 16.s,
-                          decoration: BoxDecoration(
-                            color: context.theme.appColors.attentionBlock,
-                            borderRadius: BorderRadius.circular(16.0.s),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Container(
-                      width: 80.s,
-                      height: 26.s,
-                      decoration: BoxDecoration(
-                        color: context.theme.appColors.attentionBlock,
-                        borderRadius: BorderRadius.circular(6.0.s),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 11.s),
-          Container(
-            width: 311.s,
-            decoration: BoxDecoration(
-              color: context.theme.appColors.onPrimaryAccent,
-              borderRadius: BorderRadius.circular(10.0.s),
-            ),
-            padding: EdgeInsetsDirectional.symmetric(
-              vertical: 16.s,
-            ),
-            child: Skeleton(
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsetsDirectional.symmetric(horizontal: 16.s),
+        padding: EdgeInsetsDirectional.symmetric(vertical: 11.s, horizontal: 14.s),
+        decoration: BoxDecoration(
+          color: context.theme.appColors.tertiaryBackground,
+          borderRadius: BorderRadius.circular(16.0.s),
+        ),
+        child: Column(
+          children: [
+            Skeleton(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        height: 15.s,
-                        width: 64.s,
+                        height: 54.s,
+                        width: 54.s,
                         decoration: BoxDecoration(
                           color: context.theme.appColors.attentionBlock,
                           borderRadius: BorderRadius.circular(12.0.s),
                         ),
                       ),
-                      SizedBox(width: 24.s),
-                      Container(
-                        height: 15.s,
-                        width: 64.s,
-                        decoration: BoxDecoration(
-                          color: context.theme.appColors.attentionBlock,
-                          borderRadius: BorderRadius.circular(12.0.s),
-                        ),
+                      SizedBox(width: 8.s),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 115.s,
+                            height: 19.s,
+                            decoration: BoxDecoration(
+                              color: context.theme.appColors.attentionBlock,
+                              borderRadius: BorderRadius.circular(16.0.s),
+                            ),
+                          ),
+                          SizedBox(height: 8.s),
+                          Container(
+                            width: 66.s,
+                            height: 16.s,
+                            decoration: BoxDecoration(
+                              color: context.theme.appColors.attentionBlock,
+                              borderRadius: BorderRadius.circular(16.0.s),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 24.s),
+                      const Spacer(),
                       Container(
-                        height: 15.s,
-                        width: 64.s,
+                        width: 80.s,
+                        height: 26.s,
                         decoration: BoxDecoration(
                           color: context.theme.appColors.attentionBlock,
-                          borderRadius: BorderRadius.circular(12.0.s),
+                          borderRadius: BorderRadius.circular(6.0.s),
                         ),
                       ),
                     ],
@@ -340,20 +302,69 @@ class _Skeleton extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-          SizedBox(height: 10.s),
-          Skeleton(
-            child: Container(
-              height: 16.s,
-              width: 114.s,
+            SizedBox(height: 11.s),
+            Container(
+              width: 311.s,
               decoration: BoxDecoration(
-                color: context.theme.appColors.attentionBlock,
-                borderRadius: BorderRadius.circular(16.0.s),
+                color: context.theme.appColors.onPrimaryAccent,
+                borderRadius: BorderRadius.circular(10.0.s),
+              ),
+              padding: EdgeInsetsDirectional.symmetric(
+                vertical: 16.s,
+              ),
+              child: Skeleton(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 15.s,
+                          width: 64.s,
+                          decoration: BoxDecoration(
+                            color: context.theme.appColors.attentionBlock,
+                            borderRadius: BorderRadius.circular(12.0.s),
+                          ),
+                        ),
+                        SizedBox(width: 24.s),
+                        Container(
+                          height: 15.s,
+                          width: 64.s,
+                          decoration: BoxDecoration(
+                            color: context.theme.appColors.attentionBlock,
+                            borderRadius: BorderRadius.circular(12.0.s),
+                          ),
+                        ),
+                        SizedBox(width: 24.s),
+                        Container(
+                          height: 15.s,
+                          width: 64.s,
+                          decoration: BoxDecoration(
+                            color: context.theme.appColors.attentionBlock,
+                            borderRadius: BorderRadius.circular(12.0.s),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 10.s),
-        ],
+            SizedBox(height: 10.s),
+            Skeleton(
+              child: Container(
+                height: 16.s,
+                width: 114.s,
+                decoration: BoxDecoration(
+                  color: context.theme.appColors.attentionBlock,
+                  borderRadius: BorderRadius.circular(16.0.s),
+                ),
+              ),
+            ),
+            SizedBox(height: 10.s),
+          ],
+        ),
       ),
     );
   }
