@@ -7,6 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/community_token_image.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
+import 'package:ion/app/utils/color.dart';
 import 'package:ion/app/utils/formatters.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -50,7 +51,8 @@ class YourPositionCard extends HookConsumerWidget {
               borderRadius: BorderRadius.circular(16.s),
               child: ProfileBackground(
                 colors: avatarColors,
-                disableDarkGradient: true,
+                disableDarkGradient: isColorDark((avatarColors ?? useAvatarFallbackColors).first),
+                darkOverlayAlpha: 0.3,
                 child: Padding(
                   padding: EdgeInsetsDirectional.all(12.s),
                   child: IntrinsicHeight(
