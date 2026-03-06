@@ -2,6 +2,7 @@
 
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_identity_client/src/auth/services/extract_user_id/extract_user_id_service.dart';
+import 'package:ion_identity_client/src/wallets/services/call_function/call_function_service.dart';
 import 'package:ion_identity_client/src/wallets/services/create_wallet/create_wallet_service.dart';
 import 'package:ion_identity_client/src/wallets/services/generate_signature/generate_signature_service.dart';
 import 'package:ion_identity_client/src/wallets/services/get_fees/get_fees_service.dart';
@@ -41,6 +42,7 @@ class IONIdentityWallets {
     required GetFeesService getFeesService,
     required SignAndBroadcastService signAndBroadcastService,
     required SignService signService,
+    required CallFunctionService callFunctionService,
     required ProbeRestrictedRegionService probeRestrictedRegionService,
   })  : _createWalletService = createWalletService,
         _getWalletsService = getWalletsService,
@@ -55,6 +57,7 @@ class IONIdentityWallets {
         _signAndBroadcastService = signAndBroadcastService,
         _getFeesService = getFeesService,
         _signService = signService,
+        _callFunctionService = callFunctionService,
         _probeRestrictedRegionService = probeRestrictedRegionService;
 
   final String username;
@@ -72,6 +75,7 @@ class IONIdentityWallets {
   final SignAndBroadcastService _signAndBroadcastService;
   final GetFeesService _getFeesService;
   final SignService _signService;
+  final CallFunctionService _callFunctionService;
   final ProbeRestrictedRegionService _probeRestrictedRegionService;
 
   Future<Wallet> createWallet({
@@ -265,6 +269,15 @@ class IONIdentityWallets {
         wallet: wallet,
         message: message,
         signer: signer,
+      );
+
+  Future<dynamic> callFunction({
+    required String network,
+    required CallFunctionRequest request,
+  }) =>
+      _callFunctionService.callFunction(
+        network: network,
+        request: request,
       );
 
   Future<void> probeRestrictedRegion() {
