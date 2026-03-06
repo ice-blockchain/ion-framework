@@ -142,15 +142,16 @@ class StoryViewerPage extends HookConsumerWidget {
             ? storyViewerState.userStories
                 ?.indexWhere((story) => story.toEventReference() == initialStoryReference)
             : null;
-        final currentUserPubkey = storyViewerState.currentUserPubkey;
 
-        final alreadyVisited = visitedUsers.value.contains(currentUserPubkey);
+        final alreadyVisited = visitedUsers.value.contains(storyViewerState.currentUserPubkey);
 
         // Decide fallback when all stories are viewed:
         // - revisiting within this viewer session => use last remembered index
         // - opening directly => start from 0
         final fallbackWhenAllViewed = alreadyVisited
-            ? ref.read(storyIndexKeeperProvider.notifier).getStoryIndex(currentUserPubkey)
+            ? ref
+                .read(storyIndexKeeperProvider.notifier)
+                .getStoryIndex(storyViewerState.currentUserPubkey)
             : 0;
 
         // Compute the target index once
@@ -159,13 +160,16 @@ class StoryViewerPage extends HookConsumerWidget {
 
         if (moveToIndex != -1 && moveToIndex < userStoriesCount) {
           ref
-              .watch(singleUserStoryViewingControllerProvider(currentUserPubkey).notifier)
+              .watch(
+                singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey)
+                    .notifier,
+              )
               .moveToStoryIndex(moveToIndex);
         }
 
         // Mark user as visited for this session
         if (!alreadyVisited) {
-          visitedUsers.value.add(currentUserPubkey);
+          visitedUsers.value.add(storyViewerState.currentUserPubkey);
         }
       },
       // Do not include [viewedStories] to dependencies intentionally.
