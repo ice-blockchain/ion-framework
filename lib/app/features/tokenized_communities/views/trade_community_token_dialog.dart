@@ -49,6 +49,7 @@ import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
+import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/crypto.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -367,6 +368,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     TradeCommunityTokenControllerParams params,
     CommunityTokenTradeMode mode,
   ) async {
+    hideKeyboard(context);
     Logger.info(
       '[TradeCommunityTokenDialog] Button pressed | mode=$mode | externalAddress=${params.externalAddress}',
     );
@@ -581,6 +583,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
 class _AppBar extends StatelessWidget {
   const _AppBar({required this.state, required this.controller});
+
   final TradeCommunityTokenState state;
   final TradeCommunityTokenController controller;
 
