@@ -457,10 +457,17 @@ class IonConnectPushDataPayload: Decodable {
     }
 
     private func checkRequiredRelevantEvents() -> Bool {
-        if event.kind == IonConnectGiftWrapEntity.kind {
+        let skipDelegationKinds = [
+            IonConnectGiftWrapEntity.kind,
+            TokenPriceChangeResponseEntity.kind,
+            TokenBuyingActivityResponseEntity.kind,
+            TokenGlobalStatResponseEntity.kind
+        ]
+
+        if skipDelegationKinds.contains(event.kind) {
             return true
         } else {
-            // For all events except 1059 we need to check if delegation is present
+            // For the rest cases we need to check if delegation is present
             // in the relevant events and the main event valid for it
             let delegationEvent = relevantEvents.first { event in
                 return event.kind == UserDelegationEntity.kind
