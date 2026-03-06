@@ -522,6 +522,18 @@ class IonConnectPushDataPayload {
       data['ticker'] = entity.data.tokenTicker;
     }
 
+    if (entity is TokenPriceChangeResponseEntity) {
+      data['priceIncreasePercentage'] = entity.data.request.data.params.deltaPercentage.toString();
+    }
+
+    if (entity is TokenBuyingActivityResponseEntity) {
+      data['ticker'] = entity.data.tokenAction.data.tokenTicker;
+    }
+
+    if (entity is TokenGlobalStatResponseEntity) {
+      data['ticker'] = entity.data.tokenAction.data.tokenTicker;
+    }
+
     return data;
   }
 
