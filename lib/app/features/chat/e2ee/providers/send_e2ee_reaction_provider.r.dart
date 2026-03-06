@@ -56,10 +56,13 @@ class SendE2eeReactionService {
     required EventMessage kind14Rumor,
   }) async {
     final kind14Event = ReplaceablePrivateDirectMessageEntity.fromEventMessage(kind14Rumor);
+    final quotedKind16 = kind14Event.data.quotedEvent;
+
     final messageReactionEventMessage = await PrivateMessageReactionEntityData(
       content: content,
       masterPubkey: currentUserMasterPubkey,
       reference: kind14Event.toEventReference(),
+      quotedEvent: quotedKind16,
     ).toEventMessage(NoPrivateSigner(eventSigner!.publicKey));
 
     await conversationMessageReactionDaoProvider.add(

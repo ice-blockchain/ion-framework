@@ -109,9 +109,13 @@ class NotificationDataParser {
 
     final (avatar, media) = await data.getMediaPlaceholders(getRelatedEntity: getRelatedEntity);
 
-    final groupKey = notificationType.isChat
-        ? await _getConversationId(data.decryptedEvent)
-        : _getNotificationGroupKey(data.mainEntity);
+    final groupKey = switch (notificationType) {
+      PushNotificationType.chatReaction ||
+      PushNotificationType.chatStoryReaction =>
+        await _getConversationId(data.decryptedEvent),
+      _ when notificationType.isChat => await _getConversationId(data.decryptedEvent),
+      _ => _getNotificationGroupKey(data.mainEntity),
+    };
 
     return NotificationParsedData(
       title: result.title,
@@ -267,6 +271,10 @@ class NotificationDataParser {
             await translator.translate((t) => t.chatReaction?.title),
             await translator.translate((t) => t.chatReaction?.body)
           ),
+        PushNotificationType.chatStoryReaction => (
+            await translator.translate((t) => t.reactToStory?.title),
+            await translator.translate((t) => t.reactToStory?.body),
+          ),
         PushNotificationType.chatSharePostMessage => (
             await translator.translate((t) => t.chatSharePostMessage?.title),
             await translator.translate((t) => t.chatSharePostMessage?.body)
@@ -280,8 +288,8 @@ class NotificationDataParser {
             await translator.translate((t) => t.chatShareStoryMessage?.body)
           ),
         PushNotificationType.chatSharedStoryReplyMessage => (
-            await translator.translate((t) => t.chatSharedStoryReplyMessage?.title),
-            await translator.translate((t) => t.chatSharedStoryReplyMessage?.body)
+            await translator.translate((t) => t.replyToStory?.title),
+            await translator.translate((t) => t.replyToStory?.body)
           ),
         PushNotificationType.chatTextMessage => (
             await translator.translate((t) => t.chatTextMessage?.title),

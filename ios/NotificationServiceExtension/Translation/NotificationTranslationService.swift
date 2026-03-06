@@ -216,6 +216,8 @@ class NotificationTranslationService {
                 return translations.chatProfileMessage
             case .chatReaction:
                 return translations.chatReaction
+            case .chatStoryReaction:
+                return translations.reactToStory
             case .chatSharePostMessage:
                 return translations.chatSharePostMessage
             case .chatShareArticleMessage:
@@ -223,7 +225,7 @@ class NotificationTranslationService {
             case .chatShareStoryMessage:
                 return translations.chatShareStoryMessage
             case .chatSharedStoryReplyMessage:
-                return translations.chatSharedStoryReplyMessage
+                return translations.replyToStory
             case .chatTextMessage:
                 return translations.chatTextMessage
             case .chatVideoMessage:
