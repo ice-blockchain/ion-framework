@@ -18,9 +18,9 @@ import 'package:ion/app/hooks/use_animated_opacity_on_scroll.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_back_button.dart';
 import 'package:ion/app/services/clipboard/clipboard.dart';
+import 'package:ion/app/services/share/share.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
-import 'package:share_plus/share_plus.dart';
 
 part 'components/earnings_card.dart';
 part 'components/ion_card.dart';
@@ -163,7 +163,7 @@ class InviteFriendsPage extends HookConsumerWidget {
                     style: context.theme.appTextThemes.body,
                   ),
                   onPressed: () {
-                    Share.share(
+                    shareContent(
                       '${context.i18n.invite_friends_shared_link_text} https://online.io/@$referralCode',
                     );
                   },
