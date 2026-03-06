@@ -46,7 +46,8 @@ class CreatorTokensPage extends HookConsumerWidget {
     final searchFocusNode = useFocusNode();
     final searchFocused = useNodeFocused(searchFocusNode);
     final searchQuery = useState('');
-    final debouncedQuery = useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '';
+    final debouncedQuery =
+        (useDebounced(searchQuery.value, const Duration(milliseconds: 300)) ?? '').trim();
 
     useEffect(
       () {
@@ -297,7 +298,7 @@ class CreatorTokensPage extends HookConsumerWidget {
                     ];
                   },
                   body: CreatorTokensBody(
-                    searchQuery: searchQuery.value,
+                    searchQuery: searchQuery.value.trim(),
                     isGlobalSearchVisible: isGlobalSearchVisible.value,
                     tabController: tabController,
                   ),
