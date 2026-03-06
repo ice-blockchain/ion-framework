@@ -242,14 +242,17 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
 
     final coinsFilteredByWallet = coinsState.hasValue ? coinsState.value! : <CoinInWalletData>[];
 
+    final isSwapType = [NetworkListViewType.swapBuy, NetworkListViewType.swapSell].contains(type);
+    final isOtherSideInternal =
+        otherCoin != null && SwapCoinIdentifier.isInternalCoinGroup(otherCoin);
+
     final filteredCoins = coinsFilteredByWallet.where(
       (coin) {
-        //todo remove after release,
-        //filters out ICE ETH
-        if ([NetworkListViewType.swapBuy, NetworkListViewType.swapSell].contains(type)) {
-          if (SwapCoinIdentifier.isEthNetwork(coin.coin.network.id)) {
-            return false;
-          }
+        // Filter out ETH only for ICE↔ION swaps (when other side is internal)
+        if (isSwapType &&
+            isOtherSideInternal &&
+            SwapCoinIdentifier.isEthNetwork(coin.coin.network.id)) {
+          return false;
         }
 
         if (otherCoin == null || otherNetwork == null) return true;
@@ -261,8 +264,8 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
           if (isSameNetwork) return false;
         }
 
-        // Filter by swap rules for buy network selection
-        if ([NetworkListViewType.swapBuy, NetworkListViewType.swapSell].contains(type)) {
+        // ICE↔ION only: restrict to Bsc/Ion when the other side is ICE or ION
+        if (isSwapType && isOtherSideInternal) {
           return SwapCoinIdentifier.isInternalNetwork(coin.coin.network.id);
         }
 
