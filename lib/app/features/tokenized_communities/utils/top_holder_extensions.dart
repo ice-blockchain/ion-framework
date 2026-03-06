@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:collection/collection.dart';
 import 'package:ion/app/features/tokenized_communities/views/pages/holders/models/holder_tile_data.dart';
 import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/crypto.dart';
@@ -8,16 +9,28 @@ import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 extension TopHolderListSorting on List<TopHolder> {
   List<TopHolder> sortedByPriority({required String bondingCurveAddress}) {
-    return toList()
-      ..sort((a, b) {
-        int priority(TopHolder h) {
-          if (h.isBoundingCurve(bondingCurveAddress)) return 0;
-          if (h.isBurning) return 1;
-          return 2;
-        }
+    final sorted = toList(growable: false);
 
-        return priority(a).compareTo(priority(b));
-      });
+    int priority(TopHolder h) {
+      if (h.isBoundingCurve(bondingCurveAddress)) return 0;
+      if (h.isBurning) return 1;
+      return 2;
+    }
+
+    mergeSort(
+      sorted,
+      compare: (left, right) {
+        final byPriority = priority(left).compareTo(priority(right));
+        if (byPriority != 0) return byPriority;
+
+        final byRank = left.position.rank.compareTo(right.position.rank);
+        if (byRank != 0) return byRank;
+
+        return 0;
+      },
+    );
+
+    return sorted;
   }
 }
 
