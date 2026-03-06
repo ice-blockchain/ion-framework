@@ -18,7 +18,6 @@ import 'package:ion/app/features/protect_account/secure_account/providers/select
 import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
-import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
 typedef RecoveryCreds = ({String name, String id, String code});
@@ -43,7 +42,7 @@ class RecoverUserPage extends HookConsumerWidget {
       step: step,
       recoveryChallengeRef: recoveryChallengeRef,
     );
-    _listenCompleteRecoverResult(ref, step: step, recoveryCreds: recoveryCreds);
+    _listenCompleteRecoverResult(ref);
 
     return switch (step.value) {
       RecoverUserStep.recoveryCreds => RecoveryCredsStep(
@@ -89,8 +88,9 @@ class RecoverUserPage extends HookConsumerWidget {
                 ? RecoverUserStep.twoFAInput
                 : RecoverUserStep.recoveryCreds;
           },
-          isLoading:
-              ref.watch(completeUserRecoveryActionNotifierProvider.select((it) => it.isLoading)),
+          isLoading: ref.watch(
+            completeUserRecoveryActionNotifierProvider.select((it) => it.isLoading),
+          ),
           onContinue: (newPassword) => _completeRecoveryWithPassword(
             ref,
             recoveryCreds: recoveryCreds.value!,
@@ -205,23 +205,12 @@ class RecoverUserPage extends HookConsumerWidget {
       });
   }
 
-  void _listenCompleteRecoverResult(
-    WidgetRef ref, {
-    required ValueNotifier<RecoverUserStep> step,
-    required ObjectRef<RecoveryCreds?> recoveryCreds,
-  }) {
+  void _listenCompleteRecoverResult(WidgetRef ref) {
     ref.listenSuccess(
       completeUserRecoveryActionNotifierProvider,
       (value) {
         value?.whenOrNull(
           success: () async {
-            final creds = recoveryCreds.value;
-            if (creds == null) return;
-            final wasPasskeyCompletion = step.value != RecoverUserStep.setNewPassword;
-            if (wasPasskeyCompletion) {
-              final ionIdentity = await ref.read(ionIdentityProvider.future);
-              await ionIdentity(username: creds.name).auth.clearPasswordUserState();
-            }
             if (ref.context.mounted) {
               await RecoverUserSuccessRoute().push<void>(ref.context);
             }
