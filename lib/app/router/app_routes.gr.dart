@@ -316,7 +316,7 @@ class ModalShellRouteData extends ShellRouteData {
 
     return ModalSheetPage(
       key: state.pageKey,
-      restorationId: state.pageKey.value,
+      restorationId: 'modalShell-${state.matchedLocation}',
       child: ModalWrapper(child: navigator),
       barrierColor: context.theme.appColors.backgroundSheet,
       barrierDismissible: isBarrierDismissible,

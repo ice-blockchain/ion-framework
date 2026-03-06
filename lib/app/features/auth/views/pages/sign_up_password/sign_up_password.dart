@@ -106,6 +106,7 @@ class SignUpPasswordPage extends HookConsumerWidget {
                       errorText: passwordsError.value,
                       onFocused: (value) => passwordInputFocused.value = value,
                       onValueChanged: onFocusedPasswordValue,
+                      restorationId: 'password_input_1',
                     ),
                     SizedBox(height: 16.0.s),
                     PasswordInput(
@@ -115,6 +116,7 @@ class SignUpPasswordPage extends HookConsumerWidget {
                       errorText: passwordsError.value,
                       onFocused: (value) => passwordConfirmationInputFocused.value = value,
                       onValueChanged: onFocusedPasswordValue,
+                      restorationId: 'password_input_2',
                     ),
                     SizedBox(height: 16.0.s),
                     PasswordValidation(

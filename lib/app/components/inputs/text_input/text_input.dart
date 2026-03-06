@@ -8,6 +8,7 @@ import 'package:ion/app/components/inputs/text_input/components/text_field_conte
 import 'package:ion/app/components/inputs/text_input/components/text_input_decoration.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
+import 'package:ion/app/services/logger/logger.dart';
 
 class TextInput extends HookWidget {
   TextInput({
@@ -96,7 +97,10 @@ class TextInput extends HookWidget {
   Widget build(BuildContext context) {
     final focusNode = useFocusNode();
     final error = useState<String?>(null);
-    final hasValue = useState(initialValue.isNotEmpty || (controller?.text.isNotEmpty ?? false));
+
+    final hasValue = useState(
+      initialValue.isNotEmpty || (controller?.text.isNotEmpty ?? false),
+    );
     final hasFocus = useNodeFocused(focusNode);
 
     useOnInit(
@@ -123,14 +127,16 @@ class TextInput extends HookWidget {
       }
     }
 
-    return TextFormField(
-      restorationId: restorationId,
+    final useWrapper = restorationId != null && controller != null;
+
+    Widget textFormField = TextFormField(
+      restorationId: useWrapper ? null : restorationId,
       scrollPadding: scrollPadding.resolve(Directionality.of(context)),
       controller: controller,
       focusNode: focusNode,
       onChanged: onChangedHandler,
       onTapOutside: onTapOutside,
-      initialValue: initialValue,
+      initialValue: controller == null ? initialValue : null,
       maxLines: maxLines,
       minLines: minLines,
       enabled: enabled,
@@ -172,5 +178,89 @@ class TextInput extends HookWidget {
         floatingLabelColor: floatingLabelColor,
       ),
     );
+
+    if (useWrapper) {
+      textFormField = _RestorableTextFieldWrapper(
+        restorationId: restorationId!,
+        controller: controller!,
+        onHasValueChanged: (value) => hasValue.value = value,
+        child: textFormField,
+      );
+    }
+
+    return textFormField;
   }
+}
+
+class _RestorableTextFieldWrapper extends StatefulWidget {
+  const _RestorableTextFieldWrapper({
+    required this.restorationId,
+    required this.controller,
+    required this.onHasValueChanged,
+    required this.child,
+  });
+
+  final String restorationId;
+  final TextEditingController controller;
+  final ValueChanged<bool> onHasValueChanged;
+  final Widget child;
+
+  @override
+  State<_RestorableTextFieldWrapper> createState() =>
+      _RestorableTextFieldWrapperState();
+}
+
+class _RestorableTextFieldWrapperState
+    extends State<_RestorableTextFieldWrapper> with RestorationMixin {
+  final _text = RestorableString('');
+
+  @override
+  String get restorationId => widget.restorationId;
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_text, 'text');
+    if (_text.value.isNotEmpty && widget.controller.text != _text.value) {
+      widget.controller.text = _text.value;
+      widget.onHasValueChanged(true);
+      Logger.log(
+        '[StateRestoration] TextInput restored: '
+        'id=$restorationId, text=${_text.value}',
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.controller.text.isNotEmpty) {
+      _text.value = widget.controller.text;
+    }
+    widget.controller.addListener(_onControllerChanged);
+  }
+
+  @override
+  void didUpdateWidget(_RestorableTextFieldWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onControllerChanged);
+      widget.controller.addListener(_onControllerChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
+    _text.dispose();
+    super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (_text.value != widget.controller.text) {
+      _text.value = widget.controller.text;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
