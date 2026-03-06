@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/core/extensions/ref_lifecycle_listen_extension.dart';
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/domain/content_payment_token_resolver_service.dart';
@@ -107,6 +108,19 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     );
 
     ref
+      ..listenOnLifecycleTransition(
+        from: AppLifecycleStatus.resumed,
+        onTransition: (_, __) {
+          _quoteController?.cancel();
+          state = state.copyWith(isQuoting: false);
+        },
+        fireImmediately: true,
+      )
+      ..listenOnLifecycleTransition(
+        to: AppLifecycleStatus.resumed,
+        onTransition: (_, __) => _scheduleQuoteUpdates(),
+        fireImmediately: true,
+      )
       ..listen(currentWalletViewDataProvider, (_, __) => _updateDerivedState())
       ..listen(walletsNotifierProvider, (_, __) => _updateDerivedState())
       ..listen(
