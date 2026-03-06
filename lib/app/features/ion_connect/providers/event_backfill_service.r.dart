@@ -24,18 +24,25 @@ class EventBackfillService {
   final IonConnectNotifier ionConnectNotifier;
   final Ref ref;
 
+  /// Starts a paginated backfill of events matching [filter].
+  ///
+  /// [latestEventTimestamp] is used as the `since` filter on the first page (events
+  /// with `created_at` after this time). If null, no `since` is applied ("fetch all").
+  /// Other callers (e.g. global subscription) pass a timestamp to resume from last known.
   Future<(int lastCreatedAt, bool isDone)> startBackfill({
-    required int latestEventTimestamp,
     required RequestFilter filter,
     required void Function(EventMessage event) onEvent,
+    int? latestEventTimestamp,
     int? limit,
     ActionSource? actionSource,
   }) async {
     int? tmpLastCreatedAt;
     var tmpIsDone = false;
+    // When latestEventTimestamp is null we use 0 for initialLatestEventTimestamp
+    // (only for backgrounded return and initial maxCreatedAt; filter since stays null).
     while (true) {
       final (maxCreatedAt, stopFetching, isDone) = await _fetchPagedEvents(
-        initialLatestEventTimestamp: latestEventTimestamp,
+        initialLatestEventTimestamp: latestEventTimestamp ?? 0,
         regularSince: tmpLastCreatedAt ?? latestEventTimestamp,
         filter: filter,
         limit: limit,

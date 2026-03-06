@@ -102,7 +102,12 @@ class ModifiablePostData
     required EntityPublishedAt publishedAt,
     EntityEditingEndedAt? editingEndedAt,
     EntityExpiration? expiration,
+
+    /// Reference to a post that is quoted (e.g. quote-tweet).
     QuotedEvent? quotedEvent,
+
+    /// Parent references for reply/thread. When non-empty, this post is a reply (comment).
+    /// Uses markers [RelatedEventMarker.reply] and optionally [RelatedEventMarker.root].
     List<RelatedEvent>? relatedEvents,
     List<RelatedPubkey>? relatedPubkeys,
     List<RelatedHashtag>? relatedHashtags,

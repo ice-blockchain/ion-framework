@@ -52,6 +52,8 @@ List<EntitiesDataSource>? repliesDataSource(
             ).extensions,
             ...SearchExtensions.withAuthors(forKind: PostEntity.kind).extensions,
             ExpirationSearchExtension(expiration: false),
+            ...SearchExtensions.withTokens().extensions,
+            ...SearchExtensions.withTokens(forKind: PostEntity.kind).extensions,
           ],
         ).toString(),
         limit: 10,

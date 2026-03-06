@@ -15,8 +15,6 @@ import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.
 import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
-import 'package:ion/app/features/ion_connect/model/related_event.f.dart';
-import 'package:ion/app/features/ion_connect/model/related_event_marker.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/event_backfill_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
@@ -75,8 +73,12 @@ Future<void>? migrateTokenDefinitionsService(Ref ref) async {
     final migrationCtx = MigrationContext();
     final filter = _buildRequestFilter(currentUserMasterPubkey);
 
+    // Use profile creation time so we fetch all content by this author. registeredAt is set once
+    // at onboarding (kind-0 content) and preserved on profile updates;
+    final migrationSince = userMetadata.data.registeredAt;
+
     final (_, isDone) = await ref.watch(eventBackfillServiceProvider).startBackfill(
-          latestEventTimestamp: userMetadata.createdAt,
+          latestEventTimestamp: migrationSince,
           limit: 20,
           filter: filter,
           onEvent: migrationCtx.processEvent,
@@ -165,16 +167,6 @@ RequestFilter _buildRequestFilter(String currentUserMasterPubkey) {
     ],
     authors: [currentUserMasterPubkey],
     search: SearchExtensions([
-      TagMarkerSearchExtension(
-        tagName: RelatedReplaceableEvent.tagName,
-        marker: RelatedEventMarker.reply.toShortString(),
-        negative: true,
-      ),
-      TagMarkerSearchExtension(
-        tagName: RelatedImmutableEvent.tagName,
-        marker: RelatedEventMarker.reply.toShortString(),
-        negative: true,
-      ),
       ExpirationSearchExtension(expiration: false),
       ...SearchExtensions.withTokens().extensions,
       ...SearchExtensions.withTokens(forKind: PostEntity.kind).extensions,
