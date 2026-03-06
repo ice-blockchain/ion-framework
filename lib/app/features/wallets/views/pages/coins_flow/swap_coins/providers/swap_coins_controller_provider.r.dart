@@ -324,7 +324,7 @@ class SwapCoinsController extends _$SwapCoinsController {
         decimal: sellCoin.coin.decimals,
       ),
       isBridge: buyCoinGroup == sellCoinGroup,
-      amount: amount.toString(),
+      amount: amount.toStringAsFixed(sellCoin.coin.decimals),
       userBuyAddress: buyAddress,
       userSellAddress: sellAddress,
     );
