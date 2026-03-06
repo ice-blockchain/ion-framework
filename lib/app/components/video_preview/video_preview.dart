@@ -68,7 +68,7 @@ class VideoPreview extends HookConsumerWidget {
                 sourcePath: videoUrl,
                 authorPubkey: authorPubkey,
                 looping: true,
-                uniqueId: '$uniqueControllerId-$mediaIndex',
+                uniqueId: uniqueControllerId,
                 onlyOneShouldPlay: onlyOneShouldPlay,
               ),
             ),
@@ -81,11 +81,13 @@ class VideoPreview extends HookConsumerWidget {
     useRoutePresence(
       onBecameInactive: () {
         if (context.mounted) {
-          // Save the current position of the video
           if (controller != null) {
             ref
                 .read(videoPlayerPositionDataProvider.notifier)
                 .savePosition(videoUrl, controller.value.position.inMilliseconds);
+            try {
+              controller.pause();
+            } catch (_) {}
           }
           isRouteFocused.value = false;
         }
