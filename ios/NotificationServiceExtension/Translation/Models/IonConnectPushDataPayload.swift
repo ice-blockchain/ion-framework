@@ -264,6 +264,14 @@ class IonConnectPushDataPayload: Decodable {
             return getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity)
         } else if let entity = entity as? CommunityTokenActionEntity {
             return getTokenIsBoughtNotificationType(currentPubkey: currentPubkey, entity: entity)
+        } else if let entity = entity as? TokenPriceChangeResponseEntity,
+                  entity.data.tokenDefinitionReference.masterPubkey == currentPubkey {
+            return .yourCreatorTokenPriceIncreased
+        } else if let entity = entity as? TokenGlobalStatResponseEntity,
+                  entity.data.request.input == .trending {
+            return .trendingToken
+        } else if entity is TokenBuyingActivityResponseEntity {
+            return .moreBuyersJoined
         }
 
         return nil
