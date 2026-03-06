@@ -134,13 +134,17 @@ class StoryViewerPage extends HookConsumerWidget {
         if (isLoading || isEmpty) {
           return;
         }
-        final firstNotViewedStoryIndex = storyViewerState.userStories?.indexWhere(
-              (story) => !viewedStories.contains(story.toEventReference()),
-            ) ??
-            -1;
+        final currentUserPubkey = storyViewerState.currentUserPubkey;
+        final stories = ref.read(userStoriesProvider(currentUserPubkey))?.toList() ?? [];
+        if (stories.isEmpty) return;
+
+        final firstNotViewedStoryIndex = stories.indexWhere(
+          (story) => !viewedStories.contains(story.toEventReference()),
+        );
         final initialStoryIndex = initialStoryReference != null
-            ? storyViewerState.userStories
-                ?.indexWhere((story) => story.toEventReference() == initialStoryReference)
+            ? stories.indexWhere(
+                (story) => story.toEventReference() == initialStoryReference,
+              )
             : null;
 
         final alreadyVisited = visitedUsers.value.contains(storyViewerState.currentUserPubkey);
@@ -158,7 +162,7 @@ class StoryViewerPage extends HookConsumerWidget {
         final moveToIndex = initialStoryIndex ??
             (firstNotViewedStoryIndex != -1 ? firstNotViewedStoryIndex : fallbackWhenAllViewed);
 
-        if (moveToIndex != -1 && moveToIndex < userStoriesCount) {
+        if (moveToIndex != -1 && moveToIndex < stories.length) {
           ref
               .watch(
                 singleUserStoryViewingControllerProvider(storyViewerState.currentUserPubkey)
