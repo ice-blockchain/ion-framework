@@ -200,7 +200,11 @@ class CachedTokenMarketInfoNotifier extends _$CachedTokenMarketInfoNotifier {
     }
 
     final currentPosition = token.marketData.position;
-    if (currentPosition == null) return token;
+    //if user sold all tokens the position might be null
+    if (currentPosition == null) {
+      _expectedPositionWei = null;
+      return token;
+    }
 
     final incomingAmountWei = BigInt.tryParse(currentPosition.amount) ?? BigInt.zero;
 
