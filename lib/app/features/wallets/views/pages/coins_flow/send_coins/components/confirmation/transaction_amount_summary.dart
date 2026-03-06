@@ -36,12 +36,17 @@ class TransactionAmountSummary extends StatelessWidget {
           children: [
             icon,
             SizedBox(width: 8.0.s),
-            Text(
-              '${transactionType.sign}${formatCryptoFull(amount, currency: currency)}',
-              style: textTheme.headline2.copyWith(
-                color: transactionType == TransactionType.receive && !isFailed
-                    ? colors.success
-                    : colors.primaryText,
+            Flexible(
+              child: Text(
+                '${transactionType.sign}${formatCryptoFull(amount, currency: currency)}',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.headline2.copyWith(
+                  color: transactionType == TransactionType.receive && !isFailed
+                      ? colors.success
+                      : colors.primaryText,
+                ),
               ),
             ),
           ],
