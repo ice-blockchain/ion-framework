@@ -17,6 +17,7 @@ import 'package:ion/app/features/user/pages/profile_page/components/profile_deta
 import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/num.dart';
 import 'package:ion/app/utils/username.dart';
@@ -96,13 +97,16 @@ class ProfileTokenHeader extends ConsumerWidget {
         Stack(
           clipBehavior: Clip.none,
           children: [
-            TokenAvatar(
-              imageSize: Size.square(82.s),
-              containerSize: Size.square(92.s),
-              outerBorderRadius: 20.0.s,
-              innerBorderRadius: 16.0.s,
-              imageUrl: token.imageUrl,
-              borderWidth: 2.s,
+            GestureDetector(
+              onTap: () => AvatarOverlayRoute(pubkey: creatorPubkey).push<void>(context),
+              child: TokenAvatar(
+                imageSize: Size.square(82.s),
+                containerSize: Size.square(92.s),
+                outerBorderRadius: 20.0.s,
+                innerBorderRadius: 16.0.s,
+                imageUrl: token.imageUrl,
+                borderWidth: 2.s,
+              ),
             ),
             // Disable actions for own profile token
             if (!isCurrentUserProfile)

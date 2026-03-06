@@ -351,7 +351,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
                 ),
               ),
             ),
-            SizedBox(height: 30.0.s),
+            SizedBox(height: 20.0.s),
           ],
           Builder(
             builder: (context) {

@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gif/gif.dart';
@@ -61,6 +59,15 @@ class GifPreview extends HookConsumerWidget {
           .getSingleFile(resolvedUrl)
           .then((file) => file.readAsBytes()),
       [resolvedUrl],
+    );
+    final gifBytesSnapshot = useFuture(gifBytesFuture);
+    final gifImage = useMemoized(
+      () {
+        final bytes = gifBytesSnapshot.data;
+        if (bytes == null) return null;
+        return MemoryImage(bytes);
+      },
+      [gifBytesSnapshot.data],
     );
 
     final isVideoPlaybackEnabled = ref.watch(feedVideoPlaybackEnabledNotifierProvider);
@@ -148,29 +155,26 @@ class GifPreview extends HookConsumerWidget {
 
           return ColoredBox(
             color: context.theme.appColors.primaryBackground,
-            child: FutureBuilder<List<int>>(
-              future: gifBytesFuture,
-              builder: (context, snapshot) {
+            child: Builder(
+              builder: (context) {
                 final placeholder = _StaticPlaceholder(
                   authorPubkey: authorPubkey,
                   aspectRatio: effectiveAspectRatio,
                   thumbnailUrl: thumbnailUrl,
                   blurhash: blurhash,
                 );
-                if (!snapshot.hasData) return placeholder;
-
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  VisibilityDetectorController.instance.notifyNow();
-                });
+                if (gifImage == null) return placeholder;
 
                 return Gif(
-                  image: MemoryImage(Uint8List.fromList(snapshot.requireData)),
+                  image: gifImage,
                   controller: controller,
                   fit: BoxFit.cover,
                   placeholder: (_) => placeholder,
                   onFetchCompleted: () {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (context.mounted) isGifLoaded.value = true;
+                      if (!context.mounted) return;
+                      isGifLoaded.value = true;
+                      VisibilityDetectorController.instance.notifyNow();
                     });
                   },
                 );
