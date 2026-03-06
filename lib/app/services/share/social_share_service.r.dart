@@ -4,8 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/services/clipboard/clipboard.dart';
 import 'package:ion/app/services/deep_link/appsflyer_deep_link_service.r.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
+import 'package:ion/app/services/share/share.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:social_sharing_plus/social_sharing_plus.dart';
 
 part 'social_share_service.r.g.dart';
@@ -101,7 +101,7 @@ class SocialShareService {
       ogImageUrl: imageUrl,
       ogDescription: description,
     );
-    await Share.share(url);
+    await shareContent(url);
   }
 
   Future<void> shareToClipboard({

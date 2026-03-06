@@ -20,33 +20,33 @@ class Logger {
         useConsoleLogs: verbose,
         maxHistoryItems: 100000,
         colors: {
-          TalkerLogType.critical.key: AnsiPen()..xterm(196), // Bright red
-          TalkerLogType.warning.key: AnsiPen()..xterm(214), // Golden yellow
-          TalkerLogType.verbose.key: AnsiPen()..xterm(244), // Medium gray
-          TalkerLogType.info.key: AnsiPen()..xterm(75), // Clear blue
-          TalkerLogType.debug.key: AnsiPen()..xterm(242), // Darker gray
-          TalkerLogType.error.key: AnsiPen()..xterm(160), // Deep red
-          TalkerLogType.exception.key: AnsiPen()..xterm(197), // Bright pink
+          TalkerKey.critical: AnsiPen()..xterm(196), // Bright red
+          TalkerKey.warning: AnsiPen()..xterm(214), // Golden yellow
+          TalkerKey.verbose: AnsiPen()..xterm(244), // Medium gray
+          TalkerKey.info: AnsiPen()..xterm(75), // Clear blue
+          TalkerKey.debug: AnsiPen()..xterm(242), // Darker gray
+          TalkerKey.error: AnsiPen()..xterm(160), // Deep red
+          TalkerKey.exception: AnsiPen()..xterm(197), // Bright pink
 
           // Http section
-          TalkerLogType.httpError.key: AnsiPen()..xterm(160), // Deep red
-          TalkerLogType.httpRequest.key: AnsiPen()..xterm(69), // Teal
-          TalkerLogType.httpResponse.key: AnsiPen()..xterm(71), // Bright green
+          TalkerKey.httpError: AnsiPen()..xterm(160), // Deep red
+          TalkerKey.httpRequest: AnsiPen()..xterm(69), // Teal
+          TalkerKey.httpResponse: AnsiPen()..xterm(71), // Bright green
 
           // Bloc section
-          TalkerLogType.blocEvent.key: AnsiPen()..xterm(68), // Ocean blue
-          TalkerLogType.blocTransition.key: AnsiPen()..xterm(140), // Purple
-          TalkerLogType.blocCreate.key: AnsiPen()..xterm(72), // Sea green
-          TalkerLogType.blocClose.key: AnsiPen()..xterm(161), // Magenta
+          TalkerKey.blocEvent: AnsiPen()..xterm(68), // Ocean blue
+          TalkerKey.blocTransition: AnsiPen()..xterm(140), // Purple
+          TalkerKey.blocCreate: AnsiPen()..xterm(72), // Sea green
+          TalkerKey.blocClose: AnsiPen()..xterm(161), // Magenta
 
           // Riverpod section
-          TalkerLogType.riverpodAdd.key: AnsiPen()..xterm(67), // Steel blue
-          TalkerLogType.riverpodUpdate.key: AnsiPen()..xterm(71), // Bright green
-          TalkerLogType.riverpodDispose.key: AnsiPen()..xterm(161), // Magenta
-          TalkerLogType.riverpodFail.key: AnsiPen()..xterm(160), // Deep red
+          TalkerKey.riverpodAdd: AnsiPen()..xterm(67), // Steel blue
+          TalkerKey.riverpodUpdate: AnsiPen()..xterm(71), // Bright green
+          TalkerKey.riverpodDispose: AnsiPen()..xterm(161), // Magenta
+          TalkerKey.riverpodFail: AnsiPen()..xterm(160), // Deep red
 
           // Flutter section
-          TalkerLogType.route.key: AnsiPen()..xterm(140), // Purple
+          TalkerKey.route: AnsiPen()..xterm(140), // Purple
         },
       ),
     );
