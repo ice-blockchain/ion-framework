@@ -23,6 +23,10 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart'
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_input.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_response.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_delegation.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -142,6 +146,14 @@ class IonConnectPushDataPayload {
       return _getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity);
     } else if (entity is CommunityTokenActionEntity) {
       return _getTokenIsBoughtNotificationType(currentPubkey: currentPubkey, entity: entity);
+    } else if (entity is TokenPriceChangeResponseEntity &&
+        entity.data.tokenDefinitionReference.masterPubkey == currentPubkey) {
+      return PushNotificationType.yourCreatorTokenPriceIncreased;
+    } else if (entity is TokenGlobalStatResponseEntity &&
+        entity.data.request.data.input == TokenInput.trending) {
+      return PushNotificationType.trendingToken;
+    } else if (entity is TokenBuyingActivityResponseEntity) {
+      return PushNotificationType.moreBuyersJoined;
     }
 
     return null;

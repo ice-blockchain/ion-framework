@@ -12,7 +12,7 @@ import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_request.f.dart';
 
 part 'tokens_global_stat_response.f.freezed.dart';
 
@@ -52,7 +52,7 @@ class TokenGlobalStatResponseEntity
 @freezed
 class TokenGlobalStatResponseData with _$TokenGlobalStatResponseData {
   const factory TokenGlobalStatResponseData({
-    required TokenPriceChangeRequestEntity request,
+    required TokensGlobalStatRequestEntity request,
     required CommunityTokenDefinitionEntity tokenDefinition,
     required List<IonConnectEntity> entities,
   }) = _TokenGlobalStatResponseData;
@@ -64,7 +64,7 @@ class TokenGlobalStatResponseData with _$TokenGlobalStatResponseData {
     final tokenDefinitionReference =
         ReplaceableEventReference.fromTag(tags[ReplaceableEventReference.tagName]!.first);
 
-    final request = TokenPriceChangeRequestEntity.fromEventMessage(
+    final request = TokensGlobalStatRequestEntity.fromEventMessage(
       EventMessage.fromPayloadJson(jsonDecode(tags['request']!.first[1]) as Map<String, dynamic>),
     );
 
