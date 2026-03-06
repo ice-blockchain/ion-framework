@@ -513,7 +513,6 @@ class IonConnectPushDataPayload {
     return data;
   }
 
-  
   PrivateMessageReactionEntity? _parseGiftWrappedChatReaction() {
     final entity = mainEntity;
     final event = decryptedEvent;
