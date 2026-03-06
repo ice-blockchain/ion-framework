@@ -5,6 +5,9 @@ import 'dart:async';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/auth/data/models/twofa_type.dart';
 import 'package:ion/app/features/protect_account/authenticator/data/adapter/twofa_type_adapter.dart';
+import 'package:ion/app/features/protect_account/backup/providers/cloud_stored_recovery_keys_names_provider.r.dart';
+import 'package:ion/app/features/protect_account/backup/providers/recovery_key_cloud_backup_delete_notifier.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/recovery_keys_completed_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_identity_client/ion_identity.dart';
@@ -129,6 +132,11 @@ class CompleteUserRecoveryActionNotifier extends _$CompleteUserRecoveryActionNot
               credentialId: credentialId,
               recoveryKey: recoveryKey,
             );
+        await _finalizeSuccessfulRecovery(
+          username: username,
+          shouldClearPasswordUserState: true,
+          step: 'complete_recovery.finalization_failed',
+        );
       } on PasskeyCancelledException {
         _logRecoveryStep('complete_recovery.cancelled', username: username);
         rethrow;
@@ -168,6 +176,11 @@ class CompleteUserRecoveryActionNotifier extends _$CompleteUserRecoveryActionNot
               recoveryKey: recoveryKey,
               newPassword: newPassword,
             );
+        await _finalizeSuccessfulRecovery(
+          username: username,
+          shouldClearPasswordUserState: false,
+          step: 'complete_recovery_with_password.finalization_failed',
+        );
       } catch (error, stackTrace) {
         _logRecoveryError(
           error,
@@ -182,5 +195,38 @@ class CompleteUserRecoveryActionNotifier extends _$CompleteUserRecoveryActionNot
 
       return const CompleteUserRecoveryActionState.success();
     });
+  }
+
+  Future<void> _finalizeSuccessfulRecovery({
+    required String username,
+    required bool shouldClearPasswordUserState,
+    required String step,
+  }) async {
+    try {
+      final ionIdentity = await ref.read(ionIdentityProvider.future);
+
+      if (shouldClearPasswordUserState) {
+        await ionIdentity(username: username).auth.clearPasswordUserState();
+      }
+
+      await ref.read(recoveryKeysCompletedProvider.notifier).clearCompleted(
+            identityKeyName: username,
+          );
+
+      ref
+        ..invalidate(cloudStoredRecoveryKeysNamesProvider)
+        ..invalidate(hasCurrentUserBackupInCloudProvider);
+
+      await ref
+          .read(recoveryKeyCloudBackupDeleteNotifierProvider.notifier)
+          .remove(identityKeyName: username);
+    } catch (error, stackTrace) {
+      _logRecoveryError(
+        error,
+        stackTrace,
+        step: step,
+        username: username,
+      );
+    }
   }
 }
