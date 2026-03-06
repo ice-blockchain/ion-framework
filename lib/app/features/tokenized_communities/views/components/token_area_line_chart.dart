@@ -9,7 +9,7 @@ import 'package:ion/app/features/tokenized_communities/hooks/use_chart_max_x_wit
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_reserved_size.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_transformation.dart';
 import 'package:ion/app/features/tokenized_communities/hooks/use_chart_visible_y_range.dart';
-import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_metric_value_formatter.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/chart_tooltip_listener.dart';
@@ -64,6 +64,7 @@ class TokenAreaLineChart extends HookConsumerWidget {
       isLoading: isLoading,
       chartKey: transformation.chartKey,
       transformationController: transformation.transformationController,
+      isPositioned: transformation.isPositioned,
       reservedSize: reservedSize,
       calcData: calcData,
       candles: candles,

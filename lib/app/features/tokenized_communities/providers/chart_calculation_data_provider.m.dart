@@ -3,34 +3,28 @@
 import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 import 'package:ion/app/features/tokenized_communities/utils/formatters.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'chart_calculation_data_provider.r.g.dart';
+part 'chart_calculation_data_provider.m.freezed.dart';
+part 'chart_calculation_data_provider.m.g.dart';
 
-class ChartCalculationData {
-  const ChartCalculationData({
-    required this.minY,
-    required this.maxY,
-    required this.chartMinY,
-    required this.chartMaxY,
-    required this.spots,
-    required this.indexToLabel,
-    required this.xAxisStep,
-    required this.maxX,
-  });
-
-  final double minY;
-  final double maxY;
-  final double chartMinY;
-  final double chartMaxY;
-  final List<FlSpot> spots;
-  final Map<int, String> indexToLabel;
-  final double xAxisStep;
-  final double maxX;
+@Freezed(copyWith: false)
+class ChartCalculationData with _$ChartCalculationData {
+  const factory ChartCalculationData({
+    required double minY,
+    required double maxY,
+    required double chartMinY,
+    required double chartMaxY,
+    required List<FlSpot> spots,
+    required Map<int, String> indexToLabel,
+    required double xAxisStep,
+    required double maxX,
+  }) = _ChartCalculationData;
 }
 
 @riverpod

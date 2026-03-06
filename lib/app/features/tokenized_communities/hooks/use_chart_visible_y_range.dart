@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
-import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_transformation_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 
@@ -18,6 +18,7 @@ const _debounceDelay = Duration(milliseconds: 150);
   required bool isLoading,
   required GlobalKey chartKey,
   required TransformationController transformationController,
+  required ValueNotifier<bool> isPositioned,
   required double reservedSize,
   required ChartCalculationData calcData,
   required List<ChartCandle> candles,
@@ -88,24 +89,34 @@ const _debounceDelay = Duration(milliseconds: 150);
         transformationController.removeListener(onTransformationChanged);
       };
     },
-    [transformationController, calcData, candles, reservedSize],
+    [transformationController, calcData, candles.length, reservedSize],
   );
 
   // Calculate Y range when data loads
   useEffect(
     () {
       isScrollTriggered.value = false; // Data change, not scroll - no animation
-      visibleYRange.value = null; // Clear stale range so fallback uses current calcData
 
       if (!isLoading) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        visibleYRange.value = null; // Clear stale range so fallback uses current calcData
+
+        // Sync recalc only when chart is positioned (transform matrix is correct).
+        // During timeframe switch the chart is hidden and transform is stale —
+        // postFrame will handle both positioning and Y recalc in order.
+        if (isPositioned.value) {
           calculateVisibleYRange();
-        });
+        }
+
+        if (visibleYRange.value == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            calculateVisibleYRange();
+          });
+        }
       }
 
       return null;
     },
-    [calcData, candles, isLoading],
+    [calcData, candles.length, isLoading],
   );
 
   return (
