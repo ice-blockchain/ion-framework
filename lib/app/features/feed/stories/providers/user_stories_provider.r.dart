@@ -1,17 +1,23 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:math';
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/feed/providers/feed_data_source_builders.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
 import 'package:ion/app/features/ion_connect/providers/entities_paged_data_provider.m.dart';
+import 'package:ion/app/services/ion_ad/ion_ad_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_stories_provider.r.g.dart';
 
 @riverpod
 class UserStories extends _$UserStories {
+  static const String adKeySuffix = '_ad';
+
   @override
   Iterable<ModifiablePostEntity>? build(String pubkey) {
     final dataSources = ref.watch(userStoriesDataSourceProvider(pubkey: pubkey));
@@ -28,7 +34,41 @@ class UserStories extends _$UserStories {
         .reversed
         .toList();
 
+    if (data == null || data.isEmpty) return null;
+
+    final ionAdClient = ref.watch(ionAdClientProvider).valueOrNull;
+    if (ionAdClient?.isNativeLoaded ?? false) {
+      final addIndexes = _generateAdIndexes(data);
+      for (final index in addIndexes) {
+        data.insert(
+          index,
+          data[index].copyWith(id: '${data[index].id}$adKeySuffix'),
+        );
+      }
+      Logger.log('addIndexes :$addIndexes, final data size: ${data.length}');
+    }
+
     return data;
+  }
+
+  List<int> _generateAdIndexes(List<ModifiablePostEntity> data) {
+    final adIndices = <int>[];
+    final storiesCount = data.length;
+
+    final rng = Random(storiesCount);
+    var currentIndex = rng.nextInt(5);
+
+    while (currentIndex < storiesCount) {
+      adIndices.add(currentIndex);
+
+      var interval = 5 + rng.nextInt(5) - 2;
+
+      if (interval < 3) interval = 3;
+
+      currentIndex += interval + 1; // +1 to account for the ad itself effectively occupying a slot
+    }
+
+    return adIndices;
   }
 
   void removeStory(String id) {
