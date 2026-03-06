@@ -102,6 +102,17 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       return true;
     }
 
+    // Compare subscription filter events.
+    // For filter events it's enough to compare only their kinds, because
+    // we can't compare the full events - they will always be different (different ids and createdAt),
+    // so we assume that if the kinds are the same, then the events are also the same.
+    final currentFilterEventKinds = currentData.filterEvents.map((event) => event.kind).toList();
+    final publishedFilterEventKinds =
+        publishedData.filterEvents.map((event) => event.kind).toList();
+    if (!currentFilterEventKinds.equalsDeepUnordered(publishedFilterEventKinds)) {
+      return true;
+    }
+
     // Manually compare the synced fcm token with the current one,
     // because the public one is encrypted with a random nonce.
     // Meaning the same token will look different on the relay after each encryption,

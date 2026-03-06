@@ -52,6 +52,7 @@ class TokensGlobalStatRequestEntity
 @freezed
 class TokensGlobalStatRequestData with _$TokensGlobalStatRequestData implements EventSerializable {
   const factory TokensGlobalStatRequestData({
+    @Default(TokenInput.trending) TokenInput input,
     @Default(MimeType.json) MimeType output,
   }) = _TokensGlobalStatRequestData;
 
@@ -60,7 +61,9 @@ class TokensGlobalStatRequestData with _$TokensGlobalStatRequestData implements 
   factory TokensGlobalStatRequestData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
     final output = tags[OutputTag.tagName]!.map(OutputTag.fromTag).first.value;
+    final input = tags[TokenInputTag.tagName]!.map(TokenInputTag.fromTag).first.value;
     return TokensGlobalStatRequestData(
+      input: input,
       output: output,
     );
   }
@@ -78,7 +81,7 @@ class TokensGlobalStatRequestData with _$TokensGlobalStatRequestData implements 
       content: '',
       tags: [
         ...tags,
-        const TokenInputTag(value: TokenInput.trending).toTag(),
+        TokenInputTag(value: input).toTag(),
         OutputTag(value: output).toTag(),
       ],
     );

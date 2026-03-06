@@ -73,6 +73,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       relay: RelatedRelay(url: relaysFirebaseConfig.relayUrl),
       fcmToken: RelatedToken(value: encryptedFcmToken),
       filters: await _getFilters(),
+      filterEvents: await _getFilterEvents(),
     );
   }
 
@@ -123,13 +124,21 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     return filters;
   }
 
+  Future<List<EventMessage>> _getFilterEvents() async {
+    final selectedPushCategories = ref.watch(selectedPushCategoriesProvider).enabledCategories;
+
+    if (selectedPushCategories.contains(PushNotificationCategory.tokenUpdates)) {
+      return _buildFilterForTokenUpdates();
+    }
+    return [];
+  }
+
   Future<List<RequestFilter>?> _buildFilterForCategory(PushNotificationCategory category) async {
     return switch (category) {
       PushNotificationCategory.mentionsAndReplies => _buildFilterForMentionsAndReplies(),
       PushNotificationCategory.reposts => _buildFilterForReposts(),
       PushNotificationCategory.likes => _buildFilterForLikes(),
       PushNotificationCategory.newFollowers => _buildFilterForNewFollowers(),
-      // PushNotificationCategory.tokenUpdates => _buildFilterForTokenUpdates(),
       _ => null,
     };
   }
@@ -228,9 +237,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     );
   }
 
-  // TODO[pushes] apply
-  // ignore: unused_element
-  Future<List<Object>> _buildFilterForTokenUpdates() async {
+  Future<List<EventMessage>> _buildFilterForTokenUpdates() async {
     final ionNotifier = ref.watch(ionConnectNotifierProvider.notifier);
     final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
@@ -252,8 +259,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       const TokensGlobalStatRequestData(),
     ];
 
-    final events = await Future.wait(requests.map(ionNotifier.sign));
-    return events.map((event) => event.toJson().last as Object).toList();
+    return Future.wait(requests.map(ionNotifier.sign));
   }
 
   RequestFilter? _buildFilterForMessages(List<PushNotificationCategory> categories) {

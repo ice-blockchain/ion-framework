@@ -264,6 +264,14 @@ class IonConnectPushDataPayload: Decodable {
             return getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity)
         } else if let entity = entity as? CommunityTokenActionEntity {
             return getTokenIsBoughtNotificationType(currentPubkey: currentPubkey, entity: entity)
+        } else if let entity = entity as? TokenPriceChangeResponseEntity,
+                  entity.data.tokenDefinitionReference.masterPubkey == currentPubkey {
+            return .yourCreatorTokenPriceIncreased
+        } else if let entity = entity as? TokenGlobalStatResponseEntity,
+                  entity.data.request.input == .trending {
+            return .trendingToken
+        } else if entity is TokenBuyingActivityResponseEntity {
+            return .moreBuyersJoined
         }
 
         return nil
@@ -368,6 +376,18 @@ class IonConnectPushDataPayload: Decodable {
                 data["amountUSD"] = ""
             }
             data["ticker"] = entity.data.tokenTicker
+        }
+
+        if let entity = mainEntity as? TokenPriceChangeResponseEntity {
+            data["priceIncreasePercentage"] = String(entity.data.request.params.deltaPercentage)
+        }
+
+        if let entity = mainEntity as? TokenBuyingActivityResponseEntity {
+            data["ticker"] = entity.data.tokenAction.data.tokenTicker
+        }
+
+        if let entity = mainEntity as? TokenGlobalStatResponseEntity {
+            data["ticker"] = entity.data.tokenAction.data.tokenTicker
         }
 
         return data
