@@ -57,14 +57,21 @@ class SwapSelectCoinPage extends ConsumerWidget {
       // }
 
       return coinGroups.whenData((coinList) {
+        final isOtherSideInternal =
+            otherCoin != null && SwapCoinIdentifier.isInternalCoinGroup(otherCoin);
+        if (!isOtherSideInternal) {
+          // Other side is non-internal or null: exclude internal coins when other is set
+          if (otherCoin == null) return coinList;
+          return coinList.where((coin) => !SwapCoinIdentifier.isInternalCoinGroup(coin)).toList();
+        }
         return coinList.where((coin) {
           if (!SwapCoinIdentifier.isInternalCoinGroup(coin)) {
             return false;
           }
-          if (otherCoin == null || otherNetwork == null) {
+          if (otherNetwork == null) {
             return true;
           }
-          //in case of ice BSC coin there is no coin in ICE we can swap for
+          // In case of ICE BSC on the other side there is no ICE to swap for
           if (SwapCoinIdentifier.isIceCoinGroup(coin) &&
               SwapCoinIdentifier.isIceBsc(otherCoin, otherNetwork)) {
             return false;
