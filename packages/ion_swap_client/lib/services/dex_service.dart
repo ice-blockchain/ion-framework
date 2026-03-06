@@ -79,12 +79,12 @@ class DexService {
           throw const IonSwapException('OKX: No approve transaction data returned');
         }
 
-        final allowance = await _evmTxBuilder.allowance(
-          token: sellTokenAddress,
-          owner: address,
-          spender: approveTx.dexContractAddress,
+        final allowance = await _safeCheckAllowance(
+          sellTokenAddress,
+          address,
+          approveTx.dexContractAddress,
+          wallet.id,
         );
-
         if (allowance < bigIntAmount) {
           final txHash = await _ionIdentityTransactionApi.signAndBroadcast(
             walletId: wallet.id,
@@ -98,10 +98,11 @@ class DexService {
 
           await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
 
-          final allowance2 = await _evmTxBuilder.allowance(
-            token: sellTokenAddress,
-            owner: address,
-            spender: approveTx.dexContractAddress,
+          final allowance2 = await _safeCheckAllowance(
+            sellTokenAddress,
+            address,
+            approveTx.dexContractAddress,
+            wallet.id,
           );
 
           if (allowance2 < bigIntAmount) {
@@ -145,6 +146,43 @@ class DexService {
     }
 
     throw const IonSwapException('Failed to swap on Dex: Invalid quote source');
+  }
+
+  Future<BigInt> _safeCheckAllowance(
+    String tokenAddress,
+    String ownerAddress,
+    String spenderAddress,
+    String walletId,
+  ) async {
+    try {
+      final response = await _ionIdentityTransactionApi.callFunction(
+        walletId: walletId,
+        request: CallFunctionRequest(
+          contract: tokenAddress,
+          abi: const CallFunctionAbi(
+            name: 'allowance',
+            inputs: [
+              CallFunctionAbiParam(name: 'owner', type: 'address'),
+              CallFunctionAbiParam(name: 'spender', type: 'address'),
+            ],
+            outputs: [
+              CallFunctionAbiParam(name: '', type: 'uint256'),
+            ],
+          ),
+          calldata: {
+            'owner': ownerAddress,
+            'spender': spenderAddress,
+          },
+        ),
+      );
+
+      if (response is BigInt) return response;
+      if (response is int) return BigInt.from(response);
+      if (response is String) return BigInt.tryParse(response) ?? BigInt.zero;
+      return BigInt.zero;
+    } catch (_) {
+      return BigInt.zero;
+    }
   }
 
   Future<SwapChainData?> _getOkxChain(String networkName) async {

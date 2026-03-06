@@ -201,7 +201,6 @@ class _SwapButton extends ConsumerWidget {
     }
   }
 
-
   Future<void> _pop(BuildContext context) async {
     context.maybePop();
     await Future<void>.delayed(const Duration(milliseconds: 100));
