@@ -16,9 +16,11 @@ class LoadMoreBuilder extends HookWidget {
     this.loadMoreOffset,
     this.showIndicator = true,
     this.disallowMaxScrollExtentZero = true,
+    bool shrinkWrap = false,
     super.key,
   }) : builder = builder ??
-            ((BuildContext context, List<Widget> slivers) => CustomScrollView(slivers: slivers));
+            ((BuildContext context, List<Widget> slivers) =>
+                CustomScrollView(slivers: slivers, shrinkWrap: shrinkWrap));
 
   final Widget Function(BuildContext context, List<Widget> slivers) builder;
 
