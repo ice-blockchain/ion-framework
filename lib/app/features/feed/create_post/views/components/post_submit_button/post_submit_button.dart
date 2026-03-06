@@ -7,9 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/utils/delta_bridge.dart';
-import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/core/views/pages/error_modal.dart';
 import 'package:ion/app/features/feed/create_post/model/create_post_option.dart';
 import 'package:ion/app/features/feed/create_post/providers/create_post_notifier.m.dart';
 import 'package:ion/app/features/feed/create_post/providers/onelink_resolved_quote_provider.r.dart';
@@ -25,9 +23,7 @@ import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/media_attachment.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
-import 'package:ion/app/features/nsfw/models/nsfw_check_result.f.dart';
-import 'package:ion/app/features/nsfw/providers/media_nsfw_checker.r.dart';
-import 'package:ion/app/features/nsfw/widgets/nsfw_blocked_sheet.dart';
+import 'package:ion/app/features/nsfw/helpers/perform_nsfw_check_and_handle_result.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
@@ -121,28 +117,7 @@ class PostSubmitButton extends HookConsumerWidget {
 
           if (!context.mounted) return;
 
-          final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
-
-          // Ensure the checker state matches what we're about to upload.
-          // This is a no-op if everything was already checked.
-          await mediaChecker.checkMediaForNsfw(filesToUpload);
-          final nsfwCheckResult = await mediaChecker.hasNsfwMedia();
-
-          if (!context.mounted) return;
-
-          if (nsfwCheckResult is NsfwFailure) {
-            showErrorModal(context, NSFWProcessingException());
-            return;
-          }
-
-          // NSFW validation: block posting if any selected image is NSFW
-          if (nsfwCheckResult is NsfwSuccess && nsfwCheckResult.hasNsfw) {
-            if (context.mounted) {
-              await showNsfwBlockedSheet(context);
-            }
-
-            return;
-          }
+          if (!await performNsfwCheckAndHandleResult(ref, mediaFiles: filesToUpload)) return;
 
           if (context.mounted) {
             final notifier = ref.read(createPostNotifierProvider(createOption).notifier);
