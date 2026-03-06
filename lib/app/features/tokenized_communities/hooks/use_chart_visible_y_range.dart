@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/models/chart_data.dart';
-import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/chart_calculation_data_provider.m.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_transformation_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/chart_y_padding.dart';
 
