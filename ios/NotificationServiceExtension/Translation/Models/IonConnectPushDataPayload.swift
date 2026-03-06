@@ -378,6 +378,18 @@ class IonConnectPushDataPayload: Decodable {
             data["ticker"] = entity.data.tokenTicker
         }
 
+        if let entity = mainEntity as? TokenPriceChangeResponseEntity {
+            data["priceIncreasePercentage"] = String(entity.data.request.params.deltaPercentage)
+        }
+
+        if let entity = mainEntity as? TokenBuyingActivityResponseEntity {
+            data["ticker"] = entity.data.tokenAction.data.tokenTicker
+        }
+
+        if let entity = mainEntity as? TokenGlobalStatResponseEntity {
+            data["ticker"] = entity.data.tokenAction.data.tokenTicker
+        }
+
         return data
     }
 

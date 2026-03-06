@@ -21,6 +21,8 @@ struct TokensGlobalStatRequestData {
 
 struct TokenGlobalStatResponseData {
     let request: TokensGlobalStatRequestData
+    let tokenDefinition: CommunityTokenDefinitionEntity
+    let tokenAction: CommunityTokenActionEntity
 
     static func fromEventMessage(_ eventMessage: EventMessage) throws -> TokenGlobalStatResponseData {
         let tagsByType = Dictionary(grouping: eventMessage.tags, by: { $0.first ?? "" })
@@ -36,7 +38,45 @@ struct TokenGlobalStatResponseData {
 
         let request = try TokensGlobalStatRequestData.fromEventMessage(requestEventMessage)
 
-        return TokenGlobalStatResponseData(request: request)
+        guard let contentData = eventMessage.content.data(using: .utf8),
+              let contentJson = try? JSONSerialization.jsonObject(with: contentData) as? [Any] else {
+            throw IncorrectEventTagsException(eventId: eventMessage.id)
+        }
+
+        var tokenDefinition: CommunityTokenDefinitionEntity?
+        var tokenAction: CommunityTokenActionEntity?
+
+        for item in contentJson {
+            guard let eventJson = item as? [String: Any],
+                  let nestedEvent = try? EventMessage.fromJson(eventJson) else {
+                continue
+            }
+
+            if nestedEvent.kind == CommunityTokenDefinitionEntity.kind,
+               tokenDefinition == nil {
+                tokenDefinition = try? CommunityTokenDefinitionEntity.fromEventMessage(nestedEvent)
+            }
+
+            if nestedEvent.kind == CommunityTokenActionEntity.kind,
+               tokenAction == nil {
+                tokenAction = try? CommunityTokenActionEntity.fromEventMessage(nestedEvent)
+            }
+
+            if tokenDefinition != nil, tokenAction != nil {
+                break
+            }
+        }
+
+        guard let tokenDefinition,
+              let tokenAction else {
+            throw IncorrectEventTagsException(eventId: eventMessage.id)
+        }
+
+        return TokenGlobalStatResponseData(
+            request: request,
+            tokenDefinition: tokenDefinition,
+            tokenAction: tokenAction
+        )
     }
 }
 
