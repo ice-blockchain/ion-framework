@@ -102,6 +102,8 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       return true;
     }
 
+    //TODO: Compare subscription filter events
+
     // Manually compare the synced fcm token with the current one,
     // because the public one is encrypted with a random nonce.
     // Meaning the same token will look different on the relay after each encryption,
