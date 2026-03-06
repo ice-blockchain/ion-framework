@@ -29,6 +29,8 @@ class ChatRoutes {
         TypedGoRoute<AddParticipantsToGroupModalRoute>(path: 'add-participants-to-group'),
         TypedGoRoute<CreateGroupModalRoute>(path: 'create-group'),
         TypedGoRoute<ShareViaMessageModalRoute>(path: '$shareRoutePrefix/:eventReference'),
+        TypedGoRoute<ShareExternalContentModalRoute>(path: 'share-external-content/:sharedText'),
+        TypedGoRoute<ShareExternalImageModalRoute>(path: 'share-external-image/:imagePaths'),
         TypedGoRoute<PaymentSelectionChatRoute>(path: 'select-payment-type'),
         TypedGoRoute<SelectCoinChatRoute>(path: 'coin-selector-chat'),
         TypedGoRoute<SelectNetworkChatRoute>(path: 'network-selector-chat'),
@@ -202,6 +204,28 @@ class ShareViaMessageModalRoute extends BaseRouteData with _$ShareViaMessageModa
         );
 
   final String eventReference;
+}
+
+class ShareExternalContentModalRoute extends BaseRouteData with _$ShareExternalContentModalRoute {
+  ShareExternalContentModalRoute({required this.sharedText})
+      : super(
+          child: ShareExternalContentModal(content: SharedText(sharedText)),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String sharedText;
+}
+
+class ShareExternalImageModalRoute extends BaseRouteData with _$ShareExternalImageModalRoute {
+  ShareExternalImageModalRoute({required this.imagePaths})
+      : super(
+          child: ShareExternalContentModal(
+            content: SharedImage((jsonDecode(imagePaths) as List<dynamic>).cast<String>()),
+          ),
+          type: IceRouteType.bottomSheet,
+        );
+
+  final String imagePaths;
 }
 
 class PaymentSelectionChatRoute extends BaseRouteData with _$PaymentSelectionChatRoute {

@@ -556,7 +556,7 @@ class _TokenChart extends HookConsumerWidget {
     final price = Decimal.parse(tokenInfo.marketData.priceUSD.toString());
     final marketCap = tokenInfo.marketData.marketCap;
     final chartLabel = chartTitleAsync.valueOrNull;
-    final ticker = tokenInfo.marketData.ticker ?? '';
+    final ticker = tokenInfo.marketData.ticker;
 
     return Chart(
       externalAddress: externalAddress,

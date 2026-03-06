@@ -303,6 +303,7 @@
   "create_post_add_topic": "Konu ekle",
   "create_post_add_topic_tooltip_description": "Konu eklemek görünürlüğü ve etkileşimi artırmaya yardımcı olur, platformu daha kullanışlı ve kullanıcılar için çekici hale getirir",
   "create_post_add_topic_tooltip_title": "Konu",
+  "create_post_external_content": "Gönderi oluştur",
   "create_post_modal_placeholder": "Neler oluyor?",
   "create_post_modal_title": "Yeni gönderi",
   "create_video_input_placeholder": "Bir açıklama ekle (isteğe bağlı)",
