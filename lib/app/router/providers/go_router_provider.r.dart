@@ -69,6 +69,7 @@ GoRouter goRouter(Ref ref) {
       }
 
       if (isInitError && !isInitInProgress) {
+        _isRestoring = false;
         Logger.log(
           'Init error',
           error: initState.error.toString(),
@@ -77,23 +78,23 @@ GoRouter goRouter(Ref ref) {
         return ErrorRoute(message: initState.error.toString()).location;
       }
 
-      if (isInitInProgress || !isSplashAnimationCompleted) {
-        if (!isOnSplash && !_isRestoring) {
-          _isRestoring = true;
+      if (_isRestoring) {
+        if (!isInitInProgress) {
+          _isRestoring = false;
           ref.read(splashProvider.notifier).animationCompleted = true;
+          Logger.log('[StateRestoration] Init complete - restoration done');
+        } else {
+          return null;
+        }
+      } else if (isInitInProgress || !isSplashAnimationCompleted) {
+        if (!isOnSplash) {
+          _isRestoring = true;
           Logger.log(
             '[StateRestoration] Restoring - bypassing splash for: ${state.matchedLocation}',
           );
-        }
-        if (_isRestoring) {
           return null;
         }
         return SplashRoute().location;
-      }
-
-      if (_isRestoring) {
-        _isRestoring = false;
-        Logger.log('[StateRestoration] Init complete - restoration done');
       }
 
       final initialNotification = ref.read(initialNotificationProvider.notifier).consume();
