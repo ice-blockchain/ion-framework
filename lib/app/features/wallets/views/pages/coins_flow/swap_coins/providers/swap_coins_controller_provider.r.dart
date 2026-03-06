@@ -172,6 +172,8 @@ class SwapCoinsController extends _$SwapCoinsController {
     required CoinsGroup coin,
     required Future<NetworkData?> Function() selectNetworkRouteLocationBuilder,
   }) async {
+    final normalizedCoin = _mapToWalletCoinGroupIfExists(coin);
+
     final previousCoin = switch (type) {
       CoinSwapType.sell => state.sellCoin,
       CoinSwapType.buy => state.buyCoin,
@@ -183,10 +185,10 @@ class SwapCoinsController extends _$SwapCoinsController {
 
     switch (type) {
       case CoinSwapType.sell:
-        setSellCoin(coin);
+        setSellCoin(normalizedCoin);
         setSellNetwork(null);
       case CoinSwapType.buy:
-        setBuyCoin(coin);
+        setBuyCoin(normalizedCoin);
         setBuyNetwork(null);
     }
 
@@ -199,7 +201,7 @@ class SwapCoinsController extends _$SwapCoinsController {
           setBuyNetwork(result);
       }
       if (type == CoinSwapType.sell) {
-        _persistLastSellCoin(coin.symbolGroup);
+        _persistLastSellCoin(normalizedCoin.symbolGroup);
       }
       return (
         coin: switch (type) {
@@ -240,6 +242,15 @@ class SwapCoinsController extends _$SwapCoinsController {
 
   Future<void> _runRestrictedRegionProbe() async {
     _restrictedRegionProbeResult = await ref.read(swapRestrictedRegionProbeServiceProvider).probe();
+  }
+
+  CoinsGroup _mapToWalletCoinGroupIfExists(CoinsGroup coin) {
+    final walletView = ref.read(currentWalletViewDataProvider).valueOrNull;
+    final walletCoinGroup = walletView?.coinGroups.firstWhereOrNull(
+      (group) => group.symbolGroup == coin.symbolGroup,
+    );
+
+    return walletCoinGroup ?? coin;
   }
 
   NetworkData? _initSellNetwork(CoinsGroup? coin, NetworkData? network) {
