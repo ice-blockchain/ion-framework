@@ -14,6 +14,7 @@ import 'package:ion/app/features/components/verify_identity/verify_identity_prom
 import 'package:ion/app/features/protect_account/backup/providers/recover_user_action_notifier.m.dart';
 import 'package:ion/app/features/protect_account/backup/providers/recovery_key_cloud_backup_delete_notifier.r.dart';
 import 'package:ion/app/features/protect_account/backup/providers/recovery_key_cloud_backup_restore_notifier.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/post_recovery_backup_required_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/selected_two_fa_types_provider.m.dart';
 import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -248,6 +249,9 @@ class RestoreFromCloudPage extends HookConsumerWidget {
             await ref
                 .read(recoveryKeyCloudBackupDeleteNotifierProvider.notifier)
                 .remove(identityKeyName: recoveryCredentials.identityKeyName);
+            await ref
+                .read(postRecoveryBackupRequiredProvider.notifier)
+                .markRequiredForIdentity(recoveryCredentials.identityKeyName);
             if (ref.context.mounted) {
               await RecoverUserSuccessRoute().push<void>(ref.context);
             }
