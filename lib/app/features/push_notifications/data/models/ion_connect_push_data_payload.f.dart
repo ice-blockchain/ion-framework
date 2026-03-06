@@ -629,10 +629,15 @@ class IonConnectPushDataPayload {
   }
 
   bool _checkRequiredRelevantEvents() {
-    if (event.kind == IonConnectGiftWrapEntity.kind) {
+    if ([
+      IonConnectGiftWrapEntity.kind,
+      TokenPriceChangeResponseEntity.kind,
+      TokenBuyingActivityResponseEntity.kind,
+      TokenGlobalStatResponseEntity.kind,
+    ].any((kind) => kind == event.kind)) {
       return true;
     } else {
-      // For all events except 1059 we need to check if delegation is present
+      // For the rest cases we need to check if delegation is present
       // in the relevant events and the main event valid for it
       final delegationEvent =
           relevantEvents.firstWhereOrNull((event) => event.kind == UserDelegationEntity.kind);
