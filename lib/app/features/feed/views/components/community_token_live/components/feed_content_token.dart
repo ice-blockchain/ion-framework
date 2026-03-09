@@ -281,6 +281,7 @@ class ContentTokenHeader extends HookConsumerWidget {
                       eventReference:
                           (tokenDefinition.data as CommunityTokenDefinitionIon).eventReference,
                       separatorMargin: 14.0.s,
+                      skipFirstBuyCheck: true,
                     ),
                     SizedBox(height: showBuyButton ? 24.0.s : 16.s),
                   ],
