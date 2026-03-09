@@ -14,6 +14,7 @@ _$SwapQuoteDataImpl _$$SwapQuoteDataImplFromJson(Map<String, dynamic> json) =>
       fromToken:
           OkxTokenInfo.fromJson(json['fromToken'] as Map<String, dynamic>),
       toToken: OkxTokenInfo.fromJson(json['toToken'] as Map<String, dynamic>),
+      priceImpactPercentage: json['priceImpactPercentage'] as String?,
     );
 
 Map<String, dynamic> _$$SwapQuoteDataImplToJson(_$SwapQuoteDataImpl instance) =>
@@ -23,4 +24,5 @@ Map<String, dynamic> _$$SwapQuoteDataImplToJson(_$SwapQuoteDataImpl instance) =>
       'toTokenAmount': instance.toTokenAmount,
       'fromToken': instance.fromToken,
       'toToken': instance.toToken,
+      'priceImpactPercentage': instance.priceImpactPercentage,
     };
