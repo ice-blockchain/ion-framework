@@ -8,6 +8,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
+import 'package:ion/app/features/chat/providers/manual_unread_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
@@ -29,6 +30,10 @@ class ConversationReadAllButton extends ConsumerWidget {
         final conversationsToManage = selectedConversations.isEmpty
             ? (ref.read(conversationsProvider).value ?? [])
             : selectedConversations;
+
+        ref
+            .read(manualUnreadConversationsProvider.notifier)
+            .clearUnreadForConversations(conversationsToManage.map((c) => c.conversationId));
 
         unawaited(_cleanConversationNotifications(conversationsToManage, ref));
 
