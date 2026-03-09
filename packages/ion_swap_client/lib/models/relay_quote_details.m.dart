@@ -22,6 +22,5 @@ class RelaySwapImpact with _$RelaySwapImpact {
     String? percent,
   }) = _RelaySwapImpact;
 
-  factory RelaySwapImpact.fromJson(Map<String, dynamic> json) =>
-      _$RelaySwapImpactFromJson(json);
+  factory RelaySwapImpact.fromJson(Map<String, dynamic> json) => _$RelaySwapImpactFromJson(json);
 }
