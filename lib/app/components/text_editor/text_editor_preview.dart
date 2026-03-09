@@ -38,6 +38,7 @@ class TextEditorPreview extends HookWidget {
     this.ignoreInlineBoldItalic = false,
     this.convertMentionsToEmbeds = true,
     this.mentionEmbedBuilder,
+    this.cashtagEmbedBuilder,
     super.key,
   });
 
@@ -56,6 +57,10 @@ class TextEditorPreview extends HookWidget {
   /// Optional override for the mention embed builder.
   /// When provided, replaces the default [TextEditorMentionEmbedBuilder].
   final EmbedBuilder? mentionEmbedBuilder;
+
+  /// Optional override for the cashtag embed builder.
+  /// When provided, replaces the default [TextEditorCashtagEmbedBuilder].
+  final EmbedBuilder? cashtagEmbedBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +95,7 @@ class TextEditorPreview extends HookWidget {
       controller: controller,
       convertMentionsToEmbeds: convertMentionsToEmbeds,
       mentionEmbedBuilder: mentionEmbedBuilder,
+      cashtagEmbedBuilder: cashtagEmbedBuilder,
       customStyles: customStyles,
       media: media,
       maxHeight: maxHeight,
@@ -108,6 +114,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
     required this.enableInteractiveSelection,
     required this.convertMentionsToEmbeds,
     this.mentionEmbedBuilder,
+    this.cashtagEmbedBuilder,
     this.customStyles,
     this.media,
     this.maxHeight,
@@ -122,6 +129,7 @@ class _QuillFormattedContent extends HookConsumerWidget {
   final bool enableInteractiveSelection;
   final bool convertMentionsToEmbeds;
   final EmbedBuilder? mentionEmbedBuilder;
+  final EmbedBuilder? cashtagEmbedBuilder;
   final DefaultStyles? customStyles;
   final Map<String, MediaAttachment>? media;
   final double? maxHeight;
@@ -192,7 +200,8 @@ class _QuillFormattedContent extends HookConsumerWidget {
           TextEditorCodeBuilder(readOnly: true),
           if (convertMentionsToEmbeds)
             mentionEmbedBuilder ?? const TextEditorMentionEmbedBuilder(showClose: false),
-          if (convertMentionsToEmbeds) const TextEditorCashtagEmbedBuilder(showClose: false),
+          if (convertMentionsToEmbeds)
+            cashtagEmbedBuilder ?? const TextEditorCashtagEmbedBuilder(showClose: false),
         ],
         unknownEmbedBuilder: TextEditorUnknownEmbedBuilder(),
         disableClipboard: true,
