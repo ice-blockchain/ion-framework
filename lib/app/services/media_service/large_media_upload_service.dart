@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -40,7 +39,6 @@ class LargeMediaUploadService {
     String? caption,
     CancelToken? cancelToken,
   }) async {
-    final filePath = file.path;
     final fileLen = fileBytes.length;
     final totalParts = (fileLen / partialSize).ceil();
 
@@ -63,7 +61,7 @@ class LargeMediaUploadService {
         queue.add(() async {
           final location = await _uploadSinglePartial(
             endpoint: url,
-            filePath: filePath,
+            fileBytes: fileBytes,
             byteStart: start,
             byteEndExclusive: endExclusive,
             partSize: partSize,
@@ -102,7 +100,7 @@ class LargeMediaUploadService {
   /// Handles 409 offset correction and validates 204 + Upload-Offset responses.
   Future<String> _uploadSinglePartial({
     required String endpoint,
-    required String filePath,
+    required Uint8List fileBytes,
     required int byteStart,
     required int byteEndExclusive,
     required int partSize,
@@ -141,7 +139,7 @@ class LargeMediaUploadService {
 
     await _patchRange(
       uploadUrl: partUrl,
-      filePath: filePath,
+      fileBytes: fileBytes,
       bodyStart: byteStart,
       bodyLength: partSize,
       authToken: authToken,
@@ -155,7 +153,7 @@ class LargeMediaUploadService {
   /// Handles 204 + Upload-Offset, 409 offset correction.
   Future<void> _patchRange({
     required String uploadUrl,
-    required String filePath,
+    required Uint8List fileBytes,
     required int bodyStart,
     required int bodyLength,
     required String authToken,
@@ -172,8 +170,7 @@ class LargeMediaUploadService {
       final toSend = remaining;
       final streamStart = bodyStart + offset;
 
-      final file = File(filePath);
-      final stream = file.openRead(streamStart, streamStart + toSend);
+      final stream = Stream.value(fileBytes.sublist(streamStart, streamStart + toSend));
 
       try {
         final resp = await dio.patch<dynamic>(
