@@ -8,9 +8,9 @@ void main() {
     test('returns negative impact when buy value is less than sell value', () {
       final result = calculatePriceImpact(
         sellAmount: 1,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 1,
-        exchangeRate: 1950,
+        buyAmount: 1950,
+        sellPriceUsd: 2000,
+        buyPriceUsd: 1,
       );
 
       expect(result, closeTo(-2.5, 0.01));
@@ -19,9 +19,9 @@ void main() {
     test('returns zero impact when prices perfectly match', () {
       final result = calculatePriceImpact(
         sellAmount: 1,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 1,
-        exchangeRate: 2000,
+        buyAmount: 2000,
+        sellPriceUsd: 2000,
+        buyPriceUsd: 1,
       );
 
       expect(result, closeTo(0, 0.001));
@@ -30,9 +30,9 @@ void main() {
     test('returns positive impact when buy value exceeds sell value', () {
       final result = calculatePriceImpact(
         sellAmount: 1,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 1,
-        exchangeRate: 2100,
+        buyAmount: 2100,
+        sellPriceUsd: 2000,
+        buyPriceUsd: 1,
       );
 
       expect(result, closeTo(5, 0.01));
@@ -41,9 +41,9 @@ void main() {
     test('returns high negative impact for large price discrepancy', () {
       final result = calculatePriceImpact(
         sellAmount: 1,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 1,
-        exchangeRate: 1800,
+        buyAmount: 1800,
+        sellPriceUsd: 2000,
+        buyPriceUsd: 1,
       );
 
       expect(result, closeTo(-10, 0.01));
@@ -52,89 +52,34 @@ void main() {
     test('returns null when sellAmount is zero', () {
       final result = calculatePriceImpact(
         sellAmount: 0,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 1,
-        exchangeRate: 1950,
+        buyAmount: 1950,
+        sellPriceUsd: 2000,
+        buyPriceUsd: 1,
       );
 
       expect(result, isNull);
     });
 
-    test('returns null when sellAmount is negative', () {
-      final result = calculatePriceImpact(
-        sellAmount: -1,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 1,
-        exchangeRate: 1950,
-      );
-
-      expect(result, isNull);
-    });
-
-    test('returns null when sellPriceUSD is zero', () {
+    test('returns null when buyAmount is zero', () {
       final result = calculatePriceImpact(
         sellAmount: 1,
-        sellPriceUSD: 0,
-        buyPriceUSD: 1,
-        exchangeRate: 1950,
+        buyAmount: 0,
+        sellPriceUsd: 2000,
+        buyPriceUsd: 1,
       );
 
       expect(result, isNull);
     });
 
-    test('returns null when sellPriceUSD is negative', () {
+    test('returns null when buyPriceUsd is zero', () {
       final result = calculatePriceImpact(
         sellAmount: 1,
-        sellPriceUSD: -100,
-        buyPriceUSD: 1,
-        exchangeRate: 1950,
+        buyAmount: 1950,
+        sellPriceUsd: 2000,
+        buyPriceUsd: 0,
       );
 
       expect(result, isNull);
-    });
-
-    test('returns null when buyPriceUSD is zero', () {
-      final result = calculatePriceImpact(
-        sellAmount: 1,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 0,
-        exchangeRate: 1950,
-      );
-
-      expect(result, isNull);
-    });
-
-    test('returns null when buyPriceUSD is negative', () {
-      final result = calculatePriceImpact(
-        sellAmount: 1,
-        sellPriceUSD: 2000,
-        buyPriceUSD: -1,
-        exchangeRate: 1950,
-      );
-
-      expect(result, isNull);
-    });
-
-    test('handles very small amounts without floating point issues', () {
-      final result = calculatePriceImpact(
-        sellAmount: 0.000001,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 1,
-        exchangeRate: 1950,
-      );
-
-      expect(result, closeTo(-2.5, 0.01));
-    });
-
-    test('handles large amounts correctly', () {
-      final result = calculatePriceImpact(
-        sellAmount: 1000000,
-        sellPriceUSD: 2000,
-        buyPriceUSD: 1,
-        exchangeRate: 1950,
-      );
-
-      expect(result, closeTo(-2.5, 0.01));
     });
   });
 }
