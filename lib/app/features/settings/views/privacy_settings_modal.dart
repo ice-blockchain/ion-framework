@@ -41,8 +41,7 @@ class PrivacySettingsModal extends ConsumerWidget {
               ],
             ),
             ScreenSideOffset.small(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.0.s),
+              child: ScreenBottomOffset(
                 child: SeparatedColumn(
                   mainAxisSize: MainAxisSize.min,
                   separator: SelectableOptionsGroup.separator,

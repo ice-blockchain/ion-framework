@@ -64,7 +64,7 @@ class TwoFaInitialScaffold extends StatelessWidget {
               onPressed: onButtonPressed,
             ),
           ),
-          ScreenBottomOffset(margin: 36.0.s),
+          const ScreenBottomOffset(),
         ],
       ),
     );
