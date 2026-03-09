@@ -156,8 +156,7 @@ class SwapService {
           source: SwapQuoteInfoSource.relay,
           relayQuote: quote,
           relayDepositAmount: swapCoinData.amount,
-          // swapImpact: relaySwapImpact,
-          swapImpact: -10,
+          swapImpact: relaySwapImpact,
         );
       }
 
@@ -183,8 +182,7 @@ class SwapService {
           okxQuote: quote,
           sellUsdPrice: sellUsdPrice,
           buyUsdPrice: buyUsdPrice,
-          // swapImpact: okxPriceImpact,
-          swapImpact: -10,
+          swapImpact: okxPriceImpact,
         );
       }
 
