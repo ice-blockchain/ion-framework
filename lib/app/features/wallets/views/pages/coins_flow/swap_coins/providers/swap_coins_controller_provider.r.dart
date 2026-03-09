@@ -266,18 +266,16 @@ class SwapCoinsController extends _$SwapCoinsController {
     final coinGroups = walletView?.coinGroups;
     if (coinGroups == null || coinGroups.isEmpty) return null;
 
-    // Filter to only internal coins (ION/ICE) - exclude creator tokens
-    final internalCoinGroups = coinGroups.where(SwapCoinIdentifier.isInternalCoinGroup).toList();
-    if (internalCoinGroups.isEmpty) return null;
+    // TODO: Uncomment to restrict swap to internal coins (ION/ICE) only
+    // final internalCoinGroups = coinGroups.where(SwapCoinIdentifier.isInternalCoinGroup).toList();
+    // if (internalCoinGroups.isEmpty) return null;
 
-    // Try last used sell coin first (only if it's an internal coin)
-    final lastUsed = internalCoinGroups.firstWhereOrNull(
+    final lastUsed = coinGroups.firstWhereOrNull(
       (group) => group.symbolGroup == lastSymbolGroup,
     );
     if (lastUsed != null) return lastUsed;
 
-    // Otherwise pick the internal coin with the highest balance
-    return maxBy<CoinsGroup, double>(internalCoinGroups, (g) => g.totalAmount);
+    return maxBy<CoinsGroup, double>(coinGroups, (g) => g.totalAmount);
   }
 
   /// Find network with the highest balance

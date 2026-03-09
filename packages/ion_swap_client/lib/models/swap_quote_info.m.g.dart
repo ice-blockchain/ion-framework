@@ -12,7 +12,7 @@ _$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
       priceForSellTokenInBuyToken:
           (json['priceForSellTokenInBuyToken'] as num).toDouble(),
       source: $enumDecode(_$SwapQuoteInfoSourceEnumMap, json['source']),
-      swapImpact: (json['swapImpact'] as num?)?.toInt(),
+      swapImpact: (json['swapImpact'] as num?)?.toDouble(),
       networkFee: json['networkFee'] as String?,
       protocolFee: json['protocolFee'] as String?,
       exolixQuote: json['exolixQuote'] == null
