@@ -16,6 +16,7 @@ class SwapQuoteData with _$SwapQuoteData {
     required String toTokenAmount,
     required OkxTokenInfo fromToken,
     required OkxTokenInfo toToken,
+    String? priceImpactPercentage,
   }) = _SwapQuoteData;
 
   factory SwapQuoteData.fromJson(Map<String, dynamic> json) => _$SwapQuoteDataFromJson(json);

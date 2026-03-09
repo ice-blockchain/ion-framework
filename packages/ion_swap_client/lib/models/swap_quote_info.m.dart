@@ -15,7 +15,7 @@ class SwapQuoteInfo with _$SwapQuoteInfo {
     required SwapQuoteInfoType type,
     required double priceForSellTokenInBuyToken,
     required SwapQuoteInfoSource source,
-    int? swapImpact,
+    double? swapImpact,
     String? networkFee,
     String? protocolFee,
     ExolixRate? exolixQuote,

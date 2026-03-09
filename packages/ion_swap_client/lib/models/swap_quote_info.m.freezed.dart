@@ -23,7 +23,7 @@ mixin _$SwapQuoteInfo {
   SwapQuoteInfoType get type => throw _privateConstructorUsedError;
   double get priceForSellTokenInBuyToken => throw _privateConstructorUsedError;
   SwapQuoteInfoSource get source => throw _privateConstructorUsedError;
-  int? get swapImpact => throw _privateConstructorUsedError;
+  double? get swapImpact => throw _privateConstructorUsedError;
   String? get networkFee => throw _privateConstructorUsedError;
   String? get protocolFee => throw _privateConstructorUsedError;
   ExolixRate? get exolixQuote => throw _privateConstructorUsedError;
@@ -54,7 +54,7 @@ abstract class $SwapQuoteInfoCopyWith<$Res> {
       {SwapQuoteInfoType type,
       double priceForSellTokenInBuyToken,
       SwapQuoteInfoSource source,
-      int? swapImpact,
+      double? swapImpact,
       String? networkFee,
       String? protocolFee,
       ExolixRate? exolixQuote,
@@ -116,7 +116,7 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
       swapImpact: freezed == swapImpact
           ? _value.swapImpact
           : swapImpact // ignore: cast_nullable_to_non_nullable
-              as int?,
+              as double?,
       networkFee: freezed == networkFee
           ? _value.networkFee
           : networkFee // ignore: cast_nullable_to_non_nullable
@@ -225,7 +225,7 @@ abstract class _$$SwapQuoteInfoImplCopyWith<$Res>
       {SwapQuoteInfoType type,
       double priceForSellTokenInBuyToken,
       SwapQuoteInfoSource source,
-      int? swapImpact,
+      double? swapImpact,
       String? networkFee,
       String? protocolFee,
       ExolixRate? exolixQuote,
@@ -289,7 +289,7 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
       swapImpact: freezed == swapImpact
           ? _value.swapImpact
           : swapImpact // ignore: cast_nullable_to_non_nullable
-              as int?,
+              as double?,
       networkFee: freezed == networkFee
           ? _value.networkFee
           : networkFee // ignore: cast_nullable_to_non_nullable
@@ -358,7 +358,7 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
   @override
   final SwapQuoteInfoSource source;
   @override
-  final int? swapImpact;
+  final double? swapImpact;
   @override
   final String? networkFee;
   @override
@@ -455,7 +455,7 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
       {required final SwapQuoteInfoType type,
       required final double priceForSellTokenInBuyToken,
       required final SwapQuoteInfoSource source,
-      final int? swapImpact,
+      final double? swapImpact,
       final String? networkFee,
       final String? protocolFee,
       final ExolixRate? exolixQuote,
@@ -476,7 +476,7 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
   @override
   SwapQuoteInfoSource get source;
   @override
-  int? get swapImpact;
+  double? get swapImpact;
   @override
   String? get networkFee;
   @override
