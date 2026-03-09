@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -117,8 +118,8 @@ class _SwapDetailsSection extends StatelessWidget {
     final textStyles = context.theme.appTextThemes;
     final isVisibleMoreButton = priceImpact != null || networkFee != null || protocolFee != null;
 
-    return Stack(
-      clipBehavior: Clip.none,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           margin: EdgeInsets.symmetric(horizontal: 16.0.s),
@@ -126,9 +127,11 @@ class _SwapDetailsSection extends StatelessWidget {
             horizontal: 12.0.s,
             vertical: 12.0.s,
           ),
-          decoration: BoxDecoration(
+          decoration: ShapeDecoration(
             color: colors.tertiaryBackground,
-            borderRadius: BorderRadius.circular(16.0.s),
+            shape: BottomNotchRectBorder(
+              notchPosition: isVisibleMoreButton ? NotchPosition.bottom : NotchPosition.none,
+            ),
           ),
           child: Column(
             children: [
@@ -190,49 +193,45 @@ class _SwapDetailsSection extends StatelessWidget {
           ),
         ),
         if (isVisibleMoreButton)
-          Positioned.fill(
-            bottom: -20.0.s,
-            child: Container(
-              width: double.infinity,
-              alignment: Alignment.bottomCenter,
-              child: GestureDetector(
-                onTap: onToggleDetails,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.0.s,
-                    vertical: 4.0.s,
+          Transform.translate(
+            offset: Offset(0, -12.0.s),
+            child: GestureDetector(
+              onTap: onToggleDetails,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.0.s,
+                  vertical: 4.0.s,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.tertiaryBackground,
+                  borderRadius: BorderRadius.circular(9.0.s),
+                  border: Border.all(
+                    color: colors.secondaryBackground,
+                    width: 4.s,
                   ),
-                  decoration: BoxDecoration(
-                    color: colors.tertiaryBackground,
-                    borderRadius: BorderRadius.circular(9.0.s),
-                    border: Border.all(
-                      color: colors.secondaryBackground,
-                      width: 4.s,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      showMoreDetails
+                          ? context.i18n.wallet_swap_confirmation_less
+                          : context.i18n.wallet_swap_confirmation_more,
+                      style: textStyles.caption2.copyWith(
+                        color: colors.primaryText,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        showMoreDetails
-                            ? context.i18n.wallet_swap_confirmation_less
-                            : context.i18n.wallet_swap_confirmation_more,
-                        style: textStyles.caption2.copyWith(
-                          color: colors.primaryText,
-                        ),
+                    SizedBox(width: 4.0.s),
+                    AnimatedRotation(
+                      turns: showMoreDetails ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: Assets.svg.iconArrowDown.icon(
+                        color: colors.primaryText,
+                        size: 16.0.s,
                       ),
-                      SizedBox(width: 4.0.s),
-                      AnimatedRotation(
-                        turns: showMoreDetails ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: Assets.svg.iconArrowDown.icon(
-                          color: colors.primaryText,
-                          size: 16.0.s,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
