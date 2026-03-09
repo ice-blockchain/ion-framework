@@ -60,7 +60,6 @@ class TokenMarketInfo extends _$TokenMarketInfo {
       Logger.log(
         '[TokenMarketInfo] getTokenInfo (REST) returned null | externalAddress=$externalAddress',
       );
-      unawaited(_subscribeSse(client, externalAddress, null));
       yield null;
     } else {
       _logTokenPosition(
