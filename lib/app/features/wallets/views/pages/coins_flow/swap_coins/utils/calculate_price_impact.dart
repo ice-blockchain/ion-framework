@@ -1,14 +1,17 @@
 double? calculatePriceImpact({
   required double sellAmount,
-  required double sellPriceUSD,
-  required double buyPriceUSD,
-  required double exchangeRate,
+  required double buyAmount,
+  required double sellPriceUsd,
+  required double buyPriceUsd,
 }) {
-  if (sellAmount <= 0 || sellPriceUSD <= 0 || buyPriceUSD <= 0) return null;
+  if (sellAmount == 0 || buyAmount == 0 || buyPriceUsd == 0) return null;
 
-  final sellUsdValue = sellAmount * sellPriceUSD;
-  final buyAmount = exchangeRate * sellAmount;
-  final buyUsdValue = buyAmount * buyPriceUSD;
+  final executionPrice = buyAmount / sellAmount;
+  final spotPrice = sellPriceUsd / buyPriceUsd;
 
-  return ((buyUsdValue - sellUsdValue) / sellUsdValue) * 100;
+  final impact = -((spotPrice - executionPrice) / spotPrice) * 100;
+
+  if (impact.abs() < 0.000001) return 0;
+
+  return impact;
 }

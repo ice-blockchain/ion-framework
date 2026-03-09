@@ -572,9 +572,9 @@ class SwapCoinsController extends _$SwapCoinsController {
 
     return calculatePriceImpact(
       sellAmount: state.amount,
-      sellPriceUSD: sellCoin.coin.priceUSD,
-      buyPriceUSD: buyCoin.coin.priceUSD,
-      exchangeRate: quoteInfo.priceForSellTokenInBuyToken,
+      buyAmount: quoteInfo.priceForSellTokenInBuyToken * state.amount,
+      sellPriceUsd: sellCoin.coin.priceUSD,
+      buyPriceUsd: buyCoin.coin.priceUSD,
     );
   }
 
