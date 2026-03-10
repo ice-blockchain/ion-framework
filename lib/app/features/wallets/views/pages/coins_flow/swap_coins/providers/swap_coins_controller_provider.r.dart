@@ -572,8 +572,12 @@ class SwapCoinsController extends _$SwapCoinsController {
 
     if (sellCoin == null || buyCoin == null) return null;
 
-    // TODO: remove hardcoded value after demo video
-    return -10.0;
+    return calculatePriceImpact(
+      sellAmount: state.amount,
+      buyAmount: quoteInfo.priceForSellTokenInBuyToken * state.amount,
+      sellPriceUsd: sellCoin.coin.priceUSD,
+      buyPriceUsd: buyCoin.coin.priceUSD,
+    );
   }
 
   void _setQuoteError(Exception error) {
