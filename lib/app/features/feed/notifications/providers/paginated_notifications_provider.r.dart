@@ -11,6 +11,7 @@ import 'package:ion/app/features/feed/notifications/data/repository/likes_reposi
 import 'package:ion/app/features/feed/notifications/data/repository/mentions_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/token_action_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/token_launch_repository.r.dart';
+import 'package:ion/app/features/feed/notifications/data/repository/token_updates_repository.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'paginated_notifications_provider.r.g.dart';
@@ -101,8 +102,10 @@ class PaginatedNotifications extends _$PaginatedNotifications {
     final mentionsRepository = ref.watch(mentionsRepositoryProvider);
     final tokenLaunchRepository = ref.watch(tokenLaunchRepositoryProvider);
     final tokenActionRepository = ref.watch(tokenActionRepositoryProvider);
+    final tokenUpdatesRepository = ref.watch(tokenUpdatesRepositoryProvider);
 
-    final (comments, content, likes, followers, mentions, tokenLaunch, tokenActions) = await (
+    final (comments, content, likes, followers, mentions, tokenLaunch, tokenActions, tokenUpdates) =
+        await (
       commentsRepository.getNotificationsAfter(after: after, limit: _limit),
       contentRepository.getNotificationsAfter(after: after, limit: _limit),
       likesRepository.getNotificationsAfter(after: after, limit: _limit),
@@ -110,6 +113,7 @@ class PaginatedNotifications extends _$PaginatedNotifications {
       mentionsRepository.getNotificationsAfter(after: after, limit: _limit),
       tokenLaunchRepository.getNotificationsAfter(after: after, limit: _limit),
       tokenActionRepository.getNotificationsAfter(after: after, limit: _limit),
+      tokenUpdatesRepository.getNotificationsAfter(after: after, limit: _limit),
     ).wait;
 
     final all = [
@@ -120,6 +124,7 @@ class PaginatedNotifications extends _$PaginatedNotifications {
       ...mentions,
       ...tokenLaunch,
       ...tokenActions,
+      ...tokenUpdates,
     ]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     return all.take(_limit).toList();

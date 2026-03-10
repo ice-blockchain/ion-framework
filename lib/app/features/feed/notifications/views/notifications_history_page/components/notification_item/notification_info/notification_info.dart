@@ -35,6 +35,7 @@ class NotificationInfo extends ConsumerWidget {
         TokenLaunchNotificationInfo(notification: notification),
       final TokenTransactionIonNotification notification =>
         TokenTransactionNotificationInfo(notification: notification),
+      TokenUpdateIonNotification() => const SizedBox.shrink(),
     };
   }
 }

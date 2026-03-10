@@ -116,6 +116,7 @@ class NotificationIcons extends StatelessWidget {
           size: size,
           eventReference: tokenTransaction.eventReference,
         ),
+      TokenUpdateIonNotification() => const SizedBox.shrink(),
     };
   }
 }
