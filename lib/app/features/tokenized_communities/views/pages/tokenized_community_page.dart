@@ -312,12 +312,19 @@ class TokenizedCommunityPage extends HookConsumerWidget {
       ),
       floatingActionButton: ValueListenableBuilder<bool>(
         valueListenable: isCommentInputFocused,
-        builder: (context, isFocused, _) {
-          return isFocused
-              ? const SizedBox.shrink()
-              : tradeEventReference != null
-                  ? FloatingTradeIsland(eventReference: tradeEventReference)
-                  : FloatingTradeIsland(externalAddress: externalAddress);
+        child: tradeEventReference != null
+            ? FloatingTradeIsland(eventReference: tradeEventReference)
+            : FloatingTradeIsland(externalAddress: externalAddress),
+        builder: (context, isFocused, child) {
+          return IgnorePointer(
+            ignoring: isFocused,
+            child: AnimatedOpacity(
+              opacity: isFocused ? 0 : 1,
+              duration: const Duration(milliseconds: 140),
+              curve: Curves.easeOut,
+              child: child,
+            ),
+          );
         },
       ),
       headerActionsBuilder: (OverlayMenuCloseSignal menuCloseSignal) => [
