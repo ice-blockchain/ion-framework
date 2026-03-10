@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/services/sentry/api_error_sentry_logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
-import 'package:ion_identity_client/ion_identity.dart';
 
 Future<void> logWalletApiErrorToSentry(
   Object error, {
@@ -17,7 +16,7 @@ Future<void> logWalletApiErrorToSentry(
 }) async {
   try {
     final rootError = _unwrapError(error);
-    final cause = _extractCause(rootError);
+    final cause = extractApiErrorCause(rootError);
     final sentryTags = <String, String>{
       'wallet_operation': operation,
       'wallet_endpoint': endpoint,
@@ -29,7 +28,7 @@ Future<void> logWalletApiErrorToSentry(
       'endpoint': endpoint,
       'exceptionType': error.runtimeType.toString(),
       'cause': cause,
-      ..._extractNetworkContext(rootError),
+      ...extractApiErrorNetworkContext(rootError),
       ..._extractErrorDebugContext(error),
       if (debugContext != null) ...debugContext,
     };
@@ -96,74 +95,4 @@ Future<Object?> logWalletApiErrorStateTransitionToSentry<T>(
   );
 
   return error;
-}
-
-String _extractCause(Object error) {
-  if (error is IONException) return error.message;
-  if (error is RequestExecutionException) {
-    return _extractDioReason(error.error) ?? error.error.toString();
-  }
-  return _extractDioReason(error) ?? error.toString();
-}
-
-Map<String, dynamic> _extractNetworkContext(Object error) {
-  final context = <String, dynamic>{};
-  final dio = switch (error) {
-    RequestExecutionException(error: final nested) when nested is DioException => nested,
-    DioException() => error,
-    _ => null,
-  };
-
-  if (dio == null) {
-    return context;
-  }
-
-  context['dioType'] = dio.type.name;
-  context['requestPath'] = dio.requestOptions.path;
-  context['requestMethod'] = dio.requestOptions.method;
-  context['statusCode'] = dio.response?.statusCode;
-
-  final apiReason = _extractReasonFromResponse(dio.response?.data);
-  if (apiReason != null) context['apiReason'] = apiReason;
-
-  return context;
-}
-
-String? _extractDioReason(Object error) {
-  if (error is! DioException) return null;
-  return _extractReasonFromResponse(error.response?.data) ??
-      error.message ??
-      error.error?.toString();
-}
-
-String? _extractReasonFromResponse(dynamic responseData) {
-  if (responseData is String) return _nonEmpty(responseData);
-  if (responseData is! Map<String, dynamic>) return null;
-
-  final errorField = responseData['error'];
-  final nestedError = errorField is Map<String, dynamic>
-      ? _firstNotNull([
-          _nonEmpty(errorField['message']?.toString()),
-          _nonEmpty(errorField['reason']?.toString()),
-        ])
-      : null;
-
-  return _firstNotNull([
-    _nonEmpty(responseData['reason']?.toString()),
-    _nonEmpty(responseData['message']?.toString()),
-    nestedError,
-  ]);
-}
-
-String? _nonEmpty(String? value) {
-  final trimmed = value?.trim();
-  if (trimmed == null || trimmed.isEmpty) return null;
-  return trimmed;
-}
-
-T? _firstNotNull<T>(Iterable<T?> values) {
-  for (final value in values) {
-    if (value != null) return value;
-  }
-  return null;
 }
