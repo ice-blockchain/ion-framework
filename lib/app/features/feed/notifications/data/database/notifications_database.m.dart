@@ -15,6 +15,7 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/mention
 import 'package:ion/app/features/feed/notifications/data/database/tables/subscribed_users_content_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/token_action_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/database/tables/token_launch_table.d.dart';
+import 'package:ion/app/features/feed/notifications/data/database/tables/token_updates_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -47,6 +48,7 @@ NotificationsDatabase notificationsDatabase(Ref ref) {
     MentionsTable,
     TokenLaunchTable,
     TokenActionTable,
+    TokenUpdatesTable,
   ],
   queries: {
     'aggregatedFollowersAfter': '''
@@ -129,7 +131,7 @@ class NotificationsDatabase extends _$NotificationsDatabase {
   final String pubkey;
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -206,6 +208,9 @@ class NotificationsDatabase extends _$NotificationsDatabase {
         from8To9: (m, schema) async {
           await m.database
               .customStatement('DROP TABLE IF EXISTS account_notification_sync_state_table');
+        },
+        from9To10: (m, schema) async {
+          await m.createTable(schema.tokenUpdatesTable);
         },
       ),
     );

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -8,6 +9,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
@@ -17,7 +19,8 @@ part 'token_price_change_response.f.freezed.dart';
 
 @Freezed(equal: false)
 class TokenPriceChangeResponseEntity
-    with _$TokenPriceChangeResponseEntity, IonConnectEntity, ImmutableEntity, CacheableEntity {
+    with _$TokenPriceChangeResponseEntity, IonConnectEntity, ImmutableEntity, CacheableEntity
+    implements EntityEventSerializable {
   const factory TokenPriceChangeResponseEntity({
     required String id,
     required String pubkey,
@@ -25,6 +28,7 @@ class TokenPriceChangeResponseEntity
     required String signature,
     required int createdAt,
     required TokenPriceChangeResponseData data,
+    required EventMessage eventMessage,
   }) = _TokenPriceChangeResponseEntity;
 
   const TokenPriceChangeResponseEntity._();
@@ -42,8 +46,12 @@ class TokenPriceChangeResponseEntity
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: TokenPriceChangeResponseData.fromEventMessage(eventMessage),
+      eventMessage: eventMessage,
     );
   }
+
+  @override
+  FutureOr<EventMessage> toEntityEventMessage() => eventMessage;
 
   static const int kind = 6176;
 }

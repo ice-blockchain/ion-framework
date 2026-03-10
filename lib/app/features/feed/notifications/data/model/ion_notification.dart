@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 
 sealed class IonNotification {
@@ -86,4 +87,13 @@ final class TokenTransactionIonNotification extends IonNotification {
   }) : super(pubkeys: [eventReference.masterPubkey]);
 
   final EventReference eventReference;
+}
+
+final class TokenUpdateIonNotification extends IonNotification {
+  TokenUpdateIonNotification({
+    required this.eventMessage,
+    required super.timestamp,
+  }) : super(pubkeys: []);
+
+  final EventMessage eventMessage;
 }
