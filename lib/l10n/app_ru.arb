@@ -1200,5 +1200,9 @@
   "write_a_message": "Написать сообщение...",
   "token_unable_to_fetch_market_data_title": "Не удалось загрузить рыночные данные",
   "token_unable_to_fetch_market_data_description": "Мы загружаем рыночную информацию для этого токена, попробуйте позже",
-  "your_position_card_title": "Ваша позиция"
+  "your_position_card_title": "Ваша позиция",
+  "wallet_swap_confirmation_high_price_impact_title": "Очень высокое влияние на цену",
+  "wallet_swap_confirmation_high_price_impact_description": "Эта транзакция имеет высокое влияние на цену ({priceImpact}), поэтому сумма, которую вы получите, будет заметно ниже текущей рыночной цены.",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "Эта транзакция имеет высокое влияние на цену (",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": "), поэтому сумма, которую вы получите, будет заметно ниже текущей рыночной цены."
 }

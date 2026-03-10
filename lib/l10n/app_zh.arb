@@ -1200,5 +1200,9 @@
   "write_a_message": "写一条消息...",
   "token_unable_to_fetch_market_data_title": "无法获取市场数据",
   "token_unable_to_fetch_market_data_description": "我们正在获取此代币的市场信息，请稍后再试",
-  "your_position_card_title": "持仓"
+  "your_position_card_title": "持仓",
+  "wallet_swap_confirmation_high_price_impact_title": "价格影响非常大",
+  "wallet_swap_confirmation_high_price_impact_description": "此交易的价格影响较大（{priceImpact}），因此您收到的金额将明显低于当前市场价格。",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "此交易的价格影响较大（",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": "），因此您收到的金额将明显低于当前市场价格。"
 }

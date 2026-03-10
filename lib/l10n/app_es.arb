@@ -1200,5 +1200,9 @@
   "write_a_message": "Escribe un mensaje...",
   "token_unable_to_fetch_market_data_title": "No se pudieron obtener los datos del mercado",
   "token_unable_to_fetch_market_data_description": "Estamos obteniendo información del mercado para este token, inténtalo de nuevo más tarde",
-  "your_position_card_title": "Tu posición"
+  "your_position_card_title": "Tu posición",
+  "wallet_swap_confirmation_high_price_impact_title": "Impacto de precio muy alto",
+  "wallet_swap_confirmation_high_price_impact_description": "Esta transacción tiene un alto impacto de precio ({priceImpact}), por lo que la cantidad que recibirás será notablemente inferior al precio actual del mercado.",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "Esta transacción tiene un alto impacto de precio (",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": "), por lo que la cantidad que recibirás será notablemente inferior al precio actual del mercado."
 }
