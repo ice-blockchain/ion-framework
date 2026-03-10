@@ -22,6 +22,7 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/pr
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/calculate_price_impact.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
@@ -266,11 +267,12 @@ class SwapCoinsController extends _$SwapCoinsController {
     final coinGroups = walletView?.coinGroups;
     if (coinGroups == null || coinGroups.isEmpty) return null;
 
-    // TODO: Uncomment to restrict swap to internal coins (ION/ICE) only
-    // final internalCoinGroups = coinGroups.where(SwapCoinIdentifier.isInternalCoinGroup).toList();
-    // if (internalCoinGroups.isEmpty) return null;
+    // Filter to only internal coins (ION/ICE) - exclude creator tokens
+    final internalCoinGroups = coinGroups.where(SwapCoinIdentifier.isInternalCoinGroup).toList();
+    if (internalCoinGroups.isEmpty) return null;
 
-    final lastUsed = coinGroups.firstWhereOrNull(
+    // Try last used sell coin first (only if it's an internal coin)
+    final lastUsed = internalCoinGroups.firstWhereOrNull(
       (group) => group.symbolGroup == lastSymbolGroup,
     );
     if (lastUsed != null) return lastUsed;
@@ -570,12 +572,8 @@ class SwapCoinsController extends _$SwapCoinsController {
 
     if (sellCoin == null || buyCoin == null) return null;
 
-    return calculatePriceImpact(
-      sellAmount: state.amount,
-      buyAmount: quoteInfo.priceForSellTokenInBuyToken * state.amount,
-      sellPriceUsd: sellCoin.coin.priceUSD,
-      buyPriceUsd: buyCoin.coin.priceUSD,
-    );
+    // TODO: remove hardcoded value after demo video
+    return -10.0;
   }
 
   void _setQuoteError(Exception error) {
