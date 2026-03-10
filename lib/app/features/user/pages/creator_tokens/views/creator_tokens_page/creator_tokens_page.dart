@@ -13,6 +13,7 @@ import 'package:ion/app/features/tokenized_communities/providers/featured_tokens
 import 'package:ion/app/features/tokenized_communities/providers/global_search_tokens_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/latest_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
+import 'package:ion/app/features/user/pages/creator_tokens/providers/creator_tokens_filter_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_body.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_header.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/creator_tokens_search_bar.dart';
@@ -195,6 +196,8 @@ class CreatorTokensPage extends HookConsumerWidget {
     final featuredTokensAsync = ref.watch(featuredTokensProvider);
     final featuredTokens = featuredTokensAsync.valueOrNull ?? <CommunityToken>[];
 
+    final selectedFilter = ref.watch(creatorTokensFilterNotifierProvider);
+
     useOnInit(
       () {
         if (!isGlobalSearchVisible.value) return;
@@ -204,7 +207,7 @@ class CreatorTokensPage extends HookConsumerWidget {
           query: debouncedQuery,
         );
       },
-      [debouncedQuery, isGlobalSearchVisible.value],
+      [debouncedQuery, isGlobalSearchVisible.value, selectedFilter],
     );
 
     // Create stable identifier for the list (to avoid unnecessary useEffect triggers)
