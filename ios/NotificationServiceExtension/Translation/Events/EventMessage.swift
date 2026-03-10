@@ -4,6 +4,8 @@ import CryptoKit
 import Foundation
 
 struct EventMessage: Decodable {
+    static let type = "EVENT"
+
     let id: String
     let pubkey: String
     let kind: Int
@@ -11,6 +13,7 @@ struct EventMessage: Decodable {
     let content: String
     let tags: [[String]]
     let sig: String?
+    let subscriptionId: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -22,7 +25,16 @@ struct EventMessage: Decodable {
         case sig
     }
     
-    init(id: String, pubkey: String, createdAt: Int, kind: Int, tags: [[String]], content: String, sig: String?) {
+    init(
+        id: String,
+        pubkey: String,
+        createdAt: Int,
+        kind: Int,
+        tags: [[String]],
+        content: String,
+        sig: String?,
+        subscriptionId: String? = nil
+    ) {
         self.id = id
         self.pubkey = pubkey
         self.createdAt = createdAt
@@ -30,6 +42,7 @@ struct EventMessage: Decodable {
         self.tags = tags
         self.content = content
         self.sig = sig
+        self.subscriptionId = subscriptionId
     }
     
     init(from decoder: Decoder) throws {
@@ -41,6 +54,7 @@ struct EventMessage: Decodable {
         content = try container.decode(String.self, forKey: .content)
         tags = try container.decode([[String]].self, forKey: .tags)
         sig = try container.decodeIfPresent(String.self, forKey: .sig)
+        subscriptionId = nil
     }
 
     func validate() -> Bool {
@@ -95,6 +109,87 @@ struct EventMessage: Decodable {
 }
 
 extension EventMessage {
+    enum ParsingError: Error {
+        case invalidFormat
+        case invalidType(String)
+        case invalidPayload
+        case invalidSubscriptionId
+    }
+
+    static func fromJson(_ json: [Any]) throws -> EventMessage {
+        guard json.count == 2 || json.count == 3 else {
+            throw ParsingError.invalidFormat
+        }
+
+        guard let type = json.first as? String else {
+            throw ParsingError.invalidFormat
+        }
+
+        if type != EventMessage.type {
+            throw ParsingError.invalidType(type)
+        }
+
+        let payloadIndex = json.count - 1
+
+        guard let payload = json[payloadIndex] as? [String: Any] else {
+            throw ParsingError.invalidPayload
+        }
+
+        var subscriptionId: String?
+        if json.count == 3 {
+            guard let decodedSubscriptionId = json[1] as? String else {
+                throw ParsingError.invalidSubscriptionId
+            }
+            subscriptionId = decodedSubscriptionId
+        }
+
+        return try fromPayloadJson(payload, subscriptionId: subscriptionId)
+    }
+
+    static func fromJson(_ json: [String: Any]) throws -> EventMessage {
+        return try fromPayloadJson(json)
+    }
+
+    static func fromPayloadJson(
+        _ payloadJson: [String: Any],
+        subscriptionId: String? = nil
+    ) throws -> EventMessage {
+        guard let id = payloadJson["id"] as? String,
+              let pubkey = payloadJson["pubkey"] as? String,
+              let createdAt = payloadJson["created_at"] as? Int,
+              let kind = payloadJson["kind"] as? Int,
+              let content = payloadJson["content"] as? String,
+              let rawTags = payloadJson["tags"] as? [Any] else {
+            throw ParsingError.invalidPayload
+        }
+
+        let tags = try rawTags.map { rawTag -> [String] in
+            guard let tagItems = rawTag as? [Any] else {
+                throw ParsingError.invalidPayload
+            }
+
+            return try tagItems.map { rawItem in
+                guard let item = rawItem as? String else {
+                    throw ParsingError.invalidPayload
+                }
+                return item
+            }
+        }
+
+        let sig = payloadJson["sig"] as? String
+
+        return EventMessage(
+            id: id,
+            pubkey: pubkey,
+            createdAt: createdAt,
+            kind: kind,
+            tags: tags,
+            content: content,
+            sig: sig,
+            subscriptionId: subscriptionId
+        )
+    }
+
     func masterPubkey() throws -> String {
         let masterPubkeyTag = tags.first { tag in tag.count > 1 && tag[0] == "b" }
 

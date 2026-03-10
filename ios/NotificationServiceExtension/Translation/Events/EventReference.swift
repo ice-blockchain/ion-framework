@@ -52,6 +52,8 @@ struct ReplaceableEventReference: EventReference {
     let kind: Int
     let dTag: String
 
+    static let tagName = "a"
+
     init(masterPubkey: String, kind: Int, dTag: String = "") {
         self.masterPubkey = masterPubkey
         self.kind = kind
@@ -138,6 +140,8 @@ struct ImmutableEventReference: EventReference {
     let pubkey: String
     let kind: Int
     let masterPubkey: String
+
+    static let tagName = "e"
 
     init(id: String, pubkey: String, kind: Int = 0, masterPubkey: String = "") {
         self.id = id
