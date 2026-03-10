@@ -104,7 +104,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
     }
 
     // Compare subscription filter events.
-    // For filter events it's enough to compare only their kinds, because
+    // For filter events it's enough to compare only their kinds, because the events structure is static and
     // we can't compare the full events - they will always be different (different ids and createdAt),
     // so we assume that if the kinds are the same, then the events are also the same.
     final currentFilterEventKinds = currentData.filterEvents.map((event) => event.kind).toList();
