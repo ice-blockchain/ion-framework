@@ -193,7 +193,7 @@ class TransactionResultSheet extends HookConsumerWidget {
               },
             ),
           ),
-          ScreenBottomOffset(margin: 16.0.s),
+          const ScreenBottomOffset(),
         ],
       ),
     );

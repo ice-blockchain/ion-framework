@@ -222,7 +222,7 @@ class ConfirmationSheet extends HookConsumerWidget {
                         );
                       },
                     ),
-                  SizedBox(height: 16.0.s),
+                  const ScreenBottomOffset(),
                 ],
               ),
             ),
