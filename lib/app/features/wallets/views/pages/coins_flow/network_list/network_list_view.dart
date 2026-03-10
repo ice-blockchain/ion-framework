@@ -111,8 +111,7 @@ class NetworkListView extends HookConsumerWidget {
             ),
           ),
           Flexible(
-            child: Padding(
-              padding: EdgeInsetsDirectional.only(bottom: 32.0.s),
+            child: ScreenBottomOffset(
               child: ScreenSideOffset.small(
                 child: child,
               ),

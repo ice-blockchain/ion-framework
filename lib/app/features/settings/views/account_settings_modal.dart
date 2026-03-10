@@ -142,7 +142,7 @@ class AccountSettingsModal extends HookConsumerWidget {
                 ],
               ),
             ),
-            ScreenBottomOffset(margin: 32.0.s),
+            const ScreenBottomOffset(),
           ],
         ),
       ),
