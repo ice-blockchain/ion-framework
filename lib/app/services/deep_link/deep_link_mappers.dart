@@ -3,7 +3,6 @@
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/services/deep_link/shared_content_type.dart';
 
@@ -24,7 +23,6 @@ SharedContentType mapEntityToSharedContentType(IonConnectEntity entity) {
     ModifiablePostEntity() => SharedContentType.post,
     ArticleEntity() => SharedContentType.article,
     UserMetadataEntity() => SharedContentType.profile,
-    CommunityTokenDefinitionEntity() => SharedContentType.communityToken,
     _ => throw UnsupportedError('Unsupported IonConnectEntity: $entity'),
   };
 }
