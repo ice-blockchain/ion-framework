@@ -87,7 +87,8 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
     required String fcmToken,
   }) async {
     // There is no published subscription yet, but there are selected categories
-    if (publishedSubscription == null && currentData.filters.isNotEmpty) {
+    if (publishedSubscription == null &&
+        (currentData.filters.isNotEmpty || currentData.filterEvents.isNotEmpty)) {
       return true;
     }
 
