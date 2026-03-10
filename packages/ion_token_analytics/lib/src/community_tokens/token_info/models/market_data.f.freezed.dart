@@ -25,7 +25,7 @@ mixin _$MarketData {
   double get volume => throw _privateConstructorUsedError;
   int get holders => throw _privateConstructorUsedError;
   double get priceUSD => throw _privateConstructorUsedError;
-  String? get ticker => throw _privateConstructorUsedError;
+  String get ticker => throw _privateConstructorUsedError;
   Position? get position => throw _privateConstructorUsedError;
 
   /// Serializes this MarketData to a JSON map.
@@ -50,7 +50,7 @@ abstract class $MarketDataCopyWith<$Res> {
     double volume,
     int holders,
     double priceUSD,
-    String? ticker,
+    String ticker,
     Position? position,
   });
 
@@ -76,7 +76,7 @@ class _$MarketDataCopyWithImpl<$Res, $Val extends MarketData>
     Object? volume = null,
     Object? holders = null,
     Object? priceUSD = null,
-    Object? ticker = freezed,
+    Object? ticker = null,
     Object? position = freezed,
   }) {
     return _then(
@@ -97,10 +97,10 @@ class _$MarketDataCopyWithImpl<$Res, $Val extends MarketData>
                 ? _value.priceUSD
                 : priceUSD // ignore: cast_nullable_to_non_nullable
                       as double,
-            ticker: freezed == ticker
+            ticker: null == ticker
                 ? _value.ticker
                 : ticker // ignore: cast_nullable_to_non_nullable
-                      as String?,
+                      as String,
             position: freezed == position
                 ? _value.position
                 : position // ignore: cast_nullable_to_non_nullable
@@ -139,7 +139,7 @@ abstract class _$$MarketDataImplCopyWith<$Res>
     double volume,
     int holders,
     double priceUSD,
-    String? ticker,
+    String ticker,
     Position? position,
   });
 
@@ -165,7 +165,7 @@ class __$$MarketDataImplCopyWithImpl<$Res>
     Object? volume = null,
     Object? holders = null,
     Object? priceUSD = null,
-    Object? ticker = freezed,
+    Object? ticker = null,
     Object? position = freezed,
   }) {
     return _then(
@@ -186,10 +186,10 @@ class __$$MarketDataImplCopyWithImpl<$Res>
             ? _value.priceUSD
             : priceUSD // ignore: cast_nullable_to_non_nullable
                   as double,
-        ticker: freezed == ticker
+        ticker: null == ticker
             ? _value.ticker
             : ticker // ignore: cast_nullable_to_non_nullable
-                  as String?,
+                  as String,
         position: freezed == position
             ? _value.position
             : position // ignore: cast_nullable_to_non_nullable
@@ -207,7 +207,7 @@ class _$MarketDataImpl implements _MarketData {
     required this.volume,
     required this.holders,
     required this.priceUSD,
-    this.ticker,
+    required this.ticker,
     this.position,
   });
 
@@ -223,7 +223,7 @@ class _$MarketDataImpl implements _MarketData {
   @override
   final double priceUSD;
   @override
-  final String? ticker;
+  final String ticker;
   @override
   final Position? position;
 
@@ -280,7 +280,7 @@ abstract class _MarketData implements MarketData {
     required final double volume,
     required final int holders,
     required final double priceUSD,
-    final String? ticker,
+    required final String ticker,
     final Position? position,
   }) = _$MarketDataImpl;
 
@@ -296,7 +296,7 @@ abstract class _MarketData implements MarketData {
   @override
   double get priceUSD;
   @override
-  String? get ticker;
+  String get ticker;
   @override
   Position? get position;
 

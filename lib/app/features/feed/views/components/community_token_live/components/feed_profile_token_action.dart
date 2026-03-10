@@ -129,7 +129,7 @@ class TwitterTokenHeader extends StatelessWidget {
                     children: [
                       Text(
                         withPrefix(
-                          input: token.marketData.ticker ?? '',
+                          input: token.marketData.ticker,
                           textDirection: Directionality.of(context),
                         ),
                         style: context.theme.appTextThemes.caption2.copyWith(

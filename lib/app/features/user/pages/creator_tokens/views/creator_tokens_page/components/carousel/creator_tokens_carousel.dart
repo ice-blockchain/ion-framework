@@ -149,7 +149,7 @@ class _CarouselCard extends HookConsumerWidget {
                               Flexible(
                                 child: Text(
                                   withPrefix(
-                                    input: '${token.marketData.ticker}',
+                                    input: token.marketData.ticker,
                                     textDirection: Directionality.of(context),
                                     prefix: token.source.isTwitter ||
                                             token.type != CommunityTokenType.profile
