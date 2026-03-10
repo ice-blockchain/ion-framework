@@ -251,12 +251,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
               SizedBox(height: 16.0.s),
               ContinueButton(
                 isEnabled: _isContinueButtonEnabled(state) && validationError == null,
-                onPressed: () => _handleButtonPress(
-                  context,
-                  ref,
-                  params,
-                  state.mode,
-                ),
+                onPressed: () => _handleButtonPress(context, ref, params),
               ),
               const ScreenBottomOffset(),
             ],
@@ -279,6 +274,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     final selectedPaymentTokenAmount = _selectedPaymentTokenAmount(state);
 
     return state.amount > 0 &&
+        state.quoteAmount != null &&
+        state.quoteAmount! > BigInt.zero &&
         state.targetWallet != null &&
         !state.isQuoting &&
         state.quotePricing != null &&
@@ -290,6 +287,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
   bool _isSellContinueButtonEnabled(TradeCommunityTokenState state) {
     return state.amount > 0 &&
         state.amount <= state.communityTokenBalance &&
+        state.quoteAmount != null &&
+        state.quoteAmount! > BigInt.zero &&
         state.targetWallet != null &&
         !state.isQuoting &&
         state.quotePricing != null &&
@@ -366,14 +365,13 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     TradeCommunityTokenControllerParams params,
-    CommunityTokenTradeMode mode,
   ) async {
     hideKeyboard(context);
+    final state = ref.read(tradeCommunityTokenControllerProvider(params));
+    final mode = state.mode;
     Logger.info(
       '[TradeCommunityTokenDialog] Button pressed | mode=$mode | externalAddress=${params.externalAddress}',
     );
-
-    final state = ref.read(tradeCommunityTokenControllerProvider(params));
 
     if (state.targetWallet == null || state.selectedPaymentToken == null) {
       Logger.warning(
@@ -395,7 +393,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     if (isBuy && !_isBuyContinueButtonEnabled(state)) {
       Logger.warning(
-        '[TradeCommunityTokenDialog] Buy button not enabled | amount=${state.amount} | quoteReady=${state.quotePricing != null} | isQuoting=${state.isQuoting}',
+        '[TradeCommunityTokenDialog] Buy button not enabled | amount=${state.amount} | quoteAmount=${state.quoteAmount} | quoteReady=${state.quotePricing != null} | isQuoting=${state.isQuoting}',
       );
       return;
     }
