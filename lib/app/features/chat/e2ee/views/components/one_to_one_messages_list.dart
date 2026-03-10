@@ -168,7 +168,6 @@ class OneToOneMessageList extends HookConsumerWidget {
                 if (_shouldShowDateHeader(index)) {
                   estimatedHeight += 50.0.s; // Date header height estimate
                 }
-
                 // Add margin spacing
                 return estimatedHeight += _getBottomMargin(index);
               },

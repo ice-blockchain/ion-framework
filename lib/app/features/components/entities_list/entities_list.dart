@@ -54,6 +54,7 @@ class EntitiesList extends StatelessWidget {
         itemCount: items.length,
         itemBuilder: (BuildContext context, int index) {
           final feedListItem = items[index];
+
           return switch (feedListItem) {
             CustomIonEntityListItem(child: final child) =>
               _CustomListItem(separatorHeight: separatorHeight, child: child),

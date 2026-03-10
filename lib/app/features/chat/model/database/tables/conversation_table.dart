@@ -16,4 +16,5 @@ enum ConversationType {
   oneToOne,
   community,
   group,
+  ad,
 }

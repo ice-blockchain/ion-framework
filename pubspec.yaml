@@ -124,6 +124,8 @@ dependencies:
   in_app_review: ^2.0.11
   in_app_update: ^4.2.5
   intl: any
+  ion_ads:
+    path: packages/ion_ads
   ion_connect_cache:
     path: packages/ion_connect_cache
   ion_content_labeler:
