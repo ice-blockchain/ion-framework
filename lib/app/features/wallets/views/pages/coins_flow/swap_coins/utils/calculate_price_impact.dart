@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ice License 1.0
+
 double? calculatePriceImpact({
   required double sellAmount,
   required double buyAmount,
