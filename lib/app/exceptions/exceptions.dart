@@ -14,6 +14,12 @@ sealed class IONException implements Exception {
   String toString() => 'IONException(code: $code, message: $message)';
 }
 
+abstract interface class DebugContextException implements Exception {
+  Map<String, dynamic> get debugContext;
+
+  Object? get originalError;
+}
+
 class FollowListNotFoundException extends IONException {
   FollowListNotFoundException() : super(10001, 'Follow list is null');
 }
@@ -32,6 +38,30 @@ class UserRelaysNotFoundException extends IONException {
 
 class UserIndexersNotFoundException extends IONException {
   UserIndexersNotFoundException() : super(10005, 'User indexers not found');
+}
+
+class RpcCallException extends IONException implements DebugContextException {
+  RpcCallException({
+    required this.method,
+    required this.rpcEndpoint,
+    required this.originalError,
+  }) : super(
+          10990,
+          'RPC call failed for $method via $rpcEndpoint: ${originalError.runtimeType}',
+        );
+
+  final String method;
+  final String rpcEndpoint;
+
+  @override
+  final Object originalError;
+
+  @override
+  Map<String, dynamic> get debugContext => {
+        'rpcMethod': method,
+        'rpcEndpoint': rpcEndpoint,
+        'rpcErrorType': originalError.runtimeType.toString(),
+      };
 }
 
 class IncorrectEventKindException extends IONException {

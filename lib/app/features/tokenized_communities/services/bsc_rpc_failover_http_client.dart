@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/logging.dart';
 import 'package:web3dart/json_rpc.dart';
 
@@ -58,6 +61,185 @@ class BscRpcFailoverHttpClient extends http.BaseClient {
     super.close();
   }
 
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final bodyBytes = await _readBodyBytes(request);
+
+    // Build attempt order: preferred first, then full list (unique).
+    final attemptOrder = <Uri>[];
+    final seen = <String>{};
+
+    final preferred = _preferred;
+    if (preferred != null && seen.add(preferred.toString())) {
+      attemptOrder.add(preferred);
+    }
+    for (final uri in _endpoints) {
+      final key = uri.toString();
+      if (seen.add(key)) attemptOrder.add(uri);
+    }
+
+    if (attemptOrder.isEmpty) {
+      throw StateError('No BSC RPC endpoints configured.');
+    }
+
+    Object? lastError;
+    StackTrace? lastStackTrace;
+    http.StreamedResponse? lastResponse;
+
+    for (var i = 0; i < attemptOrder.length; i++) {
+      final endpoint = attemptOrder[i];
+      final isPreferredAttempt =
+          preferred != null && i == 0 && endpoint.toString() == preferred.toString();
+
+      try {
+        final req = _cloneAsRequest(request, endpoint, bodyBytes);
+        Logger.info('[BscRpcFailover] RPC request | endpoint=${_describeEndpoint(endpoint)}');
+        final response = await _inner.send(req);
+
+        if (_shouldFailoverStatus(response.statusCode)) {
+          Logger.warning(
+            '[BscRpcFailover] Endpoint returned failover status | '
+            'endpoint=${_describeEndpoint(endpoint)} | status=${response.statusCode}',
+          );
+          reportFailover(
+            Exception(
+              'BSC RPC failover: HTTP ${response.statusCode} from $endpoint',
+            ),
+            StackTrace.current,
+            tag: 'bsc_rpc_failover_http_status',
+          );
+
+          // Drain so the underlying connection can be reused/closed cleanly.
+          unawaited(response.stream.drain<void>());
+          lastResponse = response;
+
+          if (isPreferredAttempt) {
+            // Preferred failed -> clear and restart from the beginning of the list.
+            await _withSerial(() => _setPreferred(null));
+          }
+          continue;
+        }
+
+        final responseBodyBytes = await _readResponseBodyBytes(response);
+        if (_hasEmptyResponseBody(responseBodyBytes)) {
+          Logger.warning(
+            '[BscRpcFailover] Endpoint returned empty response body | '
+            'endpoint=${_describeEndpoint(endpoint)}',
+          );
+          reportFailover(
+            Exception('BSC RPC failover: empty response body from $endpoint'),
+            StackTrace.current,
+            tag: 'bsc_rpc_failover_empty_body',
+          );
+
+          lastResponse = _rebuildResponse(response, responseBodyBytes);
+
+          if (isPreferredAttempt) {
+            await _withSerial(() => _setPreferred(null));
+          }
+          continue;
+        }
+
+        // Success: mark as preferred immediately (so callers can read currentUrl right away),
+        // then persist in the background.
+        if (_preferred?.toString() != endpoint.toString()) {
+          Logger.info(
+            '[BscRpcFailover] Switching preferred endpoint | '
+            'endpoint=${_describeEndpoint(endpoint)}',
+          );
+          _preferred = endpoint;
+          unawaited(_withSerial(() => _setPreferred(endpoint)));
+        }
+        return _rebuildResponse(response, responseBodyBytes);
+      } catch (e, st) {
+        lastError = e;
+        lastStackTrace = st;
+
+        reportFailover(
+          Exception(
+            'BSC RPC failover: transport error from $endpoint: ${e.runtimeType}: $e',
+          ),
+          st,
+          tag: 'bsc_rpc_failover_transport_error',
+        );
+        Logger.warning(
+          '[BscRpcFailover] Transport error | endpoint=${_describeEndpoint(endpoint)} | '
+          'error=${e.runtimeType}',
+        );
+
+        if (isPreferredAttempt) {
+          await _withSerial(() => _setPreferred(null));
+        }
+      }
+    }
+
+    // If we got responses but all were failover-worthy statuses, return the last.
+    if (lastResponse != null) return lastResponse;
+
+    // Otherwise, throw the last transport-level error.
+    if (lastError != null) {
+      Error.throwWithStackTrace(lastError, lastStackTrace ?? StackTrace.current);
+    }
+
+    throw StateError('Failed to send request: unknown error.');
+  }
+
+  String _describeEndpoint(Uri endpoint) {
+    final host = endpoint.host.isEmpty ? endpoint.toString() : endpoint.host;
+    final port = endpoint.hasPort ? ':${endpoint.port}' : '';
+    final path = endpoint.path.isEmpty || endpoint.path == '/' ? '' : endpoint.path;
+    return '$host$port$path';
+  }
+
+  Future<Uint8List> _readResponseBodyBytes(
+    http.StreamedResponse response,
+  ) async {
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in response.stream) {
+      builder.add(chunk);
+    }
+    return builder.takeBytes();
+  }
+
+  bool _hasEmptyResponseBody(Uint8List bodyBytes) {
+    if (bodyBytes.isEmpty) return true;
+
+    final body = utf8.decode(bodyBytes, allowMalformed: true);
+    return body.trim().isEmpty;
+  }
+
+  http.StreamedResponse _rebuildResponse(
+    http.StreamedResponse response,
+    Uint8List bodyBytes,
+  ) {
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bodyBytes),
+      response.statusCode,
+      contentLength: bodyBytes.length,
+      request: response.request,
+      headers: response.headers,
+      isRedirect: response.isRedirect,
+      persistentConnection: response.persistentConnection,
+      reasonPhrase: response.reasonPhrase,
+    );
+  }
+
+  http.Request _cloneAsRequest(
+    http.BaseRequest original,
+    Uri newUri,
+    Uint8List bodyBytes,
+  ) {
+    final req = http.Request(original.method, newUri);
+    req.headers.addAll(original.headers);
+    req
+      ..bodyBytes = bodyBytes
+      ..followRedirects = original.followRedirects
+      ..maxRedirects = original.maxRedirects
+      ..persistentConnection = original.persistentConnection;
+
+    return req;
+  }
+
   Future<T> _withSerial<T>(Future<T> Function() action) {
     final completer = Completer<T>();
     _serial = _serial.then((_) async {
@@ -102,106 +284,6 @@ class BscRpcFailoverHttpClient extends http.BaseClient {
     }
     return builder.takeBytes();
   }
-
-  http.Request _cloneAsRequest(http.BaseRequest original, Uri newUri, Uint8List bodyBytes) {
-    final req = http.Request(original.method, newUri);
-    req.headers.addAll(original.headers);
-    req
-      ..bodyBytes = bodyBytes
-      ..followRedirects = original.followRedirects
-      ..maxRedirects = original.maxRedirects
-      ..persistentConnection = original.persistentConnection;
-
-    return req;
-  }
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    final bodyBytes = await _readBodyBytes(request);
-
-    // Build attempt order: preferred first, then full list (unique).
-    final attemptOrder = <Uri>[];
-    final seen = <String>{};
-
-    final preferred = _preferred;
-    if (preferred != null && seen.add(preferred.toString())) {
-      attemptOrder.add(preferred);
-    }
-    for (final uri in _endpoints) {
-      final key = uri.toString();
-      if (seen.add(key)) attemptOrder.add(uri);
-    }
-
-    if (attemptOrder.isEmpty) {
-      throw StateError('No BSC RPC endpoints configured.');
-    }
-
-    Object? lastError;
-    StackTrace? lastStackTrace;
-    http.StreamedResponse? lastResponse;
-
-    for (var i = 0; i < attemptOrder.length; i++) {
-      final endpoint = attemptOrder[i];
-      final isPreferredAttempt =
-          preferred != null && i == 0 && endpoint.toString() == preferred.toString();
-
-      try {
-        final req = _cloneAsRequest(request, endpoint, bodyBytes);
-        final response = await _inner.send(req);
-
-        if (_shouldFailoverStatus(response.statusCode)) {
-          reportFailover(
-            Exception(
-              'BSC RPC failover: HTTP ${response.statusCode} from $endpoint',
-            ),
-            StackTrace.current,
-            tag: 'bsc_rpc_failover_http_status',
-          );
-
-          // Drain so the underlying connection can be reused/closed cleanly.
-          unawaited(response.stream.drain<void>());
-          lastResponse = response;
-
-          if (isPreferredAttempt) {
-            // Preferred failed -> clear and restart from the beginning of the list.
-            await _withSerial(() => _setPreferred(null));
-          }
-          continue;
-        }
-
-        // Success: mark as preferred immediately (so callers can read currentUrl right away),
-        // then persist in the background.
-        if (_preferred?.toString() != endpoint.toString()) {
-          _preferred = endpoint;
-          unawaited(_withSerial(() => _setPreferred(endpoint)));
-        }
-        return response;
-      } catch (e, st) {
-        lastError = e;
-        lastStackTrace = st;
-
-        reportFailover(
-          Exception('BSC RPC failover: transport error from $endpoint: ${e.runtimeType}: $e'),
-          st,
-          tag: 'bsc_rpc_failover_transport_error',
-        );
-
-        if (isPreferredAttempt) {
-          await _withSerial(() => _setPreferred(null));
-        }
-      }
-    }
-
-    // If we got responses but all were failover-worthy statuses, return the last.
-    if (lastResponse != null) return lastResponse;
-
-    // Otherwise, throw the last transport-level error.
-    if (lastError != null) {
-      Error.throwWithStackTrace(lastError, lastStackTrace ?? StackTrace.current);
-    }
-
-    throw StateError('Failed to send request: unknown error.');
-  }
 }
 
 class PreferredUrlJsonRpc extends JsonRPC {
@@ -215,4 +297,30 @@ class PreferredUrlJsonRpc extends JsonRPC {
 
   @override
   String get url => _urlProvider();
+
+  @override
+  Future<RPCResponse> call(String function, [List<dynamic>? params]) async {
+    final currentUrl = _urlProvider();
+
+    try {
+      return await super.call(function, params);
+    } catch (error) {
+      if (error is RpcCallException) {
+        rethrow;
+      }
+
+      throw RpcCallException(
+        method: function,
+        rpcEndpoint: _describeEndpoint(Uri.parse(currentUrl)),
+        originalError: error,
+      );
+    }
+  }
+
+  String _describeEndpoint(Uri endpoint) {
+    final host = endpoint.host.isEmpty ? endpoint.toString() : endpoint.host;
+    final port = endpoint.hasPort ? ':${endpoint.port}' : '';
+    final path = endpoint.path.isEmpty || endpoint.path == '/' ? '' : endpoint.path;
+    return '$host$port$path';
+  }
 }

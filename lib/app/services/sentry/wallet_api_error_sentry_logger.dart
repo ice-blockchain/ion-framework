@@ -17,7 +17,8 @@ Future<void> logWalletApiErrorToSentry(
   Map<String, dynamic>? debugContext,
 }) async {
   try {
-    final cause = _extractCause(error);
+    final rootError = _unwrapError(error);
+    final cause = _extractCause(rootError);
     final sentryTags = <String, String>{
       'wallet_operation': operation,
       'wallet_endpoint': endpoint,
@@ -30,7 +31,8 @@ Future<void> logWalletApiErrorToSentry(
       'exceptionType': error.runtimeType.toString(),
       'cause': cause,
       if (userAgent != null) 'userAgent': userAgent,
-      ..._extractNetworkContext(error),
+      ..._extractNetworkContext(rootError),
+      ..._extractErrorDebugContext(error),
       if (debugContext != null) ...debugContext,
     };
 
@@ -44,6 +46,22 @@ Future<void> logWalletApiErrorToSentry(
   } catch (_) {
     // Logging must never break the user flow.
   }
+}
+
+Object _unwrapError(Object error) {
+  if (error is DebugContextException && error.originalError != null) {
+    return error.originalError!;
+  }
+
+  return error;
+}
+
+Map<String, dynamic> _extractErrorDebugContext(Object error) {
+  if (error is DebugContextException) {
+    return error.debugContext;
+  }
+
+  return const {};
 }
 
 Future<Object?> logWalletApiErrorStateTransitionToSentry<T>(
