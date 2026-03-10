@@ -23,6 +23,7 @@ import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_
 import 'package:ion/app/features/wallets/views/pages/coins_flow/network_list/network_item.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/receive_coins_form_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/features/wallets/views/utils/network_validator.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -241,8 +242,19 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
 
     final coinsFilteredByWallet = coinsState.hasValue ? coinsState.value! : <CoinInWalletData>[];
 
+    final isSwapType = [NetworkListViewType.swapBuy, NetworkListViewType.swapSell].contains(type);
+    final isOtherSideInternal =
+        otherCoin != null && SwapCoinIdentifier.isInternalCoinGroup(otherCoin);
+
     final filteredCoins = coinsFilteredByWallet.where(
       (coin) {
+        // Filter out ETH only for ICE↔ION swaps (when other side is internal)
+        if (isSwapType &&
+            isOtherSideInternal &&
+            SwapCoinIdentifier.isEthNetwork(coin.coin.network.id)) {
+          return false;
+        }
+
         if (otherCoin == null || otherNetwork == null) return true;
 
         // Filter out networks that match the other side of the swap
@@ -250,6 +262,11 @@ class _UnrestrictedNetworksList extends ConsumerWidget {
         if (isSameCoin) {
           final isSameNetwork = coin.coin.network.id == otherNetwork.id;
           if (isSameNetwork) return false;
+        }
+
+        // ICE↔ION only: restrict to Bsc/Ion when the other side is ICE or ION
+        if (isSwapType && isOtherSideInternal) {
+          return SwapCoinIdentifier.isInternalNetwork(coin.coin.network.id);
         }
 
         return true;
