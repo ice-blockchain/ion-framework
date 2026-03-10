@@ -225,11 +225,13 @@ class MainActivity : FlutterFragmentActivity() {
                     sendExportSuccess(data)
                 }
                 cleanupCurrentEditingFile()
+                releaseVideoEditorModule()
             }
             RESULT_CANCELED -> {
                 cleanupCurrentEditingFile()
                 // User cancelled video editing - return null to indicate cancellation
                 sendExportSuccess(null)
+                releaseVideoEditorModule()
             }
         }
     }
