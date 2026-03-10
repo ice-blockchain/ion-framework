@@ -4,7 +4,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/text_editor/attributes.dart';
+import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/models/cashtag_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/cashtag/services/cashtag_insertion_service.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/models/mention_embed_data.f.dart';
 import 'package:ion/app/components/text_editor/components/custom_blocks/mention/services/mention_insertion_service.dart';
@@ -12,6 +14,7 @@ import 'package:ion/app/components/text_editor/components/custom_blocks/mention/
 import 'package:ion/app/components/text_editor/utils/quill_text_utils.dart';
 import 'package:ion/app/components/text_editor/utils/text_editor_typing_listener.dart';
 import 'package:ion/app/features/feed/providers/suggestions/suggestions_notifier_provider.r.dart';
+import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/user_token_market_cap_provider.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/services/text_parser/model/text_matcher.dart';
@@ -116,18 +119,32 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
     final ticker = suggestion.abbreviation.toUpperCase();
     final externalAddress = suggestion.tokenizedCommunityExternalAddress;
 
-    // Tokenized coins: persist as attributed text with external address.
-    // The embed-upgrade hook will render market-cap inline as soon as data is available.
+    // Tokenized coins: check cache first (same flow as mentions). If market cap available, insert as embed; else as text (hook upgrades when data loads).
     if (externalAddress != null && externalAddress.isNotEmpty) {
+      final cachedMarketCap = _getCachedTokenMarketCap(externalAddress);
+
       controller.removeListener(editorListener);
       try {
-        CashtagInsertionService.insertCashtagAsText(
-          controller,
-          tag.start,
-          tag.length,
-          ticker,
-          externalAddress,
-        );
+        if (cachedMarketCap != null) {
+          final cashtagData = CashtagEmbedData(
+            ticker: ticker,
+            externalAddress: externalAddress,
+          );
+          CashtagInsertionService.insertCashtag(
+            controller,
+            tag.start,
+            tag.length,
+            cashtagData,
+          );
+        } else {
+          CashtagInsertionService.insertCashtagAsText(
+            controller,
+            tag.start,
+            tag.length,
+            ticker,
+            externalAddress,
+          );
+        }
       } finally {
         controller.addListener(editorListener);
       }
@@ -164,6 +181,12 @@ class MentionsHashtagsHandler extends TextEditorTypingListener {
   // Gets cached market cap value (non-blocking for optimistic behavior, returns null if not cached).
   double? _getCachedMarketCap(String pubkey) {
     return ref.read(userTokenMarketCapIfAvailableProvider(pubkey));
+  }
+
+  // Gets cached token market cap for cashtag (same idea as _getCachedMarketCap for mentions).
+  double? _getCachedTokenMarketCap(String externalAddress) {
+    final token = ref.read(tokenMarketInfoProvider(externalAddress)).valueOrNull;
+    return token?.marketData.marketCap;
   }
 
   void onSuggestionSelected(String suggestion) {
