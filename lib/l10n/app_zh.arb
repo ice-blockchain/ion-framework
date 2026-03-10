@@ -314,6 +314,7 @@
   "create_post_add_topic": "添加话题",
   "create_post_add_topic_tooltip_description": "添加话题有助于提高可见度和参与度，使平台对用户更有用、更有吸引力",
   "create_post_add_topic_tooltip_title": "话题",
+  "create_post_external_content": "创建帖子",
   "create_post_modal_placeholder": "发生了什么？",
   "create_post_modal_title": "新帖子",
   "create_video_input_placeholder": "添加描述（可选）",

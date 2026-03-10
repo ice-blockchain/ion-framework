@@ -314,6 +314,7 @@
   "create_post_add_topic": "Agregar tema",
   "create_post_add_topic_tooltip_description": "Agregar un tema ayuda a mejorar la visibilidad y el compromiso, haciendo que la plataforma sea más útil y atractiva para los usuarios",
   "create_post_add_topic_tooltip_title": "Tema",
+  "create_post_external_content": "Crear publicación",
   "create_post_modal_placeholder": "¿Qué está pasando?",
   "create_post_modal_title": "Nueva publicación",
   "create_video_input_placeholder": "Agrega una descripción (opcional)",

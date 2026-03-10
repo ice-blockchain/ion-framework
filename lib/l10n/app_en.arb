@@ -314,6 +314,7 @@
   "create_post_add_topic": "Add topic",
   "create_post_add_topic_tooltip_description": "Adding a topic helps to improve visibility and engagement, making the platform more useful and attractive to users",
   "create_post_add_topic_tooltip_title": "Topic",
+  "create_post_external_content": "Create post",
   "create_post_modal_placeholder": "What's happening?",
   "create_post_modal_title": "New post",
   "create_video_input_placeholder": "Add a description (optional)",

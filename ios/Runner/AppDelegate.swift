@@ -7,6 +7,7 @@ import BanubaAudioBrowserSDK
 import BanubaPhotoEditorSDK
 import AppsFlyerLib
 import app_links
+import listen_sharing_intent
 
 // Audio Focus Handler implementation
 class AudioFocusHandler: NSObject {
@@ -356,6 +357,10 @@ class AudioVolumeObserver: NSObject {
 
     // URI Scheme handler (fallback)
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        let sharingIntent = SwiftListenSharingIntentPlugin.instance
+        if sharingIntent.hasMatchingSchemePrefix(url: url) {
+            return sharingIntent.application(app, open: url, options: options)
+        }
         AppsFlyerLib.shared().handleOpen(url, options: options)
         return super.application(app, open: url, options: options)
     }

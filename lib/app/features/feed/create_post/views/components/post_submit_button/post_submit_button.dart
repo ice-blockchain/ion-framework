@@ -107,7 +107,8 @@ class PostSubmitButton extends HookConsumerWidget {
 
         loading.value = true;
         try {
-          final filesToUpload = createOption == CreatePostOption.video
+          final allPreResolved = mediaFiles.every((f) => f.mimeType != null);
+          final filesToUpload = createOption == CreatePostOption.video || allPreResolved
               ? mediaFiles
               : await ref
                   .read(mediaServiceProvider)
