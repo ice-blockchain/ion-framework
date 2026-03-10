@@ -10,6 +10,7 @@ import 'package:ion/app/components/text/inline_badge_text.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
+import 'package:ion/app/features/chat/e2ee/providers/shared_post_message_provider.r.dart';
 import 'package:ion/app/features/chat/model/message_reaction.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
@@ -21,6 +22,9 @@ import 'package:ion/app/features/chat/views/components/message_items/message_ite
 import 'package:ion/app/features/chat/views/components/message_items/message_metadata/message_metadata.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_reactions/optimistic_ui/message_reactions_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/emoji_message/emoji_message.dart';
+import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
+import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -310,11 +314,23 @@ class ChatPreview extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final sharedPostEventReference = messageType == MessageType.sharedPost && lastMessage != null
+        ? ReplaceablePrivateDirectMessageEntity.fromEventMessage(lastMessage!)
+            .data
+            .quotedEvent
+            ?.eventReference
+        : null;
+
+    final sharedPostEntity = sharedPostEventReference == null
+        ? null
+        : ref.watch(sharedPostMessageProvider(sharedPostEventReference)).valueOrNull;
+
     final content = switch (messageType) {
       MessageType.text => lastMessageContent,
       MessageType.emoji => lastMessageContent,
-      MessageType.sharedPost =>
-        lastMessageContent.isNotEmpty ? lastMessageContent : context.i18n.post_page_title,
+      MessageType.sharedPost => lastMessageContent.isNotEmpty
+          ? lastMessageContent
+          : _sharedPostTypeLabel(context, sharedPostEntity),
       MessageType.audio => context.i18n.common_voice_message,
       MessageType.visualMedia => context.i18n.common_media,
       MessageType.document => lastMessageContent,
@@ -352,6 +368,17 @@ class ChatPreview extends HookConsumerWidget {
         ),
       ],
     );
+  }
+
+  String _sharedPostTypeLabel(BuildContext context, Object? sharedPostEntity) {
+    return switch (sharedPostEntity) {
+      ArticleEntity() => context.i18n.feed_modal_article,
+      final ModifiablePostEntity post when post.isStory => context.i18n.feed_modal_story,
+      final ModifiablePostEntity post when post.data.hasVideo => context.i18n.feed_modal_video,
+      final PostEntity post when post.isStory => context.i18n.feed_modal_story,
+      final PostEntity post when post.data.hasVideo => context.i18n.feed_modal_video,
+      _ => context.i18n.post_page_title,
+    };
   }
 }
 
