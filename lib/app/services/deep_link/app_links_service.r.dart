@@ -31,9 +31,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'app_links_service.r.g.dart';
 
 @riverpod
-Future<void> appReady(Ref ref) async {
+Future<bool> appReady(Ref ref) async {
   await ref.watch(initAppProvider.future);
   await ref.watch(splashReadyProvider.future);
+  return true;
 }
 
 @riverpod

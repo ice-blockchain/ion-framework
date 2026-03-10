@@ -134,6 +134,7 @@ dependencies:
     path: packages/ion_swap_client
   isolate_manager: ^6.1.0
   json_annotation: ^4.8.1
+  listen_sharing_intent: ^1.9.2
   lottie: ^3.1.0
   markdown: ^7.3.0
   markdown_quill:

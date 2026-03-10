@@ -13,11 +13,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/core/model/media_type.dart';
+import 'package:ion/app/features/core/model/mime_type.dart' show isGifMimeType;
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/gallery/views/pages/media_picker_type.dart';
 import 'package:ion/app/services/compressors/output_path_generator.dart';
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/utils/image_path.dart';
+import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -46,6 +49,28 @@ class MediaFile with _$MediaFile {
   factory MediaFile.fromJson(Map<String, dynamic> json) => _$MediaFileFromJson(json);
 
   String get basename => p.basename(path);
+}
+
+extension MediaFileGifExtension on MediaFile {
+  bool get isGif => isGifMimeType(mimeType) || path.isGif;
+}
+
+/// Builds a [MediaFile] from a raw file path by detecting the MIME type
+/// from the extension and reading image dimensions when applicable.
+Future<MediaFile> mediaFileFromPath(String path) async {
+  final mimeType = lookupMimeType(path);
+  int? width;
+  int? height;
+
+  if (MediaType.fromMimeType(mimeType ?? '') == MediaType.image) {
+    final bytes = await File(path).readAsBytes();
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    width = frame.image.width;
+    height = frame.image.height;
+  }
+
+  return MediaFile(path: path, mimeType: mimeType, width: width, height: height);
 }
 
 typedef CropImageUiSettings = List<PlatformUiSettings>;

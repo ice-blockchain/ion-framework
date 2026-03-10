@@ -200,6 +200,36 @@
                 <data
                     android:scheme="ionapptestnet" />
             </intent-filter>
+            <!-- Receive shared text from other apps (receive_sharing_intent) -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+            <!-- Receive a single shared image from other apps -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <!-- TODO: Uncomment to support sharing videos into the app -->
+            <!--
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+            -->
+            <!-- TODO: Uncomment to support sharing any type of files into the app -->
+            <!--
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            -->
         </activity>
         <activity android:name="com.android.camera.CropImage" />
         <activity

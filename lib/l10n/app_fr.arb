@@ -314,6 +314,7 @@
   "create_post_add_topic": "Ajouter un sujet",
   "create_post_add_topic_tooltip_description": "Ajouter un sujet aide à améliorer la visibilité et l'engagement, rendant la plateforme plus utile et attractive pour les utilisateurs",
   "create_post_add_topic_tooltip_title": "Sujet",
+  "create_post_external_content": "Créer une publication",
   "create_post_modal_placeholder": "Que se passe-t-il ?",
   "create_post_modal_title": "Nouvelle publication",
   "create_video_input_placeholder": "Ajouter une description (optionnel)",

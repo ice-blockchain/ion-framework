@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -36,6 +38,7 @@ import 'package:ion/app/features/chat/views/pages/new_chat_modal/new_chat_modal.
 import 'package:ion/app/features/chat/views/pages/new_group_modal/pages/add_group_participants_modal.dart';
 import 'package:ion/app/features/chat/views/pages/new_group_modal/pages/create_group_modal.dart';
 import 'package:ion/app/features/chat/views/pages/send_profile_modal/send_profile_modal.dart';
+import 'package:ion/app/features/chat/views/pages/share_external_content_modal/share_external_content_modal.dart';
 import 'package:ion/app/features/chat/views/pages/share_via_message_modal/share_via_message_modal.dart';
 import 'package:ion/app/features/core/views/pages/error_page.dart';
 import 'package:ion/app/features/core/views/pages/search_emoji_modal/search_emoji_modal.dart';
@@ -176,6 +179,7 @@ import 'package:ion/app/features/wallets/views/pages/wallets_modal.dart';
 import 'package:ion/app/router/base_route_data.dart';
 import 'package:ion/app/router/components/modal_wrapper/modal_wrapper.dart';
 import 'package:ion/app/router/main_tabs/main_tab_navigation.dart';
+import 'package:ion/app/services/sharing_intent/shared_content.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
 part 'app_routes.gr.g.dart';
