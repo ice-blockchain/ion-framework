@@ -207,9 +207,7 @@ class TokenHeaderLandscape extends StatelessWidget {
                     ),
                     TokenStatItem(
                       icon: Assets.svg.iconMemeMarkers,
-                      text: MarketDataFormatter.formatPrice(
-                        token.marketData.priceUSD,
-                      ),
+                      text: MarketDataFormatter.formatVolume(token.marketData.volume),
                     ),
                     TokenStatItem(
                       icon: Assets.svg.iconSearchGroups,
