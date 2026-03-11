@@ -29,7 +29,7 @@ import 'package:ion/app/features/feed/stories/views/components/story_preview/med
 import 'package:ion/app/features/feed/stories/views/components/story_preview/media/story_video_preview.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
-import 'package:ion/app/features/nsfw/nsfw_submit_guard.dart';
+import 'package:ion/app/features/nsfw/helpers/perform_nsfw_check_and_handle_result.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -185,6 +185,15 @@ class _StoryShareButton extends HookConsumerWidget {
 
               isPublishing.value = true;
               try {
+                // We don't need to check NSFW for post screenshot shares
+                if (!isPostScreenshot &&
+                    !await performNsfwCheckAndHandleResult(
+                      ref,
+                      mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
+                    )) {
+                  return;
+                }
+
                 final mediaFiles = await _buildStoryMediaFiles(
                   ref,
                   path: path,
@@ -193,11 +202,6 @@ class _StoryShareButton extends HookConsumerWidget {
                   eventReference: eventReference,
                 );
                 if (!context.mounted || mediaFiles == null) return;
-
-                // NSFW validation before publishing (stories: image or video)
-                final isBlocked = await NsfwSubmitGuard.checkAndBlockMediaFiles(ref, mediaFiles);
-                if (!context.mounted) return;
-                if (isBlocked) return;
 
                 final createPostNotifier = ref.read(
                   createPostNotifierProvider(CreatePostOption.story).notifier,
