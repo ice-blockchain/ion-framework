@@ -58,20 +58,14 @@ class StoryPreviewPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaType = mimeType != null ? MediaType.fromMimeType(mimeType!) : MediaType.unknown;
-    final playbackNotifier = ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier);
 
     useEffect(
       () {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          playbackNotifier.disablePlayback();
+          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).disablePlayback();
         });
-        return () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            playbackNotifier.enablePlayback();
-          });
-        };
+        return null;
       },
-      const [],
     );
 
     ref
