@@ -172,15 +172,13 @@ class CachedTokenMarketInfoNotifier extends _$CachedTokenMarketInfoNotifier {
     final clampedAmountWei = newAmountWei.isNegative ? BigInt.zero : newAmountWei;
 
     _expectedPositionWei = clampedAmountWei;
-    final newAmountValue = clampedAmountWei / TokenizedCommunitiesConstants.weiPerToken;
-
-    final priceUSD = currentToken.marketData.priceUSD;
-    final newAmountUSD = newAmountValue * priceUSD;
-
-    final adjustedPosition = currentPosition.copyWith(
-      amount: clampedAmountWei.toString(),
-      amountUSD: newAmountUSD,
-    );
+    final adjustedPosition = clampedAmountWei == BigInt.zero
+        ? null
+        : currentPosition.copyWith(
+            amount: clampedAmountWei.toString(),
+            amountUSD: (clampedAmountWei / TokenizedCommunitiesConstants.weiPerToken) *
+                currentToken.marketData.priceUSD,
+          );
 
     final adjustedMarketData = currentToken.marketData.copyWith(
       position: adjustedPosition,

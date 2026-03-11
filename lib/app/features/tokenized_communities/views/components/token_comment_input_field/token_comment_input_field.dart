@@ -77,7 +77,11 @@ class TokenCommentInputField extends HookConsumerWidget {
 
     useEffect(
       () {
-        onFocusChanged?.call(hasFocus.value);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            onFocusChanged?.call(hasFocus.value);
+          }
+        });
         return null;
       },
       [hasFocus.value],
