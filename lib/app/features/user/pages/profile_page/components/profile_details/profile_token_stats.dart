@@ -29,6 +29,7 @@ class ProfileTokenStats extends HookConsumerWidget {
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
     this.spacing,
     this.leading,
+    this.skipFirstBuyCheck = false,
     super.key,
   });
 
@@ -38,15 +39,20 @@ class ProfileTokenStats extends HookConsumerWidget {
   final double? spacing;
   final double separatorMargin;
 
+  /// When true, bypasses the ionConnectEntityHasToken check and fetches market
+  /// info directly. Use this when the token is known to exist (e.g. on token
+  /// detail pages or content token cards in the feed).
+  final bool skipFirstBuyCheck;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (eventReference == null) {
       return const SizedBox.shrink();
     }
     final tokenInfo = useWatchWhenVisible(
-      watcher: () => ref.watch(
-        tokenMarketInfoIfAvailableProvider(eventReference!),
-      ),
+      watcher: () => skipFirstBuyCheck
+          ? ref.watch(tokenMarketInfoProvider(eventReference!.toString()))
+          : ref.watch(tokenMarketInfoIfAvailableProvider(eventReference!)),
     );
 
     final hasTokenDefinition = ref
