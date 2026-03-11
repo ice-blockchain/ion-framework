@@ -2,9 +2,10 @@
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 part 'date_time_now_provider.r.g.dart';
 
-@Riverpod(keepAlive: true)
+@riverpod
 DateTime dateTimeNow(Ref ref) {
   return DateTime.now();
 }
