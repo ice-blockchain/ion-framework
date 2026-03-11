@@ -7,11 +7,8 @@ import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/providers/global_search_tokens_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/models/creator_tokens_tab_type.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/models/token_type_filter.dart';
-import 'package:ion/app/features/user/pages/creator_tokens/providers/creator_tokens_filter_provider.r.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/tabs/creator_tokens_tab_content.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class CreatorTokensBody extends ConsumerWidget {
   const CreatorTokensBody({
@@ -29,18 +26,6 @@ class CreatorTokensBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final globalSearch = ref.watch(globalSearchTokensNotifierProvider);
     final globalSearchNotifier = ref.watch(globalSearchTokensNotifierProvider.notifier);
-    final selectedFilter = ref.watch(creatorTokensFilterNotifierProvider);
-
-    // When search is active, apply the selected token-type filter so results
-    // match the filter (e.g. "X tokens" shows only X tokens in search results).
-    final rawSearchItems = globalSearch.activeItems;
-    final filteredSearchItems = selectedFilter == TokenTypeFilter.all
-        ? rawSearchItems
-        : rawSearchItems
-            .where(
-              (token) => selectedFilter.matchesTokenType(token.type, token.source),
-            )
-            .toList();
 
     return IndexedStack(
       index: searchQuery.isNotEmpty && isGlobalSearchVisible ? 1 : 0,
@@ -71,7 +56,7 @@ class CreatorTokensBody extends ConsumerWidget {
           ),
           slivers: [
             CreatorTokensList(
-              items: filteredSearchItems,
+              items: globalSearch.activeItems,
               isInitialLoading: globalSearch.activeIsInitialLoading,
             ),
             SliverPadding(
