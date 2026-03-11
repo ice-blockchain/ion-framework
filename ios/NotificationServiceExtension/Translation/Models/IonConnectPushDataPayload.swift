@@ -264,6 +264,14 @@ class IonConnectPushDataPayload: Decodable {
             return getTokenIsLiveNotificationType(currentPubkey: currentPubkey, entity: entity)
         } else if let entity = entity as? CommunityTokenActionEntity {
             return getTokenIsBoughtNotificationType(currentPubkey: currentPubkey, entity: entity)
+        } else if let entity = entity as? TokenPriceChangeResponseEntity,
+                  entity.data.tokenDefinitionReference.masterPubkey == currentPubkey {
+            return .yourCreatorTokenPriceIncreased
+        } else if let entity = entity as? TokenGlobalStatResponseEntity,
+                  entity.data.request.input == .trending {
+            return .trendingToken
+        } else if entity is TokenBuyingActivityResponseEntity {
+            return .moreBuyersJoined
         }
 
         return nil
@@ -370,6 +378,18 @@ class IonConnectPushDataPayload: Decodable {
             data["ticker"] = entity.data.tokenTicker
         }
 
+        if let entity = mainEntity as? TokenPriceChangeResponseEntity {
+            data["priceIncreasePercentage"] = String(entity.data.request.params.deltaPercentage)
+        }
+
+        if let entity = mainEntity as? TokenBuyingActivityResponseEntity {
+            data["ticker"] = entity.data.tokenAction.data.tokenTicker
+        }
+
+        if let entity = mainEntity as? TokenGlobalStatResponseEntity {
+            data["ticker"] = entity.data.tokenAction.data.tokenTicker
+        }
+
         return data
     }
 
@@ -437,10 +457,17 @@ class IonConnectPushDataPayload: Decodable {
     }
 
     private func checkRequiredRelevantEvents() -> Bool {
-        if event.kind == IonConnectGiftWrapEntity.kind {
+        let skipDelegationKinds = [
+            IonConnectGiftWrapEntity.kind,
+            TokenPriceChangeResponseEntity.kind,
+            TokenBuyingActivityResponseEntity.kind,
+            TokenGlobalStatResponseEntity.kind
+        ]
+
+        if skipDelegationKinds.contains(event.kind) {
             return true
         } else {
-            // For all events except 1059 we need to check if delegation is present
+            // For the rest cases we need to check if delegation is present
             // in the relevant events and the main event valid for it
             let delegationEvent = relevantEvents.first { event in
                 return event.kind == UserDelegationEntity.kind

@@ -59,11 +59,17 @@ abstract class PushSubscriptionData implements ReplaceableEntityData, EventSeria
   factory PushSubscriptionData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
 
-    final filters = (jsonDecode(eventMessage.content) as List<dynamic>)
-        .map<RequestFilter>(
-          (filterJson) => RequestFilter.fromJson(filterJson as Map<String, dynamic>),
-        )
-        .toList();
+    final filters = <RequestFilter>[];
+    final filterEvents = <EventMessage>[];
+    final contentJson = jsonDecode(eventMessage.content) as List<dynamic>;
+    for (final item in contentJson) {
+      final itemMap = item as Map<String, dynamic>;
+      if (itemMap['kind'] != null) {
+        filterEvents.add(EventMessage.fromPayloadJson(itemMap));
+      } else {
+        filters.add(RequestFilter.fromJson(itemMap));
+      }
+    }
 
     if (tags.containsKey(RelatedToken.tagName)) {
       final dTag = tags[ReplaceableEventIdentifier.tagName]!
@@ -77,6 +83,7 @@ abstract class PushSubscriptionData implements ReplaceableEntityData, EventSeria
         relay: tags[RelatedRelay.tagName]!.map(RelatedRelay.fromTag).first,
         fcmToken: tags[RelatedToken.tagName]!.map(RelatedToken.fromTag).first,
         filters: filters,
+        filterEvents: filterEvents,
       );
     } else {
       final dTag = tags[ReplaceableEventIdentifier.tagName]!
@@ -106,6 +113,7 @@ class PushSubscriptionOwnData with _$PushSubscriptionOwnData implements PushSubs
     required RelatedRelay relay,
     required RelatedToken fcmToken,
     required List<RequestFilter> filters,
+    required List<EventMessage> filterEvents,
   }) = _PushSubscriptionOwnData;
 
   const PushSubscriptionOwnData._();
@@ -120,7 +128,7 @@ class PushSubscriptionOwnData with _$PushSubscriptionOwnData implements PushSubs
       signer: signer,
       createdAt: createdAt,
       kind: PushSubscriptionEntity.kind,
-      content: jsonEncode(filters),
+      content: jsonEncode([...filters, ...filterEvents.map((e) => e.toJson().last)]),
       tags: [
         ...tags,
         [ReplaceableEventIdentifier.tagName, deviceId],

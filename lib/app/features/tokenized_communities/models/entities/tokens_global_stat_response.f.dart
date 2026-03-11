@@ -7,12 +7,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
-import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_request.f.dart';
 
 part 'tokens_global_stat_response.f.freezed.dart';
 
@@ -52,19 +51,17 @@ class TokenGlobalStatResponseEntity
 @freezed
 class TokenGlobalStatResponseData with _$TokenGlobalStatResponseData {
   const factory TokenGlobalStatResponseData({
-    required TokenPriceChangeRequestEntity request,
+    required TokensGlobalStatRequestEntity request,
     required CommunityTokenDefinitionEntity tokenDefinition,
-    required List<IonConnectEntity> entities,
+    required CommunityTokenActionEntity tokenAction, // event that created a token
   }) = _TokenGlobalStatResponseData;
 
   const TokenGlobalStatResponseData._();
 
   factory TokenGlobalStatResponseData.fromEventMessage(EventMessage eventMessage) {
     final tags = groupBy(eventMessage.tags, (tag) => tag[0]);
-    final tokenDefinitionReference =
-        ReplaceableEventReference.fromTag(tags[ReplaceableEventReference.tagName]!.first);
 
-    final request = TokenPriceChangeRequestEntity.fromEventMessage(
+    final request = TokensGlobalStatRequestEntity.fromEventMessage(
       EventMessage.fromPayloadJson(jsonDecode(tags['request']!.first[1]) as Map<String, dynamic>),
     );
 
@@ -84,18 +81,17 @@ class TokenGlobalStatResponseData with _$TokenGlobalStatResponseData {
         .nonNulls
         .toList();
 
-    final tokenDefinition = entities
-        .whereType<CommunityTokenDefinitionEntity>()
-        .firstWhereOrNull((entity) => entity.toEventReference() == tokenDefinitionReference);
+    final tokenDefinition = entities.whereType<CommunityTokenDefinitionEntity>().firstOrNull;
+    final tokenAction = entities.whereType<CommunityTokenActionEntity>().firstOrNull;
 
-    if (tokenDefinition == null) {
+    if (tokenDefinition == null || tokenAction == null) {
       throw IncorrectEventTagsException(eventId: eventMessage.id);
     }
 
     return TokenGlobalStatResponseData(
       request: request,
       tokenDefinition: tokenDefinition,
-      entities: entities,
+      tokenAction: tokenAction,
     );
   }
 }

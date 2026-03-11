@@ -24,6 +24,9 @@ import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_response.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -204,6 +207,24 @@ class NotificationResponseService {
               isInitialNotification: isInitialNotification,
             );
           }
+        case TokenBuyingActivityResponseEntity():
+          await _openTokenDetail(
+            entity.data.tokenDefinition.data.externalAddress,
+            isInitialNotification: isInitialNotification,
+          );
+        case TokenPriceChangeResponseEntity():
+          final tokenDefinition = await _getEntityData(entity.data.tokenDefinitionReference);
+          if (tokenDefinition is CommunityTokenDefinitionEntity) {
+            await _openTokenDetail(
+              tokenDefinition.data.externalAddress,
+              isInitialNotification: isInitialNotification,
+            );
+          }
+        case TokenGlobalStatResponseEntity():
+          await _openTokenDetail(
+            entity.data.tokenDefinition.data.externalAddress,
+            isInitialNotification: isInitialNotification,
+          );
         default:
           throw UnsupportedEntityType(entity);
       }

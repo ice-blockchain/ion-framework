@@ -35,6 +35,12 @@ class EventParser {
             return try CommunityTokenDefinitionEntity.fromEventMessage(eventMessage)
         case CommunityTokenActionEntity.kind:
             return try CommunityTokenActionEntity.fromEventMessage(eventMessage)
+        case TokenPriceChangeResponseEntity.kind:
+            return try TokenPriceChangeResponseEntity.fromEventMessage(eventMessage)
+        case TokenGlobalStatResponseEntity.kind:
+            return try TokenGlobalStatResponseEntity.fromEventMessage(eventMessage)
+        case TokenBuyingActivityResponseEntity.kind:
+            return try TokenBuyingActivityResponseEntity.fromEventMessage(eventMessage)
         default:
             throw UnknownEventException(eventId: eventMessage.id, kind: eventMessage.kind)
         }
