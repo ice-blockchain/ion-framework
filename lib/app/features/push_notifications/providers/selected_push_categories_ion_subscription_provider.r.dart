@@ -12,7 +12,6 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_relay.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_token.f.dart';
@@ -246,13 +245,9 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       TokenBuyingActivityRequestData(
         params: TokenBuyingActivityRequestParams(authorMasterPubkey: currentUserPubkey),
       ),
-      TokenPriceChangeRequestData(
+      const TokenPriceChangeRequestData(
         params: TokenPriceChangeRequestParams(
-          token: ReplaceableEventReference(
-            masterPubkey: currentUserPubkey,
-            kind: CommunityTokenDefinitionEntity.kind,
-          ),
-          timeWindow: const Duration(minutes: 5),
+          timeWindow: Duration(minutes: 5),
           deltaPercentage: 10,
         ),
       ),
