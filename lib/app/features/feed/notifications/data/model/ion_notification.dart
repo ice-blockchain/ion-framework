@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_response.f.dart';
 
 sealed class IonNotification {
   IonNotification({required this.timestamp, required this.pubkeys});
@@ -91,9 +94,16 @@ final class TokenTransactionIonNotification extends IonNotification {
 
 final class TokenUpdateIonNotification extends IonNotification {
   TokenUpdateIonNotification({
-    required this.eventMessage,
+    required this.entity,
     required super.timestamp,
-  }) : super(pubkeys: []);
+  }) : super(
+          pubkeys: switch (entity) {
+            TokenPriceChangeResponseEntity() => [entity.data.tokenDefinitionReference.masterPubkey],
+            TokenGlobalStatResponseEntity() => [entity.data.tokenDefinition.masterPubkey],
+            TokenBuyingActivityResponseEntity() => [entity.data.tokenDefinition.masterPubkey],
+            _ => [],
+          },
+        );
 
-  final EventMessage eventMessage;
+  final IonConnectEntity entity;
 }
