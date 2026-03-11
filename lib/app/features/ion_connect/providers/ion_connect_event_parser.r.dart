@@ -46,6 +46,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'ion_connect_event_parser.r.g.dart';
 
 class EventParser {
+  const EventParser();
+
   IonConnectEntity parse(EventMessage eventMessage) {
     return switch (eventMessage.kind) {
       UserMetadataEntity.kind => UserMetadataEntity.fromEventMessage(eventMessage),
@@ -96,4 +98,4 @@ class EventParser {
 }
 
 @riverpod
-EventParser eventParser(Ref ref) => EventParser();
+EventParser eventParser(Ref ref) => const EventParser();

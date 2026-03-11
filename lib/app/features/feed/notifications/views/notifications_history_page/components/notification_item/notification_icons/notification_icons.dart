@@ -8,6 +8,9 @@ import 'package:ion/app/features/feed/notifications/data/model/ion_notification.
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons/outlined_notification_icon.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons/token_notification_icon.dart';
 import 'package:ion/app/features/feed/notifications/views/notifications_history_page/components/notification_item/notification_icons/token_transaction_icon.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_response.f.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -116,7 +119,24 @@ class NotificationIcons extends StatelessWidget {
           size: size,
           eventReference: tokenTransaction.eventReference,
         ),
-      TokenUpdateIonNotification() => const SizedBox.shrink(),
+      final TokenUpdateIonNotification tokenUpdate => switch (tokenUpdate.entity) {
+          TokenPriceChangeResponseEntity() => OutlinedNotificationIcon(
+              size: size,
+              asset: Assets.svg.iconCreatecoinProfit,
+              backgroundColor: context.theme.appColors.success,
+            ),
+          TokenGlobalStatResponseEntity() => OutlinedNotificationIcon(
+              size: size,
+              asset: Assets.svg.iconMemeTranding,
+              backgroundColor: context.theme.appColors.orangePeel,
+            ),
+          TokenBuyingActivityResponseEntity() => OutlinedNotificationIcon(
+              size: size,
+              asset: Assets.svg.iconNotificationsActivity,
+              backgroundColor: context.theme.appColors.success,
+            ),
+          _ => const SizedBox.shrink(),
+        },
     };
   }
 }

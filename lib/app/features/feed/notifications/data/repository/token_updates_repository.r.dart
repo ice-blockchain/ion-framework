@@ -47,7 +47,7 @@ class TokenUpdatesRepository implements IonNotificationRepository<TokenUpdateIon
         id: entity.id,
         createdAt: entity.createdAt,
         kind: eventMessage.kind,
-        eventMessage: eventMessage,
+        eventMessage: entity,
       ),
     );
   }
@@ -60,7 +60,7 @@ class TokenUpdatesRepository implements IonNotificationRepository<TokenUpdateIon
     return tokenUpdates
         .map(
           (tokenUpdate) => TokenUpdateIonNotification(
-            eventMessage: tokenUpdate.eventMessage,
+            entity: tokenUpdate.eventMessage,
             timestamp: tokenUpdate.createdAt.toDateTime,
           ),
         )
