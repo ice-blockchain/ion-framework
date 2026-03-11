@@ -18,7 +18,9 @@ import 'package:ion/app/features/feed/notifications/data/database/tables/token_l
 import 'package:ion/app/features/feed/notifications/data/database/tables/token_updates_table.d.dart';
 import 'package:ion/app/features/feed/notifications/data/model/content_type.dart';
 import 'package:ion/app/features/ion_connect/database/converters/event_reference_converter.d.dart';
+import 'package:ion/app/features/ion_connect/database/converters/ion_connect_entity_converter.d.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/utils/database_lifecycle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
