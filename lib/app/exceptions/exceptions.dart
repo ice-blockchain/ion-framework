@@ -801,17 +801,29 @@ class TransactionHashNotFoundException extends IONException {
       : super(10142, 'Transaction hash not found for external address: $externalAddress');
 }
 
-class CommunityTokenTradeTransactionException extends IONException {
+class CommunityTokenTradeTransactionException extends IONException
+    implements DebugContextException {
   CommunityTokenTradeTransactionException({
     required String reason,
     String? status,
     String? txHash,
-  }) : super(
+    this.originalError,
+    Map<String, dynamic>? debugContext,
+  })  : _debugContext = debugContext,
+        super(
           10143,
           'Community token trade transaction error: $reason'
           '${status != null ? ', status: $status' : ''}'
           '${txHash != null ? ', txHash: $txHash' : ''}',
         );
+
+  final Map<String, dynamic>? _debugContext;
+
+  @override
+  final Object? originalError;
+
+  @override
+  Map<String, dynamic> get debugContext => _debugContext ?? const {};
 }
 
 class UserDeviceRevokedException extends IONException {

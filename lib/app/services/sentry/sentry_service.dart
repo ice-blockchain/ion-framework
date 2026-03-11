@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -30,6 +31,27 @@ mixin SentryService {
       },
       appRunner: appRunner,
     );
+
+    await _setUserAgentScope(container);
+  }
+
+  static Future<void> _setUserAgentScope(ProviderContainer container) async {
+    String? userAgent;
+    try {
+      userAgent = (await container.read(currentUserAgentProvider.future)).toString();
+    } catch (_) {}
+
+    if (userAgent == null || userAgent.isEmpty) {
+      return;
+    }
+
+    Sentry.configureScope((scope) {
+      scope
+        ..setTag('user_agent', userAgent!)
+        ..setContexts('client', {
+          'userAgent': userAgent,
+        });
+    });
   }
 
   /// Manually log an exception to Sentry
