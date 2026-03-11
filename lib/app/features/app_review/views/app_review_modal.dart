@@ -30,7 +30,7 @@ class AppReviewModal extends HookConsumerWidget {
     Future<void> handleRating(int starRating) async {
       rating.value = starRating;
 
-      await ref.read(appReviewControllerProvider.notifier).recordComplete();
+      await ref.read(appReviewControllerProvider.notifier).recordComplete(starRating);
 
       if (starRating == _requestReviewRating) {
         await ref.read(appReviewServiceProvider).requestReview();
