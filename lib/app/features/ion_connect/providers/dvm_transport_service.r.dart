@@ -39,28 +39,28 @@ class DvmTransportService {
     T Function(EventMessage eventMessage)? successParser,
     Duration timeout = _defaultTimeout,
   }) async {
-    final responseEntities = await fetchEntities<R, T>(
+    final responseEntity = await fetchEntities<R, T>(
       requestsData: [requestData],
       actionSource: actionSource,
       successKinds: successKinds,
       requestDataTransformer: requestDataTransformer,
       successParser: successParser,
       timeout: timeout,
-    );
+    ).first;
 
-    return responseEntities.first;
+    return responseEntity;
   }
 
-  Future<List<T?>> fetchEntities<R extends EventSerializable, T extends DvmResponseEntity>({
+  Stream<T?> fetchEntities<R extends EventSerializable, T extends DvmResponseEntity>({
     required List<R> requestsData,
     required ActionSource actionSource,
     required List<int> successKinds,
     R Function(R requestData, String relayUrl)? requestDataTransformer,
     T Function(EventMessage eventMessage)? successParser,
     Duration timeout = _defaultTimeout,
-  }) async {
+  }) async* {
     if (requestsData.isEmpty) {
-      return [];
+      return;
     }
 
     final relay = await _getRelay(actionSource: actionSource);
@@ -77,9 +77,7 @@ class DvmTransportService {
       ..addFilter(
         RequestFilter(
           kinds: [...successKinds, DvmErrorEntity.kind],
-          tags: {
-            '#e': requestEventIds.toList(),
-          },
+          tags: {'#e': requestEventIds.toList()},
         ),
       );
 
@@ -103,10 +101,12 @@ class DvmTransportService {
 
       final responseFutures = [
         for (final requestEvent in requestEvents)
-          responseStream.firstWhere((entity) {
-            final foo = entity?.requestEventReference.eventId == requestEvent.id;
-            return foo;
-          }).timeout(timeout, onTimeout: () => null),
+          responseStream
+              .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id)
+              .timeout(
+                timeout,
+                onTimeout: () => null, // If the BE has no response, nothing is returned
+              ),
       ];
 
       await _ionConnectNotifier.sendEvents(
@@ -115,9 +115,10 @@ class DvmTransportService {
         cache: false,
       );
 
-      final responseEntities = await Future.wait(responseFutures);
-
-      return [for (final responseEntity in responseEntities) responseEntity as T?];
+      for (final responseFuture in responseFutures) {
+        final responseEntity = await responseFuture;
+        yield responseEntity as T?;
+      }
     } finally {
       relay.unsubscribe(subscription.id);
     }
