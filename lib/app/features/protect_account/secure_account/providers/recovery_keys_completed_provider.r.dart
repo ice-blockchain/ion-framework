@@ -37,4 +37,15 @@ class RecoveryKeysCompleted extends _$RecoveryKeysCompleted {
     // Invalidate the provider to update the state
     ref.invalidateSelf();
   }
+
+  Future<void> clearCompleted({
+    required String identityKeyName,
+  }) async {
+    final userPreferencesService = ref.read(
+      userPreferencesServiceProvider(identityKeyName: identityKeyName),
+    );
+    await userPreferencesService.remove(_completedKey);
+
+    ref.invalidateSelf();
+  }
 }

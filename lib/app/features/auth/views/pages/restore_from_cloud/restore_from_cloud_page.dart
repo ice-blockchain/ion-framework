@@ -12,12 +12,10 @@ import 'package:ion/app/features/auth/views/pages/two_fa/twofa_input_step.dart';
 import 'package:ion/app/features/auth/views/pages/two_fa/twofa_options_step.dart';
 import 'package:ion/app/features/components/verify_identity/verify_identity_prompt_dialog_helper.dart';
 import 'package:ion/app/features/protect_account/backup/providers/recover_user_action_notifier.m.dart';
-import 'package:ion/app/features/protect_account/backup/providers/recovery_key_cloud_backup_delete_notifier.r.dart';
 import 'package:ion/app/features/protect_account/backup/providers/recovery_key_cloud_backup_restore_notifier.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/selected_two_fa_types_provider.m.dart';
 import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
-import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 
@@ -42,7 +40,7 @@ class RestoreFromCloudPage extends HookConsumerWidget {
       step: step,
       recoveryChallengeRef: recoveryChallengeRef,
     );
-    _listenCompleteRecoverResult(ref, step: step, recoveryChallengeRef: recoveryChallengeRef);
+    _listenCompleteRecoverResult(ref);
 
     return switch (step.value) {
       RecoverUserStep.recoveryCreds => RestoreFromCloudVerifyStep(
@@ -103,8 +101,9 @@ class RestoreFromCloudPage extends HookConsumerWidget {
                 ? RecoverUserStep.twoFAInput
                 : RecoverUserStep.recoveryCreds;
           },
-          isLoading:
-              ref.watch(completeUserRecoveryActionNotifierProvider.select((it) => it.isLoading)),
+          isLoading: ref.watch(
+            completeUserRecoveryActionNotifierProvider.select((it) => it.isLoading),
+          ),
           onContinue: (newPassword) => _completeRecoveryWithPassword(
             ref,
             newPassword: newPassword,
@@ -223,29 +222,12 @@ class RestoreFromCloudPage extends HookConsumerWidget {
       });
   }
 
-  void _listenCompleteRecoverResult(
-    WidgetRef ref, {
-    required ValueNotifier<RecoverUserStep> step,
-    required ObjectRef<UserRegistrationChallenge?> recoveryChallengeRef,
-  }) {
+  void _listenCompleteRecoverResult(WidgetRef ref) {
     ref.listenSuccess(
       completeUserRecoveryActionNotifierProvider,
       (value) {
         value?.whenOrNull(
           success: () async {
-            final recoveryCredentials =
-                ref.read(recoveryKeyCloudBackupRestoreNotifierProvider).valueOrNull;
-            if (recoveryCredentials == null) return;
-            final wasPasskeyCompletion = step.value != RecoverUserStep.setNewPassword;
-            if (wasPasskeyCompletion) {
-              final ionIdentity = await ref.read(ionIdentityProvider.future);
-              await ionIdentity(username: recoveryCredentials.identityKeyName)
-                  .auth
-                  .clearPasswordUserState();
-            }
-            await ref
-                .read(recoveryKeyCloudBackupDeleteNotifierProvider.notifier)
-                .remove(identityKeyName: recoveryCredentials.identityKeyName);
             if (ref.context.mounted) {
               await RecoverUserSuccessRoute().push<void>(ref.context);
             }
