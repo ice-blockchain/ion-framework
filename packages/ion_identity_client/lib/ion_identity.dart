@@ -43,6 +43,7 @@ export 'src/users/update_user_social_profile/models/user_social_profile_data.f.d
 export 'src/users/user_details/models/user_details.f.dart';
 export 'src/wallets/models/wallet.f.dart';
 export 'src/wallets/models/wallet_signing_key.f.dart';
+export 'src/wallets/services/call_function/models/call_function_request.dart';
 export 'src/wallets/services/generate_signature/models/generate_signature_response.f.dart';
 export 'src/wallets/services/get_wallet_assets/exceptions/get_wallet_assets_exception.dart';
 export 'src/wallets/services/get_wallet_assets/models/wallet_asset.f.dart';

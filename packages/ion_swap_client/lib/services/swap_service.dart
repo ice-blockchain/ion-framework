@@ -86,6 +86,7 @@ class SwapService {
           swapQuoteInfo: swapQuoteInfo,
           wallet: ionSwapRequest.wallet,
           userActionSigner: ionSwapRequest.userActionSigner,
+          ionSwapRequest: ionSwapRequest,
         );
 
         return txHash;

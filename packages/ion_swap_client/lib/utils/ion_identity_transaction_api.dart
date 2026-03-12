@@ -59,6 +59,17 @@ class IonIdentityTransactionApi {
     return _extractTransactionIdentifier(response);
   }
 
+  Future<dynamic> callFunction({
+    required String walletId,
+    required CallFunctionRequest request,
+  }) async {
+    final wallet = await _resolveWallet(_ionIdentityClient, walletId);
+    return _ionIdentityClient.wallets.callFunction(
+      network: wallet.network,
+      request: request,
+    );
+  }
+
   Future<Map<String, dynamic>> getFeesOnBsc() async {
     /// Bsc always must be wit big first symbol
     return _ionIdentityClient.wallets.getFees(['Bsc']);
