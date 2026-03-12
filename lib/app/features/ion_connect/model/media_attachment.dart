@@ -81,7 +81,8 @@ class MediaAttachment {
         case 'image':
           image = value;
         case 'alt':
-          alt = value;
+          final spaceIdx = params.indexOf(' ');
+          alt = params.substring(spaceIdx + 1);
         case 'blurhash':
           blurhash = value;
         case 'ox':
