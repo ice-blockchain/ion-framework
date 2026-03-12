@@ -25,7 +25,7 @@ class DvmTransportService {
         _ionConnectNotifier = ionConnectNotifier,
         _eventParser = eventParser;
 
-  static const Duration defaultTimeout = Duration(seconds: 10);
+  static const Duration _defaultTimeout = Duration(seconds: 10);
 
   final RelayPicker _relayPicker;
   final IonConnectNotifier _ionConnectNotifier;
@@ -37,25 +37,48 @@ class DvmTransportService {
     required List<int> successKinds,
     R Function(R requestData, String relayUrl)? requestDataTransformer,
     T Function(EventMessage eventMessage)? successParser,
-    Duration timeout = defaultTimeout,
+    Duration timeout = _defaultTimeout,
   }) async {
-    final relayEntries =
-        await _relayPicker.getActionSourceRelays(actionSource, actionType: ActionType.read);
-    final relay = relayEntries.keys.first;
+    final responseEntities = await fetchEntities<R, T>(
+      requestsData: [requestData],
+      actionSource: actionSource,
+      successKinds: successKinds,
+      requestDataTransformer: requestDataTransformer,
+      successParser: successParser,
+      timeout: timeout,
+    );
+
+    return responseEntities.first;
+  }
+
+  Future<List<T?>> fetchEntities<R extends EventSerializable, T extends DvmResponseEntity>({
+    required List<R> requestsData,
+    required ActionSource actionSource,
+    required List<int> successKinds,
+    R Function(R requestData, String relayUrl)? requestDataTransformer,
+    T Function(EventMessage eventMessage)? successParser,
+    Duration timeout = _defaultTimeout,
+  }) async {
+    if (requestsData.isEmpty) {
+      return [];
+    }
+
+    final relay = await _getRelay(actionSource: actionSource);
     final relayUrl = relay.url;
 
-    final preparedRequestData = requestDataTransformer != null
-        ? requestDataTransformer(requestData, relayUrl)
-        : requestData;
+    final preparedRequestsData = requestDataTransformer != null
+        ? requestsData.map((requestData) => requestDataTransformer(requestData, relayUrl)).toList()
+        : requestsData;
 
-    final requestEvent = await _ionConnectNotifier.sign(preparedRequestData);
+    final requestEvents = await Future.wait(preparedRequestsData.map(_ionConnectNotifier.sign));
+    final requestEventIds = requestEvents.map((requestEvent) => requestEvent.id).toSet();
 
     final subscriptionMessage = RequestMessage()
       ..addFilter(
         RequestFilter(
           kinds: [...successKinds, DvmErrorEntity.kind],
           tags: {
-            '#e': [requestEvent.id],
+            '#e': requestEventIds.toList(),
           },
         ),
       );
@@ -63,55 +86,77 @@ class DvmTransportService {
     final subscription = relay.subscribe(subscriptionMessage);
 
     try {
-      final responseFuture = subscription.messages
+      final responseStream = subscription.messages
           .where((message) => message is EventMessage)
           .cast<EventMessage>()
-          .map<DvmResponseEntity?>((message) {
-            if (message.kind == DvmErrorEntity.kind) {
-              return DvmErrorEntity.fromEventMessage(message);
-            }
+          .map<DvmResponseEntity?>(
+            (message) => _parseResponseEntity(
+              message,
+              successKinds: successKinds,
+              successParser: successParser,
+            ),
+          )
+          .where((entity) {
+        final requestId = entity?.requestEventReference.eventId;
+        return requestId != null && requestEventIds.contains(requestId);
+      }).asBroadcastStream();
 
-            if (!successKinds.contains(message.kind)) {
-              throw IncorrectEventKindException(message, kind: message.kind);
-            }
+      final responseFutures = [
+        for (final requestEvent in requestEvents)
+          responseStream.firstWhere((entity) {
+            final foo = entity?.requestEventReference.eventId == requestEvent.id;
+            return foo;
+          }).timeout(timeout, onTimeout: () => null),
+      ];
 
-            if (successParser != null) {
-              return successParser(message);
-            }
-
-            final parsedEntity = _eventParser.parse(message);
-            if (parsedEntity is! DvmResponseEntity) {
-              throw IncorrectEventKindException(message.id, kind: message.kind);
-            }
-
-            return parsedEntity;
-          })
-          .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id)
-          .timeout(
-            timeout,
-            onTimeout: () => null, // No corresponding response events found on the BE
-          );
-
-      await _ionConnectNotifier.sendEvent(
-        requestEvent,
+      await _ionConnectNotifier.sendEvents(
+        requestEvents,
         actionSource: ActionSourceRelayUrl(relayUrl, anonymous: actionSource.anonymous),
         cache: false,
       );
 
-      final responseEntity = await responseFuture;
+      final responseEntities = await Future.wait(responseFutures);
 
-      if (responseEntity is DvmErrorEntity) {
-        throw DvmException(
-          requestId: responseEntity.requestEventReference.eventId,
-          status: responseEntity.data.status,
-          details: responseEntity.data.content.toString(),
-        );
-      }
-
-      return responseEntity as T?;
+      return [for (final responseEntity in responseEntities) responseEntity as T?];
     } finally {
       relay.unsubscribe(subscription.id);
     }
+  }
+
+  Future<IonConnectRelay> _getRelay({required ActionSource actionSource}) async {
+    final relayEntries =
+        await _relayPicker.getActionSourceRelays(actionSource, actionType: ActionType.read);
+    return relayEntries.keys.first;
+  }
+
+  DvmResponseEntity? _parseResponseEntity<T extends DvmResponseEntity>(
+    EventMessage message, {
+    required List<int> successKinds,
+    T Function(EventMessage eventMessage)? successParser,
+  }) {
+    if (message.kind == DvmErrorEntity.kind) {
+      final responseEntity = DvmErrorEntity.fromEventMessage(message);
+      throw DvmException(
+        requestId: responseEntity.requestEventReference.eventId,
+        status: responseEntity.data.status,
+        details: responseEntity.data.content.toString(),
+      );
+    }
+
+    if (!successKinds.contains(message.kind)) {
+      throw IncorrectEventKindException(message, kind: message.kind);
+    }
+
+    if (successParser != null) {
+      return successParser(message);
+    }
+
+    final parsedEntity = _eventParser.parse(message);
+    if (parsedEntity is! DvmResponseEntity) {
+      throw IncorrectEventKindException(message, kind: message.kind);
+    }
+
+    return parsedEntity;
   }
 }
 
