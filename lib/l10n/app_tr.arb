@@ -727,6 +727,8 @@
   "profile_articles_empty_list_current_user": "Makaleniz yok",
   "profile_bio": "Biyografi",
   "profile_create_new_account": "Hesap ekle",
+  "profile_log_in_existing_account": "Mevcut bir hesaba giriş yap",
+  "profile_create_a_new_account": "Yeni bir hesap oluştur",
   "profile_edit": "Profili düzenle",
   "profile_followed_by": "Takip edenler: ",
   "profile_followed_by_and": " ve ",

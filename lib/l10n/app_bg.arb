@@ -727,6 +727,8 @@
   "profile_articles_empty_list_current_user": "Нямате статии",
   "profile_bio": "Био",
   "profile_create_new_account": "Добави акаунт",
+  "profile_log_in_existing_account": "Влез в съществуващ акаунт",
+  "profile_create_a_new_account": "Създай нов акаунт",
   "profile_edit": "Редактирай профил",
   "profile_followed_by": "Следван от ",
   "profile_followed_by_and": " и ",

@@ -727,6 +727,8 @@
   "profile_articles_empty_list_current_user": "您没有任何文章",
   "profile_bio": "简介",
   "profile_create_new_account": "添加账户",
+  "profile_log_in_existing_account": "登录现有账户",
+  "profile_create_a_new_account": "创建新账户",
   "profile_edit": "编辑个人资料",
   "profile_followed_by": "被 ",
   "profile_followed_by_and": " 和 ",
