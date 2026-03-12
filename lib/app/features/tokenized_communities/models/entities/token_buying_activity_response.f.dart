@@ -8,6 +8,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/dvm_response_entity.dart';
+import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_cache.r.dart';
@@ -21,7 +23,7 @@ part 'token_buying_activity_response.f.freezed.dart';
 @Freezed(equal: false)
 class TokenBuyingActivityResponseEntity
     with _$TokenBuyingActivityResponseEntity, IonConnectEntity, ImmutableEntity, CacheableEntity
-    implements EntityEventSerializable {
+    implements EntityEventSerializable, DvmResponseEntity {
   const factory TokenBuyingActivityResponseEntity({
     required String id,
     required String pubkey,
@@ -53,6 +55,12 @@ class TokenBuyingActivityResponseEntity
 
   @override
   FutureOr<EventMessage> toEntityEventMessage() => eventMessage;
+
+  @override
+  ImmutableEventReference get requestEventReference => ImmutableEventReference(
+        eventId: data.request.id,
+        masterPubkey: data.request.masterPubkey,
+      );
 
   static const int kind = 6178;
 }
