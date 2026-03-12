@@ -30,6 +30,7 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tooltip/hooks/use_show_tooltip_overlay.dart';
 import 'package:ion/app/features/tooltip/views/tooltip.dart';
+import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_watch_when_visible.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
 
@@ -75,14 +76,13 @@ class TokenCommentInputField extends HookConsumerWidget {
       horizontalPadding: 16,
     );
 
-    useEffect(
+    useOnInit(
       () {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
             onFocusChanged?.call(hasFocus.value);
           }
         });
-        return null;
       },
       [hasFocus.value],
     );
