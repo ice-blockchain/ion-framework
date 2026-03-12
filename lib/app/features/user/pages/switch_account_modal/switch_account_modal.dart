@@ -155,16 +155,18 @@ class _AddAccountOptionsModal extends ConsumerWidget {
 
     switch (registrationRestrictionType) {
       case RegistrationRestrictionType.fullyAllowed:
-        final isPasskeyAvailable = ref.read(isPasskeyAvailableProvider).valueOrNull ?? false;
-        if (isPasskeyAvailable) {
-          SignUpPasskeyRoute().go(rootContext);
-        } else {
-          SignUpPasswordRoute().go(rootContext);
+        final result = await SignUpPasskeyRoute().push<bool>(rootContext);
+        if (result == null || result) {
+          return;
+        }
+
+        if (rootContext.mounted) {
+          await SignUpPasswordRoute().push<void>(rootContext);
         }
       case RegistrationRestrictionType.earlyAccessOnly:
-        SignUpEarlyAccessRoute().go(rootContext);
+        await SignUpEarlyAccessRoute().push<void>(rootContext);
       case RegistrationRestrictionType.restricted:
-        SignUpRestrictedRoute().go(rootContext);
+        await SignUpRestrictedRoute().push<void>(rootContext);
     }
   }
 }
