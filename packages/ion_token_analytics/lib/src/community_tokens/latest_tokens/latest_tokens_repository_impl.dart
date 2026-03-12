@@ -23,7 +23,7 @@ class LatestTokensRepositoryImpl implements LatestTokensRepository {
         'limit': limit,
         'offset': offset,
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
-        if (type != null) 'type': type,
+        if (type != null && type.isNotEmpty) 'type': type,
       },
     );
 
@@ -43,7 +43,7 @@ class LatestTokensRepositoryImpl implements LatestTokensRepository {
       '/v1sse/community-tokens/latest',
       queryParameters: {
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
-        if (type != null) 'type': type,
+        if (type != null && type.isNotEmpty) 'type': type,
       },
     );
 

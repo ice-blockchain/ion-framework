@@ -12,7 +12,11 @@ part 'category_tokens_provider.r.g.dart';
 @riverpod
 class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   static const int _limit = 10;
+  static const int _sessionRefreshBeforeExpirySec = 30;
+
   NetworkSubscription<List<CommunityTokenBase>>? _realtimeSubscription;
+  Timer? _sessionExpiryTimer;
+  bool _disposed = false;
   late final TokenCategoryType _type;
   String? _tokenType;
 
@@ -21,6 +25,9 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     _type = type;
 
     ref.onDispose(() async {
+      _disposed = true;
+      _sessionExpiryTimer?.cancel();
+      _sessionExpiryTimer = null;
       await _realtimeSubscription?.close();
       _realtimeSubscription = null;
     });
@@ -28,6 +35,18 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     Future.microtask(_initialize);
 
     return const CategoryTokensState();
+  }
+
+  /// TTL from API: typically seconds (e.g. 300 = 5 min);
+  void _scheduleSessionRecreate(ViewingSession session) {
+    _sessionExpiryTimer?.cancel();
+    _sessionExpiryTimer = null;
+    final ttlSec = session.ttl >= 1000 ? session.ttl ~/ 1000 : session.ttl;
+    final refreshInSec = (ttlSec - _sessionRefreshBeforeExpirySec).clamp(1, ttlSec);
+    _sessionExpiryTimer = Timer(Duration(seconds: refreshInSec), () {
+      if (_disposed) return;
+      unawaited(refresh());
+    });
   }
 
   Future<void> _initialize() async {
@@ -40,29 +59,31 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
     );
 
     state = state.copyWith(sessionId: session.id);
+    _scheduleSessionRecreate(session);
 
     unawaited(_subscribeToRealtimeUpdates(session.id, _type));
     unawaited(_loadInitial());
   }
 
-  Future<void> _loadInitial() async {
+  Future<void> _loadInitial({String? sessionId}) async {
     if (state.browsingIsLoading || state.browsingIsInitialLoading) return;
+
+    final effectiveSessionId = sessionId ?? state.sessionId;
+    if (effectiveSessionId == null) {
+      state = state.copyWith(
+        browsingIsLoading: false,
+        browsingIsInitialLoading: false,
+      );
+      return;
+    }
 
     state = state.copyWith(browsingIsInitialLoading: true, browsingIsLoading: true);
 
     try {
       final client = await ref.read(ionTokenAnalyticsClientProvider.future);
-      final sessionId = state.sessionId;
-      if (sessionId == null) {
-        state = state.copyWith(
-          browsingIsLoading: false,
-          browsingIsInitialLoading: false,
-        );
-        return;
-      }
 
       final page = await client.communityTokens.getCategoryTokens(
-        sessionId: sessionId,
+        sessionId: effectiveSessionId,
         type: _type,
         tokenType: _tokenType,
         limit: _limit,
@@ -236,6 +257,8 @@ class CategoryTokensNotifier extends _$CategoryTokensNotifier {
   }
 
   Future<void> refresh() async {
+    _sessionExpiryTimer?.cancel();
+    _sessionExpiryTimer = null;
     await _realtimeSubscription?.close();
     _realtimeSubscription = null;
     state = const CategoryTokensState();
