@@ -8,6 +8,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/dvm_response_entity.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
@@ -20,7 +21,7 @@ part 'token_price_change_response.f.freezed.dart';
 @Freezed(equal: false)
 class TokenPriceChangeResponseEntity
     with _$TokenPriceChangeResponseEntity, IonConnectEntity, ImmutableEntity, CacheableEntity
-    implements EntityEventSerializable {
+    implements EntityEventSerializable, DvmResponseEntity {
   const factory TokenPriceChangeResponseEntity({
     required String id,
     required String pubkey,
@@ -52,6 +53,12 @@ class TokenPriceChangeResponseEntity
 
   @override
   FutureOr<EventMessage> toEntityEventMessage() => eventMessage;
+
+  @override
+  ImmutableEventReference get requestEventReference => ImmutableEventReference(
+        eventId: data.request.id,
+        masterPubkey: data.request.masterPubkey,
+      );
 
   static const int kind = 6176;
 }

@@ -14,6 +14,7 @@ import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart'
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/feed/polls/models/poll_vote.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/dvm_response_entity.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
@@ -35,7 +36,8 @@ enum EventCountResultType {
 
 @Freezed(equal: false)
 class EventCountResultEntity
-    with _$EventCountResultEntity, IonConnectEntity, ImmutableEntity, CacheableEntity {
+    with _$EventCountResultEntity, IonConnectEntity, ImmutableEntity, CacheableEntity
+    implements DvmResponseEntity {
   const factory EventCountResultEntity({
     required String id,
     required String pubkey,
@@ -64,7 +66,10 @@ class EventCountResultEntity
       key: extractedKey,
       type: type,
       content: data.content,
-      requestEventId: data.request.id,
+      requestEventReference: ImmutableEventReference(
+        eventId: data.request.id,
+        masterPubkey: data.request.masterPubkey,
+      ),
     );
 
     final entity = EventCountResultEntity(
@@ -82,6 +87,9 @@ class EventCountResultEntity
   @override
   String get cacheKey => cacheKeyBuilder(key: data.key, type: data.type);
 
+  @override
+  ImmutableEventReference get requestEventReference => data.requestEventReference;
+
   static String cacheKeyBuilder({required String key, required EventCountResultType type}) =>
       '$key:${type.toShortString()}';
 
@@ -93,7 +101,7 @@ class EventCountResultSummary with _$EventCountResultSummary {
   const factory EventCountResultSummary({
     required dynamic content,
     required String key,
-    required String requestEventId,
+    required ImmutableEventReference requestEventReference,
     required EventCountResultType type,
   }) = _EventCountResultSummary;
 }

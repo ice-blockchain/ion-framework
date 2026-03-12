@@ -138,6 +138,7 @@ class AccountNotificationsSyncService {
       await Future.wait([
         _syncFollowedUsersNotifications(lastSyncTime: lastSyncTime),
         _syncAccountsNotifications(lastSyncTime: lastSyncTime),
+        _syncTokenUpdatesNotifications(),
       ]);
 
       if (!_isCancelled) {
@@ -259,6 +260,8 @@ class AccountNotificationsSyncService {
       },
     );
   }
+
+  Future<void> _syncTokenUpdatesNotifications() async {}
 
   Future<void> _processNotificationEvent(EventMessage event) async {
     await _notificationsEventsHandler?.handle(event);
