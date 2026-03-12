@@ -11,10 +11,14 @@ import 'package:ion/app/features/feed/notifications/data/repository/content_repo
 import 'package:ion/app/features/feed/notifications/data/repository/token_launch_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/batched_sync_service_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
+import 'package:ion/app/features/ion_connect/providers/dvm_transport_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_response.f.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
@@ -29,6 +33,7 @@ class AccountNotificationsSyncService {
     required Duration syncInterval,
     required AccountNotificationSyncTimeRepository syncTimeRepository,
     required BatchedSyncService batchedSyncService,
+    required DvmTransportService dvmTransportService,
     required AccountNotificationsEventsHandler? notificationsEventsHandler,
     required Future<List<AccountNotificationSetEntity>> Function()
         getCurrentUserAccountNotificationSets,
@@ -37,6 +42,7 @@ class AccountNotificationsSyncService {
   })  : _syncInterval = syncInterval,
         _syncTimeRepository = syncTimeRepository,
         _batchedSyncService = batchedSyncService,
+        _dvmTransportService = dvmTransportService,
         _notificationsEventsHandler = notificationsEventsHandler,
         _getCurrentUserAccountNotificationSets = getCurrentUserAccountNotificationSets,
         _getCurrentUserFollowList = getCurrentUserFollowList,
@@ -45,6 +51,7 @@ class AccountNotificationsSyncService {
   final Duration _syncInterval;
   final AccountNotificationSyncTimeRepository _syncTimeRepository;
   final BatchedSyncService _batchedSyncService;
+  final DvmTransportService _dvmTransportService;
   final AccountNotificationsEventsHandler? _notificationsEventsHandler;
   final Future<List<AccountNotificationSetEntity>> Function()
       _getCurrentUserAccountNotificationSets;
@@ -261,7 +268,15 @@ class AccountNotificationsSyncService {
     );
   }
 
-  Future<void> _syncTokenUpdatesNotifications() async {}
+  Future<void> _syncTokenUpdatesNotifications() async {
+    final trendingToken = await _dvmTransportService
+        .fetchEntity<TokensGlobalStatRequestData, TokenGlobalStatResponseEntity>(
+      requestData: const TokensGlobalStatRequestData(),
+      actionSource: const ActionSource.currentUser(),
+      successKinds: [TokenGlobalStatResponseEntity.kind],
+    );
+    print(trendingToken);
+  }
 
   Future<void> _processNotificationEvent(EventMessage event) async {
     await _notificationsEventsHandler?.handle(event);
@@ -296,6 +311,7 @@ class AccountNotificationsSync extends _$AccountNotificationsSync {
       syncTimeRepository: syncTimeRepository,
       notificationsEventsHandler: ref.watch(accountNotificationsEventsHandlerProvider),
       batchedSyncService: ref.watch(batchedSyncServiceProvider),
+      dvmTransportService: ref.watch(dvmTransportServiceProvider),
       getCurrentUserAccountNotificationSets: () =>
           ref.read(currentUserAccountNotificationSetsProvider.future),
       getCurrentUserFollowList: () => ref.read(currentUserFollowListProvider.future),
