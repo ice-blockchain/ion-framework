@@ -12,7 +12,6 @@ import 'package:ion/app/features/auth/providers/registration_restrictions_provid
 import 'package:ion/app/features/user/pages/switch_account_modal/components/accounts_list/accounts_list.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_verify_identity_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
