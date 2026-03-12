@@ -25,7 +25,7 @@ class DvmTransportService {
         _ionConnectNotifier = ionConnectNotifier,
         _eventParser = eventParser;
 
-  static const Duration defaultTimeout = Duration(seconds: 30);
+  static const Duration defaultTimeout = Duration(seconds: 10);
 
   final RelayPicker _relayPicker;
   final IonConnectNotifier _ionConnectNotifier;
@@ -66,7 +66,7 @@ class DvmTransportService {
       final responseFuture = subscription.messages
           .where((message) => message is EventMessage)
           .cast<EventMessage>()
-          .map<DvmResponseEntity>((message) {
+          .map<DvmResponseEntity?>((message) {
             if (message.kind == DvmErrorEntity.kind) {
               return DvmErrorEntity.fromEventMessage(message);
             }
@@ -86,14 +86,10 @@ class DvmTransportService {
 
             return parsedEntity;
           })
-          .firstWhere((entity) => entity.requestEventReference.eventId == requestEvent.id)
+          .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id)
           .timeout(
             timeout,
-            onTimeout: () {
-              throw TimeoutException(
-                'No response received for DVM request after ${timeout.inSeconds} seconds',
-              );
-            },
+            onTimeout: () => null, // No corresponding response events found on the BE
           );
 
       await _ionConnectNotifier.sendEvent(
@@ -112,7 +108,7 @@ class DvmTransportService {
         );
       }
 
-      return responseEntity as T;
+      return responseEntity as T?;
     } finally {
       relay.unsubscribe(subscription.id);
     }
