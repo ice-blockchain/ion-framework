@@ -14,6 +14,12 @@ sealed class IONException implements Exception {
   String toString() => 'IONException(code: $code, message: $message)';
 }
 
+abstract interface class DebugContextException implements Exception {
+  Map<String, dynamic> get debugContext;
+
+  Object? get originalError;
+}
+
 class FollowListNotFoundException extends IONException {
   FollowListNotFoundException() : super(10001, 'Follow list is null');
 }
@@ -771,17 +777,29 @@ class TransactionHashNotFoundException extends IONException {
       : super(10142, 'Transaction hash not found for external address: $externalAddress');
 }
 
-class CommunityTokenTradeTransactionException extends IONException {
+class CommunityTokenTradeTransactionException extends IONException
+    implements DebugContextException {
   CommunityTokenTradeTransactionException({
     required String reason,
     String? status,
     String? txHash,
-  }) : super(
+    this.originalError,
+    Map<String, dynamic>? debugContext,
+  })  : _debugContext = debugContext,
+        super(
           10143,
           'Community token trade transaction error: $reason'
           '${status != null ? ', status: $status' : ''}'
           '${txHash != null ? ', txHash: $txHash' : ''}',
         );
+
+  final Map<String, dynamic>? _debugContext;
+
+  @override
+  final Object? originalError;
+
+  @override
+  Map<String, dynamic> get debugContext => _debugContext ?? const {};
 }
 
 class UserDeviceRevokedException extends IONException {
@@ -855,4 +873,28 @@ class TokenTickerNotFoundException extends IONException {
           10154,
           'Token ticker not found for external address: $externalAddress',
         );
+}
+
+class RpcCallException extends IONException implements DebugContextException {
+  RpcCallException({
+    required this.method,
+    required this.rpcEndpoint,
+    required this.originalError,
+  }) : super(
+          10155,
+          'RPC call failed for $method via $rpcEndpoint: ${originalError.runtimeType}',
+        );
+
+  final String method;
+  final String rpcEndpoint;
+
+  @override
+  final Object originalError;
+
+  @override
+  Map<String, dynamic> get debugContext => {
+        'rpcMethod': method,
+        'rpcEndpoint': rpcEndpoint,
+        'rpcErrorType': originalError.runtimeType.toString(),
+      };
 }

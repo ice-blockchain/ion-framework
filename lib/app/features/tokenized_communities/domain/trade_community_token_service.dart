@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_debug_context.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_quote_builder.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_route_builder.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_user_ops_builder.dart';
@@ -59,81 +60,120 @@ class TradeCommunityTokenService {
     FatAddressV2Data? fatAddressData,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
-    Logger.info(
-      '[TradeCommunityTokenService] buyCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
-    );
-    _ensureAccountNotProtected(externalAddress);
+    TradeRoutePlan? route;
+    TradeQuotePlan? quote;
+    List<EvmUserOperation>? userOps;
+    TransactionResult? transaction;
+    CommunityToken? tokenInfo;
+    String? existingTokenAddress;
+    bool? firstBuy;
+    bool? hasUserPosition;
+    bool? isCreatorTokenMissingForContentFirstBuy;
 
-    final tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
+    try {
+      Logger.info(
+        '[TradeCommunityTokenService] buyCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
+      );
+      _ensureAccountNotProtected(externalAddress);
 
-    Logger.info('[TradeCommunityTokenService] Fetched token info');
-    final existingTokenAddress = _extractTokenAddress(tokenInfo);
-    final firstBuy = await _isFirstBuy(externalAddress, externalAddressType);
-    final hasUserPosition = _hasUserPosition(tokenInfo);
+      tokenInfo = await repository.fetchTokenInfoFresh(externalAddress);
 
-    final previousPositionRaw = _extractPositionRaw(tokenInfo);
-    Logger.info(
-      '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
-    );
+      Logger.info('[TradeCommunityTokenService] Fetched token info');
+      existingTokenAddress = _extractTokenAddress(tokenInfo);
+      firstBuy = await _isFirstBuy(externalAddress, externalAddressType);
+      hasUserPosition = _hasUserPosition(tokenInfo);
 
-    final isCreatorTokenMissingForContentFirstBuy = _isCreatorTokenMissingForContentFirstBuy(
-      externalAddressType: externalAddressType,
-      isFirstBuy: firstBuy,
-      fatAddressData: fatAddressData,
-    );
-    Logger.info(
-      '[TradeCommunityTokenService] Resolving pricing identifier | externalAddress=$externalAddress | hasTokenAddress=${tokenInfo?.addresses.blockchain != null} | hasFatAddress=${fatAddressData != null}',
-    );
-    final pricingIdentifier = _resolveBuyPricingIdentifier(
-      externalAddress: externalAddress,
-      tokenInfo: tokenInfo,
-      fatAddressData: fatAddressData,
-    );
-    Logger.info(
-      '[TradeCommunityTokenService] Pricing identifier resolved | pricingIdentifier=$pricingIdentifier',
-    );
-    final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
-      externalAddress: externalAddress,
-      externalAddressType: externalAddressType,
-      paymentTokenAddress: baseTokenAddress,
-    );
-    final routeQuote = await _buildRouteAndQuote(
-      externalAddress: externalAddress,
-      externalAddressType: externalAddressType,
-      mode: CommunityTokenTradeMode.buy,
-      paymentTokenAddress: baseTokenAddress,
-      paymentRoleOverride: paymentRoleOverride,
-      isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
-      pricingIdentifier: pricingIdentifier,
-      amountIn: amountIn,
-      slippagePercent: slippagePercent,
-      fatAddressHex: fatAddressData?.toHex(),
-    );
-    Logger.info(
-      '[TradeCommunityTokenService] Building user operations | quoteAmount=${routeQuote.quote.finalPricing.amount} | quoteAmountUSD=${routeQuote.quote.finalPricing.amountUSD}',
-    );
-    final userOps = await userOpsBuilder.buildUserOps(
-      route: routeQuote.route,
-      quote: routeQuote.quote,
-      walletAddress: walletAddress,
-      paymentTokenAddress: baseTokenAddress,
-      paymentTokenDecimals: tokenDecimals,
-      communityTokenDecimals: TokenizedCommunitiesConstants.communityTokenDecimals,
-      fatAddressData: fatAddressData,
-    );
-    Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
-    final transaction = await repository.signAndBroadcastUserOperations(
-      walletId: walletId,
-      userOperations: userOps,
-      feeSponsorId: routeQuote.quote.finalPricing.feeSponsorId,
-      userActionSigner: userActionSigner,
-    );
+      final previousPositionRaw = _extractPositionRaw(tokenInfo);
+      Logger.info(
+        '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
+      );
 
-    Logger.info(
-      '[TradeCommunityTokenService] Swap completed | $transaction',
-    );
+      isCreatorTokenMissingForContentFirstBuy = _isCreatorTokenMissingForContentFirstBuy(
+        externalAddressType: externalAddressType,
+        isFirstBuy: firstBuy,
+        fatAddressData: fatAddressData,
+      );
+      Logger.info(
+        '[TradeCommunityTokenService] Resolving pricing identifier | externalAddress=$externalAddress | hasTokenAddress=${tokenInfo?.addresses.blockchain != null} | hasFatAddress=${fatAddressData != null}',
+      );
+      final pricingIdentifier = _resolveBuyPricingIdentifier(
+        externalAddress: externalAddress,
+        tokenInfo: tokenInfo,
+        fatAddressData: fatAddressData,
+      );
+      Logger.info(
+        '[TradeCommunityTokenService] Pricing identifier resolved | pricingIdentifier=$pricingIdentifier',
+      );
+      final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
+        externalAddress: externalAddress,
+        externalAddressType: externalAddressType,
+        paymentTokenAddress: baseTokenAddress,
+      );
+      final routeQuote = await _buildRouteAndQuote(
+        externalAddress: externalAddress,
+        externalAddressType: externalAddressType,
+        mode: CommunityTokenTradeMode.buy,
+        paymentTokenAddress: baseTokenAddress,
+        paymentRoleOverride: paymentRoleOverride,
+        isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+        pricingIdentifier: pricingIdentifier,
+        amountIn: amountIn,
+        slippagePercent: slippagePercent,
+        fatAddressHex: fatAddressData?.toHex(),
+      );
+      route = routeQuote.route;
+      quote = routeQuote.quote;
+      Logger.info(
+        '[TradeCommunityTokenService] Building user operations | quoteAmount=${quote.finalPricing.amount} | quoteAmountUSD=${quote.finalPricing.amountUSD}',
+      );
+      userOps = await userOpsBuilder.buildUserOps(
+        route: route,
+        quote: quote,
+        walletAddress: walletAddress,
+        paymentTokenAddress: baseTokenAddress,
+        paymentTokenDecimals: tokenDecimals,
+        communityTokenDecimals: TokenizedCommunitiesConstants.communityTokenDecimals,
+        fatAddressData: fatAddressData,
+      );
+      Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
+      transaction = await repository.signAndBroadcastUserOperations(
+        walletId: walletId,
+        userOperations: userOps,
+        feeSponsorId: quote.finalPricing.feeSponsorId,
+        userActionSigner: userActionSigner,
+      );
 
-    if (_isBroadcasted(transaction)) {
+      Logger.info(
+        '[TradeCommunityTokenService] Swap completed | $transaction',
+      );
+      _throwIfTransactionFailed(
+        transaction: transaction,
+        debugContext: TradeDebugContext(
+          mode: CommunityTokenTradeMode.buy,
+          externalAddress: externalAddress,
+          externalAddressType: externalAddressType,
+          walletId: walletId,
+          walletAddress: walletAddress,
+          walletNetwork: walletNetwork,
+          amountIn: amountIn,
+          expectedPricing: expectedPricing,
+          slippagePercent: slippagePercent,
+          baseTokenAddress: baseTokenAddress,
+          baseTokenTicker: baseTokenTicker,
+          baseTokenDecimals: tokenDecimals,
+          shouldSendEvents: shouldSendEvents,
+          existingTokenAddress: existingTokenAddress,
+          firstBuy: firstBuy,
+          hasUserPosition: hasUserPosition,
+          isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+          fatAddressData: fatAddressData,
+          route: route,
+          quote: quote,
+          userOperations: userOps,
+          transaction: transaction,
+        ).toJson(),
+      );
+
       String? masterPubkey;
       ReplaceableEventReference? profileEventReference;
       var hasProfileToken = false;
@@ -188,10 +228,43 @@ class TradeCommunityTokenService {
             previousPositionRaw: previousPositionRaw,
           ),
       ]);
-    }
 
-    Logger.info('[TradeCommunityTokenService] buyCommunityToken completed successfully');
-    return transaction;
+      Logger.info('[TradeCommunityTokenService] buyCommunityToken completed successfully');
+      return transaction;
+    } catch (error) {
+      if (error is DebugContextException) {
+        rethrow;
+      }
+
+      throw CommunityTokenTradeTransactionException(
+        reason: 'Community token buy failed: ${error.runtimeType}',
+        originalError: error,
+        debugContext: TradeDebugContext(
+          mode: CommunityTokenTradeMode.buy,
+          externalAddress: externalAddress,
+          externalAddressType: externalAddressType,
+          walletId: walletId,
+          walletAddress: walletAddress,
+          walletNetwork: walletNetwork,
+          amountIn: amountIn,
+          expectedPricing: expectedPricing,
+          slippagePercent: slippagePercent,
+          baseTokenAddress: baseTokenAddress,
+          baseTokenTicker: baseTokenTicker,
+          baseTokenDecimals: tokenDecimals,
+          shouldSendEvents: shouldSendEvents,
+          existingTokenAddress: existingTokenAddress,
+          firstBuy: firstBuy,
+          hasUserPosition: hasUserPosition,
+          isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
+          fatAddressData: fatAddressData,
+          route: route,
+          quote: quote,
+          userOperations: userOps,
+          transaction: transaction,
+        ).toJson(),
+      );
+    }
   }
 
   Future<TransactionResult> sellCommunityToken({
@@ -211,80 +284,140 @@ class TradeCommunityTokenService {
     required bool shouldSendEvents,
     double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
-    Logger.info(
-      '[TradeCommunityTokenService] sellCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
-    );
-    _ensureAccountNotProtected(externalAddress);
-    final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
-      externalAddress: externalAddress,
-      externalAddressType: externalAddressType,
-      paymentTokenAddress: paymentTokenAddress,
-    );
-    Logger.info('[TradeCommunityTokenService] Building route');
-    final route = routeBuilder.build(
-      externalAddress: externalAddress,
-      externalAddressType: externalAddressType,
-      mode: CommunityTokenTradeMode.sell,
-      paymentTokenAddress: paymentTokenAddress,
-      paymentTokenRoleOverride: paymentRoleOverride,
-    );
+    TradeRoutePlan? route;
+    TradeQuotePlan? quote;
+    List<EvmUserOperation>? userOps;
+    TransactionResult? transaction;
+    CommunityToken? tokenInfo;
 
-    Logger.info('[TradeCommunityTokenService] Fetching token info');
-    final tokenInfo = await repository.fetchTokenInfo(externalAddress);
-
-    final previousPositionRaw = _extractPositionRaw(tokenInfo);
-
-    Logger.info(
-      '[TradeCommunityTokenService] Building quote | pricingIdentifier=$externalAddress | amountIn=$amountIn | slippagePercent=$slippagePercent',
-    );
-    final quote = await quoteBuilder.build(
-      route: route,
-      pricingIdentifier: externalAddress,
-      amountIn: amountIn,
-      paymentTokenAddress: paymentTokenAddress,
-      slippagePercent: slippagePercent,
-    );
-    Logger.info('[TradeCommunityTokenService] Building user operations');
-    final userOps = await userOpsBuilder.buildUserOps(
-      route: route,
-      quote: quote,
-      walletAddress: walletAddress,
-      paymentTokenAddress: paymentTokenAddress,
-      paymentTokenDecimals: paymentTokenDecimals,
-      communityTokenDecimals: tokenDecimals,
-      communityTokenAddress: communityTokenAddress,
-    );
-    Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
-    final transaction = await repository.signAndBroadcastUserOperations(
-      walletId: walletId,
-      userOperations: userOps,
-      feeSponsorId: quote.finalPricing.feeSponsorId,
-      userActionSigner: userActionSigner,
-    );
-
-    Logger.info(
-      '[TradeCommunityTokenService] Swap completed | status=${transaction['status']} | isBroadcasted=${_isBroadcasted(transaction)}',
-    );
-
-    if (shouldSendEvents && _isBroadcasted(transaction)) {
-      Logger.info('[TradeCommunityTokenService] Transaction broadcasted, sending sell events');
-      await _trySendSellEvents(
-        externalAddress: externalAddress,
-        transaction: transaction,
-        pricing: expectedPricing,
-        amountIn: amountIn,
-        walletNetwork: walletNetwork,
-        communityTokenAddress: communityTokenAddress,
-        paymentTokenTicker: paymentTokenTicker,
-        paymentTokenDecimals: paymentTokenDecimals,
-        tokenInfo: tokenInfo,
-        previousPositionRaw: previousPositionRaw,
+    try {
+      Logger.info(
+        '[TradeCommunityTokenService] sellCommunityToken called | externalAddress=$externalAddress | externalAddressType=$externalAddressType',
       );
-      Logger.info('[TradeCommunityTokenService] Sell events sent successfully');
-    }
+      _ensureAccountNotProtected(externalAddress);
+      final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
+        externalAddress: externalAddress,
+        externalAddressType: externalAddressType,
+        paymentTokenAddress: paymentTokenAddress,
+      );
+      Logger.info('[TradeCommunityTokenService] Building route');
+      route = routeBuilder.build(
+        externalAddress: externalAddress,
+        externalAddressType: externalAddressType,
+        mode: CommunityTokenTradeMode.sell,
+        paymentTokenAddress: paymentTokenAddress,
+        paymentTokenRoleOverride: paymentRoleOverride,
+      );
 
-    Logger.info('[TradeCommunityTokenService] sellCommunityToken completed successfully');
-    return transaction;
+      Logger.info('[TradeCommunityTokenService] Fetching token info');
+      tokenInfo = await repository.fetchTokenInfo(externalAddress);
+
+      final previousPositionRaw = _extractPositionRaw(tokenInfo);
+
+      Logger.info(
+        '[TradeCommunityTokenService] Building quote | pricingIdentifier=$externalAddress | amountIn=$amountIn | slippagePercent=$slippagePercent',
+      );
+      quote = await quoteBuilder.build(
+        route: route,
+        pricingIdentifier: externalAddress,
+        amountIn: amountIn,
+        paymentTokenAddress: paymentTokenAddress,
+        slippagePercent: slippagePercent,
+      );
+      Logger.info('[TradeCommunityTokenService] Building user operations');
+      userOps = await userOpsBuilder.buildUserOps(
+        route: route,
+        quote: quote,
+        walletAddress: walletAddress,
+        paymentTokenAddress: paymentTokenAddress,
+        paymentTokenDecimals: paymentTokenDecimals,
+        communityTokenDecimals: tokenDecimals,
+        communityTokenAddress: communityTokenAddress,
+      );
+      Logger.info('[TradeCommunityTokenService] Signing and broadcasting user operations');
+      transaction = await repository.signAndBroadcastUserOperations(
+        walletId: walletId,
+        userOperations: userOps,
+        feeSponsorId: quote.finalPricing.feeSponsorId,
+        userActionSigner: userActionSigner,
+      );
+
+      Logger.info(
+        '[TradeCommunityTokenService] Swap completed | status=${transaction['status']} | isBroadcasted=${_isBroadcasted(transaction)}',
+      );
+      _throwIfTransactionFailed(
+        transaction: transaction,
+        debugContext: TradeDebugContext(
+          mode: CommunityTokenTradeMode.sell,
+          externalAddress: externalAddress,
+          externalAddressType: externalAddressType,
+          walletId: walletId,
+          walletAddress: walletAddress,
+          walletNetwork: walletNetwork,
+          amountIn: amountIn,
+          expectedPricing: expectedPricing,
+          slippagePercent: slippagePercent,
+          paymentTokenAddress: paymentTokenAddress,
+          paymentTokenTicker: paymentTokenTicker,
+          paymentTokenDecimals: paymentTokenDecimals,
+          communityTokenAddress: communityTokenAddress,
+          shouldSendEvents: shouldSendEvents,
+          route: route,
+          quote: quote,
+          userOperations: userOps,
+          transaction: transaction,
+        ).toJson(),
+      );
+
+      if (shouldSendEvents) {
+        Logger.info('[TradeCommunityTokenService] Transaction broadcasted, sending sell events');
+        await _trySendSellEvents(
+          externalAddress: externalAddress,
+          transaction: transaction,
+          pricing: expectedPricing,
+          amountIn: amountIn,
+          walletNetwork: walletNetwork,
+          communityTokenAddress: communityTokenAddress,
+          paymentTokenTicker: paymentTokenTicker,
+          paymentTokenDecimals: paymentTokenDecimals,
+          tokenInfo: tokenInfo,
+          previousPositionRaw: previousPositionRaw,
+        );
+        Logger.info('[TradeCommunityTokenService] Sell events sent successfully');
+      }
+
+      Logger.info('[TradeCommunityTokenService] sellCommunityToken completed successfully');
+      return transaction;
+    } catch (error) {
+      if (error is DebugContextException) {
+        rethrow;
+      }
+
+      throw CommunityTokenTradeTransactionException(
+        reason: 'Community token sell failed: ${error.runtimeType}',
+        originalError: error,
+        debugContext: TradeDebugContext(
+          mode: CommunityTokenTradeMode.sell,
+          externalAddress: externalAddress,
+          externalAddressType: externalAddressType,
+          walletId: walletId,
+          walletAddress: walletAddress,
+          walletNetwork: walletNetwork,
+          amountIn: amountIn,
+          expectedPricing: expectedPricing,
+          slippagePercent: slippagePercent,
+          paymentTokenAddress: paymentTokenAddress,
+          paymentTokenTicker: paymentTokenTicker,
+          paymentTokenDecimals: paymentTokenDecimals,
+          communityTokenAddress: communityTokenAddress,
+          shouldSendEvents: shouldSendEvents,
+          route: route,
+          quote: quote,
+          userOperations: userOps,
+          transaction: transaction,
+        ).toJson(),
+      );
+    }
   }
 
   Future<PricingResponse> getQuote({
@@ -748,6 +881,37 @@ class TradeCommunityTokenService {
       retryWhen: (error) =>
           error is TokenAddressNotFoundException || error is TokenTickerNotFoundException,
     );
+  }
+
+  void _throwIfTransactionFailed({
+    required TransactionResult transaction,
+    required Map<String, dynamic> debugContext,
+  }) {
+    if (_isBroadcasted(transaction)) {
+      return;
+    }
+
+    throw CommunityTokenTradeTransactionException(
+      reason: _extractTransactionReason(transaction) ?? 'Swap was not broadcasted',
+      status: transaction['status']?.toString(),
+      txHash: _nonEmptyString(transaction['txHash']),
+      originalError: transaction,
+      debugContext: debugContext,
+    );
+  }
+
+  String? _extractTransactionReason(TransactionResult transaction) {
+    return _nonEmptyString(transaction['reason']) ??
+        _nonEmptyString(transaction['message']) ??
+        _nonEmptyString(transaction['error']);
+  }
+
+  String? _nonEmptyString(Object? value) {
+    final normalized = value?.toString().trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   bool _isBroadcasted(TransactionResult transaction) {

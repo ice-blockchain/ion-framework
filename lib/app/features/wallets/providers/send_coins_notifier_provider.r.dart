@@ -9,7 +9,6 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_chat_message_service.r.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
-import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
@@ -145,18 +144,12 @@ class SendCoinsNotifier extends _$SendCoinsNotifier {
     AsyncValue<TransactionDetails?>? previous,
     AsyncValue<TransactionDetails?> next,
   ) async {
-    String? userAgent;
-    try {
-      userAgent = (await ref.read(currentUserAgentProvider.future)).toString();
-    } catch (_) {}
-
     final error = await logWalletApiErrorStateTransitionToSentry(
       previous,
       next,
       tag: 'send_coins_failure',
       operation: 'makeTransfer',
       endpoint: '/wallets/{walletId}/transfers',
-      userAgent: userAgent,
       excludedErrorTypes: {
         PasskeyCancelledException,
       },

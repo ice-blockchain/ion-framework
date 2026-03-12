@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/tokenized_communities/blockchain/evm_contract_providers.dart';
 import 'package:ion/app/features/tokenized_communities/models/evm_transaction.dart';
+import 'package:ion/app/services/logger/logger.dart';
+import 'package:ion/app/utils/address.dart';
 import 'package:ion/app/utils/hex_encoding.dart';
+import 'package:ion/app/utils/retry.dart';
+import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 class EvmTxBuilder {
@@ -109,7 +116,7 @@ class EvmTxBuilder {
       EthereumAddress.fromHex(tokenAddress),
     );
     final function = deployedContract.function('getMetadataOwner');
-    final result = await web3Client.call(
+    final result = await _callWithRetry(
       contract: deployedContract,
       function: function,
       params: const [],
@@ -126,7 +133,7 @@ class EvmTxBuilder {
       EthereumAddress.fromHex(tokenAddress),
     );
     final function = deployedContract.function('name');
-    final result = await web3Client.call(
+    final result = await _callWithRetry(
       contract: deployedContract,
       function: function,
       params: const [],
@@ -143,7 +150,7 @@ class EvmTxBuilder {
       EthereumAddress.fromHex(tokenAddress),
     );
     final function = deployedContract.function('symbol');
-    final result = await web3Client.call(
+    final result = await _callWithRetry(
       contract: deployedContract,
       function: function,
       params: const [],
@@ -170,7 +177,7 @@ class EvmTxBuilder {
 
     final function = deployedContract.function('quoteBuyOut');
 
-    final result = await web3Client.call(
+    final result = await _callWithRetry(
       contract: deployedContract,
       function: function,
       params: [
@@ -196,7 +203,12 @@ class EvmTxBuilder {
 
     final function = deployedContract.function('allowance');
 
-    final result = await web3Client.call(
+    Logger.info(
+      '[EvmTxBuilder] allowance request | token=${shortenAddress(token)} | '
+      'owner=${shortenAddress(owner)} | spender=${shortenAddress(spender)}',
+    );
+
+    final result = await _callWithRetry(
       contract: deployedContract,
       function: function,
       params: [
@@ -206,6 +218,51 @@ class EvmTxBuilder {
     );
 
     return result.first as BigInt;
+  }
+
+  Future<List<dynamic>> _callWithRetry({
+    required DeployedContract contract,
+    required ContractFunction function,
+    required List<dynamic> params,
+  }) {
+    return withRetry<List<dynamic>>(
+      ({error}) => web3Client.call(
+        contract: contract,
+        function: function,
+        params: params,
+      ),
+      maxRetries: 3,
+      initialDelay: const Duration(milliseconds: 200),
+      maxDelay: const Duration(milliseconds: 800),
+      multiplier: 2,
+      onRetry: (error) {
+        Logger.warning(
+          '[EvmTxBuilder] Retrying RPC read | function=${function.name} | '
+          'error=${error.runtimeType}',
+        );
+      },
+      retryWhen: _isRetryableRpcReadError,
+    );
+  }
+
+  bool _isRetryableRpcReadError(Object error) {
+    final actualError = error is DebugContextException && error.originalError != null
+        ? error.originalError!
+        : error;
+
+    return actualError is FormatException ||
+        actualError is SocketException ||
+        actualError is TimeoutException ||
+        actualError is HttpException ||
+        _isRetryableRpcError(actualError);
+  }
+
+  bool _isRetryableRpcError(Object error) {
+    if (error is! RPCError) {
+      return false;
+    }
+
+    return error.errorCode == -32005 || error.errorCode == -32603;
   }
 
   Future<BondingCurveContract> _ensureBondingCurveContract({
