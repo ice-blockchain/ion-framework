@@ -40,30 +40,6 @@ class UserIndexersNotFoundException extends IONException {
   UserIndexersNotFoundException() : super(10005, 'User indexers not found');
 }
 
-class RpcCallException extends IONException implements DebugContextException {
-  RpcCallException({
-    required this.method,
-    required this.rpcEndpoint,
-    required this.originalError,
-  }) : super(
-          10990,
-          'RPC call failed for $method via $rpcEndpoint: ${originalError.runtimeType}',
-        );
-
-  final String method;
-  final String rpcEndpoint;
-
-  @override
-  final Object originalError;
-
-  @override
-  Map<String, dynamic> get debugContext => {
-        'rpcMethod': method,
-        'rpcEndpoint': rpcEndpoint,
-        'rpcErrorType': originalError.runtimeType.toString(),
-      };
-}
-
 class IncorrectEventKindException extends IONException {
   IncorrectEventKindException(
     dynamic eventInfo, {
@@ -897,4 +873,28 @@ class TokenTickerNotFoundException extends IONException {
           10154,
           'Token ticker not found for external address: $externalAddress',
         );
+}
+
+class RpcCallException extends IONException implements DebugContextException {
+  RpcCallException({
+    required this.method,
+    required this.rpcEndpoint,
+    required this.originalError,
+  }) : super(
+          10155,
+          'RPC call failed for $method via $rpcEndpoint: ${originalError.runtimeType}',
+        );
+
+  final String method;
+  final String rpcEndpoint;
+
+  @override
+  final Object originalError;
+
+  @override
+  Map<String, dynamic> get debugContext => {
+        'rpcMethod': method,
+        'rpcEndpoint': rpcEndpoint,
+        'rpcErrorType': originalError.runtimeType.toString(),
+      };
 }

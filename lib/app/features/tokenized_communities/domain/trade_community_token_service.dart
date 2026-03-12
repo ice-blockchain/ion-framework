@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
-import 'package:ion/app/features/tokenized_communities/domain/trade_debug_context_builder.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_debug_context.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_quote_builder.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_route_builder.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_user_ops_builder.dart';
@@ -148,7 +148,7 @@ class TradeCommunityTokenService {
       );
       _throwIfTransactionFailed(
         transaction: transaction,
-        debugContext: buildTradeDebugContext(
+        debugContext: TradeDebugContext(
           mode: CommunityTokenTradeMode.buy,
           externalAddress: externalAddress,
           externalAddressType: externalAddressType,
@@ -171,7 +171,7 @@ class TradeCommunityTokenService {
           quote: quote,
           userOperations: userOps,
           transaction: transaction,
-        ),
+        ).toJson(),
       );
 
       String? masterPubkey;
@@ -239,7 +239,7 @@ class TradeCommunityTokenService {
       throw CommunityTokenTradeTransactionException(
         reason: 'Community token buy failed: ${error.runtimeType}',
         originalError: error,
-        debugContext: buildTradeDebugContext(
+        debugContext: TradeDebugContext(
           mode: CommunityTokenTradeMode.buy,
           externalAddress: externalAddress,
           externalAddressType: externalAddressType,
@@ -262,7 +262,7 @@ class TradeCommunityTokenService {
           quote: quote,
           userOperations: userOps,
           transaction: transaction,
-        ),
+        ).toJson(),
       );
     }
   }
@@ -347,7 +347,7 @@ class TradeCommunityTokenService {
       );
       _throwIfTransactionFailed(
         transaction: transaction,
-        debugContext: buildTradeDebugContext(
+        debugContext: TradeDebugContext(
           mode: CommunityTokenTradeMode.sell,
           externalAddress: externalAddress,
           externalAddressType: externalAddressType,
@@ -366,7 +366,7 @@ class TradeCommunityTokenService {
           quote: quote,
           userOperations: userOps,
           transaction: transaction,
-        ),
+        ).toJson(),
       );
 
       if (shouldSendEvents) {
@@ -396,7 +396,7 @@ class TradeCommunityTokenService {
       throw CommunityTokenTradeTransactionException(
         reason: 'Community token sell failed: ${error.runtimeType}',
         originalError: error,
-        debugContext: buildTradeDebugContext(
+        debugContext: TradeDebugContext(
           mode: CommunityTokenTradeMode.sell,
           externalAddress: externalAddress,
           externalAddressType: externalAddressType,
@@ -415,7 +415,7 @@ class TradeCommunityTokenService {
           quote: quote,
           userOperations: userOps,
           transaction: transaction,
-        ),
+        ).toJson(),
       );
     }
   }
