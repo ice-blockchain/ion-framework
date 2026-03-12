@@ -9,6 +9,7 @@ import 'package:ion/app/features/components/verify_identity/verify_identity_prom
 import 'package:ion/app/features/protect_account/backup/providers/cloud_stored_recovery_keys_names_provider.r.dart';
 import 'package:ion/app/features/protect_account/backup/providers/create_recovery_key_action_notifier.r.dart';
 import 'package:ion/app/features/protect_account/backup/views/components/backup_option.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/recovery_credentials_enabled_notifier.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/cloud_storage/cloud_storage_service.r.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -31,6 +32,11 @@ class CloudBackupOption extends HookConsumerWidget {
       });
 
     final hasCurrentUserBackupInCloud = ref.watch(hasCurrentUserBackupInCloudProvider);
+    final recoveryCredentialsEnabled = ref.watch(recoveryCredentialsEnabledProvider);
+    final isRecoveryCredentialsEnabled =
+        !recoveryCredentialsEnabled.isLoading && recoveryCredentialsEnabled.value.falseOrValue;
+    final isCloudBackupEnabled =
+        hasCurrentUserBackupInCloud.value.falseOrValue && isRecoveryCredentialsEnabled;
 
     final locale = context.i18n;
     return BackupOption(
@@ -41,8 +47,8 @@ class CloudBackupOption extends HookConsumerWidget {
       icon: Assets.svg.walletLoginCloud.icon(
         size: 48.0.s,
       ),
-      isOptionEnabled: hasCurrentUserBackupInCloud.value.falseOrValue,
-      isLoading: hasCurrentUserBackupInCloud.isLoading,
+      isOptionEnabled: isCloudBackupEnabled,
+      isLoading: hasCurrentUserBackupInCloud.isLoading || recoveryCredentialsEnabled.isLoading,
       onTap: () async {
         // sign out first to trigger available accounts pop up
         await ref.read(cloudStorageProvider).signOut();

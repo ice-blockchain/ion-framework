@@ -7,6 +7,7 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/protect_account/backup/views/components/backup_option.dart';
 import 'package:ion/app/features/protect_account/backup/views/pages/create_recover_key_page/components/cloud_backup_option.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/recovery_credentials_enabled_notifier.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/recovery_keys_completed_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/show_close_button_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -20,7 +21,11 @@ class BackupOptionsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
-    final isBackupEnabled = ref.watch(recoveryKeysCompletedProvider).value.falseOrValue;
+    final recoveryKeysCompleted = ref.watch(recoveryKeysCompletedProvider).value.falseOrValue;
+    final recoveryCredentialsEnabled = ref.watch(recoveryCredentialsEnabledProvider);
+    final isRecoveryCredentialsEnabled =
+        !recoveryCredentialsEnabled.isLoading && recoveryCredentialsEnabled.value.falseOrValue;
+    final isBackupEnabled = recoveryKeysCompleted && isRecoveryCredentialsEnabled;
 
     return SheetContent(
       body: Column(
