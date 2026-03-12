@@ -33,6 +33,7 @@ class CommunityTokenLive extends HookConsumerWidget {
     this.headerOffset,
     this.timeFormat = TimestampFormat.short,
     this.showTokenIsLiveLabel = true,
+    this.showCreatorAndXBadges = true,
     super.key,
   });
 
@@ -45,6 +46,7 @@ class CommunityTokenLive extends HookConsumerWidget {
   final TimestampFormat timeFormat;
 
   final bool showTokenIsLiveLabel;
+  final bool showCreatorAndXBadges;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -92,6 +94,7 @@ class CommunityTokenLive extends HookConsumerWidget {
           _TwitterTokenUserInfo(
             entity: entity,
             timeFormat: timeFormat,
+            showCreatorAndXBadges: showCreatorAndXBadges,
           )
         else
           UserInfo(
@@ -143,10 +146,12 @@ class _TwitterTokenUserInfo extends HookConsumerWidget {
   const _TwitterTokenUserInfo({
     required this.entity,
     required this.timeFormat,
+    required this.showCreatorAndXBadges,
   });
 
   final CommunityTokenDefinitionEntity entity;
   final TimestampFormat timeFormat;
+  final bool showCreatorAndXBadges;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -189,9 +194,9 @@ class _TwitterTokenUserInfo extends HookConsumerWidget {
                     name: tokenInfo.creator.display ?? '',
                     handle: tokenInfo.marketData.ticker,
                     verified: tokenInfo.creator.verified ?? false,
-                    isCreator: true,
+                    isCreator: showCreatorAndXBadges,
                     meta: timeText,
-                    isXUser: true,
+                    isXUser: showCreatorAndXBadges && tokenInfo.creator.isXUser,
                   ),
                 ),
               ],

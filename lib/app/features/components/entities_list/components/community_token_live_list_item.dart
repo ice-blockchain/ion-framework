@@ -27,6 +27,7 @@ class CommunityTokenLiveListItem extends StatelessWidget {
         child: CommunityTokenLive(
           eventReference: eventReference,
           network: network,
+          showCreatorAndXBadges: false,
         ),
       ),
     );
