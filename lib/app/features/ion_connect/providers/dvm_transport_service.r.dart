@@ -94,16 +94,8 @@ class DvmTransportService {
               successParser: successParser,
             ),
           )
-          .where((entity) {
-        final requestId = entity?.requestEventReference.eventId;
-        return requestId != null && requestEventIds.contains(requestId);
-      }).asBroadcastStream();
-
-      final responseFutures = [
-        for (final requestEvent in requestEvents)
-          responseStream
-              .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id),
-      ];
+          .where((entity) => requestEventIds.contains(entity?.requestEventReference.eventId))
+          .asBroadcastStream();
 
       await _ionConnectNotifier.sendEvents(
         requestEvents,
@@ -112,13 +104,14 @@ class DvmTransportService {
       );
 
       yield* Stream.fromFutures(
-        responseFutures.map(
-          (responseFuture) =>
-              // If the BE has no response, nothing is returned - we need a timeout for this case
-              responseFuture
-                  .timeout(timeout, onTimeout: () => null)
-                  .then((responseEntity) => responseEntity as T?),
-        ),
+        [
+          for (final requestEvent in requestEvents)
+            // If the BE has no response, nothing is returned - we need a timeout for this case
+            responseStream
+                .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id)
+                .timeout(timeout, onTimeout: () => null)
+                .then((responseEntity) => responseEntity as T?),
+        ],
       );
     } finally {
       relay.unsubscribe(subscription.id);
