@@ -13,7 +13,7 @@ import 'package:ion/app/features/core/providers/template_provider.r.dart';
 import 'package:ion/app/features/core/providers/window_manager_provider.r.dart';
 import 'package:ion/app/features/core/views/components/widget_error_builder.dart';
 import 'package:ion/app/features/feed/nft/providers/nft_collection_sync_provider.r.dart';
-import 'package:ion/app/features/feed/notifications/providers/account_notifications_sync_provider.r.dart';
+import 'package:ion/app/features/feed/notifications/providers/in_app_notifications_sync_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_bookmarks_notifier.r.dart';
 import 'package:ion/app/features/feed/providers/feed_feature_initializer.dart';
 import 'package:ion/app/features/force_update/providers/force_update_provider.r.dart';
@@ -86,7 +86,7 @@ Future<void> initApp(Ref ref) async {
     ..listen(pushesInitProvider, noop)
     ..listen(globalSubscriptionProvider, (_, subscription) => subscription?.init())
     ..listen(migrateTokenDefinitionsServiceProvider, noop)
-    ..listen(accountNotificationsSyncProvider, noop)
+    ..listen(inAppNotificationsSyncProvider, noop)
     ..listen(deepLinkHandlerProvider, noop)
     ..listen(tokenizedCommunityOnboardingServiceProvider, noop);
 

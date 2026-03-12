@@ -32,17 +32,17 @@ import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'account_notifications_sync_provider.r.g.dart';
+part 'in_app_notifications_sync_provider.r.g.dart';
 
-class AccountNotificationsSyncService {
-  AccountNotificationsSyncService({
+class InAppNotificationsSyncService {
+  InAppNotificationsSyncService({
     required Duration syncInterval,
     required AccountNotificationSyncTimeRepository syncTimeRepository,
     required BatchedSyncService batchedSyncService,
     required DvmTransportService dvmTransportService,
     required EventParser eventParser,
     required String currentPubkey,
-    required AccountNotificationsEventsHandler? notificationsEventsHandler,
+    required InAppNotificationsEventsHandler? notificationsEventsHandler,
     required Future<List<AccountNotificationSetEntity>> Function()
         getCurrentUserAccountNotificationSets,
     required Future<FollowListEntity?> Function() getCurrentUserFollowList,
@@ -64,7 +64,7 @@ class AccountNotificationsSyncService {
   final DvmTransportService _dvmTransportService;
   final EventParser _eventParser;
   final String _currentPubkey;
-  final AccountNotificationsEventsHandler? _notificationsEventsHandler;
+  final InAppNotificationsEventsHandler? _notificationsEventsHandler;
   final Future<List<AccountNotificationSetEntity>> Function()
       _getCurrentUserAccountNotificationSets;
   final Future<FollowListEntity?> Function() _getCurrentUserFollowList;
@@ -315,49 +315,46 @@ class AccountNotificationsSyncService {
 }
 
 @riverpod
-class AccountNotificationsSync extends _$AccountNotificationsSync {
-  @override
-  FutureOr<void> build() async {
-    keepAliveWhenAuthenticated(ref);
+FutureOr<void> inAppNotificationsSync(Ref ref) async {
+  keepAliveWhenAuthenticated(ref);
 
-    final authState = await ref.watch(authProvider.future);
-    if (!authState.isAuthenticated) {
-      return;
-    }
-
-    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    if (currentPubkey == null) {
-      return;
-    }
-
-    final syncTimeRepository = ref.watch(accountNotificationSyncTimeRepositoryProvider);
-    if (syncTimeRepository == null) {
-      return;
-    }
-
-    final service = AccountNotificationsSyncService(
-      syncInterval: ref.watch(envProvider.notifier).get<Duration>(
-            EnvVariable.ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES,
-          ),
-      syncTimeRepository: syncTimeRepository,
-      notificationsEventsHandler: ref.watch(accountNotificationsEventsHandlerProvider),
-      batchedSyncService: ref.watch(batchedSyncServiceProvider),
-      dvmTransportService: ref.watch(dvmTransportServiceProvider),
-      eventParser: ref.watch(eventParserProvider),
-      currentPubkey: currentPubkey,
-      getCurrentUserAccountNotificationSets: () =>
-          ref.read(currentUserAccountNotificationSetsProvider.future),
-      getCurrentUserFollowList: () => ref.read(currentUserFollowListProvider.future),
-      getBlockedUsersPubkeys: () => ref.read(blockedUsersPubkeysSelectorProvider).toList(),
-    );
-
-    unawaited(service.initializeSync());
-    ref.onDispose(service.cancelAllSync);
+  final authState = await ref.watch(authProvider.future);
+  if (!authState.isAuthenticated) {
+    return;
   }
+
+  final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+  if (currentPubkey == null) {
+    return;
+  }
+
+  final syncTimeRepository = ref.watch(accountNotificationSyncTimeRepositoryProvider);
+  if (syncTimeRepository == null) {
+    return;
+  }
+
+  final service = InAppNotificationsSyncService(
+    syncInterval: ref.watch(envProvider.notifier).get<Duration>(
+          EnvVariable.ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES,
+        ),
+    syncTimeRepository: syncTimeRepository,
+    notificationsEventsHandler: ref.watch(inAppNotificationsEventsHandlerProvider),
+    batchedSyncService: ref.watch(batchedSyncServiceProvider),
+    dvmTransportService: ref.watch(dvmTransportServiceProvider),
+    eventParser: ref.watch(eventParserProvider),
+    currentPubkey: currentPubkey,
+    getCurrentUserAccountNotificationSets: () =>
+        ref.read(currentUserAccountNotificationSetsProvider.future),
+    getCurrentUserFollowList: () => ref.read(currentUserFollowListProvider.future),
+    getBlockedUsersPubkeys: () => ref.read(blockedUsersPubkeysSelectorProvider).toList(),
+  );
+
+  unawaited(service.initializeSync());
+  ref.onDispose(service.cancelAllSync);
 }
 
-class AccountNotificationsEventsHandler {
-  AccountNotificationsEventsHandler({
+class InAppNotificationsEventsHandler {
+  InAppNotificationsEventsHandler({
     required TokenLaunchRepository tokenLaunchRepository,
     required ContentRepository contentRepository,
     required TokenUpdatesRepository tokenUpdatesRepository,
@@ -389,13 +386,13 @@ class AccountNotificationsEventsHandler {
 }
 
 @riverpod
-AccountNotificationsEventsHandler? accountNotificationsEventsHandler(Ref ref) {
+InAppNotificationsEventsHandler? inAppNotificationsEventsHandler(Ref ref) {
   final currentMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentMasterPubkey == null) {
     return null;
   }
 
-  return AccountNotificationsEventsHandler(
+  return InAppNotificationsEventsHandler(
     tokenLaunchRepository: ref.watch(tokenLaunchRepositoryProvider),
     contentRepository: ref.watch(contentRepositoryProvider),
     tokenUpdatesRepository: ref.watch(tokenUpdatesRepositoryProvider),
