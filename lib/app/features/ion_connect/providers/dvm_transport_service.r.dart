@@ -102,11 +102,7 @@ class DvmTransportService {
       final responseFutures = [
         for (final requestEvent in requestEvents)
           responseStream
-              .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id)
-              .timeout(
-                timeout,
-                onTimeout: () => null, // If the BE has no response, nothing is returned
-              ),
+              .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id),
       ];
 
       await _ionConnectNotifier.sendEvents(
@@ -115,10 +111,15 @@ class DvmTransportService {
         cache: false,
       );
 
-      for (final responseFuture in responseFutures) {
-        final responseEntity = await responseFuture;
-        yield responseEntity as T?;
-      }
+      yield* Stream.fromFutures(
+        responseFutures.map(
+          (responseFuture) =>
+              // If the BE has no response, nothing is returned - we need a timeout for this case
+              responseFuture
+                  .timeout(timeout, onTimeout: () => null)
+                  .then((responseEntity) => responseEntity as T?),
+        ),
+      );
     } finally {
       relay.unsubscribe(subscription.id);
     }
