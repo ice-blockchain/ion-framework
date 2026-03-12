@@ -11,8 +11,7 @@ part 'auth_screen_busy_provider.r.g.dart';
 @riverpod
 bool authScreenBusy(Ref ref) {
   final authState = ref.watch(authProvider);
-  final isUserSwitching =
-      ref.watch(userSwitchInProgressProvider).isSwitchingProgress;
+  final isUserSwitching = ref.watch(userSwitchInProgressProvider).isSwitchingProgress;
 
   final hasAuthorizedUsers =
       authState.valueOrNull?.authenticatedIdentityKeyNames.isNotEmpty ?? false;

@@ -31,9 +31,7 @@ class LoginForm extends HookConsumerWidget {
       () {
         void listener() {
           if (identityKeyNameController.text.isNotEmpty) {
-            ref
-                .read(loginActionNotifierProvider.notifier)
-                .cancelAutoPasskeyLogin();
+            ref.read(loginActionNotifierProvider.notifier).cancelAutoPasskeyLogin();
           }
         }
 
@@ -55,16 +53,14 @@ class LoginForm extends HookConsumerWidget {
           IdentityKeyNameInput(
             errorText: switch (loginActionState.error) {
               final PasskeyCancelledException _ => null,
-              final IONIdentityException identityException =>
-                identityException.title(context),
+              final IONIdentityException identityException => identityException.title(context),
               _ => loginActionState.error?.toString(),
             },
             controller: identityKeyNameController,
             scrollPadding: EdgeInsetsDirectional.only(bottom: 88.0.s),
             onFocused: (focused) {
               if (isAutoPasskeyLookupBlocked) return;
-              final isIdentityKeyNameEmpty =
-                  identityKeyNameController.text.isEmpty;
+              final isIdentityKeyNameEmpty = identityKeyNameController.text.isEmpty;
               if (!focused || !isIdentityKeyNameEmpty) {
                 return;
               }
@@ -76,8 +72,7 @@ class LoginForm extends HookConsumerWidget {
             disabled: authScreenIsBusy,
             trailingIcon: authScreenIsBusy
                 ? const IONLoadingIndicator()
-                : Assets.svg.iconButtonNext
-                    .icon(color: context.theme.appColors.onPrimaryAccent),
+                : Assets.svg.iconButtonNext.icon(color: context.theme.appColors.onPrimaryAccent),
             onPressed: authScreenIsBusy
                 ? null
                 : () {
