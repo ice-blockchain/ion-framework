@@ -49,12 +49,6 @@ final class DelegateAccessFeatureFlag extends FeatureFlag {
   static const delegateAccessEnabled = DelegateAccessFeatureFlag._(key: 'delegateAccessEnabled');
 }
 
-final class MultiAccountsFeatureFlag extends FeatureFlag {
-  const MultiAccountsFeatureFlag._({required super.key});
-
-  static const multiAccountsEnabled = MultiAccountsFeatureFlag._(key: 'multiAccountsEnabled');
-}
-
 final class AuthFeatureFlag extends FeatureFlag {
   const AuthFeatureFlag._({required super.key});
 

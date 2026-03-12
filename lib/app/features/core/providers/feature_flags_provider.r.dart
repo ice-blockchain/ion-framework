@@ -20,7 +20,6 @@ class FeatureFlags extends _$FeatureFlags {
       ChatFeatureFlag.hideChatBookmark: true,
       TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled: true,
       DelegateAccessFeatureFlag.delegateAccessEnabled: false,
-      MultiAccountsFeatureFlag.multiAccountsEnabled: false,
       AuthFeatureFlag.signUpLoginFallbackOnUserAlreadyExists: false,
 
       /// Log flags

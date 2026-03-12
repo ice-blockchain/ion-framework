@@ -121,9 +121,6 @@ class ProfilePage extends HookConsumerWidget {
       [userMetadata.value?.cacheKey],
     );
 
-    final isMultiAccountsEnabled =
-        ref.watch(featureFlagsProvider.notifier).get(MultiAccountsFeatureFlag.multiAccountsEnabled);
-
     final isOwnUserProfile = ref.watch(isCurrentUserSelectorProvider(masterPubkey));
 
     return Scaffold(
@@ -195,7 +192,7 @@ class ProfilePage extends HookConsumerWidget {
               profileMode: profileMode,
             ),
           ],
-          if (isOwnUserProfile && isMultiAccountsEnabled) ...[
+          if (isOwnUserProfile)
             GestureDetector(
               onTap: () => SwitchAccountRoute().push<void>(context),
               child: Assets.svg.iconSwitchProfile.icon(
@@ -205,7 +202,6 @@ class ProfilePage extends HookConsumerWidget {
                     : null,
               ),
             ),
-          ],
           ProfileContextMenu(
             pubkey: masterPubkey,
             closeSignal: menuCloseSignal,

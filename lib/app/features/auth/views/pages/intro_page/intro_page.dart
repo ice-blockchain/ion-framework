@@ -6,8 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/core/model/feature_flags.dart';
-import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/providers/video_player_provider.m.dart';
 import 'package:ion/app/hooks/use_auto_play_route_observer.dart';
 import 'package:ion/app/router/app_route_observer.dart';
@@ -37,9 +35,6 @@ class IntroPage extends HookConsumerWidget {
 
     final videoController = videoControllerProviderState.valueOrNull;
 
-    final isMultiAccountsEnabled =
-        ref.watch(featureFlagsProvider.notifier).get(MultiAccountsFeatureFlag.multiAccountsEnabled);
-
     final isSwitchAccountEnabled = ref.watch(
       authProvider
           .select((state) => state.valueOrNull?.authenticatedIdentityKeyNames.isNotEmpty ?? false),
@@ -67,7 +62,7 @@ class IntroPage extends HookConsumerWidget {
                 child: VideoPlayer(videoController),
               ),
             ),
-          if (isMultiAccountsEnabled && isSwitchAccountEnabled)
+          if (isSwitchAccountEnabled)
             PositionedDirectional(
               top: MediaQuery.paddingOf(context).top + 16.0.s,
               end: 16.0.s,
