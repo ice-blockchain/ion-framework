@@ -8,7 +8,6 @@ import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separated_column.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
-import 'package:ion/app/features/auth/providers/registration_restrictions_provider.r.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/components/accounts_list/accounts_list.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -56,14 +55,23 @@ class SwitchAccountModal extends HookConsumerWidget {
                     color: context.theme.appColors.primaryAccent,
                   ),
                   label: context.i18n.profile_create_new_account,
-                  onTap: () => context.push('/feed/add-account-options'),
+                  onTap: () => AddAccountOptionsRoute().push<void>(context),
                 ),
               SwitchAccountModalList(
                 enableAccountManagement: enableAccountManagement,
-                onSelectUser: () {
+                onSelectUser: () async {
+                  final rootContext = Navigator.of(context, rootNavigator: true).context;
                   if (enableAccountManagement) {
+                    if (rootContext.mounted) {
+                      FeedRoute().go(rootContext);
+                    }
+                    return;
+                  } else {
                     Navigator.of(context).pop();
-                    FeedRoute().go(context);
+                    await Future<void>.delayed(const Duration(milliseconds: 500));
+                    if (rootContext.mounted) {
+                      FeedRoute().go(rootContext);
+                    }
                   }
                 },
               ),
@@ -138,6 +146,7 @@ class _AddAccountOptionsModal extends ConsumerWidget {
   Future<void> _onLogInTap(BuildContext context, WidgetRef ref) async {
     final rootContext = Navigator.of(context, rootNavigator: true).context;
     await ref.read(switchAccountModalNotifierProvider.notifier).clearCurrentUserForAuthentication();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     if (rootContext.mounted) {
       GetStartedRoute().go(rootContext);
     }
@@ -146,26 +155,9 @@ class _AddAccountOptionsModal extends ConsumerWidget {
   Future<void> _onCreateAccountTap(BuildContext context, WidgetRef ref) async {
     final rootContext = Navigator.of(context, rootNavigator: true).context;
     await ref.read(switchAccountModalNotifierProvider.notifier).clearCurrentUserForAuthentication();
-
-    final registrationRestrictionType = await ref.read(registrationRestrictionProvider.future);
-    if (!rootContext.mounted) {
-      return;
-    }
-
-    switch (registrationRestrictionType) {
-      case RegistrationRestrictionType.fullyAllowed:
-        final result = await SignUpPasskeyRoute().push<bool>(rootContext);
-        if (result == null || result) {
-          return;
-        }
-
-        if (rootContext.mounted) {
-          await SignUpPasswordRoute().push<void>(rootContext);
-        }
-      case RegistrationRestrictionType.earlyAccessOnly:
-        await SignUpEarlyAccessRoute().push<void>(rootContext);
-      case RegistrationRestrictionType.restricted:
-        await SignUpRestrictedRoute().push<void>(rootContext);
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    if (rootContext.mounted) {
+      GetStartedRoute().go(rootContext);
     }
   }
 }

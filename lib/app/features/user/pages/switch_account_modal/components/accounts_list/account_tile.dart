@@ -7,6 +7,7 @@ import 'package:ion/app/components/avatar/default_avatar.dart';
 import 'package:ion/app/components/list_item/badges_user_list_item.dart';
 import 'package:ion/app/components/list_item/list_item.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/utils/username.dart';
@@ -66,8 +67,9 @@ class SwitchAccountModalTile extends HookConsumerWidget {
 
   Future<void> _handleTap(WidgetRef ref) async {
     if (!isCurrentUser) {
-      onSelectUser();
       await ref.read(switchAccountModalNotifierProvider.notifier).setCurrentUser(identityKeyName);
+      await ref.read(authProvider.future);
+      onSelectUser();
     }
   }
 }
