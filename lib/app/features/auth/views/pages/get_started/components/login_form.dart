@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_flow_action_notifier.r.dart';
 import 'package:ion/app/features/auth/providers/auth_screen_busy_provider.r.dart';
 import 'package:ion/app/features/auth/providers/login_action_notifier.r.dart';
 import 'package:ion/app/features/auth/views/components/identity_key_name_input/identity_key_name_input.dart';
@@ -41,6 +42,9 @@ class LoginForm extends HookConsumerWidget {
     );
 
     final authScreenIsBusy = ref.watch(authScreenBusyProvider);
+    final loginLoading = loginActionState.isLoading;
+    final registerLoading = ref.watch(authFlowActionNotifierProvider).isLoading;
+    final isAutoPasskeyLookupBlocked = loginLoading || registerLoading;
 
     return Form(
       key: formKey.value,
@@ -55,7 +59,7 @@ class LoginForm extends HookConsumerWidget {
             controller: identityKeyNameController,
             scrollPadding: EdgeInsetsDirectional.only(bottom: 88.0.s),
             onFocused: (focused) {
-              if (authScreenIsBusy) return;
+              if (isAutoPasskeyLookupBlocked) return;
               final isIdentityKeyNameEmpty = identityKeyNameController.text.isEmpty;
               if (!focused || !isIdentityKeyNameEmpty) {
                 return;
