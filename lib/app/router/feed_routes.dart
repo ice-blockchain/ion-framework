@@ -31,6 +31,7 @@ class FeedRoutes {
     TypedShellRoute<ModalShellRouteData>(
       routes: [
         TypedGoRoute<SwitchAccountRoute>(path: 'switch-account'),
+        TypedGoRoute<AddAccountOptionsRoute>(path: 'add-account-options'),
       ],
     ),
     TypedShellRoute<ModalShellRouteData>(
@@ -187,6 +188,14 @@ class SwitchAccountRoute extends BaseRouteData with _$SwitchAccountRoute {
   SwitchAccountRoute()
       : super(
           child: const SwitchAccountModal(),
+          type: IceRouteType.bottomSheet,
+        );
+}
+
+class AddAccountOptionsRoute extends BaseRouteData with _$AddAccountOptionsRoute {
+  AddAccountOptionsRoute()
+      : super(
+          child: const SwitchAccountModal(showAddAccountOptions: true),
           type: IceRouteType.bottomSheet,
         );
 }

@@ -739,6 +739,8 @@
   "profile_bookmarks": "الإشارات المرجعية",
   "profile_bookmarks_desc": "منشوراتك المحفوظة",
   "profile_create_new_account": "إضافة حساب",
+  "profile_log_in_existing_account": "تسجيل الدخول إلى حساب موجود",
+  "profile_create_a_new_account": "إنشاء حساب جديد",
   "profile_edit": "تعديل الملف الشخصي",
   "profile_followed_by": "يتابعك من قبل ",
   "profile_followed_by_and": " و ",

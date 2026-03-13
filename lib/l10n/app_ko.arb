@@ -727,6 +727,8 @@
   "profile_articles_empty_list_current_user": "아티클이 없습니다",
   "profile_bio": "소개",
   "profile_create_new_account": "계정 추가",
+  "profile_log_in_existing_account": "기존 계정으로 로그인",
+  "profile_create_a_new_account": "새 계정 만들기",
   "profile_edit": "프로필 편집",
   "profile_followed_by": "팔로우한 사용자: ",
   "profile_followed_by_and": " 및 ",

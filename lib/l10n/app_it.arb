@@ -727,6 +727,8 @@
   "profile_articles_empty_list_current_user": "Non hai articoli",
   "profile_bio": "Biografia",
   "profile_create_new_account": "Aggiungi un account",
+  "profile_log_in_existing_account": "Accedi a un account esistente",
+  "profile_create_a_new_account": "Crea un nuovo account",
   "profile_edit": "Modifica profilo",
   "profile_followed_by": "Seguito da ",
   "profile_followed_by_and": " e ",

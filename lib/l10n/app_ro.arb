@@ -727,6 +727,8 @@
   "profile_articles_empty_list_current_user": "Nu ai articole",
   "profile_bio": "Bio",
   "profile_create_new_account": "Adăugați un cont",
+  "profile_log_in_existing_account": "Conectați-vă la un cont existent",
+  "profile_create_a_new_account": "Creați un cont nou",
   "profile_edit": "Editează profilul",
   "profile_followed_by": "Urmărit de ",
   "profile_followed_by_and": " și ",
