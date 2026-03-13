@@ -14,6 +14,7 @@ import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message
 import 'package:ion/app/features/chat/e2ee/providers/shared_post_message_provider.r.dart';
 import 'package:ion/app/features/chat/model/message_reaction.f.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
+import 'package:ion/app/features/chat/providers/manual_unread_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
@@ -72,6 +73,9 @@ class RecentChatTile extends HookConsumerWidget {
         ref.watch(mutedConversationsProvider).valueOrNull?.contains(conversation.conversationId) ??
             false;
 
+    final isManuallyUnread =
+        ref.watch(manualUnreadConversationsProvider).contains(conversation.conversationId);
+
     final messageItemKey = useMemoized(GlobalKey.new);
 
     final isMe = conversation.latestMessage != null &&
@@ -119,6 +123,9 @@ class RecentChatTile extends HookConsumerWidget {
         if (isEditMode) {
           ref.read(selectedConversationsProvider.notifier).toggle(conversation);
         } else {
+          ref
+              .read(manualUnreadConversationsProvider.notifier)
+              .clearUnread(conversation.conversationId);
           onTap?.call();
         }
       },
@@ -212,6 +219,8 @@ class RecentChatTile extends HookConsumerWidget {
                                   isMuted: isMuted,
                                   unreadCount: unreadMessagesCount,
                                 ),
+                              if (unreadMessagesCount == 0 && isManuallyUnread)
+                                UnreadDotBadge(isMuted: isMuted),
                             ],
                           ),
                         ],
@@ -453,6 +462,25 @@ class UnreadCountBadge extends StatelessWidget {
             const FontFeature.disable('clig'),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class UnreadDotBadge extends StatelessWidget {
+  const UnreadDotBadge({required this.isMuted, super.key});
+
+  final bool isMuted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 16.0.s,
+      height: 16.0.s,
+      margin: EdgeInsetsDirectional.only(start: 16.0.s),
+      decoration: BoxDecoration(
+        color: isMuted ? context.theme.appColors.sheetLine : context.theme.appColors.primaryAccent,
+        borderRadius: BorderRadius.circular(16.0.s),
       ),
     );
   }

@@ -202,6 +202,7 @@
   "chat_profile_share_modal_title": "Compartir perfil",
   "chat_profile_view_button": "Ver perfil",
   "chat_read": "Leído",
+  "chat_unread": "Marcar como no leído",
   "chat_read_all": "Marcar todo como leído",
   "chat_search_empty": "Busca aquí usuarios, chats, grupos y canales...",
   "chat_search_no_community_empty": "Busca aquí usuarios, chats...",

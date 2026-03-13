@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/badge/providers/app_badge_counter_provider.r.dart';
+import 'package:ion/app/features/chat/providers/manual_unread_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 
@@ -12,7 +13,26 @@ class UnreadMessagesCounter extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unreadMessagesCount = ref.watch(getAllUnreadMessagesCountProvider).valueOrNull ?? 0;
+    final totalUnreadMessagesCount = ref.watch(getAllUnreadMessagesCountProvider).valueOrNull ?? 0;
+    final manuallyUnreadConversationIds = ref.watch(manualUnreadConversationsProvider);
+
+    var manualOnlyUnreadCount = 0;
+    for (final conversationId in manuallyUnreadConversationIds) {
+      final unreadForConversationState = ref.watch(getUnreadMessagesCountProvider(conversationId));
+
+      // Avoid counting manual unread while the per-conversation unread stream
+      // is still loading, otherwise we can temporarily overcount.
+      if (!unreadForConversationState.hasValue) {
+        continue;
+      }
+
+      final unreadForConversation = unreadForConversationState.valueOrNull ?? 0;
+      if (unreadForConversation == 0) {
+        manualOnlyUnreadCount += 1;
+      }
+    }
+
+    final unreadMessagesCount = totalUnreadMessagesCount + manualOnlyUnreadCount;
 
     useOnInit(
       () async {
