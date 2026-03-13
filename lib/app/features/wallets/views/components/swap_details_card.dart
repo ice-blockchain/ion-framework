@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
@@ -43,7 +44,7 @@ class SwapDetailsCard extends HookWidget {
   final String buyCoinAbbreviation;
   final double? slippage;
 
-  final int? priceImpact;
+  final double? priceImpact;
   final String? networkFee;
   final String? protocolFee;
 
@@ -107,7 +108,7 @@ class _SwapDetailsSection extends StatelessWidget {
   final String sellCoinAbbreviation;
   final String buyCoinAbbreviation;
   final double? slippage;
-  final int? priceImpact;
+  final double? priceImpact;
   final String? networkFee;
   final String? protocolFee;
 
@@ -117,8 +118,8 @@ class _SwapDetailsSection extends StatelessWidget {
     final textStyles = context.theme.appTextThemes;
     final isVisibleMoreButton = priceImpact != null || networkFee != null || protocolFee != null;
 
-    return Stack(
-      clipBehavior: Clip.none,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           margin: EdgeInsets.symmetric(horizontal: 16.0.s),
@@ -126,9 +127,11 @@ class _SwapDetailsSection extends StatelessWidget {
             horizontal: 12.0.s,
             vertical: 12.0.s,
           ),
-          decoration: BoxDecoration(
+          decoration: ShapeDecoration(
             color: colors.tertiaryBackground,
-            borderRadius: BorderRadius.circular(16.0.s),
+            shape: BottomNotchRectBorder(
+              notchPosition: isVisibleMoreButton ? NotchPosition.bottom : NotchPosition.none,
+            ),
           ),
           child: Column(
             children: [
@@ -142,24 +145,28 @@ class _SwapDetailsSection extends StatelessWidget {
                 value:
                     '1 $sellCoinAbbreviation = ${priceForSellTokenInBuyToken.formatMax6} $buyCoinAbbreviation',
               ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SizeTransition(
+                    sizeFactor: animation,
+                    axisAlignment: -1,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
                 child: showMoreDetails
                     ? Column(
                         children: [
                           if (priceImpact != null) ...[
                             _Divider(),
                             _DetailRow(
-                              isVisible: showMoreDetails,
                               label: context.i18n.wallet_swap_confirmation_price_impact,
-                              value: '$priceImpact%',
+                              value: '${priceImpact!.toStringAsFixed(2)}%',
                             ),
                           ],
                           if (slippage != null) ...[
                             _Divider(),
                             _DetailRow(
-                              isVisible: showMoreDetails,
                               label: context.i18n.wallet_swap_confirmation_slippage,
                               value: '${slippage!.toStringAsFixed(1)}%',
                             ),
@@ -167,7 +174,6 @@ class _SwapDetailsSection extends StatelessWidget {
                           if (networkFee != null) ...[
                             _Divider(),
                             _DetailRow(
-                              isVisible: showMoreDetails,
                               label: context.i18n.wallet_swap_confirmation_network_fee,
                               value: networkFee!,
                             ),
@@ -175,7 +181,6 @@ class _SwapDetailsSection extends StatelessWidget {
                           if (protocolFee != null) ...[
                             _Divider(),
                             _DetailRow(
-                              isVisible: showMoreDetails,
                               label: context.i18n.wallet_swap_confirmation_protocol_fee,
                               value: protocolFee!,
                             ),
@@ -188,47 +193,45 @@ class _SwapDetailsSection extends StatelessWidget {
           ),
         ),
         if (isVisibleMoreButton)
-          Positioned.fill(
-            bottom: -10.0.s,
-            child: Container(
-              width: double.infinity,
-              alignment: Alignment.bottomCenter,
-              height: 21.0.s,
-              child: GestureDetector(
-                onTap: onToggleDetails,
-                child: Container(
-                  width: 75.0.s,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.0.s,
-                    vertical: 4.0.s,
+          Transform.translate(
+            offset: Offset(0, -12.0.s),
+            child: GestureDetector(
+              onTap: onToggleDetails,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.0.s,
+                  vertical: 4.0.s,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.tertiaryBackground,
+                  borderRadius: BorderRadius.circular(9.0.s),
+                  border: Border.all(
+                    color: colors.secondaryBackground,
+                    width: 4.s,
                   ),
-                  decoration: BoxDecoration(
-                    color: colors.tertiaryBackground,
-                    borderRadius: BorderRadius.circular(9.0.s),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        showMoreDetails
-                            ? context.i18n.wallet_swap_confirmation_less
-                            : context.i18n.wallet_swap_confirmation_more,
-                        style: textStyles.caption2.copyWith(
-                          color: colors.primaryText,
-                        ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      showMoreDetails
+                          ? context.i18n.wallet_swap_confirmation_less
+                          : context.i18n.wallet_swap_confirmation_more,
+                      style: textStyles.caption2.copyWith(
+                        color: colors.primaryText,
                       ),
-                      SizedBox(width: 4.0.s),
-                      AnimatedRotation(
-                        turns: showMoreDetails ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: Assets.svg.iconArrowDown.icon(
-                          color: colors.primaryText,
-                          size: 16.0.s,
-                        ),
+                    ),
+                    SizedBox(width: 4.0.s),
+                    AnimatedRotation(
+                      turns: showMoreDetails ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: Assets.svg.iconArrowDown.icon(
+                        color: colors.primaryText,
+                        size: 16.0.s,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -242,46 +245,40 @@ class _DetailRow extends StatelessWidget {
   const _DetailRow({
     required this.label,
     required this.value,
-    this.isVisible = true,
   });
 
   final String label;
   final String value;
-  final bool isVisible;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.appColors;
     final textStyles = context.theme.appTextThemes;
 
-    return AnimatedOpacity(
-      opacity: isVisible ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 200),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 10.0.s),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: textStyles.body2.copyWith(
-                  color: colors.quaternaryText,
-                ),
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10.0.s),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: textStyles.body2.copyWith(
+                color: colors.quaternaryText,
               ),
             ),
-            SizedBox(width: 12.0.s),
-            Expanded(
-              flex: 3,
-              child: Text(
-                value,
-                style: textStyles.body2
-                    .copyWith(color: colors.primaryText, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.end,
-              ),
+          ),
+          SizedBox(width: 12.0.s),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              style:
+                  textStyles.body2.copyWith(color: colors.primaryText, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.end,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

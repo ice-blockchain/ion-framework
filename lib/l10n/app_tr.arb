@@ -1187,5 +1187,9 @@
   "who_can_reply_settings_title_video": "Bu videoya kim yanıtlayabilir",
   "who_can_reply_settings_verified_accounts": "Doğrulanmış hesaplar",
   "write_a_message": "Mesaj yazın...",
-  "your_position_card_title": "Pozisyonun"
+  "your_position_card_title": "Pozisyonun",
+  "wallet_swap_confirmation_high_price_impact_title": "Çok yüksek fiyat etkisi",
+  "wallet_swap_confirmation_high_price_impact_description": "Bu işlemin yüksek bir fiyat etkisi ({priceImpact}) vardır, bu nedenle alacağınız miktar mevcut piyasa fiyatından belirgin şekilde düşük olacaktır.",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "Bu işlemin yüksek bir fiyat etkisi (",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": ") vardır, bu nedenle alacağınız miktar mevcut piyasa fiyatından belirgin şekilde düşük olacaktır."
 }

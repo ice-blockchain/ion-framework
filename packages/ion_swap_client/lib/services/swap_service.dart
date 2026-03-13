@@ -146,6 +146,9 @@ class SwapService {
 
       if (swapCoinData.isBridge) {
         final quote = await _bridgeService.getQuote(swapCoinData);
+        final relaySwapImpactString = quote.details.swapImpact?.percent;
+        final relaySwapImpact =
+            relaySwapImpactString != null ? double.tryParse(relaySwapImpactString) : null;
 
         return SwapQuoteInfo(
           type: SwapQuoteInfoType.bridge,
@@ -153,6 +156,7 @@ class SwapService {
           source: SwapQuoteInfoSource.relay,
           relayQuote: quote,
           relayDepositAmount: swapCoinData.amount,
+          swapImpact: relaySwapImpact,
         );
       }
 
@@ -167,6 +171,9 @@ class SwapService {
         final sellUsdPrice =
             sellUsdPriceString != null ? double.tryParse(sellUsdPriceString) : null;
         final buyUsdPrice = buyUsdPriceString != null ? double.tryParse(buyUsdPriceString) : null;
+        final okxPriceImpact = quote.priceImpactPercentage != null
+            ? double.tryParse(quote.priceImpactPercentage!)
+            : null;
 
         return SwapQuoteInfo(
           type: SwapQuoteInfoType.cexOrDex,
@@ -175,6 +182,7 @@ class SwapService {
           okxQuote: quote,
           sellUsdPrice: sellUsdPrice,
           buyUsdPrice: buyUsdPrice,
+          swapImpact: okxPriceImpact,
         );
       }
 

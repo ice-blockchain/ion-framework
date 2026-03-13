@@ -21,6 +21,7 @@ import 'package:ion/app/features/wallets/utils/wallet_asset_utils.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/providers/wallet_address_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/exceptions/insufficient_balance_exception.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/calculate_price_impact.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_client_provider.r.dart';
 import 'package:ion/app/services/ion_swap_client/ion_swap_client_provider.r.dart';
@@ -276,8 +277,7 @@ class SwapCoinsController extends _$SwapCoinsController {
     );
     if (lastUsed != null) return lastUsed;
 
-    // Otherwise pick the internal coin with the highest balance
-    return maxBy<CoinsGroup, double>(internalCoinGroups, (g) => g.totalAmount);
+    return maxBy<CoinsGroup, double>(coinGroups, (g) => g.totalAmount);
   }
 
   /// Find network with the highest balance
@@ -540,12 +540,43 @@ class SwapCoinsController extends _$SwapCoinsController {
   }
 
   void _setQuoteSuccess(SwapQuoteInfo quoteInfo) {
+    final effectiveQuoteInfo = quoteInfo.swapImpact == null
+        ? quoteInfo.copyWith(swapImpact: _calculatePriceImpact(quoteInfo))
+        : quoteInfo;
+
     state = state.copyWith(
       isQuoteLoading: false,
-      swapQuoteInfo: quoteInfo,
+      swapQuoteInfo: effectiveQuoteInfo,
       quoteError: null,
-      sellUsdPrice: quoteInfo.sellUsdPrice,
-      buyUsdPrice: quoteInfo.buyUsdPrice,
+      sellUsdPrice: effectiveQuoteInfo.sellUsdPrice,
+      buyUsdPrice: effectiveQuoteInfo.buyUsdPrice,
+    );
+  }
+
+  double? _calculatePriceImpact(SwapQuoteInfo quoteInfo) {
+    final sellCoinGroup = state.sellCoin;
+    final buyCoinGroup = state.buyCoin;
+    final sellNetwork = state.sellNetwork;
+    final buyNetwork = state.buyNetwork;
+
+    if (sellCoinGroup == null ||
+        buyCoinGroup == null ||
+        sellNetwork == null ||
+        buyNetwork == null) {
+      return null;
+    }
+
+    final sellCoin =
+        sellCoinGroup.coins.where((c) => c.coin.network.id == sellNetwork.id).firstOrNull;
+    final buyCoin = buyCoinGroup.coins.where((c) => c.coin.network.id == buyNetwork.id).firstOrNull;
+
+    if (sellCoin == null || buyCoin == null) return null;
+
+    return calculatePriceImpact(
+      sellAmount: state.amount,
+      buyAmount: quoteInfo.priceForSellTokenInBuyToken * state.amount,
+      sellPriceUsd: sellCoin.coin.priceUSD,
+      buyPriceUsd: buyCoin.coin.priceUSD,
     );
   }
 

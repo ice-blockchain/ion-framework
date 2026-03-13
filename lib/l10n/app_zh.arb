@@ -1187,5 +1187,9 @@
   "who_can_reply_settings_title_video": "谁可以回复此视频",
   "who_can_reply_settings_verified_accounts": "经过验证的账户",
   "write_a_message": "写一条消息...",
-  "your_position_card_title": "持仓"
+  "your_position_card_title": "持仓",
+  "wallet_swap_confirmation_high_price_impact_title": "价格影响非常大",
+  "wallet_swap_confirmation_high_price_impact_description": "此交易的价格影响较大（{priceImpact}），因此您收到的金额将明显低于当前市场价格。",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "此交易的价格影响较大（",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": "），因此您收到的金额将明显低于当前市场价格。"
 }

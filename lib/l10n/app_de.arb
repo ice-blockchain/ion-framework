@@ -1187,5 +1187,9 @@
   "who_can_reply_settings_title_video": "Wer kann auf dieses Video antworten",
   "who_can_reply_settings_verified_accounts": "Verifizierte Konten",
   "write_a_message": "Nachricht schreiben …",
-  "your_position_card_title": "Deine Position"
+  "your_position_card_title": "Deine Position",
+  "wallet_swap_confirmation_high_price_impact_title": "Sehr hohe Preisauswirkung",
+  "wallet_swap_confirmation_high_price_impact_description": "Diese Transaktion hat eine hohe Preisauswirkung ({priceImpact}), sodass der Betrag, den du erhältst, deutlich unter dem aktuellen Marktpreis liegen wird.",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "Diese Transaktion hat eine hohe Preisauswirkung (",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": "), sodass der Betrag, den du erhältst, deutlich unter dem aktuellen Marktpreis liegen wird."
 }
