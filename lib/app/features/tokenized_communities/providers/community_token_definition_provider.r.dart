@@ -273,7 +273,6 @@ void _retryInBackground(
       retryWhen: (e) => e is TokenDefinitionNotFoundOnRelayException && !cancelled,
     ).then((_) {
       if (!cancelled) {
-        Logger.log('[TokenDefinition] Background retry succeeded for $externalAddress');
         link.close();
         ref.invalidateSelf();
       }
