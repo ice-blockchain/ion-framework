@@ -17,6 +17,7 @@ import 'package:ion/app/features/feed/providers/counters/helpers/counter_cache_h
 import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
 import 'package:ion/app/features/feed/providers/feed_trending_videos_provider.r.dart';
+import 'package:ion/app/features/feed/providers/feed_video_playback_enabled.r.dart';
 import 'package:ion/app/features/feed/stories/providers/current_user_feed_story_provider.r.dart';
 import 'package:ion/app/features/feed/stories/providers/feed_stories_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/article_categories_menu/article_categories_menu.dart';
@@ -27,6 +28,7 @@ import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_cont
 import 'package:ion/app/features/feed/views/pages/feed_page/components/feed_posts_list/feed_posts_list.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/stories/stories.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/trending_videos/trending_videos.dart';
+import 'package:ion/app/hooks/use_route_presence.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
 import 'package:ion/app/router/components/navigation_app_bar/collapsing_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -44,6 +46,10 @@ class FeedPage extends HookConsumerWidget {
     final scrollController = useScrollController();
 
     useScrollTopOnTabPress(context, scrollController: scrollController);
+    useRoutePresence(
+      onBecameActive: () =>
+          ref.read(feedVideoPlaybackEnabledNotifierProvider.notifier).enablePlayback(),
+    );
 
     final showStories = feedCategory != FeedCategory.articles;
     final showTrendingVideos = showTrendingVideosFeatureFlag.value &&
