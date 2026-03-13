@@ -37,10 +37,12 @@ class HighPriceImpactWarning extends StatelessWidget {
                 color: colors.attentionRed,
               ),
               SizedBox(width: 8.s),
-              Text(
-                context.i18n.wallet_swap_confirmation_high_price_impact_title,
-                style: textStyles.caption2.copyWith(
-                  color: colors.attentionRed,
+              Expanded(
+                child: Text(
+                  context.i18n.wallet_swap_confirmation_high_price_impact_title,
+                  style: textStyles.caption2.copyWith(
+                    color: colors.attentionRed,
+                  ),
                 ),
               ),
             ],
