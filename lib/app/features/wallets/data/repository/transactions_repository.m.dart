@@ -480,12 +480,8 @@ class TransactionsRepository {
     CoinData coin,
   ) {
     final rawAmount = transaction.value;
-<<<<<<< HEAD
-    final amount = fromBlockchainUnits(rawAmount.emptyOrValue, coin.decimals);
-=======
     final decimals = transaction.metadata.asset.decimals ?? coin.decimals;
-    final amount = fromBlockchainUnits(rawAmount.emptyOrValue, decimals: decimals);
->>>>>>> 7eae79f8d (fix(wallet): prefer transaction metadata decimals over coin db decimals (#3647))
+    final amount = fromBlockchainUnits(rawAmount.emptyOrValue, decimals);
     final amountUSD = amount * coin.priceUSD;
 
     return TransactionCryptoAsset.coin(
