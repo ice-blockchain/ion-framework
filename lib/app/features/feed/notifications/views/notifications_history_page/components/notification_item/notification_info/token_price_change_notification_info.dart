@@ -20,12 +20,15 @@ class TokenPriceChangeNotificationInfo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final value = _computePriceChangePercent();
-    final description = context.i18n.notifications_token_value_increased;
+    final descriptionTemplate = context.i18n.notifications_token_value_increased;
+
+    // Updating the [:value] separately to avoid conflicts with the wrapping [:green] tag.
+    final description = descriptionTemplate.replaceAll('[:value]', value.toString());
 
     final textSpan = replaceString(
       description,
       RegExp(
-        '${tagRegex('bold', isSingular: false).pattern}|${tagRegex('green', isSingular: false).pattern}|${tagRegex('value').pattern}',
+        '${tagRegex('bold', isSingular: false).pattern}|${tagRegex('green', isSingular: false).pattern}',
       ),
       (match, index) => switch (true) {
         _ when match.namedGroup('bold') != null => TextSpan(
@@ -36,11 +39,6 @@ class TokenPriceChangeNotificationInfo extends ConsumerWidget {
             text: match.namedGroup('green'),
             style:
                 context.theme.appTextThemes.body2.copyWith(color: context.theme.appColors.success),
-          ),
-        _ when match.namedGroup('value') != null => TextSpan(
-            text: value.toString(),
-            style: context.theme.appTextThemes.body2
-                .copyWith(color: context.theme.appColors.primaryText),
           ),
         _ => const TextSpan(text: ''),
       },
