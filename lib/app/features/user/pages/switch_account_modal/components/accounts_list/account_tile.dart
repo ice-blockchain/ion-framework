@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/avatar/default_avatar.dart';
@@ -18,20 +17,22 @@ class SwitchAccountModalTile extends HookConsumerWidget {
     required this.identityKeyName,
     required this.isCurrentUser,
     required this.onSelectUser,
+    this.currentPubkey,
     super.key,
   });
 
   final String identityKeyName;
   final bool isCurrentUser;
   final VoidCallback onSelectUser;
+  final String? currentPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final details = ref.watch(switchAccountModalUserDetailsProvider(identityKeyName)).valueOrNull;
-    final masterPubkey = useMemoized(
-      () => details?.masterPubKey,
-      [details],
-    );
+    final details = currentPubkey == null
+        ? ref.watch(switchAccountModalUserDetailsProvider(identityKeyName)).valueOrNull
+        : null;
+
+    final masterPubkey = currentPubkey ?? details?.masterPubKey;
 
     final userPreview =
         masterPubkey != null ? ref.watch(userPreviewDataProvider(masterPubkey)).valueOrNull : null;

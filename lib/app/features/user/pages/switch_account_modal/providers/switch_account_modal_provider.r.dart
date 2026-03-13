@@ -12,18 +12,22 @@ class SwitchAccountModalState {
   SwitchAccountModalState({
     required this.identityKeyNames,
     required this.currentIdentityKeyName,
+    required this.currentPubkey,
   });
 
   final List<String> identityKeyNames;
   final String? currentIdentityKeyName;
+  final String? currentPubkey;
 
   SwitchAccountModalState copyWith({
     List<String>? identityKeyNames,
     String? currentIdentityKeyName,
+    String? currentPubkey,
   }) {
     return SwitchAccountModalState(
       identityKeyNames: identityKeyNames ?? this.identityKeyNames,
       currentIdentityKeyName: currentIdentityKeyName ?? this.currentIdentityKeyName,
+      currentPubkey: currentPubkey ?? this.currentPubkey,
     );
   }
 }
@@ -35,10 +39,12 @@ class SwitchAccountModalNotifier extends _$SwitchAccountModalNotifier {
     final authState = await ref.watch(authProvider.future);
     final authenticatedIdentityKeyNames = authState.authenticatedIdentityKeyNames;
     final currentIdentityKeyName = ref.read(currentIdentityKeyNameSelectorProvider);
+    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
     return SwitchAccountModalState(
       identityKeyNames: authenticatedIdentityKeyNames,
       currentIdentityKeyName: currentIdentityKeyName,
+      currentPubkey: currentPubkey,
     );
   }
 
@@ -58,7 +64,7 @@ class SwitchAccountModalNotifier extends _$SwitchAccountModalNotifier {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 Future<UserDetails> switchAccountModalUserDetails(
   Ref ref,
   String identityKeyName,
