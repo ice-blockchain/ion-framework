@@ -20,10 +20,14 @@ class OutputTag with _$OutputTag {
       throw IncorrectEventTagException(tag: tag.toString());
     }
 
-    return OutputTag(value: MimeType.values.byName(tag[1]));
+    final mimeType = MimeType.values.firstWhere(
+      (m) => m.value == tag[1],
+      orElse: () => throw IncorrectEventTagException(tag: tag.toString()),
+    );
+    return OutputTag(value: mimeType);
   }
 
-  List<String> toTag() => [tagName, value.name];
+  List<String> toTag() => [tagName, value.value];
 
   static const String tagName = 'output';
 }
