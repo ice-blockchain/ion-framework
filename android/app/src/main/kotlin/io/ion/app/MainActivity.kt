@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.util.Size
 import android.view.KeyEvent
@@ -22,7 +24,6 @@ import com.banuba.sdk.ve.flow.VideoCreationActivity
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugins.GeneratedPluginRegistrant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,6 +80,27 @@ class MainActivity : FlutterFragmentActivity() {
     private var banubaSdkChannel: MethodChannel? = null
 
     private lateinit var volumeKeyChannel: MethodChannel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        // Detect MediaTek devices and force Skia if found to avoid EGL crashes
+        if (shouldForceSkia()) {
+            intent.putExtra("io.flutter.embedding.android.DefaultRenderEngine", "skia")
+            Log.i(TAG, "Low-end/MediaTek device detected. Forcing Skia renderer for stability.")
+        }
+        super.onCreate(savedInstanceState)
+    }
+
+    private fun shouldForceSkia(): Boolean {
+        val hardware = Build.HARDWARE.lowercase()
+        val board = Build.BOARD.lowercase()
+        val manufacturer = Build.MANUFACTURER.lowercase()
+
+        // MediaTek chipsets usually start with "mt" (e.g., mt6765, mt6768)
+        // These are frequently associated with libGLESv2_mtk.so crashes on budget devices
+        return hardware.contains("mt") ||
+                board.contains("mt") ||
+                manufacturer.contains("mediatek")
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
