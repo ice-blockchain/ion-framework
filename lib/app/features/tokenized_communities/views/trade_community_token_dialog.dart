@@ -81,8 +81,9 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         : ref.watch(externalAddressTypeProvider(externalAddress: externalAddress!));
 
     if (externalAddressTypeAsync.isLoading) {
-      return const SheetContent(
-        body: Center(
+      return SheetContent(
+        topPadding: MediaQuery.viewPaddingOf(context).top + 190.s,
+        body: const Center(
           child: CircularProgressIndicator.adaptive(),
         ),
       );
