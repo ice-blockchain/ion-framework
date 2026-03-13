@@ -27,6 +27,7 @@ import 'package:ion/app/features/nsfw/helpers/perform_nsfw_check_and_handle_resu
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/keyboard/keyboard.dart';
 import 'package:ion/app/services/media_service/media_service.m.dart';
+import 'package:ion/app/utils/image_path.dart';
 
 class PostSubmitButton extends HookConsumerWidget {
   const PostSubmitButton({
@@ -108,12 +109,14 @@ class PostSubmitButton extends HookConsumerWidget {
 
         loading.value = true;
         try {
-          final allPreResolved = mediaFiles.every((f) => f.mimeType != null);
-          final filesToUpload = createOption == CreatePostOption.video || allPreResolved
-              ? mediaFiles
-              : await ref
+          // Resolve asset IDs (iOS PHAsset, Android MediaStore) to file paths
+          // so NSFW check and upload can read files.
+          final needsResolution = mediaFiles.any((f) => mediaPathNeedsResolution(f.path));
+          final filesToUpload = needsResolution
+              ? await ref
                   .read(mediaServiceProvider)
-                  .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles);
+                  .convertAssetIdsToMediaFiles(ref, mediaFiles: mediaFiles)
+              : mediaFiles;
 
           if (!context.mounted) return;
 
