@@ -29,6 +29,7 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_community
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/market_data_unavailable_sheet.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/suggested_community_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
@@ -90,8 +91,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     final resolvedExternalAddressType = externalAddressTypeAsync.valueOrNull;
     if (externalAddressTypeAsync.hasError || resolvedExternalAddressType == null) {
       return SheetContent(
-        body: _TradeUnavailableBody(
-          onRetry: () {
+        body: MarketDataUnavailableSheet(
+          onPressed: () {
             if (eventReference != null) {
               ref.invalidate(ionConnectEntityProvider(eventReference: eventReference!));
             } else {
@@ -99,6 +100,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
                 externalAddressTypeProvider(externalAddress: resolvedExternalAddress),
               );
             }
+            Navigator.of(context).pop();
           },
         ),
       );
@@ -742,43 +744,6 @@ class _TokenCards extends HookConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _TradeUnavailableBody extends StatelessWidget {
-  const _TradeUnavailableBody({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 32.0.s),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Assets.svg.iconBlockKeywarning.icon(
-              color: context.theme.appColors.tertiaryText,
-              size: 48.0.s,
-            ),
-            SizedBox(height: 16.0.s),
-            Text(
-              context.i18n.token_info_temporarily_unavailable,
-              textAlign: TextAlign.center,
-              style: context.theme.appTextThemes.body2.copyWith(
-                color: context.theme.appColors.tertiaryText,
-              ),
-            ),
-            SizedBox(height: 24.0.s),
-            TextButton(
-              onPressed: onRetry,
-              child: Text(context.i18n.button_retry),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

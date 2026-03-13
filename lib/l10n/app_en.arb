@@ -1186,8 +1186,8 @@
   "who_can_reply_settings_title_post": "Who can reply to this post",
   "who_can_reply_settings_title_video": "Who can reply to this video",
   "who_can_reply_settings_verified_accounts": "Verified accounts",
-  "token_info_temporarily_unavailable": "Token information is temporarily unavailable. Please try again later.",
-  "token_share_temporarily_unavailable": "Share is temporarily unavailable. Please try again later.",
+  "token_unable_to_fetch_market_data_title": "Unable to fetch market data",
+  "token_unable_to_fetch_market_data_description": "We're fetching market info for this token, please try again later",
   "write_a_message": "Write a message...",
   "your_position_card_title": "Your position"
 }

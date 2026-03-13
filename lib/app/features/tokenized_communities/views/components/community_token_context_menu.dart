@@ -3,9 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
-import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
-import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item.dart';
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item_separator.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
@@ -13,8 +10,10 @@ import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/token_explorer_url_utils.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/market_data_unavailable_sheet.dart';
 import 'package:ion/app/features/user/pages/components/header_action/header_action.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/hooks/use_watch_when_visible.dart';
@@ -25,12 +24,14 @@ import 'package:ion/generated/assets.gen.dart';
 class CommunityTokenContextMenu extends HookConsumerWidget {
   const CommunityTokenContextMenu({
     required this.closeSignal,
+    required this.externalAddress,
     required this.tokenDefinitionEntity,
     this.isTokenDefinitionLoading = false,
     super.key,
   });
 
   final OverlayMenuCloseSignal closeSignal;
+  final String externalAddress;
   final CommunityTokenDefinitionEntity? tokenDefinitionEntity;
   final bool isTokenDefinitionLoading;
 
@@ -74,7 +75,14 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                 onPressed: () {
                   closeMenu();
                   if (tokenDefinitionEntity == null) {
-                    _showUnavailableNotification(context, ref);
+                    showMarketDataUnavailableSheet(
+                      context,
+                      onClose: () => ref.invalidate(
+                        tokenDefinitionForExternalAddressProvider(
+                          externalAddress: externalAddress,
+                        ),
+                      ),
+                    );
                     return;
                   }
                   final eventReference = tokenDefinitionEntity!.toEventReference();
@@ -107,7 +115,14 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                 onPressed: () {
                   if (tokenDefinitionEntity == null) {
                     closeMenu();
-                    _showUnavailableNotification(context, ref);
+                    showMarketDataUnavailableSheet(
+                      context,
+                      onClose: () => ref.invalidate(
+                        tokenDefinitionForExternalAddressProvider(
+                          externalAddress: externalAddress,
+                        ),
+                      ),
+                    );
                     return;
                   }
                   ref.read(reportNotifierProvider.notifier).report(
@@ -132,18 +147,5 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
         assetName: Assets.svg.iconMorePopup,
       ),
     );
-  }
-
-  void _showUnavailableNotification(BuildContext context, WidgetRef ref) {
-    ref.read(messageNotificationNotifierProvider.notifier).show(
-          MessageNotification(
-            message: context.i18n.token_share_temporarily_unavailable,
-            icon: Assets.svg.iconBlockKeywarning.icon(
-              color: context.theme.appColors.attentionRed,
-              size: 24.0.s,
-            ),
-            state: MessageNotificationState.error,
-          ),
-        );
   }
 }

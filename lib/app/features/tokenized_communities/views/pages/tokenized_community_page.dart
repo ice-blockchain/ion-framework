@@ -337,6 +337,7 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         ),
         CommunityTokenContextMenu(
           closeSignal: menuCloseSignal,
+          externalAddress: externalAddress,
           tokenDefinitionEntity: tokenDefinition,
           isTokenDefinitionLoading: tokenDefinitionAsync.isLoading,
         ),
