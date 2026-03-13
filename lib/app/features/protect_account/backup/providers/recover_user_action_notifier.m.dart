@@ -7,6 +7,7 @@ import 'package:ion/app/features/auth/data/models/twofa_type.dart';
 import 'package:ion/app/features/protect_account/authenticator/data/adapter/twofa_type_adapter.dart';
 import 'package:ion/app/features/protect_account/backup/providers/cloud_stored_recovery_keys_names_provider.r.dart';
 import 'package:ion/app/features/protect_account/backup/providers/recovery_key_cloud_backup_delete_notifier.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/post_recovery_backup_required_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/recovery_keys_completed_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
 import 'package:ion/app/services/sentry/api_error_sentry_logger.dart';
@@ -217,6 +218,7 @@ class CompleteUserRecoveryActionNotifier extends _$CompleteUserRecoveryActionNot
       await ref.read(recoveryKeysCompletedProvider.notifier).clearCompleted(
             identityKeyName: username,
           );
+      await ref.read(postRecoveryBackupRequiredProvider.notifier).markRequiredForIdentity(username);
 
       ref
         ..invalidate(cloudStoredRecoveryKeysNamesProvider)
