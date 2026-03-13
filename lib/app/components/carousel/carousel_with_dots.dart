@@ -19,6 +19,7 @@ class CarouselDotsConfig {
     this.activeShape,
     this.decorator,
     this.position,
+    this.renderInStack = false,
   });
 
   final int? count;
@@ -32,6 +33,7 @@ class CarouselDotsConfig {
   final ShapeBorder? activeShape;
   final DotsDecorator? decorator;
   final double? position;
+  final bool renderInStack;
 }
 
 class CarouselWithDots extends HookWidget {
@@ -55,6 +57,7 @@ class CarouselWithDots extends HookWidget {
     this.scrollDirection = Axis.horizontal,
     this.onPageChanged,
     this.dotsConfig,
+    this.renderInStack = true,
     super.key,
   });
 
@@ -74,8 +77,9 @@ class CarouselWithDots extends HookWidget {
   final bool pauseAutoPlayOnManualNavigate;
   final bool pauseAutoPlayInFiniteScroll;
   final Clip clipBehavior;
-  final Axis scrollDirection;
-  final void Function(int index, CarouselPageChangedReason reason)? onPageChanged;
+  final Axis scrollDirection;  final void Function(int index, CarouselPageChangedReason reason)?
+      onPageChanged;
+  final bool renderInStack;
 
   // Dots indicator configuration
   final CarouselDotsConfig? dotsConfig;
@@ -90,14 +94,13 @@ class CarouselWithDots extends HookWidget {
     final dotsActiveSize = dotsConfig?.activeSize ?? 18.0;
     final dotsActiveHeight = dotsConfig?.activeHeight ?? 9.0;
     final effectiveDotsCount = dotsConfig?.count ?? items.length;
-    final effectiveDotsColor = dotsConfig?.color ?? context.theme.appColors.onTertiaryFill;
+     final effectiveDotsColor = dotsConfig?.color ?? context.theme.appColors.onTertiaryFill;
     final effectiveDotsActiveColor =
         dotsConfig?.activeColor ?? context.theme.appColors.primaryAccent;
     final dotsShape = dotsConfig?.shape;
     final dotsActiveShape = dotsConfig?.activeShape;
     final dotsDecorator = dotsConfig?.decorator;
     final dotsPosition = dotsConfig?.position;
-
     final defaultDotsDecorator = DotsDecorator(
       size: Size.square(dotsSize.s),
       activeSize: Size(dotsActiveSize.s, dotsActiveHeight.s),
@@ -111,10 +114,25 @@ class CarouselWithDots extends HookWidget {
       spacing: EdgeInsets.all(dotsSpacing.s),
     );
 
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        CarouselSlider(
+    final dotsWidget = effectiveDotsCount > 1 ? renderInStack ?
+          PositionedDirectional(
+            bottom: dotsPosition ?? 8.0.s,
+            child: DotsIndicator(
+              dotsCount: effectiveDotsCount,
+              position: currentPage.value,
+              decorator: dotsDecorator ?? defaultDotsDecorator,
+            ),
+          ) 
+        : Padding(
+          padding: EdgeInsets.only(top: dotsPosition ?? 8.0.s),
+          child: DotsIndicator(
+            dotsCount: effectiveDotsCount,
+            position: currentPage.value,
+            decorator: dotsDecorator ?? defaultDotsDecorator,
+          ),
+        ) : const SizedBox.shrink();
+    
+    final carouselWidget = CarouselSlider(
           carouselController: carouselController,
           options: CarouselOptions(
             height: height,
@@ -139,16 +157,18 @@ class CarouselWithDots extends HookWidget {
             },
           ),
           items: items,
-        ),
-        if (effectiveDotsCount > 1)
-          PositionedDirectional(
-            bottom: dotsPosition ?? 8.0.s,
-            child: DotsIndicator(
-              dotsCount: effectiveDotsCount,
-              position: currentPage.value,
-              decorator: dotsDecorator ?? defaultDotsDecorator,
-            ),
-          ),
+        );
+
+    return renderInStack ? Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        carouselWidget,
+        dotsWidget,
+      ],
+    ) : Column(
+      children: [
+        carouselWidget,
+        dotsWidget,
       ],
     );
   }
