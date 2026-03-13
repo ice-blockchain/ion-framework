@@ -3,6 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/models/message_notification_state.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item.dart';
 import 'package:ion/app/components/overlay_menu/components/overlay_menu_item_separator.dart';
 import 'package:ion/app/components/overlay_menu/notifiers/overlay_menu_close_signal.dart';
@@ -23,11 +26,13 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
   const CommunityTokenContextMenu({
     required this.closeSignal,
     required this.tokenDefinitionEntity,
+    this.isTokenDefinitionLoading = false,
     super.key,
   });
 
   final OverlayMenuCloseSignal closeSignal;
   final CommunityTokenDefinitionEntity? tokenDefinitionEntity;
+  final bool isTokenDefinitionLoading;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,7 +73,10 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                     .icon(size: 20.s, color: context.theme.appColors.quaternaryText),
                 onPressed: () {
                   closeMenu();
-                  if (tokenDefinitionEntity == null) return;
+                  if (tokenDefinitionEntity == null) {
+                    _showUnavailableNotification(context, ref);
+                    return;
+                  }
                   final eventReference = tokenDefinitionEntity!.toEventReference();
                   ShareViaMessageModalRoute(eventReference: eventReference.encode())
                       .push<void>(context);
@@ -97,7 +105,11 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                 icon: Assets.svg.iconReport
                     .icon(size: 20.s, color: context.theme.appColors.quaternaryText),
                 onPressed: () {
-                  if (tokenDefinitionEntity == null) return;
+                  if (tokenDefinitionEntity == null) {
+                    closeMenu();
+                    _showUnavailableNotification(context, ref);
+                    return;
+                  }
                   ref.read(reportNotifierProvider.notifier).report(
                         ReportReason.ticker(
                           text: context.i18n.report_ticker_description,
@@ -120,5 +132,18 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
         assetName: Assets.svg.iconMorePopup,
       ),
     );
+  }
+
+  void _showUnavailableNotification(BuildContext context, WidgetRef ref) {
+    ref.read(messageNotificationNotifierProvider.notifier).show(
+          MessageNotification(
+            message: context.i18n.token_share_temporarily_unavailable,
+            icon: Assets.svg.iconBlockKeywarning.icon(
+              color: context.theme.appColors.attentionRed,
+              size: 24.0.s,
+            ),
+            state: MessageNotificationState.error,
+          ),
+        );
   }
 }

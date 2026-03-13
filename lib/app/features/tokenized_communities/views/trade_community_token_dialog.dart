@@ -79,7 +79,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             .whenData((entity) => entity?.externalAddressType)
         : ref.watch(externalAddressTypeProvider(externalAddress: externalAddress!));
 
-    if (externalAddressTypeAsync.isLoading || externalAddressTypeAsync.hasError) {
+    if (externalAddressTypeAsync.isLoading) {
       return const SheetContent(
         body: Center(
           child: CircularProgressIndicator.adaptive(),
@@ -88,8 +88,20 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     }
 
     final resolvedExternalAddressType = externalAddressTypeAsync.valueOrNull;
-    if (resolvedExternalAddressType == null) {
-      return const SheetContent(body: SizedBox.shrink());
+    if (externalAddressTypeAsync.hasError || resolvedExternalAddressType == null) {
+      return SheetContent(
+        body: _TradeUnavailableBody(
+          onRetry: () {
+            if (eventReference != null) {
+              ref.invalidate(ionConnectEntityProvider(eventReference: eventReference!));
+            } else {
+              ref.invalidate(
+                externalAddressTypeProvider(externalAddress: resolvedExternalAddress),
+              );
+            }
+          },
+        ),
+      );
     }
 
     final params = (
@@ -730,6 +742,43 @@ class _TokenCards extends HookConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TradeUnavailableBody extends StatelessWidget {
+  const _TradeUnavailableBody({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.0.s),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Assets.svg.iconBlockKeywarning.icon(
+              color: context.theme.appColors.tertiaryText,
+              size: 48.0.s,
+            ),
+            SizedBox(height: 16.0.s),
+            Text(
+              context.i18n.token_info_temporarily_unavailable,
+              textAlign: TextAlign.center,
+              style: context.theme.appTextThemes.body2.copyWith(
+                color: context.theme.appColors.tertiaryText,
+              ),
+            ),
+            SizedBox(height: 24.0.s),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(context.i18n.button_retry),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
