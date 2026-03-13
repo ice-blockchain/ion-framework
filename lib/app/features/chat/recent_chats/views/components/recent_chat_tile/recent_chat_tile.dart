@@ -2,6 +2,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/avatar/avatar.dart';
@@ -99,6 +100,7 @@ class RecentChatTile extends HookConsumerWidget {
 
     final showRecentChatOverlay = useCallback(
       () {
+        HapticFeedback.mediumImpact();
         showDialog<void>(
           context: context,
           barrierColor: Colors.transparent,
