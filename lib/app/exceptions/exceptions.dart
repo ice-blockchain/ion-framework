@@ -77,8 +77,8 @@ class IncorrectEventTagsException extends IONException {
 }
 
 class UnknownEventException extends IONException {
-  UnknownEventException({required String eventId, required int kind})
-      : super(10012, 'Unknown event $eventId with kind $kind');
+  UnknownEventException({required String eventId, int? kind})
+      : super(10012, 'Unknown event $eventId${kind != null ? ' with kind $kind' : ''}');
 }
 
 class IncorrectEventTagException extends IONException {

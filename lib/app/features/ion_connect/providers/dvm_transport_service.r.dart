@@ -12,6 +12,7 @@ import 'package:ion/app/features/ion_connect/model/event_serializable.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/ion_connect/providers/relays/relay_picker_provider.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'dvm_transport_service.r.g.dart';
@@ -34,15 +35,16 @@ class DvmTransportService {
   final IonConnectNotifier _ionConnectNotifier;
   final EventParser _eventParser;
 
-  Future<T?> fetchEntity<R extends EventSerializable, T extends DvmResponseEntity>({
-    required R requestData,
+  Future<DvmResponseEntity?> fetchEntity({
+    required EventSerializable requestData,
     required ActionSource actionSource,
     required List<int> successKinds,
-    R Function(R requestData, String relayUrl)? requestDataTransformer,
-    T Function(EventMessage eventMessage)? successParser,
+    EventSerializable Function(EventSerializable requestData, String relayUrl)?
+        requestDataTransformer,
+    DvmResponseEntity Function(EventMessage eventMessage)? successParser,
     Duration timeout = _defaultTimeout,
   }) async {
-    final responseEntity = await fetchEntities<R, T>(
+    final responseEntity = await fetchEntities(
       requestsData: [requestData],
       actionSource: actionSource,
       successKinds: successKinds,
@@ -54,12 +56,13 @@ class DvmTransportService {
     return responseEntity;
   }
 
-  Stream<T?> fetchEntities<R extends EventSerializable, T extends DvmResponseEntity>({
-    required List<R> requestsData,
+  Stream<DvmResponseEntity?> fetchEntities({
+    required List<EventSerializable> requestsData,
     required ActionSource actionSource,
     required List<int> successKinds,
-    R Function(R requestData, String relayUrl)? requestDataTransformer,
-    T Function(EventMessage eventMessage)? successParser,
+    EventSerializable Function(EventSerializable requestData, String relayUrl)?
+        requestDataTransformer,
+    DvmResponseEntity Function(EventMessage eventMessage)? successParser,
     Duration timeout = _defaultTimeout,
   }) async* {
     if (requestsData.isEmpty) {
@@ -113,7 +116,7 @@ class DvmTransportService {
             responseStream
                 .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id)
                 .timeout(timeout, onTimeout: () => null)
-                .then((responseEntity) => responseEntity as T?),
+                .then((responseEntity) => responseEntity),
         ],
       );
     } finally {
@@ -133,12 +136,9 @@ class DvmTransportService {
     T Function(EventMessage eventMessage)? successParser,
   }) {
     if (message.kind == DvmErrorEntity.kind) {
-      final responseEntity = DvmErrorEntity.fromEventMessage(message);
-      throw DvmException(
-        requestId: responseEntity.requestEventReference.eventId,
-        status: responseEntity.data.status,
-        details: responseEntity.data.content.toString(),
-      );
+      final errorEntity = DvmErrorEntity.fromEventMessage(message);
+      Logger.error(errorEntity.toException());
+      return errorEntity;
     }
 
     if (!successKinds.contains(message.kind)) {
