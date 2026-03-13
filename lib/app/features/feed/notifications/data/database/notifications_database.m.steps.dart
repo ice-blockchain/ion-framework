@@ -877,6 +877,161 @@ final class Schema9 extends i0.VersionedSchema {
       alias: null);
 }
 
+final class Schema10 extends i0.VersionedSchema {
+  Schema10({required super.database}) : super(version: 10);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    commentsTable,
+    subscribedUsersContentTable,
+    likesTable,
+    followersTable,
+    mentionsTable,
+    tokenLaunchTable,
+    tokenActionTable,
+    tokenUpdatesTable,
+  ];
+  late final Shape3 commentsTable = Shape3(
+      source: i0.VersionedTable(
+        entityName: 'comments_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_reference)',
+        ],
+        columns: [
+          _column_0,
+          _column_4,
+          _column_2,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape3 subscribedUsersContentTable = Shape3(
+      source: i0.VersionedTable(
+        entityName: 'subscribed_users_content_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_reference, type)',
+        ],
+        columns: [
+          _column_0,
+          _column_4,
+          _column_2,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape4 likesTable = Shape4(
+      source: i0.VersionedTable(
+        entityName: 'likes_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_reference, pubkey)',
+        ],
+        columns: [
+          _column_0,
+          _column_3,
+          _column_4,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape5 followersTable = Shape5(
+      source: i0.VersionedTable(
+        entityName: 'followers_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(pubkey)',
+        ],
+        columns: [
+          _column_3,
+          _column_4,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape7 mentionsTable = Shape7(
+      source: i0.VersionedTable(
+        entityName: 'mentions_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_reference)',
+        ],
+        columns: [
+          _column_0,
+          _column_4,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape7 tokenLaunchTable = Shape7(
+      source: i0.VersionedTable(
+        entityName: 'token_launch_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_reference)',
+        ],
+        columns: [
+          _column_0,
+          _column_4,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape7 tokenActionTable = Shape7(
+      source: i0.VersionedTable(
+        entityName: 'token_action_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(event_reference)',
+        ],
+        columns: [
+          _column_0,
+          _column_4,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape8 tokenUpdatesTable = Shape8(
+      source: i0.VersionedTable(
+        entityName: 'token_updates_table',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_8,
+          _column_4,
+          _column_9,
+          _column_10,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+}
+
+class Shape8 extends i0.VersionedTable {
+  Shape8({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id => columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get createdAt => columnsByName['created_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get kind => columnsByName['kind']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get eventMessage =>
+      columnsByName['event_message']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_8(String aliasedName) =>
+    i1.GeneratedColumn<String>('id', aliasedName, false, type: i1.DriftSqlType.string);
+i1.GeneratedColumn<int> _column_9(String aliasedName) =>
+    i1.GeneratedColumn<int>('kind', aliasedName, false, type: i1.DriftSqlType.int);
+i1.GeneratedColumn<String> _column_10(String aliasedName) =>
+    i1.GeneratedColumn<String>('event_message', aliasedName, false, type: i1.DriftSqlType.string);
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
@@ -886,6 +1041,7 @@ i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema7 schema) from6To7,
   required Future<void> Function(i1.Migrator m, Schema8 schema) from7To8,
   required Future<void> Function(i1.Migrator m, Schema9 schema) from8To9,
+  required Future<void> Function(i1.Migrator m, Schema10 schema) from9To10,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -929,6 +1085,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from8To9(migrator, schema);
         return 9;
+      case 9:
+        final schema = Schema10(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from9To10(migrator, schema);
+        return 10;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -944,6 +1105,7 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema7 schema) from6To7,
   required Future<void> Function(i1.Migrator m, Schema8 schema) from7To8,
   required Future<void> Function(i1.Migrator m, Schema9 schema) from8To9,
+  required Future<void> Function(i1.Migrator m, Schema10 schema) from9To10,
 }) =>
     i0.VersionedSchema.stepByStepHelper(
         step: migrationSteps(
@@ -955,4 +1117,5 @@ i1.OnUpgrade stepByStep({
       from6To7: from6To7,
       from7To8: from7To8,
       from8To9: from8To9,
+      from9To10: from9To10,
     ));

@@ -12,7 +12,6 @@ import 'package:ion/app/features/feed/data/models/entities/post_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/reaction_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/repost_data.f.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
-import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_relay.f.dart';
 import 'package:ion/app/features/ion_connect/model/related_token.f.dart';
@@ -29,8 +28,11 @@ import 'package:ion/app/features/tokenized_communities/models/entities/community
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_response.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_response.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_response.f.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -128,7 +130,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     final selectedPushCategories = ref.watch(selectedPushCategoriesProvider).enabledCategories;
 
     if (selectedPushCategories.contains(PushNotificationCategory.tokenUpdates)) {
-      return _buildFilterForTokenUpdates();
+      return _buildFilterEventsForTokenUpdates();
     }
     return [];
   }
@@ -139,6 +141,7 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       PushNotificationCategory.reposts => _buildFilterForReposts(),
       PushNotificationCategory.likes => _buildFilterForLikes(),
       PushNotificationCategory.newFollowers => _buildFilterForNewFollowers(),
+      PushNotificationCategory.tokenUpdates => _buildFilterForTokenUpdates(),
       _ => null,
     };
   }
@@ -237,7 +240,9 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     );
   }
 
-  Future<List<EventMessage>> _buildFilterForTokenUpdates() async {
+  /// Token updates category works through the DVM,
+  /// so including the corresponding DVM request events.
+  Future<List<EventMessage>> _buildFilterEventsForTokenUpdates() async {
     final ionNotifier = ref.watch(ionConnectNotifierProvider.notifier);
     final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
     if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
@@ -246,13 +251,9 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
       TokenBuyingActivityRequestData(
         params: TokenBuyingActivityRequestParams(authorMasterPubkey: currentUserPubkey),
       ),
-      TokenPriceChangeRequestData(
+      const TokenPriceChangeRequestData(
         params: TokenPriceChangeRequestParams(
-          token: ReplaceableEventReference(
-            masterPubkey: currentUserPubkey,
-            kind: CommunityTokenDefinitionEntity.kind,
-          ),
-          timeWindow: const Duration(minutes: 5),
+          timeWindow: Duration(minutes: 5),
           deltaPercentage: 10,
         ),
       ),
@@ -260,6 +261,26 @@ class SelectedPushCategoriesIonSubscription extends _$SelectedPushCategoriesIonS
     ];
 
     return Future.wait(requests.map(ionNotifier.sign));
+  }
+
+  /// Apart from token updates DVM request events,
+  /// we also need to specify the filter for the DVM responses.
+  List<RequestFilter> _buildFilterForTokenUpdates() {
+    final currentUserPubkey = ref.watch(currentPubkeySelectorProvider);
+    if (currentUserPubkey == null) throw UserMasterPubkeyNotFoundException();
+
+    return [
+      RequestFilter(
+        kinds: const [
+          TokenPriceChangeResponseEntity.kind,
+          TokenBuyingActivityResponseEntity.kind,
+          TokenGlobalStatResponseEntity.kind,
+        ],
+        tags: {
+          '#p': [currentUserPubkey],
+        },
+      ),
+    ];
   }
 
   RequestFilter? _buildFilterForMessages(List<PushNotificationCategory> categories) {

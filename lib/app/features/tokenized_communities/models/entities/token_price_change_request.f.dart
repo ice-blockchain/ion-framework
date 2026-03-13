@@ -94,9 +94,21 @@ class TokenPriceChangeRequestData with _$TokenPriceChangeRequestData implements 
 @freezed
 class TokenPriceChangeRequestParams with _$TokenPriceChangeRequestParams {
   const factory TokenPriceChangeRequestParams({
-    required ReplaceableEventReference token,
+    /// Specifies the desired time window the price change applies to.
+    ///
+    /// It is specified in seconds.
     required Duration timeWindow,
+
+    /// Specifies the desired percentage of change.
+    ///
+    /// It can be negative or positive
     required int deltaPercentage,
+
+    /// Reference of the 31175 event you want to get the price change for.
+    ///
+    /// If missing it will try to find the best fitting token
+    /// of the user sending the DVM request.
+    ReplaceableEventReference? token,
   }) = _TokenPriceChangeRequestParams;
 
   const TokenPriceChangeRequestParams._();
@@ -116,7 +128,7 @@ class TokenPriceChangeRequestParams with _$TokenPriceChangeRequestParams {
       }
     }
 
-    if (timeWindow == null || deltaPercentage == null || token == null) {
+    if (timeWindow == null || deltaPercentage == null) {
       throw IncorrectEventTagException(tag: tags.toString());
     }
 
@@ -129,9 +141,9 @@ class TokenPriceChangeRequestParams with _$TokenPriceChangeRequestParams {
 
   List<List<String>> toTags() {
     return [
-      [tagName, 'token', token.toString()],
       [tagName, 'timeWindow', timeWindow.inSeconds.toString()],
       [tagName, 'deltaPercentage', deltaPercentage.toString()],
+      if (token != null) [tagName, 'token', token.toString()],
     ];
   }
 
