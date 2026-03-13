@@ -19,6 +19,7 @@ class CarouselDotsConfig {
     this.activeShape,
     this.decorator,
     this.position,
+    this.renderInStack = false,
   });
 
   final int? count;
@@ -32,6 +33,7 @@ class CarouselDotsConfig {
   final ShapeBorder? activeShape;
   final DotsDecorator? decorator;
   final double? position;
+  final bool renderInStack;
 }
 
 class CarouselWithDots extends HookWidget {
@@ -55,6 +57,7 @@ class CarouselWithDots extends HookWidget {
     this.scrollDirection = Axis.horizontal,
     this.onPageChanged,
     this.dotsConfig,
+    this.renderInStack = true,
     super.key,
   });
 
@@ -76,6 +79,7 @@ class CarouselWithDots extends HookWidget {
   final Clip clipBehavior;
   final Axis scrollDirection;
   final void Function(int index, CarouselPageChangedReason reason)? onPageChanged;
+  final bool renderInStack;
 
   // Dots indicator configuration
   final CarouselDotsConfig? dotsConfig;
@@ -97,7 +101,6 @@ class CarouselWithDots extends HookWidget {
     final dotsActiveShape = dotsConfig?.activeShape;
     final dotsDecorator = dotsConfig?.decorator;
     final dotsPosition = dotsConfig?.position;
-
     final defaultDotsDecorator = DotsDecorator(
       size: Size.square(dotsSize.s),
       activeSize: Size(dotsActiveSize.s, dotsActiveHeight.s),
@@ -111,45 +114,66 @@ class CarouselWithDots extends HookWidget {
       spacing: EdgeInsets.all(dotsSpacing.s),
     );
 
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        CarouselSlider(
-          carouselController: carouselController,
-          options: CarouselOptions(
-            height: height,
-            aspectRatio: 343 / 120,
-            viewportFraction: viewportFraction,
-            initialPage: initialPage,
-            enableInfiniteScroll: enableInfiniteScroll,
-            reverse: reverse,
-            autoPlay: autoPlay,
-            autoPlayInterval: autoPlayInterval,
-            autoPlayAnimationDuration: autoPlayAnimationDuration,
-            autoPlayCurve: autoPlayCurve,
-            pauseAutoPlayOnTouch: pauseAutoPlayOnTouch,
-            pauseAutoPlayOnManualNavigate: pauseAutoPlayOnManualNavigate,
-            pauseAutoPlayInFiniteScroll: pauseAutoPlayInFiniteScroll,
-            enlargeCenterPage: enlargeCenterPage,
-            clipBehavior: clipBehavior,
-            scrollDirection: scrollDirection,
-            onPageChanged: (int index, CarouselPageChangedReason reason) {
-              currentPage.value = index;
-              onPageChanged?.call(index, reason);
-            },
-          ),
-          items: items,
-        ),
-        if (effectiveDotsCount > 1)
-          PositionedDirectional(
-            bottom: dotsPosition ?? 8.0.s,
-            child: DotsIndicator(
-              dotsCount: effectiveDotsCount,
-              position: currentPage.value,
-              decorator: dotsDecorator ?? defaultDotsDecorator,
-            ),
-          ),
-      ],
+    final dotsWidget = effectiveDotsCount > 1
+        ? renderInStack
+            ? PositionedDirectional(
+                bottom: dotsPosition ?? 8.0.s,
+                child: DotsIndicator(
+                  dotsCount: effectiveDotsCount,
+                  position: currentPage.value,
+                  decorator: dotsDecorator ?? defaultDotsDecorator,
+                ),
+              )
+            : Padding(
+                padding: EdgeInsetsDirectional.only(top: dotsPosition ?? 8.0.s),
+                child: DotsIndicator(
+                  dotsCount: effectiveDotsCount,
+                  position: currentPage.value,
+                  decorator: dotsDecorator ?? defaultDotsDecorator,
+                ),
+              )
+        : const SizedBox.shrink();
+
+    final carouselWidget = CarouselSlider(
+      carouselController: carouselController,
+      options: CarouselOptions(
+        height: height,
+        aspectRatio: 343 / 120,
+        viewportFraction: viewportFraction,
+        initialPage: initialPage,
+        enableInfiniteScroll: enableInfiniteScroll,
+        reverse: reverse,
+        autoPlay: autoPlay,
+        autoPlayInterval: autoPlayInterval,
+        autoPlayAnimationDuration: autoPlayAnimationDuration,
+        autoPlayCurve: autoPlayCurve,
+        pauseAutoPlayOnTouch: pauseAutoPlayOnTouch,
+        pauseAutoPlayOnManualNavigate: pauseAutoPlayOnManualNavigate,
+        pauseAutoPlayInFiniteScroll: pauseAutoPlayInFiniteScroll,
+        enlargeCenterPage: enlargeCenterPage,
+        clipBehavior: clipBehavior,
+        scrollDirection: scrollDirection,
+        onPageChanged: (int index, CarouselPageChangedReason reason) {
+          currentPage.value = index;
+          onPageChanged?.call(index, reason);
+        },
+      ),
+      items: items,
     );
+
+    return renderInStack
+        ? Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              carouselWidget,
+              dotsWidget,
+            ],
+          )
+        : Column(
+            children: [
+              carouselWidget,
+              dotsWidget,
+            ],
+          );
   }
 }
