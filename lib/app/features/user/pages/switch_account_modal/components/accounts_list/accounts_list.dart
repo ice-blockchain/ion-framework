@@ -37,6 +37,9 @@ class SwitchAccountModalList extends ConsumerWidget {
                   identityKeyName: identityKeyName,
                   isCurrentUser: enableAccountManagement &&
                       identityKeyName == modalState.currentIdentityKeyName,
+                  currentPubkey: identityKeyName == modalState.currentIdentityKeyName
+                      ? modalState.currentPubkey
+                      : null,
                   onSelectUser: onSelectUser,
                 ),
               )
