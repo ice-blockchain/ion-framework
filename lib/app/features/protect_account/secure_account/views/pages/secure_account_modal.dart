@@ -7,8 +7,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/card/info_card.dart';
+import 'package:ion/app/components/card/warning_card.dart';
 import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/post_recovery_backup_required_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
 import 'package:ion/app/hooks/use_on_init.dart';
 import 'package:ion/app/hooks/use_route_presence.dart';
@@ -51,6 +54,7 @@ class SecureAccountModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = context.i18n;
+    final showRecoveryBackupWarning = ref.watch(postRecoveryBackupRequiredProvider);
 
     final maybeCloseIfAlreadySecured = useCallback(
       () async {
@@ -99,16 +103,22 @@ class SecureAccountModal extends HookConsumerWidget {
                 ],
         ),
         SizedBox(height: 16.0.s),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.0.s),
+        ScreenSideOffset.small(
           child: Column(
             children: [
               InfoCard(
                 iconAsset: Assets.svg.actionWalletSecureaccount,
                 title: locale.protect_account_title_secure_account,
                 description: locale.protect_account_description_secure_account,
+                descriptionTextAlign: TextAlign.start,
               ),
-              SizedBox(height: 32.0.s),
+              if (showRecoveryBackupWarning) ...[
+                SizedBox(height: 10.0.s),
+                WarningCard(
+                  text: context.i18n.two_fa_success_warning_desc,
+                ),
+              ],
+              SizedBox(height: 16.0.s),
               Button(
                 mainAxisSize: MainAxisSize.max,
                 leadingIcon: Assets.svg.iconWalletProtectAccount.icon(
@@ -119,7 +129,7 @@ class SecureAccountModal extends HookConsumerWidget {
                   SecureAccountOptionsRoute(showCloseButton: false).push<void>(context);
                 },
               ),
-              ScreenBottomOffset(margin: 36.0.s),
+              ScreenBottomOffset(margin: 16.0.s),
             ],
           ),
         ),

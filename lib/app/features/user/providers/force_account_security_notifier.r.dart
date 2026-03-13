@@ -10,6 +10,7 @@ import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.d
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/core/providers/splash_provider.r.dart';
+import 'package:ion/app/features/protect_account/secure_account/providers/post_recovery_backup_required_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/security_account_provider.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/views/pages/secure_account_modal.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
@@ -25,16 +26,21 @@ class ForceAccountSecurityService {
   ForceAccountSecurityService({
     required Duration enforceDelay,
     required void Function() emitDialog,
+    bool Function()? hasNavigatorContext,
   })  : _enforceDelay = enforceDelay,
-        _emitDialog = emitDialog;
+        _emitDialog = emitDialog,
+        _hasNavigatorContext =
+            hasNavigatorContext ?? (() => rootNavigatorKey.currentContext != null);
 
   UserMetadataEntity? _metadata;
   bool _secured = true;
+  bool _postRecoveryBackupRequired = false;
   String _route = '';
   AppLifecycleState _lifecycle = AppLifecycleState.resumed;
 
   final Duration _enforceDelay;
   final void Function() _emitDialog;
+  final bool Function() _hasNavigatorContext;
 
   Timer? _timer;
 
@@ -46,6 +52,7 @@ class ForceAccountSecurityService {
   void reset() {
     _metadata = null;
     _secured = true;
+    _postRecoveryBackupRequired = false;
     _route = '';
     _lifecycle = AppLifecycleState.resumed;
     _timer?.cancel();
@@ -62,6 +69,11 @@ class ForceAccountSecurityService {
     _maybeTrigger();
   }
 
+  void onPostRecoveryBackupRequiredChanged({required bool required}) {
+    _postRecoveryBackupRequired = required;
+    _maybeTrigger();
+  }
+
   void onRouteChanged(String value) {
     _route = value;
     _maybeTrigger();
@@ -73,7 +85,7 @@ class ForceAccountSecurityService {
   }
 
   void _maybeTrigger() {
-    if (rootNavigatorKey.currentContext == null) return;
+    if (!_hasNavigatorContext()) return;
 
     if (_metadata == null) return;
     final metadata = _metadata!;
@@ -84,16 +96,18 @@ class ForceAccountSecurityService {
 
     if (_route != FeedRoute().location) return;
 
-    final now = DateTime.now();
-    final enforceTime = (metadata.data.registeredAt?.toDateTime ?? now).add(_enforceDelay);
-    final canShowPopUp = enforceTime.isBefore(now);
+    if (!_postRecoveryBackupRequired) {
+      final now = DateTime.now();
+      final enforceTime = (metadata.data.registeredAt?.toDateTime ?? now).add(_enforceDelay);
+      final canShowPopUp = !enforceTime.isAfter(now);
 
-    if (!canShowPopUp) {
-      final remaining = enforceTime.difference(now);
-      final duration = remaining.isNegative ? Duration.zero : remaining;
-      _timer?.cancel();
-      _timer = Timer(duration, _maybeTrigger);
-      return;
+      if (!canShowPopUp) {
+        final remaining = enforceTime.difference(now);
+        final duration = remaining.isNegative ? Duration.zero : remaining;
+        _timer?.cancel();
+        _timer = Timer(duration, _maybeTrigger);
+        return;
+      }
     }
 
     _timer?.cancel();
@@ -124,6 +138,7 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
   ProviderSubscription<AsyncValue<bool>>? isSecuredSub;
   ProviderSubscription<String>? routeSub;
   ProviderSubscription<AppLifecycleState>? lifecycleSub;
+  ProviderSubscription<bool>? postRecoveryBackupRequiredSub;
 
   var lastIsAuthenticated = false;
 
@@ -172,6 +187,14 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
         service.onLifecycleChanged(next);
       },
     );
+
+    postRecoveryBackupRequiredSub = ref.listen<bool>(
+      postRecoveryBackupRequiredProvider,
+      fireImmediately: true,
+      (_, bool next) {
+        service.onPostRecoveryBackupRequiredChanged(required: next);
+      },
+    );
   }
 
   ref
@@ -205,6 +228,9 @@ ForceAccountSecurityService forceAccountSecurityService(Ref ref) {
 
           lifecycleSub?.close();
           lifecycleSub = null;
+
+          postRecoveryBackupRequiredSub?.close();
+          postRecoveryBackupRequiredSub = null;
 
           service.reset();
 
