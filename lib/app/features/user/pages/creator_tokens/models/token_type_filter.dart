@@ -36,12 +36,17 @@ enum TokenTypeFilter {
     };
   }
 
+  /// Backend type filter for tokens (analytics API).
+  /// Single source of truth for the "type" query param used by:
+  /// - Trending & Top tabs (viewing-sessions),
+  /// - Latest tab (getLatestTokens / subscribeToLatestTokens).
+  /// Values: "onlineplus_creator", "onlineplus_content", "xcom" (from Swagger).
   String? get requestType {
     return switch (this) {
       TokenTypeFilter.all => null,
       TokenTypeFilter.general => null,
-      TokenTypeFilter.creator => 'profile',
-      TokenTypeFilter.content => 'anyPost',
+      TokenTypeFilter.creator => 'onlineplus_creator',
+      TokenTypeFilter.content => 'onlineplus_content',
       TokenTypeFilter.x => 'xcom',
     };
   }

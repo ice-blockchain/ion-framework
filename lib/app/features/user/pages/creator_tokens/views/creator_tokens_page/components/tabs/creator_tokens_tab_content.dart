@@ -15,6 +15,11 @@ import 'package:ion/app/features/user/pages/creator_tokens/providers/creator_tok
 import 'package:ion/app/features/user/pages/creator_tokens/views/creator_tokens_page/components/list/creator_tokens_list.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
+/// Content for Trending, Top, and Latest tabs.
+///
+/// Filtering by token type (Creator / Content / X) is done entirely on the backend:
+/// [requestType] is sent to the analytics API for category (Trending/Top) and
+/// latest endpoints; the UI shows [state.activeItems] with no client-side filtering.
 class CreatorTokensTabContent extends HookConsumerWidget {
   const CreatorTokensTabContent({
     required this.tabType,
