@@ -41,6 +41,21 @@ Future<void> guardPasskeyDialog(
   }
 }
 
+Future<T?> guardPasskeyDialogWithResult<T>(
+  BuildContext context,
+  Widget Function(Widget child) passkeyRequestBuilder, {
+  String? identityKeyName,
+}) async {
+  return showSimpleBottomSheet<T>(
+    context: context,
+    child: passkeyRequestBuilder(
+      VerifyIdentityPromptDialog(
+        identityKeyName: identityKeyName,
+      ),
+    ),
+  );
+}
+
 class RiverpodAuthConfigRequestBuilder<T> extends HookConsumerWidget {
   const RiverpodAuthConfigRequestBuilder({
     required this.child,
@@ -61,7 +76,14 @@ class RiverpodAuthConfigRequestBuilder<T> extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (provider != null) {
       ref.listen(provider!, (prev, next) {
-        if (!next.isLoading && context.mounted) {
+        if (prev?.isLoading != true || next.isLoading || !context.mounted) {
+          return;
+        }
+
+        final error = next.error;
+        if (error is PlatformException) {
+          Navigator.of(context).pop(false);
+        } else {
           Navigator.of(context).pop();
         }
       });

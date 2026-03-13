@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -35,9 +36,7 @@ class RecoverUserPage extends HookConsumerWidget {
 
     ref.displayErrors(
       completeUserRecoveryActionNotifierProvider,
-      excludedExceptions: {
-        NoPasskeyProviderFound,
-      },
+      excludedExceptions: excludedPasskeyExceptions,
     );
     _listenInitRecoverResult(
       ref: ref,
@@ -204,7 +203,8 @@ class RecoverUserPage extends HookConsumerWidget {
         if (!ref.context.mounted) return;
         final completeState = ref.read(completeUserRecoveryActionNotifierProvider);
         final isSuccess = completeState.valueOrNull?.whenOrNull(success: () => true) ?? false;
-        if (!isSuccess) {
+        final shouldFallbackToPassword = completeState.error is PlatformException;
+        if (!isSuccess && shouldFallbackToPassword) {
           step.value = RecoverUserStep.setNewPassword;
         }
       });

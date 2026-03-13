@@ -22,7 +22,7 @@ Future<void> runSignUpThenLogin({
 }) async {
   String? capturedPassword;
 
-  await guardPasskeyDialog(
+  final passkeyDialogResult = await guardPasskeyDialogWithResult<bool>(
     context,
     (child) => RiverpodAuthConfigRequestBuilder(
       provider: authFlowActionNotifierProvider,
@@ -40,6 +40,13 @@ Future<void> runSignUpThenLogin({
     ),
     identityKeyName: identityKeyName,
   );
+
+  if (kind == SignUpKind.passkey && passkeyDialogResult == false) {
+    if (context.mounted) {
+      Navigator.of(context).pop(false);
+    }
+    return;
+  }
 
   if (suggestBiometrics != null) {
     final flowState = ref.read(authFlowActionNotifierProvider);

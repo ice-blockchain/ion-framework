@@ -150,9 +150,6 @@ class PasskeysSigner {
       if (PasskeyCancelledException.isMatch(e)) {
         throw const PasskeyCancelledException();
       }
-      if (NoPasskeyProviderFound.isMatch(e)) {
-        throw const NoPasskeyProviderFound();
-      }
       rethrow;
     }
   }
