@@ -54,6 +54,7 @@ class Count extends _$Count {
             successKinds: const [EventCountResultEntity.kind],
             successParser: (eventMessage) =>
                 EventCountResultEntity.fromEventMessage(eventMessage, key: key),
+            timeout: const Duration(seconds: 30),
           );
 
       if (countEntity is! EventCountResultEntity?) {

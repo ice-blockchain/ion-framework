@@ -115,8 +115,7 @@ class DvmTransportService {
             // If the BE has no response, nothing is returned - we need a timeout for this case
             responseStream
                 .firstWhere((entity) => entity?.requestEventReference.eventId == requestEvent.id)
-                .timeout(timeout, onTimeout: () => null)
-                .then((responseEntity) => responseEntity),
+                .timeout(timeout, onTimeout: () => null),
         ],
       );
     } finally {
