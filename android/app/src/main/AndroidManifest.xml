@@ -80,6 +80,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="${appName}"
         android:usesCleartextTraffic="true"
+        android:largeHeap="true"
         tools:replace="android:allowBackup">
 
         <!-- Default fcm notification icon. This is used when no icon is set for incoming notification messages -->
