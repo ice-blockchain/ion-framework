@@ -23,7 +23,7 @@ class OutputTag with _$OutputTag {
     return OutputTag(value: MimeType.values.byName(tag[1]));
   }
 
-  List<String> toTag() => [tagName, value.name];
+  List<String> toTag() => [tagName, value.value];
 
   static const String tagName = 'output';
 }
