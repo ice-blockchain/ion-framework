@@ -78,8 +78,7 @@ class CarouselWithDots extends HookWidget {
   final bool pauseAutoPlayInFiniteScroll;
   final Clip clipBehavior;
   final Axis scrollDirection;
-  final void Function(int index, CarouselPageChangedReason reason)?
-      onPageChanged;
+  final void Function(int index, CarouselPageChangedReason reason)? onPageChanged;
   final bool renderInStack;
 
   // Dots indicator configuration
@@ -95,8 +94,7 @@ class CarouselWithDots extends HookWidget {
     final dotsActiveSize = dotsConfig?.activeSize ?? 18.0;
     final dotsActiveHeight = dotsConfig?.activeHeight ?? 9.0;
     final effectiveDotsCount = dotsConfig?.count ?? items.length;
-    final effectiveDotsColor =
-        dotsConfig?.color ?? context.theme.appColors.onTertiaryFill;
+    final effectiveDotsColor = dotsConfig?.color ?? context.theme.appColors.onTertiaryFill;
     final effectiveDotsActiveColor =
         dotsConfig?.activeColor ?? context.theme.appColors.primaryAccent;
     final dotsShape = dotsConfig?.shape;
