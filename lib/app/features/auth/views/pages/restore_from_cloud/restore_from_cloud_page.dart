@@ -34,7 +34,12 @@ class RestoreFromCloudPage extends HookConsumerWidget {
         recoveryKeyCloudBackupRestoreNotifierProvider,
         excludedExceptions: excludedPasskeyExceptions,
       )
-      ..displayErrors(completeUserRecoveryActionNotifierProvider);
+      ..displayErrors(
+        completeUserRecoveryActionNotifierProvider,
+        excludedExceptions: {
+          NoPasskeyProviderFound,
+        },
+      );
     _listenInitRecoverResult(
       ref: ref,
       twoFAOptions: twoFAOptions,

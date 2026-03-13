@@ -33,7 +33,12 @@ class RecoverUserPage extends HookConsumerWidget {
     final twoFAOptionsCount = useRef<int>(0);
     final recoveryChallengeRef = useRef<UserRegistrationChallenge?>(null);
 
-    ref.displayErrors(completeUserRecoveryActionNotifierProvider);
+    ref.displayErrors(
+      completeUserRecoveryActionNotifierProvider,
+      excludedExceptions: {
+        NoPasskeyProviderFound,
+      },
+    );
     _listenInitRecoverResult(
       ref: ref,
       recoveryCreds: recoveryCreds,

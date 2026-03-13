@@ -120,6 +120,26 @@ mixin SentryService {
     );
   }
 
+  /// Adds a breadcrumb to the current Sentry scope.
+  ///
+  /// Use for flow diagnostics that should enrich exception events
+  /// without creating standalone Sentry issues.
+  static Future<void> addBreadcrumb(
+    String message, {
+    String category = 'manual_log',
+    SentryLevel level = SentryLevel.info,
+    Map<String, dynamic>? data,
+  }) {
+    return Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: message,
+        category: category,
+        level: level,
+        data: data,
+      ),
+    );
+  }
+
   /// Sets the user scope with the masterkey for all Sentry events
   ///
   /// [masterkey] - The user's master public key (null to clear)

@@ -292,6 +292,24 @@ class PasskeyCancelledException extends IONIdentityException {
   }
 }
 
+class NoPasskeyProviderFound extends IONIdentityException {
+  const NoPasskeyProviderFound() : super('No passkey provider found on device');
+
+  static bool isMatch(Object exception) {
+    if (exception is! PlatformException) return false;
+
+    final code = exception.code.toLowerCase();
+    final message = (exception.message ?? '').toLowerCase();
+    final details = exception.details?.toString().toLowerCase() ?? '';
+    final combined = '$message $details';
+
+    return code == 'android-no-create-option' ||
+        code.contains('type_create_credential_provider_configuration_exception') ||
+        combined.contains('no provider dependencies found') ||
+        combined.contains('no create options available');
+  }
+}
+
 class SignInCancelException extends IONIdentityException {
   const SignInCancelException() : super('Sign in cancelled by client');
 }

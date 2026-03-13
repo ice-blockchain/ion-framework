@@ -108,8 +108,7 @@ class PasskeysSigner {
       authSelectionType: AuthenticatorSelectionType(
         authenticatorAttachment:
             challenge.authenticatorSelection?.authenticatorAttachment ?? 'platform',
-        requireResidentKey:
-            challenge.authenticatorSelection?.requireResidentKey ?? residentKey == 'required',
+        requireResidentKey: challenge.authenticatorSelection?.requireResidentKey ?? false,
         residentKey: residentKey,
         userVerification: challenge.authenticatorSelection?.userVerification ?? 'required',
       ),
@@ -150,6 +149,9 @@ class PasskeysSigner {
     } catch (e) {
       if (PasskeyCancelledException.isMatch(e)) {
         throw const PasskeyCancelledException();
+      }
+      if (NoPasskeyProviderFound.isMatch(e)) {
+        throw const NoPasskeyProviderFound();
       }
       rethrow;
     }

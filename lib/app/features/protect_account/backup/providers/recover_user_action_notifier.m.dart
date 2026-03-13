@@ -9,6 +9,7 @@ import 'package:ion/app/features/protect_account/backup/providers/cloud_stored_r
 import 'package:ion/app/features/protect_account/backup/providers/recovery_key_cloud_backup_delete_notifier.r.dart';
 import 'package:ion/app/features/protect_account/secure_account/providers/recovery_keys_completed_provider.r.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
+import 'package:ion/app/services/sentry/api_error_sentry_logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,10 +21,12 @@ const _recoveryFlowSentryTag = 'auth_recovery_flow';
 
 void _logRecoveryStep(String step, {required String username}) {
   unawaited(
-    SentryService.logMessage(
+    SentryService.addBreadcrumb(
       step,
-      tag: _recoveryFlowSentryTag,
-      tags: {
+      category: _recoveryFlowSentryTag,
+      data: {
+        'manual_log': _recoveryFlowSentryTag,
+        'step': step,
         'username': username,
       },
     ),
@@ -36,6 +39,7 @@ void _logRecoveryError(
   required String step,
   required String username,
 }) {
+  final networkContext = extractApiErrorNetworkContext(error);
   unawaited(
     SentryService.logException(
       error,
@@ -45,6 +49,7 @@ void _logRecoveryError(
         'step': step,
         'username': username,
       },
+      debugContext: networkContext.isEmpty ? null : networkContext,
     ),
   );
 }
