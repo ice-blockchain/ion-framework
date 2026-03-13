@@ -20,17 +20,8 @@ class OutputTag with _$OutputTag {
       throw IncorrectEventTagException(tag: tag.toString());
     }
 
-    final mimeString = tag[1];
-    // Try legacy enum-name format first for backward compatibility.
-    MimeType? mimeType;
-    try {
-      mimeType = MimeType.values.byName(mimeString);
-    } catch (error) {
-      mimeType = null;
-    }
-    // Fallback to matching by the MIME string value (e.g. "application/json").
-    mimeType ??= MimeType.values.firstWhere(
-      (m) => m.value == mimeString,
+    final mimeType = MimeType.values.firstWhere(
+      (m) => m.value == tag[1],
       orElse: () => throw IncorrectEventTagException(tag: tag.toString()),
     );
     return OutputTag(value: mimeType);
