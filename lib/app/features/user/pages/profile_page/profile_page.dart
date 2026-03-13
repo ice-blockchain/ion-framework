@@ -194,12 +194,16 @@ class ProfilePage extends HookConsumerWidget {
           ],
           if (isOwnUserProfile)
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => SwitchAccountRoute().push<void>(context),
-              child: Assets.svg.iconSwitchProfile.icon(
-                size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
-                color: profileMode == ProfileMode.dark
-                    ? context.theme.appColors.secondaryBackground
-                    : null,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 16.0.s),
+                child: Assets.svg.iconSwitchProfile.icon(
+                  size: profileMode == ProfileMode.dark ? 21.0.s : 24.0.s,
+                  color: profileMode == ProfileMode.dark
+                      ? context.theme.appColors.secondaryBackground
+                      : null,
+                ),
               ),
             ),
           ProfileContextMenu(

@@ -71,13 +71,17 @@ class ProfileContextMenu extends HookConsumerWidget {
           ),
         );
       },
-      child: HeaderAction(
-        onPressed: () {},
-        disabled: true,
-        opacity: 1,
-        backgroundColor: profileMode == ProfileMode.dark ? Colors.transparent : null,
-        iconColor: profileMode == ProfileMode.dark ? context.theme.appColors.onPrimaryAccent : null,
-        assetName: Assets.svg.iconMorePopup,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 16.0.s),
+        child: HeaderAction(
+          onPressed: () {},
+          disabled: true,
+          opacity: 1,
+          backgroundColor: profileMode == ProfileMode.dark ? Colors.transparent : null,
+          iconColor:
+              profileMode == ProfileMode.dark ? context.theme.appColors.onPrimaryAccent : null,
+          assetName: Assets.svg.iconMorePopup,
+        ),
       ),
     );
   }

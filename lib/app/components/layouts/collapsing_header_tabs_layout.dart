@@ -180,15 +180,10 @@ class CollapsingHeaderTabsLayout extends HookWidget {
                 child: collapsedHeaderBuilder(opacity),
               ),
             ),
-            actions: headerActionsBuilder(menuCloseSignal).asMap().entries.map((entry) {
-              final index = entry.key;
-              final action = entry.value;
-              if (index == 0) return action;
-              return Padding(
-                padding: EdgeInsetsDirectional.only(start: 8.0.s, end: 16.0.s),
-                child: action,
-              );
-            }).toList(),
+            actions: [
+              ...headerActionsBuilder(menuCloseSignal),
+              SizedBox(width: 8.0.s),
+            ],
             onBackPress: onBackButtonPressed,
           ),
         ],

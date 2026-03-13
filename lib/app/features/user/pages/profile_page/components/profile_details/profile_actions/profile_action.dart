@@ -24,16 +24,16 @@ class ProfileAction extends StatelessWidget {
     final colors = context.theme.appColors;
 
     if (profileMode == ProfileMode.dark) {
-      return Button.icon(
-        size: 21.0.s,
-        backgroundColor: Colors.transparent,
-        borderColor: Colors.transparent,
-        tintColor: colors.secondaryBackground,
-        icon: assetName.icon(
-          size: 21.0.s,
-          color: colors.secondaryBackground,
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 16.0.s),
+          child: assetName.icon(
+            size: 21.0.s,
+            color: colors.secondaryBackground,
+          ),
         ),
-        onPressed: onPressed,
       );
     }
 
