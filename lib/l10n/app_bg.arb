@@ -1188,5 +1188,7 @@
   "who_can_reply_settings_title_video": "Кой може да отговаря на това видео",
   "who_can_reply_settings_verified_accounts": "Верифицирани акаунти",
   "write_a_message": "Напишете съобщение...",
+  "token_unable_to_fetch_market_data_title": "Не могат да се извлекат пазарни данни",
+  "token_unable_to_fetch_market_data_description": "Извличаме пазарна информация за този токен, моля опитайте отново по-късно",
   "your_position_card_title": "Вашата позиция"
 }

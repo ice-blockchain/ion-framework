@@ -1188,5 +1188,7 @@
   "who_can_reply_settings_title_video": "Kto może odpowiadać na to wideo",
   "who_can_reply_settings_verified_accounts": "Zweryfikowane konta",
   "write_a_message": "Napisz wiadomość...",
+  "token_unable_to_fetch_market_data_title": "Nie udało się pobrać danych rynkowych",
+  "token_unable_to_fetch_market_data_description": "Pobieramy informacje rynkowe dla tego tokena, spróbuj ponownie później",
   "your_position_card_title": "Twoja pozycja"
 }
