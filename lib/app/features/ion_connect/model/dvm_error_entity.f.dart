@@ -47,6 +47,12 @@ class DvmErrorEntity
   @override
   ImmutableEventReference get requestEventReference => data.requestEventReference;
 
+  Exception toException() => DvmException(
+        requestId: data.requestEventReference.eventId,
+        status: data.status,
+        details: data.content.toString(),
+      );
+
   static const int kind = 7000;
 }
 

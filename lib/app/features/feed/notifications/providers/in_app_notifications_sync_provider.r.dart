@@ -13,6 +13,7 @@ import 'package:ion/app/features/feed/notifications/data/repository/token_update
 import 'package:ion/app/features/feed/notifications/providers/batched_sync_service_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
+import 'package:ion/app/features/ion_connect/model/dvm_error_entity.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/features/ion_connect/providers/dvm_transport_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
@@ -303,7 +304,7 @@ class InAppNotificationsSyncService {
         TokenBuyingActivityResponseEntity.kind,
       ],
     )) {
-      if (response != null) {
+      if (response != null && response is! DvmErrorEntity) {
         await _processNotificationEntity(response);
       }
     }
