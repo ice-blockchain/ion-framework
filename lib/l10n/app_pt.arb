@@ -1187,5 +1187,7 @@
   "who_can_reply_settings_title_video": "Quem pode responder a este vídeo",
   "who_can_reply_settings_verified_accounts": "Contas verificadas",
   "write_a_message": "Escreva uma mensagem...",
+  "token_unable_to_fetch_market_data_title": "Não foi possível obter dados de mercado",
+  "token_unable_to_fetch_market_data_description": "Estamos a obter informações de mercado para este token, tente novamente mais tarde",
   "your_position_card_title": "A sua posição"
 }
