@@ -11,12 +11,10 @@ import 'package:ion/app/features/user/pages/switch_account_modal/providers/switc
 
 class SwitchAccountModalList extends ConsumerWidget {
   const SwitchAccountModalList({
-    required this.onSelectUser,
     required this.enableAccountManagement,
     super.key,
   });
 
-  final VoidCallback onSelectUser;
   final bool enableAccountManagement;
 
   @override
@@ -40,7 +38,6 @@ class SwitchAccountModalList extends ConsumerWidget {
                   currentPubkey: identityKeyName == modalState.currentIdentityKeyName
                       ? modalState.currentPubkey
                       : null,
-                  onSelectUser: onSelectUser,
                 ),
               )
               .toList(),

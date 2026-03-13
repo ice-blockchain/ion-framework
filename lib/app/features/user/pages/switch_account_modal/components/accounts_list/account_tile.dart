@@ -10,6 +10,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/user/pages/switch_account_modal/providers/switch_account_modal_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
+import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/utils/username.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -17,14 +18,12 @@ class SwitchAccountModalTile extends HookConsumerWidget {
   const SwitchAccountModalTile({
     required this.identityKeyName,
     required this.isCurrentUser,
-    required this.onSelectUser,
     this.currentPubkey,
     super.key,
   });
 
   final String identityKeyName;
   final bool isCurrentUser;
-  final VoidCallback onSelectUser;
   final String? currentPubkey;
 
   @override
@@ -42,13 +41,13 @@ class SwitchAccountModalTile extends HookConsumerWidget {
       return _DefaultUserTile(
         username: identityKeyName,
         isCurrentUser: isCurrentUser,
-        onTap: () => _handleTap(ref),
+        onTap: () => _handleTap(context, ref),
       );
     }
 
     return BadgesUserListItem(
       isSelected: isCurrentUser,
-      onTap: () => _handleTap(ref),
+      onTap: () => _handleTap(context, ref),
       titleSpan: TextSpan(text: userPreview.data.trimmedDisplayName),
       subtitle: Text(
         withPrefix(
@@ -65,11 +64,21 @@ class SwitchAccountModalTile extends HookConsumerWidget {
     );
   }
 
-  Future<void> _handleTap(WidgetRef ref) async {
+  Future<void> _handleTap(BuildContext context, WidgetRef ref) async {
     if (!isCurrentUser) {
+      final rootNavigator = Navigator.of(context, rootNavigator: true);
+      final rootContext = rootNavigator.context;
+      if (rootNavigator.canPop()) {
+        rootNavigator.pop();
+        await Future<void>.delayed(kThemeAnimationDuration);
+      }
+
       await ref.read(switchAccountModalNotifierProvider.notifier).setCurrentUser(identityKeyName);
       await ref.read(authProvider.future);
-      onSelectUser();
+
+      if (rootContext.mounted) {
+        FeedRoute().go(rootContext);
+      }
     }
   }
 }

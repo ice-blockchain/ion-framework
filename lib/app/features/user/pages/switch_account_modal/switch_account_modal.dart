@@ -60,21 +60,6 @@ class SwitchAccountModal extends HookConsumerWidget {
                 ),
               SwitchAccountModalList(
                 enableAccountManagement: enableAccountManagement,
-                onSelectUser: () async {
-                  final rootContext = Navigator.of(context, rootNavigator: true).context;
-                  if (enableAccountManagement) {
-                    if (rootContext.mounted) {
-                      FeedRoute().go(rootContext);
-                    }
-                    return;
-                  } else {
-                    Navigator.of(context).pop();
-                    await Future<void>.delayed(const Duration(milliseconds: 500));
-                    if (rootContext.mounted) {
-                      FeedRoute().go(rootContext);
-                    }
-                  }
-                },
               ),
               if (enableAccountManagement && currentPubkey != null)
                 ModalActionButton(
