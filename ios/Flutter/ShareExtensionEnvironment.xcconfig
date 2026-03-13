@@ -1,3 +1,0 @@
-PRODUCT_BUNDLE_IDENTIFIER = io.ion.app.ShareExtension
-APP_GROUP = group.io.ion.app
-KEYCHAIN_GROUP = io.ion.app.keychain.group
