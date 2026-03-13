@@ -95,7 +95,7 @@ class IonConnectPushDataPayload {
   }
 
   IonConnectEntity get mainEntity {
-    return EventParser().parse(event);
+    return const EventParser().parse(event);
   }
 
   /// Check if this notification is about a self-interaction (user interacting with their own content)
@@ -644,7 +644,7 @@ class IonConnectPushDataPayload {
       if (delegationEvent == null) {
         return false;
       }
-      final delegationEntity = EventParser().parse(delegationEvent) as UserDelegationEntity;
+      final delegationEntity = const EventParser().parse(delegationEvent) as UserDelegationEntity;
       return delegationEntity.data.validate(event);
     }
   }
@@ -673,7 +673,7 @@ class IonConnectPushDataPayload {
     if (delegationEvent == null) {
       return null;
     }
-    final eventParser = EventParser();
+    const eventParser = EventParser();
     final delegationEntity = eventParser.parse(delegationEvent) as UserDelegationEntity;
 
     for (final event in relevantEvents) {
