@@ -131,6 +131,7 @@ class OverlayMenu extends HookWidget {
       },
       child: GestureDetector(
         onTap: showMenu,
+        behavior: HitTestBehavior.opaque,
         child: CompositedTransformTarget(
           link: followLink,
           child: child,
