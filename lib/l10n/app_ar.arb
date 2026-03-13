@@ -927,6 +927,7 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "يعرض هذا إجمالي كمية الرموز التي تم شراؤها وبيعها خلال فترة زمنية محددة. عادةً ما يعني النشاط الأعلى اهتمامًا أقوى وسيولة أفضل وتداولًا أسهل.",
   "token_stats_volume_title": "Volume",
+  "switched_to_username": "تم التبديل إلى {username}",
   "tokenized_communities_top_tokens": "أفضل التوكنات",
   "tokenized_communities_trending_tokens": "التوكنات الرائجة",
   "tokenized_community_bonding_curve": "منحنى الترابط",

@@ -81,9 +81,18 @@ class IonConnectPushDataPayload {
     UserMetadataEntity? userMetadata;
 
     if (parsedEvent.kind == IonConnectGiftWrapEntity.kind) {
-      final result = await unwrapGift(parsedEvent);
-      decryptedEvent = result.$1;
-      userMetadata = result.$2;
+      // Attempt to decrypt GiftWrap message.
+      // If decryption fails (e.g., message encrypted for another user),
+      // this is expected - we leave decryptedEvent = null.
+      // The notification will be shown, but user needs to switch accounts to view content.
+      try {
+        final result = await unwrapGift(parsedEvent);
+        decryptedEvent = result.$1;
+        userMetadata = result.$2;
+      } catch (_) {
+        decryptedEvent = null;
+        userMetadata = null;
+      }
     }
 
     return IonConnectPushDataPayload._(
@@ -116,6 +125,45 @@ class IonConnectPushDataPayload {
     }
 
     return false;
+  }
+
+  bool isRecipient(String pubkey) {
+    return _checkMainEventRelevant(currentPubkey: pubkey);
+  }
+
+  bool _checkMainEventRelevant({required String currentPubkey}) {
+    final entity = mainEntity;
+
+    return switch (entity) {
+      ReactionEntity() => entity.data.eventReference.masterPubkey == currentPubkey,
+      RepostEntity() => entity.data.eventReference.masterPubkey == currentPubkey,
+      GenericRepostEntity() => entity.data.eventReference.masterPubkey == currentPubkey,
+      ModifiablePostEntity() => () {
+          final relatedPubkeys = entity.data.relatedPubkeys;
+          if (relatedPubkeys != null && relatedPubkeys.isNotEmpty) {
+            return relatedPubkeys.first.value == currentPubkey;
+          }
+          final quotedEvent = entity.data.quotedEvent;
+          return quotedEvent?.eventReference.masterPubkey == currentPubkey;
+        }(),
+      PostEntity() => () {
+          final relatedPubkeys = entity.data.relatedPubkeys;
+          if (relatedPubkeys != null && relatedPubkeys.isNotEmpty) {
+            return relatedPubkeys.first.value == currentPubkey;
+          }
+          final quotedEvent = entity.data.quotedEvent;
+          return quotedEvent?.eventReference.masterPubkey == currentPubkey;
+        }(),
+      FollowListEntity() => entity.masterPubkeys.lastOrNull == currentPubkey,
+      IonConnectGiftWrapEntity() => () {
+          final relatedPubkeys = entity.data.relatedPubkeys;
+          if (relatedPubkeys.isNotEmpty) {
+            return relatedPubkeys.first.value == currentPubkey;
+          }
+          return false;
+        }(),
+      _ => entity.masterPubkey == currentPubkey,
+    };
   }
 
   Future<PushNotificationType?> getNotificationType({

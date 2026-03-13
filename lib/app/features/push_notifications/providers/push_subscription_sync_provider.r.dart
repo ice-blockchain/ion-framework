@@ -21,6 +21,7 @@ import 'package:ion/app/features/user/providers/relays/optimal_user_relays_provi
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/features/user/providers/user_events_metadata_provider.r.dart';
 import 'package:ion/app/services/device_id/device_id.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'push_subscription_sync_provider.r.g.dart';
@@ -36,6 +37,9 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
     if (!authState.isAuthenticated) {
       return;
     }
+
+    // React to user switch and sync push subscription
+    ref.watch(currentIdentityKeyNameSelectorProvider);
 
     final delegationComplete = await ref.watch(delegationCompleteProvider.future);
 
@@ -320,5 +324,45 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
         ),
       ],
     );
+  }
+
+  Future<void> deletePushSubscriptionForCurrentUser() async {
+    try {
+      // Use currentUserPushSubscriptionProvider since user is still active before logout
+      final subscription = await ref.read(currentUserPushSubscriptionProvider.future);
+
+      if (subscription == null) {
+        return;
+      }
+
+      final data = subscription.data;
+      if (data is! PushSubscriptionOwnData) {
+        return;
+      }
+
+      // First, update subscription with empty filters (same as when unsubscribing from all categories)
+      final relayUrl = data.relay.url;
+      final emptyFiltersSubscription = data.copyWith(
+        filters: <RequestFilter>[],
+        filterEvents: <EventMessage>[],
+      );
+
+      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
+            emptyFiltersSubscription,
+            actionSource: ActionSourceRelayUrl(relayUrl),
+          );
+
+      await ref.read(ionConnectNotifierProvider.notifier).sendEntityData(
+            _buildDeletePushSubscriptionOwnData(subscription),
+            cache: false,
+          );
+      ref.read(ionConnectCacheProvider.notifier).remove(subscription.cacheKey);
+    } catch (error, stackTrace) {
+      Logger.error(
+        error,
+        message: 'Failed to delete current user push subscription',
+        stackTrace: stackTrace,
+      );
+    }
   }
 }
