@@ -16,6 +16,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'dvm_transport_service.r.g.dart';
 
+/// A service responsible for dealing with DVM requests and responses.
+///
+/// https://github.com/nostr-protocol/nips/blob/master/90.md
 class DvmTransportService {
   DvmTransportService({
     required RelayPicker relayPicker,

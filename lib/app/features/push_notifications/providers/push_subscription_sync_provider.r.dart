@@ -339,7 +339,7 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       unmatchedPublished.removeAt(matchIndex);
     }
 
-    return true;
+    return unmatchedPublished.isEmpty;
   }
 
   bool _eventMessageDataEqual(EventMessage left, EventMessage right) {
