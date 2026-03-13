@@ -29,6 +29,7 @@ import 'package:ion/app/features/tokenized_communities/providers/trade_community
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
 import 'package:ion/app/features/tokenized_communities/utils/creator_token_utils.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/market_data_unavailable_sheet.dart';
 import 'package:ion/app/features/tokenized_communities/views/components/suggested_community_avatar.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
@@ -79,17 +80,31 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
             .whenData((entity) => entity?.externalAddressType)
         : ref.watch(externalAddressTypeProvider(externalAddress: externalAddress!));
 
-    if (externalAddressTypeAsync.isLoading || externalAddressTypeAsync.hasError) {
-      return const SheetContent(
-        body: Center(
+    if (externalAddressTypeAsync.isLoading) {
+      return SheetContent(
+        topPadding: MediaQuery.viewPaddingOf(context).top + 190.s,
+        body: const Center(
           child: CircularProgressIndicator.adaptive(),
         ),
       );
     }
 
     final resolvedExternalAddressType = externalAddressTypeAsync.valueOrNull;
-    if (resolvedExternalAddressType == null) {
-      return const SheetContent(body: SizedBox.shrink());
+    if (externalAddressTypeAsync.hasError || resolvedExternalAddressType == null) {
+      return SheetContent(
+        body: MarketDataUnavailableSheet(
+          onPressed: () {
+            if (eventReference != null) {
+              ref.invalidate(ionConnectEntityProvider(eventReference: eventReference!));
+            } else {
+              ref.invalidate(
+                externalAddressTypeProvider(externalAddress: resolvedExternalAddress),
+              );
+            }
+            Navigator.of(context).pop();
+          },
+        ),
+      );
     }
 
     final params = (
