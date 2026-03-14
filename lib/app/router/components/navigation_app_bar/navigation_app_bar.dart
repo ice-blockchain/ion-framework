@@ -146,6 +146,9 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
         ? Row(mainAxisSize: MainAxisSize.min, children: actions!)
         : null;
 
+    // Set back button color for modal (when useScreenTopOffset is false)
+    final backButtonColor = !useScreenTopOffset ? context.theme.appColors.tertiaryText : null;
+
     final Widget appBarContent = NavigationToolbar(
       middleSpacing: 0,
       leading: leading ??
@@ -153,6 +156,7 @@ class NavigationAppBar extends HookWidget implements PreferredSizeWidget {
               ? NavigationBackButton(
                   () => (onBackPress ?? context.maybePop)(),
                   hideKeyboardOnBack: hideKeyboardOnBack,
+                  color: backButtonColor,
                   icon: backButtonIcon,
                 )
               : null),
