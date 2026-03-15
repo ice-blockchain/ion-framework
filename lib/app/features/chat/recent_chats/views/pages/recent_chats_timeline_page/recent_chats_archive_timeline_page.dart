@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/search_input/search_input.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/pages/recent_chats_timeline_page/recent_chats_timeline_page.dart';
@@ -21,19 +22,22 @@ class RecentChatsArchiveTimelinePage extends ConsumerWidget {
 
     return CustomScrollView(
       slivers: [
-        SliverAppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.transparent,
-          flexibleSpace: FlexibleSpaceBar(
-            background: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => ChatQuickSearchRoute().push<void>(context),
-              child: const IgnorePointer(
-                child: SearchInput(),
+        SliverPadding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: ScreenSideOffset.defaultSmallMargin),
+          sliver: SliverAppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.transparent,
+            flexibleSpace: FlexibleSpaceBar(
+              background: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => ChatQuickSearchRoute().push<void>(context),
+                child: const IgnorePointer(
+                  child: SearchInput(),
+                ),
               ),
             ),
+            toolbarHeight: SearchInput.height,
           ),
-          toolbarHeight: SearchInput.height,
         ),
         const SliverToBoxAdapter(
           child: HorizontalSeparator(),

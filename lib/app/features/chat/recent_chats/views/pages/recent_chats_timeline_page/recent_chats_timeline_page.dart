@@ -10,6 +10,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/inputs/search_input/search_input.dart';
+import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/scroll_view/pull_to_refresh_builder.dart';
 import 'package:ion/app/components/separated/separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
@@ -115,8 +116,8 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
             background: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => ChatQuickSearchRoute().push<void>(context),
-              child: const IgnorePointer(
-                child: SearchInput(),
+              child: IgnorePointer(
+                child: ScreenSideOffset.small(child: const SearchInput()),
               ),
             ),
           ),
@@ -133,10 +134,12 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
               child: Consumer(
                 builder: (context, ref, child) {
                   final archiveVisible = ref.watch(archiveTileVisibilityProvider);
-                  return AnimatedOpacity(
-                    opacity: archiveVisible ? 1.0 : 0.0,
-                    duration: 500.milliseconds,
-                    child: archiveVisible ? const ArchiveChatTile() : const SizedBox.shrink(),
+                  return ScreenSideOffset.small(
+                    child: AnimatedOpacity(
+                      opacity: archiveVisible ? 1.0 : 0.0,
+                      duration: 500.milliseconds,
+                      child: archiveVisible ? const ArchiveChatTile() : const SizedBox.shrink(),
+                    ),
                   );
                 },
               ),
@@ -147,7 +150,9 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
             ),
           ConversationList(
             conversations: conversations
-                .where((conversation) => !archivedConversations.contains(conversation))
+                .where(
+                  (conversation) => !archivedConversations.contains(conversation),
+                )
                 .toList(),
           ),
           SliverToBoxAdapter(
@@ -182,7 +187,9 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     if (participantsMasterPubkeys.isEmpty) return;
 
     for (final masterPubkey in participantsMasterPubkeys) {
-      unawaited(ref.read(userMetadataProvider(masterPubkey, cache: false).future));
+      unawaited(
+        ref.read(userMetadataProvider(masterPubkey, cache: false).future),
+      );
     }
   }
 }
@@ -203,26 +210,32 @@ class ConversationList extends ConsumerWidget {
       delegate: SliverChildBuilderDelegate(
         (BuildContext context, int index) {
           final conversation = conversations[index];
-          return Column(
-            children: [
-              if (conversation.type == ConversationType.community)
-                CommunityRecentChatTile(
-                  conversation: conversation,
-                  key: ValueKey(conversation.conversationId),
-                )
-              else if (conversation.type == ConversationType.oneToOne)
-                E2eeRecentChatTile(
-                  conversation: conversation,
-                  key: ValueKey(conversation.conversationId),
-                )
-              else if (conversation.type == ConversationType.group)
-                EncryptedGroupRecentChatTile(
-                  conversation: conversation,
-                  key: ValueKey(conversation.conversationId),
-                ),
-              if (index < conversations.length - 1)
-                const HorizontalSeparator(), // Add separator after each item except the last one
-            ],
+          return OverflowBox(
+            minWidth: 0,
+            maxWidth: MediaQuery.sizeOf(context).width,
+            child: SizedBox(
+              width: MediaQuery.sizeOf(context).width,
+              child: Column(
+                children: [
+                  if (conversation.type == ConversationType.community)
+                    CommunityRecentChatTile(
+                      conversation: conversation,
+                      key: ValueKey(conversation.conversationId),
+                    )
+                  else if (conversation.type == ConversationType.oneToOne)
+                    E2eeRecentChatTile(
+                      conversation: conversation,
+                      key: ValueKey(conversation.conversationId),
+                    )
+                  else if (conversation.type == ConversationType.group)
+                    EncryptedGroupRecentChatTile(
+                      conversation: conversation,
+                      key: ValueKey(conversation.conversationId),
+                    ),
+                  if (index < conversations.length - 1) const HorizontalSeparator(),
+                ],
+              ),
+            ),
           );
         },
         childCount: conversations.length,
@@ -250,8 +263,9 @@ class CommunityRecentChatTile extends ConsumerWidget {
       conversation.latestMessage!,
     ).toEventReference();
 
-    final entity =
-        ReplaceablePrivateDirectMessageData.fromEventMessage(conversation.latestMessage!);
+    final entity = ReplaceablePrivateDirectMessageData.fromEventMessage(
+      conversation.latestMessage!,
+    );
 
     return RecentChatTile(
       name: community.data.name,
