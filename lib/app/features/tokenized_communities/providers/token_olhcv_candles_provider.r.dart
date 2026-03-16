@@ -11,7 +11,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'token_olhcv_candles_provider.r.g.dart';
 
-const _initialWaitPeriod = Duration(milliseconds: 600);
+const _initialWaitPeriod = Duration(milliseconds: 400);
 const _maxCandles = 50;
 
 @riverpod
