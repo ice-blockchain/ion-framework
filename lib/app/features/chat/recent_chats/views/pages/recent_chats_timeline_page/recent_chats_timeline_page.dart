@@ -150,9 +150,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
             ),
           ConversationList(
             conversations: conversations
-                .where(
-                  (conversation) => !archivedConversations.contains(conversation),
-                )
+                .where((conversation) => !archivedConversations.contains(conversation))
                 .toList(),
           ),
           SliverToBoxAdapter(
@@ -187,9 +185,7 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     if (participantsMasterPubkeys.isEmpty) return;
 
     for (final masterPubkey in participantsMasterPubkeys) {
-      unawaited(
-        ref.read(userMetadataProvider(masterPubkey, cache: false).future),
-      );
+      unawaited(ref.read(userMetadataProvider(masterPubkey, cache: false).future));
     }
   }
 }
@@ -263,9 +259,8 @@ class CommunityRecentChatTile extends ConsumerWidget {
       conversation.latestMessage!,
     ).toEventReference();
 
-    final entity = ReplaceablePrivateDirectMessageData.fromEventMessage(
-      conversation.latestMessage!,
-    );
+    final entity =
+        ReplaceablePrivateDirectMessageData.fromEventMessage(conversation.latestMessage!);
 
     return RecentChatTile(
       name: community.data.name,
