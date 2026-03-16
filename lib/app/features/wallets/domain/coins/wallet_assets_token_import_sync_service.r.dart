@@ -46,6 +46,8 @@ class WalletAssetsTokenImportSyncService {
   final List<ion.Wallet> _userWallets;
   final WalletViewsService _walletViewsService;
 
+  final _invalidTokenKeys = <String>{};
+
   Future<void>? _activeSync;
 
   Future<void> syncMissingTokens() {
@@ -129,6 +131,11 @@ class WalletAssetsTokenImportSyncService {
             'contract=$contract walletId=${wallet.id}',
           );
 
+          final tokenKey = _tokenKey(wallet.network, contract);
+          if (_invalidTokenKeys.contains(tokenKey)) {
+            continue;
+          }
+
           final existingCoin = await _findCoinByNetworkAndContract(
             networkId: wallet.network,
             contractAddress: contract,
@@ -209,6 +216,7 @@ class WalletAssetsTokenImportSyncService {
       final coin = CoinData.fromDTO(dto, network);
 
       if (!coin.isValid) {
+        _invalidTokenKeys.add(_tokenKey(network.id, contractAddress));
         Logger.warning(
           '[AutoImport] Invalid imported coin skipped '
           'network=${network.id} contract=$contractAddress coinId=${coin.id}',
@@ -225,6 +233,7 @@ class WalletAssetsTokenImportSyncService {
 
       return coin;
     } catch (error) {
+      _invalidTokenKeys.add(_tokenKey(network.id, contractAddress));
       Logger.error(
         error,
         message: '[AutoImport] Coin import failed network=${network.id} contract=$contractAddress',
@@ -232,6 +241,9 @@ class WalletAssetsTokenImportSyncService {
       return null;
     }
   }
+
+  String _tokenKey(String networkId, String contract) =>
+      '$networkId|${contract.toLowerCase()}';
 
   Future<List<WalletViewData>?> _attachCoinToWalletViews({
     required String walletId,
