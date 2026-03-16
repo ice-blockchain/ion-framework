@@ -202,6 +202,7 @@
   "chat_profile_share_modal_title": "Profili paylaş",
   "chat_profile_view_button": "Profili görüntüle",
   "chat_read": "Okundu",
+  "chat_unread": "Okunmadı olarak işaretle",
   "chat_read_all": "Tümünü oku",
   "chat_search_empty": "Kullanıcılar, sohbetler, gruplar ve kanallar için buraya arayın...",
   "chat_search_no_community_empty": "Kullanıcılar, sohbetler için buraya arayın...",

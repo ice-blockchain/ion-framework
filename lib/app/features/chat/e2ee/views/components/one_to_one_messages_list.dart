@@ -11,6 +11,7 @@ import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_pr
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
+import 'package:ion/app/features/chat/providers/manual_unread_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/document_message/document_message.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/post_message/post_message.dart';
@@ -281,6 +282,8 @@ class OneToOneMessageList extends HookConsumerWidget {
     WidgetRef ref,
     List<EventMessage> allMessages,
   ) async {
+    ref.read(manualUnreadConversationsProvider.notifier).clearUnread(conversationId);
+
     final currentUserMasterPubkey = ref.read(currentPubkeySelectorProvider);
 
     final latestMessageFromReceiver =
