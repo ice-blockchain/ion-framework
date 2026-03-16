@@ -6,6 +6,16 @@ import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/utils/url.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+// Returns true if path is not a resolved file system path and must be
+// converted (e.g. iOS PHAsset "UUID/L0/001", Android MediaStore numeric ID)
+// before reading. Absolute paths and file:// URIs are already resolved.
+bool mediaPathNeedsResolution(String path) {
+  if (path.isEmpty) return false;
+
+  final normalized = path.trim().toLowerCase();
+  return !normalized.startsWith('/') && !normalized.startsWith('file://');
+}
+
 extension ImagePathExtension on String {
   bool get isSvg =>
       toLowerCase().endsWith('.svg') ||
