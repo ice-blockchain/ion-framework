@@ -90,4 +90,17 @@ class TokenPriceChangeResponseData with _$TokenPriceChangeResponseData {
           .toList(),
     );
   }
+
+  int computePriceChangePercent() {
+    final fallback = request.data.params.deltaPercentage;
+
+    if (actions.length < 2) return fallback;
+
+    final firstPrice = actions.first.data.getTokenPrice();
+    final lastPrice = actions.last.data.getTokenPrice();
+
+    if (firstPrice == null || lastPrice == null || firstPrice == 0) return fallback;
+
+    return ((lastPrice - firstPrice) / firstPrice * 100).round();
+  }
 }

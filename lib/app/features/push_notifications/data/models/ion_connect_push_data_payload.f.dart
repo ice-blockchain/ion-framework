@@ -523,7 +523,7 @@ class IonConnectPushDataPayload {
     }
 
     if (entity is TokenPriceChangeResponseEntity) {
-      data['priceIncreasePercentage'] = entity.data.request.data.params.deltaPercentage.toString();
+      data['priceIncreasePercentage'] = entity.data.computePriceChangePercent().toString();
     }
 
     if (entity is TokenBuyingActivityResponseEntity) {
