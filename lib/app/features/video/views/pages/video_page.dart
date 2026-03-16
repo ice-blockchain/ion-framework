@@ -26,6 +26,7 @@ class VideoPage extends HookConsumerWidget {
     this.authorPubkey,
     this.looping = true,
     this.framedEventReference,
+    this.postEventReference,
     this.videoInfo,
     this.bottomOverlay,
     this.thumbnailUrl,
@@ -39,6 +40,7 @@ class VideoPage extends HookConsumerWidget {
   final String videoUrl;
   final String? authorPubkey;
   final EventReference? framedEventReference;
+  final EventReference? postEventReference;
   final bool looping;
   final Widget? videoInfo;
   final Widget? bottomOverlay;
@@ -54,6 +56,8 @@ class VideoPage extends HookConsumerWidget {
       return const VideoNotFound();
     }
 
+    final isSharedController = postEventReference != null;
+
     final playerController = this.playerController ??
         ref
             .watch(
@@ -62,19 +66,23 @@ class VideoPage extends HookConsumerWidget {
                   sourcePath: videoUrl,
                   authorPubkey: authorPubkey,
                   looping: looping,
-                  uniqueId: framedEventReference?.encode() ?? '',
+                  uniqueId: framedEventReference?.encode() ?? postEventReference?.encode() ?? '',
+                  onlyOneShouldPlay: true,
                 ),
               ),
             )
             .valueOrNull;
 
-    useAutoPlay(this.playerController == null ? playerController : null);
-    useToggleVideoOnRouteChange(playerController);
+    if (!isSharedController) {
+      useAutoPlay(this.playerController == null ? playerController : null);
+      useToggleVideoOnRouteChange(playerController);
+    }
     useToggleVideoOnLifecycleChange(ref, playerController);
 
     return _VisibilityPlayPause(
       playerController: playerController,
       visibilityKey: ValueKey(videoUrl),
+      pauseWhenInvisible: !isSharedController,
       child: Column(
         children: [
           Expanded(
@@ -224,11 +232,13 @@ class _VisibilityPlayPause extends StatelessWidget {
     required this.playerController,
     required this.child,
     required this.visibilityKey,
+    this.pauseWhenInvisible = true,
   });
 
   final Key visibilityKey;
   final VideoPlayerController? playerController;
   final Widget child;
+  final bool pauseWhenInvisible;
 
   @override
   Widget build(BuildContext context) {
@@ -243,10 +253,10 @@ class _VisibilityPlayPause extends StatelessWidget {
     final controller = playerController;
     if (controller != null) {
       if (info.visibleFraction <= 0.5) {
-        if (controller.value.isInitialized && controller.value.isPlaying) {
+        if (pauseWhenInvisible && controller.value.isInitialized && controller.value.isPlaying) {
           controller.pause();
         }
-      } else if (controller.value.isInitialized && controller.value.isPlaying == false) {
+      } else if (controller.value.isInitialized && !controller.value.isPlaying) {
         controller.play();
       }
     }

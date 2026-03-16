@@ -72,6 +72,7 @@ class VideoController extends _$VideoController {
   /// Tracks the currently playing controller to enforce one-at-a-time playback.
   static VideoPlayerController? _currentlyPlayingController;
   VideoPlayerController? _activeController;
+  Future<void> _controllerOperation = Future.value();
 
   @override
   Future<Raw<VideoPlayerController>> build(VideoControllerParams params) async {
@@ -95,32 +96,36 @@ class VideoController extends _$VideoController {
       var previousValue = controller.value;
       await _seekToSavedPosition(controller, sourcePath);
 
-      ref.onCancel(() async {
-        if (playbackListener != null) {
-          controller.removeListener(playbackListener);
-        }
-        await Future.wait([
+      ref.onCancel(() {
+        _runControllerOperation(
           () async {
-            try {
-              if (identical(VideoController._currentlyPlayingController, controller)) {
-                VideoController._currentlyPlayingController = null;
-              }
-              await controller.dispose();
-            } catch (_) {}
-          }(),
-          () async {
-            final prev = _activeController;
-            if (prev != null && prev != controller) {
-              try {
-                if (identical(VideoController._currentlyPlayingController, prev)) {
-                  VideoController._currentlyPlayingController = null;
-                }
-                await prev.dispose();
-              } catch (_) {}
-              _activeController = null;
+            if (playbackListener != null) {
+              controller.removeListener(playbackListener);
             }
-          }(),
-        ]);
+            await Future.wait([
+              () async {
+                try {
+                  if (identical(VideoController._currentlyPlayingController, controller)) {
+                    VideoController._currentlyPlayingController = null;
+                  }
+                  await controller.dispose();
+                } catch (_) {}
+              }(),
+              () async {
+                final prev = _activeController;
+                if (prev != null && prev != controller) {
+                  try {
+                    if (identical(VideoController._currentlyPlayingController, prev)) {
+                      VideoController._currentlyPlayingController = null;
+                    }
+                    await prev.dispose();
+                  } catch (_) {}
+                  _activeController = null;
+                }
+              }(),
+            ]);
+          },
+        );
       });
 
       if (!controller.value.hasError) {
@@ -232,6 +237,30 @@ class VideoController extends _$VideoController {
     if (savedPosition != null && savedPosition < videoDuration && controller.value.isLooping) {
       await controller.seekTo(Duration(milliseconds: savedPosition));
     }
+  }
+
+  Future<void> pauseAndSavePosition() {
+    return _runControllerOperation(() async {
+      final controller = _activeController;
+      if (controller == null) {
+        return;
+      }
+
+      final position = controller.value.position.inMilliseconds;
+      ref.read(videoPlayerPositionDataProvider.notifier).savePosition(params.sourcePath, position);
+
+      if (!identical(controller, _activeController)) {
+        return;
+      }
+
+      await controller.pause();
+    });
+  }
+
+  Future<void> _runControllerOperation(FutureOr<void> Function() operation) {
+    final nextOperation = _controllerOperation.then((_) => operation());
+    _controllerOperation = nextOperation.then<void>((_) {}, onError: (error, stackTrace) {});
+    return nextOperation;
   }
 }
 

@@ -91,6 +91,7 @@ class MediaCarousel extends HookConsumerWidget {
                 blurhash: mediaItem.blurhash,
                 aspectRatio: mediaItem.aspectRatio,
                 framedEventReference: frameReference,
+                postEventReference: eventReference,
               );
             }
 
