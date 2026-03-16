@@ -179,7 +179,7 @@ class _StoryShareButton extends HookConsumerWidget {
       ref: ref,
       mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
       skipMediaConversion: true,
-      skipValidation: isPostScreenshot,
+      enabled: !isPostScreenshot,
     );
     ref.watch(mediaNsfwCheckerProvider);
 
