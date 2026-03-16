@@ -567,6 +567,7 @@
   "holders": "Détenteurs",
   "hour": "{count, plural, =1{heure} other{heures}}",
   "identity_key_name_description": "Considérez votre nom de clé d'identité comme un identifiant unique de votre compte. Vous en aurez besoin pour vous connecter et récupérer votre compte, alors gardez-le en sécurité et ne l'oubliez pas",
+  "settings_identity_key_name_description": "Le nom de la clé d'identité identifie votre compte et est nécessaire pour la connexion et la récupération. Gardez-le en sécurité.",
   "identity_key_name_usage": "Utilisez-le pour vous connecter à toute application sécurisée par",
   "invite_friends_button": "Inviter un ami",
   "invite_friends_earnings_title": "Revenus",

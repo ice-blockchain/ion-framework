@@ -567,6 +567,7 @@
   "holders": "Posiadacze",
   "hour": "{count, plural, =1{godzina} other{godzin}}",
   "identity_key_name_description": "Myśl o nazwie klucza tożsamości jako o unikalnym identyfikatorze Twojego konta. Będziesz go potrzebować do logowania i odzyskiwania konta, więc przechowuj go bezpiecznie i nie zapomnij",
+  "settings_identity_key_name_description": "Nazwa klucza tożsamości identyfikuje Twoje konto i jest wymagana do logowania oraz odzyskiwania. Przechowuj ją bezpiecznie.",
   "identity_key_name_usage": "Użyj go do logowania się w dowolnej aplikacji zabezpieczonej przez",
   "invite_friends_button": "Zaproś przyjaciela",
   "invite_friends_earnings_title": "Zarobki",
