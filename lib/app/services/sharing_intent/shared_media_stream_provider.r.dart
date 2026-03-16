@@ -10,38 +10,40 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'shared_media_stream_provider.r.g.dart';
 
+/// Converts raw [SharedMediaFile] list into typed [SharedContent] objects.
+List<SharedContent> parseSharedMediaFiles(List<SharedMediaFile> files) {
+  final results = <SharedContent>[];
+
+  final textFiles = files.where(
+    (f) => (f.type == SharedMediaType.text || f.type == SharedMediaType.url) && f.path.isNotEmpty,
+  );
+  final imageFiles = files.where((f) => f.type == SharedMediaType.image && f.path.isNotEmpty);
+
+  for (final file in textFiles) {
+    results.add(SharedText(file.path));
+  }
+
+  if (imageFiles.isNotEmpty) {
+    results.add(SharedImage([imageFiles.first.path]));
+  }
+
+  return results;
+}
+
+/// Streams shared content arriving while the app is already running
+/// (warm start / app in background). For cold-start initial media,
+/// see [ReceiveSharingIntentListener] which calls getInitialMedia()
+/// once the app is ready.
 @Riverpod(keepAlive: true)
 Stream<SharedContent> sharedMediaStream(Ref ref) {
   final controller = StreamController<SharedContent>.broadcast();
 
-  void emitFromMedia(List<SharedMediaFile> files) {
-    final textFiles = files.where((f) => f.type == SharedMediaType.text && f.path.isNotEmpty);
-    final imageFiles = files.where((f) => f.type == SharedMediaType.image && f.path.isNotEmpty);
-
-    for (final file in textFiles) {
-      controller.add(SharedText(file.path));
-    }
-
-    if (imageFiles.isNotEmpty) {
-      controller.add(SharedImage([imageFiles.first.path]));
-    }
-  }
-
-  // Delay to allow the plugin's native side to fully attach to the activity
-  // and read the launch intent before we query it.
-  Future<void>.delayed(const Duration(seconds: 1)).then((_) {
-    return ReceiveSharingIntent.instance.getInitialMedia();
-  }).then((List<SharedMediaFile> value) {
-    if (value.isNotEmpty) {
-      emitFromMedia(value);
-      ReceiveSharingIntent.instance.reset();
-    }
-  }).catchError((Object error) {
-    Logger.error(error, message: 'sharedMediaStream getInitialMedia');
-  });
-
   final subscription = ReceiveSharingIntent.instance.getMediaStream().listen(
-    emitFromMedia,
+    (files) {
+      for (final content in parseSharedMediaFiles(files)) {
+        controller.add(content);
+      }
+    },
     onError: (Object error) {
       Logger.error(error, message: 'sharedMediaStream getMediaStream');
     },
