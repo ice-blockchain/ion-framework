@@ -242,8 +242,7 @@ class WalletAssetsTokenImportSyncService {
     }
   }
 
-  String _tokenKey(String networkId, String contract) =>
-      '$networkId|${contract.toLowerCase()}';
+  String _tokenKey(String networkId, String contract) => '$networkId|${contract.toLowerCase()}';
 
   Future<List<WalletViewData>?> _attachCoinToWalletViews({
     required String walletId,
