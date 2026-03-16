@@ -122,7 +122,7 @@ class _AddAccountOptionsModal extends ConsumerWidget {
                 ],
               ),
             ),
-            const ScreenBottomOffset(),
+            ScreenBottomOffset(margin: 48.0.s),
           ],
         ),
       ),
