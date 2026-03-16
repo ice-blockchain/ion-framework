@@ -9,12 +9,23 @@ import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/account_notification_sync_time_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/content_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/data/repository/token_launch_repository.r.dart';
+import 'package:ion/app/features/feed/notifications/data/repository/token_updates_repository.r.dart';
 import 'package:ion/app/features/feed/notifications/providers/batched_sync_service_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/action_source.f.dart';
+import 'package:ion/app/features/ion_connect/model/dvm_error_entity.f.dart';
+import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
+import 'package:ion/app/features/ion_connect/providers/dvm_transport_service.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_parser.r.dart';
 import 'package:ion/app/features/push_notifications/providers/account_notification_set_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/constants.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_request.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_response.f.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/follow_list.f.dart';
 import 'package:ion/app/features/user/model/user_notifications_type.dart';
@@ -22,14 +33,17 @@ import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
 import 'package:ion/app/features/user_block/providers/block_list_notifier.r.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'account_notifications_sync_provider.r.g.dart';
+part 'in_app_notifications_sync_provider.r.g.dart';
 
-class AccountNotificationsSyncService {
-  AccountNotificationsSyncService({
+class InAppNotificationsSyncService {
+  InAppNotificationsSyncService({
     required Duration syncInterval,
     required AccountNotificationSyncTimeRepository syncTimeRepository,
     required BatchedSyncService batchedSyncService,
-    required AccountNotificationsEventsHandler? notificationsEventsHandler,
+    required DvmTransportService dvmTransportService,
+    required EventParser eventParser,
+    required String currentPubkey,
+    required InAppNotificationsEventsHandler? notificationsEventsHandler,
     required Future<List<AccountNotificationSetEntity>> Function()
         getCurrentUserAccountNotificationSets,
     required Future<FollowListEntity?> Function() getCurrentUserFollowList,
@@ -37,6 +51,9 @@ class AccountNotificationsSyncService {
   })  : _syncInterval = syncInterval,
         _syncTimeRepository = syncTimeRepository,
         _batchedSyncService = batchedSyncService,
+        _dvmTransportService = dvmTransportService,
+        _eventParser = eventParser,
+        _currentPubkey = currentPubkey,
         _notificationsEventsHandler = notificationsEventsHandler,
         _getCurrentUserAccountNotificationSets = getCurrentUserAccountNotificationSets,
         _getCurrentUserFollowList = getCurrentUserFollowList,
@@ -45,7 +62,10 @@ class AccountNotificationsSyncService {
   final Duration _syncInterval;
   final AccountNotificationSyncTimeRepository _syncTimeRepository;
   final BatchedSyncService _batchedSyncService;
-  final AccountNotificationsEventsHandler? _notificationsEventsHandler;
+  final DvmTransportService _dvmTransportService;
+  final EventParser _eventParser;
+  final String _currentPubkey;
+  final InAppNotificationsEventsHandler? _notificationsEventsHandler;
   final Future<List<AccountNotificationSetEntity>> Function()
       _getCurrentUserAccountNotificationSets;
   final Future<FollowListEntity?> Function() _getCurrentUserFollowList;
@@ -138,6 +158,7 @@ class AccountNotificationsSyncService {
       await Future.wait([
         _syncFollowedUsersNotifications(lastSyncTime: lastSyncTime),
         _syncAccountsNotifications(lastSyncTime: lastSyncTime),
+        _syncTokenUpdatesNotifications(),
       ]);
 
       if (!_isCancelled) {
@@ -165,7 +186,7 @@ class AccountNotificationsSyncService {
       syncInterval: _syncInterval,
       onEvent: (event) async {
         if (!_isCancelled) {
-          eventFutures.add(_processNotificationEvent(event));
+          eventFutures.add(_processNotificationEntity(_eventParser.parse(event)));
         }
       },
     );
@@ -231,7 +252,7 @@ class AccountNotificationsSyncService {
       syncInterval: _syncInterval,
       onEvent: (event) {
         if (!_isCancelled) {
-          eventFutures.add(_processNotificationEvent(event));
+          eventFutures.add(_processNotificationEntity(_eventParser.parse(event)));
         }
       },
     );
@@ -260,73 +281,105 @@ class AccountNotificationsSyncService {
     );
   }
 
-  Future<void> _processNotificationEvent(EventMessage event) async {
-    await _notificationsEventsHandler?.handle(event);
+  Future<void> _syncTokenUpdatesNotifications() async {
+    final requestsData = [
+      TokenBuyingActivityRequestData(
+        params: TokenBuyingActivityRequestParams(authorMasterPubkey: _currentPubkey),
+      ),
+      const TokenPriceChangeRequestData(
+        params: TokenPriceChangeRequestParams(
+          timeWindow: Duration(minutes: 5),
+          deltaPercentage: 10,
+        ),
+      ),
+      const TokensGlobalStatRequestData(),
+    ];
+
+    await for (final response in _dvmTransportService.fetchEntities(
+      requestsData: requestsData,
+      actionSource: const ActionSource.currentUser(),
+      successKinds: [
+        TokenGlobalStatResponseEntity.kind,
+        TokenPriceChangeResponseEntity.kind,
+        TokenBuyingActivityResponseEntity.kind,
+      ],
+    )) {
+      if (response != null && response is! DvmErrorEntity) {
+        await _processNotificationEntity(response);
+      }
+    }
+  }
+
+  Future<void> _processNotificationEntity(IonConnectEntity entity) async {
+    await _notificationsEventsHandler?.handle(entity);
   }
 }
 
 @riverpod
-class AccountNotificationsSync extends _$AccountNotificationsSync {
-  @override
-  FutureOr<void> build() async {
-    keepAliveWhenAuthenticated(ref);
+FutureOr<void> inAppNotificationsSync(Ref ref) async {
+  keepAliveWhenAuthenticated(ref);
 
-    final authState = await ref.watch(authProvider.future);
-    if (!authState.isAuthenticated) {
-      return;
-    }
-
-    final currentPubkey = ref.watch(currentPubkeySelectorProvider);
-    if (currentPubkey == null) {
-      return;
-    }
-
-    final syncTimeRepository = ref.watch(accountNotificationSyncTimeRepositoryProvider);
-    if (syncTimeRepository == null) {
-      return;
-    }
-
-    final service = AccountNotificationsSyncService(
-      syncInterval: ref.watch(envProvider.notifier).get<Duration>(
-            EnvVariable.ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES,
-          ),
-      syncTimeRepository: syncTimeRepository,
-      notificationsEventsHandler: ref.watch(accountNotificationsEventsHandlerProvider),
-      batchedSyncService: ref.watch(batchedSyncServiceProvider),
-      getCurrentUserAccountNotificationSets: () =>
-          ref.read(currentUserAccountNotificationSetsProvider.future),
-      getCurrentUserFollowList: () => ref.read(currentUserFollowListProvider.future),
-      getBlockedUsersPubkeys: () => ref.read(blockedUsersPubkeysSelectorProvider).toList(),
-    );
-
-    unawaited(service.initializeSync());
-    ref.onDispose(service.cancelAllSync);
+  final authState = await ref.watch(authProvider.future);
+  if (!authState.isAuthenticated) {
+    return;
   }
+
+  final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+  if (currentPubkey == null) {
+    return;
+  }
+
+  final syncTimeRepository = ref.watch(accountNotificationSyncTimeRepositoryProvider);
+  if (syncTimeRepository == null) {
+    return;
+  }
+
+  final service = InAppNotificationsSyncService(
+    syncInterval: ref.watch(envProvider.notifier).get<Duration>(
+          EnvVariable.ACCOUNT_NOTIFICATION_SETTINGS_SYNC_INTERVAL_MINUTES,
+        ),
+    syncTimeRepository: syncTimeRepository,
+    notificationsEventsHandler: ref.watch(inAppNotificationsEventsHandlerProvider),
+    batchedSyncService: ref.watch(batchedSyncServiceProvider),
+    dvmTransportService: ref.watch(dvmTransportServiceProvider),
+    eventParser: ref.watch(eventParserProvider),
+    currentPubkey: currentPubkey,
+    getCurrentUserAccountNotificationSets: () =>
+        ref.read(currentUserAccountNotificationSetsProvider.future),
+    getCurrentUserFollowList: () => ref.read(currentUserFollowListProvider.future),
+    getBlockedUsersPubkeys: () => ref.read(blockedUsersPubkeysSelectorProvider).toList(),
+  );
+
+  unawaited(service.initializeSync());
+  ref.onDispose(service.cancelAllSync);
 }
 
-class AccountNotificationsEventsHandler {
-  AccountNotificationsEventsHandler({
+class InAppNotificationsEventsHandler {
+  InAppNotificationsEventsHandler({
     required TokenLaunchRepository tokenLaunchRepository,
     required ContentRepository contentRepository,
-    required EventParser eventParser,
+    required TokenUpdatesRepository tokenUpdatesRepository,
     required String currentMasterPubkey,
   })  : _tokenLaunchRepository = tokenLaunchRepository,
         _contentRepository = contentRepository,
-        _eventParser = eventParser,
+        _tokenUpdatesRepository = tokenUpdatesRepository,
         _currentMasterPubkey = currentMasterPubkey;
 
   final TokenLaunchRepository _tokenLaunchRepository;
   final ContentRepository _contentRepository;
-  final EventParser _eventParser;
+  final TokenUpdatesRepository _tokenUpdatesRepository;
   final String _currentMasterPubkey;
 
-  Future<void> handle(EventMessage eventMessage) async {
-    final entity = _eventParser.parse(eventMessage);
-    if (eventMessage.kind == CommunityTokenDefinitionEntity.kind) {
+  Future<void> handle(IonConnectEntity entity) async {
+    if (entity is CommunityTokenDefinitionEntity) {
       if (entity.masterPubkey == _currentMasterPubkey) {
         return;
       }
       await _tokenLaunchRepository.save(entity);
+    } else if (entity is TokenPriceChangeResponseEntity ||
+        entity is TokenGlobalStatResponseEntity ||
+        entity is TokenBuyingActivityResponseEntity) {
+      await _tokenUpdatesRepository.save(entity);
     } else {
       await _contentRepository.save(entity);
     }
@@ -334,16 +387,16 @@ class AccountNotificationsEventsHandler {
 }
 
 @riverpod
-AccountNotificationsEventsHandler? accountNotificationsEventsHandler(Ref ref) {
+InAppNotificationsEventsHandler? inAppNotificationsEventsHandler(Ref ref) {
   final currentMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentMasterPubkey == null) {
     return null;
   }
 
-  return AccountNotificationsEventsHandler(
+  return InAppNotificationsEventsHandler(
     tokenLaunchRepository: ref.watch(tokenLaunchRepositoryProvider),
     contentRepository: ref.watch(contentRepositoryProvider),
-    eventParser: ref.watch(eventParserProvider),
+    tokenUpdatesRepository: ref.watch(tokenUpdatesRepositoryProvider),
     currentMasterPubkey: currentMasterPubkey,
   );
 }

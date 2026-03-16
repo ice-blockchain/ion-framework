@@ -27,7 +27,10 @@ import 'package:ion/app/features/push_notifications/data/models/push_subscriptio
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_action.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/token_action_first_buy_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_buying_activity_response.f.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/token_definition_reference.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/token_price_change_response.f.dart';
+import 'package:ion/app/features/tokenized_communities/models/entities/tokens_global_stat_response.f.dart';
 import 'package:ion/app/features/user/model/account_notifications_sets.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_award.f.dart';
 import 'package:ion/app/features/user/model/badges/badge_definition.f.dart';
@@ -46,6 +49,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'ion_connect_event_parser.r.g.dart';
 
 class EventParser {
+  const EventParser();
+
   IonConnectEntity parse(EventMessage eventMessage) {
     return switch (eventMessage.kind) {
       UserMetadataEntity.kind => UserMetadataEntity.fromEventMessage(eventMessage),
@@ -90,10 +95,16 @@ class EventParser {
         TokenActionFirstBuyReferenceEntity.fromEventMessage(eventMessage),
       TokenDefinitionReferenceEntity.kind =>
         TokenDefinitionReferenceEntity.fromEventMessage(eventMessage),
+      TokenPriceChangeResponseEntity.kind =>
+        TokenPriceChangeResponseEntity.fromEventMessage(eventMessage),
+      TokenBuyingActivityResponseEntity.kind =>
+        TokenBuyingActivityResponseEntity.fromEventMessage(eventMessage),
+      TokenGlobalStatResponseEntity.kind =>
+        TokenGlobalStatResponseEntity.fromEventMessage(eventMessage),
       _ => throw UnknownEventException(eventId: eventMessage.id, kind: eventMessage.kind)
     };
   }
 }
 
 @riverpod
-EventParser eventParser(Ref ref) => EventParser();
+EventParser eventParser(Ref ref) => const EventParser();

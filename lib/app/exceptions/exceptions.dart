@@ -77,8 +77,8 @@ class IncorrectEventTagsException extends IONException {
 }
 
 class UnknownEventException extends IONException {
-  UnknownEventException({required String eventId, required int kind})
-      : super(10012, 'Unknown event $eventId with kind $kind');
+  UnknownEventException({required String eventId, int? kind})
+      : super(10012, 'Unknown event $eventId${kind != null ? ' with kind $kind' : ''}');
 }
 
 class IncorrectEventTagException extends IONException {
@@ -344,14 +344,6 @@ class ReceiverDevicePubkeyNotFoundException extends IONException {
       : super(
           10065,
           'Sender device pubkey not found in event: $eventId',
-        );
-}
-
-class EventCountException extends IONException {
-  EventCountException([String? message])
-      : super(
-          10066,
-          message ?? 'An unexpected error occurred',
         );
 }
 
@@ -897,4 +889,16 @@ class RpcCallException extends IONException implements DebugContextException {
         'rpcEndpoint': rpcEndpoint,
         'rpcErrorType': originalError.runtimeType.toString(),
       };
+}
+
+class DvmException extends IONException {
+  DvmException({required this.requestId, required this.status, this.details})
+      : super(
+          10156,
+          'DVM request failed for event: $requestId, status: $status ${details != null ? ', details: $details' : ''}',
+        );
+
+  final String requestId;
+  final String status;
+  final String? details;
 }

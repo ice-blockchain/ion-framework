@@ -103,14 +103,8 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
       return true;
     }
 
-    // Compare subscription filter events.
-    // For filter events it's enough to compare only their kinds, because the events structure is static and
-    // we can't compare the full events - they will always be different (different ids and createdAt),
-    // so we assume that if the kinds are the same, then the events are also the same.
-    final currentFilterEventKinds = currentData.filterEvents.map((event) => event.kind).toList();
-    final publishedFilterEventKinds =
-        publishedData.filterEvents.map((event) => event.kind).toList();
-    if (!currentFilterEventKinds.equalsDeepUnordered(publishedFilterEventKinds)) {
+    // Compare subscription filter events payload.
+    if (!_filterEventsDataEqual(currentData.filterEvents, publishedData.filterEvents)) {
       return true;
     }
 
@@ -320,5 +314,37 @@ class PushSubscriptionSync extends _$PushSubscriptionSync {
         ),
       ],
     );
+  }
+
+  /// Compare two lists of filter events for equality of the data.
+  ///
+  /// Compares the data: kind, content, tags.
+  /// Ignores fields that change over time: id, createdAt, sig.
+  bool _filterEventsDataEqual(List<EventMessage> current, List<EventMessage> published) {
+    if (current.length != published.length) {
+      return false;
+    }
+
+    final unmatchedPublished = List<EventMessage>.from(published);
+
+    for (final currentEvent in current) {
+      final matchIndex = unmatchedPublished.indexWhere(
+        (publishedEvent) => _eventMessageDataEqual(currentEvent, publishedEvent),
+      );
+
+      if (matchIndex == -1) {
+        return false;
+      }
+
+      unmatchedPublished.removeAt(matchIndex);
+    }
+
+    return unmatchedPublished.isEmpty;
+  }
+
+  bool _eventMessageDataEqual(EventMessage left, EventMessage right) {
+    return left.kind == right.kind &&
+        left.content == right.content &&
+        left.tags.equalsDeep(right.tags);
   }
 }
