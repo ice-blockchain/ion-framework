@@ -37,6 +37,16 @@ struct CommunityTokenActionData {
     func getTokenAmount() -> TransactionAmount? {
         return amounts.first { $0.currency == tokenTicker }
     }
+
+    func getTokenPrice() -> Double? {
+        guard let tokenAmount = getTokenAmount()?.value,
+              let usdAmount = getUsdAmount()?.value,
+              tokenAmount != 0 else {
+            return nil
+        }
+
+        return usdAmount / tokenAmount
+    }
     
     static func fromEventMessage(_ eventMessage: EventMessage) throws -> CommunityTokenActionData {
         var eventReference: EventReference?
