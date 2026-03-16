@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.util.Size
 import android.view.KeyEvent
@@ -22,7 +24,6 @@ import com.banuba.sdk.ve.flow.VideoCreationActivity
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugins.GeneratedPluginRegistrant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,6 +80,29 @@ class MainActivity : FlutterFragmentActivity() {
     private var banubaSdkChannel: MethodChannel? = null
 
     private lateinit var volumeKeyChannel: MethodChannel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        // Detect MediaTek devices and force Skia if found to avoid EGL crashes
+        if (shouldForceSkia()) {
+            intent.putExtra("io.flutter.embedding.android.DefaultRenderEngine", "skia")
+            Log.i(TAG, "Low-end/MediaTek device detected. Forcing Skia renderer for stability.")
+        }
+        super.onCreate(savedInstanceState)
+    }
+
+    private fun shouldForceSkia(): Boolean {
+        val hardware = Build.HARDWARE.lowercase()
+        val board = Build.BOARD.lowercase()
+        val manufacturer = Build.MANUFACTURER.lowercase()
+
+        // MediaTek SoC identifiers typically follow the "mtxxxx" pattern (e.g., mt6765, mt6768).
+        // Using a more specific pattern to avoid false positives.
+        val isMediaTekHardware = hardware.startsWith("mt") && hardware.getOrNull(2)?.isDigit() == true
+        val isMediaTekBoard = board.startsWith("mt") && board.getOrNull(2)?.isDigit() == true
+        val isMediaTekManufacturer = manufacturer.contains("mediatek")
+
+        return isMediaTekHardware || isMediaTekBoard || isMediaTekManufacturer
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -469,7 +493,7 @@ class MainActivity : FlutterFragmentActivity() {
             e.stackTrace?.take(5)?.forEach { element ->
                 Log.e(TAG, "  at ${element.className}.${element.methodName}")
             }
-            
+
             // Note: Even catching here might not prevent the crash entirely,
             // but it logs the issue and may allow graceful degradation
         }
