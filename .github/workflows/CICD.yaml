@@ -332,7 +332,7 @@ jobs:
           if [[ "$IS_RELEASE_BUILD" == "true" ]]; then
             mkdir -p "$SYMBOLS_PATH"
             mkdir -p build/app
-            SYMBOL_FLAGS="--obfuscate --split-debug-info=$SYMBOLS_PATH --extra-gen-snapshot-options=--save-obfuscation-map=build/app/obfuscation.map.json"
+            SYMBOL_FLAGS="--obfuscate --split-debug-info=$SYMBOLS_PATH --extra-gen-snapshot-options=--save-obfuscation-map=build/app/obfuscation.map.json --upload-symbols"
           fi
 
           ./scripts/generate_ios_export_options.sh --signType $IOS_SIGN_TYPE --bundleId $APP_ID --outputPath ios/ExportOptions.plist
@@ -489,7 +489,7 @@ jobs:
           if [[ "$IS_RELEASE_BUILD" == "true" ]]; then
             mkdir -p "$SYMBOLS_PATH"
             mkdir -p build/app
-            SYMBOL_FLAGS="--obfuscate --split-debug-info=$SYMBOLS_PATH --extra-gen-snapshot-options=--save-obfuscation-map=build/app/obfuscation.map.json"
+            SYMBOL_FLAGS="--obfuscate --split-debug-info=$SYMBOLS_PATH --extra-gen-snapshot-options=--save-obfuscation-map=build/app/obfuscation.map.json --upload-symbols"
           fi
 
           flutter build $ANDROID_ARCHIVE_TYPE \
@@ -545,4 +545,3 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/ice-blockchain/ion-framework/actions/caches?key=${{ github.sha }}_${{ github.run_number }}"
-     

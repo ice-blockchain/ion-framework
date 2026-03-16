@@ -36,6 +36,14 @@ Deploy iOS app
 
 ## Android
 
+### android build
+
+```sh
+[bundle exec] fastlane android build
+```
+
+Build Android app
+
 ### android deploy
 
 ```sh
