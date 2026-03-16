@@ -73,7 +73,11 @@ jobs:
         id: generate-locales
         run: |
           cd main-repo
-          # Run locale generation with verification
+          # 1. Generate l10n (produces untranslated_messages.txt)
+          source scripts/utils.sh && use_asdf flutter gen-l10n
+          # 2. Fill missing translations with OpenAI; commit & push on feature branches (--commit)
+          dart run tools/translate_missing.dart --commit
+          # 3. Re-run gen-l10n and verify (untranslated_messages.txt should be empty)
           ./scripts/generate_locales.sh
       - name: Generate code
         id: generate-code

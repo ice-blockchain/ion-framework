@@ -40,7 +40,12 @@ if [ ! -s "$UNTRANSLATED_FILE" ] || [ "$(jq 'length' "$UNTRANSLATED_FILE" 2>/dev
 else
   echo -e "${YELLOW}⚠️  Some translations are incomplete${NC}"
   echo "Check $UNTRANSLATED_FILE for details"
-  exit 1
+  # On CI (e.g. GitHub Actions), fail so the pipeline catches missing translations.
+  # Locally, do not fail so developers can run gen-l10n without blocking.
+  if [ -n "${GITHUB_ACTIONS:-}" ] && [ "$GITHUB_ACTIONS" = "true" ]; then
+    exit 1
+  fi
+  exit 0
 fi
 
 exit 0
