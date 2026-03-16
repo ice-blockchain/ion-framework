@@ -567,6 +567,7 @@
   "holders": "Detentores",
   "hour": "{count, plural, =1{hora} other{horas}}",
   "identity_key_name_description": "Pense no nome da sua chave de identidade como um identificador único da sua conta. Você precisará dele para entrar e recuperar sua conta, então guarde-o com segurança e não esqueça",
+  "settings_identity_key_name_description": "O nome da chave de identidade identifica a sua conta e é necessário para login e recuperação. Mantenha-o em segurança.",
   "identity_key_name_usage": "Use para entrar em qualquer app protegido por",
   "invite_friends_button": "Convidar um amigo",
   "invite_friends_earnings_title": "Ganhos",
