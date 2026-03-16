@@ -95,11 +95,13 @@ class MainActivity : FlutterFragmentActivity() {
         val board = Build.BOARD.lowercase()
         val manufacturer = Build.MANUFACTURER.lowercase()
 
-        // MediaTek chipsets usually start with "mt" (e.g., mt6765, mt6768)
-        // These are frequently associated with libGLESv2_mtk.so crashes on budget devices
-        return hardware.contains("mt") ||
-                board.contains("mt") ||
-                manufacturer.contains("mediatek")
+        // MediaTek SoC identifiers typically follow the "mtxxxx" pattern (e.g., mt6765, mt6768).
+        // Using a more specific pattern to avoid false positives.
+        val isMediaTekHardware = hardware.startsWith("mt") && hardware.getOrNull(2)?.isDigit() == true
+        val isMediaTekBoard = board.startsWith("mt") && board.getOrNull(2)?.isDigit() == true
+        val isMediaTekManufacturer = manufacturer.contains("mediatek")
+
+        return isMediaTekHardware || isMediaTekBoard || isMediaTekManufacturer
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -491,7 +493,7 @@ class MainActivity : FlutterFragmentActivity() {
             e.stackTrace?.take(5)?.forEach { element ->
                 Log.e(TAG, "  at ${element.className}.${element.methodName}")
             }
-            
+
             // Note: Even catching here might not prevent the crash entirely,
             // but it logs the issue and may allow graceful degradation
         }
