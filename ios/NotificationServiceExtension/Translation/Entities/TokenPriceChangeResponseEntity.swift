@@ -122,13 +122,12 @@ struct TokenPriceChangeResponseEntity: IonConnectEntity {
             throw IncorrectEventKindException(eventMessage.id, kind: kind)
         }
 
-        let masterPubkey = try eventMessage.masterPubkey()
         let data = try TokenPriceChangeResponseData.fromEventMessage(eventMessage)
 
         return TokenPriceChangeResponseEntity(
             id: eventMessage.id,
             pubkey: eventMessage.pubkey,
-            masterPubkey: masterPubkey,
+            masterPubkey: eventMessage.pubkey,
             signature: eventMessage.sig ?? "",
             createdAt: eventMessage.createdAt,
             data: data
