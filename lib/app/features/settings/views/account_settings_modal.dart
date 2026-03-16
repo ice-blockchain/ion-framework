@@ -10,11 +10,13 @@ import 'package:ion/app/components/screen_offset/screen_bottom_offset.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/components/separated/separated_column.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/core/model/language.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
 import 'package:ion/app/features/optimistic_ui/features/language/language_sync_strategy_provider.r.dart';
 import 'package:ion/app/features/settings/providers/video_settings_provider.m.dart';
 import 'package:ion/app/features/settings/views/delete_confirm_modal.dart';
+import 'package:ion/app/features/settings/views/identity_key_name_info_modal.dart';
 import 'package:ion/app/hooks/use_pop_if_returned_null.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
@@ -29,6 +31,7 @@ class AccountSettingsModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final contentLangsAsync = ref.watch(contentLanguageWatchProvider);
+    final currentIdentityKeyName = ref.watch(currentIdentityKeyNameSelectorProvider);
     final videoSettings = ref.watch(videoSettingsProvider);
 
     final contentLanguages = useMemoized(
@@ -59,6 +62,14 @@ class AccountSettingsModal extends HookConsumerWidget {
                     icon: Assets.svg.iconProfileUser.icon(color: primaryColor),
                     label: context.i18n.settings_profile_edit,
                     onTap: () => ProfileEditRoute().go(context),
+                  ),
+                  ModalActionButton(
+                    icon: Assets.svg.iconIdentitykey.icon(color: primaryColor),
+                    label: context.i18n.common_identity_key_name,
+                    onTap: () => showSimpleBottomSheet<void>(
+                      context: context,
+                      child: IdentityKeyNameInfoModal(identityKeyName: currentIdentityKeyName),
+                    ),
                   ),
                   ModalActionButton(
                     icon: Assets.svg.iconProfileBlockUser.icon(color: primaryColor),
