@@ -21,7 +21,14 @@ class AppLifecycleObserver extends HookConsumerWidget {
       );
 
       if (current == AppLifecycleState.resumed) {
-        ref.read(permissionsProvider.notifier).checkAllPermissions();
+        // Add a small delay to allow the native surface/EGL context to stabilize
+        // after the app returns to the foreground, which helps avoid race conditions
+        // on low-end MediaTek devices.
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (context.mounted) {
+            ref.read(permissionsProvider.notifier).checkAllPermissions();
+          }
+        });
       }
     });
 
