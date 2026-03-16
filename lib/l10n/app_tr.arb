@@ -925,6 +925,7 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Bu, son 24 saat içindeki token işlem hacmini gösterir.\n\nDaha yüksek aktivite genellikle daha güçlü ilgi, daha iyi likidite ve daha kolay işlem anlamına gelir.",
   "token_stats_volume_title": "Volume",
+  "switched_to_username": "{username} hesabına geçildi",
   "tokenized_communities_top_tokens": "En iyi tokenler",
   "tokenized_communities_trending_tokens": "Trend tokenler",
   "tokenized_community_bonding_curve": "Bağlanma Eğrisi",

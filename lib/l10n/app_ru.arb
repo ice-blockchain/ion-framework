@@ -925,6 +925,7 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Показывает общий объём торгов токенами за последние 24 часа.\n\nБолее высокая активность обычно означает больший интерес, лучшую ликвидность и более удобную торговлю.",
   "token_stats_volume_title": "Volume",
+  "switched_to_username": "Переключено на {username}",
   "tokenized_communities_top_tokens": "Топ токенов",
   "tokenized_communities_trending_tokens": "Популярные токены",
   "tokenized_community_bonding_curve": "Кривая бондинга",
