@@ -10,8 +10,10 @@ import 'package:ion/app/components/overlay_menu/overlay_menu.dart';
 import 'package:ion/app/components/overlay_menu/overlay_menu_container.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/tokenized_communities/models/entities/community_token_definition.f.dart';
+import 'package:ion/app/features/tokenized_communities/providers/community_token_definition_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/token_market_info_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/utils/token_explorer_url_utils.dart';
+import 'package:ion/app/features/tokenized_communities/views/components/market_data_unavailable_sheet.dart';
 import 'package:ion/app/features/user/pages/components/header_action/header_action.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
 import 'package:ion/app/hooks/use_watch_when_visible.dart';
@@ -22,12 +24,16 @@ import 'package:ion/generated/assets.gen.dart';
 class CommunityTokenContextMenu extends HookConsumerWidget {
   const CommunityTokenContextMenu({
     required this.closeSignal,
+    required this.externalAddress,
     required this.tokenDefinitionEntity,
+    this.isTokenDefinitionLoading = false,
     super.key,
   });
 
   final OverlayMenuCloseSignal closeSignal;
+  final String externalAddress;
   final CommunityTokenDefinitionEntity? tokenDefinitionEntity;
+  final bool isTokenDefinitionLoading;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,7 +74,17 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                     .icon(size: 20.s, color: context.theme.appColors.quaternaryText),
                 onPressed: () {
                   closeMenu();
-                  if (tokenDefinitionEntity == null) return;
+                  if (tokenDefinitionEntity == null) {
+                    showMarketDataUnavailableSheet(
+                      context,
+                      onClose: () => ref.invalidate(
+                        tokenDefinitionForExternalAddressProvider(
+                          externalAddress: externalAddress,
+                        ),
+                      ),
+                    );
+                    return;
+                  }
                   final eventReference = tokenDefinitionEntity!.toEventReference();
                   ShareViaMessageModalRoute(eventReference: eventReference.encode())
                       .push<void>(context);
@@ -97,7 +113,18 @@ class CommunityTokenContextMenu extends HookConsumerWidget {
                 icon: Assets.svg.iconReport
                     .icon(size: 20.s, color: context.theme.appColors.quaternaryText),
                 onPressed: () {
-                  if (tokenDefinitionEntity == null) return;
+                  if (tokenDefinitionEntity == null) {
+                    closeMenu();
+                    showMarketDataUnavailableSheet(
+                      context,
+                      onClose: () => ref.invalidate(
+                        tokenDefinitionForExternalAddressProvider(
+                          externalAddress: externalAddress,
+                        ),
+                      ),
+                    );
+                    return;
+                  }
                   ref.read(reportNotifierProvider.notifier).report(
                         ReportReason.ticker(
                           text: context.i18n.report_ticker_description,

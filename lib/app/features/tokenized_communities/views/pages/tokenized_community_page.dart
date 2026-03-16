@@ -88,9 +88,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
     final tokenInfo = useWatchWhenVisible(
       watcher: () => ref.watch(tokenMarketInfoProvider(externalAddress)).valueOrNull,
     );
-    final tokenDefinition = ref
-        .watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress))
-        .valueOrNull;
+    final tokenDefinitionAsync =
+        ref.watch(tokenDefinitionForExternalAddressProvider(externalAddress: externalAddress));
+    final tokenDefinition = tokenDefinitionAsync.valueOrNull;
     final tradeEventReference = _useTradeEventReference(
       externalAddress: externalAddress,
       tokenDefinition: tokenDefinition,
@@ -337,7 +337,9 @@ class TokenizedCommunityPage extends HookConsumerWidget {
         ),
         CommunityTokenContextMenu(
           closeSignal: menuCloseSignal,
+          externalAddress: externalAddress,
           tokenDefinitionEntity: tokenDefinition,
+          isTokenDefinitionLoading: tokenDefinitionAsync.isLoading,
         ),
         SizedBox(width: 16.s),
       ],
