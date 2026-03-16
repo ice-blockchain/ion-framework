@@ -61,17 +61,16 @@ class VideoPreview extends HookConsumerWidget {
     final uniqueControllerId = framedEventReference?.encode() ?? postEventReference?.encode() ?? '';
 
     // If autoplay is disabled, we don't need to initialize the controller (to avoid the video downloading)
+    final videoControllerParams = VideoControllerParams(
+      sourcePath: videoUrl,
+      authorPubkey: authorPubkey,
+      looping: true,
+      uniqueId: uniqueControllerId,
+      onlyOneShouldPlay: onlyOneShouldPlay,
+    );
     final videoControllerProviderState = (videoSettings.autoplay && isVideoPlaybackEnabled)
         ? ref.watch(
-            videoControllerProvider(
-              VideoControllerParams(
-                sourcePath: videoUrl,
-                authorPubkey: authorPubkey,
-                looping: true,
-                uniqueId: '$uniqueControllerId-$mediaIndex',
-                onlyOneShouldPlay: onlyOneShouldPlay,
-              ),
-            ),
+            videoControllerProvider(videoControllerParams),
           )
         : const AsyncValue.data(null);
     final controller = videoControllerProviderState.valueOrNull;
@@ -81,11 +80,10 @@ class VideoPreview extends HookConsumerWidget {
     useRoutePresence(
       onBecameInactive: () {
         if (context.mounted) {
-          // Save the current position of the video
-          if (controller != null) {
+          if (videoSettings.autoplay && isVideoPlaybackEnabled) {
             ref
-                .read(videoPlayerPositionDataProvider.notifier)
-                .savePosition(videoUrl, controller.value.position.inMilliseconds);
+                .read(videoControllerProvider(videoControllerParams).notifier)
+                .pauseAndSavePosition();
           }
           isRouteFocused.value = false;
         }
