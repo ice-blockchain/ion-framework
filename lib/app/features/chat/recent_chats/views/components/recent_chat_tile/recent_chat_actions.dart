@@ -57,7 +57,8 @@ List<RecentChatActionItem> buildRecentChatActions({
       ref.watch(mutedConversationsProvider).valueOrNull?.contains(conversation.conversationId) ??
           false;
 
-  final canMute = receiverMasterPubkey != null && conversation.type == ConversationType.oneToOne;
+  final canMute =
+      !isArchived && receiverMasterPubkey != null && conversation.type == ConversationType.oneToOne;
 
   return [
     RecentChatActionItem(
