@@ -213,6 +213,7 @@
   "chat_read": "읽음",
   "chat_read_all": "모두 읽음",
   "chat_recents_money_request_message": "금액 요청됨",
+  "chat_unread": "읽지 않음으로 표시",
   "chat_search_empty": "사용자, 채팅, 그룹, 채널 검색...",
   "chat_search_no_community_empty": "사용자, 채팅 검색...",
   "chat_title": "채팅",

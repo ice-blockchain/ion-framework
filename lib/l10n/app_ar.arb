@@ -205,6 +205,7 @@
   "chat_profile_share_modal_title": "شارك الملف الشخصي",
   "chat_profile_view_button": "عرض الملف الشخصي",
   "chat_read": "مقروء",
+  "chat_unread": "وضع علامة كغير مقروء",
   "chat_read_all": "قراءة الكل",
   "chat_recents_money_request_message": "تم طلب المال",
   "chat_search_empty": "ابحث هنا عن المستخدمين، المحادثات، المجموعات، والقنوات...",
