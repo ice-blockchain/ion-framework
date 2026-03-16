@@ -13,6 +13,8 @@ import 'package:ion/app/components/message_notification/models/message_notificat
 import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/bookmarks/bookmark_button.dart';
+import 'package:ion/app/features/core/model/feature_flags.dart';
+import 'package:ion/app/features/core/providers/feature_flags_provider.r.dart';
 import 'package:ion/app/features/core/views/pages/unfollow_user_page.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/providers/boosted_posts_provider.r.dart';
@@ -138,32 +140,35 @@ class PostMenuBottomSheet extends ConsumerWidget {
 
     menuItemsGroups.add(menuItemsComplainGroup);
 
-    final headerButtons = <Widget>[
-      BottomSheetMenuHeaderButton(
-        label: context.i18n.button_boost,
-        iconAsset: Assets.svg.iconSheetBoost,
-        onPressed: () {
-          Navigator.of(context).pop();
-          if (isBoosted) {
-            ActiveBoostPostModalRoute(eventReference: encoded).push<void>(context);
-          } else {
-            NewBoostPostModalRoute(eventReference: encoded).push<void>(context);
-          }
-        },
-      ),
-      BottomSheetMenuHeaderButton(
-        label: context.i18n.button_tip_creator,
-        iconAsset: Assets.svg.iconProfileTips,
-        onPressed: () {
-          return ref.read(messageNotificationNotifierProvider.notifier).show(
-                MessageNotification(
-                  message: context.i18n.coming_soon_label,
-                  icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
-                ),
-              );
-        },
-      ),
-    ];
+    var headerButtons = <Widget>[];
+    if (ref.watch(featureFlagsProvider.notifier).get(BoostPostFeatureFlag.boostPostEnabled)) {
+      headerButtons = <Widget>[
+        BottomSheetMenuHeaderButton(
+          label: context.i18n.button_boost,
+          iconAsset: Assets.svg.iconSheetBoost,
+          onPressed: () {
+            Navigator.of(context).pop();
+            if (isBoosted) {
+              ActiveBoostPostModalRoute(eventReference: encoded).push<void>(context);
+            } else {
+              NewBoostPostModalRoute(eventReference: encoded).push<void>(context);
+            }
+          },
+        ),
+        BottomSheetMenuHeaderButton(
+          label: context.i18n.button_tip_creator,
+          iconAsset: Assets.svg.iconProfileTips,
+          onPressed: () {
+            return ref.read(messageNotificationNotifierProvider.notifier).show(
+                  MessageNotification(
+                    message: context.i18n.coming_soon_label,
+                    icon: Assets.svg.iconBlockTime.icon(size: 16.0.s),
+                  ),
+                );
+          },
+        ),
+      ];
+    }
 
     return BottomSheetMenuContent(
       groups: menuItemsGroups,
