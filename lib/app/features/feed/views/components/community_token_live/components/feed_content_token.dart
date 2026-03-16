@@ -179,7 +179,7 @@ class ContentTokenHeader extends HookConsumerWidget {
             type == CommunityContentTokenType.postVideo ||
             type == CommunityContentTokenType.article)
           Padding(
-            padding: EdgeInsetsDirectional.only(bottom: 16.0.s),
+            padding: EdgeInsetsDirectional.only(bottom: 10.0.s),
             child: Stack(
               alignment: AlignmentDirectional.center,
               children: [
@@ -241,7 +241,7 @@ class ContentTokenHeader extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 20.0.s),
+                    SizedBox(height: 16.0.s),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -644,6 +644,7 @@ class _TokenAvatarCarousel extends StatelessWidget {
         layoutConfigs.map((config) => config.containerSize.height).reduce((a, b) => a > b ? a : b);
 
     return CarouselWithDots(
+      renderInStack: false,
       items: visualMedias.asMap().entries.map((entry) {
         final index = entry.key;
         final media = entry.value;
@@ -656,13 +657,13 @@ class _TokenAvatarCarousel extends StatelessWidget {
           borderWidth: layoutConfigs[index].borderWidth,
         );
       }).toList(),
-      height: maxHeight * 1.1.s, // extra space for dots
+      height: maxHeight,
       dotsConfig: CarouselDotsConfig(
         activeSize: 5.s,
         size: 3.s,
         spacing: 2.s,
         activeHeight: 5.s,
-        position: -2.s,
+        position: 4.s,
         color: context.theme.appColors.tertiaryText,
       ),
     );
