@@ -46,12 +46,10 @@ class CoinDetailsPage extends HookConsumerWidget {
 
     final containsTier2Network = coinsGroup.coins.any((coin) => coin.coin.network.tier != 1);
 
-    final cryptoWalletData = ref
-            .watch(
-              selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
-            )
-            .valueOrNull ??
-        SelectedCryptoWalletData.empty();
+    final cryptoWalletAsyncValue = ref.watch(
+      selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
+    );
+    final cryptoWalletData = cryptoWalletAsyncValue.valueOrNull ?? SelectedCryptoWalletData.empty();
 
     final providerNetwork = ref.watch(
       networkSelectorNotifierProvider(symbolGroup: symbolGroup)
