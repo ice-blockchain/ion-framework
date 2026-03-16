@@ -147,8 +147,10 @@ class UpdateUserMetadataNotifier extends _$UpdateUserMetadataNotifier {
     final avatarChanged = currentUserMetadata?.data.picture != data.picture;
     if (currentUserMetadata != null &&
         (usernameChanged || displayNameChanged || avatarChanged || bioChanged)) {
-      final trimmedBio = bioChanged && data.about != null
-          ? QuillTextUtils.bioDeltaJsonToTrimmedPlainText(data.about)
+      final trimmedBio = bioChanged
+          ? (data.about != null
+              ? (QuillTextUtils.bioDeltaJsonToTrimmedPlainText(data.about) ?? '')
+              : '')
           : null;
 
       final updateUserSocialProfileResponse = await ref.read(
