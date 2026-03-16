@@ -204,6 +204,7 @@
   "chat_profile_share_modal_title": "Partager le profil",
   "chat_profile_view_button": "Voir le profil",
   "chat_read": "Lu",
+  "chat_unread": "Marquer comme non lu",
   "chat_read_all": "Tout lire",
   "chat_recents_money_request_message": "Demande d'argent",
   "chat_search_empty": "Recherchez ici des utilisateurs, des conversations, des groupes et des canaux...",

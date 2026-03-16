@@ -204,6 +204,7 @@
   "chat_profile_share_modal_title": "分享个人资料",
   "chat_profile_view_button": "查看个人资料",
   "chat_read": "已读",
+  "chat_unread": "标记为未读",
   "chat_read_all": "全部标记为已读",
   "chat_recents_money_request_message": "已请求资金",
   "chat_search_empty": "在此搜索用户、聊天、群组和频道...",
