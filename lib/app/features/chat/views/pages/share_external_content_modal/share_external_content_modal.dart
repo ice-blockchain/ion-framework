@@ -43,7 +43,7 @@ class ShareExternalContentModal extends HookWidget {
           ),
           const HorizontalSeparator(),
           Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+            padding: EdgeInsetsDirectional.only(bottom: MediaQuery.paddingOf(context).bottom),
             child: SizedBox(
               height: 110.0.s,
               child: selectedPubkeys.isEmpty
