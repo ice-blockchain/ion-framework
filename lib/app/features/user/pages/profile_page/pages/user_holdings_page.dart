@@ -15,9 +15,9 @@ import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.
 import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 class UserHoldingsPage extends HookConsumerWidget {
-  const UserHoldingsPage({required this.holderAddress, super.key});
+  const UserHoldingsPage({required this.holderPubkey, super.key});
 
-  final String holderAddress;
+  final String holderPubkey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +27,7 @@ class UserHoldingsPage extends HookConsumerWidget {
     final offset = useState(0);
     final accumulatedHoldings = useState<List<CommunityToken>>([]);
 
-    final holdingsAsync = ref.watch(userHoldingsProvider(holderAddress, limit: 20));
+    final holdingsAsync = ref.watch(userHoldingsProvider(holderPubkey, limit: 20));
 
     useEffect(
       () {
@@ -98,7 +98,7 @@ class UserHoldingsPage extends HookConsumerWidget {
                 try {
                   final newOffset = offset.value + 20;
                   final result = await ref.read(
-                    userHoldingsProvider(holderAddress, limit: 20, offset: newOffset).future,
+                    userHoldingsProvider(holderPubkey, limit: 20, offset: newOffset).future,
                   );
                   accumulatedHoldings.value = [
                     ...accumulatedHoldings.value,
@@ -118,7 +118,7 @@ class UserHoldingsPage extends HookConsumerWidget {
                     hasMore.value = true;
                     offset.value = 0;
                     accumulatedHoldings.value = [];
-                    ref.invalidate(userHoldingsProvider(holderAddress, limit: 20));
+                    ref.invalidate(userHoldingsProvider(holderPubkey, limit: 20));
                   },
                   builder: (context, slivers) => CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),

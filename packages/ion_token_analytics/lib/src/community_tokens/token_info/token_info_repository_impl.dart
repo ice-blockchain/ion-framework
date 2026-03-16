@@ -58,14 +58,11 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
   }
 
   @override
-  Future<Position?> getHolderPosition(
-    String tokenExternalAddress,
-    String holderExternalAddress,
-  ) async {
+  Future<Position?> getHolderPosition(String tokenExternalAddress, String holder) async {
     try {
       final positionsRawData = await client.get<List<dynamic>>(
         '/v1/community-tokens/$tokenExternalAddress/positions',
-        queryParameters: {'externalHolderAddresses': holderExternalAddress},
+        queryParameters: {'externalHolderAddresses': holder},
       );
 
       final positionRawData = positionsRawData.firstOrNull;
@@ -76,7 +73,7 @@ class TokenInfoRepositoryImpl implements TokenInfoRepository {
       return Position.fromJson(positionRawData as Map<String, dynamic>);
     } catch (error, stackTrace) {
       client.logger?.error(
-        'Failed to get holder position for tokenExternalAddress: $tokenExternalAddress, holderExternalAddress: $holderExternalAddress',
+        'Failed to get holder position for tokenExternalAddress: $tokenExternalAddress, holder: $holder',
         error: error,
         stackTrace: stackTrace,
       );

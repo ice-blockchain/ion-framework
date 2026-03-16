@@ -6,7 +6,6 @@ import 'package:ion/app/components/section_separator/section_separator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/tabs/user_holdings_list_item.dart';
 import 'package:ion/app/features/user/providers/user_holdings_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -20,14 +19,7 @@ class HoldingsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userMetadata = ref.watch(userMetadataProvider(pubkey)).valueOrNull;
-    final holderAddress = userMetadata?.toEventReference().toString();
-
-    if (holderAddress == null) {
-      return const SizedBox.shrink();
-    }
-
-    final holdingsAsync = ref.watch(userHoldingsProvider(holderAddress));
+    final holdingsAsync = ref.watch(userHoldingsProvider(pubkey));
 
     return holdingsAsync.when(
       data: (holdingsData) {
@@ -46,7 +38,7 @@ class HoldingsList extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Header(holdingsCount: totalHoldingsCount, holderAddress: holderAddress),
+                  _Header(holdingsCount: totalHoldingsCount, pubkey: pubkey),
                   SizedBox(height: 14.0.s),
                   ...holdings.asMap().entries.map(
                     (entry) {
@@ -76,11 +68,11 @@ class HoldingsList extends ConsumerWidget {
 class _Header extends StatelessWidget {
   const _Header({
     required this.holdingsCount,
-    required this.holderAddress,
+    required this.pubkey,
   });
 
   final int holdingsCount;
-  final String holderAddress;
+  final String pubkey;
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +95,7 @@ class _Header extends StatelessWidget {
         const Spacer(),
         GestureDetector(
           onTap: () {
-            UserHoldingsRoute(holderAddress: holderAddress).push<void>(context);
+            UserHoldingsRoute(holderPubkey: pubkey).push<void>(context);
           },
           behavior: HitTestBehavior.opaque,
           child: Padding(

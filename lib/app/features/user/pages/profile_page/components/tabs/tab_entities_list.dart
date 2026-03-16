@@ -162,11 +162,9 @@ class TabEntitiesList extends HookConsumerWidget {
           if (type == TabEntityType.posts) {
             ref.invalidate(userPostsProvider(pubkey));
           } else if (type == TabEntityType.holdings) {
-            ref.invalidate(userHoldingsTabProvider(pubkey));
-            final holderAddress = userMetadata?.toEventReference().toString();
-            if (holderAddress != null) {
-              ref.invalidate(userHoldingsProvider(holderAddress));
-            }
+            ref
+              ..invalidate(userHoldingsTabProvider(pubkey))
+              ..invalidate(userHoldingsProvider(pubkey));
           } else {
             final dataSource = ref.read(tabDataSourceProvider(type: type, pubkey: pubkey));
             if (dataSource != null) {

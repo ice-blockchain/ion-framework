@@ -34,7 +34,6 @@ import 'package:ion/app/features/tokenized_communities/views/components/suggeste
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_dialog_hooks.dart';
 import 'package:ion/app/features/tokenized_communities/views/trade_community_token_state.f.dart';
 import 'package:ion/app/features/user/providers/user_holdings_provider.r.dart';
-import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coin_in_wallet_data.f.dart';
 import 'package:ion/app/features/wallets/providers/wallet_data_sync_coordinator_provider.r.dart';
@@ -584,12 +583,8 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     if (currentPubkey != null) {
       ref
         ..invalidate(userHoldingsTabProvider(currentPubkey))
-        ..invalidate(userTokenizedCommunityDataSourceProvider(currentPubkey));
-      final userMetadata = ref.read(userMetadataProvider(currentPubkey)).valueOrNull;
-      final holderAddress = userMetadata?.toEventReference().toString();
-      if (holderAddress != null) {
-        ref.invalidate(userHoldingsProvider(holderAddress));
-      }
+        ..invalidate(userTokenizedCommunityDataSourceProvider(currentPubkey))
+        ..invalidate(userHoldingsProvider(currentPubkey));
     }
   }
 }

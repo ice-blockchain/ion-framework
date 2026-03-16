@@ -435,10 +435,10 @@ class TradesRoute extends BaseRouteData with _$TradesRoute {
 }
 
 class UserHoldingsRoute extends BaseRouteData with _$UserHoldingsRoute {
-  UserHoldingsRoute({required this.holderAddress})
+  UserHoldingsRoute({required this.holderPubkey})
       : super(
-          child: UserHoldingsPage(holderAddress: holderAddress),
+          child: UserHoldingsPage(holderPubkey: holderPubkey),
         );
 
-  final String holderAddress;
+  final String holderPubkey;
 }

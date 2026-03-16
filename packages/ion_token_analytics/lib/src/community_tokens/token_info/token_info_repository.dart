@@ -14,7 +14,7 @@ abstract class TokenInfoRepository {
 
   Future<NetworkSubscription<CommunityTokenBase>?> subscribeToTokenInfo(String externalAddress);
 
-  Future<Position?> getHolderPosition(String tokenExternalAddress, String holderExternalAddress);
+  Future<Position?> getHolderPosition(String tokenExternalAddress, String holder);
 
   Future<PricingResponse?> getPricing(
     String externalAddress,
