@@ -39,42 +39,48 @@ class SwitchAccountModal extends HookConsumerWidget {
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
 
     return SheetContent(
-      body: ScreenSideOffset.small(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 16.0.s,
-            children: [
-              NavigationAppBar.modal(
-                showBackButton: false,
-                title: Text(context.i18n.profile_switch_user_header),
-                actions: const [NavigationCloseButton()],
-              ),
-              if (enableAccountManagement)
-                ModalActionButton(
-                  icon: Assets.svg.iconChannelType.icon(
-                    color: context.theme.appColors.primaryAccent,
-                  ),
-                  label: context.i18n.profile_create_new_account,
-                  onTap: () => AddAccountOptionsRoute().push<void>(context),
-                ),
-              SwitchAccountModalList(
-                enableAccountManagement: enableAccountManagement,
-              ),
-              if (enableAccountManagement && currentPubkey != null)
-                ModalActionButton(
-                  icon: Assets.svg.iconMenuLogout.icon(size: 24.0.s),
-                  label: context.i18n.profile_log_out(
-                    withPrefix(
-                      input: userMetadataValue?.data.name,
-                      textDirection: Directionality.of(context),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16.0.s,
+          children: [
+            NavigationAppBar.modal(
+              showBackButton: false,
+              title: Text(context.i18n.profile_switch_user_header),
+              actions: const [NavigationCloseButton()],
+            ),
+            ScreenSideOffset.small(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 16.0.s,
+                children: [
+                  if (enableAccountManagement)
+                    ModalActionButton(
+                      icon: Assets.svg.iconChannelType.icon(
+                        color: context.theme.appColors.primaryAccent,
+                      ),
+                      label: context.i18n.profile_create_new_account,
+                      onTap: () => AddAccountOptionsRoute().push<void>(context),
                     ),
+                  SwitchAccountModalList(
+                    enableAccountManagement: enableAccountManagement,
                   ),
-                  onTap: () => ConfirmLogoutRoute(pubkey: currentPubkey).push<void>(context),
-                ),
-              ScreenBottomOffset(margin: 32.0.s),
-            ],
-          ),
+                  if (enableAccountManagement && currentPubkey != null)
+                    ModalActionButton(
+                      icon: Assets.svg.iconMenuLogout.icon(size: 24.0.s),
+                      label: context.i18n.profile_log_out(
+                        withPrefix(
+                          input: userMetadataValue?.data.name,
+                          textDirection: Directionality.of(context),
+                        ),
+                      ),
+                      onTap: () => ConfirmLogoutRoute(pubkey: currentPubkey).push<void>(context),
+                    ),
+                  ScreenBottomOffset(margin: 32.0.s),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
