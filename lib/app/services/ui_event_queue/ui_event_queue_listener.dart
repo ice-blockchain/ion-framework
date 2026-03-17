@@ -22,7 +22,7 @@ class UiEventQueueListener extends HookConsumerWidget {
     ref
         .read(uiEventQueueNotifierProvider.notifier)
         .processQueue(
-          (event) => event.performAction(navigatorContext),
+          (event) async => await event.performAction(navigatorContext),
         )
         .then((_) {
       final state = ref.read(uiEventQueueNotifierProvider);
