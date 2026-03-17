@@ -39,16 +39,13 @@ printf '%s\n' "${avar}"
 
 # Generate Locales
 printf "\e[33;1m%s\e[0m\n" '=== Generate Locales ==='
-source "$(dirname "$0")/utils.sh"
-use_asdf flutter gen-l10n
-UNTRANSLATED_FILE="untranslated_messages.txt"
-if [ -f "$UNTRANSLATED_FILE" ] && [ -s "$UNTRANSLATED_FILE" ] && [ "$(jq 'length' "$UNTRANSLATED_FILE" 2>/dev/null)" != "0" ]; then
-  printf "\e[33;1m%s\e[0m\n" 'Filling missing translations (no commit)...'
-  dart run tools/translate_missing.dart
-  printf "\e[31;1m%s\e[0m\n" '=== Missing translations were generated ==='
+bash ./scripts/auto_translate_locales.sh --fail-if-generated --base-ref=auto
+if [ $? -ne 0 ]; then
+  printf "\e[31;1m%s\e[0m\n" '=== Translations were generated ==='
   printf "\e[31;1m%s\e[0m\n" 'Please review and commit the ARB changes, then push again.'
   exit 1
 fi
+
 printf "\e[33;1m%s\e[0m\n" 'Finished running Generate Locales'
 printf '%s\n' "${avar}"
 

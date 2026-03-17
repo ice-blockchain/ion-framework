@@ -5,8 +5,9 @@
 // Requires OPENAI_API_KEY in the environment.
 //
 // Usage: dart run tools/translate_missing.dart [options]
-//   --dry-run  Print what would be translated without calling the API or writing files.
-//   --commit   Commit and push ARB changes (use only on CI, on a feature branch). Without this, no git operations run (local default).
+//   --dry-run       Print what would be translated without calling the API or writing files.
+//   --commit        Commit and push ARB changes (use only on CI, on a feature branch). Without this, no git operations run (local default).
+//   --base-ref=REF  Compare app_en.arb with REF (e.g. origin/master) and re-translate keys whose English changed in all locales. Use in CI to sync PR changes. Can also set BASE_REF env.
 
 import 'dart:convert';
 import 'dart:io';
@@ -37,21 +38,19 @@ const _localeToLanguage = {
 void main(List<String> args) async {
   final dryRun = args.contains('--dry-run');
   final doCommit = args.contains('--commit');
+  final baseRef = _parseBaseRef(args);
 
   final cwd = Directory.current.path;
   final untranslatedPath = '$cwd/$_untranslatedFile';
   final arbDirPath = '$cwd/$_arbDir';
 
-  if (!File(untranslatedPath).existsSync()) {
+  var untranslated = <String, List<String>>{};
+  if (File(untranslatedPath).existsSync()) {
+    final content = await File(untranslatedPath).readAsString();
+    untranslated = _parseUntranslated(content);
+  } else if (baseRef == null) {
     stderr.writeln('$_untranslatedFile not found. Run "flutter gen-l10n" first.');
     exit(1);
-  }
-
-  final untranslatedContent = await File(untranslatedPath).readAsString();
-  final untranslated = _parseUntranslated(untranslatedContent);
-  if (untranslated.isEmpty) {
-    stdout.writeln('No missing translations.');
-    exit(0);
   }
 
   final templatePath = '$arbDirPath/$_templateArb';
@@ -59,6 +58,46 @@ void main(List<String> args) async {
     stderr.writeln('Template $_templateArb not found at $templatePath');
     exit(1);
   }
+
+  final templateArb = _parseArb(await File(templatePath).readAsString());
+
+  // Keys in app_en.arb whose source text (or @key metadata) changed vs base ref — need re-translation in all locales.
+  var changedAddedKeys = <String>{};
+  var changedModifiedKeys = <String>{};
+  if (baseRef != null) {
+    final changed = await _getChangedEnKeysDetailed(cwd, baseRef, templateArb);
+    changedAddedKeys = changed.added;
+    changedModifiedKeys = changed.modified;
+    final totalChanged = changedAddedKeys.length + changedModifiedKeys.length;
+    if (totalChanged > 0) {
+      stdout.writeln(
+        'Keys with changed English (vs $baseRef): $totalChanged '
+        '(added: ${changedAddedKeys.length}, modified: ${changedModifiedKeys.length})',
+      );
+    }
+  }
+
+  // All target locales: from untranslated_messages + existing app_XX.arb (except en).
+  final allLocales = _allTargetLocales(arbDirPath, untranslated.keys.toList());
+
+  // Merge: per locale, translate missing + changed keys (deduplicated).
+  // - Modified English keys: always re-translate (overwrites locale values)
+  // - Added English keys: translate only if the locale doesn't already have the key
+  final toTranslate = _mergeKeysToTranslate(
+    arbDirPath,
+    untranslated,
+    changedAddedKeys,
+    changedModifiedKeys,
+    allLocales,
+  );
+
+  if (toTranslate.isEmpty) {
+    stdout.writeln('No translations to generate.');
+    exit(0);
+  }
+
+  final totalKeys = toTranslate.values.fold<int>(0, (s, keys) => s + keys.length);
+  stdout.writeln('Keys to translate: $totalKeys across ${toTranslate.length} locale(s).');
 
   final apiKey = await _resolveOpenAiApiKey(cwd);
   if (!dryRun && (apiKey == null || apiKey.isEmpty)) {
@@ -71,22 +110,17 @@ void main(List<String> args) async {
     exit(1);
   }
 
-  final templateArb = _parseArb(await File(templatePath).readAsString());
-
-  final totalMissing = untranslated.values.fold<int>(0, (s, keys) => s + keys.length);
-  stdout.writeln('Missing translations: $totalMissing across ${untranslated.length} locale(s).');
-
   if (dryRun) {
-    for (final e in untranslated.entries) {
+    for (final e in toTranslate.entries) {
       stdout.writeln('  ${e.key}: ${e.value.length} keys');
     }
     exit(0);
   }
 
   var translated = 0;
-  for (final localeEntry in untranslated.entries) {
+  for (final localeEntry in toTranslate.entries) {
     final locale = localeEntry.key;
-    final missingKeys = localeEntry.value;
+    final keysToTranslate = localeEntry.value;
     final language = _localeToLanguage[locale] ?? locale;
     final targetPath = '$arbDirPath/app_$locale.arb';
     var targetArb = <String, dynamic>{};
@@ -96,7 +130,7 @@ void main(List<String> args) async {
       targetArb['@@locale'] = locale;
     }
 
-    for (final key in missingKeys) {
+    for (final key in keysToTranslate) {
       final source = templateArb[key] as String?;
       if (source == null) continue;
 
@@ -125,7 +159,9 @@ void main(List<String> args) async {
   }
 
   if (!doCommit) {
-    stdout.writeln('Done. Translated $translated string(s). Not committing (use --commit on CI to commit and push).');
+    stdout.writeln(
+      'Done. Translated $translated string(s). Not committing (use --commit on CI to commit and push).',
+    );
     exit(0);
   }
 
@@ -161,6 +197,16 @@ void main(List<String> args) async {
   exit(0);
 }
 
+String? _parseBaseRef(List<String> args) {
+  for (final arg in args) {
+    if (arg.startsWith('--base-ref=')) {
+      final ref = arg.substring('--base-ref='.length).trim();
+      if (ref.isNotEmpty) return ref;
+    }
+  }
+  return Platform.environment['BASE_REF'];
+}
+
 /// Parses untranslated_messages.txt (JSON: {"locale": ["key1", ...], ...}).
 Map<String, List<String>> _parseUntranslated(String content) {
   final trimmed = content.trim();
@@ -174,6 +220,102 @@ Map<String, List<String>> _parseUntranslated(String content) {
   } catch (_) {
     return {};
   }
+}
+
+/// Returns message keys in current app_en.arb that are added vs modified (vs [baseRef]).
+Future<({Set<String> added, Set<String> modified})> _getChangedEnKeysDetailed(
+  String cwd,
+  String baseRef,
+  Map<String, dynamic> currentArb,
+) async {
+  final result = await Process.run(
+    'git',
+    ['show', '$baseRef:$_arbDir/$_templateArb'],
+    runInShell: true,
+    workingDirectory: cwd,
+  );
+  if (result.exitCode != 0) {
+    return (added: <String>{}, modified: <String>{});
+  }
+  final oldContent = result.stdout as String;
+  if (oldContent.trim().isEmpty) {
+    return (
+      added: currentArb.keys.where((k) => !k.startsWith('@') && k != '@@locale').toSet(),
+      modified: <String>{},
+    );
+  }
+  Map<String, dynamic> oldArb;
+  try {
+    oldArb = _parseArb(oldContent);
+  } catch (_) {
+    return (added: <String>{}, modified: <String>{});
+  }
+  final added = <String>{};
+  final modified = <String>{};
+  for (final key in currentArb.keys) {
+    if (key.startsWith('@') || key == '@@locale') continue;
+    final currentVal = currentArb[key];
+    final oldVal = oldArb[key];
+    if (oldVal == null) {
+      added.add(key);
+      continue;
+    }
+    final metaKey = '@$key';
+    final valChanged = currentVal != oldVal;
+    final metaChanged = currentArb[metaKey] != oldArb[metaKey];
+    if (valChanged || metaChanged) modified.add(key);
+  }
+  return (added: added, modified: modified);
+}
+
+/// All target locale codes: from [fromUntranslated] plus any app_XX.arb present (except en).
+List<String> _allTargetLocales(String arbDirPath, List<String> fromUntranslated) {
+  final set = fromUntranslated.toSet();
+  final dir = Directory(arbDirPath);
+  if (!dir.existsSync()) return set.toList()..sort();
+  for (final e in dir.listSync()) {
+    if (e is! File) continue;
+    final name = e.uri.pathSegments.last;
+    if (!name.startsWith('app_') || !name.endsWith('.arb')) continue;
+    final locale = name.substring(4, name.length - 4);
+    if (locale != 'en') set.add(locale);
+  }
+  return set.toList()..sort();
+}
+
+/// Merge untranslated (per locale) with changed keys. Returns map locale -> list of keys to translate.
+Map<String, List<String>> _mergeKeysToTranslate(
+  String arbDirPath,
+  Map<String, List<String>> untranslated,
+  Set<String> changedAddedKeys,
+  Set<String> changedModifiedKeys,
+  List<String> allLocales,
+) {
+  final out = <String, List<String>>{};
+
+  for (final locale in allLocales) {
+    final existingKeys = <String>{};
+    final targetPath = '$arbDirPath/app_$locale.arb';
+    if (File(targetPath).existsSync()) {
+      try {
+        final arb = _parseArb(File(targetPath).readAsStringSync());
+        for (final k in arb.keys) {
+          if (k.startsWith('@') || k == '@@locale') continue;
+          existingKeys.add(k);
+        }
+      } catch (_) {
+        // If a locale ARB can't be parsed, fall back to translating based on untranslated + modified keys.
+      }
+    }
+
+    final set = (untranslated[locale] ?? []).toSet()..addAll(changedModifiedKeys);
+    for (final key in changedAddedKeys) {
+      if (!existingKeys.contains(key)) set.add(key);
+    }
+    if (set.isEmpty) continue;
+    out[locale] = set.toList()..sort();
+  }
+  return out;
 }
 
 /// Parses ARB JSON; preserves key order via LinkedHashMap from jsonDecode.
@@ -293,12 +435,19 @@ Future<void> _writeArb(String path, Map<String, dynamic> arb) async {
 }
 
 Future<String?> _resolveOpenAiApiKey(String cwd) async {
+  final fromEnv = Platform.environment['OPENAI_API_KEY'];
+  if (fromEnv != null && fromEnv.isNotEmpty) return fromEnv;
+
   final envFile = File('$cwd/.env');
   if (envFile.existsSync()) {
     final key = _readKeyFromEnvFile(envFile, 'OPENAI_API_KEY');
-    if (key != null && key.isNotEmpty) {
-      return key;
-    }
+    if (key != null && key.isNotEmpty) return key;
+  }
+
+  final appEnvFile = File('$cwd/.app.env');
+  if (appEnvFile.existsSync()) {
+    final key = _readKeyFromEnvFile(appEnvFile, 'OPENAI_API_KEY');
+    if (key != null && key.isNotEmpty) return key;
   }
 
   return null;
