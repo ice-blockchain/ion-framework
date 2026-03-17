@@ -129,7 +129,8 @@ class SyncedCoinsBySymbolGroupNotifier extends _$SyncedCoinsBySymbolGroupNotifie
     Iterable<CoinData> coins,
     Iterable<CoinInWalletData> walletCoins,
   ) {
-    return coins.map((coin) {
+    final uniqueCoins = {for (final coin in coins) coin.id: coin}.values;
+    return uniqueCoins.map((coin) {
       final fromWallet = walletCoins.firstWhereOrNull((e) => e.coin.id == coin.id);
       return fromWallet?.copyWith(coin: coin) ?? CoinInWalletData(coin: coin);
     }).toList()

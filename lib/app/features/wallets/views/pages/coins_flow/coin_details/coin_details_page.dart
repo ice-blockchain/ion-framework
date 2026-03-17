@@ -56,7 +56,22 @@ class CoinDetailsPage extends HookConsumerWidget {
 
     final isTransactionsLoading = history == null || history.isLoading;
 
+<<<<<<< HEAD
     final coinTransactionsMap = useMemoized(
+=======
+    final cryptoWalletAsyncValue = ref.watch(
+      selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
+    );
+    final cryptoWalletData = cryptoWalletAsyncValue.valueOrNull ?? SelectedCryptoWalletData.empty();
+
+    final providerNetwork = ref.watch(
+      networkSelectorNotifierProvider(symbolGroup: symbolGroup)
+          .select((s) => s.valueOrNull?.selected),
+    );
+
+    final selectedNetworkNotifier = useState<SelectedNetworkItem?>(null);
+    useEffect(
+>>>>>>> ce08a1cdc (fix(wallet): reduce excessive wallet api calls (#3682))
       () {
         final sorted = (history?.transactions ?? <CoinTransactionData>[]).sorted(
           (t1, t2) => t2.timestamp.compareTo(t1.timestamp),

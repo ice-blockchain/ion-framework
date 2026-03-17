@@ -30,12 +30,30 @@ class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
       return SelectedCryptoWalletData.empty();
     }
 
+<<<<<<< HEAD
     final connectedWallets = ref
             .watch(walletViewCryptoWalletsProvider(walletViewId: walletView.id))
             .valueOrNull
             ?.where((wallet) => wallet.address != null && wallet.network == network.id)
             .toSet() ??
         {};
+=======
+    final connectedWalletIds = walletView.coins.map((c) => c.walletId).nonNulls.toSet();
+    final walletViewId = walletView.id;
+    final isMainWalletView = walletView.isMainWalletView;
+
+    final relatedWallets = allWallets.where((wallet) {
+      if (wallet.network != network.id || wallet.address == null) return false;
+      if (connectedWalletIds.contains(wallet.id)) return true;
+
+      if (isMainWalletView) {
+        final isAutoCreatedMainWallet =
+            wallet.name != null && wallet.name!.toLowerCase().contains('main');
+        return wallet.name == walletViewId || isAutoCreatedMainWallet;
+      }
+      return wallet.name == walletViewId;
+    }).toSet();
+>>>>>>> ce08a1cdc (fix(wallet): reduce excessive wallet api calls (#3682))
 
     if (connectedWallets.isEmpty) {
       return SelectedCryptoWalletData.empty();

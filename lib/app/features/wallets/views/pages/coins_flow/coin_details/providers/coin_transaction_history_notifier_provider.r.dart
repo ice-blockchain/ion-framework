@@ -33,6 +33,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
   late List<String> _coinWalletAddresses;
   late List<CoinInWalletData> _coins;
   late String _walletViewId;
+  late TransactionsRepository _repository;
 
   List<CoinTransactionData> _history = [];
   NetworkData? _network;
@@ -57,7 +58,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     try {
       await _initializeData(symbolGroup);
       final initialState = await _loadInitialTransactions();
-      await _startRealtimeWatching();
+      _startRealtimeWatching();
 
       return initialState;
     } catch (error, stackTrace) {
@@ -81,6 +82,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     _coinWalletAddresses = await ref
         .watch(walletViewCryptoWalletsProvider().future)
         .then((wallets) => wallets.map((w) => w.address).nonNulls.toList());
+    _repository = await ref.watch(transactionsRepositoryProvider.future);
 
     _network = ref.watch(
       networkSelectorNotifierProvider(symbolGroup: symbolGroup).select(
@@ -124,7 +126,6 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
       );
     }
 
-    final repository = await ref.read(transactionsRepositoryProvider.future);
     final coinIds = _getFilteredCoinIds();
 
     Logger.info(
@@ -133,7 +134,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
       'coinIds: $coinIds, walletAddresses: $_filteredWalletAddresses',
     );
 
-    final transactions = await repository.getTransactions(
+    final transactions = await _repository.getTransactions(
       offset: _offset,
       network: _network,
       walletViewIds: [_walletViewId],
@@ -151,14 +152,13 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     );
   }
 
-  Future<void> _startRealtimeWatching() async {
+  void _startRealtimeWatching() {
     if (!_canLoadTransactions() || _lastLoadTime == null) return;
 
-    final repository = await ref.read(transactionsRepositoryProvider.future);
     final coinIds = _getFilteredCoinIds();
 
     // Stream 1: Watch for new transactions  since initial load
-    _newTransactionsWatcher = repository
+    _newTransactionsWatcher = _repository
         .watchTransactions(
           coinIds: coinIds,
           network: _network,
@@ -174,7 +174,7 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
         .listen(_onTransactionsUpdated, onError: _onWatcherError);
 
     // Stream 2: Watch for in-progress and failed transaction status updates
-    _inProgressTransactionsWatcher = repository
+    _inProgressTransactionsWatcher = _repository
         .watchTransactions(
           coinIds: coinIds,
           network: _network,
@@ -249,12 +249,11 @@ class CoinTransactionHistoryNotifier extends _$CoinTransactionHistoryNotifier {
     _updateState();
 
     try {
-      final repository = await ref.read(transactionsRepositoryProvider.future);
       final coinIds = _getFilteredCoinIds();
 
       Logger.info('$_tag Loading more transactions from offset: $_offset');
 
-      final transactions = await repository.getTransactions(
+      final transactions = await _repository.getTransactions(
         offset: _offset,
         network: _network,
         walletViewIds: [_walletViewId],
