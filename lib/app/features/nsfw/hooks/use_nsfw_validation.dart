@@ -11,6 +11,7 @@ void useNsfwValidation({
   required WidgetRef ref,
   MediaFile? videoFile,
   bool skipMediaConversion = false,
+  bool enabled = true,
 }) {
   final mediaSignature = mediaFiles.map((f) => f.path).join(',');
 
@@ -18,6 +19,7 @@ void useNsfwValidation({
   useEffect(
     () {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!enabled) return;
         final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
 
         if (mediaFiles.isNotEmpty) {
@@ -38,13 +40,14 @@ void useNsfwValidation({
       });
       return null;
     },
-    [mediaSignature],
+    [mediaSignature, enabled],
   );
 
   // Handle video files
   useEffect(
     () {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!enabled) return;
         final mediaChecker = await ref.read(mediaNsfwCheckerProvider.future);
 
         if (videoFile != null) {
@@ -59,6 +62,6 @@ void useNsfwValidation({
       });
       return null;
     },
-    [videoFile?.path],
+    [videoFile?.path, enabled],
   );
 }

@@ -179,6 +179,7 @@ class _StoryShareButton extends HookConsumerWidget {
       ref: ref,
       mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
       skipMediaConversion: true,
+      enabled: !isPostScreenshot,
     );
     ref.watch(mediaNsfwCheckerProvider);
 
@@ -195,10 +196,8 @@ class _StoryShareButton extends HookConsumerWidget {
 
               isPublishing.value = true;
               try {
-                // We don't need to check NSFW for token shares
-                final isTokenShare =
-                    isPostScreenshot && (eventReference?.isCommunityTokenReference ?? false);
-                if (!isTokenShare &&
+                // Skip NSFW for any post screenshot (profile card, token card, or post card)
+                if (!isPostScreenshot &&
                     !await performNsfwCheckAndHandleResult(
                       ref,
                       mediaFiles: [MediaFile(path: path, mimeType: mimeType)],
