@@ -82,6 +82,7 @@ class RecentChatOverlay extends HookConsumerWidget {
           ),
         ),
         PositionedDirectional(
+          start: ScreenSideOffset.defaultSmallMargin,
           end: ScreenSideOffset.defaultSmallMargin,
           top: topY,
           bottom: MediaQuery.paddingOf(context).bottom,
@@ -92,16 +93,14 @@ class RecentChatOverlay extends HookConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.0.s),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16.0.s),
+                    image: DecorationImage(image: MemoryImage(imageBytes), fit: BoxFit.fitWidth),
                   ),
-                  child: Image.memory(
-                    imageBytes,
+                  child: SizedBox(
                     height: contentHeight,
                     width: size.width - 24.0.s,
-                    fit: BoxFit.fitWidth,
                   ),
                 ),
                 IntrinsicWidth(
