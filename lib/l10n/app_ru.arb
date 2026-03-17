@@ -1196,8 +1196,9 @@
   "who_can_reply_settings_title_article": "Кто может отвечать на эту статью",
   "who_can_reply_settings_title_post": "Кто может отвечать на этот пост",
   "who_can_reply_settings_title_video": "Кто может отвечать на это видео",
-  "who_can_reply_settings_verified_accounts": "Проверенные аккаунты",
+  "who_can_reply_settings_verified_accounts": "Измененный текст",
   "write_a_message": "Написать сообщение...",
+  "add_new_key_for_auto_translate2": "Текст введенный вручную",
   "token_unable_to_fetch_market_data_title": "Не удалось загрузить рыночные данные",
   "token_unable_to_fetch_market_data_description": "Мы загружаем рыночную информацию для этого токена, попробуйте позже",
   "your_position_card_title": "Ваша позиция"

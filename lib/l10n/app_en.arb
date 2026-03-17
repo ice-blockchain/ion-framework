@@ -1,5 +1,7 @@
 {
   "@@locale": "en",
+  "add_new_key_for_auto_translate": "New text, which should be automatically translated",
+  "add_new_key_for_auto_translate2": "New text, which should be automatically translated 2",
   "all_networks_item": "All networks",
   "app_language_description": "You'll be shown the app in the selected language",
   "app_language_title": "App language",
@@ -1002,7 +1004,7 @@
   "two_fa_edit_phone_button": "Update phone",
   "two_fa_edit_phone_new_phone_description": "Enter your new phone number for verification",
   "two_fa_edit_phone_options_description": "To update your phone number, please verify your identity using one of the 2FA options below",
-  "two_fa_edit_phone_success": "Verification by phone was successfully changed",
+  "two_fa_edit_phone_success": "EN translation changed",
   "two_fa_edit_phone_title": "Update phone number",
   "two_fa_email": "Email code",
   "two_fa_failure_authenticator_description": "To set up an Authenticator app, please first link an email address or phone number to your account",
