@@ -173,7 +173,8 @@ class VideoPreview extends HookConsumerWidget {
                   ? _LoadingThumbnail(url: thumbnailUrl!, authorPubkey: authorPubkey)
                   : _Thumbnail(url: thumbnailUrl!, authorPubkey: authorPubkey),
             ),
-          if (controller != null && controller.value.isInitialized && !hasError)
+          if (controller != null && controller.value.isInitialized && !hasError &&
+              !videoControllerProviderState.isRefreshing)
             Positioned.fill(
               child: FittedBox(
                 fit: BoxFit.cover,
