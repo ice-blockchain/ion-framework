@@ -6,6 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/features/auth/data/models/twofa_type.dart';
 import 'package:ion/app/features/protect_account/authenticator/data/adapter/twofa_type_adapter.dart';
 import 'package:ion/app/services/ion_identity/ion_identity_provider.r.dart';
+import 'package:ion/app/services/sentry/api_error_sentry_logger.dart';
 import 'package:ion/app/services/sentry/sentry_service.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,10 +18,12 @@ const _recoveryFlowSentryTag = 'auth_recovery_flow';
 
 void _logRecoveryStep(String step, {required String username}) {
   unawaited(
-    SentryService.logMessage(
+    SentryService.addBreadcrumb(
       step,
-      tag: _recoveryFlowSentryTag,
-      tags: {
+      category: _recoveryFlowSentryTag,
+      data: {
+        'manual_log': _recoveryFlowSentryTag,
+        'step': step,
         'username': username,
       },
     ),
@@ -33,6 +36,7 @@ void _logRecoveryError(
   required String step,
   required String username,
 }) {
+  final networkContext = extractApiErrorNetworkContext(error);
   unawaited(
     SentryService.logException(
       error,
@@ -42,6 +46,7 @@ void _logRecoveryError(
         'step': step,
         'username': username,
       },
+      debugContext: networkContext.isEmpty ? null : networkContext,
     ),
   );
 }
