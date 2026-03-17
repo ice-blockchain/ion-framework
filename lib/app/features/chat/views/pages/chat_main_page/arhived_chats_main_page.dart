@@ -51,21 +51,23 @@ class ArchivedChatsMainPage extends HookConsumerWidget {
           ),
         ],
       ),
-      body: ScreenSideOffset.small(
-        child: conversations.when(
-          data: (data) {
-            if (data.isEmpty) {
-              return const RecentChatsEmptyPage();
-            }
-            return const RecentChatsArchiveTimelinePage();
-          },
-          loading: () {
-            return const RecentChatSkeleton();
-          },
-          error: (_, __) {
-            return const SizedBox.shrink();
-          },
-        ),
+      body: conversations.when(
+        data: (data) {
+          if (data.isEmpty) {
+            return ScreenSideOffset.small(
+              child: const RecentChatsEmptyPage(),
+            );
+          }
+          return const RecentChatsArchiveTimelinePage();
+        },
+        loading: () {
+          return ScreenSideOffset.small(
+            child: const RecentChatSkeleton(),
+          );
+        },
+        error: (_, __) {
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
