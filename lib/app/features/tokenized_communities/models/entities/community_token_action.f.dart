@@ -241,7 +241,7 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
   double? getTokenPrice() {
     final tokenAmount = getTokenAmount()?.value;
     final usdAmount = getUsdAmount()?.value;
-    if (tokenAmount == null || usdAmount == null) return null;
+    if (tokenAmount == null || usdAmount == null || tokenAmount == 0) return null;
     return usdAmount / tokenAmount;
   }
 

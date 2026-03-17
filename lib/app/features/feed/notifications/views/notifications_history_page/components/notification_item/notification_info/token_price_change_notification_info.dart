@@ -20,11 +20,11 @@ class TokenPriceChangeNotificationInfo extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final value = useMemoized(entity.data.computePriceChangePercent);
+    final value = useMemoized(entity.data.computePriceChangePercent, [entity]);
     final descriptionTemplate = context.i18n.notifications_token_value_increased;
 
     // Updating the [:value] separately to avoid conflicts with the wrapping [:green] tag.
-    final description = descriptionTemplate.replaceAll('[:value]', value.toString());
+    final description = descriptionTemplate.replaceAll('[:value]', value.abs().toString());
 
     final textSpan = replaceString(
       description,

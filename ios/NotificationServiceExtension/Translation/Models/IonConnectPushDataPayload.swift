@@ -381,7 +381,7 @@ class IonConnectPushDataPayload: Decodable {
         if let entity = mainEntity as? TokenPriceChangeResponseEntity {
             let priceChangePercent = entity.data.computePriceChangePercent()
             let sign = getNumericSign(Double(priceChangePercent))
-            data["priceIncreasePercentage"] = "\(sign)\(priceChangePercent)"
+            data["priceIncreasePercentage"] = "\(sign)\(abs(priceChangePercent))"
         }
 
         if let entity = mainEntity as? TokenBuyingActivityResponseEntity {
