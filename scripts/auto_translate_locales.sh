@@ -36,29 +36,30 @@ for arg in "$@"; do
   esac
 done
 
-# 1) Generate l10n (produces untranslated_messages.txt)
-use_asdf flutter gen-l10n
-
 UNTRANSLATED_FILE="untranslated_messages.txt"
 NEED_TRANSLATIONS=0
 L10N_STATUS_BEFORE="$(git status --porcelain lib/l10n 2>/dev/null || true)"
+
+# Resolve BASE_REF early (so translate_missing always gets it in one run)
+BASE_REF="${BASE_REF_ARG:-${BASE_REF:-}}"
+if [ -z "$BASE_REF" ] || [ "$BASE_REF" = "auto" ]; then
+  if git show "origin/master:lib/l10n/app_en.arb" >/dev/null 2>&1; then
+    BASE_REF="origin/master"
+  elif git show "origin/main:lib/l10n/app_en.arb" >/dev/null 2>&1; then
+    BASE_REF="origin/main"
+  else
+    BASE_REF=""
+  fi
+fi
+
+# 1) Generate l10n (produces untranslated_messages.txt)
+use_asdf flutter gen-l10n
 
 if [ -f "$UNTRANSLATED_FILE" ] && [ -s "$UNTRANSLATED_FILE" ] && [ "$(jq 'length' "$UNTRANSLATED_FILE" 2>/dev/null)" != "0" ]; then
   NEED_TRANSLATIONS=1
 fi
 
-BASE_REF="${BASE_REF_ARG:-${BASE_REF:-}}"
 if [ "$NEED_TRANSLATIONS" -eq 0 ]; then
-  if [ -z "$BASE_REF" ] || [ "$BASE_REF" = "auto" ]; then
-    if git show "origin/master:lib/l10n/app_en.arb" >/dev/null 2>&1; then
-      BASE_REF="origin/master"
-    elif git show "origin/main:lib/l10n/app_en.arb" >/dev/null 2>&1; then
-      BASE_REF="origin/main"
-    else
-      BASE_REF=""
-    fi
-  fi
-
   if [ -n "$BASE_REF" ] && ! git diff --quiet "$BASE_REF" -- lib/l10n/app_en.arb 2>/dev/null; then
     NEED_TRANSLATIONS=1
   fi
@@ -66,14 +67,15 @@ fi
 
 GENERATED=0
 if [ "$NEED_TRANSLATIONS" -eq 1 ]; then
+  TRANSLATE_ARGS=()
   if [ -n "$BASE_REF" ]; then
-    export BASE_REF="$BASE_REF"
+    TRANSLATE_ARGS+=(--base-ref="$BASE_REF")
   fi
 
   if [ "$DO_COMMIT" -eq 1 ]; then
-    dart run tools/translate_missing.dart --commit
+    dart run tools/translate_missing.dart --commit "${TRANSLATE_ARGS[@]}"
   else
-    dart run tools/translate_missing.dart
+    dart run tools/translate_missing.dart "${TRANSLATE_ARGS[@]}"
   fi
 
   # Re-run gen-l10n after filling so untranslated_messages.txt is refreshed.

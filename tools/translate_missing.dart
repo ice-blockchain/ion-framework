@@ -49,8 +49,7 @@ void main(List<String> args) async {
     final content = await File(untranslatedPath).readAsString();
     untranslated = _parseUntranslated(content);
   } else if (baseRef == null) {
-    stderr
-        .writeln('$_untranslatedFile not found. Run "flutter gen-l10n" first.');
+    stderr.writeln('$_untranslatedFile not found. Run "flutter gen-l10n" first.');
     exit(1);
   }
 
@@ -99,10 +98,8 @@ void main(List<String> args) async {
     exit(0);
   }
 
-  final totalKeys =
-      toTranslate.values.fold<int>(0, (s, keys) => s + keys.length);
-  stdout.writeln(
-      'Keys to translate: $totalKeys across ${toTranslate.length} locale(s).');
+  final totalKeys = toTranslate.values.fold<int>(0, (s, keys) => s + keys.length);
+  stdout.writeln('Keys to translate: $totalKeys across ${toTranslate.length} locale(s).');
 
   final apiKey = await _resolveOpenAiApiKey(cwd);
   if (!dryRun && (apiKey == null || apiKey.isEmpty)) {
@@ -245,9 +242,7 @@ Future<({Set<String> added, Set<String> modified})> _getChangedEnKeysDetailed(
   final oldContent = result.stdout as String;
   if (oldContent.trim().isEmpty) {
     return (
-      added: currentArb.keys
-          .where((k) => !k.startsWith('@') && k != '@@locale')
-          .toSet(),
+      added: currentArb.keys.where((k) => !k.startsWith('@') && k != '@@locale').toSet(),
       modified: <String>{},
     );
   }
@@ -278,8 +273,7 @@ Future<({Set<String> added, Set<String> modified})> _getChangedEnKeysDetailed(
 }
 
 /// All target locale codes: from [fromUntranslated] plus any app_XX.arb present (except en).
-List<String> _allTargetLocales(
-    String arbDirPath, List<String> fromUntranslated) {
+List<String> _allTargetLocales(String arbDirPath, List<String> fromUntranslated) {
   final set = fromUntranslated.toSet();
   final dir = Directory(arbDirPath);
   if (!dir.existsSync()) return set.toList()..sort();
@@ -295,13 +289,14 @@ List<String> _allTargetLocales(
 
 /// Merge untranslated (per locale) with changed keys. Returns map locale -> list of keys to translate.
 Future<Map<String, List<String>>> _mergeKeysToTranslate(
-    String arbDirPath,
-    Map<String, List<String>> untranslated,
-    Set<String> changedAddedKeys,
-    Set<String> changedModifiedKeys,
-    List<String> allLocales,
-    {required String? baseRef,
-    required String cwd}) async {
+  String arbDirPath,
+  Map<String, List<String>> untranslated,
+  Set<String> changedAddedKeys,
+  Set<String> changedModifiedKeys,
+  List<String> allLocales, {
+  required String? baseRef,
+  required String cwd,
+}) async {
   final out = <String, List<String>>{};
 
   for (final locale in allLocales) {
@@ -428,8 +423,7 @@ Future<Map<String, dynamic>?> _tryLoadArbFromGit({
   });
 
   // [[:link]]...[[/:link]]
-  result = result.replaceAllMapped(
-      RegExp(r'\[\[:link\]\](.*?)\[\[\/:link\]\]', dotAll: true), (m) {
+  result = result.replaceAllMapped(RegExp(r'\[\[:link\]\](.*?)\[\[\/:link\]\]', dotAll: true), (m) {
     final full = m.group(0)!;
     final index = placeholders.indexOf(full);
     if (index >= 0) return '__PH_${index}__';
@@ -448,11 +442,9 @@ String _restorePlaceholders(String text, List<String> placeholders) {
   return result;
 }
 
-Future<String?> _translate(
-    String apiKey, String source, String targetLanguage) async {
+Future<String?> _translate(String apiKey, String source, String targetLanguage) async {
   final (placeholders, textForApi) = _replacePlaceholdersForTranslation(source);
-  final prompt =
-      'Translate the following English app string to $targetLanguage. '
+  final prompt = 'Translate the following English app string to $targetLanguage. '
       'Keep any placeholders like __PH_0__, __PH_1__ exactly as-is (do not translate them). '
       'Reply with only the translated string, no quotes or explanation.\n\n$textForApi';
 
@@ -481,8 +473,7 @@ Future<String?> _translate(
     final data = jsonDecode(responseBody) as Map<String, dynamic>;
     final choices = data['choices'] as List<dynamic>?;
     final content = choices?.isNotEmpty ?? false
-        ? (choices!.first as Map<String, dynamic>)['message']
-            as Map<String, dynamic>?
+        ? (choices!.first as Map<String, dynamic>)['message'] as Map<String, dynamic>?
         : null;
     final translated = content?['content'] as String?;
     if (translated == null || translated.isEmpty) return null;
@@ -612,8 +603,7 @@ Future<void> _gitCommitAndPush() async {
     runInShell: true,
   );
 
-  if (commitResult.exitCode != 0 &&
-      (commitResult.stderr as String).contains('nothing to commit')) {
+  if (commitResult.exitCode != 0 && (commitResult.stderr as String).contains('nothing to commit')) {
     return;
   }
   if (commitResult.exitCode != 0) {
