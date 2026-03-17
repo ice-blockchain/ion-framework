@@ -523,7 +523,9 @@ class IonConnectPushDataPayload {
     }
 
     if (entity is TokenPriceChangeResponseEntity) {
-      data['priceIncreasePercentage'] = entity.data.computePriceChangePercent().toString();
+      final priceChangePercent = entity.data.computePriceChangePercent();
+      final sign = getNumericSign(priceChangePercent);
+      data['priceIncreasePercentage'] = '$sign$priceChangePercent';
     }
 
     if (entity is TokenBuyingActivityResponseEntity) {
