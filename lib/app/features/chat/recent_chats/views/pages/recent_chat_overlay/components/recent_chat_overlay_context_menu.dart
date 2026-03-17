@@ -18,6 +18,7 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/manual_unread_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/request_conversations_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_toast.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_actions.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
@@ -87,7 +88,6 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
                   ...primaryActions.map(
                     (action) => _RecentChatOverlayActionItem(
                       action: action,
-                      ref: ref,
                     ),
                   ),
                   if (archiveAction != null)
@@ -138,7 +138,6 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
                     ),
                   _RecentChatOverlayActionItem(
                     action: deleteAction,
-                    ref: ref,
                   ),
                 ].separated(const OverlayMenuItemSeparator()),
               ],
@@ -173,35 +172,28 @@ class _ArchiveOverlayActionItem extends StatelessWidget {
       onPressed: () {
         // Capture values before pop (context may be disposed after)
         final isArchived = action.kind == RecentChatActionKind.unarchive;
-        final message = isArchived ? context.i18n.chat_unarchived : context.i18n.chat_archived;
-        final archiveIcon = Assets.svg.iconChatArchive.icon(size: 16.0.s);
         final conversationId = conversation.conversationId;
 
         if (context.mounted) {
           Navigator.of(context).pop();
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          executeArchiveOrUnarchiveWithToast(
-            ref: ref,
-            conversationIds: [conversationId],
-            message: message,
-            icon: archiveIcon,
-          );
-        });
+        executeArchiveOrUnarchiveWithToast(
+          context: context,
+          ref: ref,
+          conversationIds: [conversationId],
+          isArchived: isArchived,
+          deferToNextFrame: true,
+        );
       },
     );
   }
 }
 
 class _RecentChatOverlayActionItem extends StatelessWidget {
-  const _RecentChatOverlayActionItem({
-    required this.action,
-    required this.ref,
-  });
+  const _RecentChatOverlayActionItem({required this.action});
 
   final RecentChatActionItem action;
-  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {

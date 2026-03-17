@@ -6,7 +6,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_actions.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_toast.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ConversationArchiveButton extends ConsumerWidget {
@@ -32,16 +32,13 @@ class ConversationArchiveButton extends ConsumerWidget {
         ref.read(conversationsEditModeProvider.notifier).editMode = false;
 
         // Show toast after edit bar unmounts so it is visible
-        final message = context.i18n.chat_archived;
-        final archiveIcon = Assets.svg.iconChatArchive.icon(size: 16.0.s);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          executeArchiveOrUnarchiveWithToast(
-            ref: ref,
-            conversationIds: conversationIds,
-            message: message,
-            icon: archiveIcon,
-          );
-        });
+        executeArchiveOrUnarchiveWithToast(
+          context: context,
+          ref: ref,
+          conversationIds: conversationIds,
+          isArchived: false,
+          deferToNextFrame: true,
+        );
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

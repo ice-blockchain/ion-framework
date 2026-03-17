@@ -7,7 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_actions.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_toast.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ConversationUnarchiveButton extends ConsumerWidget {
@@ -27,8 +27,6 @@ class ConversationUnarchiveButton extends ConsumerWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () async {
         final conversationIds = conversationsToManage.map((e) => e.conversationId).toList();
-        final message = context.i18n.chat_unarchived;
-        final archiveIcon = Assets.svg.iconChatArchive.icon(size: 16.0.s);
 
         ref.read(conversationsEditModeProvider.notifier).editMode = false;
         ref.read(selectedConversationsProvider.notifier).clear();
@@ -36,14 +34,13 @@ class ConversationUnarchiveButton extends ConsumerWidget {
           context.pop();
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          executeArchiveOrUnarchiveWithToast(
-            ref: ref,
-            conversationIds: conversationIds,
-            message: message,
-            icon: archiveIcon,
-          );
-        });
+        executeArchiveOrUnarchiveWithToast(
+          context: context,
+          ref: ref,
+          conversationIds: conversationIds,
+          isArchived: true,
+          deferToNextFrame: true,
+        );
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
