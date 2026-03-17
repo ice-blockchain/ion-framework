@@ -6,6 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/bool.dart';
 import 'package:ion/app/features/auth/providers/local_passkey_creds_provider.r.dart';
+import 'package:ion/app/features/auth/providers/onboarding_complete_provider.r.dart';
 import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/user/providers/biometrics_provider.r.dart';
@@ -273,15 +274,36 @@ class UserSwitchState with _$UserSwitchState {
 class UserSwitchInProgress extends _$UserSwitchInProgress {
   @override
   UserSwitchState build() {
-    ref.listen(
-      currentIdentityKeyNameSelectorProvider,
-      (prev, next) {
-        if (prev != null && next != null && prev != next) {
-          completeSwitching();
-        }
-      },
-    );
+    ref
+      ..listen<bool?>(
+        authProvider.select((state) => state.valueOrNull?.isAuthenticated),
+        (prev, next) {
+          final didRecoverAuth = prev == false && next.falseOrValue;
+          if (state.isSwitchingProgress && state.isLogoutTriggered && didRecoverAuth) {
+            completeSwitching();
+          }
+        },
+      )
+      ..listen<String?>(
+        currentIdentityKeyNameSelectorProvider,
+        (prev, next) {
+          final didSwitchToTargetUser = prev != next && next != null;
+          if (state.isSwitchingProgress && didSwitchToTargetUser && !state.isLogoutTriggered) {
+            unawaited(_completeSwitchingAfterOnboardingRefresh());
+          }
+        },
+      );
     return const UserSwitchState();
+  }
+
+  Future<void> _completeSwitchingAfterOnboardingRefresh() async {
+    ref.invalidate(onboardingCompleteProvider);
+    try {
+      await ref.read(onboardingCompleteProvider.future);
+    } catch (_) {}
+    if (state.isSwitchingProgress && !state.isLogoutTriggered) {
+      completeSwitching();
+    }
   }
 
   void startSwitching() {

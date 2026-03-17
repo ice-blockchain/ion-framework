@@ -55,14 +55,18 @@ class DeviceKeypairUtils {
   }
 
   /// Finds the device keypair MediaAttachment from current user's metadata
-  static MediaAttachment? extractDeviceKeypairAttachmentFromMetadata(UserMetadataEntity? metadata) {
+  static MediaAttachment? extractDeviceKeypairAttachmentFromMetadata(
+    UserMetadataEntity? metadata,
+  ) {
     if (metadata == null) {
       return null;
     }
 
     // Find device keypair attachment by alt field
     return metadata.data.media.values
-        .where((attachment) => attachment.alt == FileAlt.attestationKey.toShortString())
+        .where(
+          (attachment) => attachment.alt == FileAlt.attestationKey.toShortString(),
+        )
         .firstOrNull;
   }
 
@@ -132,7 +136,10 @@ class DeviceKeypairUtils {
   }
 
   /// Downloads encrypted keypair from relays using proper file storage URL discovery
-  static Future<Uint8List> downloadEncryptedKeypair(String fileId, Ref ref) async {
+  static Future<Uint8List> downloadEncryptedKeypair(
+    String fileId,
+    Ref ref,
+  ) async {
     final relayUrls = await _resolveDeviceKeypairRelayUrls(ref);
     if (relayUrls.isEmpty) {
       throw DeviceKeypairRestoreException(

@@ -9,6 +9,7 @@ import 'package:ion/app/features/core/extensions/ref_lifecycle_listen_extension.
 import 'package:ion/app/features/core/providers/current_user_agent.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/auth_event.f.dart';
+import 'package:ion/app/features/ion_connect/providers/ion_connect_event_signer_provider.r.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_delegation_provider.r.dart';
 import 'package:ion/app/services/ion_token_analytics/token_analytics_logger.dart';
@@ -66,6 +67,11 @@ Future<IonTokenAnalyticsClient> ionTokenAnalyticsClient(Ref ref) async {
 Raw<Future<String?>> tokenAnalyticsAuthToken(Ref ref) async {
   keepAliveWhenAuthenticated(ref);
   ref.watch(currentIdentityKeyNameSelectorProvider);
+
+  final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
+  if (eventSigner == null) {
+    return null;
+  }
 
   final (delegationComplete, delegation, userAgent) = await (
     ref.read(cacheDelegationCompleteProvider.future),

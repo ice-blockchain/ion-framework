@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/delegation_complete_provider.r.dart';
 import 'package:ion/app/features/auth/providers/relays_assigned_provider.r.dart';
@@ -12,7 +13,13 @@ part 'onboarding_complete_provider.r.g.dart';
 
 @Riverpod(keepAlive: true)
 Future<bool?> onboardingComplete(Ref ref) async {
-  final mainWallet = await ref.watch(mainWalletProvider.future);
+  final mainWallet = await (() async {
+    try {
+      return await ref.watch(mainWalletProvider.future);
+    } on MainWalletNotFoundException {
+      return null;
+    }
+  })();
   final userIsReady = mainWallet?.signingKey.publicKey != null;
   if (!userIsReady) {
     return null;

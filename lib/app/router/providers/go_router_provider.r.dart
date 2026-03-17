@@ -122,16 +122,9 @@ Future<String?> _mainRedirect({
   final isUserSwitching = ref.read(userSwitchInProgressProvider).isSwitchingProgress;
 
   final isAuthenticated = (ref.read(authProvider).valueOrNull?.isAuthenticated).falseOrValue;
-  final onboardingComplete = ref.read(onboardingCompleteProvider).valueOrNull;
-  final hasNotificationsPermission = ref.read(hasPermissionProvider(Permission.notifications));
-
-  final isOnSplash = location.startsWith(SplashRoute().location);
   final isOnAuth = location.contains('/${AuthRoutes.authPrefix}/');
-  final isOnOnboarding = location.contains('/${AuthRoutes.onboardingPrefix}/');
-  final isOnMediaPicker = location.contains(MediaPickerRoutes.routesPrefix);
-  final isOnFeed = location == FeedRoute().location;
 
-  if (isUserSwitching && isOnAuth) {
+  if (isUserSwitching) {
     return null;
   }
 
@@ -139,8 +132,24 @@ Future<String?> _mainRedirect({
     return IntroRoute().location;
   }
 
-  if (isAuthenticated && onboardingComplete != null) {
-    if (onboardingComplete) {
+  final onboardingComplete = ref.read(onboardingCompleteProvider).valueOrNull;
+  final hasNotificationsPermission = ref.read(hasPermissionProvider(Permission.notifications));
+  final isOnSplash = location.startsWith(SplashRoute().location);
+  final isOnOnboarding = location.contains('/${AuthRoutes.onboardingPrefix}/');
+  final isOnMediaPicker = location.contains(MediaPickerRoutes.routesPrefix);
+  final isOnFeed = location == FeedRoute().location;
+
+  if (isAuthenticated && onboardingComplete == null) {
+    return null;
+  }
+
+  final userMetadata = await ref.read(currentUserMetadataProvider.future);
+  final hasUserMetadata = userMetadata != null;
+  final delegationComplete = ref.read(delegationCompleteProvider).valueOrNull.falseOrValue;
+  final relaysAssigned = ref.read(relaysAssignedProvider).valueOrNull.falseOrValue;
+
+  if (isAuthenticated) {
+    if (onboardingComplete.falseOrValue) {
       if (isOnSplash || isOnAuth) {
         return FeedRoute().location;
       } else if (isOnOnboarding) {
@@ -152,23 +161,14 @@ Future<String?> _mainRedirect({
       }
     }
 
-    final userMetadata = await ref.read(currentUserMetadataProvider.future);
-    final hasUserMetadata = userMetadata != null;
-    final delegationComplete = ref.read(delegationCompleteProvider).valueOrNull.falseOrValue;
-    final relaysAssigned = ref.read(relaysAssignedProvider).valueOrNull.falseOrValue;
-
-    if (!onboardingComplete &&
+    if (!onboardingComplete.falseOrValue &&
         !isOnOnboarding &&
         !isOnMediaPicker &&
         !(hasUserMetadata && relaysAssigned)) {
       return FillProfileRoute().location;
     }
 
-    if (isUserSwitching && !isOnAuth) {
-      return IntroRoute().location;
-    }
-
-    if (!onboardingComplete &&
+    if (!onboardingComplete.falseOrValue &&
         !isOnFeed &&
         !isOnOnboarding &&
         hasUserMetadata &&
