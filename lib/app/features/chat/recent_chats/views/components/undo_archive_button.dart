@@ -11,8 +11,6 @@ class UndoArchiveButton extends StatelessWidget {
 
   final VoidCallback onTap;
 
-  static const _minTapTargetSize = 44.0;
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -21,14 +19,12 @@ class UndoArchiveButton extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: 12.0.s,
-          vertical: (_minTapTargetSize.s - 20.0.s) / 2,
+          vertical: 12.0.s,
         ),
         child: Text(
           context.i18n.button_undo,
           style: context.theme.appTextThemes.body.copyWith(
             color: context.theme.appColors.onPrimaryAccent,
-            decoration: TextDecoration.underline,
-            decorationColor: context.theme.appColors.onPrimaryAccent,
           ),
         ),
       ),

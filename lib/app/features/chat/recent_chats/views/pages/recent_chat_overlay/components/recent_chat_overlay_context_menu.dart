@@ -18,7 +18,7 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/manual_unread_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/request_conversations_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_toast.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_message_notification.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_actions.dart';
 import 'package:ion/app/features/user/pages/profile_page/pages/block_user_modal/block_user_modal.dart';
 import 'package:ion/app/features/user/providers/report_notifier.m.dart';
@@ -62,14 +62,17 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
       conversation: conversation,
     );
     final archiveAction = actions
-        .where((a) =>
-            a.kind == RecentChatActionKind.archive || a.kind == RecentChatActionKind.unarchive)
+        .where(
+          (a) => a.kind == RecentChatActionKind.archive || a.kind == RecentChatActionKind.unarchive,
+        )
         .firstOrNull;
     final primaryActions = actions
-        .where((action) =>
-            action.kind != RecentChatActionKind.delete &&
-            action.kind != RecentChatActionKind.archive &&
-            action.kind != RecentChatActionKind.unarchive)
+        .where(
+          (action) =>
+              action.kind != RecentChatActionKind.delete &&
+              action.kind != RecentChatActionKind.archive &&
+              action.kind != RecentChatActionKind.unarchive,
+        )
         .toList();
     final deleteAction = actions.firstWhere((action) => action.kind == RecentChatActionKind.delete);
 
@@ -178,7 +181,7 @@ class _ArchiveOverlayActionItem extends StatelessWidget {
           Navigator.of(context).pop();
         }
 
-        executeArchiveOrUnarchiveWithToast(
+        toggleArchiveAndShowMessage(
           context: context,
           ref: ref,
           conversationIds: [conversationId],

@@ -7,7 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_toast.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_message_notification.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ConversationUnarchiveButton extends ConsumerWidget {
@@ -34,7 +34,7 @@ class ConversationUnarchiveButton extends ConsumerWidget {
           context.pop();
         }
 
-        executeArchiveOrUnarchiveWithToast(
+        toggleArchiveAndShowMessage(
           context: context,
           ref: ref,
           conversationIds: conversationIds,

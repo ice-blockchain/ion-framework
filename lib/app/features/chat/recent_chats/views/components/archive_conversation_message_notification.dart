@@ -9,14 +9,14 @@ import 'package:ion/app/features/chat/recent_chats/providers/toggle_archive_conv
 import 'package:ion/app/features/chat/recent_chats/views/components/undo_archive_button.dart';
 import 'package:ion/generated/assets.gen.dart';
 
-void executeArchiveOrUnarchiveWithToast({
+void toggleArchiveAndShowMessage({
   required BuildContext context,
   required WidgetRef ref,
   required List<String> conversationIds,
   required bool isArchived,
   bool deferToNextFrame = false,
 }) {
-  void showToast() {
+  void showMessageNotification() {
     final toggleNotifier = ref.read(toggleArchivedConversationsProvider.notifier);
     final messageNotifier = ref.read(messageNotificationNotifierProvider.notifier);
 
@@ -37,8 +37,8 @@ void executeArchiveOrUnarchiveWithToast({
   }
 
   if (deferToNextFrame) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => showToast());
+    WidgetsBinding.instance.addPostFrameCallback((_) => showMessageNotification());
   } else {
-    showToast();
+    showMessageNotification();
   }
 }

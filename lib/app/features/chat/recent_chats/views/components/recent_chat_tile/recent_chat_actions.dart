@@ -8,7 +8,7 @@ import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
-import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_toast.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_message_notification.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -89,7 +89,7 @@ List<RecentChatActionItem> buildRecentChatActions({
       label: isArchived ? context.i18n.common_unarchive_single : context.i18n.common_add_to_archive,
       icon: Assets.svg.iconChatArchive,
       onSelected: () async {
-        executeArchiveOrUnarchiveWithToast(
+        toggleArchiveAndShowMessage(
           context: context,
           ref: ref,
           conversationIds: [conversation.conversationId],

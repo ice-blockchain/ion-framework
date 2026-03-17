@@ -6,7 +6,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_toast.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_message_notification.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ConversationArchiveButton extends ConsumerWidget {
@@ -25,14 +25,13 @@ class ConversationArchiveButton extends ConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        final conversationIds =
-            conversationsToManage.map((e) => e.conversationId).toList();
+        final conversationIds = conversationsToManage.map((e) => e.conversationId).toList();
 
         ref.read(selectedConversationsProvider.notifier).clear();
         ref.read(conversationsEditModeProvider.notifier).editMode = false;
 
-        // Show toast after edit bar unmounts so it is visible
-        executeArchiveOrUnarchiveWithToast(
+        // Show the message notification after edit bar unmounts so it is visible.
+        toggleArchiveAndShowMessage(
           context: context,
           ref: ref,
           conversationIds: conversationIds,
