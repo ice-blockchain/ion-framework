@@ -337,12 +337,15 @@ class AudioVolumeObserver: NSObject {
         audioBrowserFlutterEngine.run(withEntrypoint: "audioBrowser")
         GeneratedPluginRegistrant.register(with: audioBrowserFlutterEngine)
 
-        // Retrieve the link from parameters
+        // Retrieve the link from parameters, but skip ShareMedia URLs
+        // so they reach the sharing intent plugin via super.application().
         if let url = AppLinks.shared.getLink(launchOptions: launchOptions) {
-        // We have a link, propagate it to your Flutter app or not
-        AppLinks.shared.handleLink(url: url)
-        return true // Returning true will stop the propagation to other packages
-    }
+            let sharingIntent = SwiftListenSharingIntentPlugin.instance
+            if !sharingIntent.hasMatchingSchemePrefix(url: url) {
+                AppLinks.shared.handleLink(url: url)
+                return true
+            }
+        }
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
