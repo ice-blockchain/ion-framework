@@ -35,7 +35,7 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
 
   final ConversationListItem conversation;
   final bool isRequestConversation;
-  
+
   static double heightFor({required bool isRequestConversation}) =>
       isRequestConversation ? 148.0.s : 241.0.s;
 
@@ -152,7 +152,6 @@ class _RecentChatOverlayActionItem extends StatelessWidget {
           Navigator.of(context).pop();
         }
       },
- 
     );
   }
 }
