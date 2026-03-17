@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -74,7 +76,16 @@ class SwitchAccountModal extends HookConsumerWidget {
                           textDirection: Directionality.of(context),
                         ),
                       ),
-                      onTap: () => ConfirmLogoutRoute(pubkey: currentPubkey).push<void>(context),
+                      onTap: () {
+                        final rootContext = Navigator.of(context, rootNavigator: true).context;
+                        context.pop();
+                        if (!rootContext.mounted) {
+                          return;
+                        }
+                        unawaited(
+                          ConfirmLogoutRoute(pubkey: currentPubkey).push<void>(rootContext),
+                        );
+                      },
                     ),
                   ScreenBottomOffset(margin: 32.0.s),
                 ],
