@@ -97,7 +97,7 @@ Stream<List<OhlcvCandle>?> _withIntervalTicks(
 
   void scheduleNextTick() {
     tickTimer?.cancel();
-    tickTimer = Timer(timeUntilNextSlot(interval, buffer: _tickBuffer), () {
+    tickTimer = Timer(durationUntilNextSlot(interval, buffer: _tickBuffer), () {
       if (!controller.isClosed) {
         controller.add(null);
         scheduleNextTick();

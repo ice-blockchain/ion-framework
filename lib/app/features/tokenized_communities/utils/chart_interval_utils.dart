@@ -10,7 +10,7 @@ Duration parseIntervalDuration(String interval) {
 /// Returns duration until the next interval boundary + [buffer].
 /// Aligns to clean clock boundaries (e.g. :00, :05, :15 for minute intervals).
 /// The [buffer] gives BE a chance to send real data before a tick fires.
-Duration timeUntilNextSlot(
+Duration durationUntilNextSlot(
   String interval, {
   Duration buffer = Duration.zero,
   DateTime? now,
