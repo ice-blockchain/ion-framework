@@ -228,8 +228,8 @@ class IonCommunityTokensService {
     );
   }
 
-  Future<Position?> getHolderPosition(String tokenExternalAddress, String holderExternalAddress) {
-    return _tokenInfoRepository.getHolderPosition(tokenExternalAddress, holderExternalAddress);
+  Future<Position?> getHolderPosition(String tokenExternalAddress, String holder) {
+    return _tokenInfoRepository.getHolderPosition(tokenExternalAddress, holder);
   }
 
   Future<PricingResponse?> getPricing(

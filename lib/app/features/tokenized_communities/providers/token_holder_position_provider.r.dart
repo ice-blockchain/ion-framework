@@ -11,13 +11,13 @@ part 'token_holder_position_provider.r.g.dart';
 Future<Position?> tokenHolderPosition(
   Ref ref,
   String tokenExternalAddress,
-  String holderExternalAddress,
+  String holderPubkey,
 ) async {
   try {
     final client = await ref.watch(ionTokenAnalyticsClientProvider.future);
 
     final position =
-        await client.communityTokens.getHolderPosition(tokenExternalAddress, holderExternalAddress);
+        await client.communityTokens.getHolderPosition(tokenExternalAddress, holderPubkey);
 
     return position;
   } catch (e) {
