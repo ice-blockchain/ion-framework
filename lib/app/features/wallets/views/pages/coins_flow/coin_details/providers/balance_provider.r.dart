@@ -22,6 +22,7 @@ part 'balance_provider.r.g.dart';
 @riverpod
 class CoinBalanceNotifier extends _$CoinBalanceNotifier {
   final Set<String> _loadedDisconnectedWalletIds = {};
+  late String _networkKey;
 
   @override
   Future<CoinBalanceAllNetworksState> build({required String symbolGroup}) async {
@@ -31,6 +32,7 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
       ),
     );
     final networkKey = currentNetwork?.id ?? CoinBalanceAllNetworksState.allNetworksKey;
+    _networkKey = networkKey;
 
     final coins = await ref.watch(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
     final balances = _calculateAllNetworkBalances(coins);
@@ -44,7 +46,7 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
 
           _loadedDisconnectedWalletIds.clear();
           final newBalances = _calculateAllNetworkBalances(updatedCoins);
-          _emitState(newBalances, symbolGroup);
+          _emitState(newBalances);
         },
         fireImmediately: true,
       )
@@ -94,18 +96,11 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     return CoinBalanceState(amount: totalAmount, balanceUSD: totalBalanceUSD);
   }
 
-  void _emitState(Map<String, CoinBalanceState> balances, String symbolGroup) {
-    final networkKey = ref
-            .read(networkSelectorNotifierProvider(symbolGroup: symbolGroup))
-            .valueOrNull
-            ?.selected
-            .whenOrNull(network: (network) => network.id) ??
-        CoinBalanceAllNetworksState.allNetworksKey;
-
+  void _emitState(Map<String, CoinBalanceState> balances) {
     state = AsyncData(
       CoinBalanceAllNetworksState(
         balancesByNetwork: Map.unmodifiable(balances),
-        selectedNetworkKey: networkKey,
+        selectedNetworkKey: _networkKey,
       ),
     );
   }
@@ -144,7 +139,7 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
         balanceUSD: allBalance.balanceUSD + balance.balanceUSD,
       );
 
-      _emitState(newBalances, symbolGroup);
+      _emitState(newBalances);
     } catch (e, st) {
       Logger.error('Failed to load disconnected wallet balance: $e', stackTrace: st);
     }

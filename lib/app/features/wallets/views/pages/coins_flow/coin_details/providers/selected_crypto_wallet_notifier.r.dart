@@ -38,14 +38,21 @@ class SelectedCryptoWalletNotifier extends _$SelectedCryptoWalletNotifier {
       return SelectedCryptoWalletData.empty();
     }
 
-    final relatedWallets = allWallets
-        .where(
-          (wallet) =>
-              wallet.name == walletView.id &&
-              wallet.network == network.id &&
-              wallet.address != null,
-        )
-        .toSet();
+    final connectedWalletIds = walletView.coins.map((c) => c.walletId).nonNulls.toSet();
+    final walletViewId = walletView.id;
+    final isMainWalletView = walletView.isMainWalletView;
+
+    final relatedWallets = allWallets.where((wallet) {
+      if (wallet.network != network.id || wallet.address == null) return false;
+      if (connectedWalletIds.contains(wallet.id)) return true;
+
+      if (isMainWalletView) {
+        final isAutoCreatedMainWallet =
+            wallet.name != null && wallet.name!.toLowerCase().contains('main');
+        return wallet.name == walletViewId || isAutoCreatedMainWallet;
+      }
+      return wallet.name == walletViewId;
+    }).toSet();
 
     final disconnectedWallets = relatedWallets.difference(networkConnected);
     final wallets = [

@@ -3,7 +3,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/wallets/domain/coins/wallet_assets_token_import_sync_service.r.dart';
 import 'package:ion/app/features/wallets/domain/transactions/sync_transactions_service.r.dart';
-import 'package:ion/app/features/wallets/providers/synced_coins_by_symbol_group_provider.r.dart';
 import 'package:ion/app/features/wallets/providers/wallet_view_data_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/manage_coins/providers/manage_coins_provider.r.dart';
 import 'package:ion/app/services/logger/logger.dart';
@@ -33,8 +32,6 @@ final class WalletDataSyncCoordinator {
       _ref
         ..invalidate(walletViewsDataNotifierProvider)
         ..invalidate(manageCoinsNotifierProvider);
-
-      await _ref.read(syncedCoinsBySymbolGroupNotifierProvider.notifier).refresh();
     } catch (error, stackTrace) {
       Logger.error(
         error,
