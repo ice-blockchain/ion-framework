@@ -137,10 +137,24 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
         return;
       }
 
+      // When notification is for another local account, append account label so user can tell.
+      var displayBody = body;
+      final recipientPubkey = data.recipientPubkey;
+      if (recipientPubkey != null &&
+          currentPubkey != null &&
+          !data.isRecipient(currentPubkey)) {
+        final accountLabel = await _resolveRecipientAccountLabel(recipientPubkey);
+        final context = rootNavigatorKey.currentContext;
+        if (accountLabel != null && context != null && context.mounted) {
+          final suffix = context.i18n.notification_for_account(accountLabel);
+          displayBody = '$body $suffix';
+        }
+      }
+
       final notificationsService = await ref.read(localNotificationsServiceProvider.future);
       await notificationsService.showNotification(
         title: title,
-        body: body,
+        body: displayBody,
         payload: jsonEncode(response.data),
         icon: avatar,
         attachment: media,
@@ -191,8 +205,12 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       }
 
       if (data.decryptedEvent != null) {
-        // Skip if message is from current user (self-message)
-        return data.decryptedEvent!.masterPubkey == currentPubkey;
+        // Skip only true self-messages for the current account.
+        // If message is sent by current account but addressed to another local account,
+        // we should still show fallback notification to allow account switch.
+        final isSelfMessage = data.decryptedEvent!.masterPubkey == currentPubkey;
+        final isForCurrentUser = data.isRecipient(currentPubkey);
+        return isSelfMessage && isForCurrentUser;
       }
 
       // If decryptedEvent is null, message is encrypted for another user - show notification
@@ -269,7 +287,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     }
 
     final recipientPubkey = entity.data.relatedPubkeys.first.value;
-    var recipientLabel = _shortPubkey(recipientPubkey);
+    var recipientLabel = 'another account';
     final recipientProfileName = await _resolveRecipientProfileName(recipientPubkey);
     if (recipientProfileName != null) {
       recipientLabel = recipientProfileName;
@@ -298,6 +316,35 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     );
   }
 
+  /// Resolves a human-readable label for the account (recipient pubkey).
+  /// Prefers displayName/username from metadata, or identity key name if it's a local account.
+  Future<String?> _resolveRecipientAccountLabel(String recipientPubkey) async {
+    final profileName = await _resolveRecipientProfileName(recipientPubkey);
+    if (profileName != null && profileName.isNotEmpty) {
+      return profileName;
+    }
+
+    final authState = await ref.read(authProvider.future);
+    final identities = authState.authenticatedIdentityKeyNames;
+    if (identities.isEmpty) {
+      return 'another account';
+    }
+
+    final pubkeyResults = await Future.wait(
+      identities.map(
+        (identityKeyName) =>
+            ref.read(userPubkeyByIdentityKeyNameProvider(identityKeyName).future),
+      ),
+    );
+    for (final entry in identities.asMap().entries) {
+      if (pubkeyResults[entry.key] == recipientPubkey) {
+        return entry.value;
+      }
+    }
+
+    return 'another account';
+  }
+
   Future<String?> _resolveRecipientProfileName(String recipientPubkey) async {
     try {
       final metadata = await ref.read(userMetadataProvider(recipientPubkey).future);
@@ -321,8 +368,4 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     return null;
   }
 
-  String _shortPubkey(String value) {
-    if (value.length <= 12) return value;
-    return '${value.substring(0, 6)}...${value.substring(value.length - 6)}';
-  }
 }

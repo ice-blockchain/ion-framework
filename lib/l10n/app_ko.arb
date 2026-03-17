@@ -917,6 +917,7 @@
   "story_share_sender": "이 스토리를 공유하셨습니다",
   "suggestions_empty_description": "검색 결과가 없습니다",
   "suggestions_loading_description": "멘션할 사용자를 검색하세요",
+  "notification_for_account": "계정: {accountName}",
   "switched_to_username": "{username}(으)로 전환됨",
   "token_comment_holders_only": "댓글은 토큰 보유자만 이용할 수 있습니다",
   "token_contract": "컨트랙트",
