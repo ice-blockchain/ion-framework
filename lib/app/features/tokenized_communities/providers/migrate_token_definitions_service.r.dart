@@ -8,6 +8,7 @@ import 'dart:ui';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
+import 'package:ion/app/features/auth/providers/onboarding_complete_provider.r.dart';
 import 'package:ion/app/features/core/model/mime_type.dart';
 import 'package:ion/app/features/core/providers/app_lifecycle_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
@@ -55,6 +56,9 @@ Future<void>? migrateTokenDefinitionsService(Ref ref) async {
 
   final currentUserMasterPubkey = ref.watch(currentPubkeySelectorProvider);
   if (currentUserMasterPubkey == null) return;
+
+  final onboardingComplete = await ref.watch(onboardingCompleteProvider.future);
+  if (onboardingComplete != true) return;
 
   final userMetadata =
       await ref.read(userMetadataProvider(currentUserMasterPubkey, cache: false).future);

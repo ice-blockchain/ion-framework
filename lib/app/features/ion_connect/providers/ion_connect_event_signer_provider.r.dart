@@ -3,6 +3,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
+import 'package:ion/app/features/ion_connect/model/media_attachment.dart' show MediaAttachment;
 import 'package:ion/app/features/ion_connect/providers/device_keypair_utils.dart';
 import 'package:ion/app/services/ion_connect/ed25519_key_store.dart';
 import 'package:ion/app/services/storage/secure_storage.r.dart';
@@ -29,17 +30,19 @@ class IonConnectEventSigner extends _$IonConnectEventSigner {
   Future<EventSigner?> initEventSigner() async {
     final currentUserIonConnectEventSigner = await future;
     if (currentUserIonConnectEventSigner != null) {
-      // Event signer already exists, reuse it
       return currentUserIonConnectEventSigner;
     }
 
-    final deviceKeypairAttachment = await DeviceKeypairUtils.findDeviceKeypairAttachment(ref: ref);
+    final currentSelector = ref.read(currentIdentityKeyNameSelectorProvider);
+    final selectorMatchesOrNull = currentSelector == null || currentSelector == identityKeyName;
+    MediaAttachment? deviceKeypairAttachment;
+    if (selectorMatchesOrNull) {
+      deviceKeypairAttachment = await DeviceKeypairUtils.findDeviceKeypairAttachment(ref: ref);
+    }
     if (deviceKeypairAttachment != null) {
-      // There's an uploaded keypair - return null and restore it later (LinkNewDevice)
       return null;
     }
 
-    // Generate a new event signer
     return _generate();
   }
 
