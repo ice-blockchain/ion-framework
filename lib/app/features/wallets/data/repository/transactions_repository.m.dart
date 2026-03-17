@@ -91,8 +91,7 @@ class TransactionsRepository {
 
   Future<DateTime?> getLastCreatedAt() => _transactionsDao.lastCreatedAt();
 
-  Future<DateTime?> firstCreatedAt({DateTime? after}) =>
-      _transactionsDao.getFirstCreatedAt(after: after);
+  Future<DateTime?> firstCreatedAt({DateTime? after}) => _transactionsDao.getFirstCreatedAt(after: after);
 
   Future<void> saveTransactionDetails(TransactionDetails details) async {
     final mapped = _coinMapper.fromTransactionDetails(details);
@@ -481,7 +480,7 @@ class TransactionsRepository {
   ) {
     final rawAmount = transaction.value;
     final decimals = transaction.metadata.asset.decimals ?? coin.decimals;
-    final amount = fromBlockchainUnits(rawAmount.emptyOrValue, decimals: decimals);
+    final amount = fromBlockchainUnits(rawAmount.emptyOrValue, decimals);
     final amountUSD = amount * coin.priceUSD;
 
     return TransactionCryptoAsset.coin(
