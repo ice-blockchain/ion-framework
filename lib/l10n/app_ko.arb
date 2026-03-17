@@ -528,6 +528,8 @@
   "feed_share_via": "메시지로 공유",
   "feed_someone_reposted": "{someone}님이 리포스트했습니다",
   "feed_telegram": "텔레그램",
+  "feed_creators_you_might_like": "Creators you might like",
+  "feed_creators_followers": "Followers",
   "feed_trending_videos": "인기 동영상",
   "feed_undo_repost": "리포스트 취소",
   "feed_whatsapp": "왓츠앱",

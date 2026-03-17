@@ -528,6 +528,8 @@
   "feed_share_via": "Compartilhar por mensagem",
   "feed_someone_reposted": "{someone} republicou",
   "feed_telegram": "Telegram",
+  "feed_creators_you_might_like": "Creators you might like",
+  "feed_creators_followers": "Followers",
   "feed_trending_videos": "Vídeos em alta",
   "feed_undo_repost": "Desfazer republicação",
   "feed_whatsapp": "WhatsApp",

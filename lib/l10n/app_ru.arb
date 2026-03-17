@@ -528,6 +528,8 @@
   "feed_share_via": "Поделиться через сообщение",
   "feed_someone_reposted": "{someone} сделал перепост",
   "feed_telegram": "Telegram",
+  "feed_creators_you_might_like": "Creators you might like",
+  "feed_creators_followers": "Followers",
   "feed_trending_videos": "Трендовые видео",
   "feed_undo_repost": "Отменить перепост",
   "feed_whatsapp": "WhatsApp",
