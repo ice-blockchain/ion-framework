@@ -558,7 +558,14 @@ Future<String?> _getCurrentBranch() async {
     runInShell: true,
   );
   if (result.exitCode != 0) return null;
-  return (result.stdout as String).trim();
+  final branch = (result.stdout as String).trim();
+  // Detached HEAD (e.g. CI pull_request checkout): use GitHub Actions branch when available.
+  if (branch == 'HEAD') {
+    final headRef = Platform.environment['GITHUB_HEAD_REF'];
+    if (headRef != null && headRef.isNotEmpty) return headRef;
+    return null;
+  }
+  return branch;
 }
 
 bool _isProtectedBranch(String branch) {
@@ -610,9 +617,17 @@ Future<void> _gitCommitAndPush() async {
     throw Exception('git commit failed: ${commitResult.stderr}');
   }
 
+  // In detached HEAD (e.g. CI), push explicitly to the target branch.
+  final branch = await _getCurrentBranch();
+  if (branch == null || branch.isEmpty) {
+    throw Exception(
+      'Could not determine branch for push (detached HEAD?). '
+      'On CI, set GITHUB_HEAD_REF or run from a branch.',
+    );
+  }
   final pushResult = await Process.run(
     'git',
-    ['push'],
+    ['push', 'origin', 'HEAD:refs/heads/$branch'],
     runInShell: true,
   );
   if (pushResult.exitCode != 0) {

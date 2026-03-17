@@ -69,6 +69,11 @@ jobs:
         run: |
           cd main-repo
           melos run 4mat
+      - name: Checkout PR branch (for locale commit/push)
+        run: |
+          cd main-repo
+          git fetch origin ${{ github.head_ref }}
+          git checkout ${{ github.head_ref }}
       - name: Generate locales
         id: generate-locales
         env:
