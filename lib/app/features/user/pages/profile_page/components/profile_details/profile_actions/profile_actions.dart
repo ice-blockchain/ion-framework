@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/providers/user_chat_privacy_provider.r.dart';
 import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
@@ -43,7 +42,6 @@ class ProfileActions extends ConsumerWidget {
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 12.0.s,
       children: [
         if (profileMode != ProfileMode.dark) FollowUserButton(pubkey: pubkey),
         if (!isOwnUserProfile && !hasPrivateWallets && canSendMessage)

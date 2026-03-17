@@ -30,7 +30,7 @@ class ProfileAction extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 16.0.s),
           child: assetName.icon(
-            size: 21.0.s,
+            size: 24.0.s,
             color: colors.secondaryBackground,
           ),
         ),
