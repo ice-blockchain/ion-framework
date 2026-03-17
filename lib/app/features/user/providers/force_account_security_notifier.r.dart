@@ -27,10 +27,12 @@ class ForceAccountSecurityService {
     required Duration enforceDelay,
     required void Function() emitDialog,
     bool Function()? hasNavigatorContext,
+    DateTime Function()? now,
   })  : _enforceDelay = enforceDelay,
         _emitDialog = emitDialog,
         _hasNavigatorContext =
-            hasNavigatorContext ?? (() => rootNavigatorKey.currentContext != null);
+            hasNavigatorContext ?? (() => rootNavigatorKey.currentContext != null),
+        _now = now ?? DateTime.now;
 
   UserMetadataEntity? _metadata;
   bool _secured = true;
@@ -41,6 +43,7 @@ class ForceAccountSecurityService {
   final Duration _enforceDelay;
   final void Function() _emitDialog;
   final bool Function() _hasNavigatorContext;
+  final DateTime Function() _now;
 
   Timer? _timer;
 
@@ -97,7 +100,7 @@ class ForceAccountSecurityService {
     if (_route != FeedRoute().location) return;
 
     if (!_postRecoveryBackupRequired) {
-      final now = DateTime.now();
+      final now = _now();
       final enforceTime = (metadata.data.registeredAt?.toDateTime ?? now).add(_enforceDelay);
       final canShowPopUp = !enforceTime.isAfter(now);
 
