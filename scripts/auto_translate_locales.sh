@@ -41,6 +41,7 @@ use_asdf flutter gen-l10n
 
 UNTRANSLATED_FILE="untranslated_messages.txt"
 NEED_TRANSLATIONS=0
+L10N_STATUS_BEFORE="$(git status --porcelain lib/l10n 2>/dev/null || true)"
 
 if [ -f "$UNTRANSLATED_FILE" ] && [ -s "$UNTRANSLATED_FILE" ] && [ "$(jq 'length' "$UNTRANSLATED_FILE" 2>/dev/null)" != "0" ]; then
   NEED_TRANSLATIONS=1
@@ -65,7 +66,6 @@ fi
 
 GENERATED=0
 if [ "$NEED_TRANSLATIONS" -eq 1 ]; then
-  GENERATED=1
   if [ -n "$BASE_REF" ]; then
     export BASE_REF="$BASE_REF"
   fi
@@ -82,6 +82,12 @@ fi
 
 # 4) Verify
 ./scripts/generate_locales.sh
+
+# Only fail pre-push when this script actually produced new l10n changes.
+L10N_STATUS_AFTER="$(git status --porcelain lib/l10n 2>/dev/null || true)"
+if [ "$L10N_STATUS_AFTER" != "$L10N_STATUS_BEFORE" ]; then
+  GENERATED=1
+fi
 
 if [ "$GENERATED" -eq 1 ] && [ "$FAIL_IF_GENERATED" -eq 1 ]; then
   exit 1
