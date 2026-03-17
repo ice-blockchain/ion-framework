@@ -13,6 +13,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
+import 'package:ion/app/features/chat/providers/conversation_request_approval_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
@@ -363,6 +364,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final media = parsedData?.media;
   final groupKey = parsedData?.groupKey;
 
+  if (await _shouldSkipRequestChatNotification(
+    data: data,
+    parsedData: parsedData,
+    currentPubkey: currentUserPubkeyFromStorage,
+  )) {
+    backgroundContainer.dispose();
+    return;
+  }
+
   await notificationsService.showNotification(
     title: title,
     body: body,
@@ -437,6 +447,54 @@ bool _shouldSkipOwnGiftWrap({
   }
 
   return false;
+}
+
+Future<bool> _shouldSkipRequestChatNotification({
+  required IonConnectPushDataPayload data,
+  required NotificationParsedData? parsedData,
+  required String? currentPubkey,
+}) async {
+  if (currentPubkey == null) {
+    return false;
+  }
+
+  final notificationType = parsedData?.notificationType;
+  if (!(notificationType?.isChat ?? false)) {
+    return false;
+  }
+
+  final conversationId = parsedData?.groupKey;
+  final senderMasterPubkey = data.decryptedEvent?.masterPubkey;
+
+  if (conversationId == null || senderMasterPubkey == null) {
+    return false;
+  }
+
+  final checkContainer = ProviderContainer(
+    observers: [Logger.talkerRiverpodObserver],
+    overrides: [_backgroundCurrentPubkeyOverride(currentPubkey)],
+  );
+
+  try {
+    final approval = await checkContainer.read(
+      conversationRequestApprovalProvider(
+        conversationId,
+        senderMasterPubkey: senderMasterPubkey,
+        isIncomingContext: true,
+      ).future,
+    );
+
+    return approval == ConversationRequestApprovalState.pending;
+  } catch (e, st) {
+    Logger.error(
+      e,
+      stackTrace: st,
+      message: '☁️ Background push notification request check failed',
+    );
+    return false;
+  } finally {
+    checkContainer.dispose();
+  }
 }
 
 // Reusable override for background containers that need the current master pubkey.

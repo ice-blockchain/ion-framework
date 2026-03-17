@@ -32,6 +32,7 @@ import 'package:ion/app/features/chat/views/pages/chat_learn_more_modal/chat_lea
 import 'package:ion/app/features/chat/views/pages/chat_main_modal/chat_main_modal_page.dart';
 import 'package:ion/app/features/chat/views/pages/chat_main_page/arhived_chats_main_page.dart';
 import 'package:ion/app/features/chat/views/pages/chat_main_page/chat_main_page.dart';
+import 'package:ion/app/features/chat/views/pages/chat_main_page/requests_chats_main_page.dart';
 import 'package:ion/app/features/chat/views/pages/chat_media_page/chat_media_page.dart';
 import 'package:ion/app/features/chat/views/pages/conversation_page/conversation_page.dart';
 import 'package:ion/app/features/chat/views/pages/new_chat_modal/new_chat_modal.dart';

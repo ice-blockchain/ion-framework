@@ -9,6 +9,7 @@ class ChatRoutes {
     TypedGoRoute<ChatQuickSearchRoute>(path: 'chat-simple-search'),
     TypedGoRoute<ChatAdvancedSearchRoute>(path: 'chat-advanced-search'),
     TypedGoRoute<ArchivedChatsMainRoute>(path: 'archived-chats'),
+    TypedGoRoute<RequestsChatsMainRoute>(path: 'requests-chats'),
     TypedGoRoute<ConversationRoute>(
       path: 'conversation-fullstack',
       routes: [
@@ -105,6 +106,14 @@ class ArchivedChatsMainRoute extends BaseRouteData with _$ArchivedChatsMainRoute
   ArchivedChatsMainRoute()
       : super(
           child: const ArchivedChatsMainPage(),
+          type: IceRouteType.slideFromLeft,
+        );
+}
+
+class RequestsChatsMainRoute extends BaseRouteData with _$RequestsChatsMainRoute {
+  RequestsChatsMainRoute()
+      : super(
+          child: const RequestsChatsMainPage(),
           type: IceRouteType.slideFromLeft,
         );
 }

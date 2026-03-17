@@ -23,9 +23,11 @@ import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/archive_tile_visibility_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/providers/request_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_skeleton/recent_chat_skeleton.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/archive_chat_tile.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/requests_chat_tile.dart';
 import 'package:ion/app/features/user/providers/badges_notifier.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/hooks/use_scroll_top_on_tab_press.dart';
@@ -51,6 +53,14 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
     useScrollTopOnTabPress(context, scrollController: scrollController);
     final archivedConversations = ref.watch(archivedConversationsProvider).valueOrNull ?? [];
     final isArchivedConversationsEmpty = archivedConversations.isEmpty;
+    final requestConversations = ref.watch(requestConversationsProvider).valueOrNull ?? [];
+    final isRequestConversationsEmpty = requestConversations.isEmpty;
+    final requestConversationIds = requestConversations.map((c) => c.conversationId).toSet();
+
+    final timelineConversations = conversations
+        .where((conversation) => !archivedConversations.contains(conversation))
+        .where((conversation) => !requestConversationIds.contains(conversation.conversationId))
+        .toList();
 
     useEffect(
       () {
@@ -148,11 +158,15 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
             const SliverToBoxAdapter(
               child: HorizontalSeparator(),
             ),
-          ConversationList(
-            conversations: conversations
-                .where((conversation) => !archivedConversations.contains(conversation))
-                .toList(),
-          ),
+          if (!isRequestConversationsEmpty)
+            const SliverToBoxAdapter(
+              child: RequestsChatTile(),
+            ),
+          if (!isRequestConversationsEmpty && timelineConversations.isNotEmpty)
+            const SliverToBoxAdapter(
+              child: HorizontalSeparator(),
+            ),
+          ConversationList(conversations: timelineConversations),
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsetsDirectional.only(bottom: 12.0.s),
@@ -191,9 +205,14 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
 }
 
 class ConversationList extends ConsumerWidget {
-  const ConversationList({required this.conversations, super.key});
+  const ConversationList({
+    required this.conversations,
+    this.isRequestsTab = false,
+    super.key,
+  });
 
   final List<ConversationListItem> conversations;
+  final bool isRequestsTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -211,24 +230,31 @@ class ConversationList extends ConsumerWidget {
             maxWidth: MediaQuery.sizeOf(context).width,
             child: SizedBox(
               width: MediaQuery.sizeOf(context).width,
-              child: Column(
+              child: Stack(
                 children: [
                   if (conversation.type == ConversationType.community)
                     CommunityRecentChatTile(
                       conversation: conversation,
+                      isRequestsTab: isRequestsTab,
                       key: ValueKey(conversation.conversationId),
                     )
                   else if (conversation.type == ConversationType.oneToOne)
                     E2eeRecentChatTile(
                       conversation: conversation,
+                      isRequestsTab: isRequestsTab,
                       key: ValueKey(conversation.conversationId),
                     )
                   else if (conversation.type == ConversationType.group)
                     EncryptedGroupRecentChatTile(
                       conversation: conversation,
+                      isRequestsTab: isRequestsTab,
                       key: ValueKey(conversation.conversationId),
                     ),
-                  if (index < conversations.length - 1) const HorizontalSeparator(),
+                  if (index < conversations.length - 1)
+                    const Align(
+                      alignment: Alignment.bottomCenter,
+                      child: HorizontalSeparator(),
+                    ),
                 ],
               ),
             ),
@@ -241,9 +267,14 @@ class ConversationList extends ConsumerWidget {
 }
 
 class CommunityRecentChatTile extends ConsumerWidget {
-  const CommunityRecentChatTile({required this.conversation, super.key});
+  const CommunityRecentChatTile({
+    required this.conversation,
+    this.isRequestsTab = false,
+    super.key,
+  });
 
   final ConversationListItem conversation;
+  final bool isRequestsTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -265,6 +296,7 @@ class CommunityRecentChatTile extends ConsumerWidget {
     return RecentChatTile(
       name: community.data.name,
       conversation: conversation,
+      isRequestConversation: isRequestsTab,
       avatarUrl: community.data.avatar?.url,
       eventReference: eventReference,
       defaultAvatar: Container(
@@ -292,9 +324,14 @@ class CommunityRecentChatTile extends ConsumerWidget {
 }
 
 class E2eeRecentChatTile extends HookConsumerWidget {
-  const E2eeRecentChatTile({required this.conversation, super.key});
+  const E2eeRecentChatTile({
+    required this.conversation,
+    this.isRequestsTab = false,
+    super.key,
+  });
 
   final ConversationListItem conversation;
+  final bool isRequestsTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -335,6 +372,7 @@ class E2eeRecentChatTile extends HookConsumerWidget {
     return RecentChatTile(
       defaultAvatar: null,
       conversation: conversation,
+      isRequestConversation: isRequestsTab,
       messageType: entity.messageType,
       name: previewData == null || trimmedDisplayName == null
           ? context.i18n.common_deleted_account
@@ -355,9 +393,14 @@ class E2eeRecentChatTile extends HookConsumerWidget {
 }
 
 class EncryptedGroupRecentChatTile extends HookConsumerWidget {
-  const EncryptedGroupRecentChatTile({required this.conversation, super.key});
+  const EncryptedGroupRecentChatTile({
+    required this.conversation,
+    this.isRequestsTab = false,
+    super.key,
+  });
 
   final ConversationListItem conversation;
+  final bool isRequestsTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -388,6 +431,7 @@ class EncryptedGroupRecentChatTile extends HookConsumerWidget {
     return RecentChatTile(
       name: name,
       conversation: conversation,
+      isRequestConversation: isRequestsTab,
       eventReference: eventReference,
       avatarWidget: groupImageFile != null ? Image.file(groupImageFile) : null,
       defaultAvatar: Assets.svg.iconChannelEmptychannel.icon(size: 40.0.s),

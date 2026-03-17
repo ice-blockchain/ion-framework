@@ -107,7 +107,7 @@ class OneToOneMessagesPage extends HookConsumerWidget {
               ChatInputBar(
                 onSubmitted: onSubmitted,
                 receiverMasterPubkey: receiverMasterPubkey,
-                conversationId: conversationId ?? '',
+                conversationId: conversationId,
               ),
             ],
           ),

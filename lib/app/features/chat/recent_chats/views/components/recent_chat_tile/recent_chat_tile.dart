@@ -47,6 +47,7 @@ class RecentChatTile extends HookConsumerWidget {
     required this.eventReference,
     required this.lastMessageContent,
     required this.unreadMessagesCount,
+    this.isRequestConversation = false,
     this.avatarUrl,
     this.avatarWidget,
     this.isVerified = false,
@@ -65,6 +66,7 @@ class RecentChatTile extends HookConsumerWidget {
   final MessageType messageType;
   final ConversationListItem conversation;
   final bool isVerified;
+  final bool isRequestConversation;
 
   static double get tileHeight => 74.0.s;
 
@@ -119,6 +121,7 @@ class RecentChatTile extends HookConsumerWidget {
           useSafeArea: false,
           builder: (context) => RecentChatOverlay(
             conversation: conversation,
+            isRequestConversation: isRequestConversation,
             renderObject: messageItemKey.currentContext!.findRenderObject()!,
           ),
         );
