@@ -111,7 +111,7 @@ platform :android do
     lane :build do |options|
         flavor = options[:flavor] || APP_FLAVOR || "production"
         # We use sh to call flutter build directly
-        sh("cd .. && flutter build appbundle --release --flavor=#{flavor} --obfuscate --split-debug-info=build/flutter_symbols")
+        sh("cd .. && flutter build appbundle --release --flavor=#{flavor} --obfuscate --split-debug-info=build/flutter_symbols --extra-gen-snapshot-options=--save-obfuscation-map=build/app/obfuscation.map.json")
     end
 
     desc "Deploy Android app"
