@@ -9,6 +9,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
 import 'package:ion/app/features/chat/providers/conversation_request_approval_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
+import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
@@ -106,6 +107,18 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       final body = parsedData?.body ?? response.notification?.body;
 
       if (title == null || body == null) {
+        // If push belongs to another account on this device, current account can't decrypt it.
+        // Show generic fallback so user can tap and switch account in notification response handler.
+        if (data.event.kind == IonConnectGiftWrapEntity.kind && data.decryptedEvent == null) {
+          final fallback = await _buildEncryptedGiftWrapFallback(data);
+          final notificationsService = await ref.read(localNotificationsServiceProvider.future);
+          await notificationsService.showNotification(
+            title: fallback.$1,
+            body: fallback.$2,
+            payload: jsonEncode(response.data),
+            conversationStyle: false,
+          );
+        }
         return;
       }
 
@@ -170,16 +183,20 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     required IonConnectPushDataPayload data,
   }) async {
     if (data.event.kind == IonConnectGiftWrapEntity.kind) {
-      final giftUnwrapService = await ref.watch(giftUnwrapServiceProvider.future);
-      final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+      final currentPubkey = ref.read(currentPubkeySelectorProvider);
 
+      // If no user is logged in, skip the notification
       if (currentPubkey == null) {
         return true;
       }
 
-      final rumor = await giftUnwrapService.unwrap(data.event);
+      if (data.decryptedEvent != null) {
+        // Skip if message is from current user (self-message)
+        return data.decryptedEvent!.masterPubkey == currentPubkey;
+      }
 
-      return rumor.masterPubkey == currentPubkey;
+      // If decryptedEvent is null, message is encrypted for another user - show notification
+      return false;
     }
 
     return false;
@@ -243,5 +260,69 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     } catch (_) {
       return false;
     }
+  }
+
+  Future<(String, String)> _buildEncryptedGiftWrapFallback(IonConnectPushDataPayload data) async {
+    final entity = data.mainEntity;
+    if (entity is! IonConnectGiftWrapEntity || entity.data.relatedPubkeys.isEmpty) {
+      return ('Encrypted message', 'Open notification to view');
+    }
+
+    final recipientPubkey = entity.data.relatedPubkeys.first.value;
+    var recipientLabel = _shortPubkey(recipientPubkey);
+    final recipientProfileName = await _resolveRecipientProfileName(recipientPubkey);
+    if (recipientProfileName != null) {
+      recipientLabel = recipientProfileName;
+    }
+
+    final authState = await ref.read(authProvider.future);
+    final identities = authState.authenticatedIdentityKeyNames;
+    if (identities.isNotEmpty) {
+      final pubkeyResults = await Future.wait(
+        identities.map(
+          (identityKeyName) => ref.read(userPubkeyByIdentityKeyNameProvider(identityKeyName).future),
+        ),
+      );
+
+      for (final entry in identities.asMap().entries) {
+        if (pubkeyResults[entry.key] == recipientPubkey) {
+          recipientLabel = recipientProfileName ?? entry.value;
+          break;
+        }
+      }
+    }
+
+    return (
+      'Encrypted message',
+      'From: encrypted sender. To: $recipientLabel. Tap to open.',
+    );
+  }
+
+  Future<String?> _resolveRecipientProfileName(String recipientPubkey) async {
+    try {
+      final metadata = await ref.read(userMetadataProvider(recipientPubkey).future);
+      if (metadata == null) {
+        return null;
+      }
+
+      final displayName = metadata.data.trimmedDisplayName;
+      if (displayName.isNotEmpty) {
+        return displayName;
+      }
+
+      final username = metadata.data.name.trim();
+      if (username.isNotEmpty) {
+        return username;
+      }
+    } catch (_) {
+      // Best-effort name resolution for fallback notification text.
+    }
+
+    return null;
+  }
+
+  String _shortPubkey(String value) {
+    if (value.length <= 12) return value;
+    return '${value.substring(0, 6)}...${value.substring(value.length - 6)}';
   }
 }
