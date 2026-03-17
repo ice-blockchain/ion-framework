@@ -238,6 +238,13 @@ class CommunityTokenActionData with _$CommunityTokenActionData implements EventS
     return amounts.firstWhereOrNull((amount) => amount.currency == tokenTicker);
   }
 
+  double? getTokenPrice() {
+    final tokenAmount = getTokenAmount()?.value;
+    final usdAmount = getUsdAmount()?.value;
+    if (tokenAmount == null || usdAmount == null || tokenAmount == 0) return null;
+    return usdAmount / tokenAmount;
+  }
+
   static List<RelatedHashtag> _buildRelatedHashtags({
     required bool hasUserPosition,
     required CommunityTokenActionType type,

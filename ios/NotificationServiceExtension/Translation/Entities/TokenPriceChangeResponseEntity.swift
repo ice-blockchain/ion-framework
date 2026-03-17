@@ -34,6 +34,7 @@ struct TokenPriceChangeRequestData {
 struct TokenPriceChangeResponseData {
     let request: TokenPriceChangeRequestData
     let tokenDefinitionReference: ReplaceableEventReference
+    let actions: [CommunityTokenActionEntity]
 
     static func fromEventMessage(_ eventMessage: EventMessage) throws -> TokenPriceChangeResponseData {
         let tagsByType = Dictionary(grouping: eventMessage.tags, by: { $0.first ?? "" })
@@ -55,10 +56,37 @@ struct TokenPriceChangeResponseData {
         let request = try TokenPriceChangeRequestData.fromEventMessage(requestEventMessage)
         let tokenDefinitionReference = ReplaceableEventReference.fromString(aTag[1])
 
+        guard let contentData = eventMessage.content.data(using: .utf8),
+              let contentJson = try? JSONSerialization.jsonObject(with: contentData) as? [[String: Any]] else {
+            throw IncorrectEventTagsException(eventId: eventMessage.id)
+        }
+
+        let actions = try contentJson.map { actionJson in
+            let actionEventMessage = try EventMessage.fromJson(actionJson)
+            return try CommunityTokenActionEntity.fromEventMessage(actionEventMessage)
+        }
+
         return TokenPriceChangeResponseData(
             request: request,
-            tokenDefinitionReference: tokenDefinitionReference
+            tokenDefinitionReference: tokenDefinitionReference,
+            actions: actions
         )
+    }
+
+    func computePriceChangePercent() -> Int {
+        let fallback = request.params.deltaPercentage
+
+        if actions.count < 2 {
+            return fallback
+        }
+
+        guard let firstPrice = actions.first?.data.getTokenPrice(),
+              let lastPrice = actions.last?.data.getTokenPrice(),
+              firstPrice != 0 else {
+            return fallback
+        }
+
+        return Int(((lastPrice - firstPrice) / firstPrice * 100).rounded())
     }
 }
 
@@ -94,13 +122,12 @@ struct TokenPriceChangeResponseEntity: IonConnectEntity {
             throw IncorrectEventKindException(eventMessage.id, kind: kind)
         }
 
-        let masterPubkey = try eventMessage.masterPubkey()
         let data = try TokenPriceChangeResponseData.fromEventMessage(eventMessage)
 
         return TokenPriceChangeResponseEntity(
             id: eventMessage.id,
             pubkey: eventMessage.pubkey,
-            masterPubkey: masterPubkey,
+            masterPubkey: eventMessage.pubkey,
             signature: eventMessage.sig ?? "",
             createdAt: eventMessage.createdAt,
             data: data

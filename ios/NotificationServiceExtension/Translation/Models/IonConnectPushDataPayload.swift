@@ -379,7 +379,9 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         if let entity = mainEntity as? TokenPriceChangeResponseEntity {
-            data["priceIncreasePercentage"] = String(entity.data.request.params.deltaPercentage)
+            let priceChangePercent = entity.data.computePriceChangePercent()
+            let sign = getNumericSign(Double(priceChangePercent))
+            data["priceIncreasePercentage"] = "\(sign)\(abs(priceChangePercent))"
         }
 
         if let entity = mainEntity as? TokenBuyingActivityResponseEntity {
@@ -440,6 +442,18 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         return (avatar: avatarFilePath, attachment: attachmentUrl)
+    }
+
+    private func getNumericSign(_ value: Double) -> String {
+        if value <= -0.01 {
+            return "-"
+        }
+
+        if value > 0 {
+            return "+"
+        }
+
+        return ""
     }
 
     func validate(currentPubkey: String) -> Bool {

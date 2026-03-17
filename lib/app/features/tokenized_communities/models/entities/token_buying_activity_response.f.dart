@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
-import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/dvm_response_entity.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
@@ -45,7 +44,7 @@ class TokenBuyingActivityResponseEntity
     return TokenBuyingActivityResponseEntity(
       id: eventMessage.id,
       pubkey: eventMessage.pubkey,
-      masterPubkey: eventMessage.masterPubkey,
+      masterPubkey: eventMessage.pubkey,
       signature: eventMessage.sig!,
       createdAt: eventMessage.createdAt,
       data: TokenBuyingActivityResponseData.fromEventMessage(eventMessage),

@@ -79,13 +79,12 @@ struct TokenBuyingActivityResponseEntity: IonConnectEntity {
             throw IncorrectEventKindException(eventMessage.id, kind: kind)
         }
 
-        let masterPubkey = try eventMessage.masterPubkey()
         let data = try TokenBuyingActivityResponseData.fromEventMessage(eventMessage)
 
         return TokenBuyingActivityResponseEntity(
             id: eventMessage.id,
             pubkey: eventMessage.pubkey,
-            masterPubkey: masterPubkey,
+            masterPubkey: eventMessage.pubkey,
             signature: eventMessage.sig ?? "",
             createdAt: eventMessage.createdAt,
             data: data
