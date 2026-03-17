@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -59,8 +60,16 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
       ref: ref,
       conversation: conversation,
     );
-    final primaryActions =
-        actions.where((action) => action.kind != RecentChatActionKind.delete).toList();
+    final archiveAction = actions
+        .where((a) =>
+            a.kind == RecentChatActionKind.archive || a.kind == RecentChatActionKind.unarchive)
+        .firstOrNull;
+    final primaryActions = actions
+        .where((action) =>
+            action.kind != RecentChatActionKind.delete &&
+            action.kind != RecentChatActionKind.archive &&
+            action.kind != RecentChatActionKind.unarchive)
+        .toList();
     final deleteAction = actions.firstWhere((action) => action.kind == RecentChatActionKind.delete);
 
     ref.displayErrors(reportNotifierProvider);
@@ -76,8 +85,17 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
               children: [
                 ...[
                   ...primaryActions.map(
-                    (action) => _RecentChatOverlayActionItem(action: action),
+                    (action) => _RecentChatOverlayActionItem(
+                      action: action,
+                      ref: ref,
+                    ),
                   ),
+                  if (archiveAction != null)
+                    _ArchiveOverlayActionItem(
+                      action: archiveAction,
+                      conversation: conversation,
+                      ref: ref,
+                    ),
                   OverlayMenuItem(
                     label: context.i18n.chat_unread,
                     icon: Assets.svg.chatUnread.icon(
@@ -118,7 +136,10 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
                         }
                       },
                     ),
-                  _RecentChatOverlayActionItem(action: deleteAction),
+                  _RecentChatOverlayActionItem(
+                    action: deleteAction,
+                    ref: ref,
+                  ),
                 ].separated(const OverlayMenuItemSeparator()),
               ],
             ),
@@ -129,10 +150,58 @@ class RecentChatOverlayContextMenu extends ConsumerWidget {
   }
 }
 
-class _RecentChatOverlayActionItem extends StatelessWidget {
-  const _RecentChatOverlayActionItem({required this.action});
+class _ArchiveOverlayActionItem extends StatelessWidget {
+  const _ArchiveOverlayActionItem({
+    required this.action,
+    required this.conversation,
+    required this.ref,
+  });
 
   final RecentChatActionItem action;
+  final ConversationListItem conversation;
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = context.theme.appColors.quaternaryText;
+
+    return OverlayMenuItem(
+      label: action.label,
+      verticalPadding: 12.0.s,
+      minWidth: 128.0.s,
+      icon: action.icon.icon(size: RecentChatOverlayContextMenu.iconSize, color: iconColor),
+      onPressed: () {
+        // Capture values before pop (context may be disposed after)
+        final isArchived = action.kind == RecentChatActionKind.unarchive;
+        final message = isArchived ? context.i18n.chat_unarchived : context.i18n.chat_archived;
+        final archiveIcon = Assets.svg.iconChatArchive.icon(size: 16.0.s);
+        final conversationId = conversation.conversationId;
+
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          executeArchiveOrUnarchiveWithToast(
+            ref: ref,
+            conversationIds: [conversationId],
+            message: message,
+            icon: archiveIcon,
+          );
+        });
+      },
+    );
+  }
+}
+
+class _RecentChatOverlayActionItem extends StatelessWidget {
+  const _RecentChatOverlayActionItem({
+    required this.action,
+    required this.ref,
+  });
+
+  final RecentChatActionItem action;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {

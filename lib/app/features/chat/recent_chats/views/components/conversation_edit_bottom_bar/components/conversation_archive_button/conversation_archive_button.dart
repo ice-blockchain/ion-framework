@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/providers/toggle_archive_conversation_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_actions.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ConversationArchiveButton extends ConsumerWidget {
@@ -27,14 +25,23 @@ class ConversationArchiveButton extends ConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        unawaited(
-          ref
-              .read(toggleArchivedConversationsProvider.notifier)
-              .toggleConversations(conversationsToManage.map((e) => e.conversationId).toList()),
-        );
+        final conversationIds =
+            conversationsToManage.map((e) => e.conversationId).toList();
 
         ref.read(selectedConversationsProvider.notifier).clear();
         ref.read(conversationsEditModeProvider.notifier).editMode = false;
+
+        // Show toast after edit bar unmounts so it is visible
+        final message = context.i18n.chat_archived;
+        final archiveIcon = Assets.svg.iconChatArchive.icon(size: 16.0.s);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          executeArchiveOrUnarchiveWithToast(
+            ref: ref,
+            conversationIds: conversationIds,
+            message: message,
+            icon: archiveIcon,
+          );
+        });
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

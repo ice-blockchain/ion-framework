@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/message_notification/models/message_notification.f.dart';
+import 'package:ion/app/components/message_notification/providers/message_notification_notifier_provider.r.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
@@ -9,6 +11,7 @@ import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/model/conversation_list_item.f.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/toggle_archive_conversation_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/undo_archive_button.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -89,11 +92,43 @@ List<RecentChatActionItem> buildRecentChatActions({
       label: isArchived ? context.i18n.common_unarchive_single : context.i18n.common_add_to_archive,
       icon: Assets.svg.iconChatArchive,
       onSelected: () async {
-        await ref
-            .read(toggleArchivedConversationsProvider.notifier)
-            .toggleConversations([conversation.conversationId]);
+        final message = isArchived ? context.i18n.chat_unarchived : context.i18n.chat_archived;
+        final archiveIcon = Assets.svg.iconChatArchive.icon(size: 16.0.s);
+
+        executeArchiveOrUnarchiveWithToast(
+          ref: ref,
+          conversationIds: [conversation.conversationId],
+          message: message,
+          icon: archiveIcon,
+        );
+
         return true;
       },
     ),
   ];
+}
+
+void executeArchiveOrUnarchiveWithToast({
+  required WidgetRef ref,
+  required List<String> conversationIds,
+  required String message,
+  required Widget icon,
+}) {
+  final toggleNotifier = ref.read(toggleArchivedConversationsProvider.notifier);
+  final messageNotifier = ref.read(messageNotificationNotifierProvider.notifier);
+
+  toggleNotifier.toggleConversations(conversationIds);
+  messageNotifier.show(
+    MessageNotification(
+      message: message,
+      icon: icon,
+      interactive: true,
+      suffixWidget: UndoArchiveButton(
+        onTap: () {
+          toggleNotifier.toggleConversations(conversationIds);
+          messageNotifier.dismiss();
+        },
+      ),
+    ),
+  );
 }

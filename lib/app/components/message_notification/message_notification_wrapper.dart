@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -43,6 +44,14 @@ class MessageNotificationWrapper extends HookConsumerWidget {
       (_, next) {
         notification.value = next.valueOrNull;
 
+        if (notification.value == null) {
+          _controlAnimation(
+            isShow: false,
+            animation: animation,
+            controller: controller,
+          );
+          return;
+        }
         _controlAnimation(
           isShow: true,
           animation: animation,
@@ -50,7 +59,7 @@ class MessageNotificationWrapper extends HookConsumerWidget {
         );
 
         Future.delayed(
-          const Duration(seconds: 3),
+          const Duration(seconds: 500),
           () {
             _controlAnimation(
               isShow: false,
@@ -74,29 +83,30 @@ class MessageNotificationWrapper extends HookConsumerWidget {
           start: 16.0.s,
           end: 16.0.s,
           bottom: bottomPadding,
-          child: IgnorePointer(
-            child: FadeTransition(
-              opacity: animation,
-              child: Container(
-                constraints: BoxConstraints(minHeight: 42.0.s),
-                padding: EdgeInsets.all(8.0.s),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(12.0.s),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.appColors.primaryAccent.withValues(alpha: 0.36),
-                      blurRadius: 20.0.s,
-                      spreadRadius: 0.0.s,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
+          child: FadeTransition(
+            opacity: animation,
+            child: Container(
+              constraints: BoxConstraints(minHeight: 42.0.s),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(12.0.s),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.theme.appColors.primaryAccent.withValues(alpha: 0.36),
+                    blurRadius: 20.0.s,
+                    spreadRadius: 0.0.s,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: IgnorePointer(
+                      ignoring: !(notification.value?.interactive ?? false),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          SizedBox(width: 8.0.s),
                           if (notification.value?.icon != null) ...[
                             Container(
                               width: 26.0.s,
@@ -123,12 +133,12 @@ class MessageNotificationWrapper extends HookConsumerWidget {
                         ],
                       ),
                     ),
-                    if (suffixWidget != null) ...[
-                      SizedBox(width: 8.0.s),
-                      suffixWidget,
-                    ],
+                  ),
+                  if (suffixWidget != null) ...[
+                    SizedBox(width: 8.0.s),
+                    suffixWidget,
                   ],
-                ),
+                ],
               ),
             ),
           ),

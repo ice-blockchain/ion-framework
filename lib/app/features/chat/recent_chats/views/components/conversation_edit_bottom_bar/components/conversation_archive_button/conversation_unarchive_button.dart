@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,7 +7,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/providers/toggle_archive_conversation_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_actions.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ConversationUnarchiveButton extends ConsumerWidget {
@@ -28,16 +26,24 @@ class ConversationUnarchiveButton extends ConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        unawaited(
-          ref
-              .read(toggleArchivedConversationsProvider.notifier)
-              .toggleConversations(conversationsToManage.map((e) => e.conversationId).toList()),
-        );
+        final conversationIds = conversationsToManage.map((e) => e.conversationId).toList();
+        final message = context.i18n.chat_unarchived;
+        final archiveIcon = Assets.svg.iconChatArchive.icon(size: 16.0.s);
+
         ref.read(conversationsEditModeProvider.notifier).editMode = false;
         ref.read(selectedConversationsProvider.notifier).clear();
         if (context.mounted && context.canPop()) {
           context.pop();
         }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          executeArchiveOrUnarchiveWithToast(
+            ref: ref,
+            conversationIds: conversationIds,
+            message: message,
+            icon: archiveIcon,
+          );
+        });
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
