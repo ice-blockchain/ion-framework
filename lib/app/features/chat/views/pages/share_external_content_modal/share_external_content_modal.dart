@@ -42,14 +42,17 @@ class ShareExternalContentModal extends HookWidget {
             ),
           ),
           const HorizontalSeparator(),
-          SizedBox(
-            height: 110.0.s,
-            child: selectedPubkeys.isEmpty
-                ? ShareExternalContentOptions(content: content)
-                : ShareExternalContentSendButton(
-                    masterPubkeys: selectedPubkeys,
-                    content: content,
-                  ),
+          Padding(
+            padding: EdgeInsetsDirectional.only(bottom: MediaQuery.paddingOf(context).bottom),
+            child: SizedBox(
+              height: 110.0.s,
+              child: selectedPubkeys.isEmpty
+                  ? ShareExternalContentOptions(content: content)
+                  : ShareExternalContentSendButton(
+                      masterPubkeys: selectedPubkeys,
+                      content: content,
+                    ),
+            ),
           ),
         ],
       ),

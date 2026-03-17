@@ -7,9 +7,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/services/deep_link/app_links_service.r.dart';
+import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/sharing_intent/shared_content.dart';
 import 'package:ion/app/services/sharing_intent/shared_media_stream_provider.r.dart';
 import 'package:ion/app/services/ui_event_queue/ui_event_queue_notifier.r.dart';
+import 'package:listen_sharing_intent/listen_sharing_intent.dart';
 
 class ShowSharedContentEvent extends UiEvent {
   ShowSharedContentEvent(this.content)
@@ -45,18 +47,27 @@ class ReceiveSharingIntentListener extends HookConsumerWidget {
     final isReady = ref.watch(appReadyProvider).valueOrNull ?? false;
     final initialChecked = useState(false);
 
+    // Handle shared content arriving while the app is already running
     ref.listen(sharedMediaStreamProvider, (_, AsyncValue<SharedContent> next) {
       if (!isReady) return;
       next.whenData((content) => _emitEvent(ref, content));
     });
 
-    // One-time check for data that arrived before appReady completed
+    // Cold-start: query initial media once the app is fully ready.
+    // This avoids the race condition of a fixed delay (native plugin
+    // may not have processed the launch URL yet on iOS).
     if (isReady && !initialChecked.value) {
       initialChecked.value = true;
-      final current = ref.read(sharedMediaStreamProvider);
-      if (current is AsyncData<SharedContent>) {
-        _emitEvent(ref, current.value);
-      }
+      ReceiveSharingIntent.instance.getInitialMedia().then((files) {
+        if (files.isNotEmpty) {
+          for (final content in parseSharedMediaFiles(files)) {
+            _emitEvent(ref, content);
+          }
+          ReceiveSharingIntent.instance.reset();
+        }
+      }).catchError((Object error) {
+        Logger.error(error, message: 'getInitialMedia');
+      });
     }
 
     return const SizedBox.shrink();
