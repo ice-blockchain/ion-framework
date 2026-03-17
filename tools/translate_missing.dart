@@ -49,7 +49,8 @@ void main(List<String> args) async {
     final content = await File(untranslatedPath).readAsString();
     untranslated = _parseUntranslated(content);
   } else if (baseRef == null) {
-    stderr.writeln('$_untranslatedFile not found. Run "flutter gen-l10n" first.');
+    stderr
+        .writeln('$_untranslatedFile not found. Run "flutter gen-l10n" first.');
     exit(1);
   }
 
@@ -83,12 +84,14 @@ void main(List<String> args) async {
   // Merge: per locale, translate missing + changed keys (deduplicated).
   // - Modified English keys: always re-translate (overwrites locale values)
   // - Added English keys: translate only if the locale doesn't already have the key
-  final toTranslate = _mergeKeysToTranslate(
+  final toTranslate = await _mergeKeysToTranslate(
     arbDirPath,
     untranslated,
     changedAddedKeys,
     changedModifiedKeys,
     allLocales,
+    baseRef: baseRef,
+    cwd: cwd,
   );
 
   if (toTranslate.isEmpty) {
@@ -96,8 +99,10 @@ void main(List<String> args) async {
     exit(0);
   }
 
-  final totalKeys = toTranslate.values.fold<int>(0, (s, keys) => s + keys.length);
-  stdout.writeln('Keys to translate: $totalKeys across ${toTranslate.length} locale(s).');
+  final totalKeys =
+      toTranslate.values.fold<int>(0, (s, keys) => s + keys.length);
+  stdout.writeln(
+      'Keys to translate: $totalKeys across ${toTranslate.length} locale(s).');
 
   final apiKey = await _resolveOpenAiApiKey(cwd);
   if (!dryRun && (apiKey == null || apiKey.isEmpty)) {
@@ -240,7 +245,9 @@ Future<({Set<String> added, Set<String> modified})> _getChangedEnKeysDetailed(
   final oldContent = result.stdout as String;
   if (oldContent.trim().isEmpty) {
     return (
-      added: currentArb.keys.where((k) => !k.startsWith('@') && k != '@@locale').toSet(),
+      added: currentArb.keys
+          .where((k) => !k.startsWith('@') && k != '@@locale')
+          .toSet(),
       modified: <String>{},
     );
   }
@@ -262,14 +269,17 @@ Future<({Set<String> added, Set<String> modified})> _getChangedEnKeysDetailed(
     }
     final metaKey = '@$key';
     final valChanged = currentVal != oldVal;
-    final metaChanged = currentArb[metaKey] != oldArb[metaKey];
+    // jsonDecode produces Map/List instances; default `==` for Map compares identity,
+    // so we need deep equality for metadata objects (placeholders, descriptions, etc.).
+    final metaChanged = !_deepEquals(currentArb[metaKey], oldArb[metaKey]);
     if (valChanged || metaChanged) modified.add(key);
   }
   return (added: added, modified: modified);
 }
 
 /// All target locale codes: from [fromUntranslated] plus any app_XX.arb present (except en).
-List<String> _allTargetLocales(String arbDirPath, List<String> fromUntranslated) {
+List<String> _allTargetLocales(
+    String arbDirPath, List<String> fromUntranslated) {
   final set = fromUntranslated.toSet();
   final dir = Directory(arbDirPath);
   if (!dir.existsSync()) return set.toList()..sort();
@@ -284,22 +294,24 @@ List<String> _allTargetLocales(String arbDirPath, List<String> fromUntranslated)
 }
 
 /// Merge untranslated (per locale) with changed keys. Returns map locale -> list of keys to translate.
-Map<String, List<String>> _mergeKeysToTranslate(
-  String arbDirPath,
-  Map<String, List<String>> untranslated,
-  Set<String> changedAddedKeys,
-  Set<String> changedModifiedKeys,
-  List<String> allLocales,
-) {
+Future<Map<String, List<String>>> _mergeKeysToTranslate(
+    String arbDirPath,
+    Map<String, List<String>> untranslated,
+    Set<String> changedAddedKeys,
+    Set<String> changedModifiedKeys,
+    List<String> allLocales,
+    {required String? baseRef,
+    required String cwd}) async {
   final out = <String, List<String>>{};
 
   for (final locale in allLocales) {
     final existingKeys = <String>{};
     final targetPath = '$arbDirPath/app_$locale.arb';
+    Map<String, dynamic>? currentLocaleArb;
     if (File(targetPath).existsSync()) {
       try {
-        final arb = _parseArb(File(targetPath).readAsStringSync());
-        for (final k in arb.keys) {
+        currentLocaleArb = _parseArb(File(targetPath).readAsStringSync());
+        for (final k in currentLocaleArb.keys) {
           if (k.startsWith('@') || k == '@@locale') continue;
           existingKeys.add(k);
         }
@@ -308,7 +320,40 @@ Map<String, List<String>> _mergeKeysToTranslate(
       }
     }
 
-    final set = (untranslated[locale] ?? []).toSet()..addAll(changedModifiedKeys);
+    final set = (untranslated[locale] ?? []).toSet();
+
+    // For modified-English keys, don't keep re-translating if the locale value was
+    // already updated in this branch. We treat "needs translation" as:
+    // - key missing in current locale, or
+    // - current locale value still matches baseRef's value (i.e., not updated yet), or
+    // - baseRef doesn't have the locale/key (new locale/key in branch).
+    if (changedModifiedKeys.isNotEmpty) {
+      if (baseRef == null || currentLocaleArb == null) {
+        set.addAll(changedModifiedKeys);
+      } else {
+        final baseLocaleArb = await _tryLoadArbFromGit(
+          cwd: cwd,
+          ref: baseRef,
+          path: '$_arbDir/app_$locale.arb',
+        );
+        for (final key in changedModifiedKeys) {
+          final currentVal = currentLocaleArb[key];
+          if (currentVal == null) {
+            set.add(key);
+            continue;
+          }
+          final baseVal = baseLocaleArb?[key];
+          if (baseVal == null) {
+            set.add(key);
+            continue;
+          }
+          if (currentVal == baseVal) {
+            set.add(key);
+          }
+        }
+      }
+    }
+
     for (final key in changedAddedKeys) {
       if (!existingKeys.contains(key)) set.add(key);
     }
@@ -321,6 +366,51 @@ Map<String, List<String>> _mergeKeysToTranslate(
 /// Parses ARB JSON; preserves key order via LinkedHashMap from jsonDecode.
 Map<String, dynamic> _parseArb(String content) {
   return jsonDecode(content) as Map<String, dynamic>;
+}
+
+bool _deepEquals(Object? a, Object? b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return a == b;
+
+  if (a is Map && b is Map) {
+    if (a.length != b.length) return false;
+    for (final key in a.keys) {
+      if (!b.containsKey(key)) return false;
+      if (!_deepEquals(a[key], b[key])) return false;
+    }
+    return true;
+  }
+
+  if (a is List && b is List) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (!_deepEquals(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  return a == b;
+}
+
+Future<Map<String, dynamic>?> _tryLoadArbFromGit({
+  required String cwd,
+  required String ref,
+  required String path,
+}) async {
+  final result = await Process.run(
+    'git',
+    ['show', '$ref:$path'],
+    runInShell: true,
+    workingDirectory: cwd,
+  );
+  if (result.exitCode != 0) return null;
+  final content = (result.stdout as String).trim();
+  if (content.isEmpty) return null;
+  try {
+    return _parseArb(content);
+  } catch (_) {
+    return null;
+  }
 }
 
 /// Replaces placeholders with tokens for the API; returns (modified string, ordered list of placeholders).
@@ -338,7 +428,8 @@ Map<String, dynamic> _parseArb(String content) {
   });
 
   // [[:link]]...[[/:link]]
-  result = result.replaceAllMapped(RegExp(r'\[\[:link\]\](.*?)\[\[\/:link\]\]', dotAll: true), (m) {
+  result = result.replaceAllMapped(
+      RegExp(r'\[\[:link\]\](.*?)\[\[\/:link\]\]', dotAll: true), (m) {
     final full = m.group(0)!;
     final index = placeholders.indexOf(full);
     if (index >= 0) return '__PH_${index}__';
@@ -357,9 +448,11 @@ String _restorePlaceholders(String text, List<String> placeholders) {
   return result;
 }
 
-Future<String?> _translate(String apiKey, String source, String targetLanguage) async {
+Future<String?> _translate(
+    String apiKey, String source, String targetLanguage) async {
   final (placeholders, textForApi) = _replacePlaceholdersForTranslation(source);
-  final prompt = 'Translate the following English app string to $targetLanguage. '
+  final prompt =
+      'Translate the following English app string to $targetLanguage. '
       'Keep any placeholders like __PH_0__, __PH_1__ exactly as-is (do not translate them). '
       'Reply with only the translated string, no quotes or explanation.\n\n$textForApi';
 
@@ -388,7 +481,8 @@ Future<String?> _translate(String apiKey, String source, String targetLanguage) 
     final data = jsonDecode(responseBody) as Map<String, dynamic>;
     final choices = data['choices'] as List<dynamic>?;
     final content = choices?.isNotEmpty ?? false
-        ? (choices!.first as Map<String, dynamic>)['message'] as Map<String, dynamic>?
+        ? (choices!.first as Map<String, dynamic>)['message']
+            as Map<String, dynamic>?
         : null;
     final translated = content?['content'] as String?;
     if (translated == null || translated.isEmpty) return null;
@@ -518,7 +612,8 @@ Future<void> _gitCommitAndPush() async {
     runInShell: true,
   );
 
-  if (commitResult.exitCode != 0 && (commitResult.stderr as String).contains('nothing to commit')) {
+  if (commitResult.exitCode != 0 &&
+      (commitResult.stderr as String).contains('nothing to commit')) {
     return;
   }
   if (commitResult.exitCode != 0) {
