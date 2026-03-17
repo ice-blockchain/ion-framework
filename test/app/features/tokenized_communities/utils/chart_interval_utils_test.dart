@@ -122,7 +122,7 @@ void main() {
         // This can happen if now is already past the computed target
         // (theoretical edge case handled by the isNegative check)
         final now = DateTime(2026, 3, 17, 16, 30);
-        final result = durationUntilNextSlot('1m', buffer: Duration.zero, now: now);
+        final result = durationUntilNextSlot('1m', now: now);
         // Next slot: 16:31:00, wait = 60s, not negative
         expect(result.inSeconds, 60);
       });
