@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ice License 1.0
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/force_account_security_notifier.r.dart';
@@ -7,23 +8,28 @@ import 'package:ion/app/router/app_routes.gr.dart';
 
 void main() {
   group('ForceAccountSecurityService', () {
-    test('shows modal after delay for newly created unsecured account', () async {
+    test('shows modal after delay for newly created unsecured account', () {
       var emitCount = 0;
+      final registrationTime = DateTime(2026, 1, 1, 12);
+      var now = registrationTime;
       final service = ForceAccountSecurityService(
-        enforceDelay: const Duration(milliseconds: 30),
+        enforceDelay: const Duration(minutes: 1),
         emitDialog: () => emitCount++,
         hasNavigatorContext: () => true,
+        now: () => now,
       )
-        ..onUserMetadata(_metadata(registeredAt: DateTime.now()))
+        ..onUserMetadata(_metadata(registeredAt: registrationTime))
         ..onRouteChanged(FeedRoute().location)
         ..onSecured(secured: false);
 
       expect(emitCount, 0);
 
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      now = registrationTime.add(const Duration(seconds: 59));
+      service.onLifecycleChanged(AppLifecycleState.resumed);
       expect(emitCount, 0);
 
-      await Future<void>.delayed(const Duration(milliseconds: 30));
+      now = registrationTime.add(const Duration(minutes: 1));
+      service.onLifecycleChanged(AppLifecycleState.resumed);
       expect(emitCount, 1);
 
       service.dispose();
