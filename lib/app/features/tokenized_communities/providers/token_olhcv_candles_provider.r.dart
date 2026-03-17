@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/num.dart';
+import 'package:ion/app/features/tokenized_communities/utils/chart_interval_utils.dart';
 import 'package:ion/app/services/ion_token_analytics/ion_token_analytics_client_provider.r.dart';
 import 'package:ion/app/utils/date.dart';
 import 'package:ion_token_analytics/ion_token_analytics.dart';
@@ -70,12 +71,14 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
     final event = iterator.current;
 
     if (event == null) {
+      // Tick: re-emit so normalizer extends chart to "now"
       yield List<OhlcvCandle>.from(currentCandles);
       continue;
     }
 
-    if (event.isEmpty) continue;
+    if (event.isEmpty) continue; // SSE keepalive — skip
 
+    // Real data from BE
     _applyBatch(currentCandles, event, interval);
     _sortAndTrim(currentCandles, _maxCandles);
     yield currentCandles;
@@ -84,6 +87,7 @@ Stream<List<OhlcvCandle>> tokenOhlcvCandles(
 
 // Wraps source stream, injecting `null` tick markers at each interval
 // boundary + tickBuffer. Timer resets only on real (non-empty) data.
+// Used to keep the chart extending over time when BE sends no updates.
 Stream<List<OhlcvCandle>?> _withIntervalTicks(
   Stream<List<OhlcvCandle>> source,
   String interval,
@@ -93,7 +97,7 @@ Stream<List<OhlcvCandle>?> _withIntervalTicks(
 
   void scheduleNextTick() {
     tickTimer?.cancel();
-    tickTimer = Timer(_timeUntilNextSlot(interval), () {
+    tickTimer = Timer(timeUntilNextSlot(interval, buffer: _tickBuffer), () {
       if (!controller.isClosed) {
         controller.add(null);
         scheduleNextTick();
@@ -148,33 +152,4 @@ void _sortAndTrim(List<OhlcvCandle> candles, int maxCandles) {
   if (candles.length > maxCandles) {
     candles.removeRange(0, candles.length - maxCandles);
   }
-}
-
-Duration _parseIntervalDuration(String interval) {
-  final value = int.parse(interval.substring(0, interval.length - 1));
-
-  if (interval.endsWith('h')) return Duration(hours: value);
-
-  return Duration(minutes: value);
-}
-
-// Returns duration until the next interval boundary + [_tickBuffer],
-// so BE has a chance to send real data before we simulate a tick.
-Duration _timeUntilNextSlot(String interval) {
-  final now = DateTime.now();
-  final duration = _parseIntervalDuration(interval);
-
-  final DateTime nextSlot;
-  if (duration.inHours < 24) {
-    final minutes = duration.inMinutes;
-    final minuteOfDay = now.hour * 60 + now.minute;
-    final nextMinute = (minuteOfDay ~/ minutes + 1) * minutes;
-    nextSlot = DateTime(now.year, now.month, now.day).add(Duration(minutes: nextMinute));
-  } else {
-    nextSlot = DateTime(now.year, now.month, now.day + 1);
-  }
-
-  final wait = nextSlot.add(_tickBuffer).difference(now);
-
-  return wait.isNegative ? _tickBuffer : wait;
 }
