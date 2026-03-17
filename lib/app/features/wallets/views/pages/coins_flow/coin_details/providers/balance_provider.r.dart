@@ -20,13 +20,8 @@ part 'balance_provider.r.g.dart';
 
 @riverpod
 class CoinBalanceNotifier extends _$CoinBalanceNotifier {
-<<<<<<< HEAD
-  final Map<String, CoinBalanceState> _walletBalanceCache = {};
-  bool _cacheInitialized = false;
-=======
   final Set<String> _loadedDisconnectedWalletIds = {};
   late String _networkKey;
->>>>>>> ce08a1cdc (fix(wallet): reduce excessive wallet api calls (#3682))
 
   @override
   CoinBalanceState build({required String symbolGroup}) {
@@ -35,26 +30,15 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
         (asyncState) => asyncState.valueOrNull?.selected.whenOrNull(network: (network) => network),
       ),
     );
-<<<<<<< HEAD
-=======
     final networkKey = currentNetwork?.id ?? CoinBalanceAllNetworksState.allNetworksKey;
     _networkKey = networkKey;
->>>>>>> ce08a1cdc (fix(wallet): reduce excessive wallet api calls (#3682))
-
-    final isAllNetworks = currentNetwork == null;
 
     // Scenario 1: All networks selected - load all balances and cache them
-    if (isAllNetworks) {
       final connectedBalance = _calculateConnectedBalance(symbolGroup, currentNetwork);
       unawaited(_loadAllBalancesAndCache(symbolGroup: symbolGroup));
       return connectedBalance;
     }
 
-<<<<<<< HEAD
-    // Scenario 2: Specific network selected - get selected wallet's balance
-    final cryptoWalletData = ref.watch(
-      selectedCryptoWalletNotifierProvider(symbolGroup: symbolGroup),
-=======
           _loadedDisconnectedWalletIds.clear();
           final newBalances = _calculateAllNetworkBalances(updatedCoins);
           _emitState(newBalances);
@@ -77,7 +61,6 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     return CoinBalanceAllNetworksState(
       balancesByNetwork: Map.unmodifiable(balances),
       selectedNetworkKey: networkKey,
->>>>>>> ce08a1cdc (fix(wallet): reduce excessive wallet api calls (#3682))
     );
 
     final selectedWallet = cryptoWalletData.selectedWallet;
@@ -138,29 +121,6 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
     return CoinBalanceState(amount: totalAmount, balanceUSD: totalBalanceUSD);
   }
 
-<<<<<<< HEAD
-  Future<void> _loadAllBalancesAndCache({required String symbolGroup}) async {
-    if (_cacheInitialized) return;
-
-    try {
-      final coins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
-
-      // Cache connected wallet balances from synced coins
-      for (final coinInWallet in coins) {
-        final walletId = coinInWallet.walletId;
-        if (walletId != null) {
-          _walletBalanceCache[walletId] = CoinBalanceState(
-            amount: coinInWallet.amount,
-            balanceUSD: coinInWallet.balanceUSD,
-          );
-        }
-      }
-
-      _cacheInitialized = true;
-    } catch (e, st) {
-      Logger.error('Failed to load all balances and cache: $e', stackTrace: st);
-    }
-=======
   void _emitState(Map<String, CoinBalanceState> balances) {
     state = AsyncData(
       CoinBalanceAllNetworksState(
@@ -168,7 +128,6 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
         selectedNetworkKey: _networkKey,
       ),
     );
->>>>>>> ce08a1cdc (fix(wallet): reduce excessive wallet api calls (#3682))
   }
 
   Future<void> _loadDisconnectedWalletBalance({
@@ -180,17 +139,6 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
       final coins = await ref.read(syncedCoinsBySymbolGroupProvider(symbolGroup).future);
       final coin = coins.firstWhereOrNull((coin) => coin.coin.network.id == wallet.network)?.coin;
 
-<<<<<<< HEAD
-      if (coin != null) {
-        final balance = await _loadWalletBalance(
-          client: client,
-          wallet: wallet,
-          coin: coin,
-        );
-        _walletBalanceCache[wallet.id] = balance;
-        state = balance;
-      }
-=======
       if (coin == null) return;
 
       final balance = await _loadWalletBalance(client: client, wallet: wallet, coin: coin);
@@ -214,7 +162,6 @@ class CoinBalanceNotifier extends _$CoinBalanceNotifier {
       );
 
       _emitState(newBalances);
->>>>>>> ce08a1cdc (fix(wallet): reduce excessive wallet api calls (#3682))
     } catch (e, st) {
       Logger.error('Failed to load disconnected wallet balance: $e', stackTrace: st);
     }
