@@ -105,7 +105,8 @@ class SplashPage extends HookConsumerWidget {
       body: Center(
         child: splashVideoController != null &&
                 splashVideoController.value.isInitialized &&
-                !splashVideoController.value.hasError
+                !splashVideoController.value.hasError &&
+                !splashVideoControllerState.isRefreshing
             ? AspectRatio(
                 aspectRatio: splashVideoController.value.aspectRatio,
                 child: VideoPlayer(splashVideoController),
