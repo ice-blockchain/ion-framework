@@ -7,6 +7,7 @@ import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/counter.dart';
 import 'package:ion/app/features/feed/data/models/feed_config.f.dart';
@@ -92,8 +93,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
         if (previous == null) return;
 
         // Only refresh if hashtags actually changed (order-independent comparison)
-        const equality = DeepCollectionEquality.unordered();
-        final hasChanged = !equality.equals(next, previous);
+        final hasChanged = !next.equalsDeepUnordered(previous);
 
         if (hasChanged) {
           Future.microtask(() {
