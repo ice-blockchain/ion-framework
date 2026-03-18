@@ -923,7 +923,7 @@
   "token_stats_holders_title": "Holders",
   "token_stats_market_cap_description": "Bu değer, bir tokenın piyasadaki toplam değerini temsil eder ve güncel fiyatın dolaşımdaki arzla çarpılmasıyla hesaplanır. Kullanıcıların bir tokenın diğerlerine göre ne kadar büyük veya yerleşik olduğunu hızlıca anlamasına yardımcı olur.",
   "token_stats_market_cap_title": "Market Cap",
-  "token_stats_volume_description": "Bu, seçilen bir süre boyunca satın alınan ve satılan tokenların toplam miktarını gösterir. Daha yüksek aktivite genellikle daha güçlü ilgi, daha iyi likidite ve daha kolay işlem anlamına gelir.",
+  "token_stats_volume_description": "Bu, son 24 saat içindeki token işlem hacmini gösterir.\n\nDaha yüksek aktivite genellikle daha güçlü ilgi, daha iyi likidite ve daha kolay işlem anlamına gelir.",
   "token_stats_volume_title": "Volume",
   "tokenized_communities_top_tokens": "En iyi tokenler",
   "tokenized_communities_trending_tokens": "Trend tokenler",
