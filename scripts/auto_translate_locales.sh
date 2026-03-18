@@ -17,8 +17,8 @@ Behavior:
 Options:
   --commit              Pass --commit to translate_missing.dart (CI use).
   --fail-if-generated   Exit 1 if translations were generated (pre-push use).
-  --base-ref=<ref>      Git ref to compare for app_en.arb changes (default: env BASE_REF, else auto).
-  --base-ref=auto       Auto-pick origin/master or origin/main if available.
+  --base-ref=<ref>      Optional fallback base ref for changed-English detection (used when HEAD^ is unavailable).
+  --base-ref=auto       Auto-pick origin/master or origin/main (if available).
 EOF
 }
 
@@ -40,7 +40,7 @@ UNTRANSLATED_FILE="untranslated_messages.txt"
 NEED_TRANSLATIONS=0
 L10N_STATUS_BEFORE="$(git status --porcelain lib/l10n 2>/dev/null || true)"
 
-# Resolve BASE_REF early (so translate_missing always gets it in one run)
+# Resolve BASE_REF for translate_missing fallback.
 BASE_REF="${BASE_REF_ARG:-${BASE_REF:-}}"
 if [ -z "$BASE_REF" ] || [ "$BASE_REF" = "auto" ]; then
   if git show "origin/master:lib/l10n/app_en.arb" >/dev/null 2>&1; then
@@ -60,8 +60,11 @@ if [ -f "$UNTRANSLATED_FILE" ] && [ -s "$UNTRANSLATED_FILE" ] && [ "$(jq 'length
 fi
 
 if [ "$NEED_TRANSLATIONS" -eq 0 ]; then
-  if [ -n "$BASE_REF" ] && ! git diff --quiet "$BASE_REF" -- lib/l10n/app_en.arb 2>/dev/null; then
-    NEED_TRANSLATIONS=1
+  # Translate changed English keys based on HEAD vs HEAD^ diff only.
+  if git rev-parse HEAD^ >/dev/null 2>&1; then
+    if ! git diff --quiet HEAD^ -- lib/l10n/app_en.arb 2>/dev/null; then
+      NEED_TRANSLATIONS=1
+    fi
   fi
 fi
 
@@ -71,7 +74,6 @@ if [ "$NEED_TRANSLATIONS" -eq 1 ]; then
   if [ -n "$BASE_REF" ]; then
     TRANSLATE_ARGS+=(--base-ref="$BASE_REF")
   fi
-
   if [ "$DO_COMMIT" -eq 1 ]; then
     dart run tools/translate_missing.dart --commit "${TRANSLATE_ARGS[@]}"
   else

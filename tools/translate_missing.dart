@@ -7,7 +7,7 @@
 // Usage: dart run tools/translate_missing.dart [options]
 //   --dry-run       Print what would be translated without calling the API or writing files.
 //   --commit        Commit and push ARB changes (use only on CI, on a feature branch). Without this, no git operations run (local default).
-//   --base-ref=REF  Compare app_en.arb with REF (e.g. origin/master) and re-translate keys whose English changed in all locales. Use in CI to sync PR changes. Can also set BASE_REF env.
+//   --base-ref=REF  Optional fallback for changed-English detection when HEAD^ isn't available.
 
 import 'dart:convert';
 import 'dart:io';
@@ -38,9 +38,25 @@ const _localeToLanguage = {
 void main(List<String> args) async {
   final dryRun = args.contains('--dry-run');
   final doCommit = args.contains('--commit');
-  final baseRef = _parseBaseRef(args);
+  final providedBaseRef = _parseBaseRef(args);
 
   final cwd = Directory.current.path;
+  final headParentSha = await _getHeadParentSha(cwd: cwd);
+  final String baseRef;
+  if (headParentSha == null || headParentSha.isEmpty) {
+    baseRef = providedBaseRef ?? await _autoPickBaseRef(cwd);
+    if (baseRef.isEmpty) {
+      stderr.writeln(
+        'Cannot compute baseline for changed-English detection: HEAD^ missing and --base-ref was not provided/usable.',
+      );
+      exit(1);
+    }
+    stdout.writeln('Using fallback base ref for changed-English detection: $baseRef');
+  } else {
+    baseRef = headParentSha;
+    stdout.writeln('Using per-commit diff baseline (HEAD^): $baseRef');
+  }
+
   final untranslatedPath = '$cwd/$_untranslatedFile';
   final arbDirPath = '$cwd/$_arbDir';
 
@@ -48,9 +64,9 @@ void main(List<String> args) async {
   if (File(untranslatedPath).existsSync()) {
     final content = await File(untranslatedPath).readAsString();
     untranslated = _parseUntranslated(content);
-  } else if (baseRef == null) {
+  } else {
     stderr.writeln('$_untranslatedFile not found. Run "flutter gen-l10n" first.');
-    exit(1);
+    untranslated = <String, List<String>>{};
   }
 
   final templatePath = '$arbDirPath/$_templateArb';
@@ -64,17 +80,15 @@ void main(List<String> args) async {
   // Keys in app_en.arb whose source text (or @key metadata) changed vs base ref — need re-translation in all locales.
   var changedAddedKeys = <String>{};
   var changedModifiedKeys = <String>{};
-  if (baseRef != null) {
-    final changed = await _getChangedEnKeysDetailed(cwd, baseRef, templateArb);
-    changedAddedKeys = changed.added;
-    changedModifiedKeys = changed.modified;
-    final totalChanged = changedAddedKeys.length + changedModifiedKeys.length;
-    if (totalChanged > 0) {
-      stdout.writeln(
-        'Keys with changed English (vs $baseRef): $totalChanged '
-        '(added: ${changedAddedKeys.length}, modified: ${changedModifiedKeys.length})',
-      );
-    }
+  final changed = await _getChangedEnKeysDetailed(cwd, baseRef, templateArb);
+  changedAddedKeys = changed.added;
+  changedModifiedKeys = changed.modified;
+  final totalChanged = changedAddedKeys.length + changedModifiedKeys.length;
+  if (totalChanged > 0) {
+    stdout.writeln(
+      'Keys with changed English (vs HEAD^): $totalChanged '
+      '(added: ${changedAddedKeys.length}, modified: ${changedModifiedKeys.length})',
+    );
   }
 
   // All target locales: from untranslated_messages + existing app_XX.arb (except en).
@@ -207,6 +221,33 @@ String? _parseBaseRef(List<String> args) {
     }
   }
   return Platform.environment['BASE_REF'];
+}
+
+/// Picks a base ref to compare `app_en.arb` against when HEAD^ isn't available.
+/// Returns empty string if no candidates can be resolved.
+Future<String> _autoPickBaseRef(String cwd) async {
+  final candidates = <String>['origin/master', 'origin/main'];
+  for (final ref in candidates) {
+    final result = await Process.run(
+      'git',
+      ['show', '$ref:$_arbDir/$_templateArb'],
+      runInShell: true,
+      workingDirectory: cwd,
+    );
+    if (result.exitCode == 0) return ref;
+  }
+  return '';
+}
+
+Future<String?> _getHeadParentSha({required String cwd}) async {
+  final result = await Process.run(
+    'git',
+    ['rev-parse', 'HEAD^'],
+    runInShell: true,
+    workingDirectory: cwd,
+  );
+  if (result.exitCode != 0) return null;
+  return (result.stdout as String).trim();
 }
 
 /// Parses untranslated_messages.txt (JSON: {"locale": ["key1", ...], ...}).

@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: main-repo
+          fetch-depth: 0
       - name: Checkout the target 'master' branch of 'flutter-app-secrets'
         id: checkout-secrets
         uses: actions/checkout@v3
