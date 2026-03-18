@@ -15,6 +15,7 @@ import 'package:ion/app/features/chat/e2ee/providers/encrypted_repost_handler.r.
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
 import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_provider.r.dart';
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
+import 'package:ion/app/features/chat/providers/conversation_request_approval_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/deletion_request.f.dart';
 import 'package:ion/app/features/ion_connect/model/global_subscription_encrypted_event_message_handler.dart';
@@ -38,6 +39,7 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
     required this.conversationMessageDao,
     required this.conversationMessageDataDao,
     required this.sendE2eeMessageStatusService,
+    required this.conversationRequestApproval,
   });
 
   final List<GlobalSubscriptionEncryptedEventMessageHandler?> handlers;
@@ -48,6 +50,11 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
   final ConversationMessageDao conversationMessageDao;
   final ConversationMessageDataDao conversationMessageDataDao;
   final SendE2eeMessageStatusService sendE2eeMessageStatusService;
+  final Future<ConversationRequestApprovalState> Function({
+    required String conversationId,
+    required String senderMasterPubkey,
+    required bool isIncomingContext,
+  }) conversationRequestApproval;
 
   @override
   bool canHandle(EventMessage eventMessage) {
@@ -115,6 +122,16 @@ class EncryptedMessageEventHandler implements GlobalSubscriptionEventHandler {
       eventReference: eventReference,
     );
 
+    final approvalState = await conversationRequestApproval(
+      conversationId: entity.data.conversationId,
+      senderMasterPubkey: rumor.masterPubkey,
+      isIncomingContext: rumor.masterPubkey != masterPubkey,
+    );
+
+    if (approvalState == ConversationRequestApprovalState.pending) {
+      return;
+    }
+
     if (currentStatus == null || currentStatus.index < MessageDeliveryStatus.received.index) {
       // Notify rest of the participants that the message was received
       // by the current user
@@ -169,5 +186,18 @@ Future<EncryptedMessageEventHandler> encryptedMessageEventHandler(Ref ref) async
     giftUnwrapService: await ref.watch(giftUnwrapServiceProvider.future),
     conversationMessageDataDao: ref.watch(conversationMessageDataDaoProvider),
     sendE2eeMessageStatusService: await ref.watch(sendE2eeMessageStatusServiceProvider.future),
+    conversationRequestApproval: ({
+      required String conversationId,
+      required String senderMasterPubkey,
+      required bool isIncomingContext,
+    }) {
+      return ref.read(
+        conversationRequestApprovalProvider(
+          conversationId,
+          senderMasterPubkey: senderMasterPubkey,
+          isIncomingContext: isIncomingContext,
+        ).future,
+      );
+    },
   );
 }

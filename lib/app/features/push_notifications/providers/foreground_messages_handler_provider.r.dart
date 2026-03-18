@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
+import 'package:ion/app/features/chat/providers/conversation_request_approval_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
@@ -111,6 +112,14 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       final avatar = parsedData?.avatar;
       final media = parsedData?.media;
 
+      if (await _shouldSkipRequestChatPush(
+        data: data,
+        notificationType: parsedData?.notificationType,
+        groupKey: parsedData?.groupKey,
+      )) {
+        return;
+      }
+
       if (_shouldSkipChatPush(data, parsedData?.notificationType)) {
         return;
       }
@@ -203,5 +212,36 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     }
 
     return false;
+  }
+
+  Future<bool> _shouldSkipRequestChatPush({
+    required IonConnectPushDataPayload data,
+    required PushNotificationType? notificationType,
+    required String? groupKey,
+  }) async {
+    if (!(notificationType?.isChat ?? false)) {
+      return false;
+    }
+
+    final conversationId = groupKey;
+    final senderMasterPubkey = data.decryptedEvent?.masterPubkey;
+
+    if (conversationId == null || senderMasterPubkey == null) {
+      return false;
+    }
+
+    try {
+      final approval = await ref.read(
+        conversationRequestApprovalProvider(
+          conversationId,
+          isIncomingContext: true,
+          senderMasterPubkey: senderMasterPubkey,
+        ).future,
+      );
+
+      return approval == ConversationRequestApprovalState.pending;
+    } catch (_) {
+      return false;
+    }
   }
 }

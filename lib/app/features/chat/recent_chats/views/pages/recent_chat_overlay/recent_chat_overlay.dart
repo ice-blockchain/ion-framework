@@ -16,12 +16,14 @@ class RecentChatOverlay extends HookConsumerWidget {
   const RecentChatOverlay({
     required this.renderObject,
     required this.conversation,
+    this.isRequestConversation = false,
     super.key,
   });
 
   /// The key of the message item to capture the image from widget tree
   final RenderObject renderObject;
   final ConversationListItem conversation;
+  final bool isRequestConversation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,9 +40,13 @@ class RecentChatOverlay extends HookConsumerWidget {
 
     final (:imageBytes, :position, :size) = capturedImage.data!;
 
+    final contextMenuHeight = RecentChatOverlayContextMenu.heightFor(
+      isRequestConversation: isRequestConversation,
+    );
+
     /// The available height for the message content in the dialog
     final availableHeight = MediaQuery.sizeOf(context).height -
-        RecentChatOverlayContextMenu.height -
+        contextMenuHeight -
         MediaQuery.paddingOf(context).bottom -
         MediaQuery.paddingOf(context).top;
 
@@ -57,7 +63,7 @@ class RecentChatOverlay extends HookConsumerWidget {
     final overflowBottomSize = MediaQuery.sizeOf(context).height -
         // bottomdY -
         (position.dy > 0 ? (isHugeComponent ? 0 : bottomdY) : bottomdY) -
-        RecentChatOverlayContextMenu.height -
+        contextMenuHeight -
         MediaQuery.paddingOf(context).bottom;
 
     /// The y-coordinate of the top of the message content in the dialog
@@ -104,7 +110,10 @@ class RecentChatOverlay extends HookConsumerWidget {
                   ),
                 ),
                 IntrinsicWidth(
-                  child: RecentChatOverlayContextMenu(conversation: conversation),
+                  child: RecentChatOverlayContextMenu(
+                    conversation: conversation,
+                    isRequestConversation: isRequestConversation,
+                  ),
                 ),
               ],
             ),

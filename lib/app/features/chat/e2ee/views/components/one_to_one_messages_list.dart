@@ -11,6 +11,7 @@ import 'package:ion/app/features/chat/e2ee/providers/send_e2ee_message_status_pr
 import 'package:ion/app/features/chat/model/database/chat_database.m.dart';
 import 'package:ion/app/features/chat/model/message_type.dart';
 import 'package:ion/app/features/chat/providers/conversation_messages_provider.r.dart';
+import 'package:ion/app/features/chat/providers/conversation_request_approval_provider.r.dart';
 import 'package:ion/app/features/chat/providers/manual_unread_conversations_provider.r.dart';
 import 'package:ion/app/features/chat/views/components/message_items/components.dart';
 import 'package:ion/app/features/chat/views/components/message_items/message_types/document_message/document_message.dart';
@@ -290,6 +291,18 @@ class OneToOneMessageList extends HookConsumerWidget {
         allMessages.where((m) => m.masterPubkey != currentUserMasterPubkey).firstOrNull;
 
     if (latestMessageFromReceiver == null || currentUserMasterPubkey == null) {
+      return;
+    }
+
+    final approvalState = await ref.read(
+      conversationRequestApprovalProvider(
+        conversationId,
+        isIncomingContext: true,
+        senderMasterPubkey: latestMessageFromReceiver.masterPubkey,
+      ).future,
+    );
+
+    if (approvalState == ConversationRequestApprovalState.pending) {
       return;
     }
 

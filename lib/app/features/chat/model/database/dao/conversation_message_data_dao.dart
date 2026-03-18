@@ -170,6 +170,63 @@ class ConversationMessageDataDao extends DatabaseAccessor<ChatDatabase>
         : null;
   }
 
+  Stream<bool> watchHasVisibleMessages({required String conversationId}) {
+    final countExp = conversationMessageTable.messageEventReference.count();
+
+    final query = selectOnly(conversationMessageTable)
+      ..addColumns([countExp])
+      ..where(conversationMessageTable.conversationId.equals(conversationId))
+      ..where(conversationMessageTable.isDeleted.equals(false));
+
+    return query.watchSingle().map((row) => (row.read(countExp) ?? 0) > 0).distinct();
+  }
+
+  Stream<bool> watchHasInboundVisibleMessages({
+    required String conversationId,
+    required String currentUserMasterPubkey,
+  }) {
+    final countExp = eventMessageTable.eventReference.count();
+
+    final query = selectOnly(eventMessageTable)
+      ..addColumns([countExp])
+      ..join([
+        innerJoin(
+          conversationMessageTable,
+          conversationMessageTable.messageEventReference
+              .equalsExp(eventMessageTable.eventReference),
+        ),
+      ])
+      ..where(conversationMessageTable.conversationId.equals(conversationId))
+      ..where(conversationMessageTable.isDeleted.equals(false))
+      ..where(eventMessageTable.masterPubkey.equals(currentUserMasterPubkey).not());
+
+    return query.watchSingle().map((row) => (row.read(countExp) ?? 0) > 0).distinct();
+  }
+
+  Stream<bool> watchConversationStatusAtLeast({
+    required String conversationId,
+    required String masterPubkey,
+    required MessageDeliveryStatus status,
+  }) {
+    final countExp = messageStatusTable.id.count();
+
+    final query = selectOnly(messageStatusTable)
+      ..addColumns([countExp])
+      ..join([
+        innerJoin(
+          conversationMessageTable,
+          conversationMessageTable.messageEventReference
+              .equalsExp(messageStatusTable.messageEventReference),
+        ),
+      ])
+      ..where(conversationMessageTable.conversationId.equals(conversationId))
+      ..where(conversationMessageTable.isDeleted.equals(false))
+      ..where(messageStatusTable.masterPubkey.equals(masterPubkey))
+      ..where(messageStatusTable.status.isBiggerOrEqualValue(status.index));
+
+    return query.watchSingle().map((row) => (row.read(countExp) ?? 0) > 0).distinct();
+  }
+
   Future<void> reinitializeFailedStatus({
     required EventReference eventReference,
   }) async {
