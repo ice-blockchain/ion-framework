@@ -21,11 +21,14 @@ class WalletViewParser {
     final symbolGroups = <String>{};
     var totalViewBalanceUSD = 0.0;
 
+    final consumedAggregationWallets = <String>{};
+
     for (final coinInWalletDTO in viewDTO.coins) {
       final coinInWallet = await _processCoinInWallet(
         coinInWalletDTO,
         networks,
         viewDTO.aggregation,
+        consumedAggregationWallets,
       );
 
       if (coinInWallet == null) continue;
@@ -54,6 +57,7 @@ class WalletViewParser {
     CoinInWallet coinInWalletDTO,
     Map<String, NetworkData> networks,
     Map<String, WalletViewAggregationItem> aggregation,
+    Set<String> consumedAggregationWallets,
   ) async {
     final coinDTO = coinInWalletDTO.coin;
     final network = networks[coinDTO.network];
@@ -73,13 +77,18 @@ class WalletViewParser {
 
     final aggregationItem =
         _searchAggregationItem(coinInWalletDTO: coinInWalletDTO, aggregation: aggregation);
-    final walletAsset = aggregationItem?.wallets.firstWhereOrNull(
-      (wallet) {
-        final coinIdMatch = wallet.coinId == null || wallet.coinId == coinInWalletDTO.coin.id;
-        final walletIdMatch = wallet.walletId == coinInWalletDTO.walletId;
-        return walletIdMatch && coinIdMatch;
-      },
-    )?.asset;
+    final matchedWallet = aggregationItem?.wallets.firstWhereOrNull(
+      (wallet) => _isMatchingWallet(wallet, coinInWalletDTO),
+    );
+
+    WalletAsset? walletAsset;
+    if (matchedWallet != null) {
+      final key = _aggregationWalletKey(matchedWallet);
+      if (!consumedAggregationWallets.contains(key)) {
+        consumedAggregationWallets.add(key);
+        walletAsset = matchedWallet.asset;
+      }
+    }
 
     final amounts = _calculateCoinAmounts(coinInWalletDTO, walletAsset, coinDTO);
     final walletAssetContractAddress = walletAsset?.maybeMap(
@@ -161,6 +170,39 @@ class WalletViewParser {
     );
   }
 
+  bool _isMatchingWallet(
+    WalletViewAggregationWallet wallet,
+    CoinInWallet coinInWalletDTO,
+  ) {
+    if (wallet.walletId != coinInWalletDTO.walletId) return false;
+
+    final assetContract = _extractContractAddress(wallet.asset);
+    final coinContract = coinInWalletDTO.coin.contractAddress;
+    if (assetContract != null &&
+        assetContract.isNotEmpty &&
+        coinContract.isNotEmpty &&
+        assetContract.toLowerCase() == coinContract.toLowerCase()) {
+      return true;
+    }
+
+    return wallet.coinId == null || wallet.coinId == coinInWalletDTO.coin.id;
+  }
+
+  String _aggregationWalletKey(WalletViewAggregationWallet wallet) {
+    final contract = _extractContractAddress(wallet.asset);
+    return '${wallet.walletId}|${wallet.network}|${contract ?? wallet.coinId}';
+  }
+
+  String? _extractContractAddress(WalletAsset asset) {
+    return asset.maybeMap(
+      erc20: (value) => value.contract,
+      trc20: (value) => value.contract,
+      native: (value) => value.contract,
+      unknown: (value) => value.contract,
+      orElse: () => null,
+    );
+  }
+
   WalletViewAggregationItem? _searchAggregationItem({
     required CoinInWallet coinInWalletDTO,
     required Map<String, WalletViewAggregationItem> aggregation,
@@ -168,7 +210,7 @@ class WalletViewParser {
     WalletViewAggregationItem? search(Iterable<WalletViewAggregationItem> aggregationItems) {
       for (final aggregationItem in aggregationItems) {
         final associatedWallet = aggregationItem.wallets.firstWhereOrNull(
-          (e) => e.walletId == coinInWalletDTO.walletId && e.coinId == coinInWalletDTO.coin.id,
+          (e) => _isMatchingWallet(e, coinInWalletDTO),
         );
         if (associatedWallet != null && associatedWallet.network == coinInWalletDTO.coin.network) {
           return aggregationItem;
