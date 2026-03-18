@@ -6,7 +6,7 @@
   "article_menu_report_article": "举报文章",
   "article_page_from_author": "来自 {name}",
   "article_page_in_topic": "在 {name}",
-  "article_preview_title": "文章预览",
+  "article_preview_title": "文章预览更新4，并在上一个任务期间推送",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "要继续使用应用，请将此设备链接到您的账户",
   "auth_link_new_device_link_button": "链接设备",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "谁可以回复此帖子",
   "who_can_reply_settings_title_video": "谁可以回复此视频",
   "who_can_reply_settings_verified_accounts": "经过验证的账户",
-  "write_a_message": "写一条消息...",
   "token_unable_to_fetch_market_data_title": "无法获取市场数据",
   "token_unable_to_fetch_market_data_description": "我们正在获取此代币的市场信息，请稍后再试",
+  "write_a_message": "写一条消息...",
   "your_position_card_title": "持仓"
 }

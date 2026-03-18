@@ -6,7 +6,7 @@
   "article_menu_report_article": "Raportează articolul",
   "article_page_from_author": "de la {name}",
   "article_page_in_topic": "în {name}",
-  "article_preview_title": "Previzualizare articol",
+  "article_preview_title": "Actualizare previzualizare articol 4 și împingere în timpul lucrării anterioare",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "Pentru a continua utilizarea aplicației, vă rugăm să conectați acest dispozitiv la contul dvs.",
   "auth_link_new_device_link_button": "Conectează dispozitivul",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "Cine poate răspunde la această postare",
   "who_can_reply_settings_title_video": "Cine poate răspunde la acest video",
   "who_can_reply_settings_verified_accounts": "Conturi verificate",
-  "write_a_message": "Scrie un mesaj...",
   "token_unable_to_fetch_market_data_title": "Nu s-au putut obține datele de piață",
   "token_unable_to_fetch_market_data_description": "Obținem informații de piață pentru acest token, te rugăm să încerci din nou mai târziu",
+  "write_a_message": "Scrie un mesaj...",
   "your_position_card_title": "Poziția ta"
 }

@@ -6,7 +6,7 @@
   "article_menu_report_article": "Докладване на статия",
   "article_page_from_author": "от {name}",
   "article_page_in_topic": "в {name}",
-  "article_preview_title": "Преглед на статията",
+  "article_preview_title": "Актуализация на прегледа на статия 4 и изпращане по време на предишната работа",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "За да продължите да използвате приложението, моля свържете това устройство с вашия акаунт",
   "auth_link_new_device_link_button": "Свързване на устройство",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "Кой може да отговаря на тази публикация",
   "who_can_reply_settings_title_video": "Кой може да отговаря на това видео",
   "who_can_reply_settings_verified_accounts": "Верифицирани акаунти",
-  "write_a_message": "Напишете съобщение...",
   "token_unable_to_fetch_market_data_title": "Не могат да се извлекат пазарни данни",
   "token_unable_to_fetch_market_data_description": "Извличаме пазарна информация за този токен, моля опитайте отново по-късно",
+  "write_a_message": "Напишете съобщение...",
   "your_position_card_title": "Вашата позиция"
 }

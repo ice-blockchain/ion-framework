@@ -6,7 +6,7 @@
   "article_menu_report_article": "Reportar artigo",
   "article_page_from_author": "de {name}",
   "article_page_in_topic": "em {name}",
-  "article_preview_title": "Pré-visualização do artigo",
+  "article_preview_title": "Atualização da pré-visualização do artigo 4 e envio durante o trabalho anterior",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "Para continuar usando o aplicativo, vincule este dispositivo à sua conta",
   "auth_link_new_device_link_button": "Vincular dispositivo",
@@ -207,8 +207,8 @@
   "chat_profile_share_modal_title": "Compartilhar perfil",
   "chat_profile_view_button": "Ver perfil",
   "chat_read": "Lido",
-  "chat_read_all": "Marcar tudo como lido",
   "chat_unread": "Marcar como não lido",
+  "chat_read_all": "Marcar tudo como lido",
   "chat_search_empty": "Pesquise aqui por usuários, chats, grupos e canais...",
   "chat_search_no_community_empty": "Pesquise aqui por usuários, chats...",
   "chat_title": "Chats",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "Quem pode responder a esta publicação",
   "who_can_reply_settings_title_video": "Quem pode responder a este vídeo",
   "who_can_reply_settings_verified_accounts": "Contas verificadas",
-  "write_a_message": "Escreva uma mensagem...",
   "token_unable_to_fetch_market_data_title": "Não foi possível obter dados de mercado",
   "token_unable_to_fetch_market_data_description": "Estamos a obter informações de mercado para este token, tente novamente mais tarde",
+  "write_a_message": "Escreva uma mensagem...",
   "your_position_card_title": "A sua posição"
 }

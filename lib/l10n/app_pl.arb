@@ -6,7 +6,7 @@
   "article_menu_report_article": "Zgłoś artykuł",
   "article_page_from_author": "od {name}",
   "article_page_in_topic": "w {name}",
-  "article_preview_title": "Podgląd artykułu",
+  "article_preview_title": "Aktualizacja podglądu artykułu 4 i przesunięcie podczas poprzedniej pracy",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "Aby kontynuować korzystanie z aplikacji, połącz to urządzenie z kontem",
   "auth_link_new_device_link_button": "Połącz urządzenie",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "Kto może odpowiadać na ten post",
   "who_can_reply_settings_title_video": "Kto może odpowiadać na to wideo",
   "who_can_reply_settings_verified_accounts": "Zweryfikowane konta",
-  "write_a_message": "Napisz wiadomość...",
   "token_unable_to_fetch_market_data_title": "Nie udało się pobrać danych rynkowych",
   "token_unable_to_fetch_market_data_description": "Pobieramy informacje rynkowe dla tego tokena, spróbuj ponownie później",
+  "write_a_message": "Napisz wiadomość...",
   "your_position_card_title": "Twoja pozycja"
 }
