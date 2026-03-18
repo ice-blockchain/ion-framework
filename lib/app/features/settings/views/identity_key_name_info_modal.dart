@@ -27,7 +27,6 @@ class IdentityKeyNameInfoModal extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         NavigationAppBar.modal(
-          showBackButton: false,
           title: Text(context.i18n.common_information),
           actions: const [NavigationCloseButton()],
         ),
