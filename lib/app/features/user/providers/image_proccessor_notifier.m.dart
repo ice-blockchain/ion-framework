@@ -2,6 +2,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/gallery/providers/gallery_provider.r.dart';
 import 'package:ion/app/features/gallery/providers/media_selection_provider.r.dart';
 import 'package:ion/app/services/compressors/image_compressor.r.dart';
@@ -26,7 +27,13 @@ sealed class ImageProcessorState with _$ImageProcessorState {
 @riverpod
 class ImageProcessorNotifier extends _$ImageProcessorNotifier {
   @override
-  ImageProcessorState build(ImageProcessingType type) => const ImageProcessorState.initial();
+  ImageProcessorState build(ImageProcessingType type) {
+    keepAliveWhenAuthenticated(ref);
+    onUserSwitch(ref, () {
+      state = const ImageProcessorState.initial();
+    });
+    return const ImageProcessorState.initial();
+  }
 
   Future<void> process({
     required String assetId,
