@@ -921,7 +921,7 @@
   "token_contract": "컨트랙트",
   "token_stats_holders_description": "현재 해당 토큰을 보유한 고유 지갑 수를 나타냅니다.\n\n시간이 지남에 따라 꾸준히 증가하면 채택 확대, 커뮤니티 신뢰, 더 넓은 분배를 반영하는 경우가 많습니다.",
   "token_stats_holders_title": "보유자",
-  "token_stats_market_cap_description": "이 값은 시장에서 토큰의 총 가치를 나타내며, 현재 가격에 유통 공급량을 곱해 계산합니다. 다른 토큰과 비교해 규모나 성숙도를 빠르게 파악하는 데 도움이 됩니다.",
+  "token_stats_market_cap_description": "이 값은 시장에서 토큰의 총 가치를 나타내며, 현재 가격에 유통 공급량을 곱해 계산합니다.\n\n다른 토큰과 비교해 규모나 성숙도를 빠르게 파악하는 데 도움이 됩니다.",
   "token_stats_market_cap_title": "시가총액",
   "token_stats_volume_description": "24시간 동안 매수·매도된 토큰의 총량을 보여줍니다.\n\n활동이 많을수록 관심도, 유동성, 거래 편의성이 높은 경우가 많습니다.",
   "token_stats_volume_title": "거래량",

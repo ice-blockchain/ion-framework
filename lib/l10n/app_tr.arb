@@ -921,7 +921,7 @@
   "token_contract": "Sözleşme",
   "token_stats_holders_description": "Bu, şu anda tokena sahip olan benzersiz cüzdan sayısını gösterir.\n\nZamanla istikrarlı bir artış genellikle artan kabul, topluluk güveni ve daha geniş dağılımı yansıtır.",
   "token_stats_holders_title": "Holders",
-  "token_stats_market_cap_description": "Bu değer, bir tokenın piyasadaki toplam değerini temsil eder ve güncel fiyatın dolaşımdaki arzla çarpılmasıyla hesaplanır. Kullanıcıların bir tokenın diğerlerine göre ne kadar büyük veya yerleşik olduğunu hızlıca anlamasına yardımcı olur.",
+  "token_stats_market_cap_description": "Bu değer, bir tokenın piyasadaki toplam değerini temsil eder ve güncel fiyatın dolaşımdaki arzla çarpılmasıyla hesaplanır.\n\nKullanıcıların bir tokenın diğerlerine göre ne kadar büyük veya yerleşik olduğunu hızlıca anlamasına yardımcı olur.",
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Bu, son 24 saat içindeki token işlem hacmini gösterir.\n\nDaha yüksek aktivite genellikle daha güçlü ilgi, daha iyi likidite ve daha kolay işlem anlamına gelir.",
   "token_stats_volume_title": "Volume",

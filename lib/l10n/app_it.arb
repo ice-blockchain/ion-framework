@@ -921,7 +921,7 @@
   "token_contract": "Contratto",
   "token_stats_holders_description": "Indica quante portafogli unici possiedono attualmente il token.\n\nUn aumento costante nel tempo riflette spesso una crescente adozione, fiducia della community e una distribuzione più ampia.",
   "token_stats_holders_title": "Holders",
-  "token_stats_market_cap_description": "Questo valore rappresenta il valore totale di un token sul mercato e si calcola moltiplicando il prezzo attuale per l'offerta in circolazione. Aiuta gli utenti a capire rapidamente quanto è grande o consolidato un token rispetto ad altri.",
+  "token_stats_market_cap_description": "Questo valore rappresenta il valore totale di un token sul mercato e si calcola moltiplicando il prezzo attuale per l'offerta in circolazione.\n\nAiuta gli utenti a capire rapidamente quanto è grande o consolidato un token rispetto ad altri.",
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Mostra il volume totale di trading dei token nelle ultime 24 ore.\n\nUna maggiore attività indica solitamente più interesse, migliore liquidità e trading più semplice.",
   "token_stats_volume_title": "Volume",
