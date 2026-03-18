@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: ice License 1.0
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/providers/conversations_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/selected_conversations_ids_provider.r.dart';
-import 'package:ion/app/features/chat/recent_chats/providers/toggle_archive_conversation_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/archive_conversation_message_notification.dart';
 import 'package:ion/generated/assets.gen.dart';
 
 class ConversationArchiveButton extends ConsumerWidget {
@@ -27,14 +25,19 @@ class ConversationArchiveButton extends ConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        unawaited(
-          ref
-              .read(toggleArchivedConversationsProvider.notifier)
-              .toggleConversations(conversationsToManage.map((e) => e.conversationId).toList()),
-        );
+        final conversationIds = conversationsToManage.map((e) => e.conversationId).toList();
 
         ref.read(selectedConversationsProvider.notifier).clear();
         ref.read(conversationsEditModeProvider.notifier).editMode = false;
+
+        // Show the message notification after edit bar unmounts so it is visible.
+        toggleArchiveAndShowMessage(
+          context: context,
+          ref: ref,
+          conversationIds: conversationIds,
+          isArchived: false,
+          deferToNextFrame: true,
+        );
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

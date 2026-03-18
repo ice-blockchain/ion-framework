@@ -14,5 +14,6 @@ class MessageNotification with _$MessageNotification {
     @Default(MessageNotificationState.info) MessageNotificationState state,
     Widget? suffixWidget,
     double? bottomPadding,
+    @Default(false) bool interactive,
   }) = _MessageNotification;
 }
