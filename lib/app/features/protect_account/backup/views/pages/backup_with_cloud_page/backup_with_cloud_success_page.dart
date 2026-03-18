@@ -47,6 +47,7 @@ class BackupWithCloudSuccessPage extends HookConsumerWidget {
                 onPressed: goToSecureAccountOptions,
               ),
             ),
+            const ScreenBottomOffset(),
           ],
         ),
       ),

@@ -107,7 +107,6 @@ final class BackupWithCloudPasswordInputBody extends HookConsumerWidget {
               ),
             ),
             ScreenBottomOffset(
-              margin: 16.0.s,
               child: Button(
                 label: Text(context.i18n.button_continue),
                 mainAxisSize: MainAxisSize.max,

@@ -72,6 +72,7 @@ class BackupOptionsPage extends ConsumerWidget {
                   isOptionEnabled: isBackupEnabled,
                   onTap: () => BackupRecoveryKeysRoute().push<void>(context),
                 ),
+                SizedBox(height: 12.0.s),
                 const ScreenBottomOffset(),
               ],
             ),
