@@ -13,7 +13,12 @@ enum InfoType {
   addressConfirmation,
   marketCap,
   volume,
-  holders;
+  holders,
+  boostBalance,
+  boostCost,
+  boostBudget,
+  boostAppleFee,
+  boostTaxes;
 
   String getTitle(BuildContext context) {
     return switch (this) {
@@ -26,6 +31,11 @@ enum InfoType {
       InfoType.marketCap => context.i18n.token_stats_market_cap_title,
       InfoType.volume => context.i18n.token_stats_volume_title,
       InfoType.holders => context.i18n.token_stats_holders_title,
+      InfoType.boostBalance => context.i18n.boost_balance_title,
+      InfoType.boostCost => context.i18n.boost_cost_title,
+      InfoType.boostBudget => context.i18n.boost_budget_title,
+      InfoType.boostAppleFee => context.i18n.boost_apple_fee_title,
+      InfoType.boostTaxes => context.i18n.boost_taxes_title,
     };
   }
 
@@ -40,6 +50,11 @@ enum InfoType {
       InfoType.marketCap => context.i18n.token_stats_market_cap_description,
       InfoType.volume => context.i18n.token_stats_volume_description,
       InfoType.holders => context.i18n.token_stats_holders_description,
+      InfoType.boostBalance => context.i18n.boost_balance_description,
+      InfoType.boostCost => context.i18n.boost_cost_description,
+      InfoType.boostBudget => context.i18n.boost_budget_description,
+      InfoType.boostAppleFee => context.i18n.boost_apple_fee_description,
+      InfoType.boostTaxes => context.i18n.boost_taxes_description,
     };
   }
 
@@ -54,6 +69,11 @@ enum InfoType {
       InfoType.marketCap => Assets.svg.marketcup,
       InfoType.volume => Assets.svg.volume,
       InfoType.holders => Assets.svg.holders,
+      InfoType.boostBalance => Assets.svg.actionPromotionBalance,
+      InfoType.boostCost => Assets.svg.walletIconCost,
+      InfoType.boostBudget => Assets.svg.walletIconBudget,
+      InfoType.boostAppleFee => Assets.svg.actionPromotionFee,
+      InfoType.boostTaxes => Assets.svg.actionPromotionTaxes,
     };
   }
 }

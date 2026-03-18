@@ -21,6 +21,7 @@ class FeatureFlags extends _$FeatureFlags {
       TokenizedCommunitiesFeatureFlag.tokenizedCommunitiesEnabled: true,
       DelegateAccessFeatureFlag.delegateAccessEnabled: false,
       AuthFeatureFlag.signUpLoginFallbackOnUserAlreadyExists: false,
+      BoostPostFeatureFlag.boostPostEnabled: false,
 
       /// Log flags
       if (ref.watch(envProvider.notifier).get(EnvVariable.SHOW_DEBUG_INFO)) ...{

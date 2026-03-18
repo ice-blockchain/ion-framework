@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/info/info_modal.dart';
+import 'package:ion/app/components/info/info_type.dart';
 import 'package:ion/app/components/shapes/bottom_notch_rect_border.dart';
 import 'package:ion/app/components/skeleton/skeleton.dart';
 import 'package:ion/app/components/text/inline_badge_text.dart';
@@ -13,8 +15,6 @@ import 'package:ion/app/features/tokenized_communities/views/components/twitter_
 import 'package:ion/app/features/user/pages/profile_page/components/profile_background.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_price.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_details/profile_token_stats.dart';
-import 'package:ion/app/features/wallets/model/info_type.dart';
-import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/hooks/use_avatar_colors.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/num.dart';

@@ -55,3 +55,9 @@ final class AuthFeatureFlag extends FeatureFlag {
   static const signUpLoginFallbackOnUserAlreadyExists =
       AuthFeatureFlag._(key: 'signUpLoginFallbackOnUserAlreadyExists');
 }
+
+final class BoostPostFeatureFlag extends FeatureFlag {
+  const BoostPostFeatureFlag._({required super.key});
+
+  static const boostPostEnabled = BoostPostFeatureFlag._(key: 'boostPostEnabled');
+}

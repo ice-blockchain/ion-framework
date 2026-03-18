@@ -14,12 +14,15 @@ class NavigationBackButton extends StatelessWidget {
     super.key,
     this.hideKeyboardOnBack = false,
     this.icon,
+    this.color,
     this.showShadow = false,
   });
 
   final VoidCallback onPress;
 
   final bool hideKeyboardOnBack;
+
+  final Color? color;
 
   final Widget? icon;
 
@@ -33,6 +36,7 @@ class NavigationBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveIcon = icon ??
         Assets.svg.iconBackArrow.icon(
+          color: color,
           size: iconSize,
           flipForRtl: true,
         );
