@@ -106,6 +106,16 @@ android {
         }
         release {
             signingConfig signingConfigs.release
+
+            // Enable minification to generate mapping.txt for Play Console
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // Include native debug symbols in the App Bundle, 'SYMBOL_TABLE' to reduce .aab size
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+            }
         }
     }
 
