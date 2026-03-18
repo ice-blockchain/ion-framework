@@ -37,6 +37,7 @@ class IntroPage extends HookConsumerWidget {
           // Fallback white background if the video isn't initialized or an error occurs.
           if (videoController == null ||
               !videoController.value.isInitialized ||
+              videoControllerProviderState.isRefreshing ||
               videoController.value.hasError ||
               videoControllerProviderState.hasError)
             ColoredBox(
