@@ -144,12 +144,10 @@ class RecentChatsTimelinePage extends HookConsumerWidget {
               child: Consumer(
                 builder: (context, ref, child) {
                   final archiveVisible = ref.watch(archiveTileVisibilityProvider);
-                  return ScreenSideOffset.small(
-                    child: AnimatedOpacity(
-                      opacity: archiveVisible ? 1.0 : 0.0,
-                      duration: 500.milliseconds,
-                      child: archiveVisible ? const ArchiveChatTile() : const SizedBox.shrink(),
-                    ),
+                  return AnimatedOpacity(
+                    opacity: archiveVisible ? 1.0 : 0.0,
+                    duration: 500.milliseconds,
+                    child: archiveVisible ? const ArchiveChatTile() : const SizedBox.shrink(),
                   );
                 },
               ),

@@ -214,6 +214,8 @@ class RecentChatTile extends HookConsumerWidget {
                           SizedBox(width: 12.0.s),
                           Expanded(
                             child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
