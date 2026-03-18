@@ -11,6 +11,7 @@ Future<T?> showSimpleBottomSheet<T>({
   bool isDismissible = true,
   Color? backgroundColor,
   PopInvokedWithResultCallback<T>? onPopInvokedWithResult,
+  double? bottomPadding,
 }) {
   return showModalBottomSheet<T>(
     useRootNavigator: useRootNavigator,
@@ -30,6 +31,7 @@ Future<T?> showSimpleBottomSheet<T>({
             SheetDragHandle(),
             SheetShape(
               backgroundColor: backgroundColor,
+              bottomPadding: bottomPadding,
               child: child,
             ),
           ],

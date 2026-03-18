@@ -9,6 +9,7 @@ import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_close_button.dart';
+import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 
 class InfoModal extends HookWidget {
   const InfoModal({
@@ -17,6 +18,18 @@ class InfoModal extends HookWidget {
   });
 
   final InfoType infoType;
+
+  // Shows this modal in a bottom sheet with the desired bottom padding.
+  static Future<T?> showSheet<T>({
+    required BuildContext context,
+    required InfoType infoType,
+  }) {
+    return showSimpleBottomSheet<T>(
+      context: context,
+      bottomPadding: 16.0.s,
+      child: InfoModal(infoType: infoType),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

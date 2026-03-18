@@ -16,7 +16,6 @@ import 'package:ion/app/features/wallets/views/pages/coins_flow/receive_coins/pr
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/app/router/components/navigation_button/navigation_button.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/address.dart';
 import 'package:ion/generated/assets.gen.dart';
 
@@ -64,11 +63,9 @@ class CoinAddressTile extends HookConsumerWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () async => showSimpleBottomSheet<void>(
+                      onTap: () async => InfoModal.showSheet<void>(
                         context: ref.context,
-                        child: const InfoModal(
-                          infoType: InfoType.addressConfirmation,
-                        ),
+                        infoType: InfoType.addressConfirmation,
                       ),
                       child: Assets.svg.iconBlockInformation.icon(size: 20.0.s),
                     ),
