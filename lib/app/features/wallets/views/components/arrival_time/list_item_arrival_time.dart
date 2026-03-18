@@ -17,7 +17,7 @@ class ListItemArrivalTime extends StatelessWidget {
     return ListItem.textWithIcon(
       title: GestureDetector(
         onTap: () {
-          InfoModal.showSheet<void>(
+          InfoModal.showBottomSheet<void>(
             context: context,
             infoType: InfoType.arrivalTime,
           );

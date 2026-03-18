@@ -185,7 +185,7 @@ class TwitterTokenHeader extends StatelessWidget {
                           token.marketData.marketCap,
                         ),
                         onTap: showInfoModals
-                            ? () => InfoModal.showSheet<void>(
+                            ? () => InfoModal.showBottomSheet<void>(
                                   context: context,
                                   infoType: InfoType.marketCap,
                                 )
@@ -252,7 +252,7 @@ class TwitterTokenHeader extends StatelessWidget {
                       token.marketData.marketCap,
                     ),
                     onTap: showInfoModals
-                        ? () => InfoModal.showSheet<void>(
+                        ? () => InfoModal.showBottomSheet<void>(
                               context: context,
                               infoType: InfoType.marketCap,
                             )

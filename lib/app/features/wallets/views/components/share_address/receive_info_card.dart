@@ -76,7 +76,7 @@ class ReceiveInfoCard extends HookWidget {
                   value: shortAddress.value!,
                   valueToCopy: walletAddress,
                   onTapInfo: () {
-                    InfoModal.showSheet<void>(
+                    InfoModal.showBottomSheet<void>(
                       context: context,
                       infoType: InfoType.walletAddress,
                     );
@@ -96,7 +96,7 @@ class ReceiveInfoCard extends HookWidget {
                   title: context.i18n.wallet_memo,
                   value: _memoValue,
                   onTapInfo: () {
-                    InfoModal.showSheet<void>(
+                    InfoModal.showBottomSheet<void>(
                       context: context,
                       infoType: InfoType.memo,
                     );

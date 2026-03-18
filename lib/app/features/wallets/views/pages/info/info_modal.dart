@@ -20,7 +20,7 @@ class InfoModal extends HookWidget {
   final InfoType infoType;
 
   // Shows this modal in a bottom sheet with the desired bottom padding.
-  static Future<T?> showSheet<T>({
+  static Future<T?> showBottomSheet<T>({
     required BuildContext context,
     required InfoType infoType,
   }) {

@@ -26,7 +26,7 @@ class InfoBlockButton extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        InfoModal.showSheet<void>(context: context, infoType: infoType);
+        InfoModal.showBottomSheet<void>(context: context, infoType: infoType);
       },
       child: IconTheme(
         data: IconThemeData(

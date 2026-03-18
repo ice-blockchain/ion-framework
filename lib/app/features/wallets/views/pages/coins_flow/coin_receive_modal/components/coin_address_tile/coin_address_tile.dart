@@ -63,7 +63,7 @@ class CoinAddressTile extends HookConsumerWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () async => InfoModal.showSheet<void>(
+                      onTap: () async => InfoModal.showBottomSheet<void>(
                         context: ref.context,
                         infoType: InfoType.addressConfirmation,
                       ),

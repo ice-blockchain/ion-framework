@@ -119,7 +119,7 @@ class ProfileTokenStats extends HookConsumerWidget {
             TokenStatItem(
               icon: Assets.svg.iconMemeMarketcap,
               text: MarketDataFormatter.formatCompactNumber(marketData.marketCap),
-              onTap: () => InfoModal.showSheet<void>(
+              onTap: () => InfoModal.showBottomSheet<void>(
                 context: context,
                 infoType: InfoType.marketCap,
               ),
@@ -348,7 +348,7 @@ class ProfileTokenStatsFeed extends StatelessWidget {
                         text: MarketDataFormatter.formatCompactNumber(
                           marketData.marketCap,
                         ),
-                        onTap: () => InfoModal.showSheet<void>(
+                        onTap: () => InfoModal.showBottomSheet<void>(
                           context: context,
                           infoType: InfoType.marketCap,
                         ),
