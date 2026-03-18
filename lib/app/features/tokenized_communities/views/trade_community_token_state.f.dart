@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ice License 1.0
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_execution_plan.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/suggested_token_details.f.dart';
 import 'package:ion/app/features/tokenized_communities/utils/constants.dart';
@@ -8,7 +9,6 @@ import 'package:ion/app/features/wallets/model/coin_data.f.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion_identity_client/ion_identity.dart';
-import 'package:ion_token_analytics/ion_token_analytics.dart';
 
 part 'trade_community_token_state.f.freezed.dart';
 
@@ -17,7 +17,7 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
   const factory TradeCommunityTokenState({
     @Default(CommunityTokenTradeMode.buy) CommunityTokenTradeMode mode,
     @Default(0) double amount,
-    PricingResponse? quotePricing,
+    TradeExecutionPlan? executionPlan,
     @Default(false) bool isQuoting,
     String? communityTokenAmountUSDFormatted,
     String? paymentTokenAmountUSDFormatted,
@@ -40,7 +40,7 @@ class TradeCommunityTokenState with _$TradeCommunityTokenState {
   const TradeCommunityTokenState._();
 
   BigInt? get quoteAmount {
-    final pricing = quotePricing;
+    final pricing = executionPlan?.quote.finalPricing;
     if (pricing == null) return null;
     return BigInt.tryParse(pricing.amount);
   }

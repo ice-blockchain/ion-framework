@@ -6,6 +6,7 @@ import 'package:ion/app/exceptions/exceptions.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_repository.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_debug_context.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_execution_plan.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_quote_builder.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_route_builder.dart';
 import 'package:ion/app/features/tokenized_communities/domain/trade_user_ops_builder.dart';
@@ -56,9 +57,10 @@ class TradeCommunityTokenService {
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
     required PricingResponse expectedPricing,
+    required TradeExecutionPlan executionPlan,
+    required double slippagePercent,
     required bool shouldSendEvents,
     FatAddressV2Data? fatAddressData,
-    double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
     TradeRoutePlan? route;
     TradeQuotePlan? quote;
@@ -69,6 +71,7 @@ class TradeCommunityTokenService {
     bool? firstBuy;
     bool? hasUserPosition;
     bool? isCreatorTokenMissingForContentFirstBuy;
+    BigInt? previousPositionRaw;
 
     try {
       Logger.info(
@@ -82,8 +85,7 @@ class TradeCommunityTokenService {
       existingTokenAddress = _extractTokenAddress(tokenInfo);
       firstBuy = await _isFirstBuy(externalAddress, externalAddressType);
       hasUserPosition = _hasUserPosition(tokenInfo);
-
-      final previousPositionRaw = _extractPositionRaw(tokenInfo);
+      previousPositionRaw = _extractPositionRaw(tokenInfo);
       Logger.info(
         '[TradeCommunityTokenService] Token info | existingTokenAddress=$existingTokenAddress | firstBuy=$firstBuy | hasUserPosition=$hasUserPosition',
       );
@@ -93,36 +95,22 @@ class TradeCommunityTokenService {
         isFirstBuy: firstBuy,
         fatAddressData: fatAddressData,
       );
-      Logger.info(
-        '[TradeCommunityTokenService] Resolving pricing identifier | externalAddress=$externalAddress | hasTokenAddress=${tokenInfo?.addresses.blockchain != null} | hasFatAddress=${fatAddressData != null}',
-      );
-      final pricingIdentifier = _resolveBuyPricingIdentifier(
-        externalAddress: externalAddress,
-        tokenInfo: tokenInfo,
-        fatAddressData: fatAddressData,
-      );
-      Logger.info(
-        '[TradeCommunityTokenService] Pricing identifier resolved | pricingIdentifier=$pricingIdentifier',
-      );
       final paymentRoleOverride = await _resolvePaymentTokenRoleOverride(
         externalAddress: externalAddress,
         externalAddressType: externalAddressType,
         paymentTokenAddress: baseTokenAddress,
       );
-      final routeQuote = await _buildRouteAndQuote(
-        externalAddress: externalAddress,
-        externalAddressType: externalAddressType,
-        mode: CommunityTokenTradeMode.buy,
+      route = executionPlan.route;
+      quote = executionPlan.quote;
+      _ensureRouteMatchesCurrentTrade(
+        route: route,
+        expectedExternalAddress: externalAddress,
+        expectedExternalAddressType: externalAddressType,
+        expectedMode: CommunityTokenTradeMode.buy,
+        expectedPaymentRoleOverride: paymentRoleOverride,
+        expectedCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
         paymentTokenAddress: baseTokenAddress,
-        paymentRoleOverride: paymentRoleOverride,
-        isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
-        pricingIdentifier: pricingIdentifier,
-        amountIn: amountIn,
-        slippagePercent: slippagePercent,
-        fatAddressHex: fatAddressData?.toHex(),
       );
-      route = routeQuote.route;
-      quote = routeQuote.quote;
       Logger.info(
         '[TradeCommunityTokenService] Building user operations | quoteAmount=${quote.finalPricing.amount} | quoteAmountUSD=${quote.finalPricing.amountUSD}',
       );
@@ -281,14 +269,16 @@ class TradeCommunityTokenService {
     required int tokenDecimals,
     required UserActionSignerNew userActionSigner,
     required PricingResponse expectedPricing,
+    required TradeExecutionPlan executionPlan,
+    required double slippagePercent,
     required bool shouldSendEvents,
-    double slippagePercent = TokenizedCommunitiesConstants.defaultSlippagePercent,
   }) async {
     TradeRoutePlan? route;
     TradeQuotePlan? quote;
     List<EvmUserOperation>? userOps;
     TransactionResult? transaction;
     CommunityToken? tokenInfo;
+    BigInt? previousPositionRaw;
 
     try {
       Logger.info(
@@ -300,30 +290,20 @@ class TradeCommunityTokenService {
         externalAddressType: externalAddressType,
         paymentTokenAddress: paymentTokenAddress,
       );
-      Logger.info('[TradeCommunityTokenService] Building route');
-      route = routeBuilder.build(
-        externalAddress: externalAddress,
-        externalAddressType: externalAddressType,
-        mode: CommunityTokenTradeMode.sell,
-        paymentTokenAddress: paymentTokenAddress,
-        paymentTokenRoleOverride: paymentRoleOverride,
-      );
-
       Logger.info('[TradeCommunityTokenService] Fetching token info');
-      tokenInfo = await repository.fetchTokenInfo(externalAddress);
-
-      final previousPositionRaw = _extractPositionRaw(tokenInfo);
-
-      Logger.info(
-        '[TradeCommunityTokenService] Building quote | pricingIdentifier=$externalAddress | amountIn=$amountIn | slippagePercent=$slippagePercent',
-      );
-      quote = await quoteBuilder.build(
+      route = executionPlan.route;
+      quote = executionPlan.quote;
+      _ensureRouteMatchesCurrentTrade(
         route: route,
-        pricingIdentifier: externalAddress,
-        amountIn: amountIn,
+        expectedExternalAddress: externalAddress,
+        expectedExternalAddressType: externalAddressType,
+        expectedMode: CommunityTokenTradeMode.sell,
+        expectedPaymentRoleOverride: paymentRoleOverride,
+        expectedCreatorTokenMissingForContentFirstBuy: false,
         paymentTokenAddress: paymentTokenAddress,
-        slippagePercent: slippagePercent,
       );
+      tokenInfo = await repository.fetchTokenInfo(externalAddress);
+      previousPositionRaw = _extractPositionRaw(tokenInfo);
       Logger.info('[TradeCommunityTokenService] Building user operations');
       userOps = await userOpsBuilder.buildUserOps(
         route: route,
@@ -420,13 +400,14 @@ class TradeCommunityTokenService {
     }
   }
 
-  Future<PricingResponse> getQuote({
+  Future<TradeExecutionPlan> getQuote({
     required String externalAddress,
     required ExternalAddressType externalAddressType,
     required String pricingIdentifier,
     required CommunityTokenTradeMode mode,
     required String amount,
     required String paymentTokenAddress,
+    required double slippagePercent,
     FatAddressV2Data? fatAddressData,
     Future<FatAddressV2Data> Function(PricingResponse pricing)? fatAddressDataWithPricingResolver,
   }) async {
@@ -441,7 +422,7 @@ class TradeCommunityTokenService {
       fatAddressData: fatAddressData,
     );
     final amountIn = BigInt.parse(amount);
-    final initialRouteQuote = await _buildRouteAndQuote(
+    final initialExecutionPlan = await _buildRouteAndQuote(
       externalAddress: externalAddress,
       externalAddressType: externalAddressType,
       mode: mode,
@@ -450,7 +431,7 @@ class TradeCommunityTokenService {
       isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
       pricingIdentifier: pricingIdentifier,
       amountIn: amountIn,
-      slippagePercent: 0,
+      slippagePercent: slippagePercent,
       fatAddressHex: _looksLikeHex(pricingIdentifier) ? pricingIdentifier : null,
     );
 
@@ -463,8 +444,9 @@ class TradeCommunityTokenService {
       isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
       pricingIdentifier: pricingIdentifier,
       amountIn: amountIn,
-      initialRouteQuote: initialRouteQuote,
+      initialExecutionPlan: initialExecutionPlan,
       fatAddressData: fatAddressData,
+      slippagePercent: slippagePercent,
       fatAddressDataWithPricingResolver: fatAddressDataWithPricingResolver,
     );
   }
@@ -520,23 +502,7 @@ class TradeCommunityTokenService {
     }
   }
 
-  String _resolveBuyPricingIdentifier({
-    required String externalAddress,
-    required CommunityToken? tokenInfo,
-    FatAddressV2Data? fatAddressData,
-  }) {
-    final tokenAddress = tokenInfo?.addresses.blockchain?.trim() ?? '';
-    if (tokenAddress.isNotEmpty) {
-      return externalAddress;
-    }
-    final fatHex = fatAddressData?.toHex() ?? '';
-    if (fatHex.isNotEmpty) {
-      return fatHex;
-    }
-    throw StateError('fatAddressData is required for first buy of $externalAddress');
-  }
-
-  Future<_RouteQuote> _buildRouteAndQuote({
+  Future<TradeExecutionPlan> _buildRouteAndQuote({
     required String externalAddress,
     required ExternalAddressType externalAddressType,
     required CommunityTokenTradeMode mode,
@@ -568,10 +534,10 @@ class TradeCommunityTokenService {
       slippagePercent: slippagePercent,
       fatAddressHex: fatAddressHex,
     );
-    return _RouteQuote(route: route, quote: quote);
+    return TradeExecutionPlan(route: route, quote: quote);
   }
 
-  Future<PricingResponse> _resolveQuoteWithEnrichedFatAddress({
+  Future<TradeExecutionPlan> _resolveQuoteWithEnrichedFatAddress({
     required String externalAddress,
     required ExternalAddressType externalAddressType,
     required CommunityTokenTradeMode mode,
@@ -580,8 +546,9 @@ class TradeCommunityTokenService {
     required bool isCreatorTokenMissingForContentFirstBuy,
     required String pricingIdentifier,
     required BigInt amountIn,
-    required _RouteQuote initialRouteQuote,
+    required TradeExecutionPlan initialExecutionPlan,
     required FatAddressV2Data? fatAddressData,
+    required double slippagePercent,
     required Future<FatAddressV2Data> Function(PricingResponse pricing)?
         fatAddressDataWithPricingResolver,
   }) async {
@@ -589,15 +556,15 @@ class TradeCommunityTokenService {
         fatAddressData != null &&
         fatAddressDataWithPricingResolver != null;
     if (!shouldEnrichFatAddress) {
-      return initialRouteQuote.quote.finalPricing;
+      return initialExecutionPlan;
     }
 
     final enrichedFatAddress = await fatAddressDataWithPricingResolver(
-      initialRouteQuote.quote.finalPricing,
+      initialExecutionPlan.quote.finalPricing,
     );
     final enrichedHex = enrichedFatAddress.toHex();
     if (enrichedHex.isEmpty || enrichedHex == pricingIdentifier) {
-      return initialRouteQuote.quote.finalPricing;
+      return initialExecutionPlan;
     }
 
     final enrichedRouteQuote = await _buildRouteAndQuote(
@@ -609,10 +576,55 @@ class TradeCommunityTokenService {
       isCreatorTokenMissingForContentFirstBuy: isCreatorTokenMissingForContentFirstBuy,
       pricingIdentifier: enrichedHex,
       amountIn: amountIn,
-      slippagePercent: 0,
+      slippagePercent: slippagePercent,
       fatAddressHex: enrichedHex,
     );
-    return enrichedRouteQuote.quote.finalPricing;
+    return enrichedRouteQuote;
+  }
+
+  void _ensureRouteMatchesCurrentTrade({
+    required TradeRoutePlan route,
+    required String expectedExternalAddress,
+    required ExternalAddressType expectedExternalAddressType,
+    required CommunityTokenTradeMode expectedMode,
+    required TradeTokenRole? expectedPaymentRoleOverride,
+    required bool expectedCreatorTokenMissingForContentFirstBuy,
+    required String paymentTokenAddress,
+  }) {
+    final expectedRoute = routeBuilder.build(
+      externalAddress: expectedExternalAddress,
+      externalAddressType: expectedExternalAddressType,
+      mode: expectedMode,
+      paymentTokenAddress: paymentTokenAddress,
+      paymentTokenRoleOverride: expectedPaymentRoleOverride,
+      isCreatorTokenMissingForContentFirstBuy: expectedCreatorTokenMissingForContentFirstBuy,
+    );
+    if (!_sameRoute(route, expectedRoute)) {
+      throw StateError('Confirmed trade route is no longer valid');
+    }
+  }
+
+  bool _sameRoute(TradeRoutePlan left, TradeRoutePlan right) {
+    if (left.externalAddress != right.externalAddress ||
+        left.externalAddressType != right.externalAddressType ||
+        left.creatorExternalAddress != right.creatorExternalAddress ||
+        left.steps.length != right.steps.length) {
+      return false;
+    }
+
+    for (var i = 0; i < left.steps.length; i++) {
+      final leftStep = left.steps[i];
+      final rightStep = right.steps[i];
+      if (leftStep.type != rightStep.type ||
+          leftStep.mode != rightStep.mode ||
+          leftStep.externalAddress != rightStep.externalAddress ||
+          leftStep.fromRole != rightStep.fromRole ||
+          leftStep.toRole != rightStep.toRole) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   Future<TradeTokenRole?> _resolvePaymentTokenRoleOverride({
@@ -982,14 +994,4 @@ class TradeCommunityTokenService {
       return null;
     }
   }
-}
-
-class _RouteQuote {
-  const _RouteQuote({
-    required this.route,
-    required this.quote,
-  });
-
-  final TradeRoutePlan route;
-  final TradeQuotePlan quote;
 }

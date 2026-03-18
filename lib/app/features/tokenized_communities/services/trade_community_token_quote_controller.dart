@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:ion/app/features/tokenized_communities/domain/trade_community_token_service.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_execution_plan.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/services/pricing_identifier_resolver.dart';
 import 'package:ion/app/features/tokenized_communities/utils/external_address_extension.dart';
@@ -19,6 +20,7 @@ class TradeCommunityTokenQuoteRequest {
     required this.mode,
     required this.amount,
     required this.amountDecimals,
+    required this.slippagePercent,
     required this.pricingIdentifierResolver,
     required this.paymentTokenAddress,
     this.fatAddressDataWithPricingResolver,
@@ -33,6 +35,7 @@ class TradeCommunityTokenQuoteRequest {
 
   /// Decimals used to convert [amount] to blockchain units.
   final int amountDecimals;
+  final double slippagePercent;
 
   final PricingIdentifierResolver pricingIdentifierResolver;
   final String paymentTokenAddress;
@@ -78,7 +81,7 @@ class TradeCommunityTokenQuoteController {
     required TradeCommunityTokenQuoteRequest? request,
     required void Function() onReset,
     required void Function() onStart,
-    required void Function(PricingResponse pricing) onSuccess,
+    required void Function(TradeExecutionPlan executionPlan) onSuccess,
     required void Function(Object error, StackTrace stackTrace) onError,
     bool enablePolling = true,
     Duration pollInterval = const Duration(milliseconds: 500),
@@ -124,7 +127,7 @@ class TradeCommunityTokenQuoteController {
     required TradeCommunityTokenQuoteRequest request,
     required Duration pollInterval,
     required void Function()? onStart,
-    required void Function(PricingResponse pricing) onSuccess,
+    required void Function(TradeExecutionPlan executionPlan) onSuccess,
     required void Function(Object error, StackTrace stackTrace) onError,
   }) async {
     while (currentRequestId == _requestId) {
@@ -145,7 +148,7 @@ class TradeCommunityTokenQuoteController {
     required int currentRequestId,
     required TradeCommunityTokenQuoteRequest request,
     required void Function()? onStart,
-    required void Function(PricingResponse pricing) onSuccess,
+    required void Function(TradeExecutionPlan executionPlan) onSuccess,
     required void Function(Object error, StackTrace stackTrace) onError,
   }) async {
     if (currentRequestId != _requestId) return;
@@ -164,19 +167,20 @@ class TradeCommunityTokenQuoteController {
       final resolution = await request.pricingIdentifierResolver();
       if (currentRequestId != _requestId) return;
 
-      final pricing = await service.getQuote(
+      final executionPlan = await service.getQuote(
         externalAddress: request.externalAddress,
         externalAddressType: request.externalAddressType,
         pricingIdentifier: resolution.pricingIdentifier,
         mode: request.mode,
         amount: apiAmount,
         paymentTokenAddress: request.paymentTokenAddress,
+        slippagePercent: request.slippagePercent,
         fatAddressData: resolution.fatAddressData,
         fatAddressDataWithPricingResolver: request.fatAddressDataWithPricingResolver,
       );
 
       if (currentRequestId != _requestId) return;
-      onSuccess(pricing);
+      onSuccess(executionPlan);
     } catch (e, stackTrace) {
       if (currentRequestId != _requestId) return;
       onError(e, stackTrace);

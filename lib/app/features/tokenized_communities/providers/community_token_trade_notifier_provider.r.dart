@@ -114,14 +114,14 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final service = await ref.read(tradeCommunityTokenServiceProvider.future);
       Logger.info('[CommunityTokenTradeNotifier] Trade service obtained');
 
-      final expectedPricing = formState.quotePricing;
-
-      if (formState.isQuoting || expectedPricing == null) {
+      final executionPlan = formState.executionPlan;
+      if (formState.isQuoting || executionPlan == null) {
         Logger.error(
-          '[CommunityTokenTradeNotifier] Quote not ready | isQuoting=${formState.isQuoting} | expectedPricing=$expectedPricing',
+          '[CommunityTokenTradeNotifier] Execution plan not ready | isQuoting=${formState.isQuoting} | hasExecutionPlan=${executionPlan != null}',
         );
         throw StateError('Quote is not ready yet');
       }
+      final expectedPricing = executionPlan.quote.finalPricing;
 
       await _ensurePricingValidForBuy(
         expectedPricing: expectedPricing,
@@ -192,10 +192,11 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         baseTokenTicker: token.abbreviation,
         tokenDecimals: token.decimals,
         expectedPricing: expectedPricing,
+        executionPlan: executionPlan,
+        slippagePercent: formState.slippage,
         fatAddressData: fatAddressData,
         userActionSigner: signer,
         shouldSendEvents: formState.shouldSendEvents,
-        slippagePercent: formState.slippage,
       );
 
       Logger.info(
@@ -342,14 +343,14 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
       final service = await ref.read(tradeCommunityTokenServiceProvider.future);
       Logger.info('[CommunityTokenTradeNotifier] Trade service obtained');
 
-      final expectedPricing = formState.quotePricing;
-
-      if (formState.isQuoting || expectedPricing == null) {
+      final executionPlan = formState.executionPlan;
+      if (formState.isQuoting || executionPlan == null) {
         Logger.error(
-          '[CommunityTokenTradeNotifier] Quote not ready | isQuoting=${formState.isQuoting} | expectedPricing=$expectedPricing',
+          '[CommunityTokenTradeNotifier] Execution plan not ready | isQuoting=${formState.isQuoting} | hasExecutionPlan=${executionPlan != null}',
         );
         throw StateError('Quote is not ready yet');
       }
+      final expectedPricing = executionPlan.quote.finalPricing;
       Logger.info('[CommunityTokenTradeNotifier] Quote ready | expectedPricing=$expectedPricing');
 
       Logger.info('[CommunityTokenTradeNotifier] Step 6: Calling sellCommunityToken service');
@@ -376,6 +377,8 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
         communityTokenAddress: communityTokenAddress,
         tokenDecimals: TokenizedCommunitiesConstants.communityTokenDecimals,
         expectedPricing: expectedPricing,
+        executionPlan: executionPlan,
+        slippagePercent: formState.slippage,
         userActionSigner: signer,
         shouldSendEvents: formState.shouldSendEvents,
       );
@@ -593,7 +596,11 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     final initial = pricing.initialPrice?.trim() ?? '';
     final finalPrice = pricing.finalPrice?.trim() ?? '';
     final supply = pricing.emissionVolume?.trim() ?? '';
-    return address.isNotEmpty && initial.isNotEmpty && finalPrice.isNotEmpty && supply.isNotEmpty;
+    return address.isNotEmpty &&
+        !_isZeroEvmAddress(address) &&
+        initial.isNotEmpty &&
+        finalPrice.isNotEmpty &&
+        supply.isNotEmpty;
   }
 
   bool _hasRequiredCreatorParams(PricingResponse pricing) {
@@ -603,6 +610,14 @@ class CommunityTokenTradeNotifier extends _$CommunityTokenTradeNotifier {
     final initial = params.initialPrice?.trim() ?? '';
     final finalPrice = params.finalPrice?.trim() ?? '';
     final supply = params.emissionVolume?.trim() ?? '';
-    return address.isNotEmpty && initial.isNotEmpty && finalPrice.isNotEmpty && supply.isNotEmpty;
+    return address.isNotEmpty &&
+        !_isZeroEvmAddress(address) &&
+        initial.isNotEmpty &&
+        finalPrice.isNotEmpty &&
+        supply.isNotEmpty;
+  }
+
+  bool _isZeroEvmAddress(String value) {
+    return value.trim().toLowerCase() == '0x0000000000000000000000000000000000000000';
   }
 }
