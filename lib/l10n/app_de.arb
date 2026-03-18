@@ -576,7 +576,7 @@
   "hodl_for": "HODL für {time}",
   "hour": "{count, plural, =1{Stunde} other{Stunden}}",
   "identity_key_name_description": "Betrachte den Namen deines Identitätsschlüssels als eindeutige Kennung deines Kontos. Du benötigst ihn, um dich anzumelden und dein Konto wiederherzustellen; bewahre ihn daher sicher auf und vergiss ihn nicht.",
-  "settings_identity_key_name_description": "Der Name des Identitätsschlüssels identifiziert dein Konto und ist für Anmeldung und Wiederherstellung erforderlich. Bewahre ihn sicher auf.",
+  "settings_identity_key_name_description": "Der Name des Identitätsschlüssels ist ein eindeutiger Bezeichner für dein Konto und wird für Anmeldung und Wiederherstellung benötigt",
   "identity_key_name_usage": "Verwende ihn, um dich in jeder App anzumelden, die gesichert ist durch",
   "invite_friends_button": "Freund einladen",
   "invite_friends_earnings_title": "Einnahmen",

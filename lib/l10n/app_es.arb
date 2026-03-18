@@ -576,7 +576,7 @@
   "hodl_for": "HODL por {time}",
   "hour": "{count, plural, =1{hora} other{horas}}",
   "identity_key_name_description": "Piensa en el nombre de tu clave de identidad como un identificador único de tu cuenta. Lo necesitarás para iniciar sesión y recuperar tu cuenta, así que guárdalo de forma segura y no lo olvides",
-  "settings_identity_key_name_description": "El nombre de la clave de identidad identifica tu cuenta y es necesario para iniciar sesión y recuperarla. Mantenlo a salvo.",
+  "settings_identity_key_name_description": "El nombre de la clave de identidad es un identificador único de tu cuenta y es necesario para iniciar sesión y recuperarla",
   "identity_key_name_usage": "Úsalo para iniciar sesión en cualquier aplicación protegida por",
   "invite_friends_button": "Invitar un amigo",
   "invite_friends_earnings_title": "Ganancias",

@@ -576,7 +576,7 @@
   "hodl_for": "HODL pentru {time}",
   "hour": "{count, plural, =1{oră} other{ore}}",
   "identity_key_name_description": "Gândește-te la numele cheii de identitate ca la un identificator unic al contului tău. Vei avea nevoie de el pentru a te conecta și pentru a recupera contul, așa că păstrează-l în siguranță și nu-l uita",
-  "settings_identity_key_name_description": "Numele cheii de identitate îți identifică contul și este necesar pentru autentificare și recuperare. Păstrează-l în siguranță.",
+  "settings_identity_key_name_description": "Numele cheii de identitate este un identificator unic pentru contul tău și este necesar pentru autentificare și recuperare",
   "identity_key_name_usage": "Folosește-l pentru a te conecta în orice aplicație securizată de",
   "invite_friends_button": "Invită un prieten",
   "invite_friends_earnings_title": "Câștiguri",

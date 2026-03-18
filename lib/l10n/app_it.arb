@@ -576,7 +576,7 @@
   "hodl_for": "HODL per {time}",
   "hour": "{count, plural, =1{ora} other{ore}}",
   "identity_key_name_description": "Pensa al nome della tua chiave di identità come a un identificatore univoco del tuo account. Ne avrai bisogno per accedere e recuperare il tuo account, quindi tienilo al sicuro e non dimenticarlo",
-  "settings_identity_key_name_description": "Il nome della chiave di identità identifica il tuo account ed è necessario per l'accesso e il recupero. Tienilo al sicuro.",
+  "settings_identity_key_name_description": "Il nome della chiave di identità è un identificatore univoco per il tuo account ed è necessario per l'accesso e il recupero",
   "identity_key_name_usage": "Usalo per accedere a qualsiasi app protetta da",
   "invite_friends_button": "Invita un amico",
   "invite_friends_earnings_title": "Guadagni",
