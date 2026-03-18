@@ -923,7 +923,7 @@
   "token_stats_holders_title": "Holders",
   "token_stats_market_cap_description": "Este valor representa el valor total de un token en el mercado y se calcula multiplicando el precio actual por la oferta en circulación. Ayuda a los usuarios a entender rápidamente el tamaño o la consolidación de un token en comparación con otros.",
   "token_stats_market_cap_title": "Market Cap",
-  "token_stats_volume_description": "Muestra el volumen total de tokens comprados y vendidos durante un período seleccionado. Una mayor actividad suele indicar más interés, mejor liquidez y trading más sencillo.",
+  "token_stats_volume_description": "Muestra el volumen total de trading de tokens en las últimas 24 h.\n\nUna mayor actividad suele indicar más interés, mejor liquidez y trading más sencillo.",
   "token_stats_volume_title": "Volume",
   "tokenized_communities_top_tokens": "Principales tokens",
   "tokenized_communities_trending_tokens": "Tokens en tendencia",
