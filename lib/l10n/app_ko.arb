@@ -570,7 +570,7 @@
   "holders": "보유자",
   "hour": "{count, plural, =1{시간} other{시간}}",
   "identity_key_name_description": "ID 키 이름을 계정의 고유 식별자로 생각하세요. 로그인 및 계정 복구에 필요하므로 안전하게 보관하고 잊지 마세요",
-  "settings_identity_key_name_description": "신원 키 이름은 계정을 식별하며 로그인과 계정 복구에 필요합니다. 안전하게 보관하세요.",
+  "settings_identity_key_name_description": "신원 키 이름은 계정의 고유 식별자이며 로그인 및 복구에 필요합니다",
   "identity_key_name_usage": "다음으로 보안된 앱에 로그인할 때 사용하세요",
   "invite_friends_button": "친구 초대",
   "invite_friends_earnings_title": "수익",

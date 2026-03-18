@@ -570,7 +570,7 @@
   "holders": "Sahipler",
   "hour": "{count, plural, =1{saat} other{saat}}",
   "identity_key_name_description": "Kimlik anahtarı adınızı hesabınızın benzersiz bir tanımlayıcısı olarak düşünün. Giriş yapmak ve hesabınızı kurtarmak için buna ihtiyacınız olacak, bu yüzden güvende tutun ve unutmayın",
-  "settings_identity_key_name_description": "Kimlik anahtarı adı hesabınızı tanımlar ve giriş ile kurtarma için gereklidir. Güvende tutun.",
+  "settings_identity_key_name_description": "Kimlik anahtarı adı hesabınız için benzersiz bir tanımlayıcıdır ve giriş ile kurtarma için gereklidir",
   "identity_key_name_usage": "Bununla güvenli herhangi bir uygulamaya giriş yapın",
   "invite_friends_button": "Arkadaş davet et",
   "invite_friends_earnings_title": "Kazançlar",
