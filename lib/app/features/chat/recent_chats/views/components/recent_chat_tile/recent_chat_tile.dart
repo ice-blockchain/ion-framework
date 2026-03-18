@@ -66,7 +66,7 @@ class RecentChatTile extends HookConsumerWidget {
   final ConversationListItem conversation;
   final bool isVerified;
 
-  static double get tileHeight => 74.0.s;
+  static double get tileHeight => 72.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
