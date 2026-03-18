@@ -101,6 +101,13 @@ platform :ios do
 end
 
 platform :android do
+    desc "Build Android app"
+    lane :build do |options|
+        flavor = options[:flavor] || APP_FLAVOR || "production"
+        # We use sh to call flutter build directly
+        sh("cd .. && flutter build appbundle --release --flavor=#{flavor} --obfuscate --split-debug-info=build/flutter_symbols --extra-gen-snapshot-options=--save-obfuscation-map=build/app/obfuscation.map.json")
+    end
+
     desc "Deploy Android app"
     lane :deploy do |options|
         deploy_retry = 0
@@ -112,6 +119,7 @@ platform :android do
                     package_name: APP_ID,
                     track: "internal",
                     aab: "build/app/outputs/bundle/#{APP_FLAVOR}Release/app-#{APP_FLAVOR}-release.aab",
+                    mapping: "build/app/outputs/mapping/#{APP_FLAVOR}Release/mapping.txt",
                     json_key: "./fastlane/keys/gp-console.json",
                     skip_upload_metadata: true,
                     skip_upload_images: true,
@@ -141,4 +149,3 @@ platform :android do
         end
     end
 end
-
