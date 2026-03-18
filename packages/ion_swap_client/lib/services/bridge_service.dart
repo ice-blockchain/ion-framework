@@ -101,11 +101,13 @@ class BridgeService {
     }
 
     final chains = await _relayApiRepository.getChains();
+    final sellChainId = _getChainId(swapCoinData.sellCoin.network.id);
+    final buyChainId = _getChainId(swapCoinData.buyCoin.network.id);
     final sellChain = chains.firstWhereOrNull(
-      (chain) => chain.name.toLowerCase() == swapCoinData.sellCoin.network.id.toLowerCase(),
+      (chain) => chain.name.toLowerCase() == sellChainId.toLowerCase(),
     );
     final buyChain = chains.firstWhereOrNull(
-      (chain) => chain.name.toLowerCase() == swapCoinData.buyCoin.network.id.toLowerCase(),
+      (chain) => chain.name.toLowerCase() == buyChainId.toLowerCase(),
     );
 
     if (sellChain == null || buyChain == null) {
@@ -153,4 +155,18 @@ class BridgeService {
   }
 
   String get _nativeTokenAddress => '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+
+  String _getChainId(String chainId) {
+    final chainIdLower = chainId.toLowerCase();
+
+    if (chainIdLower == SwapConstants.arbIonId.toLowerCase()) {
+      return SwapConstants.relayIonId;
+    } else if (chainIdLower == SwapConstants.avalanceIonId.toLowerCase()) {
+      return SwapConstants.relayAvalanceIonId;
+    } else if (chainIdLower == SwapConstants.seiIonId.toLowerCase()) {
+      return SwapConstants.relaySeiIonId;
+    }
+
+    return chainId;
+  }
 }

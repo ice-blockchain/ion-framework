@@ -41,4 +41,13 @@ class SwapConstants {
     9745, // Plasma
     143, // Monad
   ];
+
+  static const String arbIonId = 'ArbitrumOne';
+  static const String relayIonId = 'arbitrum';
+
+  static const String avalanceIonId = 'AvalancheC';
+  static const String relayAvalanceIonId = 'avalanche';
+
+  static const String seiIonId = 'SeiPacific1';
+  static const String relaySeiIonId = 'sei';
 }
