@@ -86,7 +86,7 @@ List<RecentChatActionItem> buildRecentChatActions({
       ),
     RecentChatActionItem(
       kind: isArchived ? RecentChatActionKind.unarchive : RecentChatActionKind.archive,
-      label: isArchived ? context.i18n.common_unarchive_single : context.i18n.common_archive,
+      label: isArchived ? context.i18n.common_unarchive_single : context.i18n.common_add_to_archive,
       icon: Assets.svg.iconChatArchive,
       onSelected: () async {
         toggleArchiveAndShowMessage(
