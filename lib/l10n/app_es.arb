@@ -1,5 +1,7 @@
 {
   "@@locale": "es",
+  "add_new_key_for_auto_translate": "Nuevo texto, que debería ser traducido automáticamente",
+  "add_new_key_for_auto_translate2": "Nuevo texto, que debería ser traducido automáticamente 2",
   "all_networks_item": "Todas las redes",
   "app_language_description": "La aplicación se mostrará en el idioma seleccionado",
   "app_language_title": "Idioma de la aplicación",
@@ -1197,8 +1199,8 @@
   "who_can_reply_settings_title_post": "Quién puede responder a esta publicación",
   "who_can_reply_settings_title_video": "Quién puede responder a este video",
   "who_can_reply_settings_verified_accounts": "Cuentas verificadas",
-  "write_a_message": "Escribe un mensaje...",
   "token_unable_to_fetch_market_data_title": "No se pudieron obtener los datos del mercado",
   "token_unable_to_fetch_market_data_description": "Estamos obteniendo información del mercado para este token, inténtalo de nuevo más tarde",
+  "write_a_message": "Escribe un mensaje...",
   "your_position_card_title": "Tu posición"
 }

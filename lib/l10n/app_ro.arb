@@ -1,5 +1,7 @@
 {
   "@@locale": "ro",
+  "add_new_key_for_auto_translate": "Text nou, care ar trebui să fie tradus automat",
+  "add_new_key_for_auto_translate2": "Text nou, care ar trebui să fie tradus automat 2",
   "all_networks_item": "Toate rețelele",
   "app_language_description": "Aplicația va fi afișată în limba selectată",
   "app_language_title": "Limba aplicației",
@@ -1197,8 +1199,8 @@
   "who_can_reply_settings_title_post": "Cine poate răspunde la această postare",
   "who_can_reply_settings_title_video": "Cine poate răspunde la acest video",
   "who_can_reply_settings_verified_accounts": "Conturi verificate",
-  "write_a_message": "Scrie un mesaj...",
   "token_unable_to_fetch_market_data_title": "Nu s-au putut obține datele de piață",
   "token_unable_to_fetch_market_data_description": "Obținem informații de piață pentru acest token, te rugăm să încerci din nou mai târziu",
+  "write_a_message": "Scrie un mesaj...",
   "your_position_card_title": "Poziția ta"
 }

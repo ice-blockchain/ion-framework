@@ -1,5 +1,7 @@
 {
   "@@locale": "zh",
+  "add_new_key_for_auto_translate": "新文本，应该自动翻译",
+  "add_new_key_for_auto_translate2": "新文本，应该自动翻译 2",
   "all_networks_item": "所有网络",
   "app_language_description": "应用将以所选语言显示",
   "app_language_title": "应用语言",
@@ -1197,8 +1199,8 @@
   "who_can_reply_settings_title_post": "谁可以回复此帖子",
   "who_can_reply_settings_title_video": "谁可以回复此视频",
   "who_can_reply_settings_verified_accounts": "经过验证的账户",
-  "write_a_message": "写一条消息...",
   "token_unable_to_fetch_market_data_title": "无法获取市场数据",
   "token_unable_to_fetch_market_data_description": "我们正在获取此代币的市场信息，请稍后再试",
+  "write_a_message": "写一条消息...",
   "your_position_card_title": "持仓"
 }

@@ -1,5 +1,7 @@
 {
   "@@locale": "pl",
+  "add_new_key_for_auto_translate": "Manually added translation which should not be Overriden",
+  "add_new_key_for_auto_translate2": "Nowy tekst, który powinien być automatycznie przetłumaczony 2",
   "all_networks_item": "Wszystkie sieci",
   "app_language_description": "Aplikacja będzie wyświetlana w wybranym języku",
   "app_language_title": "Język aplikacji",
@@ -782,10 +784,11 @@
   "profile_token_be_first_to_buy": "Bądź pierwszym, który kupi",
   "profile_token_buy": "Kup",
   "profile_tokenized_communities": "Tokenizowane społeczności",
-  "add_new_key_for_auto_translate": "Manually added translation which should not be Overriden",
   "profile_videos": "Wideo",
+  "profile_videos_empty_list": "{username} nie ma żadnych filmów",
   "profile_videos_empty_list_current_user": "Nie masz wideo",
   "profile_website": "Strona internetowa",
+  "protect_account_button": "Chroń konto",
   "protect_account_create_recovery_error": "Wystąpił błąd podczas pobierania danych.",
   "protect_account_description_secure_account": "Aby kontynuować, zabezpiecz swoje konto, utwórz kopię zapasową i włącz co najmniej jedną opcję 2FA",
   "protect_account_description_secure_account_2fa": "Aby zabezpieczyć swoje konto, utwórz kopię zapasową i włącz co najmniej jedną opcję 2FA",
@@ -1196,8 +1199,8 @@
   "who_can_reply_settings_title_post": "Kto może odpowiadać na ten post",
   "who_can_reply_settings_title_video": "Kto może odpowiadać na to wideo",
   "who_can_reply_settings_verified_accounts": "Zweryfikowane konta",
-  "write_a_message": "Napisz wiadomość...",
   "token_unable_to_fetch_market_data_title": "Nie udało się pobrać danych rynkowych",
   "token_unable_to_fetch_market_data_description": "Pobieramy informacje rynkowe dla tego tokena, spróbuj ponownie później",
+  "write_a_message": "Napisz wiadomość...",
   "your_position_card_title": "Twoja pozycja"
 }

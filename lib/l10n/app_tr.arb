@@ -1,5 +1,7 @@
 {
   "@@locale": "tr",
+  "add_new_key_for_auto_translate": "Yeni metin, otomatik olarak çevrilmelidir.",
+  "add_new_key_for_auto_translate2": "Yeni metin, otomatik olarak çevrilmelidir 2",
   "all_networks_item": "Tüm ağlar",
   "app_language_description": "Uygulama seçilen dilde gösterilecek",
   "app_language_title": "Uygulama dili",
@@ -1197,8 +1199,8 @@
   "who_can_reply_settings_title_post": "Bu gönderiye kim yanıtlayabilir",
   "who_can_reply_settings_title_video": "Bu videoya kim yanıtlayabilir",
   "who_can_reply_settings_verified_accounts": "Doğrulanmış hesaplar",
-  "write_a_message": "Mesaj yazın...",
   "token_unable_to_fetch_market_data_title": "Piyasa verileri alınamadı",
   "token_unable_to_fetch_market_data_description": "Bu token için piyasa bilgilerini getiriyoruz, lütfen daha sonra tekrar deneyin",
+  "write_a_message": "Mesaj yazın...",
   "your_position_card_title": "Pozisyonun"
 }

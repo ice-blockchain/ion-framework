@@ -1,5 +1,7 @@
 {
   "@@locale": "fr",
+  "add_new_key_for_auto_translate": "Nouveau texte, qui devrait être traduit automatiquement",
+  "add_new_key_for_auto_translate2": "Nouveau texte, qui devrait être automatiquement traduit 2",
   "all_networks_item": "Tous les réseaux",
   "app_language_description": "L'application s'affichera dans la langue sélectionnée",
   "app_language_title": "Langue de l'application",
@@ -1197,8 +1199,8 @@
   "who_can_reply_settings_title_post": "Qui peut répondre à cette publication",
   "who_can_reply_settings_title_video": "Qui peut répondre à cette vidéo",
   "who_can_reply_settings_verified_accounts": "Comptes vérifiés",
-  "write_a_message": "Écrire un message...",
   "token_unable_to_fetch_market_data_title": "Impossible de récupérer les données du marché",
   "token_unable_to_fetch_market_data_description": "Nous récupérons les informations du marché pour ce jeton, veuillez réessayer plus tard",
+  "write_a_message": "Écrire un message...",
   "your_position_card_title": "Votre position"
 }
