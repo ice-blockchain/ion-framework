@@ -59,7 +59,7 @@ class FeedPostsList extends HookConsumerWidget {
       );
     }
 
-    final totalEventItems = initialListItems.where((item) => item is EventIonEntityListItem).length;
+    final totalEventItems = initialListItems.whereType<EventIonEntityListItem>().length;
     if (totalEventItems >= _creatorsInsertInterval) {
       var eventsSeen = 0;
       for (var i = 0; i < initialListItems.length; i++) {
