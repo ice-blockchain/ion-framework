@@ -273,7 +273,7 @@ class IonConnectPushDataPayload: Decodable {
         } else if entity is TokenBuyingActivityResponseEntity {
             return .moreBuyersJoined
         } else if entity is WalletAssetEntity {
-            return .paymentReceived
+            return .anonymousPaymentReceived
         }
 
         return nil
@@ -392,9 +392,10 @@ class IonConnectPushDataPayload: Decodable {
 
         if let entity = mainEntity as? TokenGlobalStatResponseEntity {
             data["ticker"] = entity.data.tokenAction.data.tokenTicker
+        }
 
         // Non-encrypted WalletAssetEntity events (from external sources)
-        if type == .paymentReceived, event.kind == WalletAssetEntity.kind {
+        if (type == .paymentReceived || type == .anonymousPaymentReceived), event.kind == WalletAssetEntity.kind {
             let txData = IonConnectPushDataPayload.buildTransactionData(from: event)
             if let tx = txData {
                 data["coinAmount"] = tx.coinAmount
@@ -864,6 +865,7 @@ enum PushNotificationType: String, Decodable {
     case follower
     case paymentRequest
     case paymentReceived
+    case anonymousPaymentReceived
     case chatDocumentMessage
     case chatEmojiMessage
     case chatPhotoMessage

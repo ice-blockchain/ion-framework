@@ -111,6 +111,7 @@ class PushNotificationTranslations
     NotificationTranslation? follower,
     NotificationTranslation? paymentRequest,
     NotificationTranslation? paymentReceived,
+    NotificationTranslation? anonymousPaymentReceived,
     NotificationTranslation? chatDocumentMessage,
     NotificationTranslation? chatEmojiMessage,
     NotificationTranslation? chatPhotoMessage,

@@ -206,6 +206,8 @@ class NotificationTranslationService {
                 return translations.paymentRequest
             case .paymentReceived:
                 return translations.paymentReceived
+            case .anonymousPaymentReceived:
+                return translations.anonymousPaymentReceived
             case .chatDocumentMessage:
                 return translations.chatDocumentMessage
             case .chatEmojiMessage:

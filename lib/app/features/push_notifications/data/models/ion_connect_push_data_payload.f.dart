@@ -155,7 +155,7 @@ class IonConnectPushDataPayload {
     } else if (entity is TokenBuyingActivityResponseEntity) {
       return PushNotificationType.moreBuyersJoined;
     } else if (entity is WalletAssetEntity) {
-      return PushNotificationType.paymentReceived;
+      return PushNotificationType.anonymousPaymentReceived;
     }
 
     return null;
@@ -727,6 +727,7 @@ enum PushNotificationType {
   follower,
   paymentRequest,
   paymentReceived,
+  anonymousPaymentReceived,
   chatDocumentMessage,
   chatEmojiMessage,
   chatPhotoMessage,
