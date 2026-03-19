@@ -55,3 +55,9 @@ final class AuthFeatureFlag extends FeatureFlag {
   static const signUpLoginFallbackOnUserAlreadyExists =
       AuthFeatureFlag._(key: 'signUpLoginFallbackOnUserAlreadyExists');
 }
+
+final class AdsFeatureFlag extends FeatureFlag {
+  const AdsFeatureFlag._({required super.key});
+
+  static const adsEnabled = AdsFeatureFlag._(key: 'adsEnabled');
+}
