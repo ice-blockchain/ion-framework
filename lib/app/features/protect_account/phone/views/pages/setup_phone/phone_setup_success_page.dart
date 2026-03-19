@@ -24,7 +24,7 @@ class PhoneSetupSuccessPage extends HookConsumerWidget {
         ScreenSideOffset.medium(
           child: InfoCard(
             iconAsset: Assets.svg.actionWalletConfirmphone,
-            title: locale.common_successfully,
+            title: locale.common_successfully_added,
             description: locale.phone_success_description,
           ),
         ),

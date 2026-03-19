@@ -25,7 +25,7 @@ class EmailSetupSuccessPage extends HookConsumerWidget {
         ScreenSideOffset.medium(
           child: InfoCard(
             iconAsset: Assets.svg.actionWalletConfirmemail,
-            title: locale.common_successfully,
+            title: locale.common_successfully_added,
             description: locale.email_success_description,
           ),
         ),
