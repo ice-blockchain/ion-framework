@@ -443,6 +443,7 @@ DEPENDENCIES:
   - android_nav_setting (from `.symlinks/plugins/android_nav_setting/ios`)
   - app_badge_plus (from `.symlinks/plugins/app_badge_plus/ios`)
   - app_links (from `.symlinks/plugins/app_links/ios`)
+  - Appodeal (= 3.12.0)
   - appsflyer_sdk (from `.symlinks/plugins/appsflyer_sdk/ios`)
   - AppsFlyerFramework
   - audio_waveforms (from `.symlinks/plugins/audio_waveforms/ios`)

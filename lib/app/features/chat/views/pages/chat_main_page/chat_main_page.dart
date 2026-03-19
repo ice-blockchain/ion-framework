@@ -31,18 +31,21 @@ class ChatMainPage extends HookConsumerWidget {
       appBar: ChatMainAppBar(scrollController: scrollController),
       body: ScrollToTopWrapper(
         scrollController: scrollController,
-        child: conversations.when(
-          data: (data) {
-            if (data.isEmpty) {
-              return ScreenSideOffset.small(child: const RecentChatsEmptyPage());
-            }
-            return RecentChatsTimelinePage(
-              conversations: data,
-              scrollController: scrollController,
-            );
-          },
-          error: (error, stackTrace) => const SizedBox(),
-          loading: () => ScreenSideOffset.small(child: const RecentChatSkeleton()),
+        child: ScreenSideOffset.small(
+          child: conversations.when(
+            data: (data) {
+              if (data.isEmpty) {
+                return ScreenSideOffset.small(child: const RecentChatsEmptyPage());
+              }
+
+              return RecentChatsTimelinePage(
+                conversations: data,
+                scrollController: scrollController,
+              );
+            },
+            error: (error, stackTrace) => const SizedBox(),
+            loading: () => ScreenSideOffset.small(child: const RecentChatSkeleton()),
+          ),
         ),
       ),
     );
