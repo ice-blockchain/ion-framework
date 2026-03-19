@@ -88,7 +88,6 @@ class ForceAccountSecurityService {
   }
 
   void _maybeTrigger() {
-    return;
     if (!_hasNavigatorContext()) return;
 
     if (_metadata == null) return;

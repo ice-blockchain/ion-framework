@@ -140,9 +140,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       // When notification is for another local account, append account label so user can tell.
       var displayBody = body;
       final recipientPubkey = data.recipientPubkey;
-      if (recipientPubkey != null &&
-          currentPubkey != null &&
-          !data.isRecipient(currentPubkey)) {
+      if (recipientPubkey != null && currentPubkey != null && !data.isRecipient(currentPubkey)) {
         final accountLabel = await _resolveRecipientAccountLabel(recipientPubkey);
         final context = rootNavigatorKey.currentContext;
         if (accountLabel != null && context != null && context.mounted) {
@@ -298,7 +296,8 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     if (identities.isNotEmpty) {
       final pubkeyResults = await Future.wait(
         identities.map(
-          (identityKeyName) => ref.read(userPubkeyByIdentityKeyNameProvider(identityKeyName).future),
+          (identityKeyName) =>
+              ref.read(userPubkeyByIdentityKeyNameProvider(identityKeyName).future),
         ),
       );
 
@@ -332,8 +331,7 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
 
     final pubkeyResults = await Future.wait(
       identities.map(
-        (identityKeyName) =>
-            ref.read(userPubkeyByIdentityKeyNameProvider(identityKeyName).future),
+        (identityKeyName) => ref.read(userPubkeyByIdentityKeyNameProvider(identityKeyName).future),
       ),
     );
     for (final entry in identities.asMap().entries) {
@@ -367,5 +365,4 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
 
     return null;
   }
-
 }
