@@ -106,7 +106,6 @@ class ArchivedChatsMainRoute extends BaseRouteData with _$ArchivedChatsMainRoute
   ArchivedChatsMainRoute()
       : super(
           child: const ArchivedChatsMainPage(),
-          type: IceRouteType.slideFromLeft,
         );
 }
 
@@ -114,7 +113,6 @@ class RequestsChatsMainRoute extends BaseRouteData with _$RequestsChatsMainRoute
   RequestsChatsMainRoute()
       : super(
           child: const RequestsChatsMainPage(),
-          type: IceRouteType.slideFromLeft,
         );
 }
 
