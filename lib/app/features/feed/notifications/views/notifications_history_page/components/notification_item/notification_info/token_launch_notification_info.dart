@@ -30,17 +30,11 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final launchDefinitionAuthorPubkey = notification.eventReference.masterPubkey;
     final relatedEntity = _getRelatedEntity(ref);
     final tokenOwnerPubkey = relatedEntity?.masterPubkey;
     final currentPubkey = ref.watch(currentPubkeySelectorProvider);
     final isCurrentUserTokenLaunched = tokenOwnerPubkey == currentPubkey;
 
-    final launchDefinitionAuthorData =
-        ref.watch(userPreviewDataProvider(launchDefinitionAuthorPubkey)).valueOrNull;
-    final launchDefinitionAuthorRecognizer = useTapGestureRecognizer(
-      onTap: () => ProfileRoute(pubkey: launchDefinitionAuthorPubkey).push<void>(context),
-    );
     final tokenOwnerData = tokenOwnerPubkey != null
         ? ref.watch(userPreviewDataProvider(tokenOwnerPubkey)).valueOrNull
         : null;
@@ -50,7 +44,7 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
           : null,
     );
 
-    if (launchDefinitionAuthorData == null || tokenOwnerData == null || relatedEntity == null) {
+    if (tokenOwnerData == null || relatedEntity == null) {
       return const NotificationInfoLoading();
     }
 
@@ -70,15 +64,10 @@ class TokenLaunchNotificationInfo extends HookConsumerWidget {
     final textSpan = replaceString(
       description,
       RegExp(
-        '${tagRegex('username').pattern}|${tagRegex('relatedUsername').pattern}|${tagRegex('purple', isSingular: false).pattern}',
+        '${tagRegex('username').pattern}|${tagRegex('purple', isSingular: false).pattern}',
       ),
       (match, index) => switch (true) {
         _ when match.namedGroup('username') != null => buildUsernameTextSpan(
-            context,
-            userData: launchDefinitionAuthorData.data,
-            recognizer: launchDefinitionAuthorRecognizer,
-          ),
-        _ when match.namedGroup('relatedUsername') != null => buildUsernameTextSpan(
             context,
             userData: tokenOwnerData.data,
             recognizer: tokenOwnerRecognizer,
