@@ -3,6 +3,11 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   flutter:
@@ -17,6 +22,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: main-repo
+          fetch-depth: 0
       - name: Checkout the target 'master' branch of 'flutter-app-secrets'
         id: checkout-secrets
         uses: actions/checkout@v3
@@ -72,12 +78,34 @@ jobs:
         run: |
           cd main-repo
           melos run 4mat
+      - name: Set l10n baseline ref (last successful run or origin/base)
+        id: l10n-baseline
+        if: github.event_name == 'pull_request'
+        run: |
+          # For PRs: use last successful CI run's commit as baseline when available; else origin/base_ref.
+          BRANCH="${{ github.head_ref }}"
+          RUN_ID="${{ github.run_id }}"
+          BASE_DEFAULT="origin/${{ github.base_ref }}"
+          if [ -z "$BRANCH" ]; then
+            echo "base_ref=$BASE_DEFAULT" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          LAST_SHA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/CI.yaml/runs?branch=${BRANCH}&status=success&per_page=10" \
+            | jq -r --arg run_id "$RUN_ID" '.workflow_runs[] | select(.id != ($run_id | tonumber)) | .head_sha' | head -1)
+          if [ -n "$LAST_SHA" ] && [ "$LAST_SHA" != "null" ]; then
+            echo "base_ref=$LAST_SHA" >> $GITHUB_OUTPUT
+          else
+            echo "base_ref=$BASE_DEFAULT" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout PR branch (for locale commit/push)
+        if: github.event_name == 'pull_request'
         run: |
           cd main-repo
           git fetch origin ${{ github.head_ref }}
           git checkout ${{ github.head_ref }}
       - name: Set git committer from PR HEAD
+        if: github.event_name == 'pull_request'
         run: |
           cd main-repo
           git config --local user.name  "$(git log -1 --format='%cn')"
@@ -85,10 +113,27 @@ jobs:
       - name: Generate locales
         id: generate-locales
         env:
-          BASE_REF: origin/${{ github.base_ref }}
+          BASE_REF: ${{ steps.l10n-baseline.outputs.base_ref }}
         run: |
           cd main-repo
-          bash ./scripts/auto_translate_locales.sh --commit
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            bash ./scripts/auto_translate_locales.sh --commit
+          else
+            bash ./scripts/auto_translate_locales.sh
+          fi
+      - name: Re-trigger CI for new commit (so status is reported on pushed commit)
+        if: github.event_name == 'pull_request'
+        run: |
+          cd main-repo
+          HEAD_SHA=$(git rev-parse HEAD)
+          if [ "$HEAD_SHA" != "${{ github.sha }}" ]; then
+            echo "Locales were pushed; triggering CI for new commit so status is reported on HEAD."
+            curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/CI.yaml/dispatches" \
+              -d "{\"ref\":\"refs/heads/${{ github.head_ref }}\"}"
+          fi
       - name: Generate code
         id: generate-code
         run: |

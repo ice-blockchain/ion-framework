@@ -7,7 +7,9 @@
 // Usage: dart run tools/translate_missing.dart [options]
 //   --dry-run       Print what would be translated without calling the API or writing files.
 //   --commit        Commit and push ARB changes (use only on CI, on a feature branch). Without this, no git operations run (local default).
-//   --base-ref=REF  Compare app_en.arb with REF (e.g. origin/master) and re-translate keys whose English changed in all locales. Use in CI to sync PR changes. Can also set BASE_REF env.
+//   --base-ref=REF  (Optional fallback) Compare app_en.arb with REF (e.g. origin/master) and re-translate keys whose English changed in all locales.
+//                   By default, the script will detect the latest successful l10n auto-commit on the branch and use it as a baseline.
+//                   Can also set BASE_REF env.
 
 import 'dart:convert';
 import 'dart:io';
@@ -38,11 +40,25 @@ const _localeToLanguage = {
 void main(List<String> args) async {
   final dryRun = args.contains('--dry-run');
   final doCommit = args.contains('--commit');
-  final baseRef = _parseBaseRef(args);
+  final providedBaseRef = _parseBaseRef(args);
 
   final cwd = Directory.current.path;
   final untranslatedPath = '$cwd/$_untranslatedFile';
   final arbDirPath = '$cwd/$_arbDir';
+
+  // Baseline for "changed English keys" detection:
+  // 1) Last l10n auto-commit on this branch (so we don't re-translate already-synced keys).
+  // 2) Then --base-ref / BASE_REF:
+  //    - Pre-push: not set or auto → wrapper passes origin/master; script falls back to _autoPickBaseRef (origin/master | origin/main).
+  //    - CI: set to last successful run's commit SHA (when available), else origin/base_ref.
+  // 3) Finally auto-pick origin/master or origin/main if no ref provided.
+  final currentBranch = await _getCurrentBranch();
+  final lastL10nCommitSha = (currentBranch != null)
+      ? await _findLastL10nCommitSha(cwd: cwd, branch: currentBranch)
+      : null;
+  final baseRef = lastL10nCommitSha ??
+      providedBaseRef ??
+      await _autoPickBaseRef(cwd);
 
   var untranslated = <String, List<String>>{};
   if (File(untranslatedPath).existsSync()) {
@@ -207,6 +223,73 @@ String? _parseBaseRef(List<String> args) {
     }
   }
   return Platform.environment['BASE_REF'];
+}
+
+const _l10nCommitMessage = 'chore(l10n): auto-translate missing strings';
+
+/// Finds the latest l10n auto-commit SHA on the given branch.
+/// Returns `null` if no such commit is found or if we can't access history.
+Future<String?> _findLastL10nCommitSha({
+  required String cwd,
+  required String branch,
+}) async {
+  // Best-effort: ensure we have enough history for `git log`.
+  try {
+    await Process.run(
+      'git',
+      ['fetch', '--unshallow', 'origin', branch],
+      runInShell: true,
+      workingDirectory: cwd,
+    );
+  } catch (_) {
+    // Ignore fetch failures; we'll still try `git log` with whatever history exists.
+  }
+
+  final candidateRefs = <String>['origin/$branch', branch];
+  for (final ref in candidateRefs) {
+    final verify = await Process.run(
+      'git',
+      ['rev-parse', '--verify', ref],
+      runInShell: true,
+      workingDirectory: cwd,
+    );
+    if (verify.exitCode != 0) continue;
+
+    final logResult = await Process.run(
+      'git',
+      [
+        'log',
+        '-n',
+        '1',
+        '--format=%H',
+        '--fixed-strings',
+        '--grep',
+        _l10nCommitMessage,
+        ref,
+      ],
+      runInShell: true,
+      workingDirectory: cwd,
+    );
+    if (logResult.exitCode != 0) continue;
+    final sha = (logResult.stdout as String).trim();
+    if (sha.isNotEmpty) return sha;
+  }
+  return null;
+}
+
+/// Picks a base ref to compare `app_en.arb` against when we can't find a prior l10n commit.
+Future<String?> _autoPickBaseRef(String cwd) async {
+  final candidates = <String>['origin/master', 'origin/main'];
+  for (final ref in candidates) {
+    final result = await Process.run(
+      'git',
+      ['show', '$ref:$_arbDir/$_templateArb'],
+      runInShell: true,
+      workingDirectory: cwd,
+    );
+    if (result.exitCode == 0) return ref;
+  }
+  return null;
 }
 
 /// Parses untranslated_messages.txt (JSON: {"locale": ["key1", ...], ...}).

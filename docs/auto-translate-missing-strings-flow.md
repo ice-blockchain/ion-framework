@@ -49,13 +49,15 @@ Meaning:
 
 ### CI (PRs)
 
-CI runs (with `BASE_REF` set to PR base branch):
+CI runs (with `BASE_REF` set to last successful run’s commit or origin/base):
 
 - `./scripts/auto_translate_locales.sh --commit`
 
 Meaning:
 
 - Missing and/or changed-English translations are generated, committed, and pushed **only when allowed by `tools/translate_missing.dart` branch guards**.
+
+When the job pushes a commit, GitHub does not start a new run for that commit, so the PR can show “Expected — Waiting for status” on the latest commit. After Generate locales, the workflow **re-triggers itself** via `workflow_dispatch` on the same branch when it pushed. That second run (verify-only, no `--commit`) reports status to the new commit so the required “Flutter -- verify, test” check passes.
 
 ## Configuration
 
