@@ -22,6 +22,8 @@ class MentionDeltaConverter {
 
     for (var i = 0; i < ops.length; i++) {
       final op = ops[i];
+      if (!op.isInsert) continue;
+
       final data = op.data;
       final attrs = op.attributes;
 
@@ -74,6 +76,8 @@ class MentionDeltaConverter {
     final out = Delta();
 
     for (final op in input.toList()) {
+      if (!op.isInsert) continue;
+
       final attrs = op.attributes;
       final data = op.data;
 
