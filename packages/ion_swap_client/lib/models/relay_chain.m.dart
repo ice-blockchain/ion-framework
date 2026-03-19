@@ -11,6 +11,7 @@ class RelayChain with _$RelayChain {
   factory RelayChain({
     required String name,
     required String displayName,
+    required String httpRpcUrl,
     required int id,
     required bool disabled,
     required RelayCurrency currency,

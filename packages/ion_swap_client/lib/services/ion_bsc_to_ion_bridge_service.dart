@@ -84,7 +84,7 @@ class IonBscToIonBridgeService extends IonService {
       throw const IonSwapException('Bridge burn failed on-chain');
     }
 
-    await waitForConfirmation(txHash);
+    await waitForConfirmationOnBlockchain(txHash);
 
     return txHash;
   }

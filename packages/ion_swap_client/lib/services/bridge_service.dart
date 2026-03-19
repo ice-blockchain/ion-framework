@@ -4,8 +4,9 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/exceptions/relay_exception.dart';
+import 'package:ion_swap_client/mixins/wait_for_confirmation_mixin.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
-import 'package:ion_swap_client/models/relay_quote.m.dart';
+import 'package:ion_swap_client/models/relay_quote_with_rpc.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/relay_api_repository.dart';
@@ -15,7 +16,7 @@ import 'package:ion_swap_client/utils/hex_helper.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/swap_constants.dart';
 
-class BridgeService {
+class BridgeService with WaitForConfirmationMixin {
   BridgeService({
     required RelayApiRepository relayApiRepository,
     required IonIdentityTransactionApi ionIdentityTransactionApi,
@@ -57,13 +58,21 @@ class BridgeService {
           data: approveItem.data.data,
         );
 
-        await _ionIdentityTransactionApi.signAndBroadcast(
+        final txHash = await _ionIdentityTransactionApi.signAndBroadcast(
           walletId: ionSwapRequest.wallet.id,
           transaction: txObject,
           userActionSigner: ionSwapRequest.userActionSigner,
         );
 
-        await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
+        final rcpUrl = swapQuoteInfo.sellBlockchainRcpUrl;
+        if (rcpUrl == null) {
+          await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
+        } else {
+          await waitForConfirmation(
+            txHash: txHash,
+            rpcUrl: rcpUrl,
+          );
+        }
       }
 
       final depositStep =
@@ -93,7 +102,7 @@ class BridgeService {
     return null;
   }
 
-  Future<RelayQuote> getQuote(SwapCoinParameters swapCoinData) async {
+  Future<RelayQuoteWithRpc> getQuote(SwapCoinParameters swapCoinData) async {
     final sellAddress = swapCoinData.userSellAddress;
     final buyAddress = swapCoinData.userBuyAddress;
     if (sellAddress == null || buyAddress == null) {
@@ -129,7 +138,10 @@ class BridgeService {
         appFee: BigInt.from(double.parse(_relayAppFee) * 100).toString(), // Convert to BPS
       );
 
-      return quote;
+      return RelayQuoteWithRpc(
+        details: quote,
+        rpcUrl: sellChain.httpRpcUrl,
+      );
     } on Exception catch (e) {
       if (e is DioException) {
         final response = e.response;

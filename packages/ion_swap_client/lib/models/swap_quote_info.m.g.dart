@@ -31,6 +31,7 @@ _$SwapQuoteInfoImpl _$$SwapQuoteInfoImplFromJson(Map<String, dynamic> json) =>
       relayDepositAmount: json['relayDepositAmount'] as String?,
       sellUsdPrice: (json['sellUsdPrice'] as num?)?.toDouble(),
       buyUsdPrice: (json['buyUsdPrice'] as num?)?.toDouble(),
+      sellBlockchainRcpUrl: json['sellBlockchainRcpUrl'] as String?,
     );
 
 Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
@@ -48,6 +49,7 @@ Map<String, dynamic> _$$SwapQuoteInfoImplToJson(_$SwapQuoteInfoImpl instance) =>
       'relayDepositAmount': instance.relayDepositAmount,
       'sellUsdPrice': instance.sellUsdPrice,
       'buyUsdPrice': instance.buyUsdPrice,
+      'sellBlockchainRcpUrl': instance.sellBlockchainRcpUrl,
     };
 
 const _$SwapQuoteInfoTypeEnumMap = {

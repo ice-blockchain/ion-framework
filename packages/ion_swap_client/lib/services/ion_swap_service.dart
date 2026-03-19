@@ -101,7 +101,7 @@ class IonSwapService extends IonService {
       throw IonSwapException('Swap failed on-chain, wrong tx hash: $txHash');
     }
 
-    await waitForConfirmation(txHash);
+    await waitForConfirmationOnBlockchain(txHash);
 
     return txHash;
   }
