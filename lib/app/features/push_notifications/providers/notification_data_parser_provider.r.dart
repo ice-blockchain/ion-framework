@@ -251,6 +251,10 @@ class NotificationDataParser {
             await translator.translate((t) => t.paymentReceived?.title),
             await translator.translate((t) => t.paymentReceived?.body)
           ),
+        PushNotificationType.anonymousPaymentReceived => (
+            await translator.translate((t) => t.anonymousPaymentReceived?.title),
+            await translator.translate((t) => t.anonymousPaymentReceived?.body)
+          ),
         PushNotificationType.chatDocumentMessage => (
             await translator.translate((t) => t.chatDocumentMessage?.title),
             await translator.translate((t) => t.chatDocumentMessage?.body)

@@ -28,13 +28,17 @@ EventMessage? eventMessageFromTag(EventMessage source, String tagName) {
   return null;
 }
 
+/// Using eventMessage as is if this is unencrypted WalletAssetEntity.
+/// Try to extract 1756 (WalletAssetEntity) from "payment-sent" tag otherwise.
 WalletAssetEntity? paymentSentWalletAssetEntityFromMessage(
   EventMessage eventMessage,
 ) {
-  final walletAssetEvent = eventMessageFromTag(
-    eventMessage,
-    ReplaceablePrivateDirectMessageData.paymentSentTagName,
-  );
+  final walletAssetEvent = eventMessage.kind == WalletAssetEntity.kind
+      ? eventMessage
+      : eventMessageFromTag(
+          eventMessage,
+          ReplaceablePrivateDirectMessageData.paymentSentTagName,
+        );
 
   if (walletAssetEvent == null) {
     return null;

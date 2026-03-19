@@ -35,7 +35,7 @@ class MoneyMessageDisplayResolver {
     );
   }
 
-  Future<MoneyDisplayData?> resolveMoneyDisplayDataFromPaymentSentTag(
+  Future<MoneyDisplayData?> resolveMoneyDisplayDataFromEventMessage(
     EventMessage eventMessage,
   ) async {
     final walletAssetEntity = paymentSentWalletAssetEntityFromMessage(eventMessage);

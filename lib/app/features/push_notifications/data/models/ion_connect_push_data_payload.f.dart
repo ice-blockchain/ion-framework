@@ -154,6 +154,8 @@ class IonConnectPushDataPayload {
       return PushNotificationType.trendingToken;
     } else if (entity is TokenBuyingActivityResponseEntity) {
       return PushNotificationType.moreBuyersJoined;
+    } else if (entity is WalletAssetEntity) {
+      return PushNotificationType.anonymousPaymentReceived;
     }
 
     return null;
@@ -536,6 +538,14 @@ class IonConnectPushDataPayload {
       data['ticker'] = entity.data.tokenAction.data.tokenTicker;
     }
 
+    if (entity is WalletAssetEntity) {
+      final fundsRequestData = await getFundsRequestData(event);
+      if (fundsRequestData != null) {
+        data['coinAmount'] = fundsRequestData.amount;
+        data['coinSymbol'] = fundsRequestData.coin;
+      }
+    }
+
     return data;
   }
 
@@ -725,6 +735,7 @@ enum PushNotificationType {
   follower,
   paymentRequest,
   paymentReceived,
+  anonymousPaymentReceived,
   chatDocumentMessage,
   chatEmojiMessage,
   chatPhotoMessage,
