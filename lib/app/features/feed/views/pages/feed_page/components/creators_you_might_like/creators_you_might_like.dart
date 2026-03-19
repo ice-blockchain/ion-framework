@@ -7,11 +7,12 @@ import 'package:ion/app/components/section_header/section_header.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/feed/providers/feed_recommended_creators_provider.r.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/creators_you_might_like/components/creator_card.dart';
+import 'package:ion/generated/assets.gen.dart';
 
 class CreatorsYouMightLike extends ConsumerWidget {
   const CreatorsYouMightLike({super.key});
 
-  static double get _listHeight => 100.0.s;
+  static double get _listHeight => 120.0.s;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,7 +27,7 @@ class CreatorsYouMightLike extends ConsumerWidget {
       children: [
         SectionHeader(
           title: context.i18n.feed_creators_you_might_like,
-          // TODO(neop): add leading icon from Figma (icon/invite_creator2)
+          leadingIcon: Assets.svg.iconInviteCreator2.icon(size: 24.0.s),
           trailingIconSize: 20.0.s,
         ),
         SizedBox(

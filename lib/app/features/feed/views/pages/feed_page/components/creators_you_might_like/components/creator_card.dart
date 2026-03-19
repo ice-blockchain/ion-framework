@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
-import 'package:ion/app/features/components/user/follow_user_button/follow_user_button.dart';
+import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/user_category.f.dart';
+import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
 import 'package:ion/app/features/user/providers/followers_count_provider.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -130,7 +131,10 @@ class _CreatorInfo extends StatelessWidget {
                       ],
                     ),
                   ),
-                  _CompactFollowButton(pubkey: masterPubkey),
+                  ProfileMainAction(
+                    pubkey: masterPubkey,
+                    profileMode: ProfileMode.dark,
+                  ),
                 ],
               ),
               if (followersCount != null)
@@ -142,21 +146,6 @@ class _CreatorInfo extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _CompactFollowButton extends StatelessWidget {
-  const _CompactFollowButton({required this.pubkey});
-
-  final String pubkey;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 24.0.s,
-      height: 24.0.s,
-      child: FollowUserButton(pubkey: pubkey),
     );
   }
 }
@@ -174,9 +163,9 @@ class _FollowersCountRow extends StatelessWidget {
         Row(
           spacing: 2.0.s,
           children: [
-            Assets.svg.iconSearchFollowers.icon(
+            Assets.svg.iconSearchGroups.icon(
               size: 16.0.s,
-              color: context.theme.appColors.secondaryText,
+              color: context.theme.appColors.primaryAccent,
             ),
             Text(
               formatCount(count),
@@ -210,7 +199,7 @@ class _CategoryChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.0.s, vertical: 4.0.s),
       decoration: BoxDecoration(
-        color: context.theme.appColors.onTertiaryFill,
+        color: context.theme.appColors.secondaryBackground,
         borderRadius: BorderRadius.circular(10.0.s),
       ),
       child: Row(

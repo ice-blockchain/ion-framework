@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
@@ -52,7 +53,14 @@ class FeedRecommendedCreators extends _$FeedRecommendedCreators {
     final followList = ref.read(currentUserFollowListProvider).valueOrNull;
     final followedPubkeys = followList?.data.list.map((e) => e.pubkey).toList() ?? <String>[];
 
-    return [...alreadyFetched, ...blockedPubkeys, ...followedPubkeys];
+    final currentPubkey = ref.read(currentPubkeySelectorProvider);
+
+    return [
+      ...alreadyFetched,
+      ...blockedPubkeys,
+      ...followedPubkeys,
+      if (currentPubkey != null) currentPubkey,
+    ];
   }
 
   Future<void> _fetch({bool clearCurrent = false}) async {
