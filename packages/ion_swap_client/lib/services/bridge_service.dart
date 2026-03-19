@@ -157,16 +157,43 @@ class BridgeService {
   String get _nativeTokenAddress => '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
   String _getChainId(String chainId) {
-    final chainIdLower = chainId.toLowerCase();
-
-    if (chainIdLower == SwapConstants.arbIonId.toLowerCase()) {
-      return SwapConstants.relayIonId;
-    } else if (chainIdLower == SwapConstants.avalanceIonId.toLowerCase()) {
-      return SwapConstants.relayAvalanceIonId;
-    } else if (chainIdLower == SwapConstants.seiIonId.toLowerCase()) {
-      return SwapConstants.relaySeiIonId;
-    }
+    final relayId = _parseIonChain(chainId).relayId;
+    if (relayId != null) return relayId;
 
     return chainId;
   }
+
+  _IonChainWithDifferentId _parseIonChain(String chainId) {
+    final normalized = chainId.toLowerCase();
+
+    if (normalized == SwapConstants.arbIonId.toLowerCase()) {
+      return _IonChainWithDifferentId.arb;
+    }
+
+    if (normalized == SwapConstants.avalanceIonId.toLowerCase()) {
+      return _IonChainWithDifferentId.avalanche;
+    }
+
+    if (normalized == SwapConstants.seiIonId.toLowerCase()) {
+      return _IonChainWithDifferentId.sei;
+    }
+
+    return _IonChainWithDifferentId.unknown;
+  }
+}
+
+enum _IonChainWithDifferentId {
+  arb,
+  avalanche,
+  sei,
+  unknown,
+}
+
+extension _IonChainX on _IonChainWithDifferentId {
+  String? get relayId => switch (this) {
+        _IonChainWithDifferentId.arb => SwapConstants.relayIonId,
+        _IonChainWithDifferentId.avalanche => SwapConstants.relayAvalanceIonId,
+        _IonChainWithDifferentId.sei => SwapConstants.relaySeiIonId,
+        _IonChainWithDifferentId.unknown => null,
+      };
 }
