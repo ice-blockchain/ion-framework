@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ion/app/components/avatar/avatar.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/chat/hooks/use_combined_conversation_names.dart';
@@ -13,6 +12,7 @@ import 'package:ion/app/features/chat/providers/muted_conversations_provider.r.d
 import 'package:ion/app/features/chat/providers/unread_message_count_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/archive_state_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/conversations_edit_mode_provider.r.dart';
+import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/chat_folder_tile.dart';
 import 'package:ion/app/features/chat/recent_chats/views/components/recent_chat_tile/recent_chat_tile.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
 import 'package:ion/generated/assets.gen.dart';
@@ -52,74 +52,28 @@ class ArchiveChatTile extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6.0.s),
-      child: GestureDetector(
-        onTap: () async {
-          if (!isEditMode) {
-            ref.read(archiveStateProvider.notifier).value = true;
-            await ArchivedChatsMainRoute().push<void>(context);
-          }
-        },
-        behavior: HitTestBehavior.opaque,
-        child: Row(
-          children: [
-            Flexible(
-              child: Row(
-                children: [
-                  Avatar(
-                    imageWidget: Assets.svg.avatarArchive.icon(),
-                    size: 48.0.s,
-                  ),
-                  SizedBox(width: 12.0.s),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              context.i18n.common_archive,
-                              style: context.theme.appTextThemes.subtitle3.copyWith(
-                                color: context.theme.appColors.primaryText,
-                              ),
-                            ),
-                            if (latestMessageAt != null)
-                              ChatTimestamp(
-                                latestMessageAt,
-                              ),
-                          ],
-                        ),
-                        SizedBox(height: 2.0.s),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            if (combinedConversationNames == null)
-                              const IONLoadingIndicator()
-                            else
-                              Expanded(
-                                child: ChatPreview(
-                                  lastMessageContent: combinedConversationNames,
-                                  maxLines: 1,
-                                  messageType: MessageType.text,
-                                ),
-                              ),
-                            UnreadCountBadge(
-                              unreadCount: unreadMessagesCount,
-                              isMuted: hasMutedConversation,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    return ChatFolderTile(
+      avatarIcon: Assets.svg.avatarArchive.icon(),
+      title: context.i18n.common_archive,
+      timestamp: latestMessageAt,
+      onTap: () async {
+        if (!isEditMode) {
+          ref.read(archiveStateProvider.notifier).value = true;
+          await ArchivedChatsMainRoute().push<void>(context);
+        }
+      },
+      previewContent: combinedConversationNames == null
+          ? const IONLoadingIndicator()
+          : Expanded(
+              child: ChatPreview(
+                lastMessageContent: combinedConversationNames,
+                maxLines: 1,
+                messageType: MessageType.text,
               ),
             ),
-          ],
-        ),
+      trailing: UnreadCountBadge(
+        unreadCount: unreadMessagesCount,
+        isMuted: hasMutedConversation,
       ),
     );
   }
