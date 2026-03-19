@@ -45,7 +45,7 @@ class FeedPostsList extends HookConsumerWidget {
     );
   }
 
-  static const int _creatorsInsertInterval = 2;
+  static const int _creatorsInsertInterval = 5;
 
   List<IonEntityListItem> _getFeedListItems(Iterable<IonConnectEntity> entities) {
     final initialListItems = entities
