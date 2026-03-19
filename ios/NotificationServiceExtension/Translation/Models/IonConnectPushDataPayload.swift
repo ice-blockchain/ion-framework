@@ -272,6 +272,8 @@ class IonConnectPushDataPayload: Decodable {
             return .trendingToken
         } else if entity is TokenBuyingActivityResponseEntity {
             return .moreBuyersJoined
+        } else if entity is WalletAssetEntity {
+            return .paymentReceived
         }
 
         return nil
@@ -390,6 +392,14 @@ class IonConnectPushDataPayload: Decodable {
 
         if let entity = mainEntity as? TokenGlobalStatResponseEntity {
             data["ticker"] = entity.data.tokenAction.data.tokenTicker
+
+        // Non-encrypted WalletAssetEntity events (from external sources)
+        if type == .paymentReceived, event.kind == WalletAssetEntity.kind {
+            let txData = IonConnectPushDataPayload.buildTransactionData(from: event)
+            if let tx = txData {
+                data["coinAmount"] = tx.coinAmount
+                data["coinSymbol"] = tx.coinSymbol
+            }
         }
 
         return data

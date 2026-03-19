@@ -132,8 +132,7 @@ Future<MoneyDisplayData?> transactionDisplayData(
   EventMessage eventMessage,
 ) async {
   final displayResolver = await ref.watch(moneyMessageDisplayResolverProvider.future);
-  final fromEmbedded =
-      await displayResolver.resolveMoneyDisplayDataFromPaymentSentTag(eventMessage);
+  final fromEmbedded = await displayResolver.resolveMoneyDisplayDataFromEventMessage(eventMessage);
   if (fromEmbedded != null) return fromEmbedded;
 
   final transactionData = await ref.watch(transactionDataForMessageProvider(eventMessage).future);
