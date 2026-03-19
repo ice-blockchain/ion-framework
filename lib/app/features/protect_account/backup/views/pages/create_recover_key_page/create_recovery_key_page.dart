@@ -30,6 +30,7 @@ class CreateRecoveryKeyPage extends StatelessWidget {
             _NavBar(),
             _Header(),
             _Body(),
+            ScreenBottomOffset(margin: 32),
           ],
         ),
       ),
