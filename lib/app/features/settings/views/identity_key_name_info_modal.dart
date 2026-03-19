@@ -27,7 +27,6 @@ class IdentityKeyNameInfoModal extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         NavigationAppBar.modal(
-          showBackButton: false,
           title: Text(context.i18n.common_information),
           actions: const [NavigationCloseButton()],
         ),
@@ -76,11 +75,15 @@ class _IdentityKeyNameCard extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              identityKeyName,
-              textAlign: TextAlign.center,
-              style: context.theme.appTextThemes.subtitle.copyWith(
-                color: context.theme.appColors.primaryText,
+            Flexible(
+              child: Text(
+                identityKeyName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: context.theme.appTextThemes.subtitle.copyWith(
+                  color: context.theme.appColors.primaryText,
+                ),
               ),
             ),
             SizedBox(width: 4.0.s),

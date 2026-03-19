@@ -43,6 +43,14 @@ class MessageNotificationWrapper extends HookConsumerWidget {
       (_, next) {
         notification.value = next.valueOrNull;
 
+        if (notification.value == null) {
+          _controlAnimation(
+            isShow: false,
+            animation: animation,
+            controller: controller,
+          );
+          return;
+        }
         _controlAnimation(
           isShow: true,
           animation: animation,
@@ -63,6 +71,9 @@ class MessageNotificationWrapper extends HookConsumerWidget {
     );
 
     final suffixWidget = notification.value?.suffixWidget;
+    final baseBottomPadding = notification.value?.bottomPadding ?? 94.0.s;
+    final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+    final bottomPadding = baseBottomPadding + keyboardHeight;
 
     return Stack(
       children: [
@@ -70,53 +81,63 @@ class MessageNotificationWrapper extends HookConsumerWidget {
         PositionedDirectional(
           start: 16.0.s,
           end: 16.0.s,
-          bottom: 94.0.s,
-          child: IgnorePointer(
-            child: FadeTransition(
-              opacity: animation,
-              child: Container(
-                height: 42.0.s,
-                padding: EdgeInsets.all(8.0.s),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(12.0.s),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.appColors.primaryAccent.withValues(alpha: 0.36),
-                      blurRadius: 20.0.s,
-                      spreadRadius: 0.0.s,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        if (notification.value?.icon != null) ...[
-                          Container(
-                            width: 26.0.s,
-                            height: 26.0.s,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: context.theme.appColors.onPrimaryAccent,
-                              borderRadius: BorderRadius.circular(8.0.s),
+          bottom: bottomPadding,
+          child: FadeTransition(
+            opacity: animation,
+            child: Container(
+              constraints: BoxConstraints(minHeight: 42.0.s),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(12.0.s),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.theme.appColors.primaryAccent.withValues(alpha: 0.36),
+                    blurRadius: 20.0.s,
+                    spreadRadius: 0.0.s,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: IgnorePointer(
+                      ignoring: !(notification.value?.interactive ?? false),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(width: 8.0.s),
+                          if (notification.value?.icon != null) ...[
+                            Container(
+                              width: 26.0.s,
+                              height: 26.0.s,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: context.theme.appColors.onPrimaryAccent,
+                                borderRadius: BorderRadius.circular(8.0.s),
+                              ),
+                              child: notification.value?.icon,
                             ),
-                            child: notification.value?.icon,
+                            SizedBox(width: 10.0.s),
+                          ],
+                          Expanded(
+                            child: Text(
+                              notification.value?.message ?? '',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: context.theme.appTextThemes.body.copyWith(
+                                color: context.theme.appColors.onPrimaryAccent,
+                              ),
+                            ),
                           ),
-                          SizedBox(width: 10.0.s),
                         ],
-                        Text(
-                          notification.value?.message ?? '',
-                          style: context.theme.appTextThemes.body.copyWith(
-                            color: context.theme.appColors.onPrimaryAccent,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    if (suffixWidget != null) suffixWidget,
+                  ),
+                  if (suffixWidget != null) ...[
+                    SizedBox(width: 8.0.s),
+                    suffixWidget,
                   ],
-                ),
+                ],
               ),
             ),
           ),

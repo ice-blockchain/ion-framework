@@ -13,4 +13,8 @@ class MessageNotificationNotifier extends _$MessageNotificationNotifier {
   void show(MessageNotification notification) {
     state = AsyncValue.data(notification);
   }
+
+  void dismiss() {
+    state = const AsyncValue.data(null);
+  }
 }
