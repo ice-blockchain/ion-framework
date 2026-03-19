@@ -8,6 +8,7 @@ import 'package:ion/app/features/core/extensions/ref_lifecycle_listen_extension.
 import 'package:ion/app/features/core/providers/wallets_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/tokenized_communities/domain/content_payment_token_resolver_service.dart';
+import 'package:ion/app/features/tokenized_communities/domain/trade_execution_plan.dart';
 import 'package:ion/app/features/tokenized_communities/enums/community_token_trade_mode.dart';
 import 'package:ion/app/features/tokenized_communities/providers/content_payment_token_context_provider.r.dart';
 import 'package:ion/app/features/tokenized_communities/providers/fat_address_data_provider.r.dart';
@@ -54,6 +55,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   CommunityTokenPricingIdentifierResolver? _pricingIdentifierResolver;
   TradeCommunityLastPaymentCoinService? _lastPaymentCoinService;
   Completer<void>? _updateDerivedStateCompleter;
+  bool _isQuotePollingPaused = false;
 
   @override
   TradeCommunityTokenState build(TradeCommunityTokenControllerParams params) {
@@ -425,6 +427,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
   void setAmount(double amount, {bool useFullAmount = false}) {
     state = state.copyWith(amount: amount, useFullAmount: useFullAmount);
+    _setExecutionPlan(null);
     _scheduleQuoteUpdates();
     _refreshFormattedAmounts();
   }
@@ -468,6 +471,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   void selectPaymentToken(CoinData token) {
     state = state.copyWith(selectedPaymentToken: token);
     _lastPaymentCoinService!.saveLastUsedPaymentToken(token);
+    _setExecutionPlan(null);
     _updateDerivedState();
     _scheduleQuoteUpdates();
     _refreshFormattedAmounts();
@@ -475,17 +479,33 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
 
   void setSlippage(double slippage) {
     state = state.copyWith(slippage: slippage);
+    _setExecutionPlan(null);
+    _scheduleQuoteUpdates();
   }
 
   void setShouldSendEvents({required bool send}) {
     state = state.copyWith(shouldSendEvents: send);
   }
 
+  void pauseQuotePolling() {
+    _isQuotePollingPaused = true;
+    _quoteController?.cancel();
+    state = state.copyWith(isQuoting: false);
+  }
+
+  void resumeQuotePolling() {
+    if (!_isQuotePollingPaused) {
+      return;
+    }
+    _isQuotePollingPaused = false;
+    _scheduleQuoteUpdates();
+  }
+
   void _resetTradeFormOnModeChange() {
     _quoteController?.cancel();
     state = state.copyWith(
       amount: 0,
-      quotePricing: null,
+      executionPlan: null,
       isQuoting: false,
       communityTokenAmountUSDFormatted: null,
       paymentTokenAmountUSDFormatted: null,
@@ -688,23 +708,27 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   void _scheduleQuoteUpdates() {
+    if (_isQuotePollingPaused) {
+      return;
+    }
+
     final quoteController = _quoteController;
     if (quoteController == null) return;
 
     quoteController.schedule(
       request: _buildQuoteRequest(),
       onReset: () {
-        _setQuotePricing(null);
+        _setExecutionPlan(null);
       },
       onStart: () => state = state.copyWith(isQuoting: true),
-      onSuccess: _setQuotePricing,
+      onSuccess: _setExecutionPlan,
       onError: (error, stackTrace) {
         Logger.error(
           error,
           stackTrace: stackTrace,
           message: 'Failed to get quote',
         );
-        _setQuotePricing(null);
+        _setExecutionPlan(null);
       },
       onPollError: (error, stackTrace) {
         Logger.error(
@@ -734,6 +758,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         mode: mode,
         amount: state.amount,
         amountDecimals: amountDecimals,
+        slippagePercent: state.slippage,
         pricingIdentifierResolver: () => _resolvePricingIdentifier(mode),
         paymentTokenAddress: resolvePaymentTokenAddress(token),
         fatAddressDataWithPricingResolver: (pricing) {
@@ -755,7 +780,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
         message: 'Failed to build quote request',
       );
       state = state.copyWith(
-        quotePricing: null,
+        executionPlan: null,
         isQuoting: false,
       );
       return null;
@@ -774,10 +799,10 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
     return resolver.resolve(mode);
   }
 
-  void _setQuotePricing(PricingResponse? pricing) {
-    final formatted = _computeFormattedAmounts(pricing);
+  void _setExecutionPlan(TradeExecutionPlan? executionPlan) {
+    final formatted = _computeFormattedAmounts(executionPlan?.quote.finalPricing);
     state = state.copyWith(
-      quotePricing: pricing,
+      executionPlan: executionPlan,
       isQuoting: false,
       communityTokenAmountUSDFormatted: formatted.community,
       paymentTokenAmountUSDFormatted: formatted.payment,
@@ -786,7 +811,7 @@ class TradeCommunityTokenController extends _$TradeCommunityTokenController {
   }
 
   void _refreshFormattedAmounts() {
-    final formatted = _computeFormattedAmounts(state.quotePricing);
+    final formatted = _computeFormattedAmounts(state.executionPlan?.quote.finalPricing);
     state = state.copyWith(
       communityTokenAmountUSDFormatted: formatted.community,
       paymentTokenAmountUSDFormatted: formatted.payment,

@@ -292,7 +292,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         state.quoteAmount! > BigInt.zero &&
         state.targetWallet != null &&
         !state.isQuoting &&
-        state.quotePricing != null &&
+        state.executionPlan != null &&
         state.selectedPaymentToken != null &&
         selectedPaymentTokenAmount != null &&
         selectedPaymentTokenAmount >= state.amount;
@@ -305,7 +305,7 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
         state.quoteAmount! > BigInt.zero &&
         state.targetWallet != null &&
         !state.isQuoting &&
-        state.quotePricing != null &&
+        state.executionPlan != null &&
         state.selectedPaymentToken != null &&
         state.communityTokenCoinsGroup != null;
   }
@@ -386,7 +386,6 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
     Logger.info(
       '[TradeCommunityTokenDialog] Button pressed | mode=$mode | externalAddress=${params.externalAddress}',
     );
-
     if (state.targetWallet == null || state.selectedPaymentToken == null) {
       Logger.warning(
         '[TradeCommunityTokenDialog] Missing wallet or token | wallet=${state.targetWallet?.id} | token=${state.selectedPaymentToken?.abbreviation}',
@@ -407,14 +406,14 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
 
     if (isBuy && !_isBuyContinueButtonEnabled(state)) {
       Logger.warning(
-        '[TradeCommunityTokenDialog] Buy button not enabled | amount=${state.amount} | quoteAmount=${state.quoteAmount} | quoteReady=${state.quotePricing != null} | isQuoting=${state.isQuoting}',
+        '[TradeCommunityTokenDialog] Buy button not enabled | amount=${state.amount} | quoteReady=${state.executionPlan != null} | isQuoting=${state.isQuoting}',
       );
       return;
     }
 
     if (!isBuy && !_isSellContinueButtonEnabled(state)) {
       Logger.warning(
-        '[TradeCommunityTokenDialog] Sell button not enabled | amount=${state.amount} | balance=${state.communityTokenBalance} | quoteReady=${state.quotePricing != null}',
+        '[TradeCommunityTokenDialog] Sell button not enabled | amount=${state.amount} | balance=${state.communityTokenBalance} | quoteReady=${state.executionPlan != null}',
       );
       return;
     }
@@ -423,30 +422,38 @@ class TradeCommunityTokenDialog extends HookConsumerWidget {
       '[TradeCommunityTokenDialog] Starting trade operation | mode=$mode | amount=${state.amount} | token=${state.selectedPaymentToken?.abbreviation} | wallet=${state.targetWallet?.id}',
     );
 
-    await guardPasskeyDialog(
-      context,
-      (child) => RiverpodUserActionSignerRequestBuilder(
-        provider: communityTokenTradeNotifierProvider(params),
-        request: (signer) async {
-          Logger.info(
-            '[TradeCommunityTokenDialog] Passkey authenticated, calling trade notifier | mode=$mode',
-          );
-          final notifier = ref.read(
-            communityTokenTradeNotifierProvider(params).notifier,
-          );
-          if (mode == CommunityTokenTradeMode.buy) {
-            Logger.info('[TradeCommunityTokenDialog] Calling buy()');
-            await notifier.buy(signer);
-            Logger.info('[TradeCommunityTokenDialog] buy() completed');
-          } else {
-            Logger.info('[TradeCommunityTokenDialog] Calling sell()');
-            await notifier.sell(signer);
-            Logger.info('[TradeCommunityTokenDialog] sell() completed');
-          }
-        },
-        child: child,
-      ),
-    );
+    final tradeTokenController = ref.read(tradeCommunityTokenControllerProvider(params).notifier)
+      ..pauseQuotePolling();
+    try {
+      await guardPasskeyDialog(
+        context,
+        (child) => RiverpodUserActionSignerRequestBuilder(
+          provider: communityTokenTradeNotifierProvider(params),
+          request: (signer) async {
+            Logger.info(
+              '[TradeCommunityTokenDialog] Passkey authenticated, calling trade notifier | mode=$mode',
+            );
+            final notifier = ref.read(
+              communityTokenTradeNotifierProvider(params).notifier,
+            );
+            if (mode == CommunityTokenTradeMode.buy) {
+              Logger.info('[TradeCommunityTokenDialog] Calling buy()');
+              await notifier.buy(signer);
+              Logger.info('[TradeCommunityTokenDialog] buy() completed');
+            } else {
+              Logger.info('[TradeCommunityTokenDialog] Calling sell()');
+              await notifier.sell(signer);
+              Logger.info('[TradeCommunityTokenDialog] sell() completed');
+            }
+          },
+          child: child,
+        ),
+      );
+    } finally {
+      if (context.mounted) {
+        tradeTokenController.resumeQuotePolling();
+      }
+    }
   }
 
   void _showSuccessMessage(
