@@ -538,6 +538,14 @@ class IonConnectPushDataPayload {
       data['ticker'] = entity.data.tokenAction.data.tokenTicker;
     }
 
+    if (entity is WalletAssetEntity) {
+      final fundsRequestData = await getFundsRequestData(event);
+      if (fundsRequestData != null) {
+        data['coinAmount'] = fundsRequestData.amount;
+        data['coinSymbol'] = fundsRequestData.coin;
+      }
+    }
+
     return data;
   }
 

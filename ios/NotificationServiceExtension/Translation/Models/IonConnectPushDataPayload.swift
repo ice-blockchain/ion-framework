@@ -395,7 +395,7 @@ class IonConnectPushDataPayload: Decodable {
         }
 
         // Non-encrypted WalletAssetEntity events (from external sources)
-        if (type == .paymentReceived || type == .anonymousPaymentReceived), event.kind == WalletAssetEntity.kind {
+        if type == .anonymousPaymentReceived, event.kind == WalletAssetEntity.kind {
             let txData = IonConnectPushDataPayload.buildTransactionData(from: event)
             if let tx = txData {
                 data["coinAmount"] = tx.coinAmount
