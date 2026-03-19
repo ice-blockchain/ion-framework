@@ -407,6 +407,15 @@ class ProfileBadgesSearchExtension extends SearchExtension {
       : 'include:dependencies:kind30008+profile_badges>kind30009>kind8';
 }
 
+class VerifiedUsersOnlySearchExtension extends SearchExtension {
+  VerifiedUsersOnlySearchExtension({required this.verifiedUsersOnly});
+
+  final bool verifiedUsersOnly;
+
+  @override
+  String get query => 'verifiedUsersOnly:$verifiedUsersOnly';
+}
+
 /// Wraps a search query in quotes to perform an exact match search
 class QuerySearchExtension extends SearchExtension {
   QuerySearchExtension({required this.searchQuery});

@@ -7,6 +7,7 @@ import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ion/app/exceptions/exceptions.dart';
+import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/feed/data/models/counter.dart';
 import 'package:ion/app/features/feed/data/models/feed_config.f.dart';
@@ -76,9 +77,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       items: null,
       isLoading: false,
       forYouRetryLimitReached: false,
+      verifiedForYouPhaseExhausted: false,
       englishContentFallbackEnabled: false,
       hasMoreFollowing: true,
-      modifiersPagination: {},
+      verifiedModifiersPagination: {},
+      regularModifiersPagination: {},
     );
   }
 
@@ -92,8 +95,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
         if (previous == null) return;
 
         // Only refresh if hashtags actually changed (order-independent comparison)
-        const equality = DeepCollectionEquality.unordered();
-        final hasChanged = !equality.equals(next, previous);
+        final hasChanged = !next.equalsDeepUnordered(previous);
 
         if (hasChanged) {
           Future.microtask(() {
@@ -217,18 +219,20 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   Stream<IonConnectEntity> _fetchInterested({required int limit}) async* {
+    if (limit <= 0) return;
+
     if (state.forYouRetryLimitReached) {
       Logger.info('$_logTag Retry limit reached, skipping interested events fetch');
       return;
     }
 
-    Logger.info('$_logTag Requesting [$limit] interested events');
+    final phase = state.verifiedForYouPhaseExhausted
+        ? InterestedContentPhase.regular
+        : InterestedContentPhase.verified;
 
-    final pageFetchContext = InterestsPageFetchContext(
-      retryCounter: await _buildRetryCounter(limit: limit),
-      seenSkipsCounter: await _buildSeenSkipsCounter(limit: limit),
-      skippedSeenEntities: {},
-    );
+    Logger.info('$_logTag Requesting [$limit] interested events for [${phase.name}] phase');
+
+    final pageFetchContext = await _buildPageFetchContext(phase, limit);
     final modifiersDistribution = await _getFeedModifiersDistribution(limit: limit);
 
     yield* StreamGroup.merge([
@@ -237,19 +241,28 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
           _fetchInterestsEntities(
             modifier: modifier,
             limit: modifierLimit,
+            phase: phase,
             pageFetchContext: pageFetchContext,
           ),
     ]);
 
-    if (pageFetchContext.retryCounter.isReached) {
-      state = state.copyWith(forYouRetryLimitReached: true);
-      Logger.warning('$_logTag Retry limit reached');
-    }
+    _completeInterestedPhaseIfNeeded(phase: phase, pageFetchContext: pageFetchContext);
   }
 
-  Future<Counter> _buildRetryCounter({required int limit}) async {
+  /// Retry counter for the "regular content" (both verified and unverified) phase
+  Future<Counter> _buildRegularRetryCounter({required int limit}) async {
     final feedConfig = await ref.read(feedConfigProvider.future);
-    final maxRetries = (limit * feedConfig.forYouMaxRetriesMultiplier).ceil();
+    final maxRetries =
+        (limit * feedConfig.forYouMaxRetriesMultiplier * (1 - _verifiedUsersOnlyRetryThreshold))
+            .ceil();
+    return Counter(limit: maxRetries);
+  }
+
+  /// Retry counter for the "verified content" only phase
+  Future<Counter> _buildVerifiedRetryCounter({required int limit}) async {
+    final feedConfig = await ref.read(feedConfigProvider.future);
+    final maxRetries =
+        (limit * feedConfig.forYouMaxRetriesMultiplier * _verifiedUsersOnlyRetryThreshold).ceil();
     return Counter(limit: maxRetries);
   }
 
@@ -405,14 +418,17 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Stream<IonConnectEntity> _fetchInterestsEntities({
     required FeedModifier modifier,
     required int limit,
+    required InterestedContentPhase phase,
     required InterestsPageFetchContext pageFetchContext,
   }) async* {
     if (pageFetchContext.retryCounter.isReached) return;
 
-    await _refreshModifierPagination(modifier: modifier);
+    await _refreshModifierPagination(modifier: modifier, phase: phase);
 
-    final nextPageRelays =
-        getNextPageSources(sources: state.modifiersPagination[modifier]!, limit: limit);
+    final nextPageRelays = getNextPageSources(
+      sources: state.paginationForPhase(phase)[modifier]!,
+      limit: limit,
+    );
 
     Logger.info(
       nextPageRelays.isEmpty
@@ -428,6 +444,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     await for (final entity in _requestEntitiesFromRelays(
       relays: nextPageRelays.keys,
       modifier: modifier,
+      phase: phase,
       pageFetchContext: pageFetchContext,
     )) {
       yield entity;
@@ -462,6 +479,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       yield* _fetchInterestsEntities(
         modifier: modifier,
         limit: remaining,
+        phase: phase,
         pageFetchContext: pageFetchContext,
       );
     }
@@ -527,15 +545,19 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   /// For the articles, user can select and unselect the interested categories.
   ///
   /// This method must be called on every request iteration.
-  Future<void> _refreshModifierPagination({required FeedModifier modifier}) async {
+  Future<void> _refreshModifierPagination({
+    required FeedModifier modifier,
+    required InterestedContentPhase phase,
+  }) async {
     final dataSourceRelays = await _getDataSourceRelays(desiredAmount: feedType.pageSize);
 
     final interests = await _getInterestsForModifier(modifier);
+    final phasePagination = state.paginationForPhase(phase);
 
     final relaysPagination = Map.fromEntries(
       dataSourceRelays.map(
         (relayUrl) {
-          final relayPagination = state.modifiersPagination[modifier]?[relayUrl] ??
+          final relayPagination = phasePagination[modifier]?[relayUrl] ??
               const RelayPagination(page: -1, hasMore: true, interestsPagination: {});
           final interestsPagination = Map.fromEntries(
             interests.map(
@@ -556,17 +578,19 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       ),
     );
 
-    state = state.copyWith(
-      modifiersPagination: {
-        ...state.modifiersPagination,
+    state = state.copyWithPhasePagination(
+      {
+        ...phasePagination,
         modifier: relaysPagination,
       },
+      phase: phase,
     );
   }
 
   Stream<IonConnectEntity> _requestEntitiesFromRelays({
     required Iterable<String> relays,
     required FeedModifier modifier,
+    required InterestedContentPhase phase,
     required InterestsPageFetchContext pageFetchContext,
   }) async* {
     final requestsQueue = await ref.read(feedRequestQueueProvider.future);
@@ -579,9 +603,11 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
           if (pageFetchContext.retryCounter.isReached) return;
 
           final relayInterestsPagination =
-              state.modifiersPagination[modifier]![relayUrl]!.interestsPagination;
+              state.paginationForPhase(phase)[modifier]![relayUrl]!.interestsPagination;
 
-          final interest = await _getRequestInterest(relayUrl: relayUrl, modifier: modifier);
+          final interest = await _getRequestInterest(
+            relayInterestsPagination: relayInterestsPagination,
+          );
 
           if (interest == null) {
             throw NoAvailableInterests(relayUrl: relayUrl, modifier: modifier.name);
@@ -592,6 +618,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
           final (entity, missing) = await _requestEntityFromRelay(
             relayUrl: relayUrl,
             modifier: modifier,
+            phase: phase,
             interest: interest,
             lastEventCreatedAt: interestPagination.lastEventCreatedAt,
           );
@@ -613,6 +640,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
               interestPagination.copyWith(lastEventCreatedAt: entity.createdAt),
               relayUrl: relayUrl,
               modifier: modifier,
+              phase: phase,
               interest: interest,
               increasePage: true,
             );
@@ -625,14 +653,16 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
               interestPagination.copyWith(hasMore: false),
               relayUrl: relayUrl,
               modifier: modifier,
+              phase: phase,
               interest: interest,
             );
           }
         }).catchError((Object? error) {
           state = state.copyWithRelayPagination(
-            state.modifiersPagination[modifier]![relayUrl]!.copyWith(hasMore: false),
+            state.paginationForPhase(phase)[modifier]![relayUrl]!.copyWith(hasMore: false),
             relayUrl: relayUrl,
             modifier: modifier,
+            phase: phase,
           );
           Logger.error(
             error ?? '',
@@ -732,12 +762,8 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   }
 
   Future<String?> _getRequestInterest({
-    required String relayUrl,
-    required FeedModifier modifier,
+    required Map<String, InterestPagination> relayInterestsPagination,
   }) async {
-    final relayInterestsPagination =
-        state.modifiersPagination[modifier]![relayUrl]!.interestsPagination;
-
     // Pick from interests that still have more pages
     final availableInterests = relayInterestsPagination.entries
         .where((entry) => entry.value.hasMore)
@@ -757,6 +783,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Future<(IonConnectEntity?, List<EventsMetadataEntity>)> _requestEntityFromRelay({
     required String relayUrl,
     required FeedModifier modifier,
+    required InterestedContentPhase phase,
     required String interest,
     required int? lastEventCreatedAt,
   }) async {
@@ -766,6 +793,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     final FeedEntitiesDataSource(:dataSource, :responseFilter) = await _getDataSource(
       relayUrl: relayUrl,
       modifier: modifier,
+      phase: phase,
       interest: interest,
       feedConfig: feedConfig,
     );
@@ -801,6 +829,7 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
   Future<FeedEntitiesDataSource> _getDataSource({
     required String relayUrl,
     required FeedModifier modifier,
+    required InterestedContentPhase phase,
     required String interest,
     required FeedConfig feedConfig,
   }) async {
@@ -818,12 +847,17 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     // This is for the "Trending Videos" case, where we have to apply the global
     // "trending" modifier even to the distribution "explore" modifier.
     final modifierSearch = (globalFilter ?? distributionFilter).search;
+    final phaseSearch = [
+      if (phase == InterestedContentPhase.verified)
+        VerifiedUsersOnlySearchExtension(verifiedUsersOnly: true),
+      ...modifierSearch,
+    ];
 
     if (modifier is FeedModifierTokenizedCommunity) {
       return buildCommunityTokensDataSource(
         actionSource: ActionSource.relayUrl(relayUrl),
         currentPubkey: currentPubkey,
-        searchExtensions: modifierSearch,
+        searchExtensions: phaseSearch,
         tags: distributionFilter.tags,
       );
     }
@@ -834,25 +868,25 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
       FeedType.post => buildPostsDataSource(
           actionSource: ActionSource.relayUrl(relayUrl),
           currentPubkey: currentPubkey,
-          searchExtensions: modifierSearch,
+          searchExtensions: phaseSearch,
           tags: extraTags,
         ),
       FeedType.article => buildArticlesDataSource(
           actionSource: ActionSource.relayUrl(relayUrl),
           currentPubkey: currentPubkey,
-          searchExtensions: modifierSearch,
+          searchExtensions: phaseSearch,
           tags: extraTags,
         ),
       FeedType.video => buildVideosDataSource(
           actionSource: ActionSource.relayUrl(relayUrl),
           currentPubkey: currentPubkey,
-          searchExtensions: modifierSearch,
+          searchExtensions: phaseSearch,
           tags: extraTags,
         ),
       FeedType.story => buildStoriesDataSource(
           actionSource: ActionSource.relayUrl(relayUrl),
           currentPubkey: currentPubkey,
-          searchExtensions: [StoriesCountSearchExtension(), ...modifierSearch],
+          searchExtensions: [StoriesCountSearchExtension(), ...phaseSearch],
           tags: extraTags,
         ),
     };
@@ -893,7 +927,49 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
     state = state.copyWith(
       englishContentFallbackEnabled: true,
       forYouRetryLimitReached: false,
-      modifiersPagination: {},
+      verifiedForYouPhaseExhausted: false,
+      verifiedModifiersPagination: {},
+      regularModifiersPagination: {},
+    );
+  }
+
+  void _completeInterestedPhaseIfNeeded({
+    required InterestedContentPhase phase,
+    required InterestsPageFetchContext pageFetchContext,
+  }) {
+    if (phase == InterestedContentPhase.verified) {
+      if (pageFetchContext.retryCounter.isReached) {
+        state = state.copyWith(verifiedForYouPhaseExhausted: true);
+        Logger.info('$_logTag Verified-only retry threshold reached, switching to regular phase');
+        return;
+      }
+
+      if (!state.hasMoreForYouPhase(phase)) {
+        state = state.copyWith(verifiedForYouPhaseExhausted: true);
+        Logger.info('$_logTag Verified-only pagination exhausted, switching to regular phase');
+      }
+
+      return;
+    }
+
+    if (pageFetchContext.retryCounter.isReached) {
+      state = state.copyWith(forYouRetryLimitReached: true);
+      Logger.warning('$_logTag Retry limit reached');
+    }
+  }
+
+  Future<InterestsPageFetchContext> _buildPageFetchContext(
+    InterestedContentPhase phase,
+    int limit,
+  ) async {
+    return InterestsPageFetchContext(
+      phase: phase,
+      retryCounter: switch (phase) {
+        InterestedContentPhase.verified => await _buildVerifiedRetryCounter(limit: limit),
+        InterestedContentPhase.regular => await _buildRegularRetryCounter(limit: limit),
+      },
+      seenSkipsCounter: await _buildSeenSkipsCounter(limit: limit),
+      skippedSeenEntities: {},
     );
   }
 
@@ -953,17 +1029,24 @@ class FeedForYouContent extends _$FeedForYouContent implements PagedNotifier {
 
   String get _logTag => '[FEED FOR_YOU ${feedType.name}]';
 
+  static const double _verifiedUsersOnlyRetryThreshold = 0.5;
   static const String _explorePaginationInterest = '_explore';
 
   static const String _communityTokenPaginationInterest = '_community_token';
 }
 
+/// We first fetch the verified content, and when we exhaust it or reach the retry limit,
+/// we switch to the regular content.
+enum InterestedContentPhase { verified, regular }
+
 @Freezed(equal: false)
 class FeedForYouContentState with _$FeedForYouContentState implements PagedState {
   const factory FeedForYouContentState({
     required Set<IonConnectEntity>? items,
-    required Map<FeedModifier, Map<String, RelayPagination>> modifiersPagination,
+    required Map<FeedModifier, Map<String, RelayPagination>> verifiedModifiersPagination,
+    required Map<FeedModifier, Map<String, RelayPagination>> regularModifiersPagination,
     required bool forYouRetryLimitReached,
+    required bool verifiedForYouPhaseExhausted,
     required bool englishContentFallbackEnabled,
     required bool hasMoreFollowing,
     required bool isLoading,
@@ -971,25 +1054,51 @@ class FeedForYouContentState with _$FeedForYouContentState implements PagedState
 
   const FeedForYouContentState._();
 
-  bool get hasMoreForYou =>
-      modifiersPagination.isEmpty ||
-      modifiersPagination.values.any(
-        (modifierPagination) => modifierPagination.values.any((pagination) => pagination.hasMore),
-      );
+  Map<FeedModifier, Map<String, RelayPagination>> paginationForPhase(InterestedContentPhase phase) {
+    return switch (phase) {
+      InterestedContentPhase.verified => verifiedModifiersPagination,
+      InterestedContentPhase.regular => regularModifiersPagination,
+    };
+  }
+
+  bool hasMoreForYouPhase(InterestedContentPhase phase) {
+    final phasePagination = paginationForPhase(phase);
+    return phasePagination.isEmpty ||
+        phasePagination.values.any(
+          (modifierPagination) => modifierPagination.values.any((pagination) => pagination.hasMore),
+        );
+  }
+
+  bool get hasMoreForYou => InterestedContentPhase.values.any(hasMoreForYouPhase);
+
+  FeedForYouContentState copyWithPhasePagination(
+    Map<FeedModifier, Map<String, RelayPagination>> pagination, {
+    required InterestedContentPhase phase,
+  }) {
+    return copyWith(
+      verifiedModifiersPagination:
+          phase == InterestedContentPhase.verified ? pagination : verifiedModifiersPagination,
+      regularModifiersPagination:
+          phase == InterestedContentPhase.regular ? pagination : regularModifiersPagination,
+    );
+  }
 
   FeedForYouContentState copyWithRelayPagination(
     RelayPagination pagination, {
     required String relayUrl,
     required FeedModifier modifier,
+    required InterestedContentPhase phase,
   }) {
-    return copyWith(
-      modifiersPagination: {
-        ...modifiersPagination,
+    final phasePagination = paginationForPhase(phase);
+    return copyWithPhasePagination(
+      {
+        ...phasePagination,
         modifier: {
-          ...modifiersPagination[modifier]!,
+          ...phasePagination[modifier]!,
           relayUrl: pagination,
         },
       },
+      phase: phase,
     );
   }
 
@@ -997,10 +1106,11 @@ class FeedForYouContentState with _$FeedForYouContentState implements PagedState
     InterestPagination pagination, {
     required String relayUrl,
     required FeedModifier modifier,
+    required InterestedContentPhase phase,
     required String interest,
     bool increasePage = false,
   }) {
-    final relayPagination = modifiersPagination[modifier]![relayUrl]!;
+    final relayPagination = paginationForPhase(phase)[modifier]![relayUrl]!;
     final interestsPagination = {
       ...relayPagination.interestsPagination,
       interest: pagination,
@@ -1013,6 +1123,7 @@ class FeedForYouContentState with _$FeedForYouContentState implements PagedState
       ),
       relayUrl: relayUrl,
       modifier: modifier,
+      phase: phase,
     );
   }
 
@@ -1039,11 +1150,13 @@ class InterestPagination with _$InterestPagination {
 
 class InterestsPageFetchContext {
   const InterestsPageFetchContext({
+    required this.phase,
     required this.retryCounter,
     required this.seenSkipsCounter,
     required this.skippedSeenEntities,
   });
 
+  final InterestedContentPhase phase;
   final Counter retryCounter;
   final Counter seenSkipsCounter;
   final Map<FeedModifier, List<IonConnectEntity>> skippedSeenEntities;
