@@ -179,9 +179,9 @@ class ProfileTokenHeader extends ConsumerWidget {
                       token.marketData.marketCap,
                     ),
                     onTap: showInfoModals
-                        ? () => showSimpleBottomSheet<void>(
+                        ? () => InfoModal.showBottomSheet<void>(
                               context: context,
-                              child: const InfoModal(infoType: InfoType.marketCap),
+                              infoType: InfoType.marketCap,
                             )
                         : null,
                   ),

@@ -13,7 +13,6 @@ import 'package:ion/app/features/wallets/model/info_type.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
 import 'package:ion/app/features/wallets/views/components/coin_icon_with_network.dart';
 import 'package:ion/app/features/wallets/views/pages/info/info_modal.dart';
-import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/app/utils/address.dart';
 import 'package:ion/generated/assets.gen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -77,11 +76,9 @@ class ReceiveInfoCard extends HookWidget {
                   value: shortAddress.value!,
                   valueToCopy: walletAddress,
                   onTapInfo: () {
-                    showSimpleBottomSheet<void>(
+                    InfoModal.showBottomSheet<void>(
                       context: context,
-                      child: const InfoModal(
-                        infoType: InfoType.walletAddress,
-                      ),
+                      infoType: InfoType.walletAddress,
                     );
                   },
                 )
@@ -99,11 +96,9 @@ class ReceiveInfoCard extends HookWidget {
                   title: context.i18n.wallet_memo,
                   value: _memoValue,
                   onTapInfo: () {
-                    showSimpleBottomSheet<void>(
+                    InfoModal.showBottomSheet<void>(
                       context: context,
-                      child: const InfoModal(
-                        infoType: InfoType.memo,
-                      ),
+                      infoType: InfoType.memo,
                     );
                   },
                 ),
