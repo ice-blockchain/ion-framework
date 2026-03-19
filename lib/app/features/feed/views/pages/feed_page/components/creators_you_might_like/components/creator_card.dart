@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/avatar/story_colored_profile_avatar.dart';
 import 'package:ion/app/extensions/extensions.dart';
-import 'package:ion/app/features/components/ion_connect_avatar/ion_connect_avatar.dart';
 import 'package:ion/app/features/user/model/profile_mode.dart';
 import 'package:ion/app/features/user/model/user_category.f.dart';
 import 'package:ion/app/features/user/pages/profile_page/components/profile_main_action.dart';
@@ -88,10 +88,11 @@ class _CreatorInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8.0.s,
       children: [
-        IonConnectAvatar(
+        StoryColoredProfileAvatar(
+          pubkey: masterPubkey,
           size: 59.0.s,
-          masterPubkey: masterPubkey,
           borderRadius: BorderRadius.circular(15.0.s),
+          profileMode: ProfileMode.dark,
         ),
         Expanded(
           child: Column(
