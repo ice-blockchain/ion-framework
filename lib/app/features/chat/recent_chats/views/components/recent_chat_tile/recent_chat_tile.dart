@@ -386,7 +386,6 @@ class ChatPreview extends HookConsumerWidget {
     final content = switch (messageType) {
       MessageType.text => lastMessageContent,
       MessageType.emoji => lastMessageContent,
-      MessageType.ad => lastMessageContent,
       MessageType.sharedPost => lastMessageContent.isNotEmpty
           ? lastMessageContent
           : _sharedPostTypeLabel(context, sharedPostEntity),

@@ -285,22 +285,23 @@ class VideosVerticalScrollPage extends HookConsumerWidget {
                 final perPageEventReference = flattenedVideo.entity.toEventReference();
                 final media = flattenedVideo.media;
 
-              return VideoPage(
-                videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
-                bottomOverlay: VideoActions(
-                  eventReference: perPageEventReference,
-                  onReplyTap: () => PostDetailsRoute(
-                    eventReference: perPageEventReference.encode(),
-                  ).push<void>(context),
-                ),
-                videoUrl: media.url,
-                authorPubkey: perPageEventReference.masterPubkey,
-                thumbnailUrl: media.thumb,
-                blurhash: media.blurhash,
-                aspectRatio: media.aspectRatio,
-                framedEventReference: index == initialPage ? framedEventReference : null,
-                postEventReference: perPageEventReference,
-              );
+                return VideoPage(
+                  videoInfo: VideoPostInfo(videoPost: flattenedVideo.entity),
+                  bottomOverlay: VideoActions(
+                    eventReference: perPageEventReference,
+                    onReplyTap: () => PostDetailsRoute(
+                      eventReference: perPageEventReference.encode(),
+                    ).push<void>(context),
+                  ),
+                  videoUrl: media.url,
+                  authorPubkey: perPageEventReference.masterPubkey,
+                  thumbnailUrl: media.thumb,
+                  blurhash: media.blurhash,
+                  aspectRatio: media.aspectRatio,
+                  framedEventReference: index == initialPage ? framedEventReference : null,
+                  postEventReference: perPageEventReference,
+                );
+              }
             },
           ),
         ),
