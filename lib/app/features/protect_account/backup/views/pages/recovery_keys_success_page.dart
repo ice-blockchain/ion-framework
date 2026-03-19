@@ -38,7 +38,7 @@ class RecoveryKeysSuccessPage extends HookConsumerWidget {
           SizedBox(
             height: 28.0.s,
           ),
-          ScreenSideOffset.large(
+          ScreenSideOffset.medium(
             child: Button(
               onPressed: goToSecureAccountOptions,
               label: Text(locale.button_back_to_security),

@@ -24,14 +24,14 @@ class PhoneSetupSuccessPage extends HookConsumerWidget {
         ScreenSideOffset.medium(
           child: InfoCard(
             iconAsset: Assets.svg.actionWalletConfirmphone,
-            title: locale.common_successfully,
+            title: locale.common_successfully_added,
             description: locale.phone_success_description,
           ),
         ),
         SizedBox(
           height: 22.0.s,
         ),
-        ScreenSideOffset.large(
+        ScreenSideOffset.medium(
           child: Button(
             mainAxisSize: MainAxisSize.max,
             label: Text(locale.button_back_to_security),

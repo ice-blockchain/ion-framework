@@ -34,7 +34,7 @@ class AuthenticatorSetupSuccessPage extends HookConsumerWidget {
             SizedBox(
               height: 22.0.s,
             ),
-            ScreenSideOffset.large(
+            ScreenSideOffset.medium(
               child: Button(
                 mainAxisSize: MainAxisSize.max,
                 label: Text(
