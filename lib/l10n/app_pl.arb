@@ -1200,5 +1200,9 @@
   "write_a_message": "Napisz wiadomość...",
   "token_unable_to_fetch_market_data_title": "Nie udało się pobrać danych rynkowych",
   "token_unable_to_fetch_market_data_description": "Pobieramy informacje rynkowe dla tego tokena, spróbuj ponownie później",
-  "your_position_card_title": "Twoja pozycja"
+  "your_position_card_title": "Twoja pozycja",
+  "wallet_swap_confirmation_high_price_impact_title": "Bardzo wysoki wpływ na cenę",
+  "wallet_swap_confirmation_high_price_impact_description": "Ta transakcja ma wysoki wpływ na cenę ({priceImpact}), więc kwota, którą otrzymasz, będzie znacznie niższa od aktualnej ceny rynkowej.",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "Ta transakcja ma wysoki wpływ na cenę (",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": "), więc kwota, którą otrzymasz, będzie znacznie niższa od aktualnej ceny rynkowej."
 }

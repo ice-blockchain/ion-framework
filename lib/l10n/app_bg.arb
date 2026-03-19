@@ -1198,7 +1198,11 @@
   "who_can_reply_settings_title_video": "Кой може да отговаря на това видео",
   "who_can_reply_settings_verified_accounts": "Верифицирани акаунти",
   "write_a_message": "Напишете съобщение...",
+  "your_position_card_title": "Вашата позиция",
+  "wallet_swap_confirmation_high_price_impact_title": "Много високо ценово въздействие",
+  "wallet_swap_confirmation_high_price_impact_description": "Тази транзакция има високо ценово въздействие ({priceImpact}), така че сумата, която ще получите, ще бъде забележимо по-ниска от текущата пазарна цена.",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "Тази транзакция има високо ценово въздействие (",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": "), така че сумата, която ще получите, ще бъде забележимо по-ниска от текущата пазарна цена.",
   "token_unable_to_fetch_market_data_title": "Не могат да се извлекат пазарни данни",
-  "token_unable_to_fetch_market_data_description": "Извличаме пазарна информация за този токен, моля опитайте отново по-късно",
-  "your_position_card_title": "Вашата позиция"
+  "token_unable_to_fetch_market_data_description": "Извличаме пазарна информация за този токен, моля опитайте отново по-късно"
 }

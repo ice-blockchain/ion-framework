@@ -1213,5 +1213,9 @@
   "write_a_message": "اكتب رسالة...",
   "token_unable_to_fetch_market_data_title": "تعذّر جلب بيانات السوق",
   "token_unable_to_fetch_market_data_description": "نقوم بجلب معلومات السوق لهذا الرمز، يرجى المحاولة مرة أخرى لاحقاً",
-  "your_position_card_title": "أيتمكش"
+  "your_position_card_title": "أيتمكش",
+  "wallet_swap_confirmation_high_price_impact_title": "تأثير سعري مرتفع جداً",
+  "wallet_swap_confirmation_high_price_impact_description": "هذه المعاملة لها تأثير سعري مرتفع ({priceImpact})، لذا سيكون المبلغ الذي ستحصل عليه أقل بشكل ملحوظ من سعر السوق الحالي.",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "هذه المعاملة لها تأثير سعري مرتفع (",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": ")، لذا سيكون المبلغ الذي ستحصل عليه أقل بشكل ملحوظ من سعر السوق الحالي."
 }

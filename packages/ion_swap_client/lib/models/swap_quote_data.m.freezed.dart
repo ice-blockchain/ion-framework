@@ -25,6 +25,7 @@ mixin _$SwapQuoteData {
   String get toTokenAmount => throw _privateConstructorUsedError;
   OkxTokenInfo get fromToken => throw _privateConstructorUsedError;
   OkxTokenInfo get toToken => throw _privateConstructorUsedError;
+  String? get priceImpactPercentage => throw _privateConstructorUsedError;
 
   /// Serializes this SwapQuoteData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -47,7 +48,8 @@ abstract class $SwapQuoteDataCopyWith<$Res> {
       String fromTokenAmount,
       String toTokenAmount,
       OkxTokenInfo fromToken,
-      OkxTokenInfo toToken});
+      OkxTokenInfo toToken,
+      String? priceImpactPercentage});
 
   $OkxTokenInfoCopyWith<$Res> get fromToken;
   $OkxTokenInfoCopyWith<$Res> get toToken;
@@ -73,6 +75,7 @@ class _$SwapQuoteDataCopyWithImpl<$Res, $Val extends SwapQuoteData>
     Object? toTokenAmount = null,
     Object? fromToken = null,
     Object? toToken = null,
+    Object? priceImpactPercentage = freezed,
   }) {
     return _then(_value.copyWith(
       chainIndex: null == chainIndex
@@ -95,6 +98,10 @@ class _$SwapQuoteDataCopyWithImpl<$Res, $Val extends SwapQuoteData>
           ? _value.toToken
           : toToken // ignore: cast_nullable_to_non_nullable
               as OkxTokenInfo,
+      priceImpactPercentage: freezed == priceImpactPercentage
+          ? _value.priceImpactPercentage
+          : priceImpactPercentage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -132,7 +139,8 @@ abstract class _$$SwapQuoteDataImplCopyWith<$Res>
       String fromTokenAmount,
       String toTokenAmount,
       OkxTokenInfo fromToken,
-      OkxTokenInfo toToken});
+      OkxTokenInfo toToken,
+      String? priceImpactPercentage});
 
   @override
   $OkxTokenInfoCopyWith<$Res> get fromToken;
@@ -158,6 +166,7 @@ class __$$SwapQuoteDataImplCopyWithImpl<$Res>
     Object? toTokenAmount = null,
     Object? fromToken = null,
     Object? toToken = null,
+    Object? priceImpactPercentage = freezed,
   }) {
     return _then(_$SwapQuoteDataImpl(
       chainIndex: null == chainIndex
@@ -180,6 +189,10 @@ class __$$SwapQuoteDataImplCopyWithImpl<$Res>
           ? _value.toToken
           : toToken // ignore: cast_nullable_to_non_nullable
               as OkxTokenInfo,
+      priceImpactPercentage: freezed == priceImpactPercentage
+          ? _value.priceImpactPercentage
+          : priceImpactPercentage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -192,7 +205,8 @@ class _$SwapQuoteDataImpl implements _SwapQuoteData {
       required this.fromTokenAmount,
       required this.toTokenAmount,
       required this.fromToken,
-      required this.toToken});
+      required this.toToken,
+      this.priceImpactPercentage});
 
   factory _$SwapQuoteDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapQuoteDataImplFromJson(json);
@@ -207,10 +221,12 @@ class _$SwapQuoteDataImpl implements _SwapQuoteData {
   final OkxTokenInfo fromToken;
   @override
   final OkxTokenInfo toToken;
+  @override
+  final String? priceImpactPercentage;
 
   @override
   String toString() {
-    return 'SwapQuoteData(chainIndex: $chainIndex, fromTokenAmount: $fromTokenAmount, toTokenAmount: $toTokenAmount, fromToken: $fromToken, toToken: $toToken)';
+    return 'SwapQuoteData(chainIndex: $chainIndex, fromTokenAmount: $fromTokenAmount, toTokenAmount: $toTokenAmount, fromToken: $fromToken, toToken: $toToken, priceImpactPercentage: $priceImpactPercentage)';
   }
 
   @override
@@ -226,13 +242,15 @@ class _$SwapQuoteDataImpl implements _SwapQuoteData {
                 other.toTokenAmount == toTokenAmount) &&
             (identical(other.fromToken, fromToken) ||
                 other.fromToken == fromToken) &&
-            (identical(other.toToken, toToken) || other.toToken == toToken));
+            (identical(other.toToken, toToken) || other.toToken == toToken) &&
+            (identical(other.priceImpactPercentage, priceImpactPercentage) ||
+                other.priceImpactPercentage == priceImpactPercentage));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, chainIndex, fromTokenAmount,
-      toTokenAmount, fromToken, toToken);
+      toTokenAmount, fromToken, toToken, priceImpactPercentage);
 
   /// Create a copy of SwapQuoteData
   /// with the given fields replaced by the non-null parameter values.
@@ -256,7 +274,8 @@ abstract class _SwapQuoteData implements SwapQuoteData {
       required final String fromTokenAmount,
       required final String toTokenAmount,
       required final OkxTokenInfo fromToken,
-      required final OkxTokenInfo toToken}) = _$SwapQuoteDataImpl;
+      required final OkxTokenInfo toToken,
+      final String? priceImpactPercentage}) = _$SwapQuoteDataImpl;
 
   factory _SwapQuoteData.fromJson(Map<String, dynamic> json) =
       _$SwapQuoteDataImpl.fromJson;
@@ -271,6 +290,8 @@ abstract class _SwapQuoteData implements SwapQuoteData {
   OkxTokenInfo get fromToken;
   @override
   OkxTokenInfo get toToken;
+  @override
+  String? get priceImpactPercentage;
 
   /// Create a copy of SwapQuoteData
   /// with the given fields replaced by the non-null parameter values.

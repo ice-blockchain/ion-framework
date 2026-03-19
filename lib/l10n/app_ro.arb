@@ -1200,5 +1200,9 @@
   "write_a_message": "Scrie un mesaj...",
   "token_unable_to_fetch_market_data_title": "Nu s-au putut obține datele de piață",
   "token_unable_to_fetch_market_data_description": "Obținem informații de piață pentru acest token, te rugăm să încerci din nou mai târziu",
-  "your_position_card_title": "Poziția ta"
+  "your_position_card_title": "Poziția ta",
+  "wallet_swap_confirmation_high_price_impact_title": "Impact foarte mare asupra prețului",
+  "wallet_swap_confirmation_high_price_impact_description": "Această tranzacție are un impact mare asupra prețului ({priceImpact}), astfel încât suma pe care o vei primi va fi considerabil mai mică decât prețul actual de piață.",
+  "wallet_swap_confirmation_high_price_impact_description_prefix": "Această tranzacție are un impact mare asupra prețului (",
+  "wallet_swap_confirmation_high_price_impact_description_suffix": "), astfel încât suma pe care o vei primi va fi considerabil mai mică decât prețul actual de piață."
 }

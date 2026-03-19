@@ -15,12 +15,15 @@ import 'package:ion/app/features/components/verify_identity/verify_identity_prom
 import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/providers/swap_disabled_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/swap_details_card.dart';
+import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/high_price_impact_warning.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/components/swap_coins_message_info.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/router/components/navigation_app_bar/navigation_app_bar.dart';
 import 'package:ion/app/router/components/sheet_content/sheet_content.dart';
 import 'package:ion/app/router/utils/show_simple_bottom_sheet.dart';
 import 'package:ion/generated/assets.gen.dart';
+
+const _highPriceImpactThreshold = 3.0;
 
 class SwapCoinsConfirmationPage extends HookConsumerWidget {
   const SwapCoinsConfirmationPage({super.key});
@@ -80,6 +83,8 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
     }
 
     final quoteValue = (swapQuoteInfo.priceForSellTokenInBuyToken * amount).toString();
+    final showHighPriceImpactWarning =
+        swapQuoteInfo.swapImpact != null && swapQuoteInfo.swapImpact! <= -_highPriceImpactThreshold;
 
     return SheetContent(
       body: SingleChildScrollView(
@@ -115,6 +120,10 @@ class SwapCoinsConfirmationPage extends HookConsumerWidget {
               networkFee: swapQuoteInfo.networkFee,
               protocolFee: swapQuoteInfo.protocolFee,
             ),
+            if (showHighPriceImpactWarning) ...[
+              SizedBox(height: 20.0.s),
+              HighPriceImpactWarning(priceImpact: swapQuoteInfo.swapImpact!),
+            ],
             SizedBox(height: 32.0.s),
             const _SwapButton(),
             SizedBox(height: 16.0.s),
