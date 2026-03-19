@@ -61,20 +61,38 @@ class LocalNotificationsService {
     String? groupKey,
     bool conversationStyle = true,
   }) async {
+    final details = conversationStyle
+        ? await _buildNotificationDetails(
+            avatarUrl: icon,
+            attachmentUrl: attachment,
+            userName: title,
+            textMessage: body,
+            groupKey: groupKey,
+          )
+        : _buildSimpleNotificationDetails();
     await _plugin.show(
       generateUuid().hashCode,
       title,
       body,
-      conversationStyle
-          ? await _buildNotificationDetails(
-              avatarUrl: icon,
-              attachmentUrl: attachment,
-              userName: title,
-              textMessage: body,
-              groupKey: groupKey,
-            )
-          : null,
+      details,
       payload: payload,
+    );
+  }
+
+  /// Minimal notification details for campaigns / fallbacks.
+  /// Passing null to _plugin.show() causes NPE in setupNotificationChannel on Android.
+  NotificationDetails _buildSimpleNotificationDetails() {
+    const androidDetails = AndroidNotificationDetails(
+      'ion_miscellaneous',
+      'Miscellaneous',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    const darwinDetails = DarwinNotificationDetails();
+    return const NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+      macOS: darwinDetails,
     );
   }
 

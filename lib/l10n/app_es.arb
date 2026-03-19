@@ -925,6 +925,8 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Muestra el volumen total de trading de tokens en las últimas 24 h.\n\nUna mayor actividad suele indicar más interés, mejor liquidez y trading más sencillo.",
   "token_stats_volume_title": "Volume",
+  "notification_for_account": "Para cuenta: {accountName}",
+  "switched_to_username": "Cambiado a {username}",
   "tokenized_communities_top_tokens": "Principales tokens",
   "tokenized_communities_trending_tokens": "Tokens en tendencia",
   "tokenized_community_bonding_curve": "Curva de vinculación",

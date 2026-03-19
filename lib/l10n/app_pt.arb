@@ -917,6 +917,8 @@
   "story_share_sender": "Partilhou esta história",
   "suggestions_empty_description": "Não encontrámos nada que corresponda à sua pesquisa",
   "suggestions_loading_description": "Pesquise o utilizador que pretende mencionar",
+  "notification_for_account": "Para conta: {accountName}",
+  "switched_to_username": "Mudou para {username}",
   "token_comment_holders_only": "Os comentários estão disponíveis apenas para detentores de tokens.",
   "token_contract": "Contrato",
   "token_stats_holders_description": "Indica quantas carteiras únicas possuem atualmente o token.\n\nUm aumento constante ao longo do tempo reflete frequentemente maior adoção, confiança da comunidade e distribuição mais ampla.",

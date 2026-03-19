@@ -9,6 +9,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
 import 'package:ion/app/features/chat/providers/conversation_request_approval_provider.r.dart';
 import 'package:ion/app/features/chat/recent_chats/providers/money_message_provider.r.dart';
+import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/feed/providers/ion_connect_entity_with_counters_provider.r.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
 import 'package:ion/app/features/push_notifications/data/models/ion_connect_push_data_payload.f.dart';
@@ -106,6 +107,18 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
       final body = parsedData?.body ?? response.notification?.body;
 
       if (title == null || body == null) {
+        // If push belongs to another account on this device, current account can't decrypt it.
+        // Show generic fallback so user can tap and switch account in notification response handler.
+        if (data.event.kind == IonConnectGiftWrapEntity.kind && data.decryptedEvent == null) {
+          final fallback = await _buildEncryptedGiftWrapFallback(data);
+          final notificationsService = await ref.read(localNotificationsServiceProvider.future);
+          await notificationsService.showNotification(
+            title: fallback.$1,
+            body: fallback.$2,
+            payload: jsonEncode(response.data),
+            conversationStyle: false,
+          );
+        }
         return;
       }
 
@@ -124,10 +137,22 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
         return;
       }
 
+      // When notification is for another local account, append account label so user can tell.
+      var displayBody = body;
+      final recipientPubkey = data.recipientPubkey;
+      if (recipientPubkey != null && currentPubkey != null && !data.isRecipient(currentPubkey)) {
+        final accountLabel = await _resolveRecipientAccountLabel(recipientPubkey);
+        final context = rootNavigatorKey.currentContext;
+        if (accountLabel != null && context != null && context.mounted) {
+          final suffix = context.i18n.notification_for_account(accountLabel);
+          displayBody = '$body $suffix';
+        }
+      }
+
       final notificationsService = await ref.read(localNotificationsServiceProvider.future);
       await notificationsService.showNotification(
         title: title,
-        body: body,
+        body: displayBody,
         payload: jsonEncode(response.data),
         icon: avatar,
         attachment: media,
@@ -170,16 +195,24 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     required IonConnectPushDataPayload data,
   }) async {
     if (data.event.kind == IonConnectGiftWrapEntity.kind) {
-      final giftUnwrapService = await ref.watch(giftUnwrapServiceProvider.future);
-      final currentPubkey = ref.watch(currentPubkeySelectorProvider);
+      final currentPubkey = ref.read(currentPubkeySelectorProvider);
 
+      // If no user is logged in, skip the notification
       if (currentPubkey == null) {
         return true;
       }
 
-      final rumor = await giftUnwrapService.unwrap(data.event);
+      if (data.decryptedEvent != null) {
+        // Skip only true self-messages for the current account.
+        // If message is sent by current account but addressed to another local account,
+        // we should still show fallback notification to allow account switch.
+        final isSelfMessage = data.decryptedEvent!.masterPubkey == currentPubkey;
+        final isForCurrentUser = data.isRecipient(currentPubkey);
+        return isSelfMessage && isForCurrentUser;
+      }
 
-      return rumor.masterPubkey == currentPubkey;
+      // If decryptedEvent is null, message is encrypted for another user - show notification
+      return false;
     }
 
     return false;
@@ -243,5 +276,93 @@ class ForegroundMessagesHandler extends _$ForegroundMessagesHandler {
     } catch (_) {
       return false;
     }
+  }
+
+  Future<(String, String)> _buildEncryptedGiftWrapFallback(IonConnectPushDataPayload data) async {
+    final entity = data.mainEntity;
+    if (entity is! IonConnectGiftWrapEntity || entity.data.relatedPubkeys.isEmpty) {
+      return ('Encrypted message', 'Open notification to view');
+    }
+
+    final recipientPubkey = entity.data.relatedPubkeys.first.value;
+    var recipientLabel = 'another account';
+    final recipientProfileName = await _resolveRecipientProfileName(recipientPubkey);
+    if (recipientProfileName != null) {
+      recipientLabel = recipientProfileName;
+    }
+
+    final authState = await ref.read(authProvider.future);
+    final identities = authState.authenticatedIdentityKeyNames;
+    if (identities.isNotEmpty) {
+      final pubkeyResults = await Future.wait(
+        identities.map(
+          (identityKeyName) =>
+              ref.read(userPubkeyByIdentityKeyNameProvider(identityKeyName).future),
+        ),
+      );
+
+      for (final entry in identities.asMap().entries) {
+        if (pubkeyResults[entry.key] == recipientPubkey) {
+          recipientLabel = recipientProfileName ?? entry.value;
+          break;
+        }
+      }
+    }
+
+    return (
+      'Encrypted message',
+      'From: encrypted sender. To: $recipientLabel. Tap to open.',
+    );
+  }
+
+  /// Resolves a human-readable label for the account (recipient pubkey).
+  /// Prefers displayName/username from metadata, or identity key name if it's a local account.
+  Future<String?> _resolveRecipientAccountLabel(String recipientPubkey) async {
+    final profileName = await _resolveRecipientProfileName(recipientPubkey);
+    if (profileName != null && profileName.isNotEmpty) {
+      return profileName;
+    }
+
+    final authState = await ref.read(authProvider.future);
+    final identities = authState.authenticatedIdentityKeyNames;
+    if (identities.isEmpty) {
+      return 'another account';
+    }
+
+    final pubkeyResults = await Future.wait(
+      identities.map(
+        (identityKeyName) => ref.read(userPubkeyByIdentityKeyNameProvider(identityKeyName).future),
+      ),
+    );
+    for (final entry in identities.asMap().entries) {
+      if (pubkeyResults[entry.key] == recipientPubkey) {
+        return entry.value;
+      }
+    }
+
+    return 'another account';
+  }
+
+  Future<String?> _resolveRecipientProfileName(String recipientPubkey) async {
+    try {
+      final metadata = await ref.read(userMetadataProvider(recipientPubkey).future);
+      if (metadata == null) {
+        return null;
+      }
+
+      final displayName = metadata.data.trimmedDisplayName;
+      if (displayName.isNotEmpty) {
+        return displayName;
+      }
+
+      final username = metadata.data.name.trim();
+      if (username.isNotEmpty) {
+        return username;
+      }
+    } catch (_) {
+      // Best-effort name resolution for fallback notification text.
+    }
+
+    return null;
   }
 }

@@ -18,6 +18,7 @@ import 'package:ion/app/features/chat/recent_chats/providers/money_message_provi
 import 'package:ion/app/features/config/providers/config_repository.r.dart';
 import 'package:ion/app/features/core/providers/app_locale_provider.r.dart';
 import 'package:ion/app/features/core/providers/env_provider.r.dart';
+import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/ion_connect/ion_connect.dart';
 import 'package:ion/app/features/ion_connect/model/event_reference.f.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_gift_wrap.f.dart';
@@ -42,6 +43,7 @@ import 'package:ion/app/services/local_notifications/local_notifications.r.dart'
 import 'package:ion/app/services/logger/logger.dart';
 import 'package:ion/app/services/logger/logger_initializer.dart';
 import 'package:ion/app/services/storage/local_storage.r.dart';
+import 'package:ion/generated/app_localizations.dart';
 import 'package:ion_connect_cache/ion_connect_cache.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -146,43 +148,44 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final data = await IonConnectPushDataPayload.fromEncoded(
     message.data,
     unwrapGift: (eventMessage) async {
-      final messageContainer = ProviderContainer(
-        observers: [Logger.talkerRiverpodObserver],
-        overrides: [
-          _backgroundCurrentPubkeyOverride(currentUserPubkeyFromStorage),
-          _backgroundIonIdentityOverrideSingleton(),
-          currentUserIonConnectEventSignerProvider.overrideWith((ref) async {
-            final savedIdentityKeyName =
-                await ref.watch(currentIdentityKeyNameStoreProvider.future);
-            if (savedIdentityKeyName != null) {
-              return ref.watch(ionConnectEventSignerProvider(savedIdentityKeyName).future);
-            }
-            return null;
-          }),
-          encryptedMessageServiceProvider.overrideWith((ref) async {
-            final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
-
-            if (eventSigner == null) {
-              throw EventSignerNotFoundException();
-            }
-
-            if (currentUserPubkeyFromStorage == null) {
-              throw UserMasterPubkeyNotFoundException();
-            }
-
-            return EncryptedMessageService(
-              eventSigner: eventSigner,
-              currentUserPubkey: currentUserPubkeyFromStorage,
-            );
-          }),
-        ],
-      );
+      ProviderContainer? messageContainer;
       try {
-        final eventSigner =
-            await messageContainer.read(currentUserIonConnectEventSignerProvider.future);
-        final sealService = await messageContainer.read(ionConnectSealServiceProvider.future);
-        final giftWrapService =
-            await messageContainer.read(ionConnectGiftWrapServiceProvider.future);
+        if (currentUserPubkeyFromStorage == null) {
+          throw UserMasterPubkeyNotFoundException();
+        }
+
+        messageContainer = ProviderContainer(
+          observers: [Logger.talkerRiverpodObserver],
+          overrides: [
+            _backgroundCurrentPubkeyOverride(currentUserPubkeyFromStorage),
+            _backgroundIonIdentityOverrideSingleton(),
+            currentUserIonConnectEventSignerProvider.overrideWith((ref) async {
+              final savedIdentityKeyName =
+                  await ref.watch(currentIdentityKeyNameStoreProvider.future);
+              if (savedIdentityKeyName != null) {
+                return ref.watch(ionConnectEventSignerProvider(savedIdentityKeyName).future);
+              }
+              return null;
+            }),
+            encryptedMessageServiceProvider.overrideWith((ref) async {
+              final eventSigner = await ref.watch(currentUserIonConnectEventSignerProvider.future);
+
+              if (eventSigner == null) {
+                throw EventSignerNotFoundException();
+              }
+
+              return EncryptedMessageService(
+                eventSigner: eventSigner,
+                currentUserPubkey: currentUserPubkeyFromStorage,
+              );
+            }),
+          ],
+        );
+        final container = messageContainer;
+
+        final eventSigner = await container.read(currentUserIonConnectEventSignerProvider.future);
+        final sealService = await container.read(ionConnectSealServiceProvider.future);
+        final giftWrapService = await container.read(ionConnectGiftWrapServiceProvider.future);
 
         if (eventSigner == null) {
           throw EventSignerNotFoundException();
@@ -197,7 +200,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
               '☁️ Background push notification verifyDelegation for pubkey: $masterPubkey',
             );
 
-            final delegation = await messageContainer.read(
+            final delegation = await container.read(
               cachedUserDelegationProvider(masterPubkey).future,
             );
 
@@ -209,7 +212,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         final event = await giftUnwrapService.unwrap(eventMessage, validate: false);
         Logger.log('☁️ Background push notification unwrap event: $event');
 
-        final cachedEntity = await messageContainer
+        final cachedEntity = await container
             .read(
               ionConnectDatabaseCacheProvider.notifier,
             )
@@ -234,10 +237,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       } finally {
         // Close ion_cache_database connection to prevent isolate leaks
         try {
-          final cacheService =
-              await messageContainer.read(ionConnectPersistentCacheServiceProvider.future);
-          if (cacheService is IonConnectCacheServiceDriftImpl) {
-            await cacheService.attachedDatabase.close();
+          if (messageContainer != null) {
+            final cacheService =
+                await messageContainer.read(ionConnectPersistentCacheServiceProvider.future);
+            if (cacheService is IonConnectCacheServiceDriftImpl) {
+              await cacheService.attachedDatabase.close();
+            }
           }
         } catch (e, st) {
           Logger.error(
@@ -246,7 +251,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             message: '☁️ Background push notification close db error',
           );
         }
-        messageContainer.dispose();
+        messageContainer?.dispose();
       }
     },
   );
@@ -270,7 +275,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (await _shouldSkipMutedNotification(
     data: data,
     currentPubkey: currentUserPubkeyFromStorage,
-    backgroundContainer: backgroundContainer,
   )) {
     Logger.log('☁️ Background push notification: Skipping muted user/conversation');
     backgroundContainer.dispose();
@@ -356,6 +360,21 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final body = parsedData?.body ?? message.notification?.body;
 
   if (title == null || body == null) {
+    // Fallback for multi-account case: notification may be encrypted for another account,
+    // so current active account can't decrypt and parse localized content.
+    if (data.event.kind == IonConnectGiftWrapEntity.kind && data.decryptedEvent == null) {
+      final recipientPubkey = _extractEncryptedGiftWrapRecipientPubkey(data);
+      final toLabel = await _resolveRecipientAccountLabelInBackground(
+        backgroundContainer,
+        recipientPubkey,
+      );
+      await notificationsService.showNotification(
+        title: 'Encrypted message',
+        body: 'From: encrypted sender. To: $toLabel. Tap to open.',
+        payload: jsonEncode(message.data),
+        conversationStyle: false,
+      );
+    }
     backgroundContainer.dispose();
     return;
   }
@@ -373,9 +392,25 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     return;
   }
 
+  // When notification is for another local account, append account label.
+  var displayBody = body;
+  final recipientPubkey = data.recipientPubkey;
+  if (recipientPubkey != null &&
+      currentUserPubkeyFromStorage != null &&
+      !data.isRecipient(currentUserPubkeyFromStorage)) {
+    final accountLabel = await _resolveRecipientAccountLabelInBackground(
+      backgroundContainer,
+      recipientPubkey,
+    );
+    final prefs = await backgroundContainer.read(sharedPreferencesFoundationProvider.future);
+    final localeStr = await prefs.getString(AppLocale.localePersistenceKey) ?? 'en';
+    final i18n = lookupI18n(Locale(localeStr));
+    displayBody = '$body ${i18n.notification_for_account(accountLabel)}';
+  }
+
   await notificationsService.showNotification(
     title: title,
-    body: body,
+    body: displayBody,
     payload: jsonEncode(message.data),
     icon: avatar,
     attachment: media,
@@ -389,7 +424,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 FutureOr<bool> _shouldSkipMutedNotification({
   required IonConnectPushDataPayload data,
   required String? currentPubkey,
-  required ProviderContainer backgroundContainer,
 }) async {
   // Check if this is a gift wrap (chat) notification
   if (data.event.kind != IonConnectGiftWrapEntity.kind) {
@@ -442,7 +476,11 @@ bool _shouldSkipOwnGiftWrap({
   if (data.event.kind == IonConnectGiftWrapEntity.kind) {
     final decryptedEvent = data.decryptedEvent;
     if (decryptedEvent != null) {
-      return decryptedEvent.masterPubkey == currentPubkey;
+      // Skip only true self-messages for current account.
+      // If self-sent message is addressed to another local account, keep it.
+      final isSelfMessage = decryptedEvent.masterPubkey == currentPubkey;
+      final isForCurrentUser = data.isRecipient(currentPubkey);
+      return isSelfMessage && isForCurrentUser;
     }
   }
 
@@ -537,6 +575,52 @@ String? _extractCoinIdFromPaymentRequestedTag(EventMessage? decrypted) {
   } catch (_) {
     return null;
   }
+}
+
+String? _extractEncryptedGiftWrapRecipientPubkey(IonConnectPushDataPayload data) {
+  final entity = data.mainEntity;
+  if (entity is! IonConnectGiftWrapEntity || entity.data.relatedPubkeys.isEmpty) {
+    return null;
+  }
+  return entity.data.relatedPubkeys.first.value;
+}
+
+/// Tries to resolve recipient pubkey to a local account name (identity key) in background.
+/// Returns identity name if matched, otherwise 'another account'.
+Future<String> _resolveRecipientAccountLabelInBackground(
+  ProviderContainer container,
+  String? recipientPubkey,
+) async {
+  if (recipientPubkey == null) return 'another account';
+
+  try {
+    final resolveContainer = ProviderContainer(
+      observers: [Logger.talkerRiverpodObserver],
+      overrides: [_backgroundIonIdentityOverrideSingleton()],
+    );
+    try {
+      final identitiesIter =
+          await resolveContainer.read(authenticatedIdentityKeyNamesStreamProvider.future);
+      final identities = identitiesIter.toList();
+      if (identities.isEmpty) return 'another account';
+
+      final pubkeyResults = await Future.wait<String?>(
+        identities.map(
+          (String name) => resolveContainer.read(userPubkeyByIdentityKeyNameProvider(name).future),
+        ),
+      );
+      for (var i = 0; i < identities.length; i++) {
+        if (pubkeyResults[i] == recipientPubkey) {
+          return identities[i];
+        }
+      }
+    } finally {
+      resolveContainer.dispose();
+    }
+  } catch (e) {
+    Logger.log('☁️ Background could not resolve recipient label: $e');
+  }
+  return 'another account';
 }
 
 void initFirebaseMessagingBackgroundHandler() {

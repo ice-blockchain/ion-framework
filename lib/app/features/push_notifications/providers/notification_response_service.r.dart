@@ -9,6 +9,7 @@ import 'package:ion/app/features/auth/providers/auth_provider.m.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_direct_message_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/model/entities/private_message_reaction_data.f.dart';
 import 'package:ion/app/features/chat/e2ee/providers/gift_unwrap_service_provider.r.dart';
+import 'package:ion/app/features/core/providers/main_wallet_provider.r.dart';
 import 'package:ion/app/features/feed/data/models/entities/article_data.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/generic_repost.f.dart';
 import 'package:ion/app/features/feed/data/models/entities/modifiable_post_data.f.dart';
@@ -50,13 +51,21 @@ class NotificationResponseService {
     required String? currentPubkey,
     required AppsFlyerDeepLinkService appsflyerDeepLinkService,
     required InternalDeepLinkService internalDeepLinkService,
+    required Future<AuthState> Function() getAuthState,
+    required Future<void> Function(String identityKeyName) setCurrentUser,
+    required void Function() markShowNotificationAfterSwitchingAcc,
+    required Future<String?> Function(String identityKeyName) userPubkeyByIdentityKeyName,
   })  : _getGiftUnwrapService = getGiftUnwrapService,
         _getUserMetadata = getUserMetadata,
         _getEntityData = getEntityData,
         _eventParser = eventParser,
         _currentPubkey = currentPubkey,
         _appsflyerDeepLinkService = appsflyerDeepLinkService,
-        _internalDeepLinkService = internalDeepLinkService;
+        _internalDeepLinkService = internalDeepLinkService,
+        _getAuthState = getAuthState,
+        _setCurrentUser = setCurrentUser,
+        _markShowNotificationAfterSwitchingAcc = markShowNotificationAfterSwitchingAcc,
+        _userPubkeyByIdentityKeyName = userPubkeyByIdentityKeyName;
 
   /// Key for the deep link parameter in push notification payloads
   static const String deepLinkKey = 'deeplink';
@@ -68,6 +77,10 @@ class NotificationResponseService {
   final String? _currentPubkey;
   final AppsFlyerDeepLinkService _appsflyerDeepLinkService;
   final InternalDeepLinkService _internalDeepLinkService;
+  final Future<AuthState> Function() _getAuthState;
+  final Future<void> Function(String identityKeyName) _setCurrentUser;
+  final void Function() _markShowNotificationAfterSwitchingAcc;
+  final Future<String?> Function(String identityKeyName) _userPubkeyByIdentityKeyName;
 
   /// Checks if any modal is open and closes it before navigation
   void _checkModal() {
@@ -80,6 +93,16 @@ class NotificationResponseService {
         // there's no animation for popUntil, so no need to delay
         Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
       }
+    }
+  }
+
+  void _closeAllModalsAndNavigateToHomeFeed() {
+    final context = _getNavigatorContext();
+    if (context != null) {
+      if (context.canPop()) {
+        Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
+      }
+      FeedRoute().go(context);
     }
   }
 
@@ -143,6 +166,8 @@ class NotificationResponseService {
       );
 
       final entity = _eventParser.parse(notificationPayload.event);
+
+      await _switchToRecipientUserForEntity(notificationPayload);
 
       _checkModal();
 
@@ -230,6 +255,43 @@ class NotificationResponseService {
       }
     } catch (error, stackTrace) {
       Logger.error(error, stackTrace: stackTrace, message: 'Error handling notification response');
+    }
+  }
+
+  Future<void> _switchToRecipientUserForEntity(
+    IonConnectPushDataPayload notificationPayload,
+  ) async {
+    if (_currentPubkey != null && notificationPayload.isRecipient(_currentPubkey)) {
+      return;
+    }
+
+    _closeAllModalsAndNavigateToHomeFeed();
+
+    final recipientPubkey = notificationPayload.recipientPubkey;
+    if (recipientPubkey == null) {
+      return;
+    }
+
+    final authState = await _getAuthState();
+    final authenticatedIdentityKeyNames = authState.authenticatedIdentityKeyNames;
+
+    String? recipientIdentityKeyName;
+
+    final pubkeyResults = await Future.wait(
+      authenticatedIdentityKeyNames.map(_userPubkeyByIdentityKeyName),
+    );
+
+    for (final entry in authenticatedIdentityKeyNames.asMap().entries) {
+      if (pubkeyResults[entry.key] == recipientPubkey) {
+        recipientIdentityKeyName = entry.value;
+        break;
+      }
+    }
+
+    if (recipientIdentityKeyName != null) {
+      _markShowNotificationAfterSwitchingAcc();
+      await _setCurrentUser(recipientIdentityKeyName);
+      await _getAuthState();
     }
   }
 
@@ -464,6 +526,16 @@ NotificationResponseService notificationResponseService(Ref ref) {
   final eventParser = ref.watch(eventParserProvider);
   final appsflyerDeepLinkService = ref.watch(appsflyerDeepLinkServiceProvider);
   final internalDeepLinkService = ref.watch(internalDeepLinkServiceProvider);
+  Future<AuthState> getAuthState() => ref.read(authProvider.future);
+  Future<void> setCurrentUser(String identityKeyName) =>
+      ref.read(authProvider.notifier).setCurrentUser(identityKeyName);
+  void markShowNotificationAfterSwitchingAcc() {
+    ref.read(userSwitchInProgressProvider.notifier).needToShowPushSwitchNotification();
+  }
+
+  Future<String?> getUserPubkeyByIdentityKeyName(String identityKeyName) => ref.read(
+        userPubkeyByIdentityKeyNameProvider(identityKeyName).future,
+      );
 
   return NotificationResponseService(
     getGiftUnwrapService: getGiftUnwrapService,
@@ -473,5 +545,9 @@ NotificationResponseService notificationResponseService(Ref ref) {
     currentPubkey: currentPubkey,
     appsflyerDeepLinkService: appsflyerDeepLinkService,
     internalDeepLinkService: internalDeepLinkService,
+    getAuthState: getAuthState,
+    setCurrentUser: setCurrentUser,
+    markShowNotificationAfterSwitchingAcc: markShowNotificationAfterSwitchingAcc,
+    userPubkeyByIdentityKeyName: getUserPubkeyByIdentityKeyName,
   );
 }

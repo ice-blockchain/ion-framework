@@ -925,6 +925,8 @@
   "token_stats_market_cap_title": "Market Cap",
   "token_stats_volume_description": "Afișează volumul total de tranzacționare al tokenurilor în ultimele 24 de ore.\n\nO activitate mai mare înseamnă de obicei un interes mai puternic, lichiditate mai bună și tranzacționare mai ușoară.",
   "token_stats_volume_title": "Volume",
+  "notification_for_account": "Pentru cont: {accountName}",
+  "switched_to_username": "Comutat la {username}",
   "tokenized_communities_top_tokens": "Tokenuri de top",
   "tokenized_communities_trending_tokens": "Tokenuri în tendință",
   "tokenized_community_bonding_curve": "Curba de legătură",

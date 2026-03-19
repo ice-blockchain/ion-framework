@@ -917,6 +917,8 @@
   "story_share_sender": "이 스토리를 공유하셨습니다",
   "suggestions_empty_description": "검색 결과가 없습니다",
   "suggestions_loading_description": "멘션할 사용자를 검색하세요",
+  "notification_for_account": "계정: {accountName}",
+  "switched_to_username": "{username}(으)로 전환됨",
   "token_comment_holders_only": "댓글은 토큰 보유자만 이용할 수 있습니다",
   "token_contract": "컨트랙트",
   "token_stats_holders_description": "현재 해당 토큰을 보유한 고유 지갑 수를 나타냅니다.\n\n시간이 지남에 따라 꾸준히 증가하면 채택 확대, 커뮤니티 신뢰, 더 넓은 분배를 반영하는 경우가 많습니다.",
