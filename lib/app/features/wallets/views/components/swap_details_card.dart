@@ -198,6 +198,7 @@ class _SwapDetailsSection extends StatelessWidget {
             child: GestureDetector(
               onTap: onToggleDetails,
               child: Container(
+                width: 82.s,
                 padding: EdgeInsets.symmetric(
                   horizontal: 12.0.s,
                   vertical: 4.0.s,
@@ -291,7 +292,15 @@ class _Divider extends StatelessWidget {
 
     return Container(
       height: 0.5,
-      color: colors.onTertiaryFill,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colors.secondaryBackground,
+            colors.onTertiaryFill,
+            colors.secondaryBackground,
+          ],
+        ),
+      ),
     );
   }
 }

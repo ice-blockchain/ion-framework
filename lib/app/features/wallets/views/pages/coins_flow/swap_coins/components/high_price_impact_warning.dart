@@ -27,6 +27,10 @@ class HighPriceImpactWarning extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.tertiaryBackground,
         borderRadius: BorderRadius.circular(16.0.s),
+        border: Border.all(
+          width: 1.s,
+          color: colors.onSecondaryBackground,
+        ),
       ),
       child: Column(
         children: [
