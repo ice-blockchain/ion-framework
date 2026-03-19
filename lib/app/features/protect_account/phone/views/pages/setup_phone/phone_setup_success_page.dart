@@ -31,7 +31,7 @@ class PhoneSetupSuccessPage extends HookConsumerWidget {
         SizedBox(
           height: 22.0.s,
         ),
-        ScreenSideOffset.large(
+        ScreenSideOffset.medium(
           child: Button(
             mainAxisSize: MainAxisSize.max,
             label: Text(locale.button_back_to_security),
