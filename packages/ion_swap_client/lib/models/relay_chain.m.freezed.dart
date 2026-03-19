@@ -22,6 +22,7 @@ RelayChain _$RelayChainFromJson(Map<String, dynamic> json) {
 mixin _$RelayChain {
   String get name => throw _privateConstructorUsedError;
   String get displayName => throw _privateConstructorUsedError;
+  String get httpRpcUrl => throw _privateConstructorUsedError;
   int get id => throw _privateConstructorUsedError;
   bool get disabled => throw _privateConstructorUsedError;
   RelayCurrency get currency => throw _privateConstructorUsedError;
@@ -45,6 +46,7 @@ abstract class $RelayChainCopyWith<$Res> {
   $Res call(
       {String name,
       String displayName,
+      String httpRpcUrl,
       int id,
       bool disabled,
       RelayCurrency currency});
@@ -69,6 +71,7 @@ class _$RelayChainCopyWithImpl<$Res, $Val extends RelayChain>
   $Res call({
     Object? name = null,
     Object? displayName = null,
+    Object? httpRpcUrl = null,
     Object? id = null,
     Object? disabled = null,
     Object? currency = null,
@@ -81,6 +84,10 @@ class _$RelayChainCopyWithImpl<$Res, $Val extends RelayChain>
       displayName: null == displayName
           ? _value.displayName
           : displayName // ignore: cast_nullable_to_non_nullable
+              as String,
+      httpRpcUrl: null == httpRpcUrl
+          ? _value.httpRpcUrl
+          : httpRpcUrl // ignore: cast_nullable_to_non_nullable
               as String,
       id: null == id
           ? _value.id
@@ -119,6 +126,7 @@ abstract class _$$RelayChainImplCopyWith<$Res>
   $Res call(
       {String name,
       String displayName,
+      String httpRpcUrl,
       int id,
       bool disabled,
       RelayCurrency currency});
@@ -142,6 +150,7 @@ class __$$RelayChainImplCopyWithImpl<$Res>
   $Res call({
     Object? name = null,
     Object? displayName = null,
+    Object? httpRpcUrl = null,
     Object? id = null,
     Object? disabled = null,
     Object? currency = null,
@@ -154,6 +163,10 @@ class __$$RelayChainImplCopyWithImpl<$Res>
       displayName: null == displayName
           ? _value.displayName
           : displayName // ignore: cast_nullable_to_non_nullable
+              as String,
+      httpRpcUrl: null == httpRpcUrl
+          ? _value.httpRpcUrl
+          : httpRpcUrl // ignore: cast_nullable_to_non_nullable
               as String,
       id: null == id
           ? _value.id
@@ -177,6 +190,7 @@ class _$RelayChainImpl implements _RelayChain {
   _$RelayChainImpl(
       {required this.name,
       required this.displayName,
+      required this.httpRpcUrl,
       required this.id,
       required this.disabled,
       required this.currency});
@@ -189,6 +203,8 @@ class _$RelayChainImpl implements _RelayChain {
   @override
   final String displayName;
   @override
+  final String httpRpcUrl;
+  @override
   final int id;
   @override
   final bool disabled;
@@ -197,7 +213,7 @@ class _$RelayChainImpl implements _RelayChain {
 
   @override
   String toString() {
-    return 'RelayChain(name: $name, displayName: $displayName, id: $id, disabled: $disabled, currency: $currency)';
+    return 'RelayChain(name: $name, displayName: $displayName, httpRpcUrl: $httpRpcUrl, id: $id, disabled: $disabled, currency: $currency)';
   }
 
   @override
@@ -208,6 +224,8 @@ class _$RelayChainImpl implements _RelayChain {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
+            (identical(other.httpRpcUrl, httpRpcUrl) ||
+                other.httpRpcUrl == httpRpcUrl) &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.disabled, disabled) ||
                 other.disabled == disabled) &&
@@ -217,8 +235,8 @@ class _$RelayChainImpl implements _RelayChain {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, name, displayName, id, disabled, currency);
+  int get hashCode => Object.hash(
+      runtimeType, name, displayName, httpRpcUrl, id, disabled, currency);
 
   /// Create a copy of RelayChain
   /// with the given fields replaced by the non-null parameter values.
@@ -240,6 +258,7 @@ abstract class _RelayChain implements RelayChain {
   factory _RelayChain(
       {required final String name,
       required final String displayName,
+      required final String httpRpcUrl,
       required final int id,
       required final bool disabled,
       required final RelayCurrency currency}) = _$RelayChainImpl;
@@ -251,6 +270,8 @@ abstract class _RelayChain implements RelayChain {
   String get name;
   @override
   String get displayName;
+  @override
+  String get httpRpcUrl;
   @override
   int get id;
   @override

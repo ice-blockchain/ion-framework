@@ -92,7 +92,7 @@ class IonService {
         transaction: tx,
       );
 
-      await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
+      await waitForConfirmationOnBlockchain(txHash);
 
       final allowance2 = await _evmTxBuilder.allowance(
         token: token.hex,
@@ -152,7 +152,7 @@ class IonService {
     return result.first as BigInt;
   }
 
-  Future<TransactionReceipt> waitForConfirmation(
+  Future<TransactionReceipt> waitForConfirmationOnBlockchain(
     String txHash, {
     int maxTries = 20,
     Duration pollInterval = const Duration(seconds: 3),

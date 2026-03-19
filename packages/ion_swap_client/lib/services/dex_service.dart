@@ -4,15 +4,18 @@ import 'package:collection/collection.dart';
 import 'package:ion_identity_client/ion_identity.dart';
 import 'package:ion_swap_client/exceptions/ion_swap_exception.dart';
 import 'package:ion_swap_client/exceptions/okx_exceptions.dart';
+import 'package:ion_swap_client/mixins/wait_for_confirmation_mixin.dart';
 import 'package:ion_swap_client/models/chain_data.m.dart';
 import 'package:ion_swap_client/models/ion_swap_request.dart';
 import 'package:ion_swap_client/models/okx_api_response.m.dart';
 import 'package:ion_swap_client/models/okx_fee_address.m.dart';
+import 'package:ion_swap_client/models/okx_swap_quote_data_with_rpc.m.dart';
 import 'package:ion_swap_client/models/swap_chain_data.m.dart';
 import 'package:ion_swap_client/models/swap_coin_parameters.m.dart';
 import 'package:ion_swap_client/models/swap_quote_data.m.dart';
 import 'package:ion_swap_client/models/swap_quote_info.m.dart';
 import 'package:ion_swap_client/repositories/chains_ids_repository.dart';
+import 'package:ion_swap_client/repositories/relay_api_repository.dart';
 import 'package:ion_swap_client/repositories/swap_okx_repository.dart';
 import 'package:ion_swap_client/utils/crypto_amount_converter.dart';
 import 'package:ion_swap_client/utils/evm_tx_builder.dart';
@@ -20,7 +23,7 @@ import 'package:ion_swap_client/utils/hex_helper.dart';
 import 'package:ion_swap_client/utils/ion_identity_transaction_api.dart';
 import 'package:ion_swap_client/utils/swap_constants.dart';
 
-class DexService {
+class DexService with WaitForConfirmationMixin {
   DexService({
     required SwapOkxRepository swapOkxRepository,
     required ChainsIdsRepository chainsIdsRepository,
@@ -28,12 +31,14 @@ class DexService {
     required IonIdentityTransactionApi ionIdentityTransactionApi,
     required String defaultSwapPercentFee,
     required OkxFeeAddress okxFeeAddress,
+    required RelayApiRepository relayApiRepository,
   })  : _swapOkxRepository = swapOkxRepository,
         _ionIdentityTransactionApi = ionIdentityTransactionApi,
         _chainsIdsRepository = chainsIdsRepository,
         _evmTxBuilder = evmTxBuilder,
         _defaultSwapPercentFee = defaultSwapPercentFee,
-        _okxFeeAddress = okxFeeAddress;
+        _okxFeeAddress = okxFeeAddress,
+        _relayApiRepository = relayApiRepository;
 
   final SwapOkxRepository _swapOkxRepository;
   final ChainsIdsRepository _chainsIdsRepository;
@@ -41,6 +46,9 @@ class DexService {
   final EvmTxBuilder _evmTxBuilder;
   final String _defaultSwapPercentFee;
   final OkxFeeAddress _okxFeeAddress;
+
+  // Need here to retrive rpc url for the sell blockchain
+  final RelayApiRepository _relayApiRepository;
 
   // Returns transaction data if swap was successful, null otherwise
   Future<String?> tryToSwapDex({
@@ -96,17 +104,25 @@ class DexService {
             ),
           );
 
-          await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
+          final rcpUrl = swapQuoteInfo.sellBlockchainRcpUrl;
+          if (rcpUrl == null) {
+            await Future<void>.delayed(SwapConstants.delayAfterApproveDuration);
+          } else {
+            await waitForConfirmation(
+              txHash: txHash,
+              rpcUrl: rcpUrl,
+            );
 
-          final allowance2 = await _safeCheckAllowance(
-            sellTokenAddress,
-            address,
-            approveTx.dexContractAddress,
-            wallet.id,
-          );
+            final allowance2 = await _safeCheckAllowance(
+              sellTokenAddress,
+              address,
+              approveTx.dexContractAddress,
+              wallet.id,
+            );
 
-          if (allowance2 < bigIntAmount) {
-            throw IonSwapException('Failed to approve token allowance, tx hash: $txHash');
+            if (allowance2 < bigIntAmount) {
+              throw IonSwapException('Failed to approve token allowance, tx hash: $txHash');
+            }
           }
         }
       }
@@ -232,7 +248,7 @@ class DexService {
     throw OkxException.fromCode(responseCode);
   }
 
-  Future<SwapQuoteData?> getQuotes(SwapCoinParameters swapCoinData) async {
+  Future<OkxSwapQuoteDataWithRpc?> getQuotes(SwapCoinParameters swapCoinData) async {
     final okxChain = await _getOkxChain(swapCoinData.sellCoin.network.name);
     final sellTokenAddress = _getTokenAddressForOkx(swapCoinData.sellCoin.contractAddress);
     final buyTokenAddress = _getTokenAddressForOkx(swapCoinData.buyCoin.contractAddress);
@@ -250,12 +266,29 @@ class DexService {
 
       if (quotes.isNotEmpty) {
         final quote = _pickBestOkxQuote(quotes);
+        final rpcUrl = await _getRpcUrlForOkx(okxChain.chainIndex);
 
-        return quote;
+        return OkxSwapQuoteDataWithRpc(
+          swapQuoteData: quote,
+          rpcUrl: rpcUrl,
+        );
       }
     }
 
     return null;
+  }
+
+  Future<String?> _getRpcUrlForOkx(int chainIndex) async {
+    try {
+      final response = await _relayApiRepository.getChains();
+
+      final chain = response.firstWhereOrNull(
+        (chain) => chain.id == chainIndex,
+      );
+      return chain?.httpRpcUrl;
+    } on Object {
+      return null;
+    }
   }
 
   bool isNeedToApproveToken(String chainIndex) {

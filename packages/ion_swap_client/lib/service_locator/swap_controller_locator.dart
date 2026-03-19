@@ -75,6 +75,7 @@ class SwapControllerLocator {
         ionIdentityTransactionApi: ionIdentityTransactionApi,
         defaultSwapPercentFee: config.defaultSwapPercentFee,
         okxFeeAddress: config.okxFeeAddress,
+        relayApiRepository: relayApiRepository,
       ),
       cexService: CexService(
         letsExchangeRepository: letsExchangeRepository,

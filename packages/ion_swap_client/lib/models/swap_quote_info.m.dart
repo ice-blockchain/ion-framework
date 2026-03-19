@@ -25,6 +25,7 @@ class SwapQuoteInfo with _$SwapQuoteInfo {
     String? relayDepositAmount,
     double? sellUsdPrice,
     double? buyUsdPrice,
+    String? sellBlockchainRcpUrl,
   }) = _SwapQuoteInfo;
 
   factory SwapQuoteInfo.fromJson(Map<String, dynamic> json) => _$SwapQuoteInfoFromJson(json);

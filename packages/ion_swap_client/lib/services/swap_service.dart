@@ -149,10 +149,11 @@ class SwapService {
 
         return SwapQuoteInfo(
           type: SwapQuoteInfoType.bridge,
-          priceForSellTokenInBuyToken: double.parse(quote.details.rate),
+          priceForSellTokenInBuyToken: double.parse(quote.details.details.rate),
           source: SwapQuoteInfoSource.relay,
-          relayQuote: quote,
+          relayQuote: quote.details,
           relayDepositAmount: swapCoinData.amount,
+          sellBlockchainRcpUrl: quote.rpcUrl,
         );
       }
 
@@ -162,19 +163,20 @@ class SwapService {
           throw const IonSwapException('Failed to get swap quote: No quote found');
         }
 
-        final sellUsdPriceString = quote.fromToken.tokenUnitPrice;
-        final buyUsdPriceString = quote.toToken.tokenUnitPrice;
+        final sellUsdPriceString = quote.swapQuoteData.fromToken.tokenUnitPrice;
+        final buyUsdPriceString = quote.swapQuoteData.toToken.tokenUnitPrice;
         final sellUsdPrice =
             sellUsdPriceString != null ? double.tryParse(sellUsdPriceString) : null;
         final buyUsdPrice = buyUsdPriceString != null ? double.tryParse(buyUsdPriceString) : null;
 
         return SwapQuoteInfo(
           type: SwapQuoteInfoType.cexOrDex,
-          priceForSellTokenInBuyToken: quote.priceForSellTokenInBuyToken,
+          priceForSellTokenInBuyToken: quote.swapQuoteData.priceForSellTokenInBuyToken,
           source: SwapQuoteInfoSource.okx,
-          okxQuote: quote,
+          okxQuote: quote.swapQuoteData,
           sellUsdPrice: sellUsdPrice,
           buyUsdPrice: buyUsdPrice,
+          sellBlockchainRcpUrl: quote.rpcUrl,
         );
       }
 

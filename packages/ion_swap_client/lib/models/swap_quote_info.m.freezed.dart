@@ -33,6 +33,7 @@ mixin _$SwapQuoteInfo {
   String? get relayDepositAmount => throw _privateConstructorUsedError;
   double? get sellUsdPrice => throw _privateConstructorUsedError;
   double? get buyUsdPrice => throw _privateConstructorUsedError;
+  String? get sellBlockchainRcpUrl => throw _privateConstructorUsedError;
 
   /// Serializes this SwapQuoteInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -63,7 +64,8 @@ abstract class $SwapQuoteInfoCopyWith<$Res> {
       RelayQuote? relayQuote,
       String? relayDepositAmount,
       double? sellUsdPrice,
-      double? buyUsdPrice});
+      double? buyUsdPrice,
+      String? sellBlockchainRcpUrl});
 
   $ExolixRateCopyWith<$Res>? get exolixQuote;
   $LetsExchangeInfoCopyWith<$Res>? get letsExchangeQuote;
@@ -99,6 +101,7 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
     Object? relayDepositAmount = freezed,
     Object? sellUsdPrice = freezed,
     Object? buyUsdPrice = freezed,
+    Object? sellBlockchainRcpUrl = freezed,
   }) {
     return _then(_value.copyWith(
       type: null == type
@@ -153,6 +156,10 @@ class _$SwapQuoteInfoCopyWithImpl<$Res, $Val extends SwapQuoteInfo>
           ? _value.buyUsdPrice
           : buyUsdPrice // ignore: cast_nullable_to_non_nullable
               as double?,
+      sellBlockchainRcpUrl: freezed == sellBlockchainRcpUrl
+          ? _value.sellBlockchainRcpUrl
+          : sellBlockchainRcpUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -234,7 +241,8 @@ abstract class _$$SwapQuoteInfoImplCopyWith<$Res>
       RelayQuote? relayQuote,
       String? relayDepositAmount,
       double? sellUsdPrice,
-      double? buyUsdPrice});
+      double? buyUsdPrice,
+      String? sellBlockchainRcpUrl});
 
   @override
   $ExolixRateCopyWith<$Res>? get exolixQuote;
@@ -272,6 +280,7 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
     Object? relayDepositAmount = freezed,
     Object? sellUsdPrice = freezed,
     Object? buyUsdPrice = freezed,
+    Object? sellBlockchainRcpUrl = freezed,
   }) {
     return _then(_$SwapQuoteInfoImpl(
       type: null == type
@@ -326,6 +335,10 @@ class __$$SwapQuoteInfoImplCopyWithImpl<$Res>
           ? _value.buyUsdPrice
           : buyUsdPrice // ignore: cast_nullable_to_non_nullable
               as double?,
+      sellBlockchainRcpUrl: freezed == sellBlockchainRcpUrl
+          ? _value.sellBlockchainRcpUrl
+          : sellBlockchainRcpUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -346,7 +359,8 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
       this.relayQuote,
       this.relayDepositAmount,
       this.sellUsdPrice,
-      this.buyUsdPrice});
+      this.buyUsdPrice,
+      this.sellBlockchainRcpUrl});
 
   factory _$SwapQuoteInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$SwapQuoteInfoImplFromJson(json);
@@ -377,10 +391,12 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
   final double? sellUsdPrice;
   @override
   final double? buyUsdPrice;
+  @override
+  final String? sellBlockchainRcpUrl;
 
   @override
   String toString() {
-    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, exolixQuote: $exolixQuote, letsExchangeQuote: $letsExchangeQuote, okxQuote: $okxQuote, relayQuote: $relayQuote, relayDepositAmount: $relayDepositAmount, sellUsdPrice: $sellUsdPrice, buyUsdPrice: $buyUsdPrice)';
+    return 'SwapQuoteInfo(type: $type, priceForSellTokenInBuyToken: $priceForSellTokenInBuyToken, source: $source, swapImpact: $swapImpact, networkFee: $networkFee, protocolFee: $protocolFee, exolixQuote: $exolixQuote, letsExchangeQuote: $letsExchangeQuote, okxQuote: $okxQuote, relayQuote: $relayQuote, relayDepositAmount: $relayDepositAmount, sellUsdPrice: $sellUsdPrice, buyUsdPrice: $buyUsdPrice, sellBlockchainRcpUrl: $sellBlockchainRcpUrl)';
   }
 
   @override
@@ -413,7 +429,9 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
             (identical(other.sellUsdPrice, sellUsdPrice) ||
                 other.sellUsdPrice == sellUsdPrice) &&
             (identical(other.buyUsdPrice, buyUsdPrice) ||
-                other.buyUsdPrice == buyUsdPrice));
+                other.buyUsdPrice == buyUsdPrice) &&
+            (identical(other.sellBlockchainRcpUrl, sellBlockchainRcpUrl) ||
+                other.sellBlockchainRcpUrl == sellBlockchainRcpUrl));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -432,7 +450,8 @@ class _$SwapQuoteInfoImpl implements _SwapQuoteInfo {
       relayQuote,
       relayDepositAmount,
       sellUsdPrice,
-      buyUsdPrice);
+      buyUsdPrice,
+      sellBlockchainRcpUrl);
 
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -464,7 +483,8 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
       final RelayQuote? relayQuote,
       final String? relayDepositAmount,
       final double? sellUsdPrice,
-      final double? buyUsdPrice}) = _$SwapQuoteInfoImpl;
+      final double? buyUsdPrice,
+      final String? sellBlockchainRcpUrl}) = _$SwapQuoteInfoImpl;
 
   factory _SwapQuoteInfo.fromJson(Map<String, dynamic> json) =
       _$SwapQuoteInfoImpl.fromJson;
@@ -495,6 +515,8 @@ abstract class _SwapQuoteInfo implements SwapQuoteInfo {
   double? get sellUsdPrice;
   @override
   double? get buyUsdPrice;
+  @override
+  String? get sellBlockchainRcpUrl;
 
   /// Create a copy of SwapQuoteInfo
   /// with the given fields replaced by the non-null parameter values.
