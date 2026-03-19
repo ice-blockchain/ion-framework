@@ -140,7 +140,7 @@ class _CreatorInfo extends StatelessWidget {
               ),
               if (followersCount != null)
                 Padding(
-                  padding: EdgeInsets.only(top: 4.0.s),
+                  padding: EdgeInsetsDirectional.only(top: 4.0.s),
                   child: _FollowersCountRow(count: followersCount!),
                 ),
             ],
