@@ -7,13 +7,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/extensions/extensions.dart';
 import 'package:ion/app/features/wallets/model/coins_group.f.dart';
 import 'package:ion/app/features/wallets/model/network_data.f.dart';
-import 'package:ion/app/features/wallets/model/swap_coin_data.f.dart';
 import 'package:ion/app/features/wallets/providers/search_coins_notifier_provider.r.dart';
 import 'package:ion/app/features/wallets/views/components/select_coin_modal_page.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/enums/coin_swap_type.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/providers/swap_coins_controller_provider.r.dart';
 import 'package:ion/app/features/wallets/views/pages/coins_flow/swap_coins/utils/swap_coin_identifier.dart';
-import 'package:ion/app/router/app_routes.gr.dart';
 
 class SwapSelectCoinPage extends ConsumerWidget {
   const SwapSelectCoinPage({
@@ -93,50 +91,14 @@ class SwapSelectCoinPage extends ConsumerWidget {
             );
 
         if (result.coin != null && result.network != null) {
-          // Show slippage settings page when sell coin and network are selected
-          // Skip for special ICE/ION swaps (1:1 swaps)
-          if (type == CoinSwapType.sell) {
-            final swapState = ref.read(swapCoinsControllerProvider);
-            final sellCoin = swapState.sellCoin;
-            final sellNetwork = swapState.sellNetwork;
-
-            // Check if this is a special swap (will be 1:1, no slippage needed)
-            final isSpecialSwap = SwapCoinIdentifier.isInternalCoin(sellCoin, sellNetwork);
-
-            if (!isSpecialSwap && context.mounted) {
-              await SwapSlippageSettingsRoute(
-                slippage: swapState.slippage,
-                defaultSlippage: SwapCoinData.defaultSlippage,
-              ).push<void>(context);
-              await Future.delayed(
-                const Duration(milliseconds: 50),
-                () {
-                  if (context.mounted) {
-                    context.pop();
-                  }
-                },
-              );
-            } else {
-              // For special swaps, just pop back
-              await Future.delayed(
-                const Duration(milliseconds: 50),
-                () {
-                  if (context.mounted) {
-                    context.pop();
-                  }
-                },
-              );
-            }
-          } else {
-            await Future.delayed(
-              const Duration(milliseconds: 50),
-              () {
-                if (context.mounted) {
-                  context.pop();
-                }
-              },
-            );
-          }
+          await Future.delayed(
+            const Duration(milliseconds: 50),
+            () {
+              if (context.mounted) {
+                context.pop();
+              }
+            },
+          );
         }
       },
     );
