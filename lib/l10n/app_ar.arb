@@ -534,6 +534,8 @@
   "feed_share_via": "شارك عبر الرسائل",
   "feed_someone_reposted": "{someone} أعاد النشر",
   "feed_telegram": "تيليجرام",
+  "feed_creators_you_might_like": "منشئون قد يعجبونك",
+  "feed_creators_followers": "المتابعون",
   "feed_trending_videos": "الفيديوهات الرائجة",
   "feed_undo_repost": "التراجع عن إعادة النشر",
   "feed_whatsapp": "واتساب",

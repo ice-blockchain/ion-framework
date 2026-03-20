@@ -528,6 +528,8 @@
   "feed_share_via": "Сподели чрез съобщение",
   "feed_someone_reposted": "{someone} препубликува",
   "feed_telegram": "Telegram",
+  "feed_creators_you_might_like": "Създатели, които може да харесате",
+  "feed_creators_followers": "Последователи",
   "feed_trending_videos": "Трендови видеа",
   "feed_undo_repost": "Отмени препубликуването",
   "feed_whatsapp": "WhatsApp",

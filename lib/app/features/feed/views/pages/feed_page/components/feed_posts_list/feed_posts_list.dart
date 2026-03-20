@@ -9,6 +9,7 @@ import 'package:ion/app/features/components/entities_list/entities_list_skeleton
 import 'package:ion/app/features/components/entities_list/entity_list_item.f.dart';
 import 'package:ion/app/features/feed/providers/feed_current_filter_provider.m.dart';
 import 'package:ion/app/features/feed/providers/feed_posts_provider.r.dart';
+import 'package:ion/app/features/feed/views/pages/feed_page/components/creators_you_might_like/creators_you_might_like.dart';
 import 'package:ion/app/features/feed/views/pages/feed_page/components/invite_friends_list_item.dart';
 import 'package:ion/app/features/ion_connect/model/ion_connect_entity.dart';
 import 'package:ion/app/router/app_routes.gr.dart';
@@ -44,6 +45,8 @@ class FeedPostsList extends HookConsumerWidget {
     );
   }
 
+  static const int _creatorsInsertInterval = 5;
+
   List<IonEntityListItem> _getFeedListItems(Iterable<IonConnectEntity> entities) {
     final initialListItems = entities
         .map((entity) => IonEntityListItem.event(eventReference: entity.toEventReference()))
@@ -54,6 +57,23 @@ class FeedPostsList extends HookConsumerWidget {
         2,
         const IonEntityListItem.custom(child: InviteFriendsListItem()),
       );
+    }
+
+    final totalEventItems = initialListItems.whereType<EventIonEntityListItem>().length;
+    if (totalEventItems >= _creatorsInsertInterval) {
+      var eventsSeen = 0;
+      for (var i = 0; i < initialListItems.length; i++) {
+        if (initialListItems[i] is EventIonEntityListItem) {
+          eventsSeen++;
+          if (eventsSeen > 0 && eventsSeen % _creatorsInsertInterval == 0) {
+            initialListItems.insert(
+              i + 1,
+              const IonEntityListItem.custom(child: CreatorsYouMightLike()),
+            );
+            i++;
+          }
+        }
+      }
     }
 
     return initialListItems;

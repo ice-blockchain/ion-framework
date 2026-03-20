@@ -528,6 +528,8 @@
   "feed_share_via": "Mesajla paylaş",
   "feed_someone_reposted": "{someone} yeniden gönderi paylaştı",
   "feed_telegram": "Telegram",
+  "feed_creators_you_might_like": "Beğenebileceğiniz içerik üreticileri",
+  "feed_creators_followers": "Takipçiler",
   "feed_trending_videos": "Trend Videolar",
   "feed_undo_repost": "Yeniden paylaşmayı geri al",
   "feed_whatsapp": "WhatsApp",

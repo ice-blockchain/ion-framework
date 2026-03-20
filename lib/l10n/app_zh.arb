@@ -528,6 +528,8 @@
   "feed_share_via": "通过消息分享",
   "feed_someone_reposted": "{someone} 转发了",
   "feed_telegram": "Telegram",
+  "feed_creators_you_might_like": "您可能喜欢的创作者",
+  "feed_creators_followers": "粉丝",
   "feed_trending_videos": "热门视频",
   "feed_undo_repost": "取消转发",
   "feed_whatsapp": "WhatsApp",

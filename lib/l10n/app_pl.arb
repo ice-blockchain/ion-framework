@@ -528,6 +528,8 @@
   "feed_share_via": "Udostępnij przez wiadomość",
   "feed_someone_reposted": "{someone} przesłał dalej",
   "feed_telegram": "Telegram",
+  "feed_creators_you_might_like": "Twórcy, którzy mogą Ci się spodobać",
+  "feed_creators_followers": "Obserwujący",
   "feed_trending_videos": "Trendujące wideo",
   "feed_undo_repost": "Cofnij przekazanie",
   "feed_whatsapp": "WhatsApp",
