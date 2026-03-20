@@ -8,6 +8,7 @@ import 'package:ion/app/features/ion_connect/model/search_extension.dart';
 import 'package:ion/app/features/ion_connect/providers/ion_connect_entity_provider.r.dart';
 import 'package:ion/app/features/user/model/user_metadata.f.dart';
 import 'package:ion/app/features/user/providers/follow_list_provider.r.dart';
+import 'package:ion/app/features/user/providers/muted_users_notifier.r.dart';
 import 'package:ion/app/features/user/providers/paginated_master_pubkeys_provider.r.dart';
 import 'package:ion/app/features/user/providers/relays/user_relays_manager.r.dart';
 import 'package:ion/app/features/user/providers/user_metadata_provider.r.dart';
@@ -51,14 +52,17 @@ class FeedRecommendedCreators extends _$FeedRecommendedCreators {
     final blockedPubkeys = ref.read(blockedUsersPubkeysSelectorProvider).toList();
 
     final followList = ref.read(currentUserFollowListProvider).valueOrNull;
-    final followedPubkeys = followList?.data.list.map((e) => e.pubkey).toList() ?? <String>[];
+    final followedPubkeys = followList?.data.list.map((e) => e.pubkey).toList();
+
+    final mutedPubkeys = ref.read(mutedUsersProvider).valueOrNull;
 
     final currentPubkey = ref.read(currentPubkeySelectorProvider);
 
     return [
       ...alreadyFetched,
       ...blockedPubkeys,
-      ...followedPubkeys,
+      ...?followedPubkeys,
+      ...?mutedPubkeys,
       if (currentPubkey != null) currentPubkey,
     ];
   }
