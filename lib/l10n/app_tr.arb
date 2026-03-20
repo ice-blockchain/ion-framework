@@ -6,7 +6,7 @@
   "article_menu_report_article": "Makaleyi bildir",
   "article_page_from_author": "{name} tarafından",
   "article_page_in_topic": "{name} içinde",
-  "article_preview_title": "Makale önizlemesi",
+  "article_preview_title": "Makale önizleme güncellemesi 4 ve önceki iş sırasında itme",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "Uygulamayı kullanmaya devam etmek için lütfen bu cihazı hesabınıza bağlayın",
   "auth_link_new_device_link_button": "Cihazı bağla",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "Bu gönderiye kim yanıtlayabilir",
   "who_can_reply_settings_title_video": "Bu videoya kim yanıtlayabilir",
   "who_can_reply_settings_verified_accounts": "Doğrulanmış hesaplar",
-  "write_a_message": "Mesaj yazın...",
   "token_unable_to_fetch_market_data_title": "Piyasa verileri alınamadı",
   "token_unable_to_fetch_market_data_description": "Bu token için piyasa bilgilerini getiriyoruz, lütfen daha sonra tekrar deneyin",
+  "write_a_message": "Mesaj yazın...",
   "your_position_card_title": "Pozisyonun"
 }

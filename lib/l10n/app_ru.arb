@@ -6,7 +6,7 @@
   "article_menu_report_article": "Пожаловаться на статью",
   "article_page_from_author": "от {name}",
   "article_page_in_topic": "в {name}",
-  "article_preview_title": "Предпросмотр статьи",
+  "article_preview_title": "Обновление предварительного просмотра статьи 4 и отправка во время предыдущей задачи",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "Чтобы продолжить использование приложения, подключите это устройство к вашему аккаунту",
   "auth_link_new_device_link_button": "Подключить устройство",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "Кто может отвечать на этот пост",
   "who_can_reply_settings_title_video": "Кто может отвечать на это видео",
   "who_can_reply_settings_verified_accounts": "Проверенные аккаунты",
-  "write_a_message": "Написать сообщение...",
   "token_unable_to_fetch_market_data_title": "Не удалось загрузить рыночные данные",
   "token_unable_to_fetch_market_data_description": "Мы загружаем рыночную информацию для этого токена, попробуйте позже",
+  "write_a_message": "Написать сообщение...",
   "your_position_card_title": "Ваша позиция"
 }

@@ -39,11 +39,13 @@ printf '%s\n' "${avar}"
 
 # Generate Locales
 printf "\e[33;1m%s\e[0m\n" '=== Generate Locales ==='
-scripts/generate_locales.sh
+bash ./scripts/auto_translate_locales.sh --fail-if-generated --base-ref=auto
 if [ $? -ne 0 ]; then
-  printf "\e[31;1m%s\e[0m\n" '=== Generate locales error ==='
+  printf "\e[31;1m%s\e[0m\n" '=== Translations were generated ==='
+  printf "\e[31;1m%s\e[0m\n" 'Please review and commit the ARB changes, then push again.'
   exit 1
 fi
+
 printf "\e[33;1m%s\e[0m\n" 'Finished running Generate Locales'
 printf '%s\n' "${avar}"
 

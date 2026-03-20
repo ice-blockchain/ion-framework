@@ -8,12 +8,16 @@ jobs:
   flutter:
     name: Flutter -- verify, test
     runs-on: macOS-latest
+    # Allow push so Generate locales can commit and push ARB changes to the PR branch.
+    permissions:
+      contents: write
     steps:
       - name: Checkout main repo
         id: checkout-main-repo
         uses: actions/checkout@v3
         with:
           path: main-repo
+          fetch-depth: 0
       - name: Checkout the target 'master' branch of 'flutter-app-secrets'
         id: checkout-secrets
         uses: actions/checkout@v3
@@ -69,12 +73,23 @@ jobs:
         run: |
           cd main-repo
           melos run 4mat
-      - name: Generate locales
-        id: generate-locales
+      - name: Checkout PR branch (for locale commit/push)
         run: |
           cd main-repo
-          # Run locale generation with verification
-          ./scripts/generate_locales.sh
+          git fetch origin ${{ github.head_ref }}
+          git checkout ${{ github.head_ref }}
+      - name: Set git committer from PR HEAD
+        run: |
+          cd main-repo
+          git config --local user.name  "$(git log -1 --format='%cn')"
+          git config --local user.email "$(git log -1 --format='%ce')"
+      - name: Generate locales
+        id: generate-locales
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+        run: |
+          cd main-repo
+          bash ./scripts/auto_translate_locales.sh --commit
       - name: Generate code
         id: generate-code
         run: |

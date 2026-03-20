@@ -6,7 +6,7 @@
   "article_menu_report_article": "Segnala articolo",
   "article_page_from_author": "da {name}",
   "article_page_in_topic": "in {name}",
-  "article_preview_title": "Anteprima articolo",
+  "article_preview_title": "Aggiornamento dell'anteprima dell'articolo 4 e invio durante il lavoro precedente",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "Per continuare a utilizzare l'app, collega questo dispositivo al tuo account",
   "auth_link_new_device_link_button": "Collega dispositivo",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "Chi può rispondere a questo post",
   "who_can_reply_settings_title_video": "Chi può rispondere a questo video",
   "who_can_reply_settings_verified_accounts": "Account verificati",
-  "write_a_message": "Scrivi un messaggio...",
   "token_unable_to_fetch_market_data_title": "Impossibile recuperare i dati di mercato",
   "token_unable_to_fetch_market_data_description": "Stiamo recuperando le informazioni di mercato per questo token, riprova più tardi",
+  "write_a_message": "Scrivi un messaggio...",
   "your_position_card_title": "La tua posizione"
 }

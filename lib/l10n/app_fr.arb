@@ -6,7 +6,7 @@
   "article_menu_report_article": "Signaler l'article",
   "article_page_from_author": "de {name}",
   "article_page_in_topic": "dans {name}",
-  "article_preview_title": "Aperçu de l'article",
+  "article_preview_title": "Mise à jour de l'aperçu de l'article 4 et envoi pendant le travail précédent",
   "auth_identity_io": "Identity.io",
   "auth_link_new_device_description": "Pour continuer à utiliser l'application, veuillez lier cet appareil à votre compte",
   "auth_link_new_device_link_button": "Lier l'appareil",
@@ -1197,8 +1197,8 @@
   "who_can_reply_settings_title_post": "Qui peut répondre à cette publication",
   "who_can_reply_settings_title_video": "Qui peut répondre à cette vidéo",
   "who_can_reply_settings_verified_accounts": "Comptes vérifiés",
-  "write_a_message": "Écrire un message...",
   "token_unable_to_fetch_market_data_title": "Impossible de récupérer les données du marché",
   "token_unable_to_fetch_market_data_description": "Nous récupérons les informations du marché pour ce jeton, veuillez réessayer plus tard",
+  "write_a_message": "Écrire un message...",
   "your_position_card_title": "Votre position"
 }
