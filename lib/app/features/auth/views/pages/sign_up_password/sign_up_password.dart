@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/screen_offset/screen_side_offset.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/flows/return_to_existing_account_login.dart';
 import 'package:ion/app/features/auth/flows/run_sign_up_then_login.dart';
 import 'package:ion/app/features/auth/providers/auth_flow_action_notifier.r.dart';
+import 'package:ion/app/features/auth/providers/auth_screen_busy_provider.r.dart';
 import 'package:ion/app/features/auth/views/components/auth_footer/auth_footer.dart';
 import 'package:ion/app/features/auth/views/components/auth_scrolled_body/auth_scrolled_body.dart';
 import 'package:ion/app/features/auth/views/components/identity_key_name_input/identity_key_name_input.dart';
@@ -36,6 +39,8 @@ class SignUpPasswordPage extends HookConsumerWidget {
     final passwordConfirmationInputFocused = useState<bool>(false);
 
     final formKey = useRef(GlobalKey<FormState>());
+    final authFlowState = ref.watch(authFlowActionNotifierProvider);
+    final authScreenIsBusy = ref.watch(authScreenBusyProvider);
     final signUpLoginFallbackEnabled = ref
         .watch(featureFlagsProvider.notifier)
         .get(AuthFeatureFlag.signUpLoginFallbackOnUserAlreadyExists);
@@ -140,6 +145,17 @@ class SignUpPasswordPage extends HookConsumerWidget {
                         }
                       },
                     ),
+                    if (authFlowState.error is UserAlreadyExistsException) ...[
+                      SizedBox(height: 16.0.s),
+                      Button(
+                        type: ButtonType.outlined,
+                        disabled: authScreenIsBusy,
+                        onPressed:
+                            authScreenIsBusy ? null : () => returnToExistingAccountLogin(context),
+                        label: Text(context.i18n.profile_log_in_existing_account),
+                        mainAxisSize: MainAxisSize.max,
+                      ),
+                    ],
                     SizedBox(
                       height: 56.0.s,
                     ),

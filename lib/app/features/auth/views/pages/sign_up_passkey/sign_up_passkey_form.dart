@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ion/app/components/button/button.dart';
 import 'package:ion/app/components/progress_bar/ion_loading_indicator.dart';
 import 'package:ion/app/extensions/extensions.dart';
+import 'package:ion/app/features/auth/flows/return_to_existing_account_login.dart';
 import 'package:ion/app/features/auth/flows/run_sign_up_then_login.dart';
 import 'package:ion/app/features/auth/providers/auth_flow_action_notifier.r.dart';
 import 'package:ion/app/features/auth/providers/auth_screen_busy_provider.r.dart';
@@ -87,6 +88,17 @@ class SignUpPasskeyForm extends HookConsumerWidget {
             label: Text(context.i18n.button_continue),
             mainAxisSize: MainAxisSize.max,
           ),
+          if (authFlowState.error is UserAlreadyExistsException) ...[
+            SizedBox(height: 16.0.s),
+            Button(
+              type: ButtonType.outlined,
+              disabled: authScreenIsBusy,
+              // Return to normal sign-in, including its passkey and 2FA checks.
+              onPressed: authScreenIsBusy ? null : () => returnToExistingAccountLogin(context),
+              label: Text(context.i18n.profile_log_in_existing_account),
+              mainAxisSize: MainAxisSize.max,
+            ),
+          ],
         ],
       ),
     );
